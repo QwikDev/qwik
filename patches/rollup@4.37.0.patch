@@ -1,0 +1,416 @@
+diff --git a/dist/bin/rollup b/dist/bin/rollup
+index 69697b08eaf38398be14d44fa6a2293f134084bf..0b36dca5731cfff6c033a545894076432a40f06a 100755
+--- a/dist/bin/rollup
++++ b/dist/bin/rollup
+@@ -2,7 +2,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/es/getLogFilter.js b/dist/es/getLogFilter.js
+index 511a2ed7d9e05c21ac369fa7e57ba35071b98ae8..4b069a19b5b33870f1fa2141494f6849a643119d 100644
+--- a/dist/es/getLogFilter.js
++++ b/dist/es/getLogFilter.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/es/parseAst.js b/dist/es/parseAst.js
+index 251083c2bdd1ba5aa199dcf88def64b79d4645cc..8f5a10591e6ba4867f63c591fd3f7b5812d4ccee 100644
+--- a/dist/es/parseAst.js
++++ b/dist/es/parseAst.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/es/rollup.js b/dist/es/rollup.js
+index 55e62bc16c607b22ae6a76b9020d3bab007593ee..73f23a318eed91aa09b73eb37ac5ad740410e859 100644
+--- a/dist/es/rollup.js
++++ b/dist/es/rollup.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/es/shared/node-entry.js b/dist/es/shared/node-entry.js
+index 73b50b7e5d578ca1f1a263635a803a7f18d83dbf..e82578050b093e49fa362e20feb9dbe4b51cee6e 100644
+--- a/dist/es/shared/node-entry.js
++++ b/dist/es/shared/node-entry.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+@@ -17964,6 +17964,8 @@ class Chunk {
+         this.renderedModules = Object.create(null);
+         this.sortedExportNames = null;
+         this.strictFacade = false;
++        /** Modules with 'allow-extension' that should have preserved exports within the chunk */
++        this.allowExtensionModules = new Set();
+         this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
+         const chunkModules = new Set(orderedModules);
+         for (const module of orderedModules) {
+@@ -18069,6 +18071,16 @@ class Chunk {
+                 remainingExports.delete(variable);
+             }
+         }
++        for (const module of this.allowExtensionModules) {
++            const exportNamesByVariable = module.getExportNamesByVariable();
++            for (const [variable, exportNames] of exportNamesByVariable) {
++                this.exportNamesByVariable.set(variable, [...exportNames]);
++                for (const exportName of exportNames) {
++                    this.exportsByName.set(exportName, variable);
++                }
++                remainingExports.delete(variable);
++            }
++        }
+         if (this.outputOptions.minifyInternalExports) {
+             assignExportsToMangledNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
+         }
+@@ -18082,17 +18094,25 @@ class Chunk {
+         const facades = [];
+         const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
+         const exposedVariables = new Set(this.dynamicEntryModules.map(({ namespace }) => namespace));
++        // Temporary set to check for conflicts
++        const knownExportNames = new Set();
++        for (const name of this.exportsByName.keys()) {
++            knownExportNames.add(name);
++        }
+         for (const module of entryModules) {
+-            if (module.preserveSignature) {
+-                for (const exportedVariable of module.getExportNamesByVariable().keys()) {
+-                    // We need to expose all entry exports from this chunk
+-                    if (this.chunkByModule.get(exportedVariable.module) === this) {
+-                        exposedVariables.add(exportedVariable);
++            if (module.preserveSignature === 'allow-extension') {
++                const canPreserveExports = this.canPreserveModuleExports(module, knownExportNames);
++                if (canPreserveExports) {
++                    this.allowExtensionModules.add(module);
++                    if (!this.facadeModule) {
++                        this.facadeModule = module;
++                        this.strictFacade = false;
++                        this.assignFacadeName({}, module, this.outputOptions.preserveModules);
+                     }
++                    this.facadeChunkByModule.set(module, this);
++                    continue;
+                 }
+             }
+-        }
+-        for (const module of entryModules) {
+             const requiredFacades = Array.from(new Set(module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)), 
+             // mapping must run after Set 'name' dedupe
+             name => ({
+@@ -18147,6 +18167,31 @@ class Chunk {
+         }
+         return facades;
+     }
++    canPreserveModuleExports(module, knownExportNames) {
++        const exportNamesByVariable = module.getExportNamesByVariable();
++        // Check for conflicts - an export name is a conflict if it points to a different module or definition
++        for (const [variable, exportNames] of exportNamesByVariable) {
++            for (const exportName of exportNames) {
++                if (knownExportNames.has(exportName)) {
++                    const existingVariable = this.exportsByName.get(exportName);
++                    // It's ok if the same export name in two modules references the exact same variable
++                    if (existingVariable && existingVariable !== variable) {
++                        return false;
++                    }
++                }
++            }
++        }
++        // No actual conflicts found, add export names for future conflict checks
++        for (const [variable, exportNames] of exportNamesByVariable) {
++            for (const exportName of exportNames) {
++                knownExportNames.add(exportName);
++                if (!this.exportsByName.has(exportName)) {
++                    this.exportsByName.set(exportName, variable);
++                }
++            }
++        }
++        return true;
++    }
+     getChunkName() {
+         return (this.name ??= this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
+     }
+diff --git a/dist/es/shared/parseAst.js b/dist/es/shared/parseAst.js
+index b7f9a1c143a11352f335936a1157c03b588f9139..d95951c70cba6c12c38a0a942743a3def5314c86 100644
+--- a/dist/es/shared/parseAst.js
++++ b/dist/es/shared/parseAst.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/es/shared/watch.js b/dist/es/shared/watch.js
+index 64df77b1a8fe83e826df98f804f2149fd5c0a8be..169640063f165b8f64b753d6df074d7820a698c1 100644
+--- a/dist/es/shared/watch.js
++++ b/dist/es/shared/watch.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/getLogFilter.js b/dist/getLogFilter.js
+index e97e6f6d36f98d0356f09fecc5750ebdf3d22ec9..00ac02cdcc9599dc73c9a8e84a1a2a7abeba0213 100644
+--- a/dist/getLogFilter.js
++++ b/dist/getLogFilter.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/loadConfigFile.js b/dist/loadConfigFile.js
+index 54447b7937a8135520b89fd17524a66acf89d2f9..a4e6eef6d05b82190bba17f56f45094d72d87dfa 100644
+--- a/dist/loadConfigFile.js
++++ b/dist/loadConfigFile.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/parseAst.js b/dist/parseAst.js
+index 3e69a1e71d970ee2a2bda46c4b8d3d3e82ee25c8..f6f7e2a2a75a6b2aa731c8627c4ee986476d126f 100644
+--- a/dist/parseAst.js
++++ b/dist/parseAst.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/rollup.js b/dist/rollup.js
+index d7fa6574baa0c413444013b6de5686c80e40c805..dfff87171f6579666955bb56303fc3a61743a4bb 100644
+--- a/dist/rollup.js
++++ b/dist/rollup.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/fsevents-importer.js b/dist/shared/fsevents-importer.js
+index ff5106408927bcfa4725386bef6c0ee3b33abed6..bf9a47c87f10b2f966fbd83801cff3a025dc3ef5 100644
+--- a/dist/shared/fsevents-importer.js
++++ b/dist/shared/fsevents-importer.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/index.js b/dist/shared/index.js
+index 0e89cb37c45480a3667b09fffc5bb6275012fbbd..50be50bec5c689e49b4e0cbce6dae9093fb7c13d 100644
+--- a/dist/shared/index.js
++++ b/dist/shared/index.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/loadConfigFile.js b/dist/shared/loadConfigFile.js
+index 47281dfb4dbb868e31e5203cf7e67629d4b25c16..511671e343bab6a2d0dd450ad52b644fc6ba2c25 100644
+--- a/dist/shared/loadConfigFile.js
++++ b/dist/shared/loadConfigFile.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/parseAst.js b/dist/shared/parseAst.js
+index 30ee4febc3ac6ba49e8b803958ad38353637b982..253a29ba7f1a666da041329b02c19aab4c9d53c0 100644
+--- a/dist/shared/parseAst.js
++++ b/dist/shared/parseAst.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/rollup.js b/dist/shared/rollup.js
+index d32853116f91e961d3accf2039ea1cfa11060fa0..1628b4d007ff03f563262de3f0f1c811a58fffa0 100644
+--- a/dist/shared/rollup.js
++++ b/dist/shared/rollup.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+@@ -19316,6 +19316,8 @@ class Chunk {
+         this.renderedModules = Object.create(null);
+         this.sortedExportNames = null;
+         this.strictFacade = false;
++        /** Modules with 'allow-extension' that should have preserved exports within the chunk */
++        this.allowExtensionModules = new Set();
+         this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
+         const chunkModules = new Set(orderedModules);
+         for (const module of orderedModules) {
+@@ -19421,6 +19423,16 @@ class Chunk {
+                 remainingExports.delete(variable);
+             }
+         }
++        for (const module of this.allowExtensionModules) {
++            const exportNamesByVariable = module.getExportNamesByVariable();
++            for (const [variable, exportNames] of exportNamesByVariable) {
++                this.exportNamesByVariable.set(variable, [...exportNames]);
++                for (const exportName of exportNames) {
++                    this.exportsByName.set(exportName, variable);
++                }
++                remainingExports.delete(variable);
++            }
++        }
+         if (this.outputOptions.minifyInternalExports) {
+             assignExportsToMangledNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
+         }
+@@ -19434,17 +19446,25 @@ class Chunk {
+         const facades = [];
+         const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
+         const exposedVariables = new Set(this.dynamicEntryModules.map(({ namespace }) => namespace));
++        // Temporary set to check for conflicts
++        const knownExportNames = new Set();
++        for (const name of this.exportsByName.keys()) {
++            knownExportNames.add(name);
++        }
+         for (const module of entryModules) {
+-            if (module.preserveSignature) {
+-                for (const exportedVariable of module.getExportNamesByVariable().keys()) {
+-                    // We need to expose all entry exports from this chunk
+-                    if (this.chunkByModule.get(exportedVariable.module) === this) {
+-                        exposedVariables.add(exportedVariable);
++            if (module.preserveSignature === 'allow-extension') {
++                const canPreserveExports = this.canPreserveModuleExports(module, knownExportNames);
++                if (canPreserveExports) {
++                    this.allowExtensionModules.add(module);
++                    if (!this.facadeModule) {
++                        this.facadeModule = module;
++                        this.strictFacade = false;
++                        this.assignFacadeName({}, module, this.outputOptions.preserveModules);
+                     }
++                    this.facadeChunkByModule.set(module, this);
++                    continue;
+                 }
+             }
+-        }
+-        for (const module of entryModules) {
+             const requiredFacades = Array.from(new Set(module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)), 
+             // mapping must run after Set 'name' dedupe
+             name => ({
+@@ -19499,6 +19519,31 @@ class Chunk {
+         }
+         return facades;
+     }
++    canPreserveModuleExports(module, knownExportNames) {
++        const exportNamesByVariable = module.getExportNamesByVariable();
++        // Check for conflicts - an export name is a conflict if it points to a different module or definition
++        for (const [variable, exportNames] of exportNamesByVariable) {
++            for (const exportName of exportNames) {
++                if (knownExportNames.has(exportName)) {
++                    const existingVariable = this.exportsByName.get(exportName);
++                    // It's ok if the same export name in two modules references the exact same variable
++                    if (existingVariable && existingVariable !== variable) {
++                        return false;
++                    }
++                }
++            }
++        }
++        // No actual conflicts found, add export names for future conflict checks
++        for (const [variable, exportNames] of exportNamesByVariable) {
++            for (const exportName of exportNames) {
++                knownExportNames.add(exportName);
++                if (!this.exportsByName.has(exportName)) {
++                    this.exportsByName.set(exportName, variable);
++                }
++            }
++        }
++        return true;
++    }
+     getChunkName() {
+         return (this.name ??= this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
+     }
+diff --git a/dist/shared/watch-cli.js b/dist/shared/watch-cli.js
+index aef43508b3db5f6423cc31be7b219b8270c51800..7b2b8fbb9a9952f1db77a1ea3b741a51e14a0c55 100644
+--- a/dist/shared/watch-cli.js
++++ b/dist/shared/watch-cli.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 
+diff --git a/dist/shared/watch.js b/dist/shared/watch.js
+index 8296973fc81f227d15e2bacf9502ca8f71036df7..94db8c703958731b188eb8fd477817ce072ef693 100644
+--- a/dist/shared/watch.js
++++ b/dist/shared/watch.js
+@@ -1,7 +1,7 @@
+ /*
+   @license
+ 	Rollup.js v4.37.0
+-	Sun, 23 Mar 2025 14:56:38 GMT - commit 8b1c634d945dda9294cf579de68c4b223c618e7f
++	Tue, 01 Jan 1980 00:00:00 GMT - commit 97f38a8b9adc8bde52f4abfd67c755d9393c7ebf
+ 
+ 	https://github.com/rollup/rollup
+ 

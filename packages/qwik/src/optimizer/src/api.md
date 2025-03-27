@@ -169,9 +169,11 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 export interface QwikBundle {
     dynamicImports?: string[];
     imports?: string[];
+    interactivity?: number;
     origins?: string[];
     size: number;
     symbols?: string[];
+    total: number;
 }
 
 // @public
@@ -179,6 +181,7 @@ export type QwikBundleGraph = Array<string | number>;
 
 // @public
 export interface QwikManifest {
+    bundleGraph?: QwikBundleGraph;
     bundles: {
         [fileName: string]: QwikBundle;
     };
@@ -187,15 +190,13 @@ export interface QwikManifest {
     mapping: {
         [symbolName: string]: string;
     };
-    // (undocumented)
     options?: {
         target?: string;
         buildMode?: string;
         entryStrategy?: {
-            [key: string]: any;
+            type: EntryStrategy['type'];
         };
     };
-    // (undocumented)
     platform?: {
         [name: string]: string;
     };
@@ -203,7 +204,6 @@ export interface QwikManifest {
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
-    // (undocumented)
     version: string;
 }
 
@@ -301,6 +301,8 @@ export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSR
 
 // @public (undocumented)
 export interface ResolvedManifest {
+    // (undocumented)
+    injections: GlobalInjections[];
     // (undocumented)
     manifest: QwikManifest;
     // (undocumented)

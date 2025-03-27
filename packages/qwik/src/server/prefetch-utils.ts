@@ -1,39 +1,13 @@
 import type { PrefetchResource } from './types';
 
-// TODO deprecation message and fallback to preload
-export function workerFetchScript() {
-  const fetch = `Promise.all(e.data.map(u=>fetch(u))).finally(()=>{setTimeout(postMessage({}),9999)})`;
-
-  const workerBody = `onmessage=(e)=>{${fetch}}`;
-
-  const blob = `new Blob(['${workerBody}'],{type:"text/javascript"})`;
-
-  const url = `URL.createObjectURL(${blob})`;
-
-  let s = `const w=new Worker(${url});`;
-
-  // `u` variable must somehow get within this closure
-  s += `w.postMessage(u.map(u=>new URL(u,origin)+''));`;
-  s += `w.onmessage=()=>{w.terminate()};`;
-
-  return s;
-}
-
-export function prefetchUrlsEventScript(base: string, prefetchResources: PrefetchResource[]) {
-  // TODO convert links to bundles
-  // see how preload() can be leveraged during
-  return '';
-}
-
 export function flattenPrefetchResources(prefetchResources: PrefetchResource[]) {
-  const urls = new Map<string, boolean>();
-  const addPrefetchResource = (prefetchResources: PrefetchResource[]) => {
-    if (Array.isArray(prefetchResources)) {
+  const urls: string[] = [];
+  const addPrefetchResource = (prefetchResources?: PrefetchResource[]) => {
+    if (prefetchResources) {
       for (const prefetchResource of prefetchResources) {
-        const prev = urls.get(prefetchResource.url);
-        if (!prev) {
-          urls.set(prefetchResource.url, prefetchResource.priority);
-          if (prev === undefined) {
+        if (!urls.includes(prefetchResource.url)) {
+          urls.push(prefetchResource.url);
+          if (prefetchResource.imports) {
             addPrefetchResource(prefetchResource.imports);
           }
         }
@@ -49,7 +23,7 @@ export function getMostReferenced(prefetchResources: PrefetchResource[]) {
   const common = new Map<string, number>();
   let total = 0;
   const addPrefetchResource = (prefetchResources: PrefetchResource[], visited: Set<string>) => {
-    if (Array.isArray(prefetchResources)) {
+    if (prefetchResources) {
       for (const prefetchResource of prefetchResources) {
         const count = common.get(prefetchResource.url) || 0;
         common.set(prefetchResource.url, count + 1);

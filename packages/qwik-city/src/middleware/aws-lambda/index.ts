@@ -5,7 +5,7 @@ import type { QwikManifest, Render } from 'packages/qwik/src/server/types';
 
 interface AwsOpt {
   render: Render;
-  manifest: QwikManifest;
+  manifest?: QwikManifest;
   qwikCityPlan: QwikCityPlan;
 }
 

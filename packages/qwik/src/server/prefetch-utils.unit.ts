@@ -7,14 +7,7 @@ test('flattenPrefetchResources, no imports', () => {
     { url: 'b.js', imports: [], priority: true },
     { url: 'c.js', imports: [], priority: false },
   ];
-  assert.deepEqual(
-    flattenPrefetchResources(p),
-    new Map([
-      ['a.js', false],
-      ['b.js', true],
-      ['c.js', false],
-    ])
-  );
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'b.js', 'c.js']);
 });
 
 test('flattenPrefetchResources, w/ imports', () => {
@@ -53,15 +46,5 @@ test('flattenPrefetchResources, w/ imports', () => {
       priority: false,
     },
   ];
-  assert.deepEqual(
-    flattenPrefetchResources(p),
-    new Map([
-      ['a.js', false],
-      ['x.js', false],
-      ['y.js', false],
-      ['b.js', true],
-      ['c.js', false],
-      ['z.js', false],
-    ])
-  );
+  assert.deepEqual(flattenPrefetchResources(p), ['a.js', 'x.js', 'y.js', 'b.js', 'c.js', 'z.js']);
 });

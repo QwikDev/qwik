@@ -1,14 +1,14 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
 import type {
   QwikManifest,
-  SymbolMapperFn,
-  SymbolMapper,
   ResolvedManifest,
+  SymbolMapper,
+  SymbolMapperFn,
 } from '@builder.io/qwik/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {
-  manifest?: QwikManifest | ResolvedManifest;
+  manifest?: Partial<QwikManifest | ResolvedManifest>;
   symbolMapper?: SymbolMapperFn;
   debug?: boolean;
 }
@@ -22,43 +22,52 @@ export interface PrefetchStrategy {
 /** @public */
 export interface PrefetchImplementation {
   /**
-   * `js-append`: Use JS runtime to create each `<link>` and append to the head.
+   * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
+   * bundles before the preloader script is active. This includes the 2 preloads used for the
+   * preloader script itself and the bundle information. Setting this to 0 will disable all preload
+   * links.
    *
-   * `html-append`: Render each `<link>` within html, appended at the end of the body.
-   *
-   * Defaults to `js-append`.
+   * Defaults to `5`
    */
-  linkInsert?: 'js-append' | 'html-append' | null;
-  /** Value of the `<link rel="...">` attribute when link is used. Defaults to `modulepreload`. */
+  maxPreloads?: number;
+  /**
+   * The minimum probability of a bundle to be added as a preload link during SSR.
+   *
+   * Defaults to `0.6` (60% probability)
+   */
+  minProbability?: number;
+  /**
+   * If true, the preloader will log debug information to the console.
+   *
+   * Defaults to `false`
+   */
+  debug?: boolean;
+  /**
+   * Maximum number of simultaneous preload links that the preloader will maintain.
+   *
+   * Defaults to `5`
+   */
+  maxSimultaneousPreloads?: number;
+  /**
+   * The minimum probability for a bundle to be added to the preload queue.
+   *
+   * Defaults to `0.25` (25% probability)
+   */
+  minPreloadProbability?: number;
+  /**
+   * Value of the `<link rel="...">` attribute when links are added. The preloader itself will
+   * autodetect which attribute to use based on the browser capabilities.
+   *
+   * Defaults to `modulepreload`.
+   */
   linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-  /** Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null`. */
+  /** Value of the `<link fetchpriority="...">` attribute when links are added. Defaults to `null`. */
   linkFetchPriority?: 'auto' | 'low' | 'high' | null;
-  /**
-   * `always`: Always include the worker fetch JS runtime.
-   *
-   * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support
-   * `<link>` prefetch/preload/modulepreload.
-   *
-   * Defaults to `null`.
-   *
-   * @deprecated Use `linkInsert` instead
-   */
+  /** @deprecated No longer used. */
+  linkInsert?: 'js-append' | 'html-append' | null;
+  /** @deprecated No longer used. */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
-  /**
-   * Dispatch a `qprefetch` event with detail data containing the bundles that should be prefetched.
-   * The event dispatch script will be inlined into the document's HTML so any listeners of this
-   * event should already be ready to handle the event.
-   *
-   * This implementation will inject a script similar to:
-   *
-   * ```
-   * <script type="module">
-   *   document.dispatchEvent(new CustomEvent("qprefetch", { detail:{ "bundles": [...] } }))
-   * </script>
-   * ```
-   *
-   * By default, the `prefetchEvent` implementation will be set to `null`.
-   */
+  /** @deprecated No longer used. */
   prefetchEvent?: 'always' | null;
 }
 
@@ -73,7 +82,6 @@ export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => 
 export interface PrefetchResource {
   url: string;
   imports: PrefetchResource[];
-  priority: boolean;
 }
 
 /** @public */
@@ -102,8 +110,6 @@ export interface RenderResult {
   snapshotResult: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: QwikManifest;
-  /** @internal TODO: Move to snapshotResult */
-  _symbols?: string[];
 }
 
 /** @public */
@@ -201,4 +207,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
-export type { SnapshotResult, SymbolMapper, QwikManifest, StreamWriter };
+export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

@@ -9,8 +9,7 @@ import type {
   QwikManifest,
   TransformModule,
 } from '../types';
-import { versions } from '../versions';
-import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
+import { type BundleGraphAdder } from './bundle-graph';
 import { getImageSizeServer } from './image-size-server';
 import {
   CLIENT_OUT_DIR,
@@ -20,11 +19,9 @@ import {
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
-  Q_MANIFEST_FILENAME,
   SSR_OUT_DIR,
   TRANSFORM_REGEX,
   createQwikPlugin,
-  parseId,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
@@ -34,6 +31,7 @@ import {
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
+import { parseId } from './vite-utils';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -486,7 +484,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
-  };
+  } as const satisfies VitePlugin<QwikVitePluginApi>;
 
   const vitePluginPost: VitePlugin<never> = {
     name: 'vite-plugin-qwik-post',
@@ -499,7 +497,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         if (opts.target === 'client') {
           // client build
-          const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
 
           for (const [fileName, b] of Object.entries(rollupBundle)) {
             if (b.type === 'asset') {
@@ -543,53 +540,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          for (const i of injections) {
-            outputAnalyzer.addInjection(i);
-          }
+          const clientManifestStr = await qwikPlugin.generateManifest(
+            this,
+            rollupBundle,
+            bundleGraphAdders,
+            {
+              injections,
+              platform: { vite: '' },
+            }
+          );
 
-          const optimizer = qwikPlugin.getOptimizer();
-          const manifest = await outputAnalyzer.generateManifest();
-          manifest.platform = {
-            ...versions,
-            vite: '',
-            rollup: this.meta?.rollupVersion || '',
-            env: optimizer.sys.env,
-            os: optimizer.sys.os,
-          };
-          if (optimizer.sys.env === 'node') {
-            manifest.platform.node = process.versions.node;
-          }
-
-          const clientManifestStr = JSON.stringify(manifest, null, 2);
-          this.emitFile({
-            type: 'asset',
-            fileName: Q_MANIFEST_FILENAME,
-            source: clientManifestStr,
-          });
-          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
-          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();
-
-          const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
-
-          this.emitFile({
-            type: 'asset',
-            fileName: sys.path.join(
-              useAssetsDir ? assetsDir : '',
-              'build',
-              `q-bundle-graph-${manifest.manifestHash}.json`
-            ),
-            source: JSON.stringify(bundleGraph),
-          });
-
-          if (typeof opts.manifestOutput === 'function') {
-            await opts.manifestOutput(manifest);
-          }
-
-          if (typeof opts.transformedModuleOutput === 'function') {
-            await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-          }
-
           if (tmpClientManifestPath && sys.env === 'node') {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
@@ -728,7 +689,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         return false;
       }
     },
-  };
+  } as const satisfies VitePlugin<QwikVitePluginApi>;
 
   return [vitePluginPre, vitePluginPost];
 }
@@ -866,7 +827,7 @@ const findQwikRoots = async (
         } catch (e) {
           console.error(e);
         }
-      } catch (e) {
+      } catch {
         // ignore errors if package.json not found
       }
       prevPackageJsonDir = packageJsonDir;

@@ -1,32 +1,31 @@
-import type {
-  RequestEvent,
-  RequestEventLoader,
-  ServerRequestEvent,
-  ServerRequestMode,
-  RequestHandler,
-  RequestEventCommon,
-  ResolveValue,
-  QwikSerializer,
-  CacheControlTarget,
-  CacheControl,
-} from './types';
+import type { ValueOrPromise } from '@builder.io/qwik';
+import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
+  FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
-  FailReturn,
 } from '../../runtime/src/types';
+import { isPromise } from './../../runtime/src/utils';
+import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
+import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
-import { createCacheControl } from './cache-control';
-import type { ValueOrPromise } from '@builder.io/qwik';
-import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type {
+  CacheControl,
+  CacheControlTarget,
+  QwikSerializer,
+  RequestEvent,
+  RequestEventCommon,
+  RequestEventLoader,
+  RequestHandler,
+  ResolveValue,
+  ServerRequestEvent,
+  ServerRequestMode,
+} from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
-import { isPromise } from './../../runtime/src/utils';
-import { QDATA_KEY } from '../../runtime/src/constants';
-import { ServerError } from './error-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -42,7 +41,6 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
@@ -61,7 +59,6 @@ export function createRequestEvent(
     }
     sharedMap.set(IsQData, true);
   }
-  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;

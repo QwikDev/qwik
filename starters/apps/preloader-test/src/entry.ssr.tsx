@@ -14,16 +14,16 @@ import {
   renderToStream,
   type RenderToStreamOptions,
 } from "@builder.io/qwik/server";
-import { manifest } from "@qwik-client-manifest";
 import Root from "./root";
 
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    manifest,
     prefetchStrategy: {
       implementation: {
-        linkInsert: "js-append",
-        // linkInsert: "html-append",
+        debug: true,
+        minProbability: 0.5,
+        maxSimultaneousPreloads: 10,
+        minPreloadProbability: 0.25,
       },
     },
     ...opts,

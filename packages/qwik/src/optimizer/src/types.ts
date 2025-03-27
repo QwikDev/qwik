@@ -223,18 +223,32 @@ export interface QwikManifest {
   mapping: { [symbolName: string]: string };
   /** All code bundles, used to know the import graph */
   bundles: { [fileName: string]: QwikBundle };
-  /** The preloader bundle */
+  /** All bundles in a compact graph format with probabilities */
+  bundleGraph?: QwikBundleGraph;
+  /** The preloader bundle fileName */
   preloader?: string;
   /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
+  /** The version of the manifest */
   version: string;
+  /** The options used to build the manifest */
   options?: {
     target?: string;
     buildMode?: string;
-    entryStrategy?: { [key: string]: any };
+    entryStrategy?: { type: EntryStrategy['type'] };
   };
+  /** The platform used to build the manifest */
   platform?: { [name: string]: string };
 }
+/**
+ * The manifest values that are needed for SSR.
+ *
+ * @public
+ */
+export type ServerQwikManifest = Pick<
+  QwikManifest,
+  'manifestHash' | 'injections' | 'bundleGraph' | 'mapping' | 'preloader'
+>;
 
 /**
  * Bundle graph.
@@ -273,6 +287,10 @@ export interface QwikSymbol {
 export interface QwikBundle {
   /** Size of the bundle */
   size: number;
+  /** Total size of this bundle's static import graph */
+  total: number;
+  /** Interactivity score of the bundle */
+  interactivity?: number;
   /** Symbols in the bundle */
   symbols?: string[];
   /** Direct imports */
@@ -326,4 +344,5 @@ export interface Path {
 export interface ResolvedManifest {
   mapper: SymbolMapper;
   manifest: QwikManifest;
+  injections: GlobalInjections[];
 }

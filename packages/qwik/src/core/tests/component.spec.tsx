@@ -8,6 +8,7 @@ import {
   Fragment as Signal,
   SkipRender,
   Slot,
+  _jsxSorted,
   component$,
   h,
   jsx,
@@ -28,7 +29,8 @@ import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
-import { QContainerAttr } from '../shared/utils/markers';
+import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
+import { vnode_getParent, vnode_getProp, vnode_locate } from '../client/vnode';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -2038,6 +2040,56 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should remove component with null key when it is compared with fragment with null key', async () => {
+    const InnerCmp = component$(() => {
+      return <div>InnerCmp</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? (
+            <InnerCmp key={null} />
+          ) : (
+            <Fragment key={null}>
+              <h1>Test</h1>
+            </Fragment>
+          )}
+        </>
+      );
+    });
+
+    const { vNode, document, container } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>InnerCmp</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Fragment ssr-required>
+            <h1>Test</h1>
+          </Fragment>
+        </Fragment>
+      </Component>
+    );
+    const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
+
+    expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
   });
 
   describe('regression', () => {

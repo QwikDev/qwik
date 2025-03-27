@@ -1,21 +1,20 @@
 import { partytownVite } from '@builder.io/partytown/utils';
 import { qwikCity } from '@builder.io/qwik-city/vite';
-import { qwikInsights } from '@builder.io/qwik-labs/vite';
+// import { qwikInsights } from '@builder.io/qwik-labs/vite';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import path, { resolve } from 'node:path';
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import tailwindcss from '@tailwindcss/vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import shikiRehype from '@shikijs/rehype';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import type { ShikiTransformer } from '@shikijs/types';
 
-const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+// const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
 
 // https://github.com/vitejs/vite/issues/15012#issuecomment-1825035992
@@ -184,7 +183,7 @@ export default defineConfig(async () => {
       sourceResolver(docsDir),
       qwikReact(),
       Inspect(),
-      qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      // qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
     optimizeDeps: {

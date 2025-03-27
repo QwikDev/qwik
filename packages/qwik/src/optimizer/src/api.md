@@ -167,17 +167,10 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 // @public (undocumented)
 export interface QwikBundle {
-    // (undocumented)
     dynamicImports?: string[];
-    // (undocumented)
-    hasSymbols?: boolean;
-    // (undocumented)
     imports?: string[];
-    // (undocumented)
     origins?: string[];
-    // (undocumented)
     size: number;
-    // (undocumented)
     symbols?: string[];
 }
 
@@ -244,7 +237,7 @@ export interface QwikSymbol {
     // (undocumented)
     captures: boolean;
     // (undocumented)
-    ctxKind: 'function' | 'event';
+    ctxKind: 'function' | 'eventHandler';
     // (undocumented)
     ctxName: string;
     // (undocumented)
@@ -320,7 +313,7 @@ interface SegmentAnalysis {
     // (undocumented)
     captures: boolean;
     // (undocumented)
-    ctxKind: 'event' | 'function';
+    ctxKind: 'eventHandler' | 'function';
     // (undocumented)
     ctxName: string;
     // (undocumented)

@@ -4,8 +4,8 @@ import {
   useStyles$,
   useContext,
   useVisibleTask$,
-  useSignal,
   type PropsOf,
+  useSignal,
 } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
@@ -168,7 +168,7 @@ export const Header = component$(() => {
           </ul>
         </div>
         <DocSearch
-          bind:open={shouldActivate}
+          isOpen={shouldActivate}
           appId={import.meta.env.VITE_ALGOLIA_APP_ID}
           apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
           indexName={import.meta.env.VITE_ALGOLIA_INDEX}

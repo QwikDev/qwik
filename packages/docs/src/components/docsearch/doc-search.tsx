@@ -35,9 +35,9 @@ export type DocSearchState = {
   initialQuery?: string;
 };
 export interface DocSearchProps {
+  isOpen: Signal<boolean>;
   appId: string;
   apiKey: string;
-  'bind:open': Signal<boolean>;
   indexName: string;
   transformItems$?: (items: DocSearchHit[]) => DocSearchHit[];
   transformSearchClient?: (searchClient: SearchClient) => SearchClient;
@@ -87,20 +87,20 @@ export const DocSearch = component$((props: DocSearchProps) => {
             // We check that no other DocSearch modal is showing before opening
             // another one.
             if (!document.body.classList.contains('DocSearch--active')) {
-              props['bind:open'].value = true;
+              props.isOpen.value = true;
             }
           }
           if (
-            (event.key === 'Escape' && props['bind:open'].value) ||
+            (event.key === 'Escape' && props.isOpen.value) ||
             // The `Cmd+K` shortcut both opens and closes the modal.
             (event.key === 'k' && (event.metaKey || event.ctrlKey)) ||
             // The `/` shortcut opens but doesn't close the modal because it's
             // a character.
-            (!isEditingContent(event) && event.key === '/' && !props['bind:open'].value)
+            (!isEditingContent(event) && event.key === '/' && !props.isOpen.value)
           ) {
             event.preventDefault();
-            if (props['bind:open'].value) {
-              props['bind:open'].value = false;
+            if (props.isOpen.value) {
+              props.isOpen.value = false;
             } else if (!document.body.classList.contains('DocSearch--active')) {
               open();
             }
@@ -108,7 +108,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
 
           if (searchButtonRef && searchButtonRef.value === document.activeElement) {
             if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
-              props['bind:open'].value = true;
+              props.isOpen.value = true;
               state.initialQuery = event.key;
             }
           }
@@ -119,7 +119,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
         <Modal.Panel>
           {props.isOpen.value && (
             <DocSearchModal
-              bind:open={props['bind:open']}
+              isOpen={props.isOpen}
               aiResultOpen={aiResultOpen.value}
               indexName={props.indexName}
               apiKey={props.apiKey}

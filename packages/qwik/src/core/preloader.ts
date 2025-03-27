@@ -52,6 +52,7 @@ const preloadStr = 'preload';
 
 let highCount = 0;
 let lowCount = 0;
+const max = 11;
 /**
  * This is called when a bundle is queued or finished loading.
  *
@@ -61,11 +62,11 @@ let lowCount = 0;
  * We make sure to first empty the high priority items, first-in-last-out.
  */
 const trigger = () => {
-  while (highCount < 6 && high.length) {
+  while (highCount < max && high.length) {
     const bundle = high.pop()!;
     preloadOne(bundle!, true);
   }
-  while (highCount + lowCount < 6 && low.length) {
+  while (highCount + lowCount < max && low.length) {
     const bundle = low.pop()!;
     preloadOne(bundle!);
   }
@@ -108,8 +109,13 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
 
   bundle.$state$ = BundleImportState.Loading;
   /** Now that we processed the bundle, its dependencies are needed ASAP */
-  preload(bundle.$dynamicImports$);
-  preload(bundle.$imports$, priority);
+  if (priority) {
+    // make sure to queue the high priority imports first so they preloaded before the low priority ones
+    preload(bundle.$imports$, priority);
+    preload(bundle.$dynamicImports$);
+  } else {
+    preload([...bundle.$imports$, ...bundle.$dynamicImports$]);
+  }
 };
 
 const makeBundle = (path: string, imports: string[], dynamicImports: string[]) => {
@@ -165,8 +171,7 @@ const parseBundleGraph = (text: string, base: string) => {
   for (const name of toProcess) {
     const bundle = bundles.get(name)!;
     // we assume low priority
-    preload(bundle.$dynamicImports$);
-    preload(bundle.$imports$);
+    preload([...bundle.$imports$, ...bundle.$dynamicImports$]);
   }
 };
 

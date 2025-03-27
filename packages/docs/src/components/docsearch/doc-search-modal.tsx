@@ -107,11 +107,6 @@ export const DocSearchModal = component$(
     useTask$(() => {
       if (isBrowser) {
         document.body.classList.add('DocSearch--active');
-        const isMobileMediaQuery = window.matchMedia('(max-width: 768px)');
-
-        if (isMobileMediaQuery.matches) {
-          state.snippetLength = 5;
-        }
 
         return () => {
           document.body.classList.remove('DocSearch--active');
@@ -168,22 +163,13 @@ export const DocSearchModal = component$(
         tabIndex={0}
         onMouseDown$={(event) => {
           if (event.target === containerRef.value) {
-            prop['bind:open'].value = false;
-            //state.isOpen.value = false;
+            isOpen.value = false;
           }
         }}
       >
         <div class="DocSearch-Modal" ref={modalRef}>
           <header class="DocSearch-SearchBar" ref={formElementRef}>
-            <SearchBox
-              state={state}
-              autoFocus={true}
-              inputRef={inputRef as any}
-              onClose$={() => {
-                //state.isOpen.value = false;
-                prop['bind:open'].value = false;
-              }}
-            />
+            <SearchBox isOpen={isOpen} state={state} autoFocus={true} inputRef={inputRef as any} />
           </header>
 
           <div class="DocSearch-Dropdown" ref={dropdownRef}>

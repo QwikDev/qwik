@@ -207,6 +207,7 @@ export interface QwikManifest {
     platform?: {
         [name: string]: string;
     };
+    preloader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };

@@ -1,4 +1,11 @@
-import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useSignal,
+  noSerialize,
+  useContextProvider,
+  useTask$,
+  type Signal,
+} from '@builder.io/qwik';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';
@@ -23,6 +30,7 @@ export type DocSearchModalProps = DocSearchProps & {
   translations?: ModalTranslations;
   state: DocSearchState;
   aiResultOpen?: boolean;
+  isOpen: Signal<boolean>;
 };
 
 export const DocSearchModal = component$(
@@ -34,7 +42,7 @@ export const DocSearchModal = component$(
     transformItems$ = identity,
     aiResultOpen,
     disableUserPersonalization = false,
-    ...prop
+    isOpen,
   }: DocSearchModalProps) => {
     const containerRef = useSignal<Element>();
     const modalRef = useSignal<Element>();
@@ -45,7 +53,7 @@ export const DocSearchModal = component$(
     const onSelectItem = noSerialize(({ item, event }: any) => {
       if (event) {
         if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
-          prop['bind:open'].value = false;
+          isOpen.value = false;
         }
       }
     }) as any;

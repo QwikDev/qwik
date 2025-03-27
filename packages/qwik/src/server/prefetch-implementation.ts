@@ -1,11 +1,15 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
-import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
-import { makeMakePreloadLink } from '../core/qrl/preload';
+import type {
+  PrefetchImplementation,
+  PrefetchResource,
+  PrefetchStrategy,
+  QwikManifest,
+} from './types';
 
 export function applyPrefetchImplementation(
   base: string,
-  manifestHash: string | undefined,
+  manifest: QwikManifest | undefined,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -23,7 +27,7 @@ export function applyPrefetchImplementation(
   if (prefetchImpl.linkInsert === 'html-append') {
     linkHtmlImplementation(
       base,
-      manifestHash,
+      manifest?.manifestHash,
       nonce,
       prefetchNodes,
       prefetchResources,
@@ -32,7 +36,7 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(base, manifestHash, nonce, prefetchNodes, prefetchResources, prefetchImpl);
+    linkJsImplementation(base, manifest, nonce, prefetchNodes, prefetchResources, prefetchImpl);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
     workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
   }
@@ -55,7 +59,7 @@ function prefetchUrlsEvent(
     prefetchNodes.push(
       jsx('link', {
         rel: 'modulepreload',
-        href: url,
+        href: base + url,
         nonce,
       })
     );
@@ -103,7 +107,7 @@ function linkHtmlImplementation(
         : undefined;
     prefetchNodes.push(
       jsx('link', {
-        href: url,
+        href: base + url,
         rel,
         fetchpriority,
         nonce,
@@ -114,20 +118,30 @@ function linkHtmlImplementation(
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
- * it'll also add the web worker fetch.
- *
- * TODO use idle event
+ * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
+ * import the preloader as well and have all the state there, plus it makes it easy to write a
+ * complex implementation.
  */
 function linkJsImplementation(
   base: string,
-  manifestHash: string | undefined,
+  manifest: QwikManifest | undefined,
   nonce: string | undefined,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
-  const injector = makeMakePreloadLink.toString();
+  const preloadChunk = manifest?.preloader;
+  if (!preloadChunk) {
+    return linkHtmlImplementation(
+      base,
+      manifest?.manifestHash,
+      nonce,
+      prefetchNodes,
+      prefetchResources,
+      prefetchImpl
+    );
+  }
+  const manifestHash = manifest.manifestHash;
   const urls = flattenPrefetchResources(prefetchResources);
   const fetchPriority = prefetchImpl.linkFetchPriority;
   const forceLow = fetchPriority === 'low';
@@ -141,29 +155,37 @@ function linkJsImplementation(
     }
   }
 
-  // Maybe this needs to be delayed
-  const script = `
-    var _=(${injector})(null);
-    ${prio.length ? `${JSON.stringify(prio)}.forEach(u=>_(u,1));` : ''}
-    ${low.length ? `${JSON.stringify(low)}.forEach(u=>_(u,0));` : ''}
+  // TODO modulepreload the preloader before ssr, optional because we can't predict if we need it
+  if (urls.size) {
+    // We mark all the urls as low priority, so that newly needed urls are loaded first
+    // We use a Promise so the script doesn't block the initial page load
+    const script = `
+    import("${base}${preloadChunk}").then(({l,p})=>{
+    l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});
+    p(${JSON.stringify([...prio, ...low])});
+    })
   `.replaceAll(/^\s+|\s*\n/gm, '');
 
-  prefetchNodes.push(
-    jsx('script', {
-      type: 'module',
-      'q:type': 'link-js',
-      dangerouslySetInnerHTML: script,
-      nonce,
-    }),
-    jsx('link', {
-      rel: 'fetch',
-      id: `qwik-bg-${manifestHash}`,
-      href: `${base}q-bundle-graph-${manifestHash}.json`,
-      as: 'fetch',
-      crossorigin: 'anonymous',
-      fetchpriority: prefetchImpl.linkFetchPriority || undefined,
-    })
-  );
+    // TODO move this to the top of the page
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'fetch',
+        id: `qwik-bg-${manifestHash}`,
+        href: `${base}q-bundle-graph-${manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+        fetchpriority: prefetchImpl.linkFetchPriority || undefined,
+      })
+    );
+    prefetchNodes.push(
+      jsx('script', {
+        type: 'module',
+        'q:type': 'link-js',
+        dangerouslySetInnerHTML: script,
+        nonce,
+      })
+    );
+  }
 }
 
 function workerFetchImplementation(

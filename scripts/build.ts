@@ -30,6 +30,7 @@ import { tsc, tscQwik, tscQwikCity } from './tsc';
 import { tscDocs } from './tsc-docs';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
 import { validateBuild } from './validate-build';
+import { submodulePreloader } from './submodule-preloader';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -69,6 +70,7 @@ export async function build(config: BuildConfig) {
         emptyDir(config.distQwikPkgDir);
       }
 
+      await submodulePreloader(config);
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
@@ -186,7 +188,7 @@ export async function build(config: BuildConfig) {
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

@@ -177,7 +177,7 @@ export async function renderToStream(
         if (prefetchResources.length > 0) {
           const prefetchImpl = applyPrefetchImplementation(
             base,
-            resolvedManifest?.manifest.manifestHash,
+            resolvedManifest?.manifest,
             opts.prefetchStrategy,
             prefetchResources,
             opts.serverData?.nonce

@@ -1,4 +1,6 @@
-import { isBrowser, _preload } from '@builder.io/qwik';
+import { isBrowser } from '@builder.io/qwik';
+// @ts-expect-error we don't have types for the preloader yet
+import { p as preload } from '@builder.io/qwik/preloader';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
 
@@ -43,6 +45,6 @@ export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
     path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    _preload(path, true);
+    preload(path);
   }
 };

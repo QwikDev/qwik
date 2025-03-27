@@ -1,5 +1,5 @@
 import type { OutputBundle } from 'rollup';
-import { type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { QWIK_PRELOADER_REAL_ID, type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
@@ -249,6 +249,7 @@ export function generateManifestFromBundles(
     symbols: {},
     mapping: {},
     bundles: {},
+    preloader: '',
     injections,
     version: '1',
     options: {
@@ -320,6 +321,9 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
+      if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
+        manifest.preloader = bundleFileName;
+      }
     }
 
     manifest.bundles[bundleFileName] = bundle;

@@ -22,7 +22,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@builder.io/qwik/build'],
+    external: ['@builder.io/qwik/build', '@builder.io/qwik/preloader'],
     plugins: [
       {
         name: 'setVersion',
@@ -69,6 +69,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
+    external: ['@builder.io/qwik/preloader'],
     input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
@@ -221,9 +222,9 @@ async function submoduleCoreDev(config: BuildConfig) {
     },
   };
 
-  const esm = build({
+  const esm = await build({
     ...opts,
-    external: ['@builder.io/qwik/build'],
+    external: ['@builder.io/qwik/build', '@builder.io/qwik/preloader'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

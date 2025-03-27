@@ -109,6 +109,9 @@
       "import": "./dist/optimizer.mjs",
       "require": "./dist/optimizer.cjs"
     },
+    "./preloader": {
+      "import": "./dist/preloader.mjs"
+    },
     "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",
     "./server": {

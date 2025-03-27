@@ -57,6 +57,8 @@ async function submoduleCoreProd(config: BuildConfig) {
     sourcemap: true,
     globals: {
       '@builder.io/qwik/build': 'qwikBuild',
+      // not actually used
+      '@builder.io/qwik/preloader': 'qwikPreloader',
     },
     banner: getBanner('@builder.io/qwik', config.distVersion),
   };

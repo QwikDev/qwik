@@ -127,6 +127,8 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    // Give it another bump
+    preload(symbol, true);
     if (symbolRef !== null) {
       // Resolving (Promise) or already resolved (value)
       return symbolRef;

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Note: this file gets built separately from the rest of the core module, and is then kept separate
  * in the dist directory via manualChunks. This way it can run before the rest of the core module is
@@ -85,6 +86,8 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
     return;
   }
   if (bundle.$url$) {
+    const start = performance.now();
+    console.log('>> preloadOne', bundle.$url$, priority);
     const link = doc.createElement('link');
     link.href = bundle.$url$!;
     link.rel = rel;
@@ -95,6 +98,8 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
     }
     link.as = 'script';
     link.onload = link.onerror = () => {
+      const end = performance.now();
+      console.log('<< preloadOne done', bundle.$url$, priority, `${end - start}ms`);
       link.remove();
       if (priority) {
         highCount--;
@@ -185,6 +190,9 @@ const preload = (name: string | string[], priority?: boolean) => {
     return;
   }
   const queue = priority ? high : low;
+  console.log(
+    `preload queue ${name} ${priority ? 'high' : 'low'} - high ${high.length} low ${low.length}`
+  );
   if (Array.isArray(name)) {
     queue.push(...(name.map(ensureBundle).filter(Boolean) as BundleImport[]).reverse());
   } else {

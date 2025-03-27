@@ -1,4 +1,4 @@
-@tailwind components;
+@reference "tailwindcss";
 
 .repl {
   color: var(--text-color);
@@ -207,13 +207,11 @@
   white-space: pre-wrap;
 }
 
-@layer components {
-  .sm-grid-column {
-    grid-template-columns: 100%;
-  }
-  .md-grid-column {
-    grid-template-columns: minmax(200px, 25%) auto;
-  }
+@utility sm-grid-column {
+  grid-template-columns: 100%;
+}
+@utility md-grid-column {
+  grid-template-columns: minmax(200px, 25%) auto;
 }
 
 .output-modules {

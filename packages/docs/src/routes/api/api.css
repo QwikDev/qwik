@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .docs.api h1:not(.overview) {
   font-size: 2rem;
 }

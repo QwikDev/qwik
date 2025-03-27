@@ -33,6 +33,7 @@ const enum BundleImportState {
   Low,
   Queued,
   Loading,
+  Loaded,
 }
 type BundleImport = {
   $name$: string;
@@ -56,6 +57,26 @@ const doc = isBrowser ? document : undefined!;
 const modulePreloadStr = 'modulepreload';
 const preloadStr = 'preload';
 
+const checkLoaded = (bundle: BundleImport) => {
+  if (bundle.$state$ === BundleImportState.Loaded) {
+    return true;
+  }
+  bundle.$imports$ = bundle.$imports$.filter(
+    (dep) => bundles.get(dep)!.$state$ !== BundleImportState.Loading
+  );
+  bundle.$dynamicImports$ = bundle.$dynamicImports$.filter(
+    (dep) => bundles.get(dep)!.$state$ !== BundleImportState.Loading
+  );
+  if (
+    bundle.$state$ === BundleImportState.Loading &&
+    !bundle.$imports$.length &&
+    !bundle.$dynamicImports$.length
+  ) {
+    bundle.$state$ = BundleImportState.Loaded;
+    return true;
+  }
+};
+
 let highCount = 0;
 let lowCount = 0;
 /**
@@ -67,11 +88,12 @@ let lowCount = 0;
  * We make sure to first empty the high priority items, first-in-last-out.
  */
 const trigger = () => {
-  while (highCount < 8 && high.length) {
+  // high is confirmed needed so we go as wide as possible
+  while (highCount < 20 && high.length) {
     const bundle = high.pop()!;
     preloadOne(bundle!, true);
   }
-  while (highCount + lowCount < 4 && low.length) {
+  while (highCount + lowCount < 3 && low.length) {
     const bundle = low.pop()!;
     preloadOne(bundle!);
   }
@@ -86,7 +108,7 @@ const rel =
  * that slows down interaction
  */
 const preloadOne = (bundle: BundleImport, priority?: boolean) => {
-  if (bundle.$state$ === BundleImportState.Loading) {
+  if (bundle.$state$ === BundleImportState.Loaded) {
     return;
   }
   if (bundle.$url$) {
@@ -120,14 +142,16 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
   }
 
   bundle.$state$ = BundleImportState.Loading;
-  /** Now that we processed the bundle, its dependencies are needed ASAP */
-  if (priority) {
-    // make sure to queue the high priority imports first so they preloaded before the low priority ones
-    preload(bundle.$imports$, priority);
-    preload(bundle.$dynamicImports$);
-  } else {
-    // only preload direct imports, low priority
-    preload(bundle.$imports$);
+  if (!checkLoaded(bundle)) {
+    /** Now that we processed the bundle, its dependencies are needed ASAP */
+    if (priority) {
+      // make sure to queue the high priority imports first so they preloaded before the low priority ones
+      preload(bundle.$imports$, priority);
+      preload(bundle.$dynamicImports$);
+    } else {
+      // only preload direct imports, low priority
+      preload(bundle.$imports$);
+    }
   }
 };
 
@@ -148,7 +172,7 @@ const ensureBundle = (name: string) => {
     bundle = makeBundle(name, [], []);
     bundles.set(name, bundle);
   }
-  if (bundle.$state$ === BundleImportState.Loading) {
+  if (checkLoaded(bundle)) {
     return;
   }
   return bundle;

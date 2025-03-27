@@ -197,7 +197,8 @@
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {
-      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
+      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch",
+      "rollup@4.37.0": "patches/rollup@4.37.0.patch"
     }
   },
   "private": true,

@@ -120,11 +120,7 @@ export function createRequestEvent(
         const writableStream = requestEv.getWritableStream();
         statusOrResponse.body.pipeTo(writableStream);
       } else {
-        if (status >= 300 && status < 400) {
-          return new RedirectMessage();
-        } else {
-          requestEv.getWritableStream().getWriter().close();
-        }
+        requestEv.getWritableStream().getWriter().close();
       }
     }
     return exit();

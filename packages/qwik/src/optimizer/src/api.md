@@ -177,8 +177,9 @@ export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
     // (undocumented)
+    hasSymbols?: boolean;
+    // (undocumented)
     imports?: string[];
-    isTask?: boolean;
     // (undocumented)
     origins?: string[];
     // (undocumented)

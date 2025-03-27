@@ -8,6 +8,8 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import tailwindcss from '@tailwindcss/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import shikiRehype from '@shikijs/rehype';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
@@ -120,6 +122,10 @@ export default defineConfig(async () => {
           find: '@supabase/node-fetch',
           replacement: path.resolve(__dirname, 'src', 'empty.ts'),
         },
+        {
+          find: '@docsearch/css',
+          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+        },
       ],
     },
     ssr: {
@@ -179,13 +185,18 @@ export default defineConfig(async () => {
       qwikReact(),
       Inspect(),
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      tailwindcss(),
     ],
+    optimizeDeps: {
+      include: ['@docsearch/css'],
+    },
     build: {
       sourcemap: true,
       rollupOptions: {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
+        external: ['@docsearch/css'],
       },
     },
     clearScreen: false,

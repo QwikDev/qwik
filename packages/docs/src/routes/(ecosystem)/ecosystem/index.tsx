@@ -23,7 +23,7 @@ export default component$(() => {
 
   return (
     <>
-      <div class="ecosystem lg:grid grid-cols-[240px,1fr] m-auto max-w-screen-xl gap-8">
+      <div class="ecosystem lg:grid grid-cols-[240px,1fr] m-auto max-w-screen-xl gap-8 custom-grid-cols-240px-1fr-tailwind-workaround">
         <EcosystemMenu />
         <MobileEcosystemMenu />
 

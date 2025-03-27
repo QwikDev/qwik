@@ -252,3 +252,8 @@
 [data-theme='dark'] [alt='Twitter'] {
   filter: invert(1);
 }
+
+.custom-grid-cols-240px-1fr-tailwind-workaround {
+  /* temporary workaround .grid-cols-\[240px\,1fr\] is not currently working in tailwind */
+  grid-template-columns: 240px 1fr;
+}

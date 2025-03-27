@@ -337,6 +337,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           },
           rollupOptions: {
             output: {
+              // We have waterfall prevention so don't hoist
+              hoistTransitiveImports: false,
               manualChunks: qwikPlugin.manualChunks,
             },
           },
@@ -445,6 +447,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
         qwikPlugin.setSourceMapSupport(true);
       }
+      // Ensure that the final settings are applied
+      qwikPlugin.normalizeOptions(qwikViteOpts);
     },
 
     async buildStart() {
@@ -1185,7 +1189,8 @@ export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundle
         // external dependency
         continue;
       }
-      if (dep.isTask) {
+      // prevent importing all segments chunks
+      if (dep.hasSymbols) {
         if (!didAdd) {
           deps.add('<dynamic>');
           didAdd = true;

@@ -35,15 +35,20 @@ const enum BundleImportState {
   Loading,
 }
 type BundleImport = {
+  $name$: string;
   $url$: string | null;
   $state$: BundleImportState;
   $imports$: string[];
   $dynamicImports$: string[];
+  $created$?: number | null;
 };
 const bundles = new Map<string, BundleImport>();
 const high: BundleImport[] = [];
 const low: BundleImport[] = [];
 
+const log = (...args: any[]) => {
+  console.log(`PL> ${high.length}hi ${low.length}lo`, ...args);
+};
 let base: string | undefined;
 
 // minification helpers
@@ -86,8 +91,11 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
     return;
   }
   if (bundle.$url$) {
-    const start = performance.now();
-    console.log('>> preloadOne', bundle.$url$, priority);
+    const start = Date.now();
+    log(
+      `load ${priority ? 'high' : 'low'} after ${`${start - bundle.$created$!}ms`}`,
+      bundle.$name$
+    );
     const link = doc.createElement('link');
     link.href = bundle.$url$!;
     link.rel = rel;
@@ -98,8 +106,8 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
     }
     link.as = 'script';
     link.onload = link.onerror = () => {
-      const end = performance.now();
-      console.log('<< preloadOne done', bundle.$url$, priority, `${end - start}ms`);
+      const end = Date.now();
+      log(`DONE ${end - start}ms`, bundle.$name$);
       link.remove();
       if (priority) {
         highCount--;
@@ -126,10 +134,12 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
 const makeBundle = (path: string, imports: string[], dynamicImports: string[]) => {
   const url = path.endsWith('.js') ? new URL(`${base}${path}`, doc.baseURI).toString() : null;
   return {
+    $name$: path,
     $url$: url,
     $state$: BundleImportState.None,
     $imports$: imports,
     $dynamicImports$: dynamicImports,
+    $created$: Date.now(),
   };
 };
 const ensureBundle = (name: string) => {
@@ -186,13 +196,10 @@ const parseBundleGraph = (text: string, base: string) => {
  * @internal
  */
 const preload = (name: string | string[], priority?: boolean) => {
-  if (!isBrowser || !base) {
+  if (!isBrowser || !base || !name.length) {
     return;
   }
   const queue = priority ? high : low;
-  console.log(
-    `preload queue ${name} ${priority ? 'high' : 'low'} - high ${high.length} low ${low.length}`
-  );
   if (Array.isArray(name)) {
     queue.push(...(name.map(ensureBundle).filter(Boolean) as BundleImport[]).reverse());
   } else {
@@ -201,6 +208,7 @@ const preload = (name: string | string[], priority?: boolean) => {
       queue.push(bundle);
     }
   }
+  log(`queue ${priority ? 'high' : 'low'}`, name);
   trigger();
 };
 

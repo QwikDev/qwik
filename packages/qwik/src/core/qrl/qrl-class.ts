@@ -127,8 +127,9 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    console.warn('QRL fire', symbol);
     // Give it another bump
-    preload(symbol, true);
+    preload(getSymbolHash(symbol), true);
     if (symbolRef !== null) {
       // Resolving (Promise) or already resolved (value)
       return symbolRef;
@@ -229,6 +230,7 @@ export const createQRL = <TYPE>(
   if (qDev) {
     seal(qrl);
   }
+  console.warn('QRL created', symbol);
   preload(hash, true);
   return qrl;
 };

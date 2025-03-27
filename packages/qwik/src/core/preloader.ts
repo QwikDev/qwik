@@ -58,7 +58,6 @@ const preloadStr = 'preload';
 
 let highCount = 0;
 let lowCount = 0;
-const max = 11;
 /**
  * This is called when a bundle is queued or finished loading.
  *
@@ -68,11 +67,11 @@ const max = 11;
  * We make sure to first empty the high priority items, first-in-last-out.
  */
 const trigger = () => {
-  while (highCount < max && high.length) {
+  while (highCount < 8 && high.length) {
     const bundle = high.pop()!;
     preloadOne(bundle!, true);
   }
-  while (highCount + lowCount < max && low.length) {
+  while (highCount + lowCount < 4 && low.length) {
     const bundle = low.pop()!;
     preloadOne(bundle!);
   }
@@ -127,7 +126,8 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
     preload(bundle.$imports$, priority);
     preload(bundle.$dynamicImports$);
   } else {
-    preload([...bundle.$imports$, ...bundle.$dynamicImports$]);
+    // only preload direct imports, low priority
+    preload(bundle.$imports$);
   }
 };
 
@@ -154,7 +154,7 @@ const ensureBundle = (name: string) => {
   return bundle;
 };
 
-const parseBundleGraph = (text: string, base: string) => {
+const parseBundleGraph = (text: string) => {
   const graph = JSON.parse(text) as QwikBundleGraph;
   let i = 0;
   // All existing loading bundles need imports processed
@@ -225,7 +225,7 @@ const loadBundleGraph = (basePath: string, manifestHash: string) => {
   // TODO check TTI, maybe inject fetch link with timeout so we don't do the fetch directly
   fetch(`${basePath}q-bundle-graph-${manifestHash}.json`)
     .then((res) => res.text())
-    .then((text) => parseBundleGraph(text, basePath))
+    .then((text) => parseBundleGraph(text))
     // We warn because it's not critical, and in the CI tests Windows serves up a HTML file instead the bundle graph sometimes, which breaks the tests that don't expect error logs
     .catch(console.warn);
 };

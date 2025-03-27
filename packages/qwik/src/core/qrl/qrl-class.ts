@@ -231,7 +231,7 @@ export const createQRL = <TYPE>(
     seal(qrl);
   }
   console.warn('QRL created', symbol);
-  preload(hash, true);
+  preload(hash);
   return qrl;
 };
 

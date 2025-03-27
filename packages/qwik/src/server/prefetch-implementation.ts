@@ -143,26 +143,22 @@ function linkJsImplementation(
   }
   const manifestHash = manifest.manifestHash;
   const urls = flattenPrefetchResources(prefetchResources);
-  const fetchPriority = prefetchImpl.linkFetchPriority;
-  const forceLow = fetchPriority === 'low';
   const prio = [];
-  const low = [];
   for (const [url, priority] of urls) {
-    if (!priority || forceLow) {
-      low.push(url);
-    } else {
+    // we only want the static imports, the rest will follow as needed
+    if (priority) {
       prio.push(url);
     }
   }
 
   // TODO modulepreload the preloader before ssr, optional because we can't predict if we need it
-  if (urls.size) {
-    // We mark all the urls as low priority, so that newly needed urls are loaded first
+  if (prio.length) {
+    // We mark all the urls as low priority, so that newly needed resources are loaded first
     // We use a Promise so the script doesn't block the initial page load
     const script = `
     import("${base}${preloadChunk}").then(({l,p})=>{
     l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});
-    p(${JSON.stringify([...prio, ...low])});
+    p(${JSON.stringify(prio.slice(0, 10))});
     })
   `.replaceAll(/^\s+|\s*\n/gm, '');
 
@@ -174,7 +170,7 @@ function linkJsImplementation(
         href: `${base}q-bundle-graph-${manifestHash}.json`,
         as: 'fetch',
         crossorigin: 'anonymous',
-        fetchpriority: prefetchImpl.linkFetchPriority || undefined,
+        fetchpriority: 'low',
       })
     );
     prefetchNodes.push(

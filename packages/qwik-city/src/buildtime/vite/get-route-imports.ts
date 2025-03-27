@@ -12,15 +12,15 @@ export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
       : [];
     const routeAndLayoutPaths = [routePath, ...layoutPaths];
 
-    const imports = [];
+    const bundles = [];
 
     for (const [bundleName, bundle] of Object.entries(manifest.bundles)) {
       if (isBundlePartOfRoute(bundle, routeAndLayoutPaths)) {
-        imports.push(bundleName);
+        bundles.push(bundleName);
       }
     }
-    if (imports.length > 0) {
-      result[route.routeName] = { imports };
+    if (bundles.length > 0) {
+      result[route.routeName] = { dynamicImports: bundles };
     }
   });
   for (const bundleName of Object.keys(manifest.bundles)) {

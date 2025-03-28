@@ -24,7 +24,7 @@ export const isQrl = <T = unknown>(value: unknown): value is QRLInternal<T> => {
   return typeof value === 'function' && typeof (value as any).getSymbol === 'function';
 };
 
-// Make sure this value is same as value in `platform.ts`
+// Make sure this value is same as value in `platform.ts`.
 export const SYNC_QRL = '<sync>';
 
 /** Sync QRL is a function which is serialized into `<script q:func="qwik/json">` tag. */

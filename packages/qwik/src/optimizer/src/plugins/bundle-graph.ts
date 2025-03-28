@@ -61,7 +61,7 @@ export function convertManifestToBundleGraph(
 
     // We only include dynamic imports that have qrl segments
     // If the dev wants to include other dynamic imports, they can just make a qrl()
-    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep]) || [];
+    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep].hasSegments) || [];
 
     // Overwrite so we don't mutate
     graph[bundleName] = {

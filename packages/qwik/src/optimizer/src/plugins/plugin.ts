@@ -889,20 +889,23 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk
-    if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
-      return 'qwik-preloader';
-    }
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
+    if ((opts.entryStrategy as SmartEntryStrategy).manual) {
+      // The preloader has to stay in a separate chunk
+      if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
+        return 'qwik-preloader';
+      }
+      const module = getModuleInfo(id)!;
+      const segment = module.meta.segment as SegmentAnalysis | undefined;
 
-    if (segment) {
-      const { hash } = segment;
-      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-      if (chunkName) {
-        return chunkName;
+      if (segment) {
+        const { hash } = segment;
+        const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual![hash] || segment.entry;
+        if (chunkName) {
+          return chunkName;
+        }
       }
     }
+
     return null;
   }
 

@@ -15,6 +15,8 @@ import { getQFuncs, QInstance } from '../util/markers';
 import { isPromise, maybeThen } from '../util/promises';
 import { qDev, qSerialize, qTest, seal } from '../util/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../util/types';
+// @ts-expect-error we don't have types for the preloader
+import { l as loadBundleGraph, p as preload } from '@builder.io/qwik/preloader';
 import type { QRLDev } from './qrl';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
@@ -89,6 +91,10 @@ export const createQRL = <TYPE>(
     if (!_containerEl) {
       _containerEl = el;
     }
+    // try every time just in case
+    if (el) {
+      loadBundleGraph(el);
+    }
     return _containerEl;
   };
 
@@ -121,6 +127,9 @@ export const createQRL = <TYPE>(
   };
 
   const resolve = async (containerEl?: Element): Promise<TYPE> => {
+    console.warn('QRL fire', symbol);
+    // Give it another bump
+    preload(getSymbolHash(symbol), true);
     if (symbolRef !== null) {
       // Resolving (Promise) or already resolved (value)
       return symbolRef;
@@ -221,6 +230,8 @@ export const createQRL = <TYPE>(
   if (qDev) {
     seal(qrl);
   }
+  console.warn('QRL created', symbol);
+  preload(hash, true);
   return qrl;
 };
 

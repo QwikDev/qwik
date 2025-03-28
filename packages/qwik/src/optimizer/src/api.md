@@ -6,6 +6,13 @@
 
 import type { Plugin as Plugin_2 } from 'vite';
 
+// @public
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
+    imports?: string[];
+    dynamicImports?: string[];
+    hasSegments?: boolean;
+}>;
+
 // @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -67,19 +74,6 @@ export interface GlobalInjections {
 export interface InlineEntryStrategy {
     // (undocumented)
     type: 'inline';
-}
-
-// @public (undocumented)
-export interface InsightManifest {
-    // (undocumented)
-    manual: Record<string, string>;
-    // (undocumented)
-    prefetch: {
-        route: string;
-        symbols: string[];
-    }[];
-    // (undocumented)
-    type: 'smart';
 }
 
 // @public (undocumented)
@@ -177,7 +171,7 @@ export interface QwikBundle {
     // (undocumented)
     dynamicImports?: string[];
     // (undocumented)
-    hasSymbols?: boolean;
+    hasSegments?: boolean;
     // (undocumented)
     imports?: string[];
     // (undocumented)
@@ -187,6 +181,9 @@ export interface QwikBundle {
     // (undocumented)
     symbols?: string[];
 }
+
+// @public
+export type QwikBundleGraph = Array<string | number>;
 
 // @public
 export interface QwikManifest {
@@ -210,6 +207,7 @@ export interface QwikManifest {
     platform?: {
         [name: string]: string;
     };
+    preloader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
@@ -290,8 +288,6 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientPublicOutDir: () => string | null;
     // (undocumented)
-    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
-    // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
@@ -301,6 +297,8 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // (undocumented)
+    registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts

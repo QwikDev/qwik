@@ -1,0 +1,536 @@
+---
+title: Self-Hosting
+contributors:
+  - adamdbradley
+  - manucorporat
+updated_at: '2024-03-24T19:30:00Z'
+created_at: '2024-03-24T19:30:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Self-Hosting Qwik Applications
+
+This guide provides comprehensive instructions for self-hosting your Qwik application on your own infrastructure, whether it's a VPS, bare metal server, or container platform.
+
+## Prerequisites
+
+- Node.js >= 16.8.0 (18.x LTS or later recommended)
+- A web server like Nginx, Apache, or similar for production deployments
+- (Optional) Docker for containerized deployments
+- (Optional) PM2 or similar for process management
+
+## Build Options
+
+Qwik provides several adapters suited for self-hosting scenarios. Choose the one that best fits your infrastructure:
+
+### Express (Node.js)
+
+The Express adapter is ideal for self-hosting on VPS or bare metal servers, offering full server-side functionality.
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add express
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add express
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add express
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add express
+```
+</span>
+</PackageManagerTabs>
+
+### Fastify (Node.js)
+
+Fastify offers better performance than Express and is another good option for self-hosting:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add fastify
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add fastify
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add fastify
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add fastify
+```
+</span>
+</PackageManagerTabs>
+
+### Static Site
+
+For simple applications without dynamic server functionality, the static site adapter generates fully static HTML:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add static
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add static
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add static
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add static
+```
+</span>
+</PackageManagerTabs>
+
+When using the static adapter, make sure to update your `adapters/static/vite.config.ts` file with your actual domain:
+
+```ts
+staticAdapter({
+  origin: 'https://your-actual-domain.com',
+})
+```
+
+## Building for Production
+
+After adding the appropriate adapter, build your application:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run build
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
+
+The build process will generate:
+- `dist/` directory containing client-side assets
+- `server/` directory containing server-side code (for Node.js adapters)
+
+## Deployment Methods
+
+### Method 1: Node.js Server Deployment
+
+For Express or Fastify adapters, the build process generates a server entry file at `server/entry.express.js` or `server/entry.fastify.js`.
+
+1. Transfer these files to your production server:
+   - `dist/` (client assets)
+   - `server/` (server code)
+   - `package.json` (for dependencies)
+
+2. Install production dependencies on the server:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install --prod
+```
+</span>
+<span q:slot="npm">
+```shell
+npm install --omit=dev
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn install --production
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install --production
+```
+</span>
+</PackageManagerTabs>
+
+3. Set the required environment variables:
+
+```shell
+# Important: This is required for CSRF protection
+export ORIGIN=https://your-domain.com
+
+# Set production mode
+export NODE_ENV=production
+
+# Optional: Define a custom port (default is 3000)
+export PORT=3000
+```
+
+4. Run the server:
+
+```shell
+# For Express
+node server/entry.express.js
+
+# For Fastify
+node server/entry.fastify.js
+```
+
+5. For production use, use a process manager like PM2:
+
+```shell
+npm install -g pm2
+
+# For Express
+pm2 start server/entry.express.js --name qwik-app
+
+# For Fastify
+pm2 start server/entry.fastify.js --name qwik-app
+```
+
+### Method 2: Docker Deployment
+
+Using Docker is recommended for containerized deployments. Create a `Dockerfile` in your project root:
+
+```Dockerfile
+ARG NODE_VERSION=18.18.2
+
+################################################################################
+# Use node image for base image for all stages.
+FROM node:${NODE_VERSION}-alpine as base
+
+# Set working directory for all build stages.
+WORKDIR /usr/src/app
+
+################################################################################
+# Create a stage for installing production dependencies.
+FROM base as deps
+
+# Download dependencies as a separate step to take advantage of Docker's caching.
+# Leverage a cache mount to /root/.yarn to speed up subsequent builds.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=yarn.lock,target=yarn.lock \
+    --mount=type=cache,target=/root/.yarn \
+    yarn install --frozen-lockfile
+
+################################################################################
+# Create a stage for building the application.
+FROM deps as build
+
+# Copy the rest of the source files into the image.
+COPY . .
+
+# Run the build script.
+RUN yarn run build
+
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+FROM base as final
+
+# Use production node environment by default.
+ENV NODE_ENV production
+
+# IMPORTANT: Set your actual domain for CSRF protection
+ENV ORIGIN https://your-domain.com
+
+# Run the application as a non-root user.
+USER node
+
+# Copy package.json so that package manager commands can be used.
+COPY package.json .
+
+# Copy the production dependencies from the deps stage and also
+# the built application from the build stage into the image.
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/server ./server
+
+# Expose the port that the application listens on.
+EXPOSE 3000
+
+# Run the application.
+CMD yarn serve
+```
+
+Build and run your Docker container:
+
+```shell
+# Build the image
+docker build -t qwik-app .
+
+# Run the container
+docker run -p 3000:3000 -e ORIGIN=https://your-domain.com qwik-app
+```
+
+### Method 3: Static Site Deployment
+
+If using the static adapter, copy the contents of the `dist` directory to your web server's document root:
+
+```shell
+# Example using rsync
+rsync -avz dist/ user@your-server:/path/to/webroot/
+```
+
+## Web Server Configuration
+
+### Nginx Configuration for Node.js Adapters
+
+For Node.js deployments using Express or Fastify, use Nginx as a reverse proxy:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    # Redirect HTTP to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL configuration
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    # SSL settings (recommended)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    # Proxy to Node.js server
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Serve static assets directly for better performance
+    location /build/ {
+        alias /path/to/your/app/dist/build/;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+    
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+}
+```
+
+### Nginx Configuration for Static Sites
+
+For static site deployments, use this Nginx configuration:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    
+    # Redirect HTTP to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL configuration
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    # SSL settings (recommended)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    
+    # Root directory for your static files
+    root /path/to/your/app/dist;
+    index index.html;
+    
+    # Serve static files
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    
+    # Cache settings for immutable assets
+    location /build/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+    
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+}
+```
+
+### Apache Configuration
+
+For Apache with mod_proxy enabled:
+
+```apache
+<VirtualHost *:443>
+    ServerName your-domain.com
+    
+    # SSL Configuration
+    SSLEngine on
+    SSLCertificateFile /path/to/cert.pem
+    SSLCertificateKeyFile /path/to/key.pem
+    
+    # Proxy to Node.js server (for Express/Fastify adapters)
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+    
+    # Serve static assets directly
+    <Directory /path/to/your/app/dist/build>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+        
+        # Cache settings
+        <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresDefault "access plus 1 year"
+            Header append Cache-Control "public, immutable"
+        </IfModule>
+    </Directory>
+    
+    Alias /build/ /path/to/your/app/dist/build/
+    
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+</VirtualHost>
+```
+
+## Important Security Considerations
+
+### CSRF Protection
+
+Qwik City applications are protected against CSRF attacks by default for all POST, PATCH, and DELETE form submissions. The `ORIGIN` environment variable is crucial for this protection.
+
+If you need to disable CSRF protection (not recommended for production), you can set `checkOrigin: false` in the adapter configuration:
+
+```tsx
+// src/entry.express.tsx or src/entry.fastify.tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: false, // Disable CSRF protection (not recommended)
+});
+```
+
+### Other Security Best Practices
+
+1. Always run your Node.js application as a non-root user
+2. Set up proper firewall rules to only expose necessary ports
+3. Use HTTPS with proper certificates (Let's Encrypt works well)
+4. Implement rate limiting for API endpoints
+5. Keep all dependencies updated regularly
+6. Configure Content-Security-Policy headers appropriate for your application
+7. Consider using a Web Application Firewall (WAF) for additional protection
+
+## Monitoring and Logs
+
+1. If using PM2:
+   - Monitor application: `pm2 monit`
+   - Check logs: `pm2 logs qwik-app`
+   - Set up PM2 dashboard: `pm2 plus`
+
+2. Logging options:
+   - Configure Nginx logs in `/var/log/nginx/`
+   - Use logging services like Winston or Pino for structured logs
+
+3. Consider adding application monitoring with:
+   - Prometheus + Grafana for self-hosted monitoring
+   - New Relic, Datadog, or Sentry for managed monitoring
+
+## Optimizing Performance
+
+Qwik's resumable architecture already provides excellent performance, but you can further optimize:
+
+1. Enable HTTP/2 or HTTP/3 in your web server
+2. Use a CDN for global edge caching
+3. Enable Brotli compression for smaller payload sizes
+4. Configure proper cache headers for Qwik's immutable assets
+5. Use CloudFlare or similar services for additional edge caching
+
+## Scaling Considerations
+
+For high-traffic applications:
+
+1. Set up load balancing with multiple Node.js instances
+2. Use container orchestration (Kubernetes, Docker Swarm)
+3. Consider a microservices architecture for larger applications
+4. Implement Redis or similar for session management across instances
+5. Use a serverless approach for predictable scaling
+
+## Troubleshooting Common Issues
+
+1. **404 Not Found**: 
+   - Check your Nginx/Apache configuration paths
+   - Verify that URL rewriting is properly configured
+
+2. **503 Service Unavailable**: 
+   - Verify the Node process is running (`pm2 list` or `ps aux | grep node`)
+   - Check server logs for memory issues or crashes
+
+3. **CSRF Errors**: 
+   - Ensure the `ORIGIN` environment variable is correctly set
+   - Check that form submissions include the correct CSRF token
+
+4. **Performance Issues**: 
+   - Enable compression in your web server
+   - Check for memory leaks using Node.js profiling
+   - Verify that static assets are served with proper cache headers
+
+5. **Missing Assets**:
+   - Ensure your build process is complete
+   - Check that the `/build/` directory is correctly exposed

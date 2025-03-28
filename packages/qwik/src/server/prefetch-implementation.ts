@@ -152,13 +152,17 @@ function linkJsImplementation(
   }
 
   // TODO modulepreload the preloader before ssr, optional because we can't predict if we need it
+
+  // TODO order imports by size/number of dependents?
   if (prio.length) {
     // We mark all the urls as low priority, so that newly needed resources are loaded first
     // We use a Promise so the script doesn't block the initial page load
     const script = `
+    const d=Date.now();console.log('preloader loading',d);
     import("${base}${preloadChunk}").then(({l,p})=>{
+    console.log('preloader start',Date.now()-d);
     l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});
-    p(${JSON.stringify(prio.slice(0, 10))});
+    p(${JSON.stringify(prio.slice(0, 20))});
     })
   `.replaceAll(/^\s+|\s*\n/gm, '');
 

@@ -32,7 +32,9 @@ const enum BundleImportState {
   None,
   Low,
   Queued,
+  /** Preload link was made */
   Loading,
+  /** All imports are >=Loading */
   Loaded,
 }
 type BundleImport = {
@@ -41,14 +43,25 @@ type BundleImport = {
   $state$: BundleImportState;
   $imports$: string[];
   $dynamicImports$: string[];
-  $created$?: number | null;
+  $priority$: boolean;
+  $created$: number;
+  $waited$: number;
+  $loaded$: number;
 };
 const bundles = new Map<string, BundleImport>();
+let gotBundleGraph = false;
 const high: BundleImport[] = [];
 const low: BundleImport[] = [];
 
+let highCount = 0;
+let lowCount = 0;
+const loadStart = Date.now();
+
 const log = (...args: any[]) => {
-  console.log(`PL> ${high.length}hi ${low.length}lo`, ...args);
+  console.log(
+    `PL ${Date.now() - loadStart}> hi ${highCount}/${high.length} lo ${lowCount}/${low.length}`,
+    ...args
+  );
 };
 let base: string | undefined;
 
@@ -61,24 +74,15 @@ const checkLoaded = (bundle: BundleImport) => {
   if (bundle.$state$ === BundleImportState.Loaded) {
     return true;
   }
-  bundle.$imports$ = bundle.$imports$.filter(
-    (dep) => bundles.get(dep)!.$state$ !== BundleImportState.Loading
-  );
-  bundle.$dynamicImports$ = bundle.$dynamicImports$.filter(
-    (dep) => bundles.get(dep)!.$state$ !== BundleImportState.Loading
-  );
   if (
     bundle.$state$ === BundleImportState.Loading &&
-    !bundle.$imports$.length &&
-    !bundle.$dynamicImports$.length
+    bundle.$imports$.every((dep) => bundles.get(dep)!.$state$ >= BundleImportState.Loading)
   ) {
     bundle.$state$ = BundleImportState.Loaded;
     return true;
   }
 };
 
-let highCount = 0;
-let lowCount = 0;
 /**
  * This is called when a bundle is queued or finished loading.
  *
@@ -89,13 +93,22 @@ let lowCount = 0;
  */
 const trigger = () => {
   // high is confirmed needed so we go as wide as possible
-  while (highCount < 20 && high.length) {
+  while (high.length) {
     const bundle = high.pop()!;
     preloadOne(bundle!, true);
   }
-  while (highCount + lowCount < 3 && low.length) {
-    const bundle = low.pop()!;
-    preloadOne(bundle!);
+  // these are opportunistic
+  if (!highCount && !lowCount) {
+    while (lowCount < 6 && low.length) {
+      const bundle = low.pop()!;
+      preloadOne(bundle!);
+    }
+  }
+  if (!high.length && !low.length) {
+    const loaded = [...bundles.values()].filter((b) => b.$state$ >= BundleImportState.Loading);
+    const waitTime = loaded.reduce((acc, b) => acc + b.$waited$, 0);
+    const loadTime = loaded.reduce((acc, b) => acc + b.$loaded$, 0);
+    log(`done ${loaded.length} total: ${waitTime}ms waited, ${loadTime}ms loaded`);
   }
 };
 
@@ -108,50 +121,46 @@ const rel =
  * that slows down interaction
  */
 const preloadOne = (bundle: BundleImport, priority?: boolean) => {
-  if (bundle.$state$ === BundleImportState.Loaded) {
+  if (checkLoaded(bundle)) {
     return;
   }
-  if (bundle.$url$) {
+  if (bundle.$state$ < BundleImportState.Loading) {
     const start = Date.now();
-    log(
-      `load ${priority ? 'high' : 'low'} after ${`${start - bundle.$created$!}ms`}`,
-      bundle.$name$
-    );
-    const link = doc.createElement('link');
-    link.href = bundle.$url$!;
-    link.rel = rel;
-    if (priority) {
-      highCount++;
-    } else {
-      lowCount++;
-    }
-    link.as = 'script';
-    link.onload = link.onerror = () => {
-      const end = Date.now();
-      log(`DONE ${end - start}ms`, bundle.$name$);
-      link.remove();
+    bundle.$waited$ = start - bundle.$created$;
+    bundle.$state$ = BundleImportState.Loading;
+    if (bundle.$url$) {
+      log(`load ${priority ? 'high' : 'low'} after ${`${bundle.$waited$}ms`}`, bundle.$name$);
+      const link = doc.createElement('link');
+      link.href = bundle.$url$!;
+      link.rel = rel;
       if (priority) {
-        highCount--;
+        highCount++;
       } else {
-        lowCount--;
+        lowCount++;
       }
-      trigger();
-    };
+      link.as = 'script';
+      link.onload = link.onerror = () => {
+        const end = Date.now();
+        bundle.$loaded$ = end - start;
+        log(`DONE ${bundle.$priority$ ? 'high' : 'low'} ${end - start}ms`, bundle.$name$);
+        link.remove();
+        if (priority) {
+          highCount--;
+        } else {
+          lowCount--;
+        }
+        trigger();
+      };
 
-    doc.head.appendChild(link);
+      doc.head.appendChild(link);
+    }
   }
 
-  bundle.$state$ = BundleImportState.Loading;
-  if (!checkLoaded(bundle)) {
-    /** Now that we processed the bundle, its dependencies are needed ASAP */
-    if (priority) {
-      // make sure to queue the high priority imports first so they preloaded before the low priority ones
-      preload(bundle.$imports$, priority);
-      preload(bundle.$dynamicImports$);
-    } else {
-      // only preload direct imports, low priority
-      preload(bundle.$imports$);
-    }
+  bundle.$priority$ ||= priority!;
+  preload(bundle.$imports$, priority);
+  if (bundle.$priority$) {
+    // make sure to queue the high priority imports first so they preloaded before the low priority ones
+    preload(bundle.$dynamicImports$);
   }
 };
 
@@ -163,12 +172,18 @@ const makeBundle = (path: string, imports: string[], dynamicImports: string[]) =
     $state$: BundleImportState.None,
     $imports$: imports,
     $dynamicImports$: dynamicImports,
+    $priority$: false,
     $created$: Date.now(),
+    $waited$: 0,
+    $loaded$: 0,
   };
 };
 const ensureBundle = (name: string) => {
   let bundle = bundles.get(name);
   if (!bundle) {
+    if (gotBundleGraph) {
+      return;
+    }
     bundle = makeBundle(name, [], []);
     bundles.set(name, bundle);
   }
@@ -179,11 +194,15 @@ const ensureBundle = (name: string) => {
 };
 
 const parseBundleGraph = (text: string) => {
+  log(`parseBundleGraph ${text.length >> 10}kB`);
   const graph = JSON.parse(text) as QwikBundleGraph;
   let i = 0;
   // All existing loading bundles need imports processed
   const toProcess = Object.keys(bundles)
-    .filter((name) => bundles.get(name)!.$state$ === BundleImportState.Loading)
+    .filter((name) => {
+      const bundle = bundles.get(name)!;
+      return bundle.$state$ === BundleImportState.Loading && bundle.$priority$;
+    })
     .reverse();
   while (i < graph.length) {
     const name = graph[i++] as string;
@@ -207,6 +226,8 @@ const parseBundleGraph = (text: string) => {
       bundles.set(name, makeBundle(name, imports, dynamicImports));
     }
   }
+  log(`parseBundleGraph done ${bundles.size} bundles`);
+  gotBundleGraph = true;
   for (const name of toProcess) {
     const bundle = bundles.get(name)!;
     // we assume low priority
@@ -225,12 +246,17 @@ const preload = (name: string | string[], priority?: boolean) => {
   }
   const queue = priority ? high : low;
   if (Array.isArray(name)) {
-    queue.push(...(name.map(ensureBundle).filter(Boolean) as BundleImport[]).reverse());
+    const bundles = name.map(ensureBundle).filter(Boolean) as BundleImport[];
+    if (!bundles.length) {
+      return;
+    }
+    queue.push(...bundles.reverse());
   } else {
     const bundle = ensureBundle(name);
-    if (bundle) {
-      queue.push(bundle);
+    if (!bundle) {
+      return;
     }
+    queue.push(bundle);
   }
   log(`queue ${priority ? 'high' : 'low'}`, name);
   trigger();

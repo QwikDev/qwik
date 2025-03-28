@@ -893,17 +893,14 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
       return 'qwik-preloader';
     }
-    // TODO when manual chunks fix lands in rollup, remove this guard
-    if ((opts.entryStrategy as SmartEntryStrategy).manual) {
-      const module = getModuleInfo(id)!;
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
 
-      if (segment) {
-        const { hash } = segment;
-        const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual![hash] || segment.entry;
-        if (chunkName) {
-          return chunkName;
-        }
+    const module = getModuleInfo(id)!;
+    const segment = module.meta.segment as SegmentAnalysis | undefined;
+    if (segment) {
+      const { hash } = segment;
+      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+      if (chunkName) {
+        return chunkName;
       }
     }
     return null;

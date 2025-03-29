@@ -1835,9 +1835,6 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
     parentComponentFrame: ISsrComponentFrame | null;
 }): Promise<void>;
 
-// @internal (undocumented)
-export const _weakSerialize: <T extends object>(input: T) => Partial<T>;
-
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 

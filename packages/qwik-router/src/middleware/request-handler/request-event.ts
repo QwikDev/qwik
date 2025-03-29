@@ -1,11 +1,12 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { QDATA_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  FailReturn,
-  JSONValue,
-  LoadedRoute,
-  LoaderInternal,
+import {
+  LoadedRouteProp,
+  type ActionInternal,
+  type FailReturn,
+  type JSONValue,
+  type LoadedRoute,
+  type LoaderInternal,
 } from '../../runtime/src/types';
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
@@ -142,7 +143,7 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[1] ?? {},
+    params: loadedRoute?.[LoadedRouteProp.Params] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,

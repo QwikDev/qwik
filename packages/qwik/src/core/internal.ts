@@ -7,7 +7,6 @@ export { _wrapSignal, _wrapProp, _wrapStore } from './reactive-primitives/intern
 export { _restProps } from './shared/utils/prop';
 export { _IMMUTABLE, _UNINITIALIZED } from './shared/utils/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './shared/utils/constants';
-export { _weakSerialize } from './shared/utils/serialize-utils';
 export { verifySerializable as _verifySerializable } from './shared/utils/serialize-utils';
 export {
   _getContextElement,
@@ -21,6 +20,7 @@ export { _fnSignal } from './shared/qrl/inlined-fn';
 export type {
   ContainerElement as _ContainerElement,
   VNode as _VNode,
+  VNodeFlags as _VNodeFlags,
   VirtualVNode as _VirtualVNode,
   TextVNode as _TextVNode,
   QDocument as _QDocument,

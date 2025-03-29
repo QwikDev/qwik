@@ -33,11 +33,18 @@ export async function submodulePreloader(config: BuildConfig) {
 
           // Rename $properties$ to short names but leave the rest legible
           // The final app will minify it when needed
+
           const minified = await minify(result.code, {
-            compress: false,
+            compress: {
+              // Trying to eliminate the enum declaration and failing
+              dead_code: true,
+              unused: true,
+              conditionals: true,
+            },
             mangle: {
               toplevel: false,
               module: false,
+              keep_fnames: true,
               properties: {
                 regex: '^\\$.+\\$$',
               },

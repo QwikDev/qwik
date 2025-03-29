@@ -98,11 +98,9 @@ const trigger = () => {
     preloadOne(bundle!, true);
   }
   // these are opportunistic
-  if (!highCount && !lowCount) {
-    while (lowCount < 6 && low.length) {
-      const bundle = low.pop()!;
-      preloadOne(bundle!);
-    }
+  while (highCount + lowCount < 6 && low.length) {
+    const bundle = low.pop()!;
+    preloadOne(bundle!);
   }
   if (!high.length && !low.length) {
     const loaded = [...bundles.values()].filter((b) => b.$state$ >= BundleImportState.Loading);
@@ -158,10 +156,7 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
 
   bundle.$priority$ ||= priority!;
   preload(bundle.$imports$, priority);
-  if (bundle.$priority$) {
-    // make sure to queue the high priority imports first so they preloaded before the low priority ones
-    preload(bundle.$dynamicImports$);
-  }
+  preload(bundle.$dynamicImports$);
 };
 
 const makeBundle = (path: string, imports: string[], dynamicImports: string[]) => {
@@ -178,7 +173,7 @@ const makeBundle = (path: string, imports: string[], dynamicImports: string[]) =
     $loaded$: 0,
   };
 };
-const ensureBundle = (name: string) => {
+const ensureBundle = (name: string, collection: BundleImport[]) => {
   let bundle = bundles.get(name);
   if (!bundle) {
     if (gotBundleGraph) {
@@ -190,7 +185,10 @@ const ensureBundle = (name: string) => {
   if (checkLoaded(bundle)) {
     return;
   }
-  return bundle;
+  // TEMP we should use a sorted set instead
+  if (!collection.includes(bundle)) {
+    return bundle;
+  }
 };
 
 const parseBundleGraph = (text: string) => {
@@ -198,10 +196,9 @@ const parseBundleGraph = (text: string) => {
   const graph = JSON.parse(text) as QwikBundleGraph;
   let i = 0;
   // All existing loading bundles need imports processed
-  const toProcess = Object.keys(bundles)
-    .filter((name) => {
-      const bundle = bundles.get(name)!;
-      return bundle.$state$ === BundleImportState.Loading && bundle.$priority$;
+  const toProcess = [...bundles.values()]
+    .filter((bundle) => {
+      return bundle.$state$ >= BundleImportState.Loading && bundle.$priority$;
     })
     .reverse();
   while (i < graph.length) {
@@ -226,12 +223,11 @@ const parseBundleGraph = (text: string) => {
       bundles.set(name, makeBundle(name, imports, dynamicImports));
     }
   }
-  log(`parseBundleGraph done ${bundles.size} bundles`);
+  log(`parseBundleGraph done ${bundles.size} bundles, will process ${toProcess.length} bundles`);
   gotBundleGraph = true;
-  for (const name of toProcess) {
-    const bundle = bundles.get(name)!;
-    // we assume low priority
-    preload([...bundle.$imports$, ...bundle.$dynamicImports$]);
+  for (const bundle of toProcess) {
+    preload(bundle.$imports$, true);
+    preload(bundle.$dynamicImports$);
   }
 };
 
@@ -246,13 +242,13 @@ const preload = (name: string | string[], priority?: boolean) => {
   }
   const queue = priority ? high : low;
   if (Array.isArray(name)) {
-    const bundles = name.map(ensureBundle).filter(Boolean) as BundleImport[];
+    const bundles = name.map((n) => ensureBundle(n, queue)).filter(Boolean) as BundleImport[];
     if (!bundles.length) {
       return;
     }
     queue.push(...bundles.reverse());
   } else {
-    const bundle = ensureBundle(name);
+    const bundle = ensureBundle(name, queue);
     if (!bundle) {
       return;
     }

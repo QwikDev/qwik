@@ -889,11 +889,12 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
+    // The preloader has to stay in a separate chunk
+    if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
+      return 'qwik-preloader';
+    }
+
     if ((opts.entryStrategy as SmartEntryStrategy).manual) {
-      // The preloader has to stay in a separate chunk
-      if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
-        return 'qwik-preloader';
-      }
       const module = getModuleInfo(id)!;
       const segment = module.meta.segment as SegmentAnalysis | undefined;
 

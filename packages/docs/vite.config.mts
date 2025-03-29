@@ -193,6 +193,8 @@ export default defineConfig(async () => {
       sourcemap: true,
       rollupOptions: {
         output: {
+          // at slow 3G speeds, 4kb takes 150ms to download
+          experimentalMinChunkSize: 4096,
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
         external: ['@docsearch/css'],

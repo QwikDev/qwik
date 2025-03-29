@@ -157,14 +157,13 @@ function linkJsImplementation(
   if (prio.length) {
     // We mark all the urls as low priority, so that newly needed resources are loaded first
     // We use a Promise so the script doesn't block the initial page load
-    const script = `
-    const d=Date.now();console.log('preloader loading',d);
-    import("${base}${preloadChunk}").then(({l,p})=>{
-    console.log('preloader start',Date.now()-d);
-    l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});
-    p(${JSON.stringify(prio.slice(0, 20))});
-    })
-  `.replaceAll(/^\s+|\s*\n/gm, '');
+    const script =
+      `const d=Date.now();console.log('preloader loading',d);` +
+      `import("${base}${preloadChunk}").then(({l,p})=>{` +
+      (`console.log('preloader start',Date.now()-d);` +
+        `l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});` +
+        `p(${JSON.stringify(prio)});`) +
+      `})`;
 
     // TODO move this to the top of the page
     prefetchNodes.push(

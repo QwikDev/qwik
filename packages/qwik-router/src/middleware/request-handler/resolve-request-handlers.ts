@@ -1,4 +1,5 @@
-import type { QRL } from '@qwik.dev/core';
+import { type QRL } from '@qwik.dev/core';
+import { SerializerSymbol, _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -30,7 +31,6 @@ import {
 import { getQwikRouterServerData } from './response-page';
 import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
-import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -595,6 +595,9 @@ export async function renderQData(requestEv: RequestEvent) {
   const loaders: Record<string, unknown> = {};
   for (const loaderId in allLoaders) {
     const loader = allLoaders[loaderId];
+    if (typeof loader === 'object' && loader !== null && SerializerSymbol in loader) {
+      delete (loader as any)[SerializerSymbol];
+    }
     if (loader !== _UNINITIALIZED) {
       loaders[loaderId] = loader;
     }

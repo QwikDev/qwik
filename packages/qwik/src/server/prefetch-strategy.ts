@@ -5,7 +5,6 @@ import type {
   SnapshotResult,
 } from './types';
 import { getBuildBase } from './utils';
-import { qDev } from '../core/util/qdev';
 
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { QRLInternal } from '../core/qrl/qrl-class';
@@ -65,7 +64,7 @@ function getAutoPrefetch(
       const resolvedSymbol = mapper[qrlSymbolName];
       if (resolvedSymbol) {
         const bundleFileName = resolvedSymbol[1];
-        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
+        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName, true);
       }
     }
   }
@@ -77,22 +76,35 @@ function addBundle(
   urls: Map<string, PrefetchResource>,
   prefetchResources: PrefetchResource[],
   buildBase: string,
-  bundleFileName: string
+  bundleFileName: string,
+  priority: boolean
 ) {
-  const url = qDev ? bundleFileName : buildBase + bundleFileName;
-  let prefetchResource = urls.get(url);
+  let prefetchResource = urls.get(bundleFileName);
   if (!prefetchResource) {
     prefetchResource = {
-      url,
+      url: bundleFileName,
       imports: [],
+      priority,
     };
-    urls.set(url, prefetchResource);
+    urls.set(bundleFileName, prefetchResource);
 
     const bundle = manifest.bundles[bundleFileName];
     if (bundle) {
       if (Array.isArray(bundle.imports)) {
         for (const importedFilename of bundle.imports) {
-          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
+          addBundle(
+            manifest,
+            urls,
+            prefetchResource.imports,
+            buildBase,
+            importedFilename,
+            priority
+          );
+        }
+      }
+      if (Array.isArray(bundle.dynamicImports) && bundle.dynamicImports.length < 10) {
+        for (const importedFilename of bundle.dynamicImports) {
+          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename, false);
         }
       }
     }

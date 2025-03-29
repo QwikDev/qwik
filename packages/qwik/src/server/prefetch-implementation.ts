@@ -1,14 +1,15 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
-import {
-  flattenPrefetchResources,
-  getMostReferenced,
-  prefetchUrlsEventScript,
-  workerFetchScript,
-} from './prefetch-utils';
-import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
+import { flattenPrefetchResources, getMostReferenced, workerFetchScript } from './prefetch-utils';
+import type {
+  PrefetchImplementation,
+  PrefetchResource,
+  PrefetchStrategy,
+  QwikManifest,
+} from './types';
 
 export function applyPrefetchImplementation(
   base: string,
+  manifest: QwikManifest | undefined,
   prefetchStrategy: PrefetchStrategy | undefined,
   prefetchResources: PrefetchResource[],
   nonce?: string
@@ -24,11 +25,18 @@ export function applyPrefetchImplementation(
   }
 
   if (prefetchImpl.linkInsert === 'html-append') {
-    linkHtmlImplementation(prefetchNodes, prefetchResources, prefetchImpl);
+    linkHtmlImplementation(
+      base,
+      manifest?.manifestHash,
+      nonce,
+      prefetchNodes,
+      prefetchResources,
+      prefetchImpl
+    );
   }
 
   if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation(prefetchNodes, prefetchResources, prefetchImpl, nonce);
+    linkJsImplementation(base, manifest, nonce, prefetchNodes, prefetchResources, prefetchImpl);
   } else if (prefetchImpl.workerFetchInsert === 'always') {
     workerFetchImplementation(prefetchNodes, prefetchResources, nonce);
   }
@@ -51,107 +59,132 @@ function prefetchUrlsEvent(
     prefetchNodes.push(
       jsx('link', {
         rel: 'modulepreload',
-        href: url,
+        href: base + url,
         nonce,
       })
     );
   }
-  prefetchNodes.push(
-    jsx('script', {
-      'q:type': 'prefetch-bundles',
-      dangerouslySetInnerHTML:
-        prefetchUrlsEventScript(base, prefetchResources) +
-        `document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`,
-      nonce,
-    })
-  );
+  // TODO: convert links to bundles
+  // prefetchNodes.push(
+  //   jsx('script', {
+  //     'q:type': 'prefetch-bundles',
+  //     dangerouslySetInnerHTML:
+  //     prefetchUrlsEventScript(base, prefetchResources),
+  //     nonce,
+  //   })
+  // );
 }
 
-/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
+/** Creates the `<link>` within the rendered html */
 function linkHtmlImplementation(
+  base: string,
+  manifestHash: string | undefined,
+  nonce: string | undefined,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
   prefetchImpl: Required<PrefetchImplementation>
 ) {
   const urls = flattenPrefetchResources(prefetchResources);
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  const priority = prefetchImpl.linkFetchPriority;
+  const rel = prefetchImpl.linkRel || 'modulepreload';
 
-  for (const url of urls) {
-    const attributes: Record<string, string> = {};
-    attributes['href'] = url;
-    attributes['rel'] = rel;
-    if (priority) {
-      attributes['fetchpriority'] = priority;
-    }
-    if (rel === 'prefetch' || rel === 'preload') {
-      if (url.endsWith('.js')) {
-        attributes['as'] = 'script';
-      }
-    }
-
-    prefetchNodes.push(jsx('link', attributes, undefined));
+  if (manifestHash) {
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'fetch',
+        id: `qwik-bg-${manifestHash}`,
+        href: `${base}q-bundle-graph-${manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+        fetchpriority: prefetchImpl.linkFetchPriority || undefined,
+      })
+    );
+  }
+  for (const [url, priority] of urls) {
+    const fetchpriority = priority
+      ? prefetchImpl.linkFetchPriority || 'high'
+      : prefetchImpl.linkFetchPriority === 'low'
+        ? 'low'
+        : undefined;
+    prefetchNodes.push(
+      jsx('link', {
+        href: base + url,
+        rel,
+        fetchpriority,
+        nonce,
+        // TODO: add integrity
+      })
+    );
   }
 }
 
 /**
- * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
- * it'll also add the web worker fetch.
+ * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
+ * import the preloader as well and have all the state there, plus it makes it easy to write a
+ * complex implementation.
  */
 function linkJsImplementation(
+  base: string,
+  manifest: QwikManifest | undefined,
+  nonce: string | undefined,
   prefetchNodes: JSXNode[],
   prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>,
-  nonce?: string
+  prefetchImpl: Required<PrefetchImplementation>
 ) {
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  const priority = prefetchImpl.linkFetchPriority;
-  let s = ``;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `let supportsLinkRel = true;`;
-  }
-
-  s += `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
-  s += `u.map((u,i)=>{`;
-
-  s += `const l=document.createElement('link');`;
-  s += `l.setAttribute("href",u);`;
-  s += `l.setAttribute("rel","${rel}");`;
-  if (priority) {
-    s += `l.setAttribute("fetchpriority","${priority}");`;
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(i===0){`;
-    s += `try{`;
-    s += `supportsLinkRel=l.relList.supports("${rel}");`;
-    s += `}catch(e){}`;
-    s += `}`;
-  }
-
-  s += `document.body.appendChild(l);`;
-
-  s += `});`;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    s += `if(!supportsLinkRel){`;
-    s += workerFetchScript();
-    s += `}`;
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'always') {
-    s += workerFetchScript();
-  }
-
-  prefetchNodes.push(
-    jsx('script', {
-      type: 'module',
-      'q:type': 'link-js',
-      dangerouslySetInnerHTML: s,
+  const preloadChunk = manifest?.preloader;
+  if (!preloadChunk) {
+    return linkHtmlImplementation(
+      base,
+      manifest?.manifestHash,
       nonce,
-    })
-  );
+      prefetchNodes,
+      prefetchResources,
+      prefetchImpl
+    );
+  }
+  const manifestHash = manifest.manifestHash;
+  const urls = flattenPrefetchResources(prefetchResources);
+  const prio = [];
+  for (const [url, priority] of urls) {
+    // we only want the static imports, the rest will follow as needed
+    if (priority) {
+      prio.push(url);
+    }
+  }
+
+  // TODO modulepreload the preloader before ssr, optional because we can't predict if we need it
+
+  // TODO order imports by size/number of dependents?
+  if (prio.length) {
+    // We mark all the urls as low priority, so that newly needed resources are loaded first
+    // We use a Promise so the script doesn't block the initial page load
+    const script =
+      `const d=Date.now();console.log('preloader loading',d);` +
+      `import("${base}${preloadChunk}").then(({l,p})=>{` +
+      (`console.log('preloader start',Date.now()-d);` +
+        `l(${JSON.stringify(base)},${JSON.stringify(manifestHash)});` +
+        `p(${JSON.stringify(prio)});`) +
+      `})`;
+
+    // TODO move this to the top of the page
+    prefetchNodes.push(
+      jsx('link', {
+        rel: 'fetch',
+        id: `qwik-bg-${manifestHash}`,
+        href: `${base}q-bundle-graph-${manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+        fetchpriority: 'low',
+      })
+    );
+    prefetchNodes.push(
+      jsx('script', {
+        type: 'module',
+        'q:type': 'link-js',
+        dangerouslySetInnerHTML: script,
+        nonce,
+      })
+    );
+  }
 }
 
 function workerFetchImplementation(
@@ -159,7 +192,7 @@ function workerFetchImplementation(
   prefetchResources: PrefetchResource[],
   nonce?: string
 ) {
-  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`;
+  let s = `const u=${JSON.stringify(flattenPrefetchResources(prefetchResources).keys())};`;
   s += workerFetchScript();
 
   prefetchNodes.push(
@@ -179,9 +212,9 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  linkInsert: null,
-  linkRel: null,
+  linkInsert: 'js-append',
+  linkRel: 'modulepreload',
   linkFetchPriority: null,
   workerFetchInsert: null,
-  prefetchEvent: 'always',
+  prefetchEvent: null,
 };

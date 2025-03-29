@@ -52,6 +52,25 @@ _(Optional)_
 
 string
 
+## BundleGraphAdder
+
+A function that returns a map of bundle names to their dependencies.
+
+```typescript
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<
+  string,
+  {
+    imports?: string[];
+    dynamicImports?: string[];
+    hasSegments?: boolean;
+  }
+>;
+```
+
+**References:** [QwikManifest](#qwikmanifest)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
+
 ## ComponentEntryStrategy
 
 ```typescript
@@ -568,72 +587,6 @@ Description
 </td><td>
 
 'inline'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## InsightManifest
-
-```typescript
-export interface InsightManifest
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[prefetch](#)
-
-</td><td>
-
-</td><td>
-
-{ route: string; symbols: string[]; }[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'smart'
 
 </td><td>
 
@@ -1320,7 +1273,7 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[hasSymbols?](#)
+[hasSegments?](#)
 
 </td><td>
 
@@ -1392,6 +1345,18 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## QwikBundleGraph
+
+Bundle graph.
+
+Format: [ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bundle-b.js', 5, // Depends on 'bundle-c.js' 'bundle-c.js', ]
+
+```typescript
+export type QwikBundleGraph = Array<string | number>;
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -1508,6 +1473,21 @@ _(Optional)_
 </td><td>
 
 _(Optional)_
+
+</td></tr>
+<tr><td>
+
+[preloader?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The preloader bundle
 
 </td></tr>
 <tr><td>
@@ -2158,19 +2138,6 @@ Description
 </td></tr>
 <tr><td>
 
-[getInsightsManifest](#)
-
-</td><td>
-
-</td><td>
-
-(clientOutDir?: string \| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \| null&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [getManifest](#)
 
 </td><td>
@@ -2217,6 +2184,19 @@ Description
 </td><td>
 
 () =&gt; string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[registerBundleGraphAdder](#)
+
+</td><td>
+
+</td><td>
+
+(adder: [BundleGraphAdder](#bundlegraphadder)) =&gt; void
 
 </td><td>
 

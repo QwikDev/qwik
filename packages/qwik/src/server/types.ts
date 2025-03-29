@@ -22,26 +22,26 @@ export interface PrefetchStrategy {
 /** @public */
 export interface PrefetchImplementation {
   /**
-   * `js-append`: Use JS runtime to create each `<link>` and append to the body.
+   * `js-append`: Use JS runtime to create each `<link>` and append to the head.
    *
    * `html-append`: Render each `<link>` within html, appended at the end of the body.
+   *
+   * Defaults to `js-append`.
    */
   linkInsert?: 'js-append' | 'html-append' | null;
-  /**
-   * Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links
-   * are inserted.
-   */
+  /** Value of the `<link rel="...">` attribute when link is used. Defaults to `modulepreload`. */
   linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-  /**
-   * Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null` if
-   * links are inserted.
-   */
+  /** Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null`. */
   linkFetchPriority?: 'auto' | 'low' | 'high' | null;
   /**
    * `always`: Always include the worker fetch JS runtime.
    *
    * `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support
    * `<link>` prefetch/preload/modulepreload.
+   *
+   * Defaults to `null`.
+   *
+   * @deprecated Use `linkInsert` instead
    */
   workerFetchInsert?: 'always' | 'no-link-support' | null;
   /**
@@ -57,7 +57,7 @@ export interface PrefetchImplementation {
    * </script>
    * ```
    *
-   * By default, the `prefetchEvent` implementation will be set to `always`.
+   * By default, the `prefetchEvent` implementation will be set to `null`.
    */
   prefetchEvent?: 'always' | null;
 }
@@ -73,6 +73,7 @@ export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => 
 export interface PrefetchResource {
   url: string;
   imports: PrefetchResource[];
+  priority: boolean;
 }
 
 /** @public */
@@ -112,24 +113,13 @@ export interface QwikLoaderOptions {
 }
 
 /**
- * Options which determine how the Qwik Prefetch Service Worker is added to the document.
- *
- * Qwik Prefetch Service Worker is used to prefetch resources so that the QwikLoader will always
- * have a cache hit. This will ensure that there will not be any delays for the end user while
- * interacting with the application.
- *
+ * @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts.
  * @public
  */
 export interface QwikPrefetchServiceWorkerOptions {
-  /**
-   * Should the Qwik Prefetch Service Worker be added to the container. Defaults to `false` until
-   * the QwikCity Service Worker is deprecated.
-   */
+  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
   include?: boolean;
-  /**
-   * Where should the Qwik Prefetch Service Worker be added to the container. Defaults to `top` to
-   * get prefetching going as fast as possible.
-   */
+  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
   position?: 'top' | 'bottom';
 }
 
@@ -154,11 +144,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  /**
-   * Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
-   *
-   * Defaults to `{ include: false }`. NOTE: This may be change in the future.
-   */
+  /** @deprecated Use `prefetchStrategy` instead */
   qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
 
   prefetchStrategy?: PrefetchStrategy | null;

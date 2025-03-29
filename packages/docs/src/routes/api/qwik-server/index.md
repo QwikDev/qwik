@@ -243,7 +243,7 @@ Description
 
 </td><td>
 
-_(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null` if links are inserted.
+_(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null`.
 
 </td></tr>
 <tr><td>
@@ -258,9 +258,11 @@ _(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is us
 
 </td><td>
 
-_(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to the body.
+_(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to the head.
 
 `html-append`: Render each `<link>` within html, appended at the end of the body.
+
+Defaults to `js-append`.
 
 </td></tr>
 <tr><td>
@@ -275,7 +277,7 @@ _(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to t
 
 </td><td>
 
-_(Optional)_ Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links are inserted.
+_(Optional)_ Value of the `<link rel="...">` attribute when link is used. Defaults to `modulepreload`.
 
 </td></tr>
 <tr><td>
@@ -300,7 +302,7 @@ This implementation will inject a script similar to:
 </script>
 ```
 
-By default, the `prefetchEvent` implementation will be set to `always`.
+By default, the `prefetchEvent` implementation will be set to `null`.
 
 </td></tr>
 <tr><td>
@@ -318,6 +320,8 @@ By default, the `prefetchEvent` implementation will be set to `always`.
 _(Optional)_ `always`: Always include the worker fetch JS runtime.
 
 `no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
+
+Defaults to `null`.
 
 </td></tr>
 </tbody></table>
@@ -356,6 +360,19 @@ Description
 </td><td>
 
 [PrefetchResource](#prefetchresource)[]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[priority](#)
+
+</td><td>
+
+</td><td>
+
+boolean
 
 </td><td>
 
@@ -630,9 +647,7 @@ QwikPrefetchServiceWorkerOptions
 
 </td><td>
 
-_(Optional)_ Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
-
-Defaults to `{ include: false }`. NOTE: This may be change in the future.
+_(Optional)_
 
 </td></tr>
 <tr><td>

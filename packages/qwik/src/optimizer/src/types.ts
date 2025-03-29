@@ -223,6 +223,8 @@ export interface QwikManifest {
   mapping: { [symbolName: string]: string };
   /** All code bundles, used to know the import graph */
   bundles: { [fileName: string]: QwikBundle };
+  /** The preloader bundle */
+  preloader?: string;
   /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
   version: string;
@@ -270,7 +272,7 @@ export interface QwikSymbol {
 /** @public */
 export interface QwikBundle {
   size: number;
-  hasSymbols?: boolean;
+  hasSegments?: boolean;
   symbols?: string[];
   imports?: string[];
   dynamicImports?: string[];
@@ -320,11 +322,4 @@ export interface Path {
 export interface ResolvedManifest {
   mapper: SymbolMapper;
   manifest: QwikManifest;
-}
-
-/** @public */
-export interface InsightManifest {
-  type: 'smart';
-  manual: Record<string, string>;
-  prefetch: { route: string; symbols: string[] }[];
 }

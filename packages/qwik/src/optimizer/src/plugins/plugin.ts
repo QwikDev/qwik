@@ -8,7 +8,6 @@ import type {
   EntryStrategy,
   GlobalInjections,
   SegmentAnalysis,
-  InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
@@ -111,7 +110,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     srcInputs: null as any,
     sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
-    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     scope: null,
@@ -487,6 +485,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         id: QWIK_CLIENT_MANIFEST_ID,
         moduleSideEffects: false,
       };
+    } else if (!devServer && !isServer && pathId.endsWith(QWIK_PRELOADER_ID)) {
+      debug(`resolveId(${count})`, 'Resolved', QWIK_PRELOADER_ID);
+      const preloader = await ctx.resolve(QWIK_PRELOADER_ID, importerId, {
+        skipSelf: true,
+      });
+      if (preloader) {
+        ctx.emitFile({
+          id: preloader.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+        return preloader;
+      }
     } else {
       const qrlMatch = /^(?<parent>.*\.[mc]?[jt]sx?)_(?<name>[^/]+)\.js(?<query>$|\?.*$)/.exec(id)
         ?.groups as { parent: string; name: string; query: string } | undefined;
@@ -878,6 +889,11 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
+    // The preloader has to stay in a separate chunk
+    if (id.endsWith(QWIK_PRELOADER_REAL_ID)) {
+      return 'qwik-preloader';
+    }
+
     if ((opts.entryStrategy as SmartEntryStrategy).manual) {
       const module = getModuleInfo(id)!;
       const segment = module.meta.segment as SegmentAnalysis | undefined;
@@ -890,6 +906,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
         }
       }
     }
+
     return null;
   }
 
@@ -985,6 +1002,9 @@ export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
+export const QWIK_PRELOADER_ID = '@builder.io/qwik/preloader';
+export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
+
 export const SRC_DIR_DEFAULT = 'src';
 
 export const CLIENT_OUT_DIR = 'dist';
@@ -1011,7 +1031,6 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   assetsDir?: string;

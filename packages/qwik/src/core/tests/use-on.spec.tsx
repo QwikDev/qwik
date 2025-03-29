@@ -14,9 +14,8 @@ import {
   useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { trigger } from '../../testing/element-fixture';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

@@ -984,7 +984,7 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey) {
+    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey && !!jsxKey) {
       // All is good.
       return;
     } else if (jsxKey !== null) {
@@ -1043,7 +1043,7 @@ export const vnode_diff = (
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
-      } else if (!hashesAreEqual) {
+      } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
         host = vNewNode as VirtualVNode;
         shouldRender = true;

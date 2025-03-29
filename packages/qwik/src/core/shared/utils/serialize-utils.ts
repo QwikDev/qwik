@@ -90,7 +90,6 @@ const _verifySerializable = <T>(
   return value;
 };
 const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
-const weakSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
 export const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -105,10 +104,6 @@ export const fastSkipSerialize = (obj: object | Function): boolean => {
     (typeof obj === 'object' || typeof obj === 'function') &&
     (NoSerializeSymbol in obj || noSerializeSet.has(obj))
   );
-};
-
-export const fastWeakSerialize = (obj: object): boolean => {
-  return weakSerializeSet.has(obj);
 };
 
 /**
@@ -145,20 +140,6 @@ export const noSerialize = <T extends object | undefined>(input: T): NoSerialize
     noSerializeSet.add(input);
   }
   return input as any;
-};
-
-/** @internal */
-export const _weakSerialize = <T extends object>(input: T): Partial<T> => {
-  weakSerializeSet.add(input);
-  if (isObject(input)) {
-    for (const key in input) {
-      const value = input[key];
-      if (isObject(value)) {
-        noSerializeSet.add(value);
-      }
-    }
-  }
-  return input;
 };
 
 /**

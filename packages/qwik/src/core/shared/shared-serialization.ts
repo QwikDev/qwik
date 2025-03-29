@@ -40,7 +40,7 @@ import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from './utils/markers';
 import { isPromise } from './utils/promises';
-import { SerializerSymbol, fastSkipSerialize, fastWeakSerialize } from './utils/serialize-utils';
+import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import {
   _EFFECT_BACK_REF,
   EffectSubscriptionProp,
@@ -419,16 +419,6 @@ const inflate = (
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
-    case TypeIds.WeakObject: {
-      const objectKeys = data as string[];
-      target = Object.fromEntries(
-        objectKeys.map((v) =>
-          // initialize values with null
-          [v, _UNINITIALIZED]
-        )
-      );
-      break;
-    }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
@@ -498,7 +488,6 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Array:
       return wrapDeserializerProxy(container as any, value as any[]);
     case TypeIds.Object:
-    case TypeIds.WeakObject:
       return {};
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
@@ -1147,8 +1136,6 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
         output(TypeIds.Array, value);
-      } else if (fastWeakSerialize(value)) {
-        output(TypeIds.WeakObject, Object.keys(value));
       } else {
         const out: any[] = [];
         for (const key in value) {
@@ -1912,7 +1899,6 @@ export const enum TypeIds {
   JSXNode,
   PropsProxy,
   SubscriptionData,
-  WeakObject,
 }
 export const _typeIdNames = [
   'RootRef',
@@ -1951,7 +1937,6 @@ export const _typeIdNames = [
   'JSXNode',
   'PropsProxy',
   'SubscriptionData',
-  'WeakObject',
 ];
 
 export const enum Constants {

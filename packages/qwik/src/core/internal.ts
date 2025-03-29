@@ -39,13 +39,10 @@ export {
   preprocessState as _preprocessState,
   _serialize,
 } from './shared/shared-serialization';
-export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from './shared/utils/constants';
+export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS, _UNINITIALIZED } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';
-export {
-  verifySerializable as _verifySerializable,
-  _weakSerialize,
-} from './shared/utils/serialize-utils';
+export { verifySerializable as _verifySerializable } from './shared/utils/serialize-utils';
 export { _walkJSX } from './ssr/ssr-render-jsx';
 export {
   _getContextElement,

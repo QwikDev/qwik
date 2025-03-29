@@ -1,3 +1,5 @@
+import { SerializerSymbol } from '@qwik.dev/core';
+import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
@@ -8,6 +10,7 @@ import {
   RequestRouteName,
 } from './request-event';
 import type { RequestEvent } from './types';
+import { Q_ROUTE } from '../../runtime/src/constants';
 
 export function getQwikRouterServerData(requestEv: RequestEvent) {
   const { params, request, status, locale, originalUrl } = requestEv;
@@ -30,13 +33,28 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
     reconstructedUrl.protocol = protocol;
   }
 
+  const loaders = getRequestLoaders(requestEv);
+
+  // shallow serialize loaders data
+  (loaders as any)[SerializerSymbol] = (loaders: Record<string, unknown>) => {
+    const result: Record<string, unknown> = {};
+    for (const key in loaders) {
+      const loader = loaders[key];
+      if (typeof loader === 'object' && loader !== null) {
+        (loader as any)[SerializerSymbol] = () => _UNINITIALIZED;
+      }
+      result[key] = _UNINITIALIZED;
+    }
+    return result;
+  };
+
   return {
     url: reconstructedUrl.href,
     requestHeaders,
     locale: locale(),
     nonce,
     containerAttributes: {
-      'q:route': routeName,
+      [Q_ROUTE]: routeName,
     },
     qwikrouter: {
       routeName,
@@ -45,7 +63,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
-        loaders: getRequestLoaders(requestEv),
+        loaders,
         action,
         formData,
       },

@@ -342,8 +342,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
              */
             maxParallelFileOps: 1,
             output: {
-              // We have waterfall prevention so don't hoist
-              hoistTransitiveImports: false,
               manualChunks: qwikPlugin.manualChunks,
             },
           },

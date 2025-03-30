@@ -615,6 +615,9 @@ importers:
       '@mdx-js/mdx':
         specifier: ^3
         version: 3.0.1
+      '@standard-schema/spec':
+        specifier: ^1.0.0-rc.0
+        version: 1.0.0-rc.0
       '@types/mdx':
         specifier: ^2
         version: 2.0.13
@@ -624,12 +627,15 @@ importers:
       svgo:
         specifier: ^3.3
         version: 3.3.2
+      type-fest:
+        specifier: ^4.33.0
+        version: 4.33.0
       undici:
         specifier: '*'
         version: 6.18.2
       valibot:
-        specifier: '>=0.36.0 <2'
-        version: 0.42.1(typescript@5.4.5)
+        specifier: ^1.0.0-beta.14
+        version: 1.0.0-beta.14(typescript@5.4.5)
       vfile:
         specifier: 6.0.2
         version: 6.0.2
@@ -640,8 +646,8 @@ importers:
         specifier: ^7
         version: 7.0.4(rollup@4.24.2)
       zod:
-        specifier: 3.22.4
-        version: 3.22.4
+        specifier: ^3.24.1
+        version: 3.24.1
     devDependencies:
       '@azure/functions':
         specifier: 3.5.1
@@ -3267,6 +3273,9 @@ packages:
   '@sindresorhus/transliterate@1.6.0':
     resolution: {integrity: sha512-doH1gimEu3A46VX6aVxpHTeHrytJAG6HgdxntYnCFiIFHEM/ZGpG8KiZGBChchjQmG0XFIBL552kBTjVcMZXwQ==}
     engines: {node: '>=12'}
+
+  '@standard-schema/spec@1.0.0-rc.0':
+    resolution: {integrity: sha512-DcY/ICFcZIESNTLTexIT108HOqd1FtxsiLV4ZYGluySWyjF6TZ6troNyXjiqoHU6j0wN3A6SmYnTA5CHQp9blw==}
 
   '@supabase/auth-helpers-shared@0.6.3':
     resolution: {integrity: sha512-xYQRLFeFkL4ZfwC7p9VKcarshj3FB2QJMgJPydvOY7J5czJe6xSG5/wM1z63RmAzGbCkKg+dzpq61oeSyWiGBQ==}
@@ -9192,6 +9201,10 @@ packages:
     resolution: {integrity: sha512-G6zXWS1dLj6eagy6sVhOMQiLtJdxQBHIA9Z6HFUNLOlr6MFOgzV8wvmidtPONfPtEUv0uZsy77XJNzTAfwPDaA==}
     engines: {node: '>=16'}
 
+  type-fest@4.33.0:
+    resolution: {integrity: sha512-s6zVrxuyKbbAsSAD5ZPTB77q4YIdRctkTbJ2/Dqlinwz+8ooH2gd+YA7VA6Pa93KML9GockVvoxjZ2vHP+mu8g==}
+    engines: {node: '>=16'}
+
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
@@ -9422,8 +9435,8 @@ packages:
   valibot@0.33.3:
     resolution: {integrity: sha512-/fuY1DlX8uiQ7aphlzrrI2DbG0YJk84JMgvz2qKpUIdXRNsS53varfo4voPjSrjUr5BSV2K0miSEJUOlA5fQFg==}
 
-  valibot@0.42.1:
-    resolution: {integrity: sha512-3keXV29Ar5b//Hqi4MbSdV7lfVp6zuYLZuA9V1PvQUsXqogr+u5lvLPLk3A4f74VUXDnf/JfWMN6sB+koJ/FFw==}
+  valibot@1.0.0-beta.14:
+    resolution: {integrity: sha512-tLyV2rE5QL6U29MFy3xt4AqMrn+/HErcp2ZThASnQvPMwfSozjV1uBGKIGiegtZIGjinJqn0SlBdannf18wENA==}
     peerDependencies:
       typescript: 5.4.5
     peerDependenciesMeta:
@@ -9839,6 +9852,9 @@ packages:
 
   zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+
+  zod@3.24.1:
+    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -11786,7 +11802,7 @@ snapshots:
       unixify: 1.0.0
       urlpattern-polyfill: 8.0.2
       yargs: 17.7.2
-      zod: 3.23.8
+      zod: 3.24.1
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -12192,6 +12208,8 @@ snapshots:
   '@sindresorhus/transliterate@1.6.0':
     dependencies:
       escape-string-regexp: 5.0.0
+
+  '@standard-schema/spec@1.0.0-rc.0': {}
 
   '@supabase/auth-helpers-shared@0.6.3(@supabase/supabase-js@2.44.4)':
     dependencies:
@@ -16954,7 +16972,7 @@ snapshots:
       workerd: 1.20240718.0
       ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       youch: 3.3.3
-      zod: 3.22.4
+      zod: 3.24.1
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -19253,6 +19271,8 @@ snapshots:
 
   type-fest@4.30.0: {}
 
+  type-fest@4.33.0: {}
+
   type-is@1.6.18:
     dependencies:
       media-typer: 0.3.0
@@ -19490,7 +19510,7 @@ snapshots:
 
   valibot@0.33.3: {}
 
-  valibot@0.42.1(typescript@5.4.5):
+  valibot@1.0.0-beta.14(typescript@5.4.5):
     optionalDependencies:
       typescript: 5.4.5
 
@@ -19970,5 +19990,7 @@ snapshots:
   zod@3.22.4: {}
 
   zod@3.23.8: {}
+
+  zod@3.24.1: {}
 
   zwitch@2.0.4: {}

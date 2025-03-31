@@ -79,15 +79,14 @@ function addBundle(
   bundleFileName: string,
   priority: boolean
 ) {
-  const url = buildBase + bundleFileName;
-  let prefetchResource = urls.get(url);
+  let prefetchResource = urls.get(bundleFileName);
   if (!prefetchResource) {
     prefetchResource = {
-      url,
+      url: bundleFileName,
       imports: [],
       priority,
     };
-    urls.set(url, prefetchResource);
+    urls.set(bundleFileName, prefetchResource);
 
     const bundle = manifest.bundles[bundleFileName];
     if (bundle) {

@@ -8,6 +8,10 @@ export const PREFETCHED_NAVIGATE_PATHS = new Set<string>();
 
 export const QACTION_KEY = 'qaction';
 
+export const QLOADER_KEY = 'qloader';
+
 export const QFN_KEY = 'qfunc';
 
 export const QDATA_KEY = 'qdata';
+
+export const Q_ROUTE = 'q:route';

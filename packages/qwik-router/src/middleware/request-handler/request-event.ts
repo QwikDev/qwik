@@ -1,12 +1,13 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { QDATA_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  FailReturn,
-  JSONValue,
-  LoadedRoute,
-  LoaderInternal,
+import {
+  LoadedRouteProp,
+  type ActionInternal,
+  type FailReturn,
+  type JSONValue,
+  type LoadedRoute,
+  type LoaderInternal,
 } from '../../runtime/src/types';
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
@@ -37,6 +38,8 @@ export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
+export const RequestEvShareServerTiming = '@serverTiming';
+export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -147,7 +150,7 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[1] ?? {},
+    params: loadedRoute?.[LoadedRouteProp.Params] ?? {},
     pathname: url.pathname,
     platform,
     query: url.searchParams,
@@ -271,9 +274,14 @@ export function createRequestEvent(
     getWritableStream: () => {
       if (writableStream === null) {
         if (serverRequestEv.mode === 'dev') {
-          const serverTiming = sharedMap.get('@serverTiming') as [string, number][] | undefined;
+          const serverTiming = sharedMap.get(RequestEvShareServerTiming) as
+            | [string, number][]
+            | undefined;
           if (serverTiming) {
-            headers.set('Server-Timing', serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(','));
+            headers.set(
+              'Server-Timing',
+              serverTiming.map(([name, duration]) => `${name};dur=${duration}`).join(',')
+            );
           }
         }
         writableStream = serverRequestEv.getWritableStream(

@@ -63,15 +63,16 @@ describe('shared-serialization', () => {
         6 Constant EMPTY_OBJ
         7 Constant NEEDS_COMPUTATION
         8 Constant STORE_ALL_PROPS
-        9 Constant Slot
-        10 Constant Fragment
-        11 Constant NaN
-        12 Constant Infinity
-        13 Constant -Infinity
-        14 Constant MAX_SAFE_INTEGER
-        15 Constant MAX_SAFE_INTEGER-1
-        16 Constant MIN_SAFE_INTEGER
-        (76 chars)"
+        9 Constant _UNINITIALIZED
+        10 Constant Slot
+        11 Constant Fragment
+        12 Constant NaN
+        13 Constant Infinity
+        14 Constant -Infinity
+        15 Constant MAX_SAFE_INTEGER
+        16 Constant MAX_SAFE_INTEGER-1
+        17 Constant MIN_SAFE_INTEGER
+        (81 chars)"
       `);
     });
     it(title(TypeIds.Number), async () => {
@@ -480,11 +481,11 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
-    it(title(TypeIds.EffectData), async () => {
+    it(title(TypeIds.SubscriptionData), async () => {
       expect(await dump(new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })))
         .toMatchInlineSnapshot(`
         "
-        0 EffectData [
+        0 SubscriptionData [
           Constant null
           Constant true
         ]
@@ -666,7 +667,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
     // this requires a domcontainer
-    it.skip(title(TypeIds.Store), async () => {
+    it(title(TypeIds.Store), async () => {
       const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));
       const store = deserialize(objs)[0] as any;
       expect(store).toHaveProperty('a');
@@ -676,7 +677,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));
-    it(title(TypeIds.EffectData), async () => {
+    it(title(TypeIds.SubscriptionData), async () => {
       const objs = await serialize(
         new SubscriptionData({ $isConst$: true, $scopedStyleIdPrefix$: null })
       );

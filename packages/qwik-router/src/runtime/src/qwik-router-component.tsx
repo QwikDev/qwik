@@ -20,11 +20,10 @@ import {
   _getContextElement,
   _getQContainerElement,
   _waitUntilRendered,
-  _weakSerialize,
   type _ElementVNode,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE } from './constants';
+import { CLIENT_DATA_CACHE, Q_ROUTE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -146,7 +145,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     { deep: false }
   );
   const navResolver: { r?: () => void } = {};
-  const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
+  const loaderState = useStore(env.response.loaders, { deep: false });
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
@@ -641,7 +640,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
           _waitUntilRendered(elm as Element).then(() => {
             const container = _getQContainerElement(elm as _ElementVNode)!;
-            container.setAttribute('q:route', routeName);
+            container.setAttribute(Q_ROUTE, routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
             win._qRouterScrollEnabled = true;

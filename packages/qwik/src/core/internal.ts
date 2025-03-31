@@ -5,15 +5,15 @@ export { queueQRL as _run } from './client/queue-qrl';
 export { scheduleTask as _task } from './use/use-task';
 export { _wrapSignal, _wrapProp, _wrapStore } from './signal/signal-utils';
 export { _restProps } from './shared/utils/prop';
-export { _IMMUTABLE } from './shared/utils/constants';
+export { _IMMUTABLE, _UNINITIALIZED } from './shared/utils/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './shared/utils/constants';
-export { _weakSerialize } from './shared/utils/serialize-utils';
 export { verifySerializable as _verifySerializable } from './shared/utils/serialize-utils';
 export {
   _getContextElement,
   _getContextEvent,
   _jsxBranch,
   _waitUntilRendered,
+  useInvokeContext as _useInvokeContext,
 } from './use/use-core';
 export { _jsxSorted, _jsxSplit, isJSXNode as _isJSXNode } from './shared/jsx/jsx-runtime';
 export { _fnSignal } from './shared/qrl/inlined-fn';

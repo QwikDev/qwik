@@ -12,6 +12,7 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
+import { RequestEvShareQData } from '../middleware/request-handler/request-event';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
@@ -178,7 +179,7 @@ async function workerRender(
 
             try {
               if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get('qData');
+                const qData: ClientPageData = requestEv.sharedMap.get(RequestEvShareQData);
                 if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);

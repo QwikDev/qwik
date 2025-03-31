@@ -1587,6 +1587,9 @@ export interface Tracker {
     <T extends object, P extends keyof T>(obj: T, prop: P): T[P];
 }
 
+// @internal (undocumented)
+export const _UNINITIALIZED: unique symbol;
+
 // @public
 export const untrack: <T>(fn: () => T) => T;
 
@@ -1617,6 +1620,11 @@ export const useErrorBoundary: () => Readonly<ErrorBoundaryStore>;
 
 // @public (undocumented)
 export const useId: () => string;
+
+// Warning: (ae-forgotten-export) The symbol "RenderInvokeContext" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _useInvokeContext: () => RenderInvokeContext;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1796,9 +1804,6 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
 }): Promise<void>;
-
-// @internal (undocumented)
-export const _weakSerialize: <T extends object>(input: T) => Partial<T>;
 
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;

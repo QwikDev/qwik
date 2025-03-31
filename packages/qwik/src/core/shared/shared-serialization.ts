@@ -51,7 +51,7 @@ import type { QRL } from './qrl/qrl.public';
 import { type NodePropData } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
-import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
+import { _CONST_PROPS, _UNINITIALIZED, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { ELEMENT_ID } from './utils/markers';
@@ -394,7 +394,7 @@ const inflate = (
       propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
       propsProxy[_CONST_PROPS] = (data as any)[1];
       break;
-    case TypeIds.EffectData: {
+    case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
       effectData.data.$scopedStyleIdPrefix$ = (data as any[])[0];
       effectData.data.$isConst$ = (data as any[])[1];
@@ -416,6 +416,7 @@ export const _constants = [
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   STORE_ALL_PROPS,
+  _UNINITIALIZED,
   Slot,
   Fragment,
   NaN,
@@ -435,6 +436,7 @@ const _constantNames = [
   'EMPTY_OBJ',
   'NEEDS_COMPUTATION',
   'STORE_ALL_PROPS',
+  '_UNINITIALIZED',
   'Slot',
   'Fragment',
   'NaN',
@@ -541,9 +543,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       } else {
         throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);
       }
-    case TypeIds.EffectData:
+    case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
-
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
@@ -811,6 +812,7 @@ export const createSerializationContext = (
         obj instanceof RegExp ||
         obj instanceof Uint8Array ||
         obj instanceof URLSearchParams ||
+        obj instanceof SubscriptionData ||
         vnode_isVNode(obj) ||
         (typeof FormData !== 'undefined' && obj instanceof FormData) ||
         // Ignore the no serialize objects
@@ -918,8 +920,6 @@ export const createSerializationContext = (
           }
         );
         promises.push(obj);
-      } else if (obj instanceof SubscriptionData) {
-        discoveredValues.push(obj.data);
       } else if (Array.isArray(obj)) {
         discoveredValues.push(...obj);
       } else if (isSerializerObj(obj)) {
@@ -972,7 +972,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unkn
     if (isSsrAttrs(value)) {
       for (let i = 1; i < value.length; i += 2) {
         const attrValue = value[i];
-        if (typeof attrValue === 'string') {
+        if (attrValue == null || typeof attrValue === 'string') {
           continue;
         }
         discoveredValues.push(attrValue);
@@ -1118,6 +1118,8 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
     } else if (value === STORE_ALL_PROPS) {
       output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
+    } else if (value === _UNINITIALIZED) {
+      output(TypeIds.Constant, Constants.UNINITIALIZED);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
@@ -1155,7 +1157,7 @@ function serialize(serializationContext: SerializationContext): void {
           : 0;
       output(TypeIds.PropsProxy, out);
     } else if (value instanceof SubscriptionData) {
-      output(TypeIds.EffectData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
+      output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
@@ -1721,7 +1723,7 @@ export const enum TypeIds {
   FormData,
   JSXNode,
   PropsProxy,
-  EffectData,
+  SubscriptionData,
 }
 export const _typeIdNames = [
   'RootRef',
@@ -1755,7 +1757,7 @@ export const _typeIdNames = [
   'FormData',
   'JSXNode',
   'PropsProxy',
-  'EffectData',
+  'SubscriptionData',
 ];
 
 export const enum Constants {
@@ -1768,6 +1770,7 @@ export const enum Constants {
   EMPTY_OBJ,
   NEEDS_COMPUTATION,
   STORE_ALL_PROPS,
+  UNINITIALIZED,
   Slot,
   Fragment,
   NaN,

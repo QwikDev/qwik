@@ -124,6 +124,9 @@ html[data-theme='dark'] {
 
 .DocSearch--active {
   overflow: hidden !important;
+  ::backdrop {
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%);
+  }
 }
 .DocSearch-Container,
 .DocSearch-Container * {

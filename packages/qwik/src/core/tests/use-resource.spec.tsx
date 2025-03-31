@@ -519,4 +519,72 @@ describe.each([
       </Component>
     );
   });
+
+  it('should render array from resource', async () => {
+    const Cmp = component$(() => {
+      const resource = useResource$(() => {
+        return [
+          {
+            id: 1,
+            name: 'John Doe',
+            age: 30,
+          },
+          {
+            id: 2,
+            name: 'Jane Smith',
+            age: 25,
+          },
+        ];
+      });
+
+      return (
+        <Resource
+          value={resource}
+          onResolved={(res) => {
+            return res.map((val, index) => (
+              <div key={index}>
+                <p>{val.id}</p>
+                <p>{val.name}</p>
+                <p>{val.age}</p>
+              </div>
+            ));
+          }}
+        />
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <InlineComponent>
+          <Fragment>
+            <Awaited>
+              <div>
+                <p>
+                  <Signal>1</Signal>
+                </p>
+                <p>
+                  <Signal>John Doe</Signal>
+                </p>
+                <p>
+                  <Signal>30</Signal>
+                </p>
+              </div>
+              <div>
+                <p>
+                  <Signal>2</Signal>
+                </p>
+                <p>
+                  <Signal>Jane Smith</Signal>
+                </p>
+                <p>
+                  <Signal>25</Signal>
+                </p>
+              </div>
+            </Awaited>
+          </Fragment>
+        </InlineComponent>
+      </Component>
+    );
+  });
 });

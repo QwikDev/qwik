@@ -21,24 +21,24 @@ describe('convertManifestToBundleGraph', () => {
         size: 0,
         imports: ['static-dep.js', 'transitive-dep.js', '@external-dep'],
         dynamicImports: ['has-a-symbol.js', 'no-symbols.js'],
-        hasSegments: true,
+        symbols: ['sym1'],
       },
       'transitive-dep.js': {
         size: 0,
-        hasSegments: true,
+        symbols: ['sym4'],
       },
       'not-used.js': {
         size: 0,
       },
       'has-a-symbol.js': {
         size: 0,
-        hasSegments: true,
+        symbols: ['sym2'],
       },
       'no-symbols.js': {
         size: 0,
       },
     } as Record<string, QwikBundle>,
-    mapping: { sym1: 'app.js', sym2: 'has-a-symbol.js' },
+    mapping: { sym1: 'dynamic-dep.js', sym2: 'has-a-symbol.js' },
     symbols: {},
     manifestHash: '123',
     version: '1.0.0',
@@ -59,9 +59,9 @@ describe('convertManifestToBundleGraph', () => {
       11,
       'transitive-dep.js', // 10
       'has-a-symbol.js', // 11
-      'sym1', // 13
-      0,
-      'sym2', // 15
+      'sym1', // 12
+      5,
+      'sym2', // 14
       11,
     ]);
   });
@@ -84,7 +84,7 @@ describe('convertManifestToBundleGraph', () => {
         },
         'c.js': {
           size: 0,
-          hasSegments: true,
+          symbols: ['sym1'],
         },
       } as Record<string, QwikBundle>,
       mapping: {},
@@ -134,12 +134,14 @@ describe('convertManifestToBundleGraph', () => {
       8,
       'transitive-dep.js', // 8
       'has-a-symbol.js', // 9
-      'sym1', // 11
-      0,
-      'sym2', // 13
+      'sym1', // 10
+      5,
+      'sym2', // 12
       9,
-      'dashboard/', // 15
+      'dashboard/', // 14
       2,
+      -1,
+      8,
     ]);
   });
 
@@ -181,8 +183,6 @@ describe('convertManifestToBundleGraph', () => {
         "preload-helper.js",
         "root.js",
         0,
-        "jn5XSz7NZ88",
-        19,
         "5fYbrS6ABNA",
         11,
         "DDeCLEw4BYU",
@@ -197,6 +197,8 @@ describe('convertManifestToBundleGraph', () => {
         13,
         "wEyctjlC58Q",
         15,
+        "jn5XSz7NZ88",
+        19,
       ]
     `);
   });

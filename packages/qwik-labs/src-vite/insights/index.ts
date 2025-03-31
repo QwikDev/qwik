@@ -1,4 +1,4 @@
-import { type QwikVitePlugin } from '@builder.io/qwik/optimizer';
+import { type QwikVitePlugin, type SmartEntryStrategy } from '@builder.io/qwik/optimizer';
 import { existsSync, mkdirSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -63,9 +63,6 @@ export async function qwikInsights(qwikInsightsOpts: {
           throw new Error('Missing vite-plugin-qwik');
         }
         const opts = qwikVitePlugin.api.getOptions();
-        if (opts.entryStrategy.type !== 'smart') {
-          return;
-        }
         if (isProd) {
           try {
             const qManifest: InsightManifest = { manual: {}, prefetch: [] };
@@ -85,9 +82,12 @@ export async function qwikInsights(qwikInsightsOpts: {
         }
 
         if (data) {
-          opts.entryStrategy.manual = { ...data.manual, ...opts.entryStrategy.manual };
+          (opts.entryStrategy as SmartEntryStrategy).manual = {
+            ...data.manual,
+            ...(opts.entryStrategy as SmartEntryStrategy).manual,
+          };
 
-          qwikVitePlugin.api.registerBundleGraphAdder(() => {
+          qwikVitePlugin.api.registerBundleGraphAdder((manifest) => {
             const result: Record<
               string,
               { imports?: string[] | undefined; dynamicImports?: string[] | undefined }
@@ -101,7 +101,7 @@ export async function qwikInsights(qwikInsightsOpts: {
                 if (!route.endsWith('/')) {
                   route += '/';
                 }
-                result[route] = { imports: item.symbols };
+                result[route] = { ...manifest.bundles[route], imports: item.symbols };
               }
             }
             return result;

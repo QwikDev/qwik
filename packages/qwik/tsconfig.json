@@ -7,6 +7,7 @@
       "@builder.io/qwik/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@builder.io/qwik/build": ["packages/qwik/src/build"],
       "@builder.io/qwik/optimizer": ["packages/qwik/src/optimizer/src"],
+      "@builder.io/qwik/preloader": ["packages/qwik/src/preloader"],
       "@builder.io/qwik/server": ["packages/qwik/src/server"],
       "@builder.io/qwik/testing": ["packages/qwik/src/testing"]
     }

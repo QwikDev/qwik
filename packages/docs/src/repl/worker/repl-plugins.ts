@@ -29,6 +29,9 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (id === '@builder.io/qwik/server') {
         return '\0qwikServer';
       }
+      if (id === '@builder.io/qwik/preloader') {
+        return '\0qwikPreloader';
+      }
       // Simple relative file resolution
       if (id.startsWith('./')) {
         const extensions = ['', '.tsx', '.ts'];
@@ -68,6 +71,12 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
           return rsp.text();
         }
         throw new Error(`Unable to load Qwik core`);
+      }
+      if (id === '\0qwikPreloader') {
+        const rsp = await depResponse('@builder.io/qwik', '/preloader.mjs');
+        if (rsp) {
+          return rsp.text();
+        }
       }
 
       // We're the fallback, we know all the files

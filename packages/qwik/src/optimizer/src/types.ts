@@ -223,6 +223,8 @@ export interface QwikManifest {
   mapping: { [symbolName: string]: string };
   /** All code bundles, used to know the import graph */
   bundles: { [fileName: string]: QwikBundle };
+  /** The preloader bundle */
+  preloader?: string;
   /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
   version: string;

@@ -56,12 +56,12 @@ describe('modifyBundleGraph', () => {
     expect(actualResult).toMatchInlineSnapshot(`
       {
         "/": {
-          "imports": [
+          "dynamicImports": [
             "fake-bundle1.js",
           ],
         },
         "/subroute": {
-          "imports": [
+          "dynamicImports": [
             "fake-bundle-part-of-sub-route.js",
             "fake-bundle-part-of-layout.js",
           ],
@@ -102,7 +102,7 @@ describe('modifyBundleGraph', () => {
     expect(actualResult).toMatchInlineSnapshot(`
       {
         "/": {
-          "imports": [
+          "dynamicImports": [
             "fake-bundle1.js",
             "fake-bundle2.js",
           ],

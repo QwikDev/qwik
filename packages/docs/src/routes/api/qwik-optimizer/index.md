@@ -1463,6 +1463,21 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
+[preloader?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The preloader bundle
+
+</td></tr>
+<tr><td>
+
 [symbols](#)
 
 </td><td>

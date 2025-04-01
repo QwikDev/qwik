@@ -118,6 +118,7 @@ export const DocSearchModal = component$(
 
         return () => {
           document.body.classList.remove('DocSearch--active');
+          document.body.style.overflow = '';
         };
       }
     });

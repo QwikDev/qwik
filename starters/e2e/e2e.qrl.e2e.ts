@@ -1,0 +1,25 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("qrl", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/e2e/qrl");
+    page.on("pageerror", (err) => expect(err).toEqual(undefined));
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        expect(msg.text()).toEqual(undefined);
+      }
+    });
+  });
+
+  test.only("should update counter without uncaught promises", async ({
+    page,
+  }) => {
+    await page.goto("/e2e/qrl");
+
+    const button = page.locator("#inner-computed-button");
+    await expect(button).toContainText("Click Me 0");
+
+    // 先执行点击操作
+    await button.click();
+  });
+});

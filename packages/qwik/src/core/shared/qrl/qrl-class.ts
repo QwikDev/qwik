@@ -12,7 +12,7 @@ import {
   type InvokeTuple,
 } from '../../use/use-core';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
-import { isPromise, maybeThen } from '../utils/promises';
+import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
@@ -93,12 +93,14 @@ export const createQRL = <TYPE>(
     // Note that we bind the current `this`
     const bound = (...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE> | undefined> => {
       if (!qrl.resolved) {
-        return qrl.resolve().then((fn) => {
-          if (!isFunction(fn)) {
-            throw qError(QError.qrlIsNotFunction);
-          }
-          return bound(...args);
-        });
+        return retryOnPromise(() =>
+          qrl.resolve().then((fn) => {
+            if (!isFunction(fn)) {
+              throw qError(QError.qrlIsNotFunction);
+            }
+            return bound(...args);
+          })
+        );
       }
       if (beforeFn && beforeFn() === false) {
         return;

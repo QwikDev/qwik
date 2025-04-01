@@ -146,12 +146,7 @@ export function invokeApply<FN extends (...args: any) => any>(
 
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);
-  let hostElement: HostElement | undefined = undefined;
-  try {
-    hostElement = vnode_locate(domContainer.rootVNode, element);
-  } catch (_) {
-    // ignore
-  }
+  const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
   locale && setLocale(locale);
   return newInvokeContext(locale, hostElement, element, event, url);

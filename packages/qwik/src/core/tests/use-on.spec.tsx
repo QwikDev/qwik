@@ -346,6 +346,55 @@ describe.each([
         </Component>
       );
     });
+
+    it('should not execute custom event QRL for deleted vnode', async () => {
+      (globalThis as any).dispatchCustomEvent = () => {};
+      (globalThis as any).receivedLog = [];
+      const DispatchChild = component$(() => {
+        useTask$(() => {
+          (globalThis as any).dispatchCustomEvent();
+        });
+        return <></>;
+      });
+      const ReceiveChild = component$(() => {
+        useOnDocument(
+          'child',
+          $(() => {
+            (globalThis as any).receivedLog.push('child event');
+          })
+        );
+        return <></>;
+      });
+      const Parent = component$(() => {
+        const toggle = useSignal(true);
+        return (
+          <>
+            <button onClick$={() => (toggle.value = !toggle.value)}></button>
+            {toggle.value ? (
+              <>
+                <DispatchChild key={1} />
+                <ReceiveChild key={2} />
+              </>
+            ) : (
+              <>
+                <DispatchChild key={3} />
+                <ReceiveChild key={3} />
+              </>
+            )}
+          </>
+        );
+      });
+
+      const { container, document } = await render(<Parent />, { debug });
+      (globalThis as any).dispatchCustomEvent = () => {
+        // don't await for this event
+        trigger(document.documentElement, '[on-document\\:child]', ':document:child');
+      };
+      // trigger the change
+      await trigger(container.element, 'button', 'click');
+      // event should not be executed for deleted vnodes
+      expect((globalThis as any).receivedLog).toEqual([]);
+    });
   });
 
   describe('useOnWindow', () => {

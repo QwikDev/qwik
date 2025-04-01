@@ -3,8 +3,7 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { ChoreType } from '../shared/util-chore-type';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { _getQContainerElement, getDomContainer } from './dom-container';
-import type { ElementVNode } from './types';
+import { getDomContainer } from './dom-container';
 
 /**
  * This is called by qwik-loader to schedule a QRL. It has to be synchronous.
@@ -15,8 +14,14 @@ export const queueQRL = (...args: unknown[]) => {
   // This will already check container
   const [runQrl] = useLexicalScope<[QRLInternal<(...args: unknown[]) => unknown>]>();
   const context = getInvokeContext();
-  const hostElement = context.$hostElement$ as ElementVNode;
-  const container = getDomContainer(hostElement);
+  const hostElement = context.$hostElement$;
+
+  if (!hostElement) {
+    // silently ignore if there is no host element, the element might have been removed
+    return;
+  }
+
+  const container = getDomContainer(context.$element$!);
 
   const scheduler = container.$scheduler$;
   if (!scheduler) {

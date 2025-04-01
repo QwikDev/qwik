@@ -7,15 +7,14 @@ import {
   component$,
   useSignal,
   type JSXOutput,
+  render,
 } from '@qwik.dev/core';
 import '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { createDocument } from '../../testing/document';
-import { trigger } from '../../testing/element-fixture';
-import { getTestPlatform } from '../../testing/platform';
-import { render } from '../client/dom-render';
-import type { ContainerElement } from '../client/types';
 import { vnode_getFirstChild } from '../client/vnode';
+import { createDocument } from '@qwik.dev/dom';
+import { getTestPlatform, trigger } from '@qwik.dev/core/testing';
+import type { _ContainerElement } from '@qwik.dev/core/internal';
 
 describe('v2 client render', () => {
   it('should render jsx', async () => {
@@ -196,7 +195,7 @@ async function clientRender(jsx: JSXOutput, rootSelector: string = 'body') {
   const root = document.querySelector(rootSelector)!;
   await render(root, jsx);
   await getTestPlatform().flush();
-  const containerElement = root as ContainerElement;
+  const containerElement = root as _ContainerElement;
   const container = containerElement.qContainer!;
   return {
     container,

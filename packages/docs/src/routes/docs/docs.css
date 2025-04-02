@@ -272,3 +272,14 @@ pre {
   border-radius: 5px;
   overflow: hidden;
 }
+
+.docs-long-list {
+  display: flex;
+  flex-wrap: wrap;
+  & ul {
+    display: contents;
+    & li {
+      list-style-type: none;
+    }
+  }
+}

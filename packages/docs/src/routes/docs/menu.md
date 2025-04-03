@@ -98,6 +98,7 @@
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
+- [Self-Hosting](deployments/self-hosting/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
 

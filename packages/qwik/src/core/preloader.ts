@@ -105,7 +105,7 @@ const trigger = () => {
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
-  while (highCount + lowCount < 40 && low.length) {
+  while (highCount + lowCount < 50 && low.length) {
     const bundle = low.pop()!;
     preloadOne(bundle!);
   }

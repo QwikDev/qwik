@@ -335,9 +335,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             exclude: [/./],
           },
           rollupOptions: {
+            /**
+             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
+             * to impact the build time.
+             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
+             */
+            maxParallelFileOps: 1,
             output: {
-              // We have waterfall prevention so don't hoist
-              hoistTransitiveImports: false,
               manualChunks: qwikPlugin.manualChunks,
             },
           },

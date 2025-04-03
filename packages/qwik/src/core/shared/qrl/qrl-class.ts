@@ -93,14 +93,12 @@ export const createQRL = <TYPE>(
     // Note that we bind the current `this`
     const bound = (...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE> | undefined> => {
       if (!qrl.resolved) {
-        return retryOnPromise(() =>
-          qrl.resolve().then((fn) => {
-            if (!isFunction(fn)) {
-              throw qError(QError.qrlIsNotFunction);
-            }
-            return bound(...args);
-          })
-        );
+        return qrl.resolve().then((fn) => {
+          if (!isFunction(fn)) {
+            throw qError(QError.qrlIsNotFunction);
+          }
+          return retryOnPromise(() => bound(...args));
+        });
       }
       if (beforeFn && beforeFn() === false) {
         return;

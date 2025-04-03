@@ -32,31 +32,22 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 run_id: context.payload.workflow_run.id,
-                artifact_name: 'artifact-docs'
+                github_token: ${{ secrets.GITHUB_TOKEN }},
+                artifact_name: 'artifact-docs',
+                output_path: 'packages/docs'
               });
-              core.setOutput('has-docs', 'true');
+              return true;
             } catch (error) {
-              core.setOutput('has-docs', 'false');
+              return false;
             }
 
       - name: Checkout code
-        if: steps.check-artifact.outputs.has-docs == 'true'
+        if: ${{ steps.check-artifact.outcome == 'success' }}
         uses: actions/checkout@v4
-
-      - name: Download docs artifact
-        if: steps.check-artifact.outputs.has-docs == 'true'
-        uses: actions/download-artifact@v4
-        id: download-artifact
-        with:
-          name: artifact-docs
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-          # This will download both dist/ and server/
-          path: packages/docs
 
       # not the official version, so be careful when updating
       - name: Deploy to Cloudflare Pages
-        if: steps.check-artifact.outputs.has-docs == 'true'
+        if: ${{ steps.check-artifact.outcome == 'success' }}
         uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

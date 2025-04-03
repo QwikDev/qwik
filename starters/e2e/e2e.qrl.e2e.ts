@@ -10,6 +10,5 @@ test("should update counter without uncaught promises", async ({ page }) => {
   const button = page.locator("#inner-computed-button");
   await expect(button).toContainText("Click Me 0");
 
-  // 先执行点击操作
   await button.click();
 });

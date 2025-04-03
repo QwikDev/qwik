@@ -105,11 +105,9 @@ const trigger = () => {
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
-  if (highCount + lowCount < 5) {
-    while (highCount + lowCount < 10 && low.length) {
-      const bundle = low.pop()!;
-      preloadOne(bundle!);
-    }
+  while (highCount + lowCount < 10 && low.length) {
+    const bundle = low.pop()!;
+    preloadOne(bundle!);
   }
   if (DEBUG && !high.length && !low.length) {
     const loaded = [...bundles.values()].filter((b) => b.$state$ >= BundleImportState.Loading);

@@ -28,26 +28,48 @@ jobs:
         with:
           script: |
             try {
-              await github.rest.actions.downloadArtifact({
+              const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                run_id: context.payload.workflow_run.id,
-                github_token: ${{ secrets.GITHUB_TOKEN }},
-                artifact_name: 'artifact-docs',
-                output_path: 'packages/docs'
+                run_id: context.payload.workflow_run.id
               });
+              const hasDocsArtifact = artifacts.data.artifacts.some(a => a.name === 'artifact-docs');
+              core.setOutput('has-docs', hasDocsArtifact);
+              // Always return success from this script
               return true;
             } catch (error) {
-              return false;
+              console.error('Error checking for artifacts:', error);
+              core.setOutput('has-docs', false);
+              // Always return success from this script
+              return true;
             }
 
       - name: Checkout code
-        if: ${{ steps.check-artifact.outcome == 'success' }}
+        if: ${{ steps.check-artifact.outputs['has-docs'] == true }}
         uses: actions/checkout@v4
+
+      - name: Download docs artifact
+        if: ${{ steps.check-artifact.outputs['has-docs'] == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact-docs
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: packages/docs
+
+      - name: Verify dist directory exists
+        if: ${{ steps.check-artifact.outputs['has-docs'] == true }}
+        run: |
+          ls -la packages/docs
+          if [ ! -d "packages/docs/dist" ]; then
+            echo "Creating dist directory"
+            mkdir -p packages/docs/dist
+            cp -r packages/docs/* packages/docs/dist/ || true
+          fi
 
       # not the official version, so be careful when updating
       - name: Deploy to Cloudflare Pages
-        if: ${{ steps.check-artifact.outcome == 'success' }}
+        if: ${{ steps.check-artifact.outputs['has-docs'] == true }}
         uses: AdrianGonz97/refined-cf-pages-action@6c0d47ff7c97c48fa702b6d9f71f7e3a7c30c7d8
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -55,3 +77,7 @@ jobs:
           projectName: 'qwik-docs'
           directory: packages/docs/dist
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip message when no docs artifact
+        if: ${{ steps.check-artifact.outputs['has-docs'] != true }}
+        run: echo "No docs artifact found, skipping deployment"

@@ -12,6 +12,7 @@ export const loadClientData = async (
     clearCache?: boolean;
     prefetchSymbols?: boolean;
     isPrefetch?: boolean;
+    limit?: number;
   }
 ) => {
   const pagePathname = url.pathname;
@@ -23,7 +24,7 @@ export const loadClientData = async (
   }
 
   if (opts?.prefetchSymbols !== false) {
-    prefetchSymbols(pagePathname);
+    prefetchSymbols(pagePathname, opts?.limit);
   }
   let resolveFn: () => void | undefined;
 

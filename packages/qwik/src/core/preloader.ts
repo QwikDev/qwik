@@ -95,7 +95,7 @@ const checkLoaded = (bundle: BundleImport) => {
  *
  * We make sure to first empty the high priority items, first-in-last-out.
  */
-const trigger = () => {
+const trigger = (limit?: number) => {
   // high is confirmed needed so we go as wide as possible
   while (high.length) {
     const bundle = high.pop()!;
@@ -105,7 +105,7 @@ const trigger = () => {
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
-  while (highCount + lowCount < 50 && low.length) {
+  while (highCount + lowCount < (limit || 50) && low.length) {
     const bundle = low.pop()!;
     preloadOne(bundle!);
   }
@@ -125,7 +125,7 @@ const rel =
  * Note, we considered using `preload` for low priority bundles, but those don't get preparsed and
  * that slows down interaction
  */
-const preloadOne = (bundle: BundleImport, priority?: boolean) => {
+const preloadOne = (bundle: BundleImport, priority?: boolean, limit?: number) => {
   if (checkLoaded(bundle)) {
     return;
   }
@@ -161,7 +161,7 @@ const preloadOne = (bundle: BundleImport, priority?: boolean) => {
           lowCount--;
         }
         preload(bundle.$dynamicImports$);
-        trigger();
+        trigger(limit);
       };
 
       doc.head.appendChild(link);
@@ -266,7 +266,7 @@ let allOk = true;
  *
  * @internal
  */
-const preload = (name: string | string[], priority?: boolean) => {
+const preload = (name: string | string[], priority?: boolean, limit?: number) => {
   if (!isBrowser || !base || !name.length) {
     return;
   }
@@ -285,7 +285,7 @@ const preload = (name: string | string[], priority?: boolean) => {
   }
   if (didQueue) {
     DEBUG && log(`queue ${priority ? 'high' : 'low'}`, name);
-    trigger();
+    trigger(limit);
     if (low.length > 5000) {
       // just a precaution, should never happen
       allOk = false;

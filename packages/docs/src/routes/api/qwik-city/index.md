@@ -1970,6 +1970,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[prefetchLimit?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [viewTransition?](#)
 
 </td><td>

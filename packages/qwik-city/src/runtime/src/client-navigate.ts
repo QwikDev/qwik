@@ -41,10 +41,10 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const prefetchSymbols = (path: string) => {
+export const prefetchSymbols = (path: string, limit: number = 50) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
     path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    preload(path);
+    preload(path, limit);
   }
 };

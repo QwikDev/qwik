@@ -89,6 +89,7 @@ export interface QwikCityProps {
    * @see https://caniuse.com/mdn-api_viewtransition
    */
   viewTransition?: boolean;
+  prefetchLimit?: number;
 }
 
 // Gets populated by registerPreventNav on the client
@@ -275,7 +276,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      loadClientData(dest, _getContextElement(), {
+        limit: props.prefetchLimit,
+      });
       loadRoute(qwikCity.routes, qwikCity.menus, qwikCity.cacheModules, dest.pathname);
     }
 

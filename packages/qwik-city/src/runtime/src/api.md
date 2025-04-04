@@ -359,6 +359,8 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
+    // (undocumented)
+    prefetchLimit?: number;
     viewTransition?: boolean;
 }
 

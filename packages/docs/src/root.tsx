@@ -1,5 +1,18 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+/* eslint-disable no-console */
+import {
+  component$,
+  useContextProvider,
+  useSignal,
+  useStore,
+  useTask$,
+  type Signal,
+} from '@builder.io/qwik';
+import {
+  QwikCityProvider,
+  RouterOutlet,
+  ServiceWorkerRegister,
+  useLocation,
+} from '@builder.io/qwik-city';
 import { Insights } from '@builder.io/qwik-labs';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -49,8 +62,14 @@ export default component$(() => {
 
   useContextProvider(GlobalStore, store);
 
+  const limitSig = useSignal(100);
+
+  useTask$(({ track }) => {
+    track(() => limitSig.value);
+    console.log('root limit: ', limitSig.value);
+  });
   return (
-    <QwikCityProvider>
+    <QwikCityProvider prefetchLimit={limitSig.value}>
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
@@ -68,6 +87,7 @@ export default component$(() => {
         }}
       >
         <RouterOutlet />
+        <LimitComponent limit={limitSig} />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
       </body>
     </QwikCityProvider>
@@ -78,3 +98,18 @@ export function collectSymbols() {
   (window as any).symbols = [];
   document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
 }
+
+const LimitComponent = component$<{ limit: Signal<number> }>(({ limit }) => {
+  const location = useLocation();
+  console.log(location.url.searchParams.get('limit'));
+
+  useTask$(() => {
+    limit.value = parseInt(location.url.searchParams.get('limit') || '100');
+  });
+  return (
+    <>
+      <div>{location.url.pathname}</div>
+      <div>{limit.value}</div>;
+    </>
+  );
+});

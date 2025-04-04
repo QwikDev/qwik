@@ -233,6 +233,23 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[debug?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ If true, the preloader will log debug information to the console.
+
+Defaults to `false`
+
+</td></tr>
+<tr><td>
+
 [linkFetchPriority?](#)
 
 </td><td>
@@ -243,7 +260,7 @@ Description
 
 </td><td>
 
-_(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is used. Defaults to `null` if links are inserted.
+_(Optional)_ Value of the `<link fetchpriority="...">` attribute when links are added. Defaults to `null`.
 
 </td></tr>
 <tr><td>
@@ -258,9 +275,7 @@ _(Optional)_ Value of the `<link fetchpriority="...">` attribute when link is us
 
 </td><td>
 
-_(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to the body.
-
-`html-append`: Render each `<link>` within html, appended at the end of the body.
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -275,7 +290,77 @@ _(Optional)_ `js-append`: Use JS runtime to create each `<link>` and append to t
 
 </td><td>
 
-_(Optional)_ Value of the `<link rel="...">` attribute when link is used. Defaults to `prefetch` if links are inserted.
+_(Optional)_ Value of the `<link rel="...">` attribute when links are added. The preloader itself will autodetect which attribute to use based on the browser capabilities.
+
+Defaults to `modulepreload`.
+
+</td></tr>
+<tr><td>
+
+[maxPreloads?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This includes the 2 preloads used for the preloader script itself and the bundle information. Setting this to 0 will disable all preload links.
+
+Defaults to `5`
+
+</td></tr>
+<tr><td>
+
+[maxSimultaneousPreloads?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain.
+
+Defaults to `5`
+
+</td></tr>
+<tr><td>
+
+[minPreloadProbability?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ The minimum probability for a bundle to be added to the preload queue.
+
+Defaults to `0.25` (25% probability)
+
+</td></tr>
+<tr><td>
+
+[minProbability?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ The minimum probability of a bundle to be added as a preload link during SSR.
+
+Defaults to `0.6` (60% probability)
 
 </td></tr>
 <tr><td>
@@ -290,17 +375,7 @@ _(Optional)_ Value of the `<link rel="...">` attribute when link is used. Defaul
 
 </td><td>
 
-_(Optional)_ Dispatch a `qprefetch` event with detail data containing the bundles that should be prefetched. The event dispatch script will be inlined into the document's HTML so any listeners of this event should already be ready to handle the event.
-
-This implementation will inject a script similar to:
-
-```
-<script type="module">
-  document.dispatchEvent(new CustomEvent("qprefetch", { detail:{ "bundles": [...] } }))
-</script>
-```
-
-By default, the `prefetchEvent` implementation will be set to `always`.
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -315,9 +390,7 @@ By default, the `prefetchEvent` implementation will be set to `always`.
 
 </td><td>
 
-_(Optional)_ `always`: Always include the worker fetch JS runtime.
-
-`no-link-support`: Only include the worker fetch JS runtime when the browser doesn't support `<link>` prefetch/preload/modulepreload.
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -630,9 +703,7 @@ QwikPrefetchServiceWorkerOptions
 
 </td><td>
 
-_(Optional)_ Specifies if the Qwik Prefetch Service Worker script is added to the document or not.
-
-Defaults to `{ include: false }`. NOTE: This may be change in the future.
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -990,9 +1061,11 @@ string
 
 ## resolveManifest
 
+Merges a given manifest with the built manifest and provides mappings for symbols.
+
 ```typescript
 export declare function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined,
+  manifest?: Partial<QwikManifest | ResolvedManifest> | undefined,
 ): ResolvedManifest | undefined;
 ```
 
@@ -1015,9 +1088,11 @@ manifest
 
 </td><td>
 
-QwikManifest \| ResolvedManifest \| undefined
+Partial&lt;QwikManifest \| ResolvedManifest&gt; \| undefined
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -1073,7 +1148,7 @@ _(Optional)_
 
 </td><td>
 
-QwikManifest \| ResolvedManifest
+Partial&lt;QwikManifest \| ResolvedManifest&gt;
 
 </td><td>
 
@@ -1103,7 +1178,7 @@ _(Optional)_
 
 ```typescript
 export declare function setServerPlatform(
-  manifest: QwikManifest | ResolvedManifest | undefined,
+  manifest?: Partial<QwikManifest | ResolvedManifest>,
 ): Promise<void>;
 ```
 
@@ -1126,9 +1201,11 @@ manifest
 
 </td><td>
 
-QwikManifest \| ResolvedManifest \| undefined
+Partial&lt;QwikManifest \| ResolvedManifest&gt;
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>

@@ -1,10 +1,10 @@
+import type { NoSerialize, Signal } from '@builder.io/qwik';
 import type {
   Diagnostic,
   QwikManifest,
   QwikRollupPluginOptions,
   TransformModule,
 } from '@builder.io/qwik/optimizer';
-import type { NoSerialize } from '@builder.io/qwik';
 
 export interface ReplAppInput {
   buildId: number;
@@ -58,6 +58,7 @@ export interface ReplModuleOutput {
   path: string;
   code: string;
   size?: string;
+  shorten?: Signal<boolean>;
 }
 
 export interface ReplMessageBase {

@@ -3,11 +3,10 @@ import { _pauseFromContexts, _renderSSR, Fragment, jsx, type JSXNode } from '@bu
 import { isDev } from '@builder.io/qwik';
 import type { QContext } from '../core/state/context';
 import { QInstance } from '../core/util/markers';
-import { getValidManifest } from '../optimizer/src/manifest';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
-import { applyPrefetchImplementation } from './prefetch-implementation';
-import { getPrefetchResources } from './prefetch-strategy';
+import { includePreloader } from './prefetch-implementation';
+import { getPreloadPaths } from './prefetch-strategy';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
@@ -18,6 +17,8 @@ import type {
   StreamWriter,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
+import { manifest as builtManifest } from '@qwik-client-manifest';
+import { initPreloader } from '../core/preloader/bundle-graph';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -117,23 +118,18 @@ export async function renderToStream(
         include: 'never',
       };
     }
-    if (!opts.qwikPrefetchServiceWorker) {
-      opts.qwikPrefetchServiceWorker = {};
-    }
-    if (!opts.qwikPrefetchServiceWorker.include) {
-      opts.qwikPrefetchServiceWorker.include = false;
-    }
-    if (!opts.qwikPrefetchServiceWorker.position) {
-      opts.qwikPrefetchServiceWorker.position = 'top';
-    }
   }
 
-  if (!opts.manifest) {
+  if (!resolvedManifest) {
     console.warn(
       `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
     );
   }
   await setServerPlatform(opts, resolvedManifest);
+  const bundleGraph = resolvedManifest?.manifest.bundleGraph;
+  if (bundleGraph) {
+    initPreloader(bundleGraph);
+  }
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
@@ -181,13 +177,14 @@ export async function renderToStream(
       const children: (JSXNode | null)[] = [];
       if (opts.prefetchStrategy !== null) {
         // skip prefetch implementation if prefetchStrategy === null
-        const prefetchResources = getPrefetchResources(snapshotResult, opts, resolvedManifest);
+        const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
         const base = containerAttributes['q:base']!;
-        if (prefetchResources.length > 0) {
-          const prefetchImpl = applyPrefetchImplementation(
+        if (preloadBundles.length > 0) {
+          const prefetchImpl = includePreloader(
             base,
+            resolvedManifest,
             opts.prefetchStrategy,
-            prefetchResources,
+            preloadBundles,
             opts.serverData?.nonce
           );
           if (prefetchImpl) {
@@ -271,7 +268,6 @@ export async function renderToStream(
       snapshot: snapshotTime,
       firstFlush: firstFlushTime,
     },
-    _symbols: renderSymbols,
   };
   return result;
 }
@@ -319,25 +315,30 @@ export async function renderToString(
   };
 }
 
-/** @public */
+/**
+ * Merges a given manifest with the built manifest and provides mappings for symbols.
+ *
+ * @public
+ */
 export function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest?: Partial<QwikManifest | ResolvedManifest> | undefined
 ): ResolvedManifest | undefined {
-  if (!manifest) {
-    return undefined;
+  const mergedManifest = (manifest ? { ...builtManifest, ...manifest } : builtManifest) as
+    | ResolvedManifest
+    | QwikManifest;
+
+  if (!mergedManifest || 'mapper' in mergedManifest) {
+    return mergedManifest;
   }
-  if ('mapper' in manifest) {
-    return manifest;
-  }
-  manifest = getValidManifest(manifest);
-  if (manifest) {
+  if (mergedManifest!.mapping) {
     const mapper: SymbolMapper = {};
-    Object.entries(manifest.mapping).forEach(([symbol, bundleFilename]) => {
+    Object.entries(mergedManifest.mapping).forEach(([symbol, bundleFilename]) => {
       mapper[getSymbolHash(symbol)] = [symbol, bundleFilename];
     });
     return {
       mapper,
-      manifest,
+      manifest: mergedManifest,
+      injections: mergedManifest.injections || [],
     };
   }
   return undefined;

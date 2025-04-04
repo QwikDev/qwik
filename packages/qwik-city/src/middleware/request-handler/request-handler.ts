@@ -15,7 +15,7 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
-  const { render, qwikCityPlan, manifest, checkOrigin } = opts;
+  const { render, qwikCityPlan, checkOrigin } = opts;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, qwikCityPlan.trailingSlash);
   const routeAndHandlers = await loadRequestHandlers(
@@ -31,7 +31,6 @@ export async function requestHandler<T = unknown>(
       serverRequestEv,
       route,
       requestHandlers,
-      manifest,
       qwikCityPlan.trailingSlash,
       qwikCityPlan.basePathname,
       qwikSerializer

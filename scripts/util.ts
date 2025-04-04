@@ -283,8 +283,9 @@ export async function run(
   }
 }
 
-export function panic(msg: string) {
-  console.error(`\n❌ ${msg}\n`, new Error(msg).stack);
+export function panic(msg: string | Error) {
+  const err = typeof msg === 'string' ? new Error(msg) : msg;
+  console.error(`\n❌ `, err);
   process.exit(1);
 }
 

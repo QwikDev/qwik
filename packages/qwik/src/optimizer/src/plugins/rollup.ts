@@ -3,23 +3,21 @@ import type { Rollup } from 'vite';
 import type {
   Diagnostic,
   EntryStrategy,
+  Optimizer,
   OptimizerOptions,
   QwikManifest,
-  TransformModuleInput,
   TransformModule,
-  Optimizer,
+  TransformModuleInput,
 } from '../types';
 import {
   createQwikPlugin,
+  type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
-  type QwikPluginOptions,
-  Q_MANIFEST_FILENAME,
-  type ExperimentalFeatures,
   type QwikPlugin,
+  type QwikPluginOptions,
 } from './plugin';
-import { versions } from '../versions';
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -121,33 +119,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       const opts = qwikPlugin.getOptions();
 
       if (opts.target === 'client') {
-        // client build
-        const optimizer = qwikPlugin.getOptimizer();
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
-        const manifest = await outputAnalyzer.generateManifest();
-        manifest.platform = {
-          ...versions,
-          rollup: this.meta?.rollupVersion || '',
-          env: optimizer.sys.env,
-          os: optimizer.sys.os,
-        };
-        if (optimizer.sys.env === 'node') {
-          manifest.platform.node = process.versions.node;
-        }
-
-        if (typeof opts.manifestOutput === 'function') {
-          await opts.manifestOutput(manifest);
-        }
-
-        if (typeof opts.transformedModuleOutput === 'function') {
-          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-        }
-
-        this.emitFile({
-          type: 'asset',
-          fileName: Q_MANIFEST_FILENAME,
-          source: JSON.stringify(manifest, null, 2),
-        });
+        await qwikPlugin.generateManifest(this, rollupBundle);
       }
     },
   };

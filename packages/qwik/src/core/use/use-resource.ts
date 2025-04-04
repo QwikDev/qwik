@@ -191,7 +191,7 @@ export const useResource$ = <T>(
 /** @public */
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
-  onResolved: (value: T) => JSXOutput;
+  onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
   onPending?: () => JSXOutput;
   onRejected?: (reason: Error) => JSXOutput;
 }
@@ -252,10 +252,15 @@ export interface ResourceProps<T> {
  */
 // </docs>
 export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
-  const isBrowser = !isServerPlatform();
+  // Resource path
+  return jsx(Fragment, {
+    children: getResourceValueAsPromise(props),
+  });
+};
+function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  let promise: Promise<T> | undefined;
-  if (isResourceReturn(resource)) {
+  if (isResourceReturn(resource) && resource.value) {
+    const isBrowser = !isServerPlatform();
     if (isBrowser) {
       if (props.onRejected) {
         resource.value.catch(() => {});
@@ -277,23 +282,27 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
         return props.onResolved(resource._resolved!);
       }
     }
-    promise = resource.value;
-  } else if (isPromise(resource)) {
-    promise = resource;
-  } else if (isSignal(resource)) {
-    promise = Promise.resolve(resource.value);
-  } else {
-    return props.onResolved(resource as T);
-  }
-
-  // Resource path
-  return jsx(Fragment, {
-    children: promise.then(
+    return resource.value.then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
-    ),
-  });
-};
+    );
+  } else if (isPromise(resource)) {
+    return resource.then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else if (isSignal(resource)) {
+    return Promise.resolve(resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  } else {
+    return Promise.resolve(resource as T).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
+  }
+}
 
 export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturnInternal<T> => {
   const resource: ResourceReturnInternal<T> = {

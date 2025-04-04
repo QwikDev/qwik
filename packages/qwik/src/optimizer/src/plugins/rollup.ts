@@ -18,6 +18,7 @@ import {
   Q_MANIFEST_FILENAME,
   type ExperimentalFeatures,
   type QwikPlugin,
+  Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME,
 } from './plugin';
 import { versions } from '../versions';
 
@@ -125,6 +126,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         const optimizer = qwikPlugin.getOptimizer();
         const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
         const manifest = await outputAnalyzer.generateManifest();
+        const serverRpcAndCtxKindSymbols = await outputAnalyzer.collectServerRpcAndCtxKindSymbols();
         manifest.platform = {
           ...versions,
           rollup: this.meta?.rollupVersion || '',
@@ -147,6 +149,12 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
           type: 'asset',
           fileName: Q_MANIFEST_FILENAME,
           source: JSON.stringify(manifest, null, 2),
+        });
+
+        this.emitFile({
+          type: 'asset',
+          fileName: Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME,
+          source: JSON.stringify(serverRpcAndCtxKindSymbols, null, 2),
         });
       }
     },

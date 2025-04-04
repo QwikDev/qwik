@@ -23,6 +23,7 @@ import {
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
   Q_MANIFEST_FILENAME,
+  Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME,
   SSR_OUT_DIR,
   TRANSFORM_REGEX,
   createQwikPlugin,
@@ -579,6 +580,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
           const optimizer = qwikPlugin.getOptimizer();
           const manifest = await outputAnalyzer.generateManifest();
+          const serverRpcAndCtxKindSymbols =
+            await outputAnalyzer.collectServerRpcAndCtxKindSymbols();
           manifest.platform = {
             ...versions,
             vite: '',
@@ -596,6 +599,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             fileName: Q_MANIFEST_FILENAME,
             source: clientManifestStr,
           });
+
+          this.emitFile({
+            type: 'asset',
+            fileName: Q_SERVER_RPC_CTX_KIND_SYMBOLS_FILENAME,
+            source: JSON.stringify(serverRpcAndCtxKindSymbols, null, 2),
+          });
+
           const assetsDir = qwikPlugin.getOptions().assetsDir || '';
           const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
           const sys = qwikPlugin.getSys();

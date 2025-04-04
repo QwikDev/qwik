@@ -55,8 +55,8 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
                   observerRootId={FILE_MODULE_DIV_ID}
                 />
                 {o.shorten && (
-                  <button onClick$={() => (o.shorten.value = !o.shorten.value)}>
-                    {o.shorten.value ? 'Truncated - show more' : 'Show less'}
+                  <button onClick$={() => (o.shorten!.value = !o.shorten!.value)}>
+                    {o.shorten!.value ? 'Truncated - show more' : 'Show less'}
                   </button>
                 )}
               </div>

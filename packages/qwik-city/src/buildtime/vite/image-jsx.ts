@@ -3,7 +3,7 @@ import type { PluginOption } from 'vite';
 import { optimize } from 'svgo';
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseId } from '../../../../qwik/src/optimizer/src/plugins/plugin';
+import { parseId } from '../../../../qwik/src/optimizer/src/plugins/vite-utils';
 import type { QwikCityVitePluginOptions } from './types';
 import type { Config as SVGOConfig } from 'svgo';
 

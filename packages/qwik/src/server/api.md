@@ -43,10 +43,18 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 // @public (undocumented)
 export interface PrefetchImplementation {
+    debug?: boolean;
     linkFetchPriority?: 'auto' | 'low' | 'high' | null;
+    // @deprecated (undocumented)
     linkInsert?: 'js-append' | 'html-append' | null;
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
+    maxPreloads?: number;
+    maxSimultaneousPreloads?: number;
+    minPreloadProbability?: number;
+    minProbability?: number;
+    // @deprecated (undocumented)
     prefetchEvent?: 'always' | null;
+    // @deprecated (undocumented)
     workerFetchInsert?: 'always' | 'no-link-support' | null;
 }
 
@@ -88,6 +96,8 @@ export interface RenderOptions extends SerializeDocumentOptions {
     prefetchStrategy?: PrefetchStrategy | null;
     qwikLoader?: QwikLoaderOptions;
     // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
+    //
+    // @deprecated (undocumented)
     qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
     // (undocumented)
     serverData?: Record<string, any>;
@@ -104,8 +114,6 @@ export interface RenderResult {
     prefetchResources: PrefetchResource[];
     // (undocumented)
     snapshotResult: SnapshotResult | undefined;
-    // @internal
-    _symbols?: string[];
 }
 
 // @public (undocumented)
@@ -159,21 +167,21 @@ export interface RenderToStringResult extends RenderResult {
 
 // Warning: (ae-forgotten-export) The symbol "ResolvedManifest_2" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
-export function resolveManifest(manifest: QwikManifest | ResolvedManifest_2 | undefined): ResolvedManifest_2 | undefined;
+// @public
+export function resolveManifest(manifest?: Partial<QwikManifest | ResolvedManifest_2> | undefined): ResolvedManifest_2 | undefined;
 
 // @public (undocumented)
 export interface SerializeDocumentOptions {
     // (undocumented)
     debug?: boolean;
     // (undocumented)
-    manifest?: QwikManifest | ResolvedManifest;
+    manifest?: Partial<QwikManifest | ResolvedManifest>;
     // (undocumented)
     symbolMapper?: SymbolMapperFn;
 }
 
 // @public (undocumented)
-export function setServerPlatform(manifest: QwikManifest | ResolvedManifest | undefined): Promise<void>;
+export function setServerPlatform(manifest?: Partial<QwikManifest | ResolvedManifest>): Promise<void>;
 
 // @public (undocumented)
 export interface StreamingOptions {

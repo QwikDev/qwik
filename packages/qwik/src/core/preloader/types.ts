@@ -1,10 +1,8 @@
-export const enum BundleImportState {
-  None,
-  Queued,
-  Preload,
-  Alias,
-  Loaded,
-}
+export const BundleImportState_None = 0;
+export const BundleImportState_Queued = 1;
+export const BundleImportState_Preload = 2;
+export const BundleImportState_Alias = 3;
+export const BundleImportState_Loaded = 4;
 
 export type BundleInfo = {
   $inverseProbability$: number;
@@ -15,7 +13,7 @@ export type BundleInfo = {
 export type BundleImport = BundleInfo & {
   $name$: string;
   $url$: string | null;
-  $state$: BundleImportState;
+  $state$: number;
   $createdTs$: number;
   $waitedMs$: number;
   $loadedMs$: number;

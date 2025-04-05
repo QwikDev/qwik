@@ -78,19 +78,29 @@ export const trigger = () => {
   while (queue.length) {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
+    console.log('inverseProbability', inverseProbability);
     const probability = 1 - inverseProbability;
+    console.log('probability', probability);
     console.log('limit :', limit);
-    const allowedPreloads = graph
-      ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, (Number(limit) || config[maxSimultaneousPreloadsStr]) * probability)
-      : // While the graph is not available, we limit to 2 preloads
-        2;
-    console.log('allowedPreloads :', allowedPreloads);
-    if (preloadCount < allowedPreloads) {
+
+    if (probability === 1) {
       queue.shift();
       preloadOne(bundle);
     } else {
-      break;
+      const allowedPreloads = graph
+        ? // The more likely the bundle, the more simultaneous preloads we want to allow
+          Math.max(1, (Number(limit) || config[maxSimultaneousPreloadsStr]) * probability)
+        : // While the graph is not available, we limit to 2 preloads
+          2;
+      console.log('allowedPreloads :', allowedPreloads);
+      console.log('preloadCount :', preloadCount);
+
+      if (preloadCount < allowedPreloads) {
+        queue.shift();
+        preloadOne(bundle);
+      } else {
+        break;
+      }
     }
   }
   /**

@@ -161,7 +161,6 @@ export const createQRL = <TYPE>(
           console.error(`qrl ${symbol} failed to load`, err);
           // We shouldn't cache rejections, we can try again later
           symbolRef = null;
-          throw err;
         }
       );
     }

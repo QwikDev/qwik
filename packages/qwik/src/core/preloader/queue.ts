@@ -184,6 +184,7 @@ export const adjustProbabilities = (
     seen ||= new Set();
     seen.add(bundle);
     for (const dep of bundle.$deps$) {
+      console.log('dep :', dep);
       const depBundle = getBundle(dep.$name$)!;
       const prevAdjust = dep.$factor$;
       /**

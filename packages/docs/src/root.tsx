@@ -1,5 +1,5 @@
 import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
+import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';
 import { Insights } from '@builder.io/qwik-labs';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
 import { RouterHead } from './components/router-head/router-head';
@@ -56,7 +56,7 @@ export default component$(() => {
         <script dangerouslySetInnerHTML={uwu} />
         <RouterHead />
 
-        <ServiceWorkerRegister />
+        {/* <ServiceWorkerRegister /> */}
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
         <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />

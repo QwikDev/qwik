@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { isBrowser } from '@builder.io/qwik/build';
 import { base, getBundle, graph } from './bundle-graph';
 import {
@@ -68,6 +69,8 @@ export const getQueue = () => {
  * We make sure to first preload the high priority items.
  */
 export const trigger = () => {
+  const params = new URLSearchParams(window.location.search);
+  const limit = params.get('limit');
   if (!queue.length) {
     return;
   }
@@ -76,9 +79,10 @@ export const trigger = () => {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
+    console.log('limit :', limit);
     const allowedPreloads = graph
       ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config[maxSimultaneousPreloadsStr] * probability)
+        Math.max(1, Number(limit) || config[maxSimultaneousPreloadsStr] * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
     if (preloadCount < allowedPreloads) {

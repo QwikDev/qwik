@@ -82,9 +82,10 @@ export const trigger = () => {
     console.log('limit :', limit);
     const allowedPreloads = graph
       ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, Number(limit) || config[maxSimultaneousPreloadsStr] * probability)
+        Math.max(1, (Number(limit) || config[maxSimultaneousPreloadsStr]) * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
+    console.log('allowedPreloads :', allowedPreloads);
     if (preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle);

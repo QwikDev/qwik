@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { isBrowser } from '@builder.io/qwik/build';
 import { base, getBundle, graph } from './bundle-graph';
 import {
@@ -68,6 +69,8 @@ export const getQueue = () => {
  * We make sure to first preload the high priority items.
  */
 export const trigger = () => {
+  const params = new URLSearchParams(window.location.search);
+  const limit = params.get('limit');
   if (!queue.length) {
     return;
   }
@@ -75,17 +78,29 @@ export const trigger = () => {
   while (queue.length) {
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
+    console.log('inverseProbability', inverseProbability);
     const probability = 1 - inverseProbability;
-    const allowedPreloads = graph
-      ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config[maxSimultaneousPreloadsStr] * probability)
-      : // While the graph is not available, we limit to 2 preloads
-        2;
-    if (preloadCount < allowedPreloads) {
+    console.log('probability', probability);
+    console.log('limit :', limit);
+
+    if (probability === 1) {
       queue.shift();
       preloadOne(bundle);
     } else {
-      break;
+      const allowedPreloads = graph
+        ? // The more likely the bundle, the more simultaneous preloads we want to allow
+          Math.max(1, (Number(limit) || config[maxSimultaneousPreloadsStr]) * probability)
+        : // While the graph is not available, we limit to 2 preloads
+          2;
+      console.log('allowedPreloads :', allowedPreloads);
+      console.log('preloadCount :', preloadCount);
+
+      if (preloadCount < allowedPreloads) {
+        queue.shift();
+        preloadOne(bundle);
+      } else {
+        break;
+      }
     }
   }
   /**
@@ -169,6 +184,7 @@ export const adjustProbabilities = (
     seen ||= new Set();
     seen.add(bundle);
     for (const dep of bundle.$deps$) {
+      console.log('dep :', dep);
       const depBundle = getBundle(dep.$name$)!;
       const prevAdjust = dep.$factor$;
       /**

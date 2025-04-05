@@ -1,8 +1,5 @@
+import { getSymbolHash } from 'packages/qwik/src/core/qrl/qrl-class';
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
-
-const minimumSpeed = 300; // kbps
-// size that takes 0.5 seconds to download at minimumSpeed
-const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
 
 /**
  * A function that returns a map of bundle names to their dependencies.
@@ -13,14 +10,7 @@ export type BundleGraphAdder = (
   manifest: QwikManifest
 ) => Record<string, { imports?: string[]; dynamicImports?: string[] }>;
 
-const getSymbolHash = (symbolName: string) => {
-  const index = symbolName.lastIndexOf('_');
-  if (index > -1) {
-    return symbolName.slice(index + 1);
-  }
-  return symbolName;
-};
-
+const dynamicTag = '<dynamic>';
 /**
  * This creates a compact array of dependencies for each bundle. It also contains the symbols. The
  * format is:
@@ -42,18 +32,18 @@ export function convertManifestToBundleGraph(
   if (!manifest.bundles) {
     return [];
   }
-  // All known chunks and symbols
+  // All known chunks
   const graph = { ...manifest.bundles };
-  for (const [symbol, bundleName] of Object.entries(manifest.mapping)) {
-    const hash = getSymbolHash(symbol);
-    if (hash) {
-      /**
-       * We use dynamic imports so that we will get probabilities for the bundle when preloading the
-       * symbol. We still confirm load at 100% probability with the bundle name.
-       */
-      graph[hash] = { dynamicImports: [bundleName] } as QwikBundle;
-    }
-  }
+  // Symbols
+  Object.assign(
+    graph,
+    Object.fromEntries(
+      Object.entries(manifest.mapping).map(([symbol, chunkname]) => [
+        getSymbolHash(symbol),
+        { imports: [chunkname] } as QwikBundle,
+      ])
+    )
+  );
   // Routes etc
   if (bundleGraphAdders) {
     for (const adder of bundleGraphAdders) {
@@ -62,11 +52,6 @@ export function convertManifestToBundleGraph(
         Object.assign(graph, result);
       }
     }
-  }
-
-  // Remove the preloader, it will already be loaded and has no dependencies
-  if (manifest.preloader) {
-    delete graph[manifest.preloader];
   }
 
   // Filter out external and non-segment dynamic imports
@@ -135,47 +120,13 @@ export function convertManifestToBundleGraph(
       clearTransitiveDeps(deps, depName);
     }
     const dynDeps = new Set(bundle.dynamicImports!);
-    const depProbability = new Map<string, number>();
     for (const depName of dynDeps) {
       clearTransitiveDeps(dynDeps, depName);
-      const dep = graph[depName];
-
-      // Calculate the probability of the dependency
-      // Start with a 50% chance
-      let probability = 0.5;
-      // Add a 4% chance for each interactivity point (max 20%)
-      probability += (dep.interactivity || 0) * 0.04;
-
-      // If the dependency has a segment from the same parent, it's more likely to be loaded
-      if (bundle.origins && dep.origins) {
-        for (const origin of bundle.origins) {
-          if (dep.origins.some((o) => o.startsWith(origin))) {
-            // Add a 25% chance
-            probability += 0.25;
-            break;
-          }
-        }
-      }
-
-      // If the dependency is a likely big import graph, it should be loaded earlier so it doesn't get blocked by smaller files, but when unlikely it should be loaded later so it doesn't block other files
-      if (dep.total > slowSize) {
-        probability += probability > 0.5 ? 0.02 : -0.02;
-      }
-
-      depProbability.set(depName, probability);
     }
-
     if (dynDeps.size > 0) {
-      const sorted = Array.from(dynDeps).sort(
-        (a, b) => depProbability.get(b)! - depProbability.get(a)!
-      );
-      let lastProbability = -1;
       // We rely on the Set keeping the items in order, everything after this is dynamic
-      for (const depName of sorted) {
-        if (depProbability.get(depName)! !== lastProbability) {
-          lastProbability = depProbability.get(depName)!;
-          deps.add(-Math.round(lastProbability * 10) as any as string);
-        }
+      deps.add(dynamicTag);
+      for (const depName of dynDeps) {
         deps.add(depName);
       }
     }
@@ -195,9 +146,8 @@ export function convertManifestToBundleGraph(
     let { index, deps } = bundle;
     index++;
     for (const depName of deps) {
-      if (typeof depName === 'number') {
-        // negative number means dynamic import
-        bundleGraph[index++] = depName;
+      if (depName === dynamicTag) {
+        bundleGraph[index++] = -1;
         continue;
       }
       const dep = map.get(depName)!;

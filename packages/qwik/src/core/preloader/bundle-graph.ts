@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { isBrowser } from '@builder.io/qwik/build';
 import {
   config,
@@ -53,10 +54,12 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
 
 export const getBundle = (name: string) => {
   let bundle = bundles.get(name);
+  console.log('bundle :', bundle);
   if (!bundle) {
     let deps: ImportProbability[] | undefined;
     if (graph) {
       deps = graph.get(name);
+      console.log('deps :', deps);
       if (!deps) {
         return;
       }

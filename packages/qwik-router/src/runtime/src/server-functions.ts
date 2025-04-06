@@ -437,6 +437,7 @@ export const serverQrl = <T extends ServerFunction>(
           headers: {
             ...headers,
             'Content-Type': 'application/qwik-json',
+            Accept: 'application/json, application/qwik-json, text/qwik-json-stream, text/plain',
             // Required so we don't call accidentally
             'X-QRL': qrlHash,
           },
@@ -471,19 +472,19 @@ export const serverQrl = <T extends ServerFunction>(
         } else if (contentType === 'application/qwik-json') {
           const str = await res.text();
           const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw obj;
           }
           return obj;
         } else if (contentType === 'application/json') {
           const obj = await res.json();
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw obj;
           }
           return obj;
         } else if (contentType === 'text/plain' || contentType === 'text/html') {
           const str = await res.text();
-          if (res.status >= 500) {
+          if (res.status >= 400) {
             throw str;
           }
           return str;

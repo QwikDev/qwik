@@ -127,8 +127,7 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
 // @public (undocumented)
 export interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends RequestEventBase<PLATFORM> {
     // Warning: (ae-forgotten-export) The symbol "ErrorCodes" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ErrorResponse" needs to be exported by the entry point index.d.ts
-    readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
+    readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
     // (undocumented)
     readonly exit: () => AbortMessage;
     readonly html: (statusCode: StatusCodes, html: string) => AbortMessage;
@@ -177,7 +176,7 @@ export interface ResolveValue {
 }
 
 // @public (undocumented)
-export class ServerError<T = Record<any, any>> extends Error {
+export class ServerError<T = any> extends Error {
     constructor(status: number, data: T);
     // (undocumented)
     data: T;
@@ -231,7 +230,7 @@ export class _TextEncoderStream_polyfill {
     // (undocumented)
     get encoding(): string;
     // (undocumented)
-    get readable(): ReadableStream<Uint8Array>;
+    get readable(): ReadableStream<Uint8Array<ArrayBufferLike>>;
     // (undocumented)
     get writable(): WritableStream<string>;
 }

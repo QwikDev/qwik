@@ -59,7 +59,7 @@ opts
 </tbody></table>
 **Returns:**
 
-(request: [PlatformCloudflarePages](#platformcloudflarepages)['request'], env: [PlatformCloudflarePages](#platformcloudflarepages)['env'] &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)['ctx']) =&gt; Promise&lt;Response&gt;
+(request: [PlatformCloudflarePages](#platformcloudflarepages)["request"], env: [PlatformCloudflarePages](#platformcloudflarepages)["env"] &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)["ctx"]) =&gt; Promise&lt;Response&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts)
 

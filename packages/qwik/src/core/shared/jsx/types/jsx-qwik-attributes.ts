@@ -5,6 +5,7 @@ import type {
   QwikIdleEvent,
   QwikInitEvent,
   QwikSymbolEvent,
+  QwikViewTransitionEvent,
   QwikVisibleEvent,
 } from './jsx-qwik-events';
 
@@ -113,6 +114,7 @@ type AllEventMapRaw = HTMLElementEventMap &
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
     qvisible: QwikVisibleEvent;
+    qviewTransition: QwikViewTransitionEvent;
   };
 
 /** This corrects the TS definition for ToggleEvent @public */

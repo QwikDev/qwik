@@ -39,6 +39,8 @@ export {
   // TODO should this be used instead of EventHandler?
   QRLEventHandlerMulti,
   QwikIntrinsicElements,
+  QwikHTMLElements,
+  QwikSVGElements,
   QwikJSX as JSX,
   QwikJSX,
   ReadonlySignal,

@@ -34,11 +34,11 @@ import {
 import { isPromise } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  getEventNameScopeFromJsxProp,
+  getEventNameFromJsxEvent,
+  getEventNameScopeFromJsxEvent,
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
+  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
@@ -491,21 +491,6 @@ export const vnode_diff = (
       // All is good.
       // console.log('  NOOP', String(vCurrent));
     } else {
-      const parent = vnode_getParent(vProjectedNode);
-      const isAlreadyProjected =
-        !!parent && !(vnode_isElementVNode(parent) && vnode_getElementName(parent) === QTemplate);
-      if (isAlreadyProjected && vParent !== parent) {
-        /**
-         * The node is already projected, but structure has been changed. In next steps we will
-         * insert the vProjectedNode at the end. However we will find existing projection elements
-         * (from already projected THE SAME projection as vProjectedNode!) during
-         * vnode_insertBefore. We need to remove vnode from the vnode tree to avoid referencing it
-         * to self and cause infinite loop. Don't remove it from DOM to avoid additional operations
-         * and flickering.
-         */
-        vnode_remove(journal, parent, vProjectedNode, false);
-      }
-
       // move from q:template to the target node
       vnode_insertBefore(
         journal,
@@ -610,8 +595,8 @@ export const vnode_diff = (
         if (isJsxPropertyAnEventName(key)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxProp(key);
-          const scope = getEventNameScopeFromJsxProp(key);
+          const eventName = getEventNameFromJsxEvent(key);
+          const scope = getEventNameScopeFromJsxEvent(key);
           if (eventName) {
             vnode_setProp(
               vNewNode as ElementVNode,
@@ -625,7 +610,7 @@ export const vnode_diff = (
             // add an event attr with empty value for qwikloader element selector.
             // We don't need value here. For ssr this value is a QRL,
             // but for CSR value should be just empty
-            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            const htmlEvent = jsxEventToHtmlAttribute(key);
             if (htmlEvent) {
               vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
             }
@@ -843,8 +828,8 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxProp(key);
-      const scope = getEventNameScopeFromJsxProp(key);
+      const eventName = getEventNameFromJsxEvent(key);
+      const scope = getEventNameScopeFromJsxEvent(key);
       if (eventName) {
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
@@ -855,7 +840,7 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        const htmlEvent = jsxEventToHtmlAttribute(key);
         if (htmlEvent) {
           record(htmlEvent, '');
         }
@@ -999,7 +984,7 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey) {
+    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey && !!jsxKey) {
       // All is good.
       return;
     } else if (jsxKey !== null) {
@@ -1058,7 +1043,7 @@ export const vnode_diff = (
         }
         host = vNewNode as VirtualVNode;
         shouldRender = true;
-      } else if (!hashesAreEqual) {
+      } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
         host = vNewNode as VirtualVNode;
         shouldRender = true;

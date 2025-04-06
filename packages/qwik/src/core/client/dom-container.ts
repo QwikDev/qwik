@@ -83,25 +83,6 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
   let container = qElement.qContainer;
   if (!container) {
     container = new DomContainer(qElement);
-
-    const containerAttributes: Record<string, string> = {};
-    if (qElement) {
-      const attrs = qElement.attributes;
-      if (attrs) {
-        for (let index = 0; index < attrs.length; index++) {
-          const attr = attrs[index];
-          if (attr.name === Q_PROPS_SEPARATOR) {
-            continue;
-          }
-          containerAttributes[attr.name] = attr.value;
-        }
-      }
-    }
-    (container as DomContainer).$serverData$ = { containerAttributes };
-
-    qElement.setAttribute(QContainerAttr, QContainerValue.RESUMED);
-
-    qElement.qContainer = container;
   }
   return container;
 }
@@ -163,22 +144,23 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
     this.qManifestHash = element.getAttribute(QManifestHashAttr)!;
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
-    // These are here to initialize all properties at once for single class transition
-    this.$rawStateData$ = null!;
-    this.$stateData$ = null!;
+    this.$rawStateData$ = [];
+    this.$stateData$ = [];
     const document = this.element.ownerDocument as QDocument;
     if (!document.qVNodeData) {
       processVNodeData(document);
     }
-    this.$rawStateData$ = [];
-    this.$stateData$ = [];
+    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
+    this.$setServerData$();
+    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+    element.qContainer = this;
+
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
-    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
   }
 
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
@@ -371,5 +353,22 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       styleElement.textContent = content;
       this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
     }
+  }
+
+  // TODO: should be moved to the Qwik Router?
+  /** Set the server data for the Qwik Router. */
+  private $setServerData$(): void {
+    const containerAttributes: Record<string, string> = {};
+    const attrs = this.element.attributes;
+    if (attrs) {
+      for (let index = 0; index < attrs.length; index++) {
+        const attr = attrs[index];
+        if (attr.name === Q_PROPS_SEPARATOR) {
+          continue;
+        }
+        containerAttributes[attr.name] = attr.value;
+      }
+    }
+    this.$serverData$ = { containerAttributes };
   }
 }

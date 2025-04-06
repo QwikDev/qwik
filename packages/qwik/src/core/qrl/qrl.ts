@@ -1,13 +1,6 @@
 import { EMPTY_ARRAY } from '../util/flyweight';
 import type { QRL } from './qrl.public';
-import {
-  assertQrl,
-  createQRL,
-  emitEvent,
-  getSymbolHash,
-  isSyncQrl,
-  type QRLInternal,
-} from './qrl-class';
+import { assertQrl, createQRL, isSyncQrl, type QRLInternal } from './qrl-class';
 import { isFunction, isString } from '../util/types';
 import {
   qError,
@@ -96,10 +89,6 @@ export const qrl = <T = any>(
   if (!announcedQRL.has(symbol)) {
     // Emit event
     announcedQRL.add(symbol);
-    emitEvent('qprefetch', {
-      symbols: [getSymbolHash(symbol)],
-      bundles: chunk && [chunk],
-    });
   }
 
   // Unwrap subscribers

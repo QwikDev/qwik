@@ -86,7 +86,8 @@ export const trigger = () => {
         Math.max(1, config[maxSimultaneousPreloadsStr] * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
-    if (preloadCount < allowedPreloads) {
+    // When we're 100% sure, everything needs to be queued
+    if (probability === 1 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle);
     } else {

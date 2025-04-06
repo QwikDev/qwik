@@ -185,7 +185,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource) && resource.value) {
+  if (isResourceReturn(resource)) {
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
       // create a subscription for the resource._state changes
@@ -204,10 +204,16 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    return resource.value.then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = resource.value;
+    if (value) {
+      return value.then(
+        useBindInvokeContext(props.onResolved),
+        useBindInvokeContext(props.onRejected)
+      );
+    } else {
+      // this is temporary value until the `runResource` is executed and promise is assigned to the value
+      return Promise.resolve(undefined);
+    }
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),

@@ -11,6 +11,7 @@
  *   - It needs to store a function which needs to re-run.
  *   - It is `Readonly` because it is computed.
  */
+import { isDev } from '@qwik.dev/core/build';
 import { isDomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { pad, qwikDebugToString } from '../debug';
@@ -225,12 +226,16 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   toString() {
-    return (
-      `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
-      (Array.from(this.$effects$ || [])
-        .map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    '))
-        .join('\n') || '')
-    );
+    if (isDev) {
+      return (
+        `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
+        (Array.from(this.$effects$ || [])
+          .map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    '))
+          .join('\n') || '')
+      );
+    } else {
+      return this.constructor.name;
+    }
   }
   toJSON() {
     return { value: this.$untrackedValue$ };

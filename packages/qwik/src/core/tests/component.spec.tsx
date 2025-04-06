@@ -8,6 +8,7 @@ import {
   Fragment as Signal,
   SkipRender,
   Slot,
+  _jsxSorted,
   component$,
   h,
   jsx,
@@ -27,6 +28,9 @@ import { delay } from '../shared/utils/promises';
 import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
+import { QContainerValue } from '../shared/types';
+import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
+import { vnode_getParent, vnode_getProp, vnode_locate } from '../client/vnode';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -360,16 +364,19 @@ describe.each([
       );
     });
     const { document } = await render(<Cmp />, { debug });
+    const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a signal value!</span>
         </h2>
@@ -377,7 +384,7 @@ describe.each([
     );
     await trigger(document.body, 'button', 'click');
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a updated signal value!</span>
         </h2>
@@ -419,23 +426,26 @@ describe.each([
       );
     });
     const { document } = await render(<Parent />, { debug });
+    const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a signal value!</span>
         </h2>
       </span>
     );
     await expect(document.querySelector('#fourth')).toMatchDOM(
-      <span id="fourth" class="after">
+      <span id="fourth" class="after" {...qContainerAttr}>
         <h3>Test content</h3>
       </span>
     );
@@ -443,22 +453,24 @@ describe.each([
     await trigger(document.body, 'button', 'click');
 
     await expect(document.querySelector('#first')).toMatchDOM(
-      <span id="first">vanilla HTML here</span>
+      <span id="first" {...qContainerAttr}>
+        vanilla HTML here
+      </span>
     );
     await expect(document.querySelector('#second')).toMatchDOM(
-      <span id="second" class="after">
+      <span id="second" class="after" {...qContainerAttr}>
         <h1>I'm an h1!</h1>
       </span>
     );
     await expect(document.querySelector('#third')).toMatchDOM(
-      <span id="third" class="after">
+      <span id="third" class="after" {...qContainerAttr}>
         <h2>
           <span>I'm a updated signal value!</span>
         </h2>
       </span>
     );
     await expect(document.querySelector('#fourth')).toMatchDOM(
-      <span id="fourth" class="after">
+      <span id="fourth" class="after" {...qContainerAttr}>
         <h3>Test content</h3>
       </span>
     );
@@ -476,9 +488,15 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123</textarea>);
+    const qContainerAttr =
+      render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}>value 123</textarea>
+    );
     await trigger(document.body, 'button', 'click');
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea>value 123!</textarea>);
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}>value 123!</textarea>
+    );
   });
 
   it('should render textarea without error', async () => {
@@ -497,7 +515,11 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    await expect(document.querySelector('textarea')).toMatchDOM(<textarea></textarea>);
+    const qContainerAttr =
+      render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+    await expect(document.querySelector('textarea')).toMatchDOM(
+      <textarea {...qContainerAttr}></textarea>
+    );
   });
 
   it('should not render textarea value for non-text value', async () => {
@@ -821,6 +843,52 @@ describe.each([
         </div>
       </Component>
     );
+  });
+
+  it('should preserve the same elements', async () => {
+    const Cmp = component$(() => {
+      const keys = useSignal(['A', 'B', 'C']);
+
+      return (
+        <div onClick$={() => (keys.value = ['B', 'C', 'A'])}>
+          {keys.value.map((key) => (
+            <span key={key} id={key}>
+              {key}
+            </span>
+          ))}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span id="A">A</span>
+          <span id="B">B</span>
+          <span id="C">C</span>
+        </div>
+      </Component>
+    );
+    const a1 = document.getElementById('A');
+    const b1 = document.getElementById('B');
+    const c1 = document.getElementById('C');
+    await trigger(document.body, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span id="B">B</span>
+          <span id="C">C</span>
+          <span id="A">A</span>
+        </div>
+      </Component>
+    );
+    const a2 = document.getElementById('A');
+    const b2 = document.getElementById('B');
+    const c2 = document.getElementById('C');
+    expect(a1).toBe(a2);
+    expect(b1).toBe(b2);
+    expect(c1).toBe(c2);
   });
 
   it('should render correctly component only with text node and node sibling', async () => {
@@ -1925,6 +1993,105 @@ describe.each([
     );
   });
 
+  it('should reexecute entire component without key', async () => {
+    const Child = component$((props: { text: string }) => {
+      const text = useSignal('');
+      useTask$(() => {
+        text.value = props.text;
+      });
+      return <div>{text.value}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {/* no key for both components */}
+          {toggle.value ? jsx(Child, { text: 'Hello' }, null) : jsx(Child, { text: 'World' }, null)}
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Signal ssr-required>Hello</Signal>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Signal ssr-required>World</Signal>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should remove component with null key when it is compared with fragment with null key', async () => {
+    const InnerCmp = component$(() => {
+      return <div>InnerCmp</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? (
+            <InnerCmp key={null} />
+          ) : (
+            <Fragment key={null}>
+              <h1>Test</h1>
+            </Fragment>
+          )}
+        </>
+      );
+    });
+
+    const { vNode, document, container } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>InnerCmp</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Fragment ssr-required>
+            <h1>Test</h1>
+          </Fragment>
+        </Fragment>
+      </Component>
+    );
+    const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
+
+    expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {
@@ -1946,14 +2113,15 @@ describe.each([
         );
       });
       const { document, container } = await render(<Issue3643 />, { debug });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       await expect(document.querySelector('main')).toMatchDOM(
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );
@@ -1976,10 +2144,10 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );
@@ -2002,10 +2170,10 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
           <div>
-            <div>Hello</div>
+            <div {...qContainerAttr}>Hello</div>
           </div>
         </main>
       );
@@ -2157,6 +2325,64 @@ describe.each([
                 <button id="second">Toggle</button>
               </div>
             </Component>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('#6585 - reactivity should work with template literals', async () => {
+      const Cmp = component$(() => {
+        const useFoo = (count: SignalType<number>) => {
+          const tag = (s: string | TemplateStringsArray) => {
+            const value = typeof s === 'string' ? s : s[0];
+            return `${value}-${count.value}`;
+          };
+          return tag;
+        };
+        const count = useSignal(0);
+        const foo = useFoo(count);
+        return (
+          <>
+            <p>{foo('test')}</p>
+            <p>{foo`test`}</p>
+            <button
+              onClick$={() => {
+                count.value++;
+              }}
+            >
+              Count up
+            </button>
+          </>
+        );
+      });
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-0</p>
+            <p>test-0</p>
+            <button>Count up</button>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-1</p>
+            <p>test-1</p>
+            <button>Count up</button>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <p>test-2</p>
+            <p>test-2</p>
+            <button>Count up</button>
           </Fragment>
         </Component>
       );

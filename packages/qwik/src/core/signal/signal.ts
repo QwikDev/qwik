@@ -11,28 +11,29 @@
  *   - It needs to store a function which needs to re-run.
  *   - It is `Readonly` because it is computed.
  */
+import { isDomContainer } from '../client/dom-container';
+import type { VNode } from '../client/types';
 import { pad, qwikDebugToString } from '../debug';
+import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import type { Props } from '../shared/jsx/jsx-runtime';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { trackSignal, tryGetInvokeContext } from '../use/use-core';
-import { isTask, Task, TaskFlags } from '../use/use-task';
+import { type NodePropData, type NodePropPayload } from '../shared/scheduler';
+import type { Container, HostElement } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qDev } from '../shared/utils/qdev';
-import type { VNode } from '../client/types';
-import { type NodePropData, type NodePropPayload } from '../shared/scheduler';
-import { ChoreType } from '../shared/util-chore-type';
-import type { Container, HostElement } from '../shared/types';
+import { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import type { ReadonlySignal, Signal as ISignal } from './signal.public';
-import type { TargetType } from './store';
-import type { Props } from '../shared/jsx/jsx-runtime';
-import type { OnRenderFn } from '../shared/component.public';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from './flags';
-import { QError, qError } from '../shared/error/error';
-import { isDomContainer } from '../client/dom-container';
+import { trackSignal, tryGetInvokeContext } from '../use/use-core';
+import { Task, TaskFlags, isTask } from '../use/use-task';
+import { NEEDS_COMPUTATION, _EFFECT_BACK_REF } from './flags';
 import { type BackRef } from './signal-cleanup';
+import type { Signal, ReadonlySignal } from './signal.public';
+import type { TargetType } from './store';
 import { getSubscriber } from './subscriber';
 
 const DEBUG = false;
@@ -60,7 +61,7 @@ export const enum WrappedSignalFlags {
 
 export type AllSignalFlags = SignalFlags | WrappedSignalFlags;
 
-export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
+export const throwIfQRLNotResolved = (qrl: QRL) => {
   const resolved = qrl.resolved;
   if (!resolved) {
     // When we are creating a signal using a use method, we need to ensure
@@ -73,8 +74,8 @@ export const throwIfQRLNotResolved = <T>(qrl: QRL<() => T>) => {
 };
 
 /** @public */
-export const isSignal = (value: any): value is ISignal<unknown> => {
-  return value instanceof Signal;
+export const isSignal = (value: any): value is Signal<unknown> => {
+  return value instanceof SignalImpl;
 };
 
 /**
@@ -86,7 +87,7 @@ export const isSignal = (value: any): value is ISignal<unknown> => {
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Consumer = Task | VNode | ISsrNode | Signal;
+export type Consumer = Task | VNode | ISsrNode | SignalImpl;
 
 /** @internal */
 export class SubscriptionData {
@@ -136,7 +137,7 @@ export class SubscriptionData {
 export type EffectSubscription = [
   Consumer, // EffectSubscriptionProp.CONSUMER
   EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<Signal | TargetType> | null, // EffectSubscriptionProp.BACK_REF
+  Set<SignalImpl | TargetType> | null, // EffectSubscriptionProp.BACK_REF
   SubscriptionData | null, // EffectSubscriptionProp.DATA
 ];
 
@@ -152,7 +153,7 @@ export const enum EffectProperty {
   VNODE = '.',
 }
 
-export class Signal<T = any> implements ISignal<T> {
+export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
@@ -207,7 +208,6 @@ export class Signal<T = any> implements ISignal<T> {
     }
     return this.untrackedValue;
   }
-
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
@@ -260,7 +260,7 @@ export const addQrlToSerializationCtx = (
     let qrl: QRL | null = null;
     if (isTask(effect)) {
       qrl = effect.$qrl$;
-    } else if (effect instanceof ComputedSignal) {
+    } else if (effect instanceof ComputedSignalImpl) {
       qrl = effect.$computeQrl$;
     } else if (property === EffectProperty.COMPONENT) {
       qrl = container.getHostProp<QRL>(effect as ISsrNode, OnRenderProp);
@@ -273,7 +273,7 @@ export const addQrlToSerializationCtx = (
 
 export const triggerEffects = (
   container: Container | null,
-  signal: Signal | TargetType,
+  signal: SignalImpl | TargetType,
   effects: Set<EffectSubscription> | null
 ) => {
   const isBrowser = isDomContainer(container);
@@ -290,10 +290,10 @@ export const triggerEffects = (
           choreType = ChoreType.VISIBLE;
         }
         container.$scheduler$(choreType, consumer);
-      } else if (consumer instanceof Signal) {
+      } else if (consumer instanceof SignalImpl) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
-        if (consumer instanceof ComputedSignal) {
+        if (consumer instanceof ComputedSignalImpl) {
           // Ensure that the computed signal's QRL is resolved.
           // If not resolved schedule it to be resolved.
           if (!consumer.$computeQrl$.resolved) {
@@ -301,7 +301,7 @@ export const triggerEffects = (
           }
         }
 
-        (consumer as ComputedSignal<unknown> | WrappedSignal<unknown>).$invalidate$();
+        (consumer as ComputedSignalImpl<unknown> | WrappedSignal<unknown>).$invalidate$();
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = consumer as any;
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
@@ -311,7 +311,7 @@ export const triggerEffects = (
       } else if (isBrowser) {
         if (property === EffectProperty.VNODE) {
           const host: HostElement = consumer;
-          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as Signal);
+          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
         } else {
           const host: HostElement = consumer;
           const effectData = effectSubscription[EffectSubscriptionProp.DATA];
@@ -319,7 +319,7 @@ export const triggerEffects = (
             const data = effectData.data;
             const payload: NodePropPayload = {
               ...data,
-              $value$: signal as Signal,
+              $value$: signal as SignalImpl,
             };
             container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
           }
@@ -334,26 +334,28 @@ export const triggerEffects = (
   DEBUG && log('done scheduling');
 };
 
+type ComputeQRL<T> = QRLInternal<() => T>;
+
 /**
  * A signal which is computed from other signals.
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-export class ComputedSignal<T> extends Signal<T> implements BackRef {
+export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   /**
    * The compute function is stored here.
    *
    * The computed functions must be executed synchronously (because of this we need to eagerly
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
-  $computeQrl$: QRLInternal<() => T>;
+  $computeQrl$: ComputeQRL<T>;
   $flags$: SignalFlags;
   $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
     container: Container | null,
-    fn: QRLInternal<() => T>,
+    fn: ComputeQRL<T>,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
     flags = SignalFlags.INVALID
@@ -368,8 +370,6 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
   $invalidate$() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
-    // We should only call subscribers if the calculation actually changed.
-    // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
@@ -378,9 +378,8 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
    * remained the same object
    */
   force() {
-    this.$flags$ |= SignalFlags.INVALID;
-    this.$forceRunEffects$ = false;
-    triggerEffects(this.$container$, this, this.$effects$);
+    this.$forceRunEffects$ = true;
+    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
   }
 
   get untrackedValue() {
@@ -426,17 +425,17 @@ export class ComputedSignal<T> extends Signal<T> implements BackRef {
     }
   }
 
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.computedReadOnly);
   }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
+  }
 }
 
-export class WrappedSignal<T> extends Signal<T> implements BackRef {
+export class WrappedSignal<T> extends SignalImpl<T> implements BackRef {
   $args$: any[];
   $func$: (...args: any[]) => T;
   $funcStr$: string | null;
@@ -476,7 +475,7 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
 
   /**
    * Use this to force running subscribers, for example when the calculated value has mutated but
-   * remained the same object
+   * remained the same object.
    */
   force() {
     this.$flags$ |= SignalFlags.INVALID;
@@ -511,13 +510,118 @@ export class WrappedSignal<T> extends Signal<T> implements BackRef {
     }
     return didChange;
   }
-
-  // Getters don't get inherited
-  get value() {
-    return super.value;
-  }
-
+  // Make this signal read-only
   set value(_: any) {
     throw qError(QError.wrappedReadOnly);
   }
+  // Getters don't get inherited when overriding a setter
+  get value() {
+    return super.value;
+  }
 }
+
+/** @public */
+export type SerializerArgObject<T, S> = {
+  /**
+   * This will be called with initial or serialized data to reconstruct an object. If no
+   * `initialData` is provided, it will be called with `undefined`.
+   *
+   * This must not return a Promise.
+   */
+  deserialize: (data: Awaited<S>) => T;
+  /** The initial value to use when deserializing. */
+  initial?: S | undefined;
+  /**
+   * This will be called with the object to get the serialized data. You can return a Promise if you
+   * need to do async work.
+   *
+   * The result may be anything that Qwik can serialize.
+   *
+   * If you do not provide it, the object will be serialized as `undefined`. However, if the object
+   * has a `[SerializerSymbol]` property, that will be used as the serializer instead.
+   */
+  serialize?: (obj: T) => S;
+};
+
+/**
+ * Serialize and deserialize custom objects.
+ *
+ * If you need to use scoped state, you can pass a function instead of an object. The function will
+ * be called with the current value, and you can return a new value.
+ *
+ * @public
+ */
+export type SerializerArg<T, S> =
+  | SerializerArgObject<T, S>
+  | (() => SerializerArgObject<T, S> & {
+      /**
+       * This gets called when reactive state used during `deserialize` changes. You may mutate the
+       * current object, or return a new object.
+       *
+       * If it returns a value, that will be used as the new value, and listeners will be triggered.
+       * If no change happened, don't return anything.
+       *
+       * If you mutate the current object, you must return it so that it will trigger listeners.
+       */
+      update?: (current: T) => T | void;
+    });
+
+/**
+ * A signal which provides a non-serializable value. It works like a computed signal, but it is
+ * handled slightly differently during serdes.
+ *
+ * @public
+ */
+export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
+  constructor(container: Container | null, argQrl: QRLInternal<SerializerArg<T, S>>) {
+    super(container, argQrl as unknown as ComputeQRL<T>);
+  }
+  $didInitialize$: boolean = false;
+
+  $computeIfNeeded$(): boolean {
+    if (!(this.$flags$ & SignalFlags.INVALID)) {
+      return false;
+    }
+    throwIfQRLNotResolved(this.$computeQrl$);
+    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
+    if (typeof arg === 'function') {
+      arg = arg();
+    }
+    const { deserialize, initial } = arg;
+    const update = (arg as any).update as ((current: T) => T) | undefined;
+    const currentValue =
+      this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
+    const untrackedValue = trackSignal(
+      () =>
+        this.$didInitialize$
+          ? update?.(currentValue as T)
+          : deserialize(currentValue as Awaited<S>),
+      this,
+      EffectProperty.VNODE,
+      this.$container$!
+    );
+    DEBUG && log('SerializerSignal.$compute$', untrackedValue);
+    const didChange =
+      (this.$didInitialize$ && untrackedValue !== 'undefined') ||
+      untrackedValue !== this.$untrackedValue$;
+    this.$flags$ &= ~SignalFlags.INVALID;
+    this.$didInitialize$ = true;
+    if (didChange) {
+      this.$untrackedValue$ = untrackedValue as T;
+    }
+    return didChange;
+  }
+}
+
+// TODO move to serializer
+export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any }, S> = {
+  [SerializerSymbol]: (obj: T) => S;
+};
+/** @internal */
+export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => any }, S>(
+  obj: unknown
+): obj is CustomSerializable<T, S> => {
+  return (
+    typeof obj === 'object' && obj !== null && typeof (obj as any)[SerializerSymbol] === 'function'
+  );
+};

@@ -13,7 +13,6 @@ export interface ClientContainer extends Container {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qBase: string;
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
@@ -51,10 +50,6 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
-}
-
-export interface QNode extends Node {
-  qVNode?: VNode;
 }
 
 /**

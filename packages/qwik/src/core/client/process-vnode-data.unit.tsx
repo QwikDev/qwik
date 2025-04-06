@@ -5,6 +5,8 @@ import { VNodeDataSeparator } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
 import { processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
+import { QContainerValue } from '../shared/types';
+import { QContainerAttr } from '../shared/utils/markers';
 
 describe('processVnodeData', () => {
   it('should parse simple case', () => {
@@ -177,8 +179,8 @@ describe('processVnodeData', () => {
   });
 });
 
-const qContainerPaused = { 'q:container': 'resumed' };
-const qContainerHtml = { 'q:container': 'html' };
+const qContainerPaused = { [QContainerAttr]: QContainerValue.RESUMED };
+const qContainerHtml = { [QContainerAttr]: QContainerValue.HTML };
 function process(html: string): ClientContainer[] {
   html = html.trim();
   html = html.replace(/\n\s*/g, '');

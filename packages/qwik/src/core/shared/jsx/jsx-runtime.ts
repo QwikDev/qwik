@@ -197,8 +197,6 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 
-export const SKIP_RENDER_TYPE = ':skipRender';
-
 export const isPropsProxy = (obj: any): obj is PropsProxy => {
   return obj && obj[_VAR_PROPS] !== undefined;
 };
@@ -317,19 +315,6 @@ export const jsxDEV = <T extends string | FunctionComponent<Props>>(
 
 export type { QwikJSX as JSX };
 
-export const createJSXError = (message: string, node: JSXNodeInternal) => {
-  const error = new Error(message);
-  if (!node.dev) {
-    return error;
-  }
-  error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
-  return error;
-};
-
-const filterStack = (stack: string, offset: number = 0) => {
-  return stack.split('\n').slice(offset).join('\n');
-};
-
 export function createPropsProxy(
   varProps: Props,
   constProps: Props | null,
@@ -402,7 +387,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
       (this.$constProps$ ? prop in this.$constProps$ : false);
     return hasProp;
   }
-  getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
+  getOwnPropertyDescriptor(_: any, p: string | symbol): PropertyDescriptor | undefined {
     const value =
       p === 'children' && this.$children$ != null
         ? this.$children$

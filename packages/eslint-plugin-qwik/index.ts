@@ -9,6 +9,7 @@ import { preferClasslist } from './src/preferClasslist';
 import { unusedServer } from './src/unusedServer';
 import { useMethodUsage } from './src/useMethodUsage';
 import { validLexicalScope } from './src/validLexicalScope';
+import { serializerSignalUsage } from './src/serializerSignalUsage';
 import pkg from './package.json';
 
 const rules = {
@@ -23,6 +24,7 @@ const rules = {
   'jsx-img': jsxImg,
   'jsx-a': jsxAtag,
   'no-use-visible-task': noUseVisibleTask,
+  'serializer-signal-usage': serializerSignalUsage,
 };
 
 const recommendedRules = {
@@ -37,6 +39,7 @@ const recommendedRules = {
   'qwik/jsx-img': 'warn',
   'qwik/jsx-a': 'warn',
   'qwik/no-use-visible-task': 'warn',
+  'qwik/serializer-signal-usage': 'error',
 };
 const strictRules = {
   'qwik/valid-lexical-scope': 'error',
@@ -50,6 +53,7 @@ const strictRules = {
   'qwik/jsx-img': 'error',
   'qwik/jsx-a': 'error',
   'qwik/no-use-visible-task': 'warn',
+  'qwik/serializer-signal-usage': 'error',
 };
 
 const configs = {

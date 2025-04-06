@@ -51,7 +51,7 @@ function prefetchUrlsEvent2(
     scriptAttrs.push('nonce', nonce);
   }
   container.openElement('script', null, scriptAttrs);
-  container.writer.write(prefetchUrlsEventScript(container.buildBase, prefetchResources));
+  container.writer.write(prefetchUrlsEventScript(container.$buildBase$ || '', prefetchResources));
   container.writer.write(
     `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
   );

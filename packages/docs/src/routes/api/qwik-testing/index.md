@@ -499,7 +499,7 @@ Future deprecation candidate.
 export declare function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventNameCamel: string,
+  eventName: string,
   eventPayload?: any,
 ): Promise<void>;
 ```
@@ -541,7 +541,7 @@ string \| Element \| keyof HTMLElementTagNameMap \| null
 </td></tr>
 <tr><td>
 
-eventNameCamel
+eventName
 
 </td><td>
 
@@ -577,6 +577,7 @@ export declare function vnode_fromJSX(jsx: JSXOutput): {
   vParent: _ElementVNode;
   vNode: _VNode | null;
   document: _QDocument;
+  container: ClientContainer;
 };
 ```
 
@@ -607,7 +608,7 @@ JSXOutput
 </tbody></table>
 **Returns:**
 
-{ vParent: \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; }
+{ vParent: \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 

@@ -1,6 +1,6 @@
-import { $, type ValueOrPromise } from '@qwik.dev/core';
+import { $, isBrowser, type ValueOrPromise } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../shared/qrl/qrl';
@@ -14,14 +14,99 @@ import { Task } from '../use/use-task';
 import {
   EffectProperty,
   SignalFlags,
-  type ComputedSignal,
   type InternalReadonlySignal,
   type InternalSignal,
 } from './signal';
-import { createComputedQrl, createSignal } from './signal.public';
+import {
+  createComputed$,
+  createComputedQrl,
+  createSerializer$,
+  createSignal,
+  type ComputedSignal,
+  type SerializerSignal,
+  type Signal,
+} from './signal.public';
 import { getSubscriber } from './subscriber';
 
-describe('v2-signal', () => {
+class Foo {
+  constructor(public val: number = 0) {}
+  update(val: number) {
+    this.val = val;
+  }
+}
+
+describe('signal types', () => {
+  it('Signal<T>', () => () => {
+    const signal = createSignal(1);
+    expectTypeOf(signal).toEqualTypeOf<Signal<number>>();
+  });
+  it('ComputedSignal<T>', () => () => {
+    const signal = createComputed$(() => 1);
+    expectTypeOf(signal).toEqualTypeOf<ComputedSignal<number>>();
+    const signal2 = createComputed$<number>(() => 1);
+    expectTypeOf(signal2).toEqualTypeOf<ComputedSignal<number>>();
+  });
+  it('SerializerSignal<T, S>', () => () => {
+    {
+      const signal = createSerializer$({
+        deserialize: () => new Foo(),
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const stuff = createSignal(1);
+      const signal = createSerializer$(() => ({
+        deserialize: () => (isBrowser ? new Foo(stuff.value) : undefined),
+        update: (foo) => {
+          if (foo!.val !== stuff.value) {
+            return;
+          }
+          foo!.update(stuff.value);
+          return foo;
+        },
+      }));
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<undefined> | SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo | undefined>();
+    }
+    {
+      const signal = createSerializer$({
+        // We have to specify the type here, sadly
+        deserialize: (data?: number) => {
+          expectTypeOf(data).toEqualTypeOf<number | undefined>();
+          return new Foo();
+        },
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+    {
+      const signal = createSerializer$({
+        deserialize: (data) => {
+          expectTypeOf(data).toEqualTypeOf<number>();
+          return new Foo();
+        },
+        initial: 3,
+        serialize: (obj) => {
+          expect(obj).toBeInstanceOf(Foo);
+          return 1;
+        },
+      });
+      expectTypeOf(signal).toEqualTypeOf<SerializerSignal<Foo>>();
+      expectTypeOf(signal.value).toEqualTypeOf<Foo>();
+    }
+  });
+});
+
+describe('signal', () => {
   const log: any[] = [];
   const delayMap = new Map();
   let container: Container = null!;
@@ -99,7 +184,6 @@ describe('v2-signal', () => {
         expect(log).toEqual([12, 23]);
       });
     });
-    // using .only because otherwise there's a function-not-the-same issue
     it('force', () =>
       withContainer(async () => {
         const obj = { count: 0 };
@@ -120,15 +204,15 @@ describe('v2-signal', () => {
         expect(log).toEqual([1]);
         expect(obj.count).toBe(1);
         // mark dirty but value remains shallow same after calc
-        (computed as ComputedSignal<any>).$flags$ |= SignalFlags.INVALID;
+        computed.$flags$ |= SignalFlags.INVALID;
         computed.value.count;
         await flushSignals();
         expect(log).toEqual([1]);
         expect(obj.count).toBe(2);
-        // force recalculation+notify
+        // force notify
         computed.force();
         await flushSignals();
-        expect(log).toEqual([1, 3]);
+        expect(log).toEqual([1, 2]);
       }));
   });
   ////////////////////////////////////////

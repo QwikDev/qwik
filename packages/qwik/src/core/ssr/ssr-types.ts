@@ -60,7 +60,6 @@ export interface SSRContainer extends Container {
   readonly prefetchResources: PrefetchResource[];
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
-  readonly buildBase: string;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];

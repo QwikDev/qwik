@@ -61,7 +61,6 @@ export const validLexicalScope = createRule({
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
     const relevantScopes: Map<any, string> = new Map();
-    let exports: ts.Symbol[] = [];
 
     function walkScope(scope: Scope.Scope) {
       scope.references.forEach((ref) => {
@@ -287,7 +286,15 @@ function _isTypeCapturable(
     return;
   }
   seen.add(type);
-  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
+  if (
+    type
+      .getProperties()
+      .some((p) =>
+        /(__no_serialize__|__qwik_serializable__|NoSerializeSymbol|SerializerSymbol)/i.test(
+          p.escapedName as string
+        )
+      )
+  ) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;

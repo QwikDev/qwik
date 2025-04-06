@@ -38,7 +38,7 @@ describe('v2 ssr render', () => {
       }
     );
     expect(vNode).toMatchVDOM(<meta content="dark light" name="color-scheme" />);
-    expect(container.document.querySelector('meta')).toMatchDOM(
+    await expect(container.document.querySelector('meta')).toMatchDOM(
       <meta content="dark light" name="color-scheme" key="0" />
     );
   });
@@ -182,7 +182,7 @@ describe('v2 ssr render', () => {
         </Component>
       );
       // we should not stream the comment nodes of the SSRStreamBlock
-      expect(document.querySelector('#stream-block')).toMatchDOM(
+      await expect(document.querySelector('#stream-block')).toMatchDOM(
         <div id="stream-block">
           <div>stream content</div>
         </div>

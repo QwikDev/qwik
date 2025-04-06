@@ -45,7 +45,7 @@ export const appBundleSsr = async (options: ReplInputOptions, result: ReplResult
       const loc = warning.loc;
       if (loc && loc.file) {
         diagnostic.file = loc.file;
-        diagnostic.highlights.push({
+        diagnostic.highlights!.push({
           startCol: loc.column,
           endCol: loc.column + 1,
           startLine: loc.line,

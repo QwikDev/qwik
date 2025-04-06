@@ -8,6 +8,11 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
+import {
+  DOMContentLoadedEvent,
+  EventNameJSXScope,
+  eventNameToJsxEvent,
+} from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -27,7 +32,7 @@ export type EventQRL<T extends string = AllEventKeys> =
  */
 // </docs>
 export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, undefined), eventQrl);
+  _useOn(createEventName(event, EventNameJSXScope.on), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -60,7 +65,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'document'), eventQrl);
+  _useOn(createEventName(event, EventNameJSXScope.document), eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -94,18 +99,21 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, 'window'), eventQrl);
+  _useOn(createEventName(event, EventNameJSXScope.window), eventQrl);
 };
 
 const createEventName = (
   event: KnownEventNames | KnownEventNames[],
-  eventType: 'window' | 'document' | undefined
+  eventScope: EventNameJSXScope
 ) => {
-  const prefix = eventType !== undefined ? eventType + ':' : '';
-  const map = (name: string) =>
-    prefix + 'on' + name.charAt(0).toUpperCase() + name.substring(1) + '$';
-  const res = Array.isArray(event) ? event.map(map) : map(event);
-  return res;
+  const map = (name: string) => {
+    let prefix: string = eventScope;
+    if (name === DOMContentLoadedEvent) {
+      prefix += '-'; // Add hyphen at the start if case-sensitive
+    }
+    return eventNameToJsxEvent(name, prefix);
+  };
+  return Array.isArray(event) ? event.map(map) : map(event);
 };
 
 const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {

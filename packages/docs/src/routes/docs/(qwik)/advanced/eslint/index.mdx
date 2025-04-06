@@ -5,7 +5,8 @@ contributors:
   - manucorporat
   - gioboa
   - maiieul
-updated_at: '2023-11-22T07:02:07Z'
+  - wmertens
+updated_at: '2025-03-18T00:00:00Z'
 created_at: '2023-05-20T00:04:28Z'
 ---
 
@@ -15,6 +16,7 @@ created_at: '2023-05-20T00:04:28Z'
 [//]: <> ( to update run: pnpm eslint.update    )
 [//]: <> ( after changing the rule metadata on  )
 [//]: <> ( packages/eslint-plugin-qwik/index.ts )
+[//]: <> ( and update the frontmatter if needed )
 [//]: <> (--------------------------------------)
 
 import './styles.css';
@@ -323,7 +325,33 @@ import './styles.css';
         </span>
         <span
           class={{
-            'icon': true,
+            'icon': false,
+            'icon icon-inactive': true,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+
+    <a href="#serializer-signal-usage" class="p-4 flex panel">
+      <div class="flex-1">
+        <code>serializer-signal-usage</code>
+        <span class="rule-description">Ensure signals used in update() are also used in deserialize()</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': false,
+          }}
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'icon': false,
             'icon icon-inactive': false,
           }}
         >
@@ -972,7 +1000,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {4,12} /serverGreeter/#a
-import { $, component$ } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import { server$ } from '@qwik.dev/router';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
@@ -982,10 +1010,10 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
  
 export default component$(() => (
     <button
-      onClick$={$(async () => {
+      onClick$={async () => {
         const greeting = await serverGreeter('John', 'Doe');
         alert(greeting);
-      })}
+      }}
     >
       greet
     </button>
@@ -1083,6 +1111,62 @@ import Image from '~/media/image.png';
   
 <h4>noUseVisibleTask</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+
+    </div>
+  
+
+    <div class="rule-wrapper">
+      <h3 id="serializer-signal-usage">serializer-signal-usage</h3>
+      <span>Ensure signals used in update() are also used in deserialize()</span>
+  
+<h4>serializerSignalMismatch</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: () => new MyClass(countSignal.value),
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: (count) => new MyClass(count),
+		initial: 2,
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+<p class="code-description">The countSignal is used in update() but not in deserialize()</p>
+</div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/serializerSignalUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   

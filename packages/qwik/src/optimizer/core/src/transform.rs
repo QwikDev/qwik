@@ -578,7 +578,7 @@ impl<'a> QwikTransform<'a> {
 			return (None, is_const);
 		}
 
-		if !is_const && matches!(folded, ast::Expr::Call(_)) {
+		if !is_const && (matches!(folded, ast::Expr::Call(_) | ast::Expr::Tpl(_))) {
 			return (None, false);
 		}
 

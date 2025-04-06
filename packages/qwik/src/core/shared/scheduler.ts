@@ -91,7 +91,7 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects, type ComputedSignal, type WrappedSignal } from '../signal/signal';
+import { triggerEffects, type ComputedSignalImpl, type WrappedSignal } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
 import type { TargetType } from '../signal/store';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -471,7 +471,7 @@ export const createScheduler = (
         }
         case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
           {
-            const target = chore.$target$ as ComputedSignal<unknown> | WrappedSignal<unknown>;
+            const target = chore.$target$ as ComputedSignalImpl<unknown> | WrappedSignal<unknown>;
             const forceRunEffects = target.$forceRunEffects$;
             target.$forceRunEffects$ = false;
             if (!target.$effects$?.size) {

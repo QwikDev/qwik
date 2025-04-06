@@ -77,7 +77,7 @@ export type QwikLoaderEventScope = '-document' | '-window' | '';
  */
 export const DEBUG_TYPE = 'q:type';
 
-export enum VirtualType {
+export const enum VirtualType {
   Virtual = 'V',
   Fragment = 'F',
   WrappedSignal = 'S',

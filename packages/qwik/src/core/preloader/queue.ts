@@ -9,7 +9,12 @@ import {
   rel,
 } from './constants';
 import type { BundleImport, BundleImports } from './types';
-import { BundleImportState } from './types';
+import {
+  BundleImportState_None,
+  BundleImportState_Queued,
+  BundleImportState_Preload,
+  BundleImportState_Loaded,
+} from './types';
 
 export const bundles: BundleImports = new Map();
 let queueDirty: boolean;
@@ -81,7 +86,8 @@ export const trigger = () => {
         Math.max(1, config[maxSimultaneousPreloadsStr] * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
-    if (preloadCount < allowedPreloads) {
+    // When we're 100% sure, everything needs to be queued
+    if (probability === 1 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle);
     } else {
@@ -93,7 +99,7 @@ export const trigger = () => {
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
   if (config.DEBUG && !queue.length) {
-    const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState.None);
+    const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState_None);
     const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
     const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
     log(
@@ -103,16 +109,20 @@ export const trigger = () => {
 };
 
 const preloadOne = (bundle: BundleImport) => {
-  if (bundle.$state$ >= BundleImportState.Preload) {
+  if (bundle.$state$ >= BundleImportState_Preload) {
     return;
   }
   preloadCount++;
 
   const start = Date.now();
   bundle.$waitedMs$ = start - bundle.$createdTs$;
-  bundle.$state$ = BundleImportState.Preload;
+  bundle.$state$ = BundleImportState_Preload;
 
-  config.DEBUG && log(`<< load after ${`${bundle.$waitedMs$}ms`}`, bundle.$name$);
+  config.DEBUG &&
+    log(
+      `<< load ${Math.round((1 - bundle.$inverseProbability$) * 100)}% after ${`${bundle.$waitedMs$}ms`}`,
+      bundle.$name$
+    );
 
   const link = doc.createElement('link');
   link.href = bundle.$url$!;
@@ -124,7 +134,7 @@ const preloadOne = (bundle: BundleImport) => {
     preloadCount--;
     const end = Date.now();
     bundle.$loadedMs$ = end - start;
-    bundle.$state$ = BundleImportState.Loaded;
+    bundle.$state$ = BundleImportState_Loaded;
     config.DEBUG && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
     // Keep the <head> clean
     link.remove();
@@ -151,11 +161,11 @@ export const adjustProbabilities = (
   }
 
   if (
-    bundle.$state$ < BundleImportState.Preload &&
+    bundle.$state$ < BundleImportState_Preload &&
     bundle.$inverseProbability$ < config[maxSignificantInverseProbabilityStr]
   ) {
-    if (bundle.$state$ === BundleImportState.None) {
-      bundle.$state$ = BundleImportState.Queued;
+    if (bundle.$state$ === BundleImportState_None) {
+      bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
       config.DEBUG &&
         log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);

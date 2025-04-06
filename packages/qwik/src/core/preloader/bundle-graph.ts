@@ -7,7 +7,7 @@ import {
 } from './constants';
 import { adjustProbabilities, bundles, log, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
-import { BundleImportState } from './types';
+import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
@@ -21,7 +21,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
     $name$: name,
     $url$: url,
-    $state$: url ? BundleImportState.None : BundleImportState.Alias,
+    $state$: url ? BundleImportState_None : BundleImportState_Alias,
     $deps$: deps,
     $inverseProbability$: 1,
     $createdTs$: Date.now(),

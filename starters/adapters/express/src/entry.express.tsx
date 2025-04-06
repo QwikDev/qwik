@@ -13,7 +13,6 @@ import {
 } from "@builder.io/qwik-city/middleware/node";
 import "dotenv/config";
 import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
 import render from "./entry.ssr";
 import express from "express";
 import { fileURLToPath } from "node:url";
@@ -34,7 +33,6 @@ const PORT = process.env.PORT ?? 3000;
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
-  manifest,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

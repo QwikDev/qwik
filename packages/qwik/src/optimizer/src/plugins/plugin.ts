@@ -8,7 +8,6 @@ import type {
   EntryStrategy,
   GlobalInjections,
   SegmentAnalysis,
-  InsightManifest,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
@@ -17,10 +16,14 @@ import type {
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
+  SmartEntryStrategy,
+  ServerQwikManifest,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
-import { isWin } from './vite-utils';
+import { isWin, parseId } from './vite-utils';
+import type { BundleGraphAdder } from '..';
+import { convertManifestToBundleGraph } from './bundle-graph';
 
 const REG_CTX_NAME = ['server'];
 
@@ -110,7 +113,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     srcInputs: null as any,
     sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
-    insightsManifest: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     scope: null,
@@ -118,8 +120,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       imageDevTools: true,
       clickToSource: ['Alt'],
     },
-    inlineStylesUpToBytes: null as any,
-    lint: true,
+    inlineStylesUpToBytes: 20000,
+    lint: false,
     experimental: undefined,
   };
 
@@ -174,7 +176,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ) {
       opts.target = updatedOpts.target;
     } else {
-      opts.target = 'client';
+      opts.target ||= 'client';
     }
 
     if (opts.target === 'lib') {
@@ -182,7 +184,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     } else if (updatedOpts.buildMode === 'production' || updatedOpts.buildMode === 'development') {
       opts.buildMode = updatedOpts.buildMode;
     } else {
-      opts.buildMode = 'development';
+      opts.buildMode ||= 'development';
     }
 
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
@@ -206,7 +208,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.rootDir = updatedOpts.rootDir;
     }
     if (typeof opts.rootDir !== 'string') {
-      opts.rootDir = optimizer.sys.cwd();
+      opts.rootDir ||= optimizer.sys.cwd();
     }
     opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
     let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
@@ -218,7 +220,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.srcInputs = [...updatedOpts.srcInputs];
       opts.srcDir = null;
     } else {
-      opts.srcDir = srcDir;
+      opts.srcDir ||= srcDir;
     }
 
     if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
@@ -241,10 +243,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       } else {
         if (opts.target === 'ssr') {
           // ssr input default
-          opts.input = [path.resolve(srcDir, 'entry.ssr')];
+          opts.input ||= [path.resolve(srcDir, 'entry.ssr')];
         } else if (opts.target === 'client') {
           // client input default
-          opts.input = [path.resolve(srcDir, 'root')];
+          opts.input ||= [path.resolve(srcDir, 'root')];
         } else if (opts.target === 'lib') {
           if (typeof updatedOpts.input === 'object') {
             for (const key in updatedOpts.input) {
@@ -259,28 +261,28 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             }
           } else {
             // lib input default
-            opts.input = [path.resolve(srcDir, 'index.ts')];
+            opts.input ||= [path.resolve(srcDir, 'index.ts')];
           }
         } else {
-          opts.input = [];
+          opts.input ||= [];
         }
       }
-      opts.input = Array.isArray(opts.input)
-        ? opts.input.reduce((inputs, i) => {
-            let input = i;
-            if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
-              input = normalizePath(path.resolve(opts.rootDir, i));
-            }
-            if (!inputs.includes(input)) {
-              inputs.push(input);
-            }
-            return inputs;
-          }, [] as string[])
-        : opts.input;
+      if (Array.isArray(opts.input)) {
+        opts.input = opts.input.reduce((inputs, i) => {
+          let input = i;
+          if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
+            input = normalizePath(path.resolve(opts.rootDir, i));
+          }
+          if (!inputs.includes(input)) {
+            inputs.push(input);
+          }
+          return inputs;
+        }, [] as string[]);
+      }
 
       if (typeof updatedOpts.outDir === 'string') {
         opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
-      } else {
+      } else if (!opts.outDir) {
         if (opts.target === 'ssr') {
           opts.outDir = normalizePath(path.resolve(opts.rootDir, SSR_OUT_DIR));
         } else if (opts.target === 'lib') {
@@ -304,7 +306,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
     }
 
-    opts.scope = updatedOpts.scope ?? null;
+    if (updatedOpts.scope !== undefined) {
+      opts.scope = updatedOpts.scope;
+    }
 
     if (typeof updatedOpts.resolveQwikBuild === 'boolean') {
       opts.resolveQwikBuild = updatedOpts.resolveQwikBuild;
@@ -321,23 +325,26 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
     opts.csr = !!updatedOpts.csr;
 
-    opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes ?? 20000;
-    if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
-      opts.inlineStylesUpToBytes = 0;
+    if ('inlineStylesUpToBytes' in optimizerOptions) {
+      if (typeof optimizerOptions.inlineStylesUpToBytes === 'number') {
+        opts.inlineStylesUpToBytes = optimizerOptions.inlineStylesUpToBytes;
+      } else if (typeof opts.inlineStylesUpToBytes !== 'number' || opts.inlineStylesUpToBytes < 0) {
+        opts.inlineStylesUpToBytes = 0;
+      }
     }
 
     if (typeof updatedOpts.lint === 'boolean') {
       opts.lint = updatedOpts.lint;
-    } else {
-      opts.lint = updatedOpts.buildMode === 'development';
     }
 
-    opts.experimental = undefined;
-    for (const feature of updatedOpts.experimental ?? []) {
-      if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
-        console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
-      } else {
-        (opts.experimental ||= {} as any)[feature] = true;
+    if ('experimental' in updatedOpts) {
+      opts.experimental = undefined;
+      for (const feature of updatedOpts.experimental ?? []) {
+        if (!ExperimentalFeatures[feature as ExperimentalFeatures]) {
+          console.error(`Qwik plugin: Unknown experimental feature: ${feature}`);
+        } else {
+          (opts.experimental ||= {} as any)[feature] = true;
+        }
       }
     }
 
@@ -481,6 +488,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         id: QWIK_CLIENT_MANIFEST_ID,
         moduleSideEffects: false,
       };
+    } else if (!devServer && !isServer && pathId.endsWith(QWIK_PRELOADER_ID)) {
+      debug(`resolveId(${count})`, 'Resolved', QWIK_PRELOADER_ID);
+      const preloader = await ctx.resolve(QWIK_PRELOADER_ID, importerId, {
+        skipSelf: true,
+      });
+      if (preloader) {
+        ctx.emitFile({
+          id: preloader.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+        return preloader;
+      }
     } else {
       const qrlMatch = /^(?<parent>.*\.[mc]?[jt]sx?)_(?<name>[^/]+)\.js(?<query>$|\?.*$)/.exec(id)
         ?.groups as { parent: string; name: string; query: string } | undefined;
@@ -758,7 +778,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const injections: GlobalInjections[] = [];
 
     const addInjection = (b: GlobalInjections) => injections.push(b);
-    const generateManifest = async () => {
+
+    const generateManifest = async (extra?: Partial<QwikManifest>) => {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
 
@@ -775,6 +796,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug
       );
+      if (extra) {
+        Object.assign(manifest, extra);
+      }
 
       for (const symbol of Object.values(manifest.symbols)) {
         if (symbol.origin) {
@@ -838,8 +862,18 @@ export const isDev = ${JSON.stringify(isDev)};
 
   async function getQwikServerManifestModule(isServer: boolean) {
     const manifest = isServer ? opts.manifestInput : null;
+    let serverManifest: ServerQwikManifest | null = null;
+    if (manifest?.manifestHash) {
+      serverManifest = {
+        manifestHash: manifest.manifestHash,
+        injections: manifest.injections,
+        bundleGraph: manifest.bundleGraph,
+        mapping: manifest.mapping,
+        preloader: manifest.preloader,
+      };
+    }
     return `// @qwik-client-manifest
-export const manifest = ${JSON.stringify(manifest)};\n`;
+export const manifest = ${JSON.stringify(serverManifest)};\n`;
   }
 
   function setSourceMapSupport(sourcemap: boolean) {
@@ -871,30 +905,79 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     }
   }
 
-  // This groups all QRL segments into their respective entry points
-  // optimization opportunity: group small segments that don't import anything into smallish chunks
-  // order by discovery time, so that related segments are more likely to group together
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
+    // The preloader has to stay in a separate chunk if it's a client build
+    // the vite preload helper must be included or to prevent breaking circular dependencies
+    if (
+      opts.target === 'client' &&
+      (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js')
+    ) {
+      return 'qwik-preloader';
+    }
+
     const module = getModuleInfo(id)!;
-    const segment = module.meta.segment;
-
-    // We need to specifically return segment.entry for qwik-insights
+    const segment = module.meta.segment as SegmentAnalysis | undefined;
     if (segment) {
-      return segment.entry;
+      const { hash } = segment;
+      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+      if (chunkName) {
+        return chunkName;
+      }
     }
-
-    if (id.includes('node_modules')) {
-      return null;
-    }
-
-    // Patch to prevent over-prefetching, we must clearly separate .tsx/.jsx chunks so that rollup doesn't mix random imports into non-entry files such as hooks.
-    // Maybe a better solution would be to mark those files as entires earlier in the chain so that we can remove this check and the one above altogether.
-    // We check .(tsx|jsx) after node_modules in case some node_modules end with .jsx or .tsx.
-    if (/\.(tsx|jsx)$/.test(id)) {
-      return id;
-    }
-
     return null;
+  }
+
+  async function generateManifest(
+    ctx: Rollup.PluginContext,
+    rollupBundle: OutputBundle,
+    bundleGraphAdders?: Set<BundleGraphAdder>,
+    manifestExtra?: Partial<QwikManifest>
+  ) {
+    const outputAnalyzer = createOutputAnalyzer(rollupBundle);
+    const manifest = await outputAnalyzer.generateManifest(manifestExtra);
+
+    manifest.platform = {
+      ...manifestExtra?.platform,
+      rollup: ctx.meta?.rollupVersion || '',
+      env: optimizer.sys.env,
+      os: optimizer.sys.os,
+    };
+    if (optimizer.sys.env === 'node') {
+      manifest.platform!.node = process.versions.node;
+    }
+
+    const assetsDir = opts.assetsDir;
+    const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
+    const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
+    ctx.emitFile({
+      type: 'asset',
+      fileName: optimizer.sys.path.join(
+        useAssetsDir ? assetsDir : '',
+        'build',
+        `q-bundle-graph-${manifest.manifestHash}.js`
+      ),
+      source: `export const B=${JSON.stringify(bundleGraph)}`,
+    });
+
+    manifest.bundleGraph = bundleGraph;
+
+    const manifestStr = JSON.stringify(manifest, null, '\t');
+    ctx.emitFile({
+      fileName: Q_MANIFEST_FILENAME,
+      type: 'asset',
+      source: manifestStr,
+    });
+
+    if (typeof opts.manifestOutput === 'function') {
+      await opts.manifestOutput(manifest);
+    }
+
+    if (typeof opts.transformedModuleOutput === 'function') {
+      await opts.transformedModuleOutput(getTransformedOutputs());
+    }
+
+    // TODO get rid of this with the vite environment api
+    return manifestStr;
   }
 
   return {
@@ -920,6 +1003,7 @@ export const manifest = ${JSON.stringify(manifest)};\n`;
     configureServer,
     handleHotUpdate,
     manualChunks,
+    generateManifest,
   };
 }
 
@@ -949,20 +1033,6 @@ function isAdditionalFile(mod: TransformModule) {
   return mod.isEntry || mod.segment;
 }
 
-export function parseId(originalId: string) {
-  const [pathId, query] = originalId.split('?');
-  const queryStr = query || '';
-  return {
-    originalId,
-    pathId,
-    query: queryStr ? `?${query}` : '',
-    params: new URLSearchParams(queryStr),
-  };
-}
-
-export const getSymbolHash = (symbolName: string) =>
-  /_([a-z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
-
 const TRANSFORM_EXTS = {
   '.jsx': true,
   '.ts': true,
@@ -988,6 +1058,9 @@ export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
 export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
+
+export const QWIK_PRELOADER_ID = '@builder.io/qwik/preloader';
+export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
 
 export const SRC_DIR_DEFAULT = 'src';
 
@@ -1015,7 +1088,6 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
-  insightsManifest?: InsightManifest | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   assetsDir?: string;

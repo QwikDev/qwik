@@ -181,9 +181,7 @@ export const createScheduler = (
    *
    * @param type
    * @param host - Host element where the component is being rendered.
-   * @param qrl - QRL of the component to render.
-   * @param props- Props to pass to the component.
-   * @param waitForChore? = false
+   * @param target
    */
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
@@ -517,6 +515,7 @@ export const createScheduler = (
    *
    * @param a - The first chore to compare
    * @param b - The second chore to compare
+   * @param rootVNode
    * @returns A number indicating the relative order of the chores. A negative number means `a` runs
    *   before `b`.
    */

@@ -46,6 +46,7 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
+  ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
   type ClientAttrKey,
@@ -739,11 +740,14 @@ export const vnode_diff = (
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
+
+    const element = vNode[ElementVNodeProps.element] as QElement;
+    element.vNode = new WeakRef(vNode);
+
     needsQDispatchEventPatch =
       setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
-      const element = vnode_getNode(vNode) as QElement;
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
           const eventName = event.type;

@@ -499,7 +499,7 @@ Future deprecation candidate.
 export declare function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventNameCamel: string,
+  eventName: string,
   eventPayload?: any,
 ): Promise<void>;
 ```
@@ -541,7 +541,7 @@ string \| Element \| keyof HTMLElementTagNameMap \| null
 </td></tr>
 <tr><td>
 
-eventNameCamel
+eventName
 
 </td><td>
 

@@ -48,9 +48,14 @@ export function getPreloadPaths(
   }
 
   // If we have a bundle graph, all we need is the symbols
-  return (snapshotResult?.qrls as QRLInternal[])
-    ?.map((qrl) => getSymbolHash(qrl.$refSymbol$ || qrl.$symbol$))
-    .filter(Boolean) as string[];
+  const symbols = new Set<string>();
+  for (const qrl of (snapshotResult?.qrls || []) as QRLInternal[]) {
+    const symbol = getSymbolHash(qrl.$refSymbol$ || qrl.$symbol$);
+    if (symbol && symbol.length >= 10) {
+      symbols.add(symbol);
+    }
+  }
+  return [...symbols];
 }
 
 export const expandBundles = (names: string[], resolvedManifest?: ResolvedManifest) => {

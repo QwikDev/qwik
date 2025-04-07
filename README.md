@@ -65,12 +65,37 @@ bun create qwik@latest
   </tr>
   <tr>
     <td align="center">
-      <a href="https://www.builder.io/m/developers">
+      <a href="https://www.builder.io/m/developers" rel="noopener">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/eT9FjKT.png">
           <img width="250" alt="Special sponsor Builder.io" src="https://i.imgur.com/32mv01X.png">
         </picture>
       </a>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>sponsors</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://kunaico.com/" target="_blank" rel="noopener">
+        <picture>
+          <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
+          <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Company logo">
+        </picture>
+      </a>    
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="http://hirez.io/" target="_blank" rel="noopener">
+        <picture>
+          <source srcset="https://i.imgur.com/DHhJM0J.png" media="(prefers-color-scheme: dark)">
+          <source srcset="https://i.imgur.com/DIbsvQC.png" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://i.imgur.com/DIbsvQC.png" alt="Company logo">
+        </picture>
+      </a>    
     </td>
   </tr>
 </table>

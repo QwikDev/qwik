@@ -73,4 +73,26 @@ bun create qwik@latest
       </a>
     </td>
   </tr>
+  <tr>
+    <td align="center">
+      <a href="https://kunaico.com/" target="_blank" rel="noopener noreferrer">
+        <picture>
+          <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
+          <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Company logo">
+        </picture>
+      </a>    
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="http://hirez.io/" target="_blank" rel="noopener noreferrer">
+        <picture>
+          <source srcset="https://github.com/user-attachments/assets/b96e11fd-374b-454f-ae5e-ab315947d4cc" media="(prefers-color-scheme: dark)">
+          <source srcset="https://github.com/user-attachments/assets/15ed7371-9a5b-4db6-8f68-821258010c2a" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://github.com/user-attachments/assets/15ed7371-9a5b-4db6-8f68-821258010c2a" alt="Company logo">
+        </picture>
+      </a>    
+    </td>
+  </tr>
 </table>

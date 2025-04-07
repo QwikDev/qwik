@@ -1,5 +1,41 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.9
+
+### Minor Changes
+
+- ✨ `useSerializer# @qwik.dev/core, `createSerializer# @qwik.dev/core: Create a Signal holding a custom serializable value. See {@link useSerializer$} for more details. (by [@wmertens](https://github.com/wmertens) in [#7223](https://github.com/QwikDev/qwik/pull/7223))
+
+  `NoSerializeSymbol`: objects that have this symbol will not be serialized.
+
+  `SerializerSymbol`: When defined on an object, this function will get called with the object and is expected to returned a serializable object literal representing this object. Use this to remove data cached data, consolidate things, integrate with other libraries, etc.
+
+### Patch Changes
+
+- 🐞🩹 don't wrap template literals with a function call inside them in a signal (by [@Varixo](https://github.com/Varixo) in [#7390](https://github.com/QwikDev/qwik/pull/7390))
+
+- 🐞🩹 creating error overlay (by [@Varixo](https://github.com/Varixo) in [#7446](https://github.com/QwikDev/qwik/pull/7446))
+
+- 🐞🩹 reexecute component with null key (by [@Varixo](https://github.com/Varixo) in [#7456](https://github.com/QwikDev/qwik/pull/7456))
+
+- 🐞🩹 correctly handle initial resource state (by [@Varixo](https://github.com/Varixo) in [#7469](https://github.com/QwikDev/qwik/pull/7469))
+
+- 🐞🩹 change client side generated ID to start with build base and add convert first character to letter if it is starting from number (by [@Varixo](https://github.com/Varixo) in [#7432](https://github.com/QwikDev/qwik/pull/7432))
+
+- 🐞🩹 custom event names and DOMContentLoaded handling (by [@Varixo](https://github.com/Varixo) in [#7452](https://github.com/QwikDev/qwik/pull/7452))
+
+- 🐞🩹 attribute diffing was not working correctly in some edge cases (by [@Varixo](https://github.com/Varixo) in [#7419](https://github.com/QwikDev/qwik/pull/7419))
+
+- 🐞🩹 rendering markdown file with Qwik component (by [@Varixo](https://github.com/Varixo) in [#7456](https://github.com/QwikDev/qwik/pull/7456))
+
+- 🐞🩹 finding vnodes on interaction (by [@Varixo](https://github.com/Varixo) in [#7410](https://github.com/QwikDev/qwik/pull/7410))
+
+- 🐞🩹 don't execute QRLs for elements marked as deleted (by [@Varixo](https://github.com/Varixo) in [#7448](https://github.com/QwikDev/qwik/pull/7448))
+
+- 🐞🩹 inserting new node edge case (by [@Varixo](https://github.com/Varixo) in [#7446](https://github.com/QwikDev/qwik/pull/7446))
+
+- 🐞🩹 removing text node from shared text node (by [@Varixo](https://github.com/Varixo) in [#7430](https://github.com/QwikDev/qwik/pull/7430))
+
 ## 2.0.0-alpha.8
 
 ### Patch Changes

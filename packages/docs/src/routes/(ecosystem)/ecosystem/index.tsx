@@ -10,6 +10,13 @@ import { EcosystemMenu } from './ecosystem-menu';
 import { MobileEcosystemMenu } from './mobile-ecosystem-menu';
 import { QwikPlusLogo } from './qwik-plus-logo';
 
+const getRandomSites = (sites: typeof SHOWCASE) => {
+  return sites
+    .filter((site) => site.perf.score >= 0.9)
+    .sort(() => (Math.random() > 0.5 ? 1 : -1))
+    .slice(0, 6);
+};
+
 export default component$(() => {
   useStyles$(styles);
 
@@ -19,7 +26,7 @@ export default component$(() => {
   const videos = MEDIA.videos.filter(mediaFilter);
   const podcasts = MEDIA.podcasts.filter(mediaFilter);
   const presentations = MEDIA.presentations.filter(mediaFilter);
-  const showcaseSites = SHOWCASE.slice(0, 6);
+  const showcaseSites = getRandomSites(SHOWCASE);
 
   return (
     <>

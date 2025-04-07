@@ -73,6 +73,9 @@ bun create qwik@latest
       </a>
     </td>
   </tr>
+  <tr align="center">
+    <td>sponsors</td>
+  </tr>
   <tr>
     <td align="center">
       <a href="https://kunaico.com/" target="_blank" rel="noopener noreferrer">
@@ -88,9 +91,9 @@ bun create qwik@latest
     <td align="center">
       <a href="http://hirez.io/" target="_blank" rel="noopener noreferrer">
         <picture>
-          <source srcset="https://github.com/user-attachments/assets/b96e11fd-374b-454f-ae5e-ab315947d4cc" media="(prefers-color-scheme: dark)">
-          <source srcset="https://github.com/user-attachments/assets/15ed7371-9a5b-4db6-8f68-821258010c2a" media="(prefers-color-scheme: light)">
-          <img width="250" src="https://github.com/user-attachments/assets/15ed7371-9a5b-4db6-8f68-821258010c2a" alt="Company logo">
+          <source srcset="https://i.imgur.com/DHhJM0J.png" media="(prefers-color-scheme: dark)">
+          <source srcset="https://i.imgur.com/DIbsvQC.png" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://i.imgur.com/DIbsvQC.png" alt="Company logo">
         </picture>
       </a>    
     </td>

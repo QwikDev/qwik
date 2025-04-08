@@ -90,7 +90,7 @@ export interface SSRContainer extends Container {
   textNode(text: string): void;
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
-  addRoot(obj: any): number | undefined;
+  addRoot(obj: any): string | number | undefined;
   getLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;

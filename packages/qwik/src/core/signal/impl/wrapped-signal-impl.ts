@@ -3,11 +3,16 @@ import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { trackSignal } from '../../use/use-core';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../flags';
 import { triggerEffects } from '../signal';
 import type { BackRef } from '../signal-cleanup';
 import type { AllSignalFlags, EffectSubscription } from '../types';
-import { EffectProperty, SignalFlags, WrappedSignalFlags } from '../types';
+import {
+  _EFFECT_BACK_REF,
+  EffectProperty,
+  NEEDS_COMPUTATION,
+  SignalFlags,
+  WrappedSignalFlags,
+} from '../types';
 import { SignalImpl } from './signal-impl';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {

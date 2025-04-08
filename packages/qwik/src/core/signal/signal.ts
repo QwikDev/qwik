@@ -11,7 +11,6 @@ import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';
-import { _EFFECT_BACK_REF } from './flags';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';

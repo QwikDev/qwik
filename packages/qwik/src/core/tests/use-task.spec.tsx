@@ -12,7 +12,7 @@ import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/c
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
-import { WrappedSignal } from '../signal/signal';
+import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -180,7 +180,7 @@ describe.each([
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });
-        const count = new WrappedSignal(
+        const count = new WrappedSignalImpl(
           null,
           (o: any, prop: string) => o[prop],
           [countRaw, 'count'],

@@ -91,7 +91,7 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects, type WrappedSignal } from '../signal/signal';
+import { triggerEffects } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
 import type { TargetType } from '../signal/store';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -121,6 +121,7 @@ import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../signal/subscription-data';
 import type { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
+import type { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -462,7 +463,9 @@ export const createScheduler = (
         }
         case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
           {
-            const target = chore.$target$ as ComputedSignalImpl<unknown> | WrappedSignal<unknown>;
+            const target = chore.$target$ as
+              | ComputedSignalImpl<unknown>
+              | WrappedSignalImpl<unknown>;
             const forceRunEffects = target.$forceRunEffects$;
             target.$forceRunEffects$ = false;
             if (!target.$effects$?.size) {

@@ -2,10 +2,11 @@ import { isQrl } from '../server/prefetch-strategy';
 import { isJSXNode } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_getProp, vnode_isVNode } from './client/vnode';
-import { WrappedSignal, isSignal } from './signal/signal';
+import { isSignal } from './signal/signal';
 import { isStore } from './signal/store';
 import { DEBUG_TYPE } from './shared/types';
 import { ComputedSignalImpl } from './signal/impl/computed-signal-impl';
+import { WrappedSignalImpl } from './signal/impl/wrapped-signal-impl';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
@@ -37,7 +38,7 @@ export function qwikDebugToString(value: any): any {
           return value.map(qwikDebugToString);
         }
       } else if (isSignal(value)) {
-        if (value instanceof WrappedSignal) {
+        if (value instanceof WrappedSignalImpl) {
           return 'WrappedSignal';
         } else if (value instanceof ComputedSignalImpl) {
           return 'ComputedSignal';

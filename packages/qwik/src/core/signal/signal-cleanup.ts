@@ -1,4 +1,3 @@
-import { WrappedSignal } from './signal';
 import { StoreHandler, getStoreHandler } from './store';
 import type { Container } from '../shared/types';
 import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
@@ -10,6 +9,7 @@ import {
   type EffectSubscription,
 } from './types';
 import { SignalImpl } from './impl/signal-impl';
+import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {
@@ -47,7 +47,7 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
     effects.delete(effect);
   }
 
-  if (producer instanceof WrappedSignal) {
+  if (producer instanceof WrappedSignalImpl) {
     producer.$hostElement$ = null;
     clearAllEffects(container, producer);
   }

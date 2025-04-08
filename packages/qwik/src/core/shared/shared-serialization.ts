@@ -8,7 +8,8 @@ import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
-import { SerializerSignalImpl, isSerializerObj, type SerializerArg } from '../signal/signal';
+import { isSerializerObj } from '../signal/signal';
+import type { SerializerArg } from '../signal/types';
 import {
   getOrCreateStore,
   getStoreHandler,
@@ -55,6 +56,7 @@ import { SubscriptionData, type NodePropData } from '../signal/subscription-data
 import { SignalImpl } from '../signal/impl/signal-impl';
 import { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
+import { SerializerSignalImpl } from '../signal/impl/serializer-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 

@@ -157,7 +157,6 @@
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
-    "Builder.io",
     "framework",
     "generator",
     "prerender",
@@ -167,7 +166,13 @@
     "static-site",
     "static-site-generator",
     "webapp",
-    "website"
+    "website",
+    "javascript streaming",
+    "lazy execution",
+    "resumability",
+    "resumable",
+    "performance",
+    "Automatic Optimization"
   ],
   "license": "MIT",
   "main": "./src/index.ts",

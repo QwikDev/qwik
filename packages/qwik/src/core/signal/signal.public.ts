@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { SerializerArg } from './signal';
+import type { SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,

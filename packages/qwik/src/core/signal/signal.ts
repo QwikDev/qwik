@@ -1,16 +1,3 @@
-/**
- * @file
- *
- *   Signals come in two types:
- *
- *   1. `Signal` - A storage of data
- *   2. `ComputedSignal` - A signal which is computed from other signals.
- *
- *   ## Why is `ComputedSignal` different?
- *
- *   - It needs to store a function which needs to re-run.
- *   - It is `Readonly` because it is computed.
- */
 import { isDomContainer } from '../client/dom-container';
 import { pad, qwikDebugToString } from '../debug';
 import type { OnRenderFn } from '../shared/component.public';
@@ -23,9 +10,8 @@ import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import { trackSignal } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
-import { NEEDS_COMPUTATION, _EFFECT_BACK_REF } from './flags';
+import { _EFFECT_BACK_REF } from './flags';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
@@ -35,8 +21,7 @@ import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
   EffectProperty,
   EffectSubscriptionProp,
-  SignalFlags,
-  type ComputeQRL,
+  type CustomSerializable,
   type EffectSubscription,
 } from './types';
 
@@ -159,103 +144,6 @@ export const triggerEffects = (
   DEBUG && log('done scheduling');
 };
 
-/** @public */
-export type SerializerArgObject<T, S> = {
-  /**
-   * This will be called with initial or serialized data to reconstruct an object. If no
-   * `initialData` is provided, it will be called with `undefined`.
-   *
-   * This must not return a Promise.
-   */
-  deserialize: (data: Awaited<S>) => T;
-  /** The initial value to use when deserializing. */
-  initial?: S | undefined;
-  /**
-   * This will be called with the object to get the serialized data. You can return a Promise if you
-   * need to do async work.
-   *
-   * The result may be anything that Qwik can serialize.
-   *
-   * If you do not provide it, the object will be serialized as `undefined`. However, if the object
-   * has a `[SerializerSymbol]` property, that will be used as the serializer instead.
-   */
-  serialize?: (obj: T) => S;
-};
-
-/**
- * Serialize and deserialize custom objects.
- *
- * If you need to use scoped state, you can pass a function instead of an object. The function will
- * be called with the current value, and you can return a new value.
- *
- * @public
- */
-export type SerializerArg<T, S> =
-  | SerializerArgObject<T, S>
-  | (() => SerializerArgObject<T, S> & {
-      /**
-       * This gets called when reactive state used during `deserialize` changes. You may mutate the
-       * current object, or return a new object.
-       *
-       * If it returns a value, that will be used as the new value, and listeners will be triggered.
-       * If no change happened, don't return anything.
-       *
-       * If you mutate the current object, you must return it so that it will trigger listeners.
-       */
-      update?: (current: T) => T | void;
-    });
-
-/**
- * A signal which provides a non-serializable value. It works like a computed signal, but it is
- * handled slightly differently during serdes.
- *
- * @public
- */
-export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
-  constructor(container: Container | null, argQrl: QRLInternal<SerializerArg<T, S>>) {
-    super(container, argQrl as unknown as ComputeQRL<T>);
-  }
-  $didInitialize$: boolean = false;
-
-  $computeIfNeeded$(): boolean {
-    if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
-    }
-    throwIfQRLNotResolved(this.$computeQrl$);
-    let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
-    if (typeof arg === 'function') {
-      arg = arg();
-    }
-    const { deserialize, initial } = arg;
-    const update = (arg as any).update as ((current: T) => T) | undefined;
-    const currentValue =
-      this.$untrackedValue$ === NEEDS_COMPUTATION ? initial : this.$untrackedValue$;
-    const untrackedValue = trackSignal(
-      () =>
-        this.$didInitialize$
-          ? update?.(currentValue as T)
-          : deserialize(currentValue as Awaited<S>),
-      this,
-      EffectProperty.VNODE,
-      this.$container$!
-    );
-    DEBUG && log('SerializerSignal.$compute$', untrackedValue);
-    const didChange =
-      (this.$didInitialize$ && untrackedValue !== 'undefined') ||
-      untrackedValue !== this.$untrackedValue$;
-    this.$flags$ &= ~SignalFlags.INVALID;
-    this.$didInitialize$ = true;
-    if (didChange) {
-      this.$untrackedValue$ = untrackedValue as T;
-    }
-    return didChange;
-  }
-}
-
-// TODO move to serializer
-export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any }, S> = {
-  [SerializerSymbol]: (obj: T) => S;
-};
 /** @internal */
 export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => any }, S>(
   obj: unknown

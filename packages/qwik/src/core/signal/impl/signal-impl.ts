@@ -1,15 +1,18 @@
-import { qError, QError } from '../../shared/error/error';
+import { isDev } from '@qwik.dev/core/build';
+import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
+import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { addQrlToSerializationCtx, triggerEffects } from '../signal';
-import { ensureContainsBackRef } from '../signal';
+import { qDev } from '../../shared/utils/qdev';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { ensureContainsSubscription } from '../signal';
+import {
+  addQrlToSerializationCtx,
+  ensureContainsBackRef,
+  ensureContainsSubscription,
+  triggerEffects,
+} from '../signal';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
-import { pad, qwikDebugToString } from '../../debug';
-import { qDev } from '../../shared/utils/qdev';
-import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console

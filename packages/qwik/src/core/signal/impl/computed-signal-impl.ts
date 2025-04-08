@@ -1,18 +1,17 @@
-import type { ComputeQRL, EffectSubscription } from '../types';
-import { EffectProperty } from '../types';
-import type { BackRef } from '../signal-cleanup';
-import { SignalFlags } from '../types';
-import { SignalImpl } from './signal-impl';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../flags';
+import { qwikDebugToString } from '../../debug';
+import { assertFalse } from '../../shared/error/assert';
+import { QError, qError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
-import { assertFalse } from '../../shared/error/assert';
-import { throwIfQRLNotResolved } from '../signal';
-import { tryGetInvokeContext } from '../../use/use-core';
-import { getSubscriber } from '../subscriber';
 import { isPromise } from '../../shared/utils/promises';
-import { QError, qError } from '../../shared/error/error';
-import { qwikDebugToString } from '../../debug';
+import { tryGetInvokeContext } from '../../use/use-core';
+import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../flags';
+import { throwIfQRLNotResolved } from '../signal';
+import type { BackRef } from '../signal-cleanup';
+import { getSubscriber } from '../subscriber';
+import type { ComputeQRL, EffectSubscription } from '../types';
+import { EffectProperty, SignalFlags } from '../types';
+import { SignalImpl } from './signal-impl';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console

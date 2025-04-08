@@ -465,7 +465,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       // TODO: we should probably serialize only projection VNode
-      this.serializationCtx.$addRoot$(componentFrame.componentNode);
+      this.serializationCtx.$addRoot$(componentFrame.componentNode, null);
       componentFrame.projectionDepth++;
     }
   }
@@ -530,7 +530,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.$noMoreRoots$) {
       return this.serializationCtx.$hasRootId$(obj);
     }
-    return this.serializationCtx.$addRoot$(obj);
+    return this.serializationCtx.$addRoot$(obj, null);
   }
 
   getLastNode(): ISsrNode {
@@ -709,7 +709,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     function writeFragmentAttrs(
       write: (text: string) => void,
-      addRoot: (obj: unknown) => number | undefined,
+      addRoot: (obj: unknown, parent: null) => string | number | undefined,
       fragmentAttrs: SsrAttrs
     ): void {
       for (let i = 0; i < fragmentAttrs.length; ) {
@@ -717,7 +717,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         let value = fragmentAttrs[i++] as string;
         // if (key !== DEBUG_TYPE) continue;
         if (typeof value !== 'string') {
-          const rootId = addRoot(value);
+          const rootId = addRoot(value, null);
           // We didn't add the vnode data, so we are only interested in the vnode position
           if (rootId === undefined) {
             continue;
@@ -822,8 +822,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.openElement('script', ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
-      this.serializationCtx.$serialize$();
-      this.closeElement();
+      return maybeThen(this.serializationCtx.$serialize$(), () => {
+        this.closeElement();
+      });
     });
   }
 

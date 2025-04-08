@@ -1,5 +1,4 @@
 /** There's [documentation](./serialization.md) */
-
 import { isDev } from '../../build/index.dev';
 import type { StreamWriter } from '../../server/types';
 import { VNodeDataFlag } from '../../server/types';
@@ -15,7 +14,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../reactive-primitives/impl/store';
-import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
 import { isTask, Task } from '../use/use-task';
@@ -601,6 +600,11 @@ type DomRef = {
   $ssrNode$: SsrNode;
 };
 
+type SeenRef = {
+  $parent$: unknown | null;
+  $index$: number;
+};
+
 let isDomRef = (obj: unknown): obj is DomRef => false;
 
 export interface SerializationContext {
@@ -609,18 +613,16 @@ export interface SerializationContext {
   $symbolToChunkResolver$: SymbolToChunkResolver;
 
   /**
-   * Map from object to root index.
+   * Map from object to parent and index reference.
    *
-   * If object is found in `objMap` will return the index of the object in the `objRoots` or
-   * `secondaryObjRoots`.
+   * If object is found in `objMap` will return the parent reference and index path.
    *
    * `objMap` return:
    *
-   * - `>=0` - index of the object in `objRoots`.
-   * - `-1` - object has been seen, only once, and therefore does not need to be promoted into a root
-   *   yet.
+   * - `{ parent, index }` - The parent object and the index within that parent.
+   * - `undefined` - Object has not been seen yet.
    */
-  $wasSeen$: (obj: unknown) => number | undefined;
+  $wasSeen$: (obj: unknown) => SeenRef | undefined;
 
   $hasRootId$: (obj: unknown) => number | undefined;
 
@@ -628,21 +630,25 @@ export interface SerializationContext {
    * Root objects which need to be serialized.
    *
    * Roots are entry points into the object graph. Typically the roots are held by the listeners.
+   *
+   * Returns a path string representing the path from roots through all parents to the object.
+   * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
    */
-  $addRoot$: (obj: unknown) => number;
+  $addRoot$: (obj: unknown, parent: unknown) => string | number;
 
   /**
-   * Get root index of the object without create a new root.
+   * Get root path of the object without creating a new root.
    *
    * This is used during serialization, as new roots can't be created during serialization.
    *
    * The function throws if the root was not found.
    */
-  $getRootId$: (obj: unknown) => number;
+  $addRootPath$: (obj: any) => string | number;
 
-  $seen$: (obj: unknown) => void;
+  $seen$: (obj: unknown, parent: unknown | null, index: number) => void;
 
   $roots$: unknown[];
+  $pathMap$: Map<unknown, string | number>;
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
@@ -694,21 +700,54 @@ export const createSerializationContext = (
       toString: () => buffer.join(''),
     } as StreamWriter;
   }
-  const map = new Map<any, number>();
+  const seenObjsMap = new Map<unknown, SeenRef>();
+  const pathMap = new Map<unknown, string | number>();
   const syncFnMap = new Map<string, number>();
   const syncFns: string[] = [];
-  const roots: any[] = [];
-  const $wasSeen$ = (obj: any) => map.get(obj);
-  const $seen$ = (obj: any) => map.set(obj, -1);
-  const $addRoot$ = (obj: any) => {
-    let id = map.get(obj);
-    if (typeof id !== 'number' || id === -1) {
-      id = roots.length;
-      map.set(obj, id);
-      roots.push(obj);
+  const roots: unknown[] = [];
+
+  const $wasSeen$ = (obj: unknown) => seenObjsMap.get(obj);
+  const $seen$ = (obj: unknown, parent: unknown | null, index: number) =>
+    seenObjsMap.set(obj, { $parent$: parent, $index$: index });
+
+  const $addRootPath$ = (obj: unknown) => {
+    const rootPath = pathMap.get(obj);
+    if (rootPath) {
+      return rootPath;
     }
-    return id;
+    const seen = seenObjsMap.get(obj);
+    if (!seen) {
+      // TODO:
+      throw qError(QError.serializeErrorMissingRootId);
+    }
+    const path = [];
+    let current: typeof seen | undefined = seen;
+
+    // Traverse up through parent references to build a path
+    while (current && current.$index$ >= 0) {
+      path.unshift(current.$index$);
+      if (typeof current.$parent$ !== 'object' || current.$parent$ === null) {
+        break;
+      }
+      current = seenObjsMap.get(current.$parent$);
+    }
+
+    const pathStr = path.length > 1 ? path.join(' ') : path.length ? path[0] : seen.$index$;
+    pathMap.set(obj, pathStr);
+    return pathStr;
   };
+
+  const $addRoot$ = (obj: any, parent: unknown = null) => {
+    const seen = seenObjsMap.get(obj);
+    if (!seen || seen.$index$ === -1) {
+      seenObjsMap.set(obj, { $parent$: parent, $index$: roots.length });
+      if (!parent) {
+        roots.push(obj);
+      }
+    }
+    return $addRootPath$(obj);
+  };
+
   const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
     obj: unknown
   ) => obj is SsrNode;
@@ -717,8 +756,8 @@ export const createSerializationContext = (
   ) as (obj: unknown) => obj is DomRef;
 
   return {
-    $serialize$(): void {
-      serialize(this);
+    async $serialize$(): Promise<void> {
+      return serialize(this);
     },
     $isSsrNode$: isSsrNode,
     $isDomRef$: isDomRef,
@@ -727,17 +766,11 @@ export const createSerializationContext = (
     $roots$: roots,
     $seen$,
     $hasRootId$: (obj: any) => {
-      const id = map.get(obj);
-      return id === undefined || id === -1 ? undefined : id;
+      const id = seenObjsMap.get(obj);
+      return id?.$parent$ === null ? id.$index$ : undefined;
     },
     $addRoot$,
-    $getRootId$: (obj: any) => {
-      const id = map.get(obj);
-      if (!id || id === -1) {
-        throw qError(QError.serializeErrorMissingRootId, [obj]);
-      }
-      return id;
-    },
+    $addRootPath$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
@@ -770,223 +803,39 @@ export const createSerializationContext = (
     $getProp$: getProp,
     $setProp$: setProp,
     $prepVNodeData$: prepVNodeData,
+    $pathMap$: pathMap,
   };
 
-  async function breakCircularDependenciesAndResolvePromises() {
-    // As we walk the object graph we insert newly discovered objects which need to be scanned here.
-    const discoveredValues: unknown[] = [];
-    const promises: Promise<unknown>[] = [];
-
-    /**
-     * Note on out of order streaming:
-     *
-     * When we implement that, we may need to send a reference to an object that was streamed
-     * earlier but wasn't a root. This means we'll have to keep track of all objects on both send
-     * and receive ends, which means we'll just have to make everything a root anyway, so `visit()`
-     * won't be needed.
-     */
-    /** Visit an object, adding anything that will be serialized as to scan */
-    const visit = (obj: unknown) => {
-      if (typeof obj === 'function') {
-        if (isQrl(obj)) {
-          if (obj.$captureRef$) {
-            discoveredValues.push(...obj.$captureRef$);
-          }
-        } else if (isQwikComponent(obj)) {
-          const [qrl]: [QRLInternal] = (obj as any)[SERIALIZABLE_STATE];
-          discoveredValues.push(qrl);
-        }
-      } else if (
-        // skip as these are primitives
-        typeof obj !== 'object' ||
-        obj === null ||
-        obj instanceof URL ||
-        obj instanceof Date ||
-        obj instanceof RegExp ||
-        obj instanceof Uint8Array ||
-        obj instanceof URLSearchParams ||
-        vnode_isVNode(obj) ||
-        (typeof FormData !== 'undefined' && obj instanceof FormData) ||
-        // Ignore the no serialize objects
-        fastSkipSerialize(obj as object)
-      ) {
-        // ignore
-      } else if (obj instanceof Error) {
-        discoveredValues.push(obj.message, ...Object.values(obj), isDev && obj.stack);
-      } else if (isStore(obj)) {
-        const target = getStoreTarget(obj)!;
-        const effects = getStoreHandler(obj)!.$effects$;
-        discoveredValues.push(target, effects);
-
-        for (const prop in target) {
-          const propValue = (target as any)[prop];
-          if (storeProxyMap.has(propValue)) {
-            discoveredValues.push(prop, storeProxyMap.get(propValue));
-          }
-        }
-      } else if (obj instanceof Set) {
-        discoveredValues.push(...obj.values());
-      } else if (obj instanceof Map) {
-        obj.forEach((v, k) => {
-          discoveredValues.push(k, v);
-        });
-      } else if (obj instanceof SignalImpl) {
-        /**
-         * ComputedSignal can be left un-calculated if invalid.
-         *
-         * SerializerSignal is always serialized if it was already calculated.
-         */
-        const toSerialize =
-          (obj instanceof ComputedSignalImpl &&
-            !(obj instanceof SerializerSignalImpl) &&
-            (obj.$flags$ & SignalFlags.INVALID || fastSkipSerialize(obj))) ||
-          obj instanceof WrappedSignalImpl
-            ? NEEDS_COMPUTATION
-            : obj.$untrackedValue$;
-        if (toSerialize !== NEEDS_COMPUTATION) {
-          if (obj instanceof SerializerSignalImpl) {
-            promises.push(
-              (obj.$computeQrl$ as any as QRLInternal<SerializerArg<any, any>>)
-                .resolve()
-                .then((arg) => {
-                  let data;
-                  if ((arg as any).serialize) {
-                    data = (arg as any).serialize(toSerialize);
-                  } else if (SerializerSymbol in toSerialize) {
-                    data = (toSerialize as any)[SerializerSymbol](toSerialize);
-                  }
-                  if (data === undefined) {
-                    data = NEEDS_COMPUTATION;
-                  }
-                  serializationResults.set(obj, data);
-                  discoveredValues.push(data);
-                })
-            );
-          } else {
-            discoveredValues.push(toSerialize);
-          }
-        }
-        if (obj.$effects$) {
-          discoveredValues.push(obj.$effects$);
-        }
-        // WrappedSignal uses syncQrl which has no captured refs
-        if (obj instanceof WrappedSignalImpl) {
-          discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
-          if (obj.$args$) {
-            discoveredValues.push(...obj.$args$);
-          }
-          if (obj.$hostElement$) {
-            discoveredValues.push(obj.$hostElement$);
-          }
-        } else if (obj instanceof ComputedSignalImpl) {
-          discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
-          discoveredValues.push(obj.$computeQrl$);
-        }
-      } else if (obj instanceof Task) {
-        discoveredValues.push(obj.$el$, obj.$qrl$, obj.$state$);
-        discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
-      } else if (isSsrNode(obj)) {
-        discoverValuesForVNodeData(obj.vnodeData, discoveredValues);
-
-        if (obj.childrenVNodeData && obj.childrenVNodeData.length) {
-          for (const data of obj.childrenVNodeData) {
-            discoverValuesForVNodeData(data, discoveredValues);
-          }
-        }
-      } else if (isDomRef!(obj)) {
-        discoveredValues.push(obj.$ssrNode$.id);
-      } else if (isJSXNode(obj)) {
-        discoveredValues.push(obj.type, obj.props, obj.constProps, obj.children);
-      } else if (isQrl(obj)) {
-        obj.$captureRef$ && obj.$captureRef$.length && discoveredValues.push(...obj.$captureRef$);
-      } else if (isPropsProxy(obj)) {
-        discoveredValues.push(obj[_VAR_PROPS], obj[_CONST_PROPS]);
-      } else if (isPromise(obj)) {
-        obj.then(
-          (value) => {
-            promiseResults.set(obj, [true, value]);
-            discoveredValues.push(value);
-          },
-          (error) => {
-            promiseResults.set(obj, [false, error]);
-            discoveredValues.push(error);
-          }
-        );
-        promises.push(obj);
-      } else if (obj instanceof SubscriptionData) {
-        discoveredValues.push(obj.data);
-      } else if (Array.isArray(obj)) {
-        discoveredValues.push(...obj);
-      } else if (isSerializerObj(obj)) {
-        const result = obj[SerializerSymbol](obj);
-        serializationResults.set(obj, result);
-        discoveredValues.push(result);
-      } else if (isObjectLiteral(obj)) {
-        Object.entries(obj).forEach(([key, value]) => {
-          discoveredValues.push(key, value);
-        });
-      } else {
-        throw qError(QError.serializeErrorUnknownType, [obj]);
-      }
-    };
-
-    // Prime the pump with the root objects.
-    for (const root of roots) {
-      visit(root);
-    }
-
-    do {
-      while (discoveredValues.length) {
-        const obj = discoveredValues.pop();
-        if (!(shouldTrackObj(obj) || frameworkType(obj))) {
-          continue;
-        }
-        const id = $wasSeen$(obj);
-        if (id === undefined) {
-          // Object has not been seen yet, must scan content
-          $seen$(obj);
-          visit(obj);
-        } else if (id === -1) {
-          // We are seeing this object second time => promote it.
-          $addRoot$(obj);
-          // we don't need to scan the children, since we have already seen them.
-        }
-      }
-      // We have scanned all the objects, but we still have promises to resolve.
-      await Promise.allSettled(promises);
-      promises.length = 0;
-    } while (discoveredValues.length);
-  }
+  // TODO: to remove
+  async function breakCircularDependenciesAndResolvePromises() {}
 };
 
-const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
-  Array.isArray(value) && value.length > 0;
-
-const discoverValuesForVNodeData = (vnodeData: VNodeData, discoveredValues: unknown[]) => {
-  for (const value of vnodeData) {
-    if (isSsrAttrs(value)) {
-      for (let i = 1; i < value.length; i += 2) {
-        const attrValue = value[i];
-        if (typeof attrValue === 'string') {
-          continue;
-        }
-        discoveredValues.push(attrValue);
-      }
-    }
+function $discoverRoots$(
+  serializationContext: SerializationContext,
+  obj: unknown,
+  parent: unknown,
+  index: number
+): void {
+  const { $wasSeen$, $seen$, $addRoot$ } = serializationContext;
+  if (!(shouldTrackObj(obj) || frameworkType(obj))) {
+    return;
   }
-};
-
-const discoverEffectBackRefs = (
-  effectsBackRefs: Map<string, EffectSubscription> | null,
-  discoveredValues: unknown[]
-) => {
-  if (effectsBackRefs) {
-    discoveredValues.push(effectsBackRefs);
+  const seen = $wasSeen$(obj);
+  if (seen === undefined) {
+    // First time seeing this object, track its parent and index
+    $seen$(obj, parent, index);
+  } else {
+    $addRoot$(obj, parent);
   }
-};
+}
 
-/** The results of Promises we encountered during serialization. */
-const promiseResults = new WeakMap<Promise<any>, [boolean, unknown]>();
+class PromiseResult {
+  constructor(
+    public $resolved$: boolean,
+    public $value$: unknown
+  ) {}
+}
+
 /** The results of custom serializing objects we encountered during serialization. */
 const serializationResults = new WeakMap<object, unknown>();
 
@@ -999,18 +848,17 @@ const serializationResults = new WeakMap<object, unknown>();
  * - Odd values are numbers, strings (JSON stringified with `</` escaping) or arrays (same format).
  * - Therefore root indexes need to be doubled to get the actual index.
  */
-function serialize(serializationContext: SerializationContext): void {
-  const { $writer$, $isSsrNode$, $isDomRef$, $setProp$, $storeProxyMap$ } = serializationContext;
+async function serialize(serializationContext: SerializationContext): Promise<void> {
+  const { $writer$, $isSsrNode$, $isDomRef$, $setProp$, $storeProxyMap$, $addRoot$, $pathMap$ } =
+    serializationContext;
   let depth = -1;
-  // Skip the type for the roots output
-  let writeType = false;
+  const forwardRefs: any[] = [];
+  let forwardRefsId = 0;
+  const promises: Set<Promise<unknown>> = new Set();
+  let parent: unknown = null;
 
   const output = (type: number, value: number | string | any[]) => {
-    if (writeType) {
-      $writer$.write(`${type},`);
-    } else {
-      writeType = true;
-    }
+    $writer$.write(`${type},`);
     if (typeof value === 'number') {
       $writer$.write(value.toString());
     } else if (typeof value === 'string') {
@@ -1034,6 +882,7 @@ function serialize(serializationContext: SerializationContext): void {
         } else {
           separator = true;
         }
+        $discoverRoots$(serializationContext, value[i], parent, i);
         writeValue(value[i], i);
       }
       $writer$.write(']');
@@ -1055,7 +904,7 @@ function serialize(serializationContext: SerializationContext): void {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
         const qrl = qrlToString(serializationContext, value);
-        const id = serializationContext.$addRoot$(qrl);
+        const id = serializationContext.$addRoot$(qrl, null);
         output(TypeIds.QRL, id);
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
@@ -1099,10 +948,16 @@ function serialize(serializationContext: SerializationContext): void {
       if (value.length === 0) {
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        // Note, in v1 we were reusing DOM text, but that is too dangerous with translation extensions changing the text
-        const seen = depth > 1 && serializationContext.$wasSeen$(value);
-        if (typeof seen === 'number' && seen >= 0) {
-          output(TypeIds.RootRef, seen);
+        const rootRefPath = $pathMap$.get(value);
+        if (
+          depth > 0 &&
+          rootRefPath &&
+          (typeof rootRefPath === 'string'
+            ? // check if calculated root ref path is shorter than the object
+              rootRefPath.length <= value.length
+            : true)
+        ) {
+          output(TypeIds.RootRef, rootRefPath);
         } else {
           output(TypeIds.String, value);
         }
@@ -1119,24 +974,23 @@ function serialize(serializationContext: SerializationContext): void {
   };
 
   const writeObjectValue = (value: {}, idx: number) => {
+    parent = value;
     /**
-     * We start at -1 and then serialize the roots array, which is an object so increases depth to
-     * 0. The object writer then outputs an array object (without type prefix) and this increases
-     * the depth for the objects within (depth 1). Then when writeValue encounters each root object,
-     * it will increase the depth again, so it's at 2.
+     * The object writer outputs an array object (without type prefix) and this increases the depth
+     * for the objects within (depth 1).
      */
-    const isRootObject = depth === 2;
+    const isRootObject = depth === 1;
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
-    // Also note that depth will be 2 for objects in root
-    if (depth > 2) {
-      const seen = serializationContext.$wasSeen$(value);
-      if (typeof seen === 'number' && seen >= 0) {
+    // Also note that depth will be 1 for objects in root
+    if (depth > 1) {
+      const rootPath = $pathMap$.get(value);
+      if (rootPath) {
         // We have seen this object before, so we can serialize it as a reference.
         // Otherwise serialize as normal
-        output(TypeIds.RootRef, seen);
+        output(TypeIds.RootRef, rootPath);
         return;
       }
     }
@@ -1155,12 +1009,8 @@ function serialize(serializationContext: SerializationContext): void {
       if (isResource(value)) {
         // let render know about the resource
         serializationContext.$resources$.add(value);
-        const res = promiseResults.get(value.value);
-        if (!res) {
-          throw qError(QError.serializeErrorUnvisited, ['resource']);
-        }
-        // TODO the effects include the resourcereturn which has duplicate data
-        output(TypeIds.Resource, [...res, getStoreHandler(value)!.$effects$]);
+        // TODO the effects include the resource return which has duplicate data
+        output(TypeIds.Resource, [value.value, getStoreHandler(value)!.$effects$]);
       } else {
         const storeHandler = getStoreHandler(value)!;
         const storeTarget = getStoreTarget(value);
@@ -1173,7 +1023,7 @@ function serialize(serializationContext: SerializationContext): void {
           if ($storeProxyMap$.has(propValue)) {
             const innerStore = $storeProxyMap$.get(propValue);
             innerStores.push(innerStore);
-            serializationContext.$addRoot$(innerStore);
+            serializationContext.$addRoot$(innerStore, null);
           }
         }
 
@@ -1184,16 +1034,7 @@ function serialize(serializationContext: SerializationContext): void {
         output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
     } else if (isSerializerObj(value)) {
-      let result = serializationResults.get(value);
-      // special case: we unwrap Promises
-      if (isPromise(result)) {
-        const promiseResult = promiseResults.get(result)!;
-        if (!promiseResult[0]) {
-          console.error(promiseResult[1]);
-          throw qError(QError.serializerSymbolRejectedPromise);
-        }
-        result = promiseResult[1];
-      }
+      const result = serializationResults.get(value);
       depth--;
       writeValue(result, idx);
       depth++;
@@ -1245,7 +1086,7 @@ function serialize(serializationContext: SerializationContext): void {
         ];
         if (v !== NEEDS_COMPUTATION) {
           if (isSerialized) {
-            out.push(serializationResults.get(value));
+            out.push($getCustomSerializerPromise$(value, v));
           } else {
             out.push(v);
           }
@@ -1287,7 +1128,7 @@ function serialize(serializationContext: SerializationContext): void {
         }
       } else {
         // Promote the vnode to a root
-        serializationContext.$addRoot$(value);
+        serializationContext.$addRoot$(value, null);
         output(TypeIds.RootRef, serializationContext.$roots$.length - 1);
       }
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {
@@ -1334,11 +1175,10 @@ function serialize(serializationContext: SerializationContext): void {
       }
       output(TypeIds.Task, out);
     } else if (isPromise(value)) {
-      const res = promiseResults.get(value);
-      if (!res) {
-        throw qError(QError.serializeErrorUnvisited, ['promise']);
-      }
-      output(TypeIds.Promise, res);
+      const forwardRefId = $resolvePromise$(value, $addRoot$);
+      output(TypeIds.ForwardRef, forwardRefId);
+    } else if (value instanceof PromiseResult) {
+      output(TypeIds.Promise, [value.$resolved$, value.$value$]);
     } else if (value instanceof Uint8Array) {
       let buf = '';
       for (const c of value) {
@@ -1353,7 +1193,74 @@ function serialize(serializationContext: SerializationContext): void {
     }
   };
 
-  writeValue(serializationContext.$roots$, -1);
+  function $resolvePromise$(
+    promise: Promise<unknown>,
+    $addRoot$: (obj: unknown, parent: unknown) => string | number
+  ) {
+    const forwardRefId = forwardRefsId++;
+    promise
+      .then((resolvedValue) => {
+        promises.delete(promise);
+        forwardRefs[forwardRefId] = $addRoot$(new PromiseResult(true, resolvedValue), null);
+      })
+      .catch((err) => {
+        promises.delete(promise);
+        forwardRefs[forwardRefId] = $addRoot$(new PromiseResult(false, err), null);
+      });
+
+    promises.add(promise);
+
+    return forwardRefId;
+  }
+
+  $writer$.write('[');
+
+  let lastRootsLength = 0;
+  let rootsLength = serializationContext.$roots$.length;
+  while (lastRootsLength < rootsLength || promises.size) {
+    if (lastRootsLength !== 0) {
+      $writer$.write(',');
+    }
+    for (let i = lastRootsLength; i < rootsLength; i++) {
+      const root = serializationContext.$roots$[i];
+      writeValue(root, 0);
+      const isLast = i === rootsLength - 1;
+      if (!isLast) {
+        $writer$.write(',');
+      }
+    }
+
+    if (promises.size) {
+      await Promise.race(promises);
+    }
+
+    lastRootsLength = rootsLength;
+    rootsLength = serializationContext.$roots$.length;
+  }
+
+  if (forwardRefs.length) {
+    $writer$.write(',');
+    output(TypeIds.ForwardRefs, forwardRefs);
+  }
+
+  $writer$.write(']');
+}
+
+function $getCustomSerializerPromise$<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
+  return new Promise((resolve) => {
+    (signal.$computeQrl$ as QRLInternal<SerializerArg<T, S>>).resolve().then((arg) => {
+      let data;
+      if ((arg as any).serialize) {
+        data = (arg as any).serialize(value);
+      } else if (SerializerSymbol in value) {
+        data = (value as any)[SerializerSymbol](value);
+      }
+      if (data === undefined) {
+        data = NEEDS_COMPUTATION;
+      }
+      resolve(data);
+    });
+  });
 }
 
 function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
@@ -1441,7 +1348,7 @@ export function qrlToString(
         serializedReferences += ' ';
       }
       // We refer by id so every capture needs to be a root
-      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
+      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i], null);
     }
     qrlStringInline += `[${serializedReferences}]`;
   } else if (value.$capture$ && value.$capture$.length > 0) {
@@ -1467,10 +1374,10 @@ export async function _serialize(data: unknown[]): Promise<string> {
   );
 
   for (const root of data) {
-    serializationContext.$addRoot$(root);
+    serializationContext.$addRoot$(root, null);
   }
-  await serializationContext.$breakCircularDepsAndAwaitPromises$();
-  serializationContext.$serialize$();
+  // await serializationContext.$breakCircularDepsAndAwaitPromises$();
+  await serializationContext.$serialize$();
   return serializationContext.$writer$.toString();
 }
 
@@ -1681,6 +1588,8 @@ const QRL_RUNTIME_CHUNK = 'mock-chunk';
 
 export const enum TypeIds {
   RootRef,
+  ForwardRef,
+  ForwardRefs,
   /** Undefined, null, true, false, NaN, +Inf, -Inf, Slot, Fragment */
   Constant,
   Number,
@@ -1717,6 +1626,8 @@ export const enum TypeIds {
 }
 export const _typeIdNames = [
   'RootRef',
+  'ForwardRef',
+  'ForwardRefs',
   'Constant',
   'Number',
   'String',

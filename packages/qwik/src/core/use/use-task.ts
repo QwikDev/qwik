@@ -10,7 +10,7 @@ import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, isSignal } from '../signal/signal';
+import { isSignal } from '../signal/signal';
 import { BackRef, clearAllEffects } from '../signal/signal-cleanup';
 import { type Signal } from '../signal/signal.public';
 import { invoke, newInvokeContext } from './use-core';
@@ -25,6 +25,7 @@ import {
   getStoreTarget,
   isStore,
 } from '../signal/store';
+import { EffectProperty } from '../signal/types';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,

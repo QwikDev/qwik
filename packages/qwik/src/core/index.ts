@@ -142,7 +142,6 @@ export {
   createSerializerQrl,
   createSerializer$,
 } from './signal/signal.public';
-export { SubscriptionData as _EffectData } from './signal/signal';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

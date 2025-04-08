@@ -16,7 +16,7 @@ import {
   SignalFlags,
   type InternalReadonlySignal,
   type InternalSignal,
-} from './signal';
+} from './types';
 import {
   createComputed$,
   createComputedQrl,

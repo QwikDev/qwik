@@ -13,7 +13,6 @@
  */
 import { isDev } from '@qwik.dev/core/build';
 import { isDomContainer } from '../client/dom-container';
-import type { VNode } from '../client/types';
 import { pad, qwikDebugToString } from '../debug';
 import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
@@ -21,7 +20,6 @@ import { QError, qError } from '../shared/error/error';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { type NodePropData, type NodePropPayload } from '../shared/scheduler';
 import type { Container, HostElement } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
@@ -30,37 +28,26 @@ import { qDev } from '../shared/utils/qdev';
 import { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { trackSignal, tryGetInvokeContext } from '../use/use-core';
-import { Task, TaskFlags, isTask } from '../use/use-task';
+import { TaskFlags, isTask } from '../use/use-task';
 import { NEEDS_COMPUTATION, _EFFECT_BACK_REF } from './flags';
 import { type BackRef } from './signal-cleanup';
-import type { Signal, ReadonlySignal } from './signal.public';
+import type { Signal } from './signal.public';
 import type { TargetType } from './store';
 import { getSubscriber } from './subscriber';
+import { SubscriptionData, type NodePropPayload } from './subscription-data';
+import {
+  EffectProperty,
+  EffectSubscriptionProp,
+  SignalFlags,
+  WrappedSignalFlags,
+  type AllSignalFlags,
+  type EffectSubscription,
+} from './types';
 
 const DEBUG = false;
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
-
-export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
-  readonly untrackedValue: T;
-}
-
-export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
-  value: T;
-  untrackedValue: T;
-}
-
-export const enum SignalFlags {
-  INVALID = 1,
-}
-
-export const enum WrappedSignalFlags {
-  // should subscribe to value and be unwrapped for PropsProxy
-  UNWRAP = 2,
-}
-
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags;
 
 export const throwIfQRLNotResolved = (qrl: QRL) => {
   const resolved = qrl.resolved;
@@ -78,81 +65,6 @@ export const throwIfQRLNotResolved = (qrl: QRL) => {
 export const isSignal = (value: any): value is Signal<unknown> => {
   return value instanceof SignalImpl;
 };
-
-/**
- * Effect is something which needs to happen (side-effect) due to signal value change.
- *
- * There are three types of effects:
- *
- * - `Task`: `useTask`, `useVisibleTask`, `useResource`
- * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
- * - `Signal2`: A derived signal which contains a computation function.
- */
-export type Consumer = Task | VNode | ISsrNode | SignalImpl;
-
-/** @internal */
-export class SubscriptionData {
-  data: NodePropData;
-
-  constructor(data: NodePropData) {
-    this.data = data;
-  }
-}
-
-/**
- * An effect consumer plus type of effect, back references to producers and additional data
- *
- * An effect can be trigger by one or more of signal inputs. The first step of re-running an effect
- * is to clear its subscriptions so that the effect can re add new set of subscriptions. In order to
- * clear the subscriptions we need to store them here.
- *
- * Imagine you have effect such as:
- *
- * ```
- * function effect1() {
- *   console.log(signalA.value ? signalB.value : 'default');
- * }
- * ```
- *
- * In the above case the `signalB` needs to be unsubscribed when `signalA` is falsy. We do this by
- * always clearing all of the subscriptions
- *
- * The `EffectSubscription` stores
- *
- * ```
- * subscription1 = [effectConsumer1, EffectProperty.COMPONENT, Set[(signalA, signalB)]];
- * ```
- *
- * The `signal1` and `signal2` back references are needed to "clear" existing subscriptions.
- *
- * Both `signalA` as well as `signalB` will have a reference to `subscription` to the so that the
- * effect can be scheduled if either `signalA` or `signalB` triggers. The `subscription1` is shared
- * between the signals.
- *
- * The second position `EffectProperty|string` store the property name of the effect.
- *
- * - Property name of the VNode
- * - `EffectProperty.COMPONENT` if component
- * - `EffectProperty.VNODE` if VNode
- */
-export type EffectSubscription = [
-  Consumer, // EffectSubscriptionProp.CONSUMER
-  EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<SignalImpl | TargetType> | null, // EffectSubscriptionProp.BACK_REF
-  SubscriptionData | null, // EffectSubscriptionProp.DATA
-];
-
-export const enum EffectSubscriptionProp {
-  CONSUMER = 0,
-  PROPERTY = 1,
-  BACK_REF = 2,
-  DATA = 3,
-}
-
-export const enum EffectProperty {
-  COMPONENT = ':',
-  VNODE = '.',
-}
 
 export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;

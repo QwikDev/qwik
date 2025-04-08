@@ -239,15 +239,6 @@ export { DomContainer as _DomContainer }
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
-export class _EffectData {
-    constructor(data: NodePropData);
-    // Warning: (ae-forgotten-export) The symbol "NodePropData" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    data: NodePropData;
-}
-
-// @internal (undocumented)
 export type _ElementVNode = [
 _VNodeFlags.Element,
 ////////////// 0 - Flags
@@ -290,10 +281,10 @@ export type EventHandler<EV = Event, EL = Element> = {
 // @internal (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "WrappedSignal" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "WrappedSignalImpl" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignal<any>;
+export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignalImpl<any>;
 
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
@@ -894,7 +885,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
-    trackSignalValue<T>(signal: Signal, subscriber: HostElement, property: string, data: _EffectData): T;
+    trackSignalValue<T>(signal: Signal, subscriber: HostElement, property: string, data: _SubscriptionData): T;
 }
 
 // @public
@@ -1010,6 +1001,15 @@ export interface StreamWriter {
 
 // @internal (undocumented)
 export type _Stringifiable = string | boolean | number | null;
+
+// @internal (undocumented)
+export class _SubscriptionData {
+    constructor(data: NodePropData);
+    // Warning: (ae-forgotten-export) The symbol "NodePropData" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    data: NodePropData;
+}
 
 // Warning: (ae-forgotten-export) The symbol "AriaAttributes" needs to be exported by the entry point index.d.ts
 //

@@ -383,7 +383,7 @@ Use this to force recalculation and running subscribers, for example when the ca
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## ContextId
 
@@ -706,7 +706,7 @@ qrl
 
 T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## createContextId
 
@@ -826,7 +826,7 @@ SerializerArg&lt;T, S&gt;
 
 T extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## createSignal
 
@@ -839,7 +839,7 @@ createSignal: {
 }
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## CSSProperties
 
@@ -1456,7 +1456,7 @@ any
 
 value is [Signal](#signal)&lt;unknown&gt;
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/utils.ts)
 
 ## jsx
 
@@ -2906,7 +2906,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## render
 
@@ -3761,7 +3761,7 @@ T
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/signal.public.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## SkipRender
 
@@ -8415,7 +8415,7 @@ T
 
 T
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/signal/store.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
 ## useComputed$
 

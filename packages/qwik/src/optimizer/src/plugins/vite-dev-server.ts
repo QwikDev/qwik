@@ -13,7 +13,7 @@ import { type NormalizedQwikPluginOptions, parseId, QWIK_HANDLERS_ID } from './p
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import { formatError } from './vite-utils';
-import { SYNC_QRL } from 'packages/qwik/src/server/qwik-copy';
+import { SYNC_QRL } from 'packages/qwik/src/core/shared/qrl/qrl-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;

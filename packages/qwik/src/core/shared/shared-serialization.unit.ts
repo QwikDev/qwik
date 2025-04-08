@@ -1,7 +1,7 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { SubscriptionData, type SignalImpl } from '../signal/signal';
+import { type SignalImpl } from '../signal/signal';
 import {
   createComputed$,
   createSerializer$,
@@ -24,6 +24,7 @@ import {
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
+import { SubscriptionData } from '../signal/subscription-data';
 
 const DEBUG = false;
 

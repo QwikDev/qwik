@@ -1,10 +1,11 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { SignalFlags, WrappedSignal, WrappedSignalFlags } from './signal';
+import { WrappedSignal } from './signal';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
+import { SignalFlags, WrappedSignalFlags } from './types';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;

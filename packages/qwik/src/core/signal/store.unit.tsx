@@ -3,7 +3,7 @@ import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Container, HostElement } from '../shared/types';
 import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { EffectProperty } from './signal';
+import { EffectProperty } from './types';
 import { invoke } from '../use/use-core';
 import { newInvokeContext } from '../use/use-core';
 import { ChoreType } from '../shared/util-chore-type';

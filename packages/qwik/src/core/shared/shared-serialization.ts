@@ -10,16 +10,10 @@ import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../c
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import {
   ComputedSignalImpl,
-  type EffectProperty,
-  type EffectSubscription,
-  EffectSubscriptionProp,
   SerializerSignalImpl,
   SignalImpl,
-  SubscriptionData,
   WrappedSignal,
   isSerializerObj,
-  SignalFlags,
-  type AllSignalFlags,
   type SerializerArg,
 } from '../signal/signal';
 import {
@@ -48,7 +42,6 @@ import { getPlatform } from './platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from './qrl/qrl-class';
 import { isQrl, isSyncQrl } from './qrl/qrl-utils';
 import type { QRL } from './qrl/qrl.public';
-import { type NodePropData } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
@@ -58,6 +51,14 @@ import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
+import {
+  EffectSubscriptionProp,
+  SignalFlags,
+  type AllSignalFlags,
+  type EffectProperty,
+  type EffectSubscription,
+} from '../signal/types';
+import { SubscriptionData, type NodePropData } from '../signal/subscription-data';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 

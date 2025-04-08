@@ -1,6 +1,6 @@
 /** @file Public APIs for the SSR */
 import {
-  _EffectData as EffectData,
+  _SubscriptionData as SubscriptionData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
@@ -1160,7 +1160,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSignal(value)) {
           const lastNode = this.getLastNode();
-          const signalData = new EffectData({
+          const signalData = new SubscriptionData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });

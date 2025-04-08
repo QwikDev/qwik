@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode';
 import { Slot } from '../shared/jsx/slot.public';
-import { EffectProperty, isSignal } from '../signal/signal';
+import { isSignal } from '../signal/signal';
 import { clearAllEffects } from '../signal/signal-cleanup';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
@@ -26,6 +26,7 @@ import {
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
 import type { ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../signal/subscriber';
+import { EffectProperty } from '../signal/types';
 
 /**
  * Use `executeComponent` to execute a component.

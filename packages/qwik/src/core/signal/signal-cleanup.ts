@@ -1,15 +1,14 @@
-import {
-  EffectSubscriptionProp,
-  WrappedSignal,
-  type EffectSubscription,
-  SignalImpl,
-  type EffectProperty,
-  type Consumer,
-} from './signal';
+import { WrappedSignal, SignalImpl } from './signal';
 import { StoreHandler, getStoreHandler } from './store';
 import type { Container } from '../shared/types';
 import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
 import { _EFFECT_BACK_REF } from './flags';
+import {
+  EffectSubscriptionProp,
+  type Consumer,
+  type EffectProperty,
+  type EffectSubscription,
+} from './types';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {

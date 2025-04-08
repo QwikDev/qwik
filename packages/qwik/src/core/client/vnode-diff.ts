@@ -91,7 +91,7 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
+import { WrappedSignal, isSignal } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isSlotProp } from '../shared/utils/prop';
@@ -100,6 +100,8 @@ import { clearAllEffects } from '../signal/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import { EffectProperty } from '../signal/types';
+import { SubscriptionData } from '../signal/subscription-data';
 
 export const vnode_diff = (
   container: ClientContainer,

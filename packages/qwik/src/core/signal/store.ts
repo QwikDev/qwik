@@ -8,8 +8,8 @@ import {
   ensureContainsBackRef,
   ensureContainsSubscription,
   triggerEffects,
-  type EffectSubscription,
 } from './signal';
+import type { EffectSubscription } from './types';
 
 const DEBUG = false;
 

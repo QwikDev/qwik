@@ -119,6 +119,7 @@ import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
+import type { NodePropPayload } from '../signal/subscription-data';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -133,15 +134,6 @@ export interface Chore {
   $promise$?: Promise<any>;
   $returnValue$: any;
   $executed$: boolean;
-}
-
-export interface NodePropData {
-  $scopedStyleIdPrefix$: string | null;
-  $isConst$: boolean;
-}
-
-export interface NodePropPayload extends NodePropData {
-  $value$: Signal<unknown>;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;

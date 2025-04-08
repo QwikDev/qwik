@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode } from './vnode';
 import { vnode_diff } from './vnode-diff';
 import type { QElement } from '../shared/types';
-import { createSignal } from '../signal/signal-api';
+import { createSignal } from '../reactive-primitives/signal-api';
 import { QError, qError } from '../shared/error/error';
 
 describe('vNode-diff', () => {

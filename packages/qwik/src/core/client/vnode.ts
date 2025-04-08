@@ -175,7 +175,7 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
-import { _EFFECT_BACK_REF } from '../signal/types';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

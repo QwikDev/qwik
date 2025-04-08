@@ -26,7 +26,7 @@ import {
   trigger,
 } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import type { Signal } from '../signal/signal.public';
+import type { Signal } from '../reactive-primitives/signal.public';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 

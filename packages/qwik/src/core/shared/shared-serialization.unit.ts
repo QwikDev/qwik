@@ -1,14 +1,14 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { type SignalImpl } from '../signal/impl/signal-impl';
+import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import {
   createComputed$,
   createSerializer$,
   createSignal,
   isSignal,
-} from '../signal/signal.public';
-import { createStore } from '../signal/store';
+} from '../reactive-primitives/signal.public';
+import { createStore } from '../reactive-primitives/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
@@ -24,8 +24,8 @@ import {
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
-import { SubscriptionData } from '../signal/subscription-data';
-import { StoreFlags } from '../signal/types';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { StoreFlags } from '../reactive-primitives/types';
 
 const DEBUG = false;
 

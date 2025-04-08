@@ -33,13 +33,13 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { isSignal } from '../signal/signal';
+import { isSignal } from '../reactive-primitives/signal';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
-import { EffectProperty } from '../signal/types';
-import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
+import { EffectProperty } from '../reactive-primitives/types';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 class ParentComponentData {
   constructor(

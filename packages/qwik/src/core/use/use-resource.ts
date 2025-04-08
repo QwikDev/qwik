@@ -9,17 +9,17 @@ import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-t
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
-import { createStore, getStoreTarget, unwrapStore } from '../signal/store';
+import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import { clearAllEffects } from '../signal/signal-cleanup';
+import { isSignal } from '../reactive-primitives/signal';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { clearAllEffects } from '../reactive-primitives/signal-cleanup';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
 import { ChoreType } from '../shared/util-chore-type';
-import { getSubscriber } from '../signal/subscriber';
-import { EffectProperty, StoreFlags } from '../signal/types';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import { EffectProperty, StoreFlags } from '../reactive-primitives/types';
 
 const DEBUG: boolean = false;
 

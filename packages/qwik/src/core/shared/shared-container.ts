@@ -1,8 +1,8 @@
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
-import type { SubscriptionData } from '../signal/subscription-data';
-import type { Signal } from '../signal/signal.public';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';

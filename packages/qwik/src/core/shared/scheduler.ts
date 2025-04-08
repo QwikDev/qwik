@@ -91,9 +91,9 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects } from '../signal/signal';
-import { isSignal, type Signal } from '../signal/signal.public';
-import type { StoreTarget } from '../signal/types';
+import { triggerEffects } from '../reactive-primitives/signal';
+import { isSignal, type Signal } from '../reactive-primitives/signal.public';
+import type { StoreTarget } from '../reactive-primitives/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -119,9 +119,9 @@ import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
-import type { NodePropPayload } from '../signal/subscription-data';
-import type { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
-import type { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
+import type { NodePropPayload } from '../reactive-primitives/subscription-data';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;

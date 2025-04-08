@@ -259,6 +259,25 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           }
         }
       }
+
+      // Generate public API file
+      if (qwikPlugin) {
+        const manifest = qwikPlugin.api.getManifest();
+        if (manifest) {
+          const publicApi = Object.fromEntries(
+            Object.entries(manifest.symbols).filter(
+              ([_, symbol]) =>
+                symbol.displayName?.endsWith('serverQrl_rpc') && symbol.ctxKind === 'function'
+            )
+          );
+
+          this.emitFile({
+            type: 'asset',
+            fileName: 'q-public-api.json',
+            source: JSON.stringify(publicApi, null, 2),
+          });
+        }
+      }
     },
 
     closeBundle: {

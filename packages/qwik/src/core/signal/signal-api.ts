@@ -1,12 +1,8 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { SignalImpl } from './impl/signal-impl';
-import {
-  ComputedSignalImpl,
-  SerializerSignalImpl,
-  throwIfQRLNotResolved,
-  type SerializerArg,
-} from './signal';
+import { ComputedSignalImpl } from './impl/computed-signal-impl';
+import { SerializerSignalImpl, throwIfQRLNotResolved, type SerializerArg } from './signal';
 import type { Signal } from './signal.public';
 
 /** @internal */

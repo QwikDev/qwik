@@ -2,9 +2,10 @@ import { isQrl } from '../server/prefetch-strategy';
 import { isJSXNode } from './shared/jsx/jsx-runtime';
 import { isTask } from './use/use-task';
 import { vnode_getProp, vnode_isVNode } from './client/vnode';
-import { ComputedSignalImpl, WrappedSignal, isSignal } from './signal/signal';
+import { WrappedSignal, isSignal } from './signal/signal';
 import { isStore } from './signal/store';
 import { DEBUG_TYPE } from './shared/types';
+import { ComputedSignalImpl } from './signal/impl/computed-signal-impl';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {

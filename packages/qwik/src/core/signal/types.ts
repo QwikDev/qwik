@@ -5,6 +5,7 @@ import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
 import type { TargetType } from './store';
 import type { SignalImpl } from './impl/signal-impl';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 
 export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
   readonly untrackedValue: T;
@@ -14,6 +15,8 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   value: T;
   untrackedValue: T;
 }
+
+export type ComputeQRL<T> = QRLInternal<() => T>;
 
 export const enum SignalFlags {
   INVALID = 1,

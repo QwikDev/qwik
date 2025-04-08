@@ -91,7 +91,7 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects, type ComputedSignalImpl, type WrappedSignal } from '../signal/signal';
+import { triggerEffects, type WrappedSignal } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
 import type { TargetType } from '../signal/store';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -120,6 +120,7 @@ import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../signal/subscription-data';
+import type { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;

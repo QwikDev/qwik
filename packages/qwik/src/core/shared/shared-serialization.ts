@@ -7,7 +7,6 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import { isSerializerObj } from '../signal/signal';
 import type { SerializerArg } from '../signal/types';
 import { getOrCreateStore, getStoreHandler, getStoreTarget, isStore } from '../signal/store';
@@ -40,7 +39,9 @@ import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
 import {
+  _EFFECT_BACK_REF,
   EffectSubscriptionProp,
+  NEEDS_COMPUTATION,
   SignalFlags,
   STORE_ALL_PROPS,
   type AllSignalFlags,

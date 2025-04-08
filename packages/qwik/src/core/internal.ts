@@ -37,5 +37,5 @@ export {
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
 export { _serialize, _deserialize } from './shared/shared-serialization';
 export { _jsxQ, _jsxC, _jsxS } from './shared/jsx/jsx-runtime';
-export { _EFFECT_BACK_REF } from './signal/flags';
+export { _EFFECT_BACK_REF } from './signal/types';
 export { SubscriptionData as _SubscriptionData } from './signal/subscription-data';

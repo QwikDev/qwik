@@ -5,12 +5,11 @@ import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../flags';
 import { throwIfQRLNotResolved } from '../signal';
 import type { BackRef } from '../signal-cleanup';
 import { getSubscriber } from '../subscriber';
 import type { ComputeQRL, EffectSubscription } from '../types';
-import { EffectProperty, SignalFlags } from '../types';
+import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
 
 const DEBUG = false;

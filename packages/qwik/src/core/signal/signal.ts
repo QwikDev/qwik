@@ -16,13 +16,13 @@ import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
-import type { TargetType } from './store';
 import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
   EffectProperty,
   EffectSubscriptionProp,
   type CustomSerializable,
   type EffectSubscription,
+  type StoreTarget,
 } from './types';
 
 const DEBUG = false;
@@ -83,7 +83,7 @@ export const addQrlToSerializationCtx = (
 
 export const triggerEffects = (
   container: Container | null,
-  signal: SignalImpl | TargetType,
+  signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null
 ) => {
   const isBrowser = isDomContainer(container);

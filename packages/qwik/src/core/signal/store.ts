@@ -9,30 +9,25 @@ import {
   ensureContainsSubscription,
   triggerEffects,
 } from './signal';
-import type { EffectSubscription } from './types';
+import {
+  STORE_ALL_PROPS,
+  STORE_HANDLER,
+  STORE_TARGET,
+  StoreFlags,
+  type EffectSubscription,
+  type StoreTarget,
+} from './types';
 
 const DEBUG = false;
 
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('STORE', ...args.map(qwikDebugToString));
 
-const STORE_TARGET = Symbol('store.target');
-const STORE_HANDLER = Symbol('store.handler');
-export const STORE_ALL_PROPS = Symbol('store.all');
-
-export type TargetType = Record<string | symbol, any>;
-
-export const enum StoreFlags {
-  NONE = 0,
-  RECURSIVE = 1,
-  IMMUTABLE = 2,
-}
-
-export const getStoreHandler = (value: TargetType): StoreHandler | null => {
+export const getStoreHandler = (value: StoreTarget): StoreHandler | null => {
   return value[STORE_HANDLER] as StoreHandler | null;
 };
 
-export const getStoreTarget = <T extends TargetType>(value: T): T | null => {
+export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
   return value?.[STORE_TARGET] || null;
 };
 
@@ -46,7 +41,7 @@ export const unwrapStore = <T>(value: T): T => {
   return getStoreTarget<any>(value) || value;
 };
 
-export const isStore = (value: TargetType): boolean => {
+export const isStore = (value: StoreTarget): boolean => {
   return STORE_TARGET in value;
 };
 
@@ -74,7 +69,7 @@ export const getOrCreateStore = <T extends object>(
   return obj;
 };
 
-export class StoreHandler implements ProxyHandler<TargetType> {
+export class StoreHandler implements ProxyHandler<StoreTarget> {
   $effects$: null | Map<string | symbol, Set<EffectSubscription>> = null;
 
   constructor(
@@ -86,7 +81,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     return '[Store]';
   }
 
-  get(target: TargetType, prop: string | symbol) {
+  get(target: StoreTarget, prop: string | symbol) {
     if (typeof prop === 'symbol') {
       if (prop === STORE_TARGET) {
         return target;
@@ -141,7 +136,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
   }
 
   /** In the case of oldValue and value are the same, the effects are not triggered. */
-  set(target: TargetType, prop: string | symbol, value: any): boolean {
+  set(target: StoreTarget, prop: string | symbol, value: any): boolean {
     if (typeof prop === 'symbol') {
       target[prop] = value;
       return true;
@@ -161,7 +156,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     return true;
   }
 
-  deleteProperty(target: TargetType, prop: string | symbol): boolean {
+  deleteProperty(target: StoreTarget, prop: string | symbol): boolean {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
@@ -169,7 +164,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     return true;
   }
 
-  has(target: TargetType, prop: string | symbol) {
+  has(target: StoreTarget, prop: string | symbol) {
     if (prop === STORE_TARGET) {
       return true;
     }
@@ -190,7 +185,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
     return Object.prototype.hasOwnProperty.call(target, prop);
   }
 
-  ownKeys(target: TargetType): ArrayLike<string | symbol> {
+  ownKeys(target: StoreTarget): ArrayLike<string | symbol> {
     const ctx = tryGetInvokeContext();
     const effectSubscriber = ctx?.$effectSubscriber$;
     if (effectSubscriber) {
@@ -200,7 +195,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
   }
 
   getOwnPropertyDescriptor(
-    target: TargetType,
+    target: StoreTarget,
     prop: string | symbol
   ): PropertyDescriptor | undefined {
     const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
@@ -218,7 +213,7 @@ export class StoreHandler implements ProxyHandler<TargetType> {
 }
 
 export function addStoreEffect(
-  target: TargetType,
+  target: StoreTarget,
   prop: string | symbol,
   store: StoreHandler,
   effectSubscription: EffectSubscription

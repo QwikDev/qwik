@@ -9,7 +9,7 @@ import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-t
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
-import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
+import { createStore, getStoreTarget, unwrapStore } from '../signal/store';
 import { useSequentialScope } from './use-sequential-scope';
 import { isSignal } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
@@ -19,7 +19,7 @@ import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
 import { ChoreType } from '../shared/util-chore-type';
 import { getSubscriber } from '../signal/subscriber';
-import { EffectProperty } from '../signal/types';
+import { EffectProperty, StoreFlags } from '../signal/types';
 
 const DEBUG: boolean = false;
 

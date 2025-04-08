@@ -3,10 +3,17 @@ import type { ISsrNode } from '../ssr/ssr-types';
 import type { Task } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
-import type { TargetType } from './store';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/utils/serialize-utils';
+
+/**
+ * # ================================
+ *
+ * Signal Types
+ *
+ * # ================================
+ */
 
 export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
   readonly untrackedValue: T;
@@ -80,7 +87,7 @@ export type Consumer = Task | VNode | ISsrNode | SignalImpl;
 export type EffectSubscription = [
   Consumer, // EffectSubscriptionProp.CONSUMER
   EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<SignalImpl | TargetType> | null, // EffectSubscriptionProp.BACK_REF
+  Set<SignalImpl | StoreTarget> | null, // EffectSubscriptionProp.BACK_REF
   SubscriptionData | null, // EffectSubscriptionProp.DATA
 ];
 
@@ -145,3 +152,23 @@ export type SerializerArg<T, S> =
 export type CustomSerializable<T extends { [SerializerSymbol]: (obj: any) => any }, S> = {
   [SerializerSymbol]: (obj: T) => S;
 };
+
+/**
+ * # ================================
+ *
+ * Store Types
+ *
+ * # ================================
+ */
+
+export const STORE_TARGET = Symbol('store.target');
+export const STORE_HANDLER = Symbol('store.handler');
+export const STORE_ALL_PROPS = Symbol('store.all');
+
+export type StoreTarget = Record<string | symbol, any>;
+
+export const enum StoreFlags {
+  NONE = 0,
+  RECURSIVE = 1,
+  IMMUTABLE = 2,
+}

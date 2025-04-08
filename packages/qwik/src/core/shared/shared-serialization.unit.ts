@@ -8,7 +8,7 @@ import {
   createSignal,
   isSignal,
 } from '../signal/signal.public';
-import { StoreFlags, createStore } from '../signal/store';
+import { createStore } from '../signal/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
@@ -25,6 +25,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../signal/subscription-data';
+import { StoreFlags } from '../signal/types';
 
 const DEBUG = false;
 

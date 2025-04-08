@@ -10,13 +10,7 @@ import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../c
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import { isSerializerObj } from '../signal/signal';
 import type { SerializerArg } from '../signal/types';
-import {
-  getOrCreateStore,
-  getStoreHandler,
-  getStoreTarget,
-  isStore,
-  STORE_ALL_PROPS,
-} from '../signal/store';
+import { getOrCreateStore, getStoreHandler, getStoreTarget, isStore } from '../signal/store';
 import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
@@ -48,6 +42,7 @@ import { type ValueOrPromise } from './utils/types';
 import {
   EffectSubscriptionProp,
   SignalFlags,
+  STORE_ALL_PROPS,
   type AllSignalFlags,
   type EffectProperty,
   type EffectSubscription,

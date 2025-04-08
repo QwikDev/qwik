@@ -18,14 +18,8 @@ import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { getSubscriber } from '../signal/subscriber';
-import {
-  STORE_ALL_PROPS,
-  addStoreEffect,
-  getStoreHandler,
-  getStoreTarget,
-  isStore,
-} from '../signal/store';
-import { EffectProperty } from '../signal/types';
+import { addStoreEffect, getStoreHandler, getStoreTarget, isStore } from '../signal/store';
+import { EffectProperty, STORE_ALL_PROPS } from '../signal/types';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,

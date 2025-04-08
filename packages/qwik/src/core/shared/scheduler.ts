@@ -93,7 +93,7 @@ import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnod
 import { vnode_diff } from '../client/vnode-diff';
 import { triggerEffects } from '../signal/signal';
 import { isSignal, type Signal } from '../signal/signal.public';
-import type { TargetType } from '../signal/store';
+import type { StoreTarget } from '../signal/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -140,7 +140,11 @@ export interface Chore {
 
 export type Scheduler = ReturnType<typeof createScheduler>;
 
-type ChoreTarget = HostElement | QRLInternal<(...args: unknown[]) => unknown> | Signal | TargetType;
+type ChoreTarget =
+  | HostElement
+  | QRLInternal<(...args: unknown[]) => unknown>
+  | Signal
+  | StoreTarget;
 
 const getPromise = (chore: Chore) =>
   (chore.$promise$ ||= new Promise((resolve) => {

@@ -273,7 +273,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
 
           this.emitFile({
             type: 'asset',
-            fileName: 'q-public-api.json',
+            fileName: QWIK_CITY_PUBLIC_API,
             source: JSON.stringify(publicApi, null, 2),
           });
         }
@@ -337,3 +337,4 @@ export const QWIK_CITY_PLAN_ID = '@qwik-city-plan';
 const QWIK_CITY_ENTRIES_ID = '@qwik-city-entries';
 const QWIK_CITY = '@builder.io/qwik-city';
 const QWIK_CITY_SW_REGISTER = '@qwik-city-sw-register';
+const QWIK_CITY_PUBLIC_API = 'q-public-api.json';

@@ -8,12 +8,7 @@ import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
-import {
-  SerializerSignalImpl,
-  WrappedSignal,
-  isSerializerObj,
-  type SerializerArg,
-} from '../signal/signal';
+import { SerializerSignalImpl, isSerializerObj, type SerializerArg } from '../signal/signal';
 import {
   getOrCreateStore,
   getStoreHandler,
@@ -59,6 +54,7 @@ import {
 import { SubscriptionData, type NodePropData } from '../signal/subscription-data';
 import { SignalImpl } from '../signal/impl/signal-impl';
 import { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
+import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -271,7 +267,7 @@ const inflate = (
       break;
     }
     case TypeIds.WrappedSignal: {
-      const signal = target as WrappedSignal<unknown>;
+      const signal = target as WrappedSignalImpl<unknown>;
       const d = data as [
         number,
         unknown[],
@@ -491,7 +487,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Signal:
       return new SignalImpl(container as any, 0);
     case TypeIds.WrappedSignal:
-      return new WrappedSignal(container as any, null!, null!, null!);
+      return new WrappedSignalImpl(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
@@ -876,7 +872,7 @@ export const createSerializationContext = (
           discoveredValues.push(obj.$effects$);
         }
         // WrappedSignal uses syncQrl which has no captured refs
-        if (obj instanceof WrappedSignal) {
+        if (obj instanceof WrappedSignalImpl) {
           discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
@@ -1235,7 +1231,7 @@ function serialize(serializationContext: SerializationContext): void {
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
 
-      if (value instanceof WrappedSignal) {
+      if (value instanceof WrappedSignalImpl) {
         output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(serializationContext, value),
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
@@ -1380,7 +1376,7 @@ function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | n
 
 function serializeWrappingFn(
   serializationContext: SerializationContext,
-  value: WrappedSignal<any>
+  value: WrappedSignalImpl<any>
 ) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {

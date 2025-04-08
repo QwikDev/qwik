@@ -1,18 +1,18 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { WrappedSignal } from './signal';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget } from './store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 import { SignalFlags, WrappedSignalFlags } from './types';
+import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;
 const getProp = (p0: any, p1: string) => p0[p1];
 
 const getWrapped = (args: any[]) =>
-  new WrappedSignal(null, args.length === 1 ? getValueProp : getProp, args, null);
+  new WrappedSignalImpl(null, args.length === 1 ? getValueProp : getProp, args, null);
 
 /**
  * This wraps a property access of a possible Signal/Store into a WrappedSignal. The optimizer does
@@ -34,7 +34,7 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
   }
   if (isSignal(obj)) {
     assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
-    if (obj instanceof WrappedSignal && obj.flags & WrappedSignalFlags.UNWRAP) {
+    if (obj instanceof WrappedSignalImpl && obj.flags & WrappedSignalFlags.UNWRAP) {
       return obj;
     }
     return getWrapped(args);
@@ -70,7 +70,7 @@ export const _wrapStore = <T extends Record<any, any>, P extends keyof T>(
   if (isSignal(value)) {
     return value;
   } else {
-    return new WrappedSignal(null, getProp, [obj, prop], null, SignalFlags.INVALID);
+    return new WrappedSignalImpl(null, getProp, [obj, prop], null, SignalFlags.INVALID);
   }
 };
 

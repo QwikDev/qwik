@@ -91,7 +91,7 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, isSignal } from '../signal/signal';
+import { isSignal } from '../signal/signal';
 import type { Signal } from '../signal/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isSlotProp } from '../shared/utils/prop';
@@ -102,6 +102,7 @@ import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { EffectProperty } from '../signal/types';
 import { SubscriptionData } from '../signal/subscription-data';
+import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -514,7 +515,7 @@ export const vnode_diff = (
     const constProps = jsxNode.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (vHost && constValue instanceof WrappedSignal) {
+      if (vHost && constValue instanceof WrappedSignalImpl) {
         return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
       }
     }

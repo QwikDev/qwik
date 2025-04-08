@@ -8,7 +8,7 @@ import { logOnceWarn, logWarn } from '../utils/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../utils/markers';
 import { qDev, seal } from '../utils/qdev';
 import { isArray, isObject, isString } from '../utils/types';
-import { WrappedSignal } from '../../signal/signal';
+import { WrappedSignalImpl } from '../../signal/impl/wrapped-signal-impl';
 import { WrappedSignalFlags } from '../../signal/types';
 import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
@@ -346,7 +346,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
         ? this.$constProps$[prop as string]
         : this.$varProps$[prop as string];
     // a proxied value that the optimizer made
-    return value instanceof WrappedSignal && value.$flags$ & WrappedSignalFlags.UNWRAP
+    return value instanceof WrappedSignalImpl && value.$flags$ & WrappedSignalFlags.UNWRAP
       ? value.value
       : value;
   }

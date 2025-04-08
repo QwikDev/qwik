@@ -1,7 +1,8 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ComputedSignalImpl, throwIfQRLNotResolved } from '../signal/signal';
+import { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
+import { throwIfQRLNotResolved } from '../signal/signal';
 import type { ReadonlySignal, Signal } from '../signal/signal.public';
 import { useSequentialScope } from './use-sequential-scope';
 

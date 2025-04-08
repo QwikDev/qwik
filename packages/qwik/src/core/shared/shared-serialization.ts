@@ -9,7 +9,6 @@ import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import {
-  ComputedSignalImpl,
   SerializerSignalImpl,
   WrappedSignal,
   isSerializerObj,
@@ -59,6 +58,7 @@ import {
 } from '../signal/types';
 import { SubscriptionData, type NodePropData } from '../signal/subscription-data';
 import { SignalImpl } from '../signal/impl/signal-impl';
+import { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 

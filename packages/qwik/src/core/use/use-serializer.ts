@@ -1,10 +1,7 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  SerializerSignalImpl,
-  type ComputedSignalImpl,
-  type SerializerArg,
-} from '../signal/signal';
+import type { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
+import { SerializerSignalImpl, type SerializerArg } from '../signal/signal';
 import type { createSerializer$ } from '../signal/signal.public';
 import { useComputedCommon } from './use-computed';
 

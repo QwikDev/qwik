@@ -6,7 +6,7 @@ import {
   createSerializerSignal as createSerializerQrl,
 } from './signal-api';
 
-export { isSignal } from './signal';
+export { isSignal } from './utils';
 
 /** @public */
 export interface ReadonlySignal<T = unknown> {

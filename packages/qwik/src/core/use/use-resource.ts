@@ -9,11 +9,11 @@ import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-t
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
-import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/store';
+import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/impl/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { isSignal } from '../reactive-primitives/signal';
+import { isSignal } from '../reactive-primitives/utils';
 import type { Signal } from '../reactive-primitives/signal.public';
-import { clearAllEffects } from '../reactive-primitives/signal-cleanup';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';

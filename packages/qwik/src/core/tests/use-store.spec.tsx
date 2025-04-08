@@ -14,7 +14,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../testing/element-fixture';
-import { getStoreHandler } from '../reactive-primitives/store';
+import { getStoreHandler } from '../reactive-primitives/impl/store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

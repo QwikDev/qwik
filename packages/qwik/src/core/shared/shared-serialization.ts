@@ -7,14 +7,14 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import { isSerializerObj } from '../reactive-primitives/signal';
+import { isSerializerObj } from '../reactive-primitives/utils';
 import type { SerializerArg } from '../reactive-primitives/types';
 import {
   getOrCreateStore,
   getStoreHandler,
   getStoreTarget,
   isStore,
-} from '../reactive-primitives/store';
+} from '../reactive-primitives/impl/store';
 import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';

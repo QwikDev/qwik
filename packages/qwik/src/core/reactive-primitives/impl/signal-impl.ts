@@ -10,7 +10,7 @@ import {
   ensureContainsBackRef,
   ensureContainsSubscription,
   triggerEffects,
-} from '../signal';
+} from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 

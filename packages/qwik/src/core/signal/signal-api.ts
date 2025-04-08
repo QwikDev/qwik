@@ -1,9 +1,9 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
+import { SignalImpl } from './impl/signal-impl';
 import {
   ComputedSignalImpl,
   SerializerSignalImpl,
-  SignalImpl,
   throwIfQRLNotResolved,
   type SerializerArg,
 } from './signal';

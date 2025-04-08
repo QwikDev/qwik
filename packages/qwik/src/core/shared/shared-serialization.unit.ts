@@ -1,7 +1,7 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { type SignalImpl } from '../signal/signal';
+import { type SignalImpl } from '../signal/impl/signal-impl';
 import {
   createComputed$,
   createSerializer$,

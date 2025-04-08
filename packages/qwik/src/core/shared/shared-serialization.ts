@@ -11,7 +11,6 @@ import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
 import {
   ComputedSignalImpl,
   SerializerSignalImpl,
-  SignalImpl,
   WrappedSignal,
   isSerializerObj,
   type SerializerArg,
@@ -59,6 +58,7 @@ import {
   type EffectSubscription,
 } from '../signal/types';
 import { SubscriptionData, type NodePropData } from '../signal/subscription-data';
+import { SignalImpl } from '../signal/impl/signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 

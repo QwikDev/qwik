@@ -1,4 +1,4 @@
-import { WrappedSignal, SignalImpl } from './signal';
+import { WrappedSignal } from './signal';
 import { StoreHandler, getStoreHandler } from './store';
 import type { Container } from '../shared/types';
 import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
@@ -9,6 +9,7 @@ import {
   type EffectProperty,
   type EffectSubscription,
 } from './types';
+import { SignalImpl } from './impl/signal-impl';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {

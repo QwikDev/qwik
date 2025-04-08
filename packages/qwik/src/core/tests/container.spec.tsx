@@ -15,11 +15,11 @@ import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { TypeIds } from '../shared/shared-serialization';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { createComputed$, createSignal } from '../signal/signal.public';
+import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
-import { SignalFlags } from '../signal/types';
+import { SignalFlags } from '../reactive-primitives/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {

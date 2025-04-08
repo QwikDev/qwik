@@ -91,18 +91,18 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { isSignal } from '../reactive-primitives/signal';
+import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects } from '../signal/signal-cleanup';
+import { clearAllEffects } from '../reactive-primitives/signal-cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-import { EffectProperty } from '../signal/types';
-import { SubscriptionData } from '../signal/subscription-data';
-import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
+import { EffectProperty } from '../reactive-primitives/types';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 export const vnode_diff = (
   container: ClientContainer,

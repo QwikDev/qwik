@@ -1,4 +1,4 @@
-import { WrappedSignalImpl } from '../../signal/impl/wrapped-signal-impl';
+import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 
 /** @internal */
 export const _fnSignal = <T extends (...args: any) => any>(

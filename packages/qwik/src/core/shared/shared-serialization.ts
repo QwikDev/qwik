@@ -7,9 +7,14 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import { isSerializerObj } from '../signal/signal';
-import type { SerializerArg } from '../signal/types';
-import { getOrCreateStore, getStoreHandler, getStoreTarget, isStore } from '../signal/store';
+import { isSerializerObj } from '../reactive-primitives/signal';
+import type { SerializerArg } from '../reactive-primitives/types';
+import {
+  getOrCreateStore,
+  getStoreHandler,
+  getStoreTarget,
+  isStore,
+} from '../reactive-primitives/store';
 import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
@@ -47,12 +52,12 @@ import {
   type AllSignalFlags,
   type EffectProperty,
   type EffectSubscription,
-} from '../signal/types';
-import { SubscriptionData, type NodePropData } from '../signal/subscription-data';
-import { SignalImpl } from '../signal/impl/signal-impl';
-import { ComputedSignalImpl } from '../signal/impl/computed-signal-impl';
-import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
-import { SerializerSignalImpl } from '../signal/impl/serializer-signal-impl';
+} from '../reactive-primitives/types';
+import { SubscriptionData, type NodePropData } from '../reactive-primitives/subscription-data';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 

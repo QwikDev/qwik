@@ -11,12 +11,12 @@ import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
 import { type ContainerElement } from '../client/types';
-import { WrappedSignalImpl } from '../signal/impl/wrapped-signal-impl';
-import { type EffectSubscription, type EffectSubscriptionProp } from '../signal/types';
-import type { Signal } from '../signal/signal.public';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
-import { getSubscriber } from '../signal/subscriber';
-import type { SubscriptionData } from '../signal/subscription-data';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 
 declare const document: QwikDocument;
 

@@ -1,8 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode';
 import { Slot } from '../shared/jsx/slot.public';
-import { isSignal } from '../reactive-primitives/signal';
-import { clearAllEffects } from '../reactive-primitives/signal-cleanup';
+import { isSignal } from '../reactive-primitives/utils';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';

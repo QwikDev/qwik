@@ -2,7 +2,7 @@ import { qwikDebugToString } from '../../debug';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import type { Container } from '../../shared/types';
 import { trackSignal } from '../../use/use-core';
-import { throwIfQRLNotResolved } from '../signal';
+import { throwIfQRLNotResolved } from '../utils';
 import type { SerializerArg } from '../types';
 import { EffectProperty, NEEDS_COMPUTATION, SignalFlags, type ComputeQRL } from '../types';
 import { ComputedSignalImpl } from './computed-signal-impl';

@@ -3,8 +3,8 @@ import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { trackSignal } from '../../use/use-core';
-import { triggerEffects } from '../signal';
-import type { BackRef } from '../signal-cleanup';
+import { triggerEffects } from '../utils';
+import type { BackRef } from '../cleanup';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import {
   _EFFECT_BACK_REF,

@@ -1,22 +1,22 @@
 import { $, isBrowser, type ValueOrPromise } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
-import { getDomContainer } from '../client/dom-container';
-import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { inlinedQrl } from '../shared/qrl/qrl';
-import { type QRLInternal } from '../shared/qrl/qrl-class';
-import { type QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/util-chore-type';
-import type { Container, HostElement } from '../shared/types';
-import { isPromise } from '../shared/utils/promises';
-import { invoke, newInvokeContext } from '../use/use-core';
-import { Task } from '../use/use-task';
+import { getDomContainer } from '../../client/dom-container';
+import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
+import { inlinedQrl } from '../../shared/qrl/qrl';
+import { type QRLInternal } from '../../shared/qrl/qrl-class';
+import { type QRL } from '../../shared/qrl/qrl.public';
+import { ChoreType } from '../../shared/util-chore-type';
+import type { Container, HostElement } from '../../shared/types';
+import { isPromise } from '../../shared/utils/promises';
+import { invoke, newInvokeContext } from '../../use/use-core';
+import { Task } from '../../use/use-task';
 import {
   EffectProperty,
   SignalFlags,
   type InternalReadonlySignal,
   type InternalSignal,
-} from './types';
+} from '../types';
 import {
   createComputed$,
   createComputedQrl,
@@ -25,8 +25,8 @@ import {
   type ComputedSignal,
   type SerializerSignal,
   type Signal,
-} from './signal.public';
-import { getSubscriber } from './subscriber';
+} from '../signal.public';
+import { getSubscriber } from '../subscriber';
 
 class Foo {
   constructor(public val: number = 0) {}

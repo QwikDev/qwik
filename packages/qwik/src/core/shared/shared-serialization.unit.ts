@@ -8,7 +8,7 @@ import {
   createSignal,
   isSignal,
 } from '../reactive-primitives/signal.public';
-import { createStore } from '../reactive-primitives/store';
+import { createStore } from '../reactive-primitives/impl/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';

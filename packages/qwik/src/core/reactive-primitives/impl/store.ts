@@ -1,14 +1,14 @@
-import { pad, qwikDebugToString } from '../debug';
-import { assertTrue } from '../shared/error/assert';
-import { tryGetInvokeContext } from '../use/use-core';
-import { isSerializableObject } from '../shared/utils/types';
-import type { Container } from '../shared/types';
+import { pad, qwikDebugToString } from '../../debug';
+import { assertTrue } from '../../shared/error/assert';
+import { tryGetInvokeContext } from '../../use/use-core';
+import { isSerializableObject } from '../../shared/utils/types';
+import type { Container } from '../../shared/types';
 import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
   triggerEffects,
-} from './signal';
+} from '../utils';
 import {
   STORE_ALL_PROPS,
   STORE_HANDLER,
@@ -16,7 +16,7 @@ import {
   StoreFlags,
   type EffectSubscription,
   type StoreTarget,
-} from './types';
+} from '../types';
 
 const DEBUG = false;
 

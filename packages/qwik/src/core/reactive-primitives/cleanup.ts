@@ -2,7 +2,7 @@ import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../clie
 import type { Container } from '../shared/types';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
-import { StoreHandler, getStoreHandler } from './store';
+import { StoreHandler, getStoreHandler } from './impl/store';
 import {
   EffectSubscriptionProp,
   _EFFECT_BACK_REF,

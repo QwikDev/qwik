@@ -10,8 +10,8 @@ import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { isSignal } from '../reactive-primitives/signal';
-import { BackRef, clearAllEffects } from '../reactive-primitives/signal-cleanup';
+import { isSignal } from '../reactive-primitives/utils';
+import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
@@ -23,7 +23,7 @@ import {
   getStoreHandler,
   getStoreTarget,
   isStore,
-} from '../reactive-primitives/store';
+} from '../reactive-primitives/impl/store';
 import { EffectProperty, STORE_ALL_PROPS } from '../reactive-primitives/types';
 
 export const enum TaskFlags {

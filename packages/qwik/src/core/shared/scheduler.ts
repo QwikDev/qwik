@@ -91,7 +91,7 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects } from '../reactive-primitives/signal';
+import { triggerEffects } from '../reactive-primitives/utils';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { StoreTarget } from '../reactive-primitives/types';
 import type { ISsrNode } from '../ssr/ssr-types';

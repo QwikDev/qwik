@@ -3,7 +3,7 @@ export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _SharedContainer } from './shared/shared-container';
 export { queueQRL as _run } from './client/queue-qrl';
 export { scheduleTask as _task } from './use/use-task';
-export { _wrapSignal, _wrapProp, _wrapStore } from './signal/signal-utils';
+export { _wrapSignal, _wrapProp, _wrapStore } from './signal/internal-api';
 export { _restProps } from './shared/utils/prop';
 export { _IMMUTABLE } from './shared/utils/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './shared/utils/constants';

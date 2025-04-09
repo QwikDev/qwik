@@ -275,7 +275,6 @@ const inflate = (
         number,
         unknown[],
         Map<EffectProperty | string, EffectSubscription> | null,
-        unknown,
         AllSignalFlags,
         HostElement,
         ...EffectSubscription[],
@@ -283,10 +282,11 @@ const inflate = (
       signal.$func$ = container.getSyncFn(d[0]);
       signal.$args$ = d[1];
       signal[_EFFECT_BACK_REF] = d[2];
-      signal.$untrackedValue$ = d[3];
-      signal.$flags$ = d[4];
-      signal.$hostElement$ = d[5];
-      signal.$effects$ = new Set(d.slice(6) as EffectSubscription[]);
+      signal.$untrackedValue$ = NEEDS_COMPUTATION;
+      signal.$flags$ = d[3];
+      signal.$flags$ |= SignalFlags.INVALID;
+      signal.$hostElement$ = d[4];
+      signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
@@ -843,9 +843,10 @@ export const createSerializationContext = (
          * SerializerSignal is always serialized if it was already calculated.
          */
         const toSerialize =
-          obj instanceof ComputedSignalImpl &&
-          !(obj instanceof SerializerSignalImpl) &&
-          (obj.$flags$ & SignalFlags.INVALID || fastSkipSerialize(obj))
+          (obj instanceof ComputedSignalImpl &&
+            !(obj instanceof SerializerSignalImpl) &&
+            (obj.$flags$ & SignalFlags.INVALID || fastSkipSerialize(obj))) ||
+          obj instanceof WrappedSignalImpl
             ? NEEDS_COMPUTATION
             : obj.$untrackedValue$;
         if (toSerialize !== NEEDS_COMPUTATION) {
@@ -1238,7 +1239,6 @@ function serialize(serializationContext: SerializationContext): void {
         output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(serializationContext, value),
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
-          v,
           value.$flags$,
           value.$hostElement$,
           ...(value.$effects$ || []),

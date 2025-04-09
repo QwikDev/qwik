@@ -377,7 +377,6 @@ describe('shared-serialization', () => {
             Number 3
           ]
           Constant null
-          Constant NEEDS_COMPUTATION
           Number 3
           Constant null
         ]
@@ -392,11 +391,10 @@ describe('shared-serialization', () => {
           ]
           Constant null
           Number 3
-          Number 3
           Constant null
         ]
         2 String "foo"
-        (88 chars)"
+        (80 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

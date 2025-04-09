@@ -138,8 +138,8 @@ export function convertManifestToBundleGraph(
       // Calculate the probability of the dependency
       // Start with a 50% chance
       let probability = 0.5;
-      // Add a 4% chance for each interactivity point (max 20%)
-      probability += (dep.interactivity || 0) * 0.04;
+      // Add a 8% chance for each interactivity point (max 40%)
+      probability += (dep.interactivity || 0) * 0.08;
 
       // If the dependency has a segment from the same parent, it's more likely to be loaded
       if (bundle.origins && dep.origins) {
@@ -156,8 +156,12 @@ export function convertManifestToBundleGraph(
       if (dep.total > slowSize) {
         probability += probability > 0.5 ? 0.02 : -0.02;
       }
+      // OTOH, if the dependency is small, load it sooner since it won't block much
+      if (dep.total < 1000) {
+        probability += 0.15;
+      }
 
-      depProbability.set(depName, probability);
+      depProbability.set(depName, Math.min(probability, 0.99));
     }
 
     if (dynDeps.size > 0) {

@@ -133,7 +133,11 @@ export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
-export { type ReadonlySignal, type Signal, type ComputedSignal } from './signal/signal.public';
+export {
+  type ReadonlySignal,
+  type Signal,
+  type ComputedSignal,
+} from './reactive-primitives/signal.public';
 export {
   isSignal,
   createSignal,
@@ -141,8 +145,7 @@ export {
   createComputed$,
   createSerializerQrl,
   createSerializer$,
-} from './signal/signal.public';
-export { SubscriptionData as _EffectData } from './signal/signal';
+} from './reactive-primitives/signal.public';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

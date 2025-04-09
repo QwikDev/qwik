@@ -1,15 +1,15 @@
 import { getDomContainer, implicit$FirstArg, type QRL } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { Container, HostElement } from '../shared/types';
-import { StoreFlags, getOrCreateStore, isStore } from './store';
-import { EffectProperty } from './signal';
-import { invoke } from '../use/use-core';
-import { newInvokeContext } from '../use/use-core';
-import { ChoreType } from '../shared/util-chore-type';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { Task } from '../use/use-task';
-import { getSubscriber } from './subscriber';
+import type { Container, HostElement } from '../../shared/types';
+import { getOrCreateStore, isStore } from './store';
+import { EffectProperty, StoreFlags } from '../types';
+import { invoke } from '../../use/use-core';
+import { newInvokeContext } from '../../use/use-core';
+import { ChoreType } from '../../shared/util-chore-type';
+import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import { Task } from '../../use/use-task';
+import { getSubscriber } from '../subscriber';
 
 describe('v2/store', () => {
   const log: any[] = [];

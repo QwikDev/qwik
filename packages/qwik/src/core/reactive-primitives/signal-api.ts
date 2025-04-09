@@ -1,13 +1,11 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  ComputedSignalImpl,
-  SerializerSignalImpl,
-  SignalImpl,
-  throwIfQRLNotResolved,
-  type SerializerArg,
-} from './signal';
+import { SignalImpl } from './impl/signal-impl';
+import { ComputedSignalImpl } from './impl/computed-signal-impl';
+import { throwIfQRLNotResolved } from './utils';
 import type { Signal } from './signal.public';
+import type { SerializerArg } from './types';
+import { SerializerSignalImpl } from './impl/serializer-signal-impl';
 
 /** @internal */
 export const createSignal = <T>(value?: T): Signal<T> => {

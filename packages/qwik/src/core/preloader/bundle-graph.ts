@@ -73,7 +73,7 @@ export const getBundle = (name: string) => {
 /** Used in browser */
 export const loadBundleGraph = (
   basePath: string,
-  manifestHash: string,
+  serializedResponse?: ReturnType<typeof fetch>,
   opts?: {
     /** Enable logging */
     debug?: boolean;
@@ -99,10 +99,11 @@ export const loadBundleGraph = (
   }
   base = basePath;
 
-  if (manifestHash) {
-    import(/* @vite-ignore */ `${basePath}q-bundle-graph-${manifestHash}.js`)
-      .then((m) => {
-        graph = parseBundleGraph(m.B);
+  if (serializedResponse) {
+    serializedResponse
+      .then((r) => r.text())
+      .then((text) => {
+        graph = parseBundleGraph(JSON.parse(text));
         const toAdjust: [BundleImport, number][] = [];
         for (const [name, deps] of graph.entries()) {
           const bundle = getBundle(name)!;

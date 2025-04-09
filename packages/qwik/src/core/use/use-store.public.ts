@@ -1,9 +1,10 @@
 import { isFunction } from '../shared/utils/types';
-import { StoreFlags, getOrCreateStore } from '../signal/store';
+import { getOrCreateStore } from '../reactive-primitives/impl/store';
+import { StoreFlags } from '../reactive-primitives/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
-export { unwrapStore } from '../signal/store';
+export { unwrapStore } from '../reactive-primitives/impl/store';
 
 /** @public */
 export interface UseStoreOptions {

@@ -11,7 +11,7 @@ import { trigger, domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { component$, Slot, type Signal as SignalType, untrack, useSignal } from '@qwik.dev/core';
 import { _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
 import { vnode_getFirstChild, vnode_locate } from '../client/vnode';
-import { EffectSubscriptionProp } from '../signal/signal';
+import { EffectSubscriptionProp } from '../reactive-primitives/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;

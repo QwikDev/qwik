@@ -1,11 +1,9 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  SerializerSignalImpl,
-  type ComputedSignalImpl,
-  type SerializerArg,
-} from '../signal/signal';
-import type { createSerializer$ } from '../signal/signal.public';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
+import type { SerializerArg } from '../reactive-primitives/types';
+import type { createSerializer$ } from '../reactive-primitives/signal.public';
 import { useComputedCommon } from './use-computed';
 
 /** @internal */

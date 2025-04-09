@@ -33,11 +33,13 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, WrappedSignal, isSignal } from '../signal/signal';
+import { isSignal } from '../reactive-primitives/utils';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
 import { isQrl } from '../shared/qrl/qrl-utils';
+import { EffectProperty } from '../reactive-primitives/types';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 class ParentComponentData {
   constructor(
@@ -501,7 +503,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
-    if (constValue instanceof WrappedSignal) {
+    if (constValue instanceof WrappedSignalImpl) {
       return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, ssr);
     }
   }

@@ -7,28 +7,14 @@ import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
-import { _EFFECT_BACK_REF, NEEDS_COMPUTATION } from '../signal/flags';
-import {
-  ComputedSignalImpl,
-  type EffectProperty,
-  type EffectSubscription,
-  EffectSubscriptionProp,
-  SerializerSignalImpl,
-  SignalImpl,
-  SubscriptionData,
-  WrappedSignal,
-  isSerializerObj,
-  SignalFlags,
-  type AllSignalFlags,
-  type SerializerArg,
-} from '../signal/signal';
+import { isSerializerObj } from '../reactive-primitives/utils';
+import type { SerializerArg } from '../reactive-primitives/types';
 import {
   getOrCreateStore,
   getStoreHandler,
   getStoreTarget,
   isStore,
-  STORE_ALL_PROPS,
-} from '../signal/store';
+} from '../reactive-primitives/impl/store';
 import type { ISsrNode, SsrAttrs, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { untrack } from '../use/use-core';
 import { createResourceReturn, type ResourceReturnInternal } from '../use/use-resource';
@@ -48,7 +34,6 @@ import { getPlatform } from './platform/platform';
 import { createQRL, type QRLInternal, type SyncQRLInternal } from './qrl/qrl-class';
 import { isQrl, isSyncQrl } from './qrl/qrl-utils';
 import type { QRL } from './qrl/qrl.public';
-import { type NodePropData } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
@@ -58,6 +43,21 @@ import { ELEMENT_ID } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import { type ValueOrPromise } from './utils/types';
+import {
+  _EFFECT_BACK_REF,
+  EffectSubscriptionProp,
+  NEEDS_COMPUTATION,
+  SignalFlags,
+  STORE_ALL_PROPS,
+  type AllSignalFlags,
+  type EffectProperty,
+  type EffectSubscription,
+} from '../reactive-primitives/types';
+import { SubscriptionData, type NodePropData } from '../reactive-primitives/subscription-data';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -270,7 +270,7 @@ const inflate = (
       break;
     }
     case TypeIds.WrappedSignal: {
-      const signal = target as WrappedSignal<unknown>;
+      const signal = target as WrappedSignalImpl<unknown>;
       const d = data as [
         number,
         unknown[],
@@ -490,7 +490,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Signal:
       return new SignalImpl(container as any, 0);
     case TypeIds.WrappedSignal:
-      return new WrappedSignal(container as any, null!, null!, null!);
+      return new WrappedSignalImpl(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
@@ -875,7 +875,7 @@ export const createSerializationContext = (
           discoveredValues.push(obj.$effects$);
         }
         // WrappedSignal uses syncQrl which has no captured refs
-        if (obj instanceof WrappedSignal) {
+        if (obj instanceof WrappedSignalImpl) {
           discoverEffectBackRefs(obj[_EFFECT_BACK_REF], discoveredValues);
           if (obj.$args$) {
             discoveredValues.push(...obj.$args$);
@@ -1234,7 +1234,7 @@ function serialize(serializationContext: SerializationContext): void {
           ? NEEDS_COMPUTATION
           : value.$untrackedValue$;
 
-      if (value instanceof WrappedSignal) {
+      if (value instanceof WrappedSignalImpl) {
         output(TypeIds.WrappedSignal, [
           ...serializeWrappingFn(serializationContext, value),
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
@@ -1379,7 +1379,7 @@ function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | n
 
 function serializeWrappingFn(
   serializationContext: SerializationContext,
-  value: WrappedSignal<any>
+  value: WrappedSignalImpl<any>
 ) {
   // if value is an object then we need to wrap this in ()
   if (value.$funcStr$ && value.$funcStr$[0] === '{') {

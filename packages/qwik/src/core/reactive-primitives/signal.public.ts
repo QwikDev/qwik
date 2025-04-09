@@ -1,12 +1,12 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { SerializerArg } from './signal';
+import type { SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
   createSerializerSignal as createSerializerQrl,
 } from './signal-api';
 
-export { isSignal } from './signal';
+export { isSignal } from './utils';
 
 /** @public */
 export interface ReadonlySignal<T = unknown> {

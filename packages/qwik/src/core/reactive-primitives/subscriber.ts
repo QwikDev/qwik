@@ -1,14 +1,9 @@
-import { QBackRefs } from '../shared/utils/markers';
-import {
-  type Consumer,
-  EffectProperty,
-  type EffectSubscription,
-  EffectSubscriptionProp,
-} from './signal';
-import type { ISsrNode } from '../ssr/ssr-types';
-import { _EFFECT_BACK_REF } from '../signal/flags';
 import { isServer } from '@qwik.dev/core/build';
-import { BackRef } from './signal-cleanup';
+import { QBackRefs } from '../shared/utils/markers';
+import type { ISsrNode } from '../ssr/ssr-types';
+import { BackRef } from './cleanup';
+import type { Consumer, EffectProperty, EffectSubscription } from './types';
+import { _EFFECT_BACK_REF, EffectSubscriptionProp } from './types';
 
 export function getSubscriber(
   effect: Consumer,

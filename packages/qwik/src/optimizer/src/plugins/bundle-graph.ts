@@ -64,11 +64,6 @@ export function convertManifestToBundleGraph(
     }
   }
 
-  // Remove the preloader, it will already be loaded and has no dependencies
-  if (manifest.preloader) {
-    delete graph[manifest.preloader];
-  }
-
   // Filter out external and non-segment dynamic imports
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];

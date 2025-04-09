@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.14.0
+
+### Minor Changes
+
+- 🛠 the service workers have been deprecated and replaced with entries that unregister them. If you have it enabled in production, you can remove it after a while once you are sure all your users have the new version. (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
+
 ## 1.13.0
 
 ### Minor Changes

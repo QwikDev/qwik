@@ -954,9 +954,9 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       fileName: optimizer.sys.path.join(
         useAssetsDir ? assetsDir : '',
         'build',
-        `q-bundle-graph-${manifest.manifestHash}.js`
+        `q-bundle-graph-${manifest.manifestHash}.json`
       ),
-      source: `export const B=${JSON.stringify(bundleGraph)}`,
+      source: JSON.stringify(bundleGraph),
     });
 
     manifest.bundleGraph = bundleGraph;

@@ -105,6 +105,7 @@ export async function renderToStream(
   if (containerTagName === 'html') {
     stream.write(DOCTYPE);
   } else {
+    // The container is not `<html>` so we don't include the qwikloader by default
     stream.write('<!--cq-->');
     if (opts.qwikLoader) {
       if (opts.qwikLoader.include === undefined) {
@@ -138,7 +139,9 @@ export async function renderToStream(
 
   const includeMode = opts.qwikLoader?.include ?? 'auto';
   const positionMode = opts.qwikLoader?.position ?? 'bottom';
+  let didAddQwikLoader = false;
   if (positionMode === 'top' && includeMode !== 'never') {
+    didAddQwikLoader = true;
     const qwikLoaderScript = getQwikLoaderScript({
       debug: opts.debug,
     });
@@ -148,10 +151,10 @@ export async function renderToStream(
         dangerouslySetInnerHTML: qwikLoaderScript,
       })
     );
-    // Assume there will be at least click handlers
+    // Assume there will be at least click and input handlers
     beforeContent.push(
       jsx('script', {
-        dangerouslySetInnerHTML: `window.qwikevents.push('click')`,
+        dangerouslySetInnerHTML: `window.qwikevents.push('click','input')`,
       })
     );
   }
@@ -211,7 +214,7 @@ export async function renderToStream(
         );
       }
 
-      const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
+      const needLoader = !didAddQwikLoader && (!snapshotResult || snapshotResult.mode !== 'static');
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({

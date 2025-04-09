@@ -5,7 +5,7 @@ import {
   maxSignificantInverseProbabilityStr,
   maxSimultaneousPreloadsStr,
 } from './constants';
-import { adjustProbabilities, bundles, log, trigger } from './queue';
+import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
@@ -22,7 +22,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $name$: name,
     $url$: url,
     $state$: url ? BundleImportState_None : BundleImportState_Alias,
-    $deps$: deps,
+    $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
     $createdTs$: Date.now(),
     $waitedMs$: 0,
@@ -73,7 +73,7 @@ export const getBundle = (name: string) => {
 /** Used in browser */
 export const loadBundleGraph = (
   basePath: string,
-  manifestHash: string,
+  serializedResponse?: ReturnType<typeof fetch>,
   opts?: {
     /** Enable logging */
     debug?: boolean;
@@ -99,10 +99,11 @@ export const loadBundleGraph = (
   }
   base = basePath;
 
-  if (manifestHash) {
-    import(/* @vite-ignore */ `${basePath}q-bundle-graph-${manifestHash}.js`)
-      .then((m) => {
-        graph = parseBundleGraph(m.B);
+  if (serializedResponse) {
+    serializedResponse
+      .then((r) => r.text())
+      .then((text) => {
+        graph = parseBundleGraph(JSON.parse(text));
         const toAdjust: [BundleImport, number][] = [];
         for (const [name, deps] of graph.entries()) {
           const bundle = getBundle(name)!;

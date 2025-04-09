@@ -5,7 +5,7 @@ import {
   maxSignificantInverseProbabilityStr,
   maxSimultaneousPreloadsStr,
 } from './constants';
-import { adjustProbabilities, bundles, log, trigger } from './queue';
+import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
 
@@ -22,7 +22,7 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
     $name$: name,
     $url$: url,
     $state$: url ? BundleImportState_None : BundleImportState_Alias,
-    $deps$: deps,
+    $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
     $createdTs$: Date.now(),
     $waitedMs$: 0,

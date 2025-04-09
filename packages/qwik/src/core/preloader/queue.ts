@@ -17,6 +17,7 @@ import {
 } from './types';
 
 export const bundles: BundleImports = new Map();
+export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
@@ -32,6 +33,7 @@ export const log = (...args: any[]) => {
 export const resetQueue = () => {
   bundles.clear();
   queueDirty = false;
+  shouldResetFactor = true;
   preloadCount = 0;
   queue.length = 0;
 };
@@ -178,6 +180,7 @@ export const adjustProbabilities = (
   if (bundle.$deps$) {
     seen ||= new Set();
     seen.add(bundle);
+    const probability = 1 - bundle.$inverseProbability$;
     for (const dep of bundle.$deps$) {
       const depBundle = getBundle(dep.$name$)!;
       const prevAdjust = dep.$factor$;
@@ -188,7 +191,7 @@ export const adjustProbabilities = (
        * We can multiply this chance together with all other bundle adjustments to get the chance
        * that a dep will be loaded given all the chances of the other bundles
        */
-      const newInverseProbability = 1 - dep.$probability$ * (1 - bundle.$inverseProbability$);
+      const newInverseProbability = 1 - dep.$probability$ * probability;
 
       /** We need to undo the previous adjustment */
       const factor = newInverseProbability / prevAdjust;

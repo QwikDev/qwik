@@ -175,7 +175,8 @@
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {
-      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
+      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch",
+      "@auth/qwik": "patches/@auth__qwik.patch"
     }
   },
   "private": true,

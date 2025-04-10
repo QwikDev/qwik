@@ -3,7 +3,7 @@
   "description": "Qwik Insights dashboard",
   "version": "0.1.0",
   "dependencies": {
-    "@auth/qwik": "0.2.2",
+    "@auth/qwik": "0.6.0",
     "@libsql/client": "^0.14.0",
     "@modular-forms/qwik": "^0.24.0",
     "@typescript/analyze-trace": "^0.10.1",
@@ -33,9 +33,9 @@
     "tailwindcss": "3.4.6",
     "typescript": "5.8.2",
     "undici": "*",
-    "vite": "5.4.10",
+    "vite": "6.2.6",
     "vite-tsconfig-paths": "5.1.4",
-    "vitest": "3.0.8",
+    "vitest": "3.1.1",
     "zod": "3.22.4"
   },
   "engines": {

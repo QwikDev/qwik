@@ -100,11 +100,6 @@ export default defineConfig(async () => {
     optimizeDeps: {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
     },
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

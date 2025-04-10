@@ -6,6 +6,12 @@
 
 import type { Plugin as Plugin_2 } from 'vite';
 
+// @public
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
+    imports?: string[];
+    dynamicImports?: string[];
+}>;
+
 // @public (undocumented)
 export interface ComponentEntryStrategy {
     // (undocumented)
@@ -67,19 +73,6 @@ export interface GlobalInjections {
 export interface InlineEntryStrategy {
     // (undocumented)
     type: 'inline';
-}
-
-// @public (undocumented)
-export interface InsightManifest {
-    // (undocumented)
-    manual: Record<string, string>;
-    // (undocumented)
-    prefetch: {
-        route: string;
-        symbols: string[];
-    }[];
-    // (undocumented)
-    type: 'smart';
 }
 
 // @public (undocumented)
@@ -174,22 +167,21 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 // @public (undocumented)
 export interface QwikBundle {
-    // (undocumented)
     dynamicImports?: string[];
-    // (undocumented)
-    hasSymbols?: boolean;
-    // (undocumented)
     imports?: string[];
-    // (undocumented)
+    interactivity?: number;
     origins?: string[];
-    // (undocumented)
     size: number;
-    // (undocumented)
     symbols?: string[];
+    total: number;
 }
 
 // @public
+export type QwikBundleGraph = Array<string | number>;
+
+// @public
 export interface QwikManifest {
+    bundleGraph?: QwikBundleGraph;
     bundles: {
         [fileName: string]: QwikBundle;
     };
@@ -198,22 +190,20 @@ export interface QwikManifest {
     mapping: {
         [symbolName: string]: string;
     };
-    // (undocumented)
     options?: {
         target?: string;
         buildMode?: string;
         entryStrategy?: {
-            [key: string]: any;
+            type: EntryStrategy['type'];
         };
     };
-    // (undocumented)
     platform?: {
         [name: string]: string;
     };
+    preloader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
-    // (undocumented)
     version: string;
 }
 
@@ -248,7 +238,7 @@ export interface QwikSymbol {
     // (undocumented)
     captures: boolean;
     // (undocumented)
-    ctxKind: 'function' | 'event';
+    ctxKind: 'function' | 'eventHandler';
     // (undocumented)
     ctxName: string;
     // (undocumented)
@@ -290,8 +280,6 @@ export interface QwikVitePluginApi {
     // (undocumented)
     getClientPublicOutDir: () => string | null;
     // (undocumented)
-    getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
-    // (undocumented)
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
@@ -301,6 +289,8 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // (undocumented)
+    registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }
 
 // Warning: (ae-forgotten-export) The symbol "QwikVitePluginCSROptions" needs to be exported by the entry point index.d.ts
@@ -311,6 +301,8 @@ export type QwikVitePluginOptions = QwikVitePluginCSROptions | QwikVitePluginSSR
 
 // @public (undocumented)
 export interface ResolvedManifest {
+    // (undocumented)
+    injections: GlobalInjections[];
     // (undocumented)
     manifest: QwikManifest;
     // (undocumented)
@@ -324,7 +316,7 @@ interface SegmentAnalysis {
     // (undocumented)
     captures: boolean;
     // (undocumented)
-    ctxKind: 'event' | 'function';
+    ctxKind: 'eventHandler' | 'function';
     // (undocumented)
     ctxName: string;
     // (undocumented)

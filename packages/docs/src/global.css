@@ -218,6 +218,7 @@ select {
 
 body {
   @apply antialiased h-screen overflow-auto;
+  scrollbar-gutter: stable;
 }
 
 @media (max-width: 1023px) {

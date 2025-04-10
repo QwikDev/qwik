@@ -1,105 +1,76 @@
-import type {
-  PrefetchResource,
-  QwikManifest,
-  RenderToStringOptions,
-  SnapshotResult,
-} from './types';
-import { getBuildBase } from './utils';
-import { qDev } from '../core/util/qdev';
-
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import { getQueue, preload, resetQueue } from '../core/preloader/queue';
 import type { QRLInternal } from '../core/qrl/qrl-class';
+import { flattenPrefetchResources } from './prefetch-utils';
+import type { RenderToStringOptions, SnapshotResult } from './types';
+import { getPlatform } from '@builder.io/qwik';
+import { getSymbolHash } from './platform';
 
-export function getPrefetchResources(
+const getBundles = (snapshotResult: SnapshotResult | null) => {
+  const platform = getPlatform();
+  return (snapshotResult?.qrls as QRLInternal[])
+    ?.map((qrl) => {
+      const symbol = qrl.$refSymbol$ || qrl.$symbol$;
+      const chunk = qrl.$chunk$;
+      const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
+      if (result) {
+        return result[1];
+      }
+      return chunk;
+    })
+    .filter(Boolean) as string[];
+};
+/** Returns paths to preload relative to the buildBase, with probabilities */
+export function getPreloadPaths(
   snapshotResult: SnapshotResult | null,
   opts: RenderToStringOptions,
   resolvedManifest: ResolvedManifest | undefined
-): PrefetchResource[] {
-  if (!resolvedManifest) {
+): string[] {
+  const prefetchStrategy = opts.prefetchStrategy;
+  if (prefetchStrategy === null) {
     return [];
   }
-  const prefetchStrategy = opts.prefetchStrategy;
-  const buildBase = getBuildBase(opts);
+  if (!resolvedManifest?.manifest.bundleGraph) {
+    return getBundles(snapshotResult);
+  }
 
-  if (prefetchStrategy !== null) {
-    // do nothing if opts.prefetchStrategy is explicitly set to null
-
-    if (
-      !prefetchStrategy ||
-      !prefetchStrategy.symbolsToPrefetch ||
-      prefetchStrategy.symbolsToPrefetch === 'auto'
-    ) {
-      // DEFAULT 'events-document'
-      // if prefetchStrategy is undefined
-      // or prefetchStrategy.symbolsToPrefetch is undefined
-      // get event QRLs used in this document
-      return getAutoPrefetch(snapshotResult, resolvedManifest, buildBase);
-    }
-
-    if (typeof prefetchStrategy.symbolsToPrefetch === 'function') {
-      // call user option symbolsToPrefetch()
-      try {
-        return prefetchStrategy.symbolsToPrefetch({ manifest: resolvedManifest.manifest });
-      } catch (e) {
-        console.error('getPrefetchUrls, symbolsToPrefetch()', e);
-      }
+  // TODO should we deprecate this?
+  if (typeof prefetchStrategy?.symbolsToPrefetch === 'function') {
+    // call user option symbolsToPrefetch()
+    try {
+      const prefetchResources = prefetchStrategy.symbolsToPrefetch({
+        manifest: resolvedManifest.manifest,
+      });
+      return flattenPrefetchResources(prefetchResources);
+    } catch (e) {
+      console.error('getPrefetchUrls, symbolsToPrefetch()', e);
     }
   }
-  // no urls to prefetch
-  return [];
-}
 
-function getAutoPrefetch(
-  snapshotResult: SnapshotResult | null,
-  resolvedManifest: ResolvedManifest,
-  buildBase: string
-) {
-  const prefetchResources: PrefetchResource[] = [];
-  const qrls = snapshotResult?.qrls;
-  const { mapper, manifest } = resolvedManifest;
-  const urls = new Map<string, PrefetchResource>();
-
-  if (Array.isArray(qrls)) {
-    for (const qrl of qrls) {
-      const qrlSymbolName = qrl.getHash();
-      const resolvedSymbol = mapper[qrlSymbolName];
-      if (resolvedSymbol) {
-        const bundleFileName = resolvedSymbol[1];
-        addBundle(manifest, urls, prefetchResources, buildBase, bundleFileName);
-      }
+  // If we have a bundle graph, all we need is the symbols
+  const symbols = new Set<string>();
+  for (const qrl of (snapshotResult?.qrls || []) as QRLInternal[]) {
+    const symbol = getSymbolHash(qrl.$refSymbol$ || qrl.$symbol$);
+    if (symbol && symbol.length >= 10) {
+      symbols.add(symbol);
     }
   }
-  return prefetchResources;
+  return [...symbols];
 }
 
-function addBundle(
-  manifest: QwikManifest,
-  urls: Map<string, PrefetchResource>,
-  prefetchResources: PrefetchResource[],
-  buildBase: string,
-  bundleFileName: string
-) {
-  const url = qDev ? bundleFileName : buildBase + bundleFileName;
-  let prefetchResource = urls.get(url);
-  if (!prefetchResource) {
-    prefetchResource = {
-      url,
-      imports: [],
-    };
-    urls.set(url, prefetchResource);
-
-    const bundle = manifest.bundles[bundleFileName];
-    if (bundle) {
-      if (Array.isArray(bundle.imports)) {
-        for (const importedFilename of bundle.imports) {
-          addBundle(manifest, urls, prefetchResource.imports, buildBase, importedFilename);
-        }
-      }
-    }
+export const expandBundles = (names: string[], resolvedManifest?: ResolvedManifest) => {
+  if (!resolvedManifest?.manifest.bundleGraph) {
+    return [...new Set(names)];
   }
-  prefetchResources.push(prefetchResource);
-}
 
-export const isQrl = (value: any): value is QRLInternal => {
-  return typeof value === 'function' && typeof value.getSymbol === 'function';
+  resetQueue();
+
+  let probability = 0.99;
+  for (const name of names) {
+    preload(name, probability);
+    // later symbols have less probability
+    probability *= 0.95;
+  }
+
+  return getQueue();
 };

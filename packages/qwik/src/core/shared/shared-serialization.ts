@@ -324,14 +324,8 @@ const inflate = (
     case TypeIds.Error: {
       const d = data as unknown[];
       target.message = d[0];
-      const second = d[1];
-      if (second && Array.isArray(second)) {
-        for (let i = 0; i < second.length; i++) {
-          target[second[i++]] = second[i];
-        }
-        target.stack = d[2];
-      } else {
-        target.stack = second;
+      for (let i = 1; i < d.length; i += 2) {
+        target[d[i] as string] = d[i + 1];
       }
       break;
     }
@@ -818,7 +812,7 @@ export const createSerializationContext = (
       ) {
         // ignore
       } else if (obj instanceof Error) {
-        discoveredValues.push(...Object.values(obj));
+        discoveredValues.push(obj.message, ...Object.values(obj), isDev && obj.stack);
       } else if (isStore(obj)) {
         const target = getStoreTarget(obj)!;
         const effects = getStoreHandler(obj)!.$effects$;
@@ -1268,13 +1262,11 @@ function serialize(serializationContext: SerializationContext): void {
       output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
       const out: any[] = [value.message];
-      const extraProps = Object.entries(value).flat();
-      if (extraProps.length) {
-        out.push(extraProps);
-      }
+      // flatten gives us the right output
+      out.push(...Object.entries(value).flat());
       /// In production we don't want to leak the stack trace.
       if (isDev) {
-        out.push(value.stack);
+        out.push('stack', value.stack);
       }
       output(TypeIds.Error, out);
     } else if ($isSsrNode$(value)) {

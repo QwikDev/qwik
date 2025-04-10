@@ -5,29 +5,22 @@ import { qwikRouter } from '@qwik.dev/router/vite';
 import { defineConfig, loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-export default defineConfig(async () => {
-  return {
-    plugins: [
-      macroPlugin({ preset: 'pandacss' }),
-      qwikRouter(),
-      qwikVite({
-        experimental: ['insights'],
-      }),
-      tsconfigPaths({ projects: ['.'] }),
-      qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
-    ],
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
+export default defineConfig({
+  plugins: [
+    macroPlugin({ preset: 'pandacss' }),
+    qwikRouter(),
+    qwikVite({
+      experimental: ['insights'],
+    }),
+    tsconfigPaths({ projects: ['.'] }),
+    qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
+  ],
+  preview: {
+    headers: {
+      'Cache-Control': 'public, max-age=600',
     },
-    preview: {
-      headers: {
-        'Cache-Control': 'public, max-age=600',
-      },
-    },
-    optimizeDeps: {
-      include: ['@auth/core'],
-    },
-  };
+  },
+  optimizeDeps: {
+    include: ['@auth/core'],
+  },
 });

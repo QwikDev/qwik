@@ -21,7 +21,7 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
 }
 
 // @public (undocumented)
-export interface StaticGenerateRenderOptions extends RenderOptions {
+export interface StaticGenerateRenderOptions extends Omit<RenderOptions, 'manifest'> {
     emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;

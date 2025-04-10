@@ -1591,13 +1591,28 @@ Defaults to `true`.
 </td></tr>
 <tr><td>
 
+[manifest?](./router.serverrenderoptions.manifest.md)
+
+</td><td>
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [qwikCityPlan?](./router.serverrenderoptions.qwikcityplan.md)
 
 </td><td>
 
 </td><td>
 
-QwikCityPlan
+any
 
 </td><td>
 
@@ -1612,7 +1627,7 @@ _(Optional)_
 
 </td><td>
 
-QwikRouterConfig
+any
 
 </td><td>
 
@@ -1621,15 +1636,17 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-[render](./router.serverrenderoptions.render.md)
+[render?](./router.serverrenderoptions.render.md)
 
 </td><td>
 
 </td><td>
 
-Render
+any
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>

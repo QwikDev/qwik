@@ -11,30 +11,23 @@ import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import type { QwikSerializer } from '../request-handler/types';
+import qwikRouterConfig from '@qwik-router-config';
+import { manifest } from '@qwik-client-manifest';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
 
 /** @public */
 export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions) {
-  if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
-    opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
-  }
-
   const qwikSerializer: QwikSerializer = {
     _deserialize,
     _serialize,
     _verifySerializable,
   };
-
-  if (opts.manifest) {
-    setServerPlatform(opts.manifest);
+  if (manifest) {
+    setServerPlatform(manifest);
   }
-  const staticFolder =
-    opts.static?.root ?? join(fileURLToPath(import.meta.url), '..', '..', 'dist');
+  const staticFolder = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
 
   const router = async (
     req: IncomingMessage | Http2ServerRequest,
@@ -43,14 +36,8 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
   ) => {
     try {
       const origin = computeOrigin(req, opts);
-      const serverRequestEv = await fromNodeHttp(
-        getUrl(req, origin),
-        req,
-        res,
-        'server',
-        opts.getClientConn
-      );
-      const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const serverRequestEv = await fromNodeHttp(getUrl(req, origin), req, res, 'server');
+      const handled = await requestHandler(serverRequestEv, {}, qwikSerializer);
       if (handled) {
         const err = await handled.completion;
         if (err) {
@@ -108,7 +95,7 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         let filePath: string;
         if (basename(pathname).includes('.')) {
           filePath = join(staticFolder, pathname);
-        } else if (opts.qwikRouterConfig!.trailingSlash) {
+        } else if (qwikRouterConfig!.trailingSlash) {
           filePath = join(staticFolder, pathname + 'index.html');
         } else {
           filePath = join(staticFolder, pathname, 'index.html');
@@ -121,10 +108,6 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
 
         if (contentType) {
           res.setHeader('Content-Type', contentType);
-        }
-
-        if (opts.static?.cacheControl) {
-          res.setHeader('Cache-Control', opts.static.cacheControl);
         }
 
         stream.pipe(res);

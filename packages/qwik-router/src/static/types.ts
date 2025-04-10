@@ -38,7 +38,7 @@ export interface Logger {
 }
 
 /** @public */
-export interface StaticGenerateRenderOptions extends RenderOptions {
+export interface StaticGenerateRenderOptions extends Omit<RenderOptions, 'manifest'> {
   /** File system directory where the static files should be written. */
   outDir: string;
   /**

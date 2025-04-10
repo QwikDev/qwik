@@ -22,9 +22,6 @@ export function createQwikRouter(opts: AwsOpt) {
   }
   try {
     const { router, staticFile, notFound } = createQwikRouterNode({
-      render: opts.render,
-      qwikRouterConfig: opts.qwikRouterConfig,
-      manifest: opts.manifest,
       static: {
         cacheControl: 'public, max-age=31557600',
       },

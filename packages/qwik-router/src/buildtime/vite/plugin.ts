@@ -3,7 +3,7 @@ import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
-import { loadEnv } from 'vite';
+import { BuildEnvironment, loadEnv } from 'vite';
 import {
   NOT_FOUND_PATHS_ID,
   RESOLVED_NOT_FOUND_PATHS_ID,
@@ -23,8 +23,9 @@ import {
   prependManifestToServiceWorker,
 } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { ssrDevMiddleware } from './dev-server';
 import { imagePlugin } from './image-jsx';
+import { createRunnableDevEnvironment } from 'vite';
 import type {
   QwikCityVitePluginOptions,
   QwikRouterPluginApi,
@@ -103,11 +104,29 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         ssr: {
           external: ['node:async_hooks'],
           noExternal: [
+            '@builder.io/qwik-city',
+            '@qwik-city-plan',
+            '@qwik-city-entries',
+            '@qwik-city-sw-register',
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,
             QWIK_ROUTER_ENTRIES_ID,
             QWIK_ROUTER_SW_REGISTER,
           ],
+        },
+        environments: {
+          node: {
+            dev: {
+              createEnvironment(name, config) {
+                return createRunnableDevEnvironment(name, config);
+              },
+            },
+            build: {
+              createEnvironment(name, config) {
+                return new BuildEnvironment(name, config);
+              },
+            },
+          },
         },
       };
       return updatedViteConfig;
@@ -121,8 +140,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
       ctx = createBuildContext(rootDir!, config.base, userOpts, target);
 
-      ctx.isDevServer = config.command === 'serve' && config.mode !== 'production';
-      ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
+      ctx.isDevServer = false; // config.command === 'serve' && config.mode !== 'production';
+      ctx.isDevServerClientOnly = false; // ctx.isDevServer && config.mode !== 'ssr';
 
       await validatePlugin(ctx.opts);
 
@@ -140,20 +159,19 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       outDir = config.build?.outDir;
     },
 
-    configureServer(server) {
-      return () => {
-        if (!ctx) {
-          throw new Error('configureServer: Missing ctx from configResolved');
-        }
-        if (!ctx.isDevServer) {
-          // preview server: serve static files from the dist directory
-          server.middlewares.use(staticDistMiddleware(server));
-        }
-        // qwik router middleware injected BEFORE vite internal middlewares
-        // and BEFORE @qwik.dev/core/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
-      };
+    configureServer: {
+      order: 'post',
+      handler(server) {
+        return () => {
+          if (!ctx) {
+            throw new Error('configureServer: Missing ctx from configResolved');
+          }
+          // qwik router middleware injected BEFORE vite internal middlewares
+          // and BEFORE @qwik.dev/core/optimizer/vite middlewares
+          // handles only known user defined routes
+          server.middlewares.use(ssrDevMiddleware(ctx, server));
+        };
+      },
     },
 
     buildStart() {
@@ -192,6 +210,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     async load(id, opts) {
+      console.log('load', id);
       if (ctx) {
         if (id.endsWith(QWIK_ROUTER_ENTRIES_ID)) {
           // @qwik-router-entries
@@ -205,7 +224,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
         if (isRouterConfig || isSwRegister) {
-          if (!ctx.isDevServer && ctx.isDirty) {
+          if (ctx.isDirty) {
+            console.log('building qc plan');
             await build(ctx);
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
@@ -222,6 +242,33 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             // @qwik-router-sw-register
             return generateServiceWorkerRegister(ctx, swRegister);
           }
+        }
+
+        // TODO: we need to properly generate the value below and not just hardcoding it
+        //       (note: this file is currently generated at build time here: packages/qwik-city/src/adapters/shared/vite/index.ts)
+        if (id.endsWith(RESOLVED_NOT_FOUND_PATHS_ID)) {
+          return `
+            export function getNotFound(_pathname) {
+              return 'Resource Not Found';
+            }
+          `;
+        }
+
+        // TODO: we need to properly generate the value below and not just hardcoding it
+        //       (note: this file is currently generated at build time here: packages/qwik-city/src/adapters/shared/vite/index.ts)
+        if (id.endsWith(RESOLVED_STATIC_PATHS_ID)) {
+          return `
+            export function isStaticPath(method, url) {
+              if (method !== 'GET') {
+                return false;
+              }
+              if (url.search !== '') {
+                return false;
+              }
+
+              return /\\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url.pathname);
+            }
+          `;
         }
       }
       return null;

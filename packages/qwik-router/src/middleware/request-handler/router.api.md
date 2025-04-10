@@ -9,10 +9,7 @@ import type { _deserialize } from '@qwik.dev/core/internal';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
-import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
-import type { QwikRouterConfig } from '@qwik.dev/router';
-import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import type { RequestEvent as RequestEvent_2 } from '@qwik.dev/router';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
@@ -188,11 +185,13 @@ export class ServerError<T = any> extends Error {
 export interface ServerRenderOptions extends RenderOptions {
     checkOrigin?: boolean;
     // @deprecated (undocumented)
-    qwikCityPlan?: QwikCityPlan;
-    // (undocumented)
-    qwikRouterConfig?: QwikRouterConfig;
-    // (undocumented)
-    render: Render;
+    manifest?: any;
+    // @deprecated (undocumented)
+    qwikCityPlan?: any;
+    // @deprecated (undocumented)
+    qwikRouterConfig?: any;
+    // @deprecated (undocumented)
+    render?: any;
 }
 
 // @public

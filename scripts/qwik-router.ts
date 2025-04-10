@@ -1,9 +1,14 @@
-import { build, type Plugin, transform } from 'esbuild';
+import { build, transform, type Plugin } from 'esbuild';
 import { execa } from 'execa';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
-import { type BuildConfig, emptyDir, importPath, nodeTarget, panic } from './util';
+import { emptyDir, importPath, nodeTarget, panic, type BuildConfig } from './util';
+
+const namedCatch = (name: string) => (e: any) => {
+  console.error(`${name}`, e);
+  throw e;
+};
 
 export async function buildQwikRouter(config: BuildConfig) {
   if (!config.dev) {
@@ -11,34 +16,34 @@ export async function buildQwikRouter(config: BuildConfig) {
   }
 
   await Promise.all([
-    buildServiceWorker(config),
-    buildVite(config),
-    buildAdapterAzureSwaVite(config),
-    buildAdapterCloudflarePagesVite(config),
-    buildAdapterCloudRunVite(config),
-    buildAdapterDenoVite(config),
-    buildAdapterBunVite(config),
-    buildAdapterNodeServerVite(config),
-    buildAdapterNetlifyEdgeVite(config),
-    buildAdapterSharedVite(config),
-    buildAdapterStaticVite(config),
-    buildAdapterVercelEdgeVite(config),
-    buildMiddlewareCloudflarePages(config),
-    buildMiddlewareNetlifyEdge(config),
-    buildMiddlewareAzureSwa(config),
-    buildMiddlewareAwsLambda(config),
-    buildMiddlewareDeno(config),
-    buildMiddlewareBun(config),
-    buildMiddlewareNode(config),
-    buildMiddlewareRequestHandler(config),
-    buildMiddlewareVercelEdge(config),
-    buildMiddlewareFirebase(config),
-    buildStatic(config),
-    buildStaticNode(config),
-    buildStaticDeno(config),
+    buildServiceWorker(config).catch(namedCatch('buildServiceWorker')),
+    buildVite(config).catch(namedCatch('buildVite')),
+    buildAdapterAzureSwaVite(config).catch(namedCatch('buildAdapterAzureSwaVite')),
+    buildAdapterCloudflarePagesVite(config).catch(namedCatch('buildAdapterCloudflarePagesVite')),
+    buildAdapterCloudRunVite(config).catch(namedCatch('buildAdapterCloudRunVite')),
+    buildAdapterDenoVite(config).catch(namedCatch('buildAdapterDenoVite')),
+    buildAdapterBunVite(config).catch(namedCatch('buildAdapterBunVite')),
+    buildAdapterNodeServerVite(config).catch(namedCatch('buildAdapterNodeServerVite')),
+    buildAdapterNetlifyEdgeVite(config).catch(namedCatch('buildAdapterNetlifyEdgeVite')),
+    buildAdapterSharedVite(config).catch(namedCatch('buildAdapterSharedVite')),
+    buildAdapterStaticVite(config).catch(namedCatch('buildAdapterStaticVite')),
+    buildAdapterVercelEdgeVite(config).catch(namedCatch('buildAdapterVercelEdgeVite')),
+    buildMiddlewareCloudflarePages(config).catch(namedCatch('buildMiddlewareCloudflarePages')),
+    buildMiddlewareNetlifyEdge(config).catch(namedCatch('buildMiddlewareNetlifyEdge')),
+    buildMiddlewareAzureSwa(config).catch(namedCatch('buildMiddlewareAzureSwa')),
+    buildMiddlewareAwsLambda(config).catch(namedCatch('buildMiddlewareAwsLambda')),
+    buildMiddlewareDeno(config).catch(namedCatch('buildMiddlewareDeno')),
+    buildMiddlewareBun(config).catch(namedCatch('buildMiddlewareBun')),
+    buildMiddlewareNode(config).catch(namedCatch('buildMiddlewareNode')),
+    buildMiddlewareRequestHandler(config).catch(namedCatch('buildMiddlewareRequestHandler')),
+    buildMiddlewareVercelEdge(config).catch(namedCatch('buildMiddlewareVercelEdge')),
+    buildMiddlewareFirebase(config).catch(namedCatch('buildMiddlewareFirebase')),
+    buildStatic(config).catch(namedCatch('buildStatic')),
+    buildStaticNode(config).catch(namedCatch('buildStaticNode')),
+    buildStaticDeno(config).catch(namedCatch('buildStaticDeno')),
   ]);
 
-  await buildRuntime(config);
+  await buildRuntime(config).catch(namedCatch('buildRuntime'));
 
   console.log(`🏙  qwik-router`);
 }
@@ -82,6 +87,8 @@ async function buildVite(config: BuildConfig) {
     'typescript',
     'vite-imagetools',
     'svgo',
+    // We import this for 404 handling
+    '@qwik.dev/router/middleware/request-handler',
   ];
 
   const swRegisterPath = join(config.srcQwikRouterDir, 'runtime', 'src', 'sw-register.ts');
@@ -102,10 +109,21 @@ async function buildVite(config: BuildConfig) {
     format: 'esm',
     external,
     alias: {
-      '@qwik.dev/core': 'noop',
-      '@qwik.dev/core/optimizer': 'noop',
+      '@qwik.dev/core': 'do-not-import-qwik-in-the-vite-plugin',
+      '@qwik.dev/core/optimizer': 'do-not-import-qwik-in-the-vite-plugin',
     },
-    plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
+    plugins: [
+      {
+        name: 'spy-resolve',
+        setup(build) {
+          build.onResolve({ filter: /.*/, namespace: 'spy-resolve' }, (args) => {
+            console.log('spy-resolve', args);
+            return null;
+          });
+        },
+      },
+      serviceWorkerRegisterBuild(swRegisterCode),
+    ],
   });
 
   await build({
@@ -116,6 +134,10 @@ async function buildVite(config: BuildConfig) {
     target: nodeTarget,
     format: 'cjs',
     external,
+    alias: {
+      '@qwik.dev/core': 'do-not-import-qwik-in-the-vite-plugin',
+      '@qwik.dev/core/optimizer': 'do-not-import-qwik-in-the-vite-plugin',
+    },
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],
   });
 }
@@ -167,8 +189,6 @@ async function buildServiceWorker(config: BuildConfig) {
 async function buildAdapterAzureSwaVite(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikRouterDir, 'adapters', 'azure-swa', 'vite', 'index.ts')];
 
-  const external = ['vite', 'fs', 'path', '@qwik.dev/router/static'];
-
   await build({
     entryPoints,
     outfile: join(config.distQwikRouterPkgDir, 'adapters', 'azure-swa', 'vite', 'index.mjs'),
@@ -176,7 +196,7 @@ async function buildAdapterAzureSwaVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
-    external,
+    external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.mjs')],
   });
 
@@ -187,7 +207,7 @@ async function buildAdapterAzureSwaVite(config: BuildConfig) {
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
-    external,
+    external: ADAPTER_EXTERNALS,
     plugins: [resolveAdapterShared('../../shared/vite/index.cjs')],
   });
 }
@@ -558,6 +578,16 @@ async function buildMiddlewareNode(config: BuildConfig) {
   });
 
   await build({
+    entryPoints: [join(config.srcQwikRouterDir, 'middleware', 'node', 'entry.dev.ts')],
+    outfile: join(config.distQwikRouterPkgDir, 'middleware', 'node', 'entry.dev.mjs'),
+    bundle: true,
+    platform: 'node',
+    target: nodeTarget,
+    format: 'esm',
+    external: [...external, '.'],
+  });
+
+  await build({
     entryPoints,
     outfile: join(config.distQwikRouterPkgDir, 'middleware', 'node', 'index.cjs'),
     bundle: true,
@@ -722,6 +752,7 @@ const ADAPTER_EXTERNALS = [
   '@qwik.dev/router',
   '@qwik.dev/router/static',
   '@qwik.dev/router/middleware/request-handler',
+  '@qwik-client-manifest',
 ];
 
 const MIDDLEWARE_EXTERNALS = [
@@ -733,4 +764,7 @@ const MIDDLEWARE_EXTERNALS = [
   '@qwik-router-config',
   '@qwik-router-not-found-paths',
   '@qwik-router-static-paths',
+  '@qwik-client-manifest',
+  // Vite imports this conditionally
+  'lightningcss',
 ];

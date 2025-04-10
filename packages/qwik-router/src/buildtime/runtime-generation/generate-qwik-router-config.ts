@@ -14,6 +14,8 @@ export function generateQwikRouterConfig(
   const esmImports: string[] = [];
   const c: string[] = [];
 
+  console.log('generateQwikRouterConfig');
+
   c.push(`\n/** Qwik Router Config */`);
 
   createServerPlugins(ctx, qwikPlugin, c, esmImports, isSSR);

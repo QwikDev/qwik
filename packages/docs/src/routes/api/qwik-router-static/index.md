@@ -152,10 +152,10 @@ _(Optional)_
 ## StaticGenerateRenderOptions
 
 ```typescript
-export interface StaticGenerateRenderOptions extends RenderOptions
+export interface StaticGenerateRenderOptions extends Omit<RenderOptions, 'manifest'>
 ```
 
-**Extends:** RenderOptions
+**Extends:** Omit&lt;RenderOptions, 'manifest'&gt;
 
 <table><thead><tr><th>
 

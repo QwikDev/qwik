@@ -4,6 +4,9 @@ import type { QwikRouterConfig } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user-response';
+import qwikRouterConfig from '@qwik-router-config';
+import render from '../../render-ssr';
+import { manifest } from '@qwik-client-manifest';
 
 /**
  * The request handler for QwikRouter. Called by every integration.
@@ -15,11 +18,7 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikRouterRun<T> | null> {
-  const { render, qwikRouterConfig, manifest, checkOrigin } = opts;
-  if (!qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
-  }
-
+  const { checkOrigin } = opts;
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname, qwikRouterConfig.trailingSlash);
   const routeAndHandlers = await loadRequestHandlers(

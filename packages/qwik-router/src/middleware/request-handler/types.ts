@@ -1,6 +1,6 @@
 import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
-import type { Render, RenderOptions } from '@qwik.dev/core/server';
-import type { Action, FailReturn, Loader, QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
+import type { RenderOptions } from '@qwik.dev/core/server';
+import type { Action, FailReturn, Loader } from '@qwik.dev/router';
 import type { ServerError } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
@@ -45,12 +45,6 @@ export type ServerResponseHandler<T = any> = (
 
 /** @public */
 export interface ServerRenderOptions extends RenderOptions {
-  render: Render;
-
-  /** @deprecated Use `QwikRouterConfig` instead. Will be removed in V3 */
-  qwikCityPlan?: QwikCityPlan;
-
-  qwikRouterConfig?: QwikRouterConfig;
   /**
    * Protection against cross-site request forgery (CSRF) attacks.
    *
@@ -62,6 +56,14 @@ export interface ServerRenderOptions extends RenderOptions {
    * Defaults to `true`.
    */
   checkOrigin?: boolean;
+  /** @deprecated Unused */
+  render?: any;
+  /** @deprecated Unused */
+  qwikCityPlan?: any;
+  /** @deprecated Unused */
+  qwikRouterConfig?: any;
+  /** @deprecated Unused */
+  manifest?: any;
 }
 
 /** @public */

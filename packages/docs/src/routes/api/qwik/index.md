@@ -1333,6 +1333,16 @@ any[]
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
 
+## HTMLElementAttrs
+
+```typescript
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement>
+```
+
+**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
 ## implicit$FirstArg
 
 Create a `____$(...)` convenience method from `___(...)`.
@@ -2582,7 +2592,7 @@ export type QwikHTMLElements = {
 };
 ```
 
-**References:** [QwikAttributes](#qwikattributes)
+**References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -2779,6 +2789,8 @@ export type QwikSVGElements = {
   >]: SVGProps<SVGElementTagNameMap[K]>;
 };
 ```
+
+**References:** [SVGProps](#svgprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -8112,6 +8124,16 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
+## SVGProps
+
+```typescript
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
+```
+
+**Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 

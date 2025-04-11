@@ -35,6 +35,7 @@ import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
 
 import "./global.css";
+import { QRL } from "./components/qrl/qrl";
 
 const tests: Record<string, FunctionComponent> = {
   "/e2e/two-listeners": () => <TwoListeners />,
@@ -71,6 +72,7 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/build-variables": () => <BuildVariables />,
   "/e2e/exception/render": () => <RenderExceptions />,
   "/e2e/exception/use-task": () => <UseTaskExceptions />,
+  "/e2e/qrl": () => <QRL />,
 };
 
 export const Root = component$<{ pathname: string }>(({ pathname }) => {

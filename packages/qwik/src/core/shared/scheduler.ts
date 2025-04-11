@@ -91,9 +91,9 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { triggerEffects, type ComputedSignalImpl, type WrappedSignal } from '../signal/signal';
-import { isSignal, type Signal } from '../signal/signal.public';
-import type { TargetType } from '../signal/store';
+import { triggerEffects } from '../reactive-primitives/utils';
+import { isSignal, type Signal } from '../reactive-primitives/signal.public';
+import type { StoreTarget } from '../reactive-primitives/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -119,6 +119,9 @@ import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
+import type { NodePropPayload } from '../reactive-primitives/subscription-data';
+import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -135,18 +138,13 @@ export interface Chore {
   $executed$: boolean;
 }
 
-export interface NodePropData {
-  $scopedStyleIdPrefix$: string | null;
-  $isConst$: boolean;
-}
-
-export interface NodePropPayload extends NodePropData {
-  $value$: Signal<unknown>;
-}
-
 export type Scheduler = ReturnType<typeof createScheduler>;
 
-type ChoreTarget = HostElement | QRLInternal<(...args: unknown[]) => unknown> | Signal | TargetType;
+type ChoreTarget =
+  | HostElement
+  | QRLInternal<(...args: unknown[]) => unknown>
+  | Signal
+  | StoreTarget;
 
 const getPromise = (chore: Chore) =>
   (chore.$promise$ ||= new Promise((resolve) => {
@@ -181,9 +179,7 @@ export const createScheduler = (
    *
    * @param type
    * @param host - Host element where the component is being rendered.
-   * @param qrl - QRL of the component to render.
-   * @param props- Props to pass to the component.
-   * @param waitForChore? = false
+   * @param target
    */
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
@@ -471,7 +467,9 @@ export const createScheduler = (
         }
         case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
           {
-            const target = chore.$target$ as ComputedSignalImpl<unknown> | WrappedSignal<unknown>;
+            const target = chore.$target$ as
+              | ComputedSignalImpl<unknown>
+              | WrappedSignalImpl<unknown>;
             const forceRunEffects = target.$forceRunEffects$;
             target.$forceRunEffects$ = false;
             if (!target.$effects$?.size) {
@@ -517,6 +515,7 @@ export const createScheduler = (
    *
    * @param a - The first chore to compare
    * @param b - The second chore to compare
+   * @param rootVNode
    * @returns A number indicating the relative order of the chores. A negative number means `a` runs
    *   before `b`.
    */

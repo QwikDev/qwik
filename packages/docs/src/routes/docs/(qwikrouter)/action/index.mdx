@@ -154,8 +154,8 @@ But when using actions programmatically, you can still upload files by passing a
 
 ```tsx title="src/routes/index.tsx"
 
-import { component$ } from '@builder.io/qwik';
-import { routeAction$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeAction$ } from '@qwik.dev/router';
 
 export const useUploadFile = routeAction$(async ({file}) => {
   // save the file somewhere...

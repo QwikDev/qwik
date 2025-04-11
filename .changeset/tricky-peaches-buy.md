@@ -4,6 +4,6 @@
 
 FEAT: `useSerializer$`, `createSerializer$`: Create a Signal holding a custom serializable value. See {@link useSerializer$} for more details.
 
-FEAT: `NoSerializeSymbol`: objects that have this symbol will not be serialized.
+`NoSerializeSymbol`: objects that have this symbol will not be serialized.
 
-FEAT: `SerializerSymbol`: When defined on an object, this function will get called with the object and is expected to returned a serializable object literal representing this object. Use this to remove data cached data, consolidate things, integrate with other libraries, etc.
+`SerializerSymbol`: When defined on an object, this function will get called with the object and is expected to returned a serializable object literal representing this object. Use this to remove data cached data, consolidate things, integrate with other libraries, etc.

@@ -1,5 +1,6 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { useVisibleTaskQrl } from './use-visible-task';
+import type { TaskFn } from './use-task';
+import { useVisibleTaskQrl, type OnVisibleTaskOptions } from './use-visible-task';
 
 // <docs markdown="../readme.md#useVisibleTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -28,4 +29,8 @@ import { useVisibleTaskQrl } from './use-visible-task';
  * @public
  */
 // </docs>
-export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl);
+// We need to cast to help out the api extractor
+export const useVisibleTask$ = /*#__PURE__*/ implicit$FirstArg(useVisibleTaskQrl) as (
+  fn: TaskFn,
+  opts?: OnVisibleTaskOptions
+) => void;

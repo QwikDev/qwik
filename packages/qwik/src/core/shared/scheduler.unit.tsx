@@ -18,7 +18,7 @@ import { createScheduler } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { QContainerAttr } from './utils/markers';
-import { _EFFECT_BACK_REF } from '../signal/flags';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 
 declare global {
   let testLog: string[];

@@ -1,14 +1,14 @@
 import { $, component$, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { _fnSignal, _wrapProp } from '../internal';
-import { SubscriptionData, type SignalImpl } from '../signal/signal';
+import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import {
   createComputed$,
   createSerializer$,
   createSignal,
   isSignal,
-} from '../signal/signal.public';
-import { StoreFlags, createStore } from '../signal/store';
+} from '../reactive-primitives/signal.public';
+import { createStore } from '../reactive-primitives/impl/store';
 import { createResourceReturn } from '../use/use-resource';
 import { Task } from '../use/use-task';
 import { inlinedQrl } from './qrl/qrl';
@@ -24,6 +24,8 @@ import {
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { StoreFlags } from '../reactive-primitives/types';
 
 const DEBUG = false;
 
@@ -159,26 +161,28 @@ describe('shared-serialization', () => {
       err.stack = err
         .stack!.replaceAll(/([A-Z]:){0,1}(\/|\\).*\./g, '/...path/file.')
         .replaceAll(/:\d+:\d+/g, ':123:456');
-      expect(await dump(err)).toMatchInlineSnapshot(`
+      const dumpNoSize = async (obj: any) =>
+        (await dump(obj)).replaceAll(/\(\d+ chars\)/g, '(x chars)');
+      expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
           String "hi"
+          String "stack"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (487 chars)"
+        (x chars)"
       `);
       (err as any).extra = 'yey';
-      expect(await dump(err)).toMatchInlineSnapshot(`
+      expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
           String "hi"
-          Array [
-            String "extra"
-            String "yey"
-          ]
+          String "extra"
+          String "yey"
+          String "stack"
           String "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\"...
         ]
-        (509 chars)"
+        (x chars)"
       `);
     });
     it(title(TypeIds.Object), async () => {
@@ -375,7 +379,6 @@ describe('shared-serialization', () => {
             Number 3
           ]
           Constant null
-          Constant NEEDS_COMPUTATION
           Number 3
           Constant null
         ]
@@ -390,11 +393,10 @@ describe('shared-serialization', () => {
           ]
           Constant null
           Number 3
-          Number 3
           Constant null
         ]
         2 String "foo"
-        (88 chars)"
+        (80 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

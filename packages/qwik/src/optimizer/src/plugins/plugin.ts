@@ -80,7 +80,7 @@ export interface QwikPackages {
   path: string;
 }
 
-export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
+export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
   const clientResults = new Map<string, TransformOutput>();
@@ -107,7 +107,7 @@ export function createPlugin(optimizerOptions: OptimizerOptions = {}) {
     rootDir: null as any,
     tsconfigFileNames: ['./tsconfig.json'],
     input: null as any,
-    outDir: null as any,
+    outDir: '',
     assetsDir: null as any,
     resolveQwikBuild: true,
     entryStrategy: null as any,
@@ -1101,6 +1101,8 @@ export interface NormalizedQwikPluginOptions
   input: string[] | { [entry: string]: string };
   experimental?: Record<keyof typeof ExperimentalFeatures, boolean>;
 }
+
+export type QwikPlugin = ReturnType<typeof createQwikPlugin>;
 
 /** @public */
 export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';

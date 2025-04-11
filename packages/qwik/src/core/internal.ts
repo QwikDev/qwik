@@ -3,7 +3,7 @@ export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _SharedContainer } from './shared/shared-container';
 export { queueQRL as _run } from './client/queue-qrl';
 export { scheduleTask as _task } from './use/use-task';
-export { _wrapSignal, _wrapProp, _wrapStore } from './signal/signal-utils';
+export { _wrapSignal, _wrapProp, _wrapStore } from './reactive-primitives/internal-api';
 export { _restProps } from './shared/utils/prop';
 export { _IMMUTABLE } from './shared/utils/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './shared/utils/constants';
@@ -37,4 +37,5 @@ export {
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
 export { _serialize, _deserialize } from './shared/shared-serialization';
 export { _jsxQ, _jsxC, _jsxS } from './shared/jsx/jsx-runtime';
-export { _EFFECT_BACK_REF } from './signal/flags';
+export { _EFFECT_BACK_REF } from './reactive-primitives/types';
+export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';

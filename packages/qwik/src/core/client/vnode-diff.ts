@@ -46,6 +46,7 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
+  ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
   type ClientAttrKey,
@@ -90,15 +91,18 @@ import {
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { isSignal } from '../reactive-primitives/utils';
+import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects } from '../signal/signal-cleanup';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import { EffectProperty } from '../reactive-primitives/types';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -511,7 +515,7 @@ export const vnode_diff = (
     const constProps = jsxNode.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (vHost && constValue instanceof WrappedSignal) {
+      if (vHost && constValue instanceof WrappedSignalImpl) {
         return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
       }
     }
@@ -739,11 +743,14 @@ export const vnode_diff = (
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
+
+    const element = vNode[ElementVNodeProps.element] as QElement;
+    element.vNode = new WeakRef(vNode);
+
     needsQDispatchEventPatch =
       setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
-      const element = vnode_getNode(vNode) as QElement;
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
           const eventName = event.type;

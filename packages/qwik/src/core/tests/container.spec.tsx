@@ -15,11 +15,11 @@ import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { TypeIds } from '../shared/shared-serialization';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { createComputed$, createSignal } from '../signal/signal.public';
+import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
-import { SignalFlags } from '../signal/signal';
+import { SignalFlags } from '../reactive-primitives/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -311,11 +311,14 @@ describe('serializer v2', () => {
 
     describe('ErrorSerializer, ///////// ' + TypeIds.Error, () => {
       it('should serialize and deserialize', async () => {
-        const obj = Object.assign(new Error('MyError'), { extra: 'property' });
+        const date = new Date();
+        const obj = Object.assign(new Error('MyError'), {
+          extra: { foo: ['bar', { hi: true }], bar: date },
+        });
         const result = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0);
-        expect(result).toBeInstanceOf(Error);
-        expect(result.message).toBe('MyError');
-        expect((result as any).extra).toBe('property');
+        expect(result.message).toEqual(obj.message);
+        expect(result.extra.foo).toEqual(['bar', { hi: true }]);
+        expect(result.extra.bar).toEqual(date);
       });
     });
 

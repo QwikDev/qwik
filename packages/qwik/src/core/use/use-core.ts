@@ -3,13 +3,7 @@ import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  ComputedEvent,
-  QLocaleAttr,
-  RenderEvent,
-  ResourceEvent,
-  TaskEvent,
-} from '../shared/utils/markers';
+import { ComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -17,15 +11,12 @@ import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
 import { type ContainerElement } from '../client/types';
-import {
-  WrappedSignal,
-  type SubscriptionData,
-  type EffectSubscription,
-  type EffectSubscriptionProp,
-} from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
-import { getSubscriber } from '../signal/subscriber';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 
 declare const document: QwikDocument;
 
@@ -152,11 +143,10 @@ export function invokeApply<FN extends (...args: any) => any>(
 
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);
-  const container = domContainer.element;
-  const vNode = container ? vnode_locate(domContainer.rootVNode, element) : undefined;
-  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  const hostElement = vnode_locate(domContainer.rootVNode, element);
+  const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, vNode, element, event, url);
+  return newInvokeContext(locale, hostElement, element, event, url);
 };
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
@@ -236,7 +226,7 @@ export const trackSignalAndAssignHost = (
   container: Container,
   data?: SubscriptionData
 ) => {
-  if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
+  if (value instanceof WrappedSignalImpl && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;
   }
   return trackSignal(() => value.value, host, property, container, data);

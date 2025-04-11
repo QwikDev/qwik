@@ -29,7 +29,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": "^5"
+          "pinVersion": ">=5 <7"
         },
         {
           "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
@@ -92,8 +92,8 @@
     "@clack/prompts": "0.7.0",
     "@eslint/eslintrc": "3.1.0",
     "@mdx-js/mdx": "3.0.1",
-    "@microsoft/api-documenter": "7.24.2",
-    "@microsoft/api-extractor": "7.43.1",
+    "@microsoft/api-documenter": "7.26.17",
+    "@microsoft/api-extractor": "7.52.1",
     "@napi-rs/cli": "2.18.4",
     "@napi-rs/triples": "1.2.0",
     "@node-rs/helper": "1.6.0",
@@ -115,7 +115,7 @@
     "@types/which-pm-runs": "1.0.2",
     "@typescript-eslint/eslint-plugin": "7.16.1",
     "@typescript-eslint/parser": "7.16.1",
-    "@vitest/coverage-v8": "3.0.8",
+    "@vitest/coverage-v8": "3.1.1",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
     "concurrently": "8.2.2",
@@ -139,7 +139,7 @@
     "prettier-plugin-jsdoc": "1.3.2",
     "pretty-quick": "4.0.0",
     "prompts": "2.4.2",
-    "rollup": "4.24.2",
+    "rollup": "4.39.0",
     "semver": "7.6.3",
     "simple-git-hooks": "2.11.1",
     "snoop": "1.0.4",
@@ -150,13 +150,13 @@
     "tmp": "0.2.3",
     "tree-kill": "1.2.2",
     "tsx": "4.19.2",
-    "typescript": "5.4.5",
+    "typescript": "5.8.2",
     "vfile": "6.0.2",
-    "vite": "5.4.10",
-    "vite-imagetools": "7.0.4",
-    "vite-plugin-dts": "4.3.0",
-    "vite-tsconfig-paths": "5.0.1",
-    "vitest": "3.0.8",
+    "vite": "6.2.6",
+    "vite-imagetools": "7.0.5",
+    "vite-plugin-dts": "4.5.3",
+    "vite-tsconfig-paths": "5.1.4",
+    "vitest": "3.1.1",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
     "zod": "3.22.4"
@@ -170,12 +170,13 @@
   "packageManager": "pnpm@9.15.5",
   "pnpm": {
     "overrides": {
-      "typescript": "5.4.5",
+      "typescript": "5.8.2",
       "vfile": "6.0.2",
       "@supabase/realtime-js": "2.8.4"
     },
     "patchedDependencies": {
-      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
+      "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch",
+      "@auth/qwik": "patches/@auth__qwik.patch"
     }
   },
   "private": true,
@@ -183,7 +184,7 @@
     "api.update": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --api --dev",
     "build": "tsx --require ./scripts/runBefore.ts scripts/index.ts",
     "build.changelog-formatter": "tsc .changeset/changelog-github-custom.ts && mv .changeset/changelog-github-custom.js .changeset/changelog-github-custom.cjs",
-    "build.clean": "rm -rf packages/qwik/dist/ && rm -rf packages/qwik-router/lib/ && rm -rf packages/docs/dist/ && rm -rf packages/insights/dist/",
+    "build.clean": "tsx ./scripts/build-clean.ts",
     "build.cli": "tsx --require ./scripts/runBefore.ts scripts/index.ts --cli --dev",
     "build.cli.prod": "tsx --require ./scripts/runBefore.ts scripts/index.ts --cli",
     "build.core": "tsx --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --insights --qwikrouter --api --platform-binding",
@@ -205,8 +206,8 @@
     "cli.qwik": "pnpm build.cli && node packages/qwik/qwik-cli.cjs",
     "cli.validate": "tsx --require ./scripts/runBefore.ts scripts/validate-cli.ts",
     "deps": "corepack pnpm upgrade -i -r --latest && syncpack fix-mismatches && corepack pnpm dedupe",
-    "docs.dev": "cd packages/docs && pnpm build.repl-sw && pnpm dev",
-    "docs.preview": "cd packages/docs && pnpm preview",
+    "docs.dev": "pnpm -C packages/docs build.repl-sw && pnpm -C packages/docs dev",
+    "docs.preview": "pnpm -C packages/docs preview",
     "docs.sync": "tsx --require ./scripts/runBefore.ts scripts/docs_sync/index.ts && pnpm fmt",
     "eslint.update": "tsx --require ./scripts/runBefore.ts scripts/eslint-docs.ts",
     "fmt": "pnpm prettier.fix && pnpm syncpack format",

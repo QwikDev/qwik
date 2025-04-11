@@ -31,6 +31,7 @@
 - [Endpoints](</docs/(qwikrouter)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikrouter)/middleware/index.mdx>)
 - [server$](</docs/(qwikrouter)/server$/index.mdx>)
+- [Error handling](</docs/(qwikrouter)/error-handling/index.mdx>)
 - [Re-exporting loaders](/docs/(qwikrouter)/re-exporting-loaders/index.mdx)
 - [Caching](</docs/(qwikrouter)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikrouter)/html-attributes/index.mdx>)
@@ -52,6 +53,7 @@
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
+- [View Transition](/docs/cookbook/view-transition/index.mdx)
 
 ## Integrations
 

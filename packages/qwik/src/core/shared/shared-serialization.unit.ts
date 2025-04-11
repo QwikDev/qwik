@@ -47,9 +47,10 @@ describe('shared-serialization', () => {
           String "shared"
           Number 1
         ]
-        RootRef "0 0"
+        RootRef 1
       ]
-      (33 chars)"
+      1 RootRef "0 0"
+      (37 chars)"
       `);
     });
     it(title(TypeIds.Constant), async () => {
@@ -185,28 +186,26 @@ describe('shared-serialization', () => {
     });
     it(title(TypeIds.Object), async () => {
       const objs = await serialize({ foo: shared1 }, { bar: shared1, shared: true });
-      /**
-       * " 0 Object [ String "foo" RootRef 3 ] 1 Object [ String "bar" RootRef 3 RootRef 2 Constant
-       * true ] 2 String "shared" 3 Object [ RootRef 2 Number 1 ] (67 chars)"
-       */
       expect(dumpState(objs)).toMatchInlineSnapshot(`
-      "
-      0 Object [
-        String "foo"
-        Object [
-          String "shared"
-          Number 1
+        "
+        0 Object [
+          String "foo"
+          Object [
+            String "shared"
+            Number 1
+          ]
         ]
-      ]
-      1 Object [
-        String "bar"
-        RootRef "0 1"
-        RootRef "0 1 0"
-        Constant true
-      ]
-      (69 chars)"
-      `);
-      expect(objs).toHaveLength(4);
+        1 Object [
+          String "bar"
+          RootRef 2
+          RootRef 3
+          Constant true
+        ]
+        2 RootRef "0 1"
+        3 RootRef "0 1 0"
+        (77 chars)"
+        `);
+      expect(objs).toHaveLength(8);
     });
     it(title(TypeIds.Promise), async () => {
       expect(await dump(Promise.resolve(shared1), Promise.reject(shared2))).toMatchInlineSnapshot(`
@@ -223,13 +222,14 @@ describe('shared-serialization', () => {
       3 Promise [
         Constant false
         Object [
-          RootRef "2 1 0"
+          RootRef 4
           Number 2
         ]
       ]
-      4 ForwardRefs [
-        Number 2
-        Number 3
+      4 RootRef "2 1 0"
+      5 ForwardRefs [
+        2
+        3
       ]
       (78 chars)"
       `);
@@ -263,10 +263,10 @@ describe('shared-serialization', () => {
         ]
       ]
       4 ForwardRefs [
-        Number 3
-        Number 2
+        3
+        2
       ]
-      (80 chars)"
+      (76 chars)"
       `);
     });
     it(title(TypeIds.Set), async () => {
@@ -278,10 +278,11 @@ describe('shared-serialization', () => {
           Number 1
         ]
         Array [
-          RootRef "0 0"
+          RootRef 1
         ]
       ]
-      (38 chars)"
+      1 RootRef "0 0"
+      (42 chars)"
       `);
     });
     it(title(TypeIds.Map), async () => {
@@ -297,16 +298,18 @@ describe('shared-serialization', () => {
         0 Map [
           String "shared"
           Object [
-            RootRef "0 0"
+            RootRef 1
             Number 1
           ]
           Object [
-            RootRef "0 0"
+            RootRef 1
             Number 2
           ]
-          RootRef "0 1"
+          RootRef 2
         ]
-        (59 chars)"
+        1 RootRef "0 0"
+        2 RootRef "0 1"
+        (63 chars)"
       `);
     });
     it(title(TypeIds.Uint8Array), async () => {
@@ -324,11 +327,10 @@ describe('shared-serialization', () => {
       expect(await dump(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other])))
         .toMatchInlineSnapshot(`
         "
-        0 QRL 3
+        0 QRL "mock-chunk#dump_qrl[1 2]"
         1 Number 123
         2 String "hello"
-        3 String "mock-chunk#dump_qrl[1 2]"
-        (51 chars)"
+        (47 chars)"
       `);
     });
     it(title(TypeIds.Task), async () => {
@@ -357,11 +359,12 @@ describe('shared-serialization', () => {
         ]
       ]
       1 Object [
-        RootRef "1 5 0"
+        RootRef 3
         Number 1
       ]
       2 String "mock-chunk#task_qrl[1]"
-      (93 chars)"
+      3 RootRef "0 5 0"
+      (97 chars)"
       `);
     });
     it(title(TypeIds.Resource), async () => {
@@ -371,18 +374,16 @@ describe('shared-serialization', () => {
       res._resolved = 123;
       expect(await dump(res)).toMatchInlineSnapshot(`
       "
-      0 Resource [
-        ForwardRef 0
-        Constant null
-      ]
-      1 Promise [
+      0 ForwardRef 0
+      1 Resource [
         Constant true
         Number 123
+        Constant null
       ]
       2 ForwardRefs [
-        Number 1
+        1
       ]
-      (37 chars)"
+      (30 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -439,13 +440,14 @@ describe('shared-serialization', () => {
               String "foo"
               Number 3
             ]
-            String "foo"
+            RootRef 2
           ]
           Constant null
           Number 3
           Constant null
         ]
-        (80 chars)"
+        2 RootRef "1 1 0 0"
+        (96 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -458,19 +460,19 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
-          QRL 3
+          RootRef 2
           Constant null
         ]
         1 ComputedSignal [
-          QRL 4
+          RootRef 3
           Constant null
           Number 2
         ]
-        2 Signal [
+        2 QRL "mock-chunk#dirty[4]"
+        3 QRL "mock-chunk#clean[4]"
+        4 Signal [
           Number 1
         ]
-        3 String "mock-chunk#dirty[2]"
-        4 String "mock-chunk#clean[2]"
         (90 chars)"
       `);
     });
@@ -494,19 +496,19 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
       "
       0 SerializerSignal [
-        QRL 1
+        RootRef 1
         Constant null
         ForwardRef 0
       ]
-      1 String "mock-chunk#custom_createSerializer_qrl"
+      1 QRL "mock-chunk#custom_createSerializer_qrl"
       2 Promise [
         Constant true
         Number 4
       ]
       3 ForwardRefs [
-        Number 2
+        2
       ]
-      (83 chars)"
+      (81 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -566,10 +568,29 @@ describe('shared-serialization', () => {
   };
 
   describe('deserialize types', () => {
-    it(title(TypeIds.RootRef), async () => {
+    it(title(TypeIds.RootRef) + ' - shallow refs', async () => {
       const objs = await serialize(shared1, { hi: shared1 });
       const arr = deserialize(objs);
       expect(arr[0]).toBe((arr[1] as any).hi);
+    });
+    it(title(TypeIds.RootRef) + ' - deep refs', async () => {
+      const objs = await serialize({ foo: shared1 }, { bar: shared1 });
+      const arr = deserialize(objs);
+      expect((arr[0] as any).foo).toBe((arr[1] as any).bar);
+    });
+    it(title(TypeIds.RootRef) + ' - deep refs case 2', async () => {
+      const sharedObj = {
+        bar: {
+          foo: 'test',
+        },
+      };
+      const obj = {
+        test: sharedObj.bar,
+        foo: 'abcd',
+      };
+      const objs = await serialize(sharedObj, obj);
+      const arr = deserialize(objs);
+      expect((arr[0] as any).bar).toBe((arr[1] as any).test);
     });
     it(title(TypeIds.Constant), async () => {
       const objs = await serialize(..._constants);
@@ -797,82 +818,93 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
-          RootRef 2
-          RootRef 1
-        ]
-        1 Object [
-          String "obj1"
-          RootRef 2
+          Object [
+            String "self"
+            RootRef 1
+            String "obj2"
+            Object [
+              String "obj1"
+              RootRef 1
+              RootRef 2
+              RootRef 3
+            ]
+          ]
           RootRef 3
-          RootRef 1
         ]
-        2 Object [
-          RootRef 3
-          RootRef 2
-          String "obj2"
-          RootRef 1
-        ]
-        3 String "self"
-        (74 chars)"
+        1 RootRef "0 0"
+        2 RootRef "0 0 0"
+        3 RootRef "0 0 3"
+        (90 chars)"
       `);
     });
     it('should scan Promise results', async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1));
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 Promise [
+        0 ForwardRef 0
+        1 ForwardRef 1
+        2 Promise [
           Constant true
-          RootRef 2
+          Object [
+            String "shared"
+            Number 1
+          ]
         ]
-        1 Promise [
+        3 Promise [
           Constant false
-          RootRef 2
+          RootRef 4
         ]
-        2 Object [
-          String "shared"
-          Number 1
+        4 RootRef "2 1"
+        5 ForwardRefs [
+          2
+          3
         ]
-        (47 chars)"
+        (67 chars)"
       `);
-      expect(objs).toHaveLength(3 * 2);
+      expect(objs).toHaveLength(6 * 2);
     });
     it('should await Promises in Promises', async () => {
       const objs = await serialize(Promise.resolve({ hi: Promise.resolve(shared1) }));
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 Promise [
+        0 ForwardRef 0
+        1 Promise [
           Constant true
           Object [
             String "hi"
-            Promise [
-              Constant true
-              Object [
-                String "shared"
-                Number 1
-              ]
-            ]
+            ForwardRef 1
           ]
         ]
-        (51 chars)"
+        2 Promise [
+          Constant true
+          Object [
+            String "shared"
+            Number 1
+          ]
+        ]
+        3 ForwardRefs [
+          1
+          2
+        ]
+        (67 chars)"
       `);
     });
     it('should dedupe function sub-data', async () => {
       const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, null, [shared1]));
       expect(dumpState(objs)).toMatchInlineSnapshot(`
-        "
-        0 Array [
-          RootRef 2
-        ]
-        1 QRL 3
-        2 Object [
+      "
+      0 Array [
+        Object [
           String "shared"
           Number 1
         ]
-        3 String "mock-chunk#foo[2]"
-        (56 chars)"
+      ]
+      1 QRL "mock-chunk#foo[0 0]"
+      2 RootRef "0 0"
+      (58 chars)"
       `);
       // make sure shared1 is only serialized once
-      expect(objs[1]).toEqual([TypeIds.RootRef, 2]);
+      expect([objs[4], objs[5]]).toEqual([TypeIds.RootRef, '0 0']);
     });
   });
 
@@ -963,8 +995,49 @@ describe('shared-serialization', () => {
       const state = await serialize(new Foo());
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
-        0 String "promise"
-        (13 chars)"
+        0 ForwardRef 0
+        1 String "promise"
+        2 ForwardRefs [
+          1
+        ]
+        (23 chars)"
+      `);
+    });
+    it('should object returned from SerializerSymbol and from promise be the same', async () => {
+      const obj = {
+        test: 'test',
+      };
+      const promise = Promise.resolve(obj);
+      class Foo {
+        hi = obj;
+        async [SerializerSymbol]() {
+          return Promise.resolve(this.hi);
+        }
+      }
+      const state = await serialize([promise, new Foo()]);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          ForwardRef 0
+          ForwardRef 1
+        ]
+        1 Promise [
+          Constant true
+          Object [
+            String "test"
+            RootRef 2
+          ]
+        ]
+        2 RootRef "1 1 0"
+        3 Object [
+          RootRef 2
+          RootRef 2
+        ]
+        4 ForwardRefs [
+          1
+          3
+        ]
+        (71 chars)"
       `);
     });
   });

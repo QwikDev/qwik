@@ -33,9 +33,9 @@ import { TreeshakingApp } from "./components/treeshaking/treeshaking";
 import { TwoListeners } from "./components/two-listeners/twolisteners";
 import { UseId } from "./components/useid/useid";
 import { Watch } from "./components/watch/watch";
+import { QRL } from "./components/qrl/qrl";
 
 import "./global.css";
-import { QRL } from "./components/qrl/qrl";
 
 const tests: Record<string, FunctionComponent> = {
   "/e2e/two-listeners": () => <TwoListeners />,

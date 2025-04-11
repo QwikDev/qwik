@@ -1,11 +1,49 @@
-import { $, component$, useComputed$, useSignal } from "@qwik.dev/core";
+import {
+  $,
+  component$,
+  useComputed$,
+  useSignal,
+  useVisibleTask$,
+} from "@qwik.dev/core";
 
 export const QRL = component$(() => {
+  const render = useSignal(0);
   return (
     <>
-      <ShouldResolveInnerComputedQRL />
+      <button id="rerender" onClick$={() => render.value++}>
+        rerender {render.value}
+      </button>
+      <div key={render.value}>
+        <ShouldResolveComputedQRL />
+        <ShouldResolveInnerComputedQRL />
+      </div>
     </>
   );
+});
+
+export const ShouldResolveComputedQRL = component$(() => {
+  const computedCounter = useSignal(0);
+  const text = useComputed$(() => {
+    computedCounter.value++;
+    return "";
+  });
+
+  return (
+    <>
+      <span id="computed-counter">{computedCounter.value}</span>
+      <Test text={text} />
+    </>
+  );
+});
+
+export const Test = component$<any>(({ text }) => {
+  const visibleCounter = useSignal(0);
+  useVisibleTask$(async () => {
+    visibleCounter.value++;
+    text.value;
+  });
+
+  return <div id="visible-counter">{visibleCounter.value}</div>;
 });
 
 export const ShouldResolveInnerComputedQRL = component$(() => {

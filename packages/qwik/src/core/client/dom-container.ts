@@ -8,7 +8,12 @@ import { emitEvent } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
-import { inflateQRL, parseQRL, wrapDeserializerProxy } from '../shared/shared-serialization';
+import {
+  TypeIds,
+  inflateQRL,
+  parseQRL,
+  wrapDeserializerProxy,
+} from '../shared/shared-serialization';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
@@ -155,11 +160,16 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
 
+    this.$qFuncs$ = getQFuncs(document, this.$instanceHash$) || EMPTY_ARRAY;
+    this.$setServerData$();
+    element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
+    element.qContainer = this;
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$scheduleQRLs$();
     }
   }
 
@@ -370,5 +380,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     }
     this.$serverData$ = { containerAttributes };
+  }
+
+  /**
+   * Schedule all computed signals to be inflated. This is done after at the time of DomContainer
+   * creation to ensure that all computed signals are inflated and QRLs are resolved before any
+   * signals are used. This is necessary because if a computed QRL is not resolved, it will throw a
+   * promise and we will have to rerun the entire function, which we want to avoid.
+   */
+  private $scheduleQRLs$(): void {
+    const deserializeValue = <T>(i: number) => {
+      return this.$stateData$[i / 2] as T;
+    };
+    for (let i = 0; i < this.$rawStateData$.length; i += 2) {
+      const type = this.$rawStateData$[i];
+      if (type === TypeIds.ComputedSignal) {
+        // use deserializer proxy to inflate the computed signal and schedule computed QRL
+        deserializeValue(i);
+      }
+    }
   }
 }

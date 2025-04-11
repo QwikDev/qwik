@@ -11,7 +11,7 @@ import type { PrefetchResource } from '../../server/types';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { ResourceReturnInternal } from '../use/use-resource';
-import type { Signal } from '../signal/signal.public';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { VNodeData } from '../../server/vnode-data';
 
 export type SsrAttrKey = string;

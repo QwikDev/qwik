@@ -9,16 +9,17 @@ import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-t
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { delay, isPromise, safeCall } from '../shared/utils/promises';
 import { isFunction, isObject } from '../shared/utils/types';
-import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
+import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/impl/store';
 import { useSequentialScope } from './use-sequential-scope';
-import { EffectProperty, isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import { clearAllEffects } from '../signal/signal-cleanup';
+import { isSignal } from '../reactive-primitives/utils';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { ResourceEvent } from '../shared/utils/markers';
 import { assertDefined } from '../shared/error/assert';
 import { noSerialize } from '../shared/utils/serialize-utils';
 import { ChoreType } from '../shared/util-chore-type';
-import { getSubscriber } from '../signal/subscriber';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import { EffectProperty, StoreFlags } from '../reactive-primitives/types';
 
 const DEBUG: boolean = false;
 
@@ -185,7 +186,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource) && resource.value) {
+  if (isResourceReturn(resource)) {
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
       // create a subscription for the resource._state changes
@@ -204,10 +205,16 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    return resource.value.then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = resource.value;
+    if (value) {
+      return value.then(
+        useBindInvokeContext(props.onResolved),
+        useBindInvokeContext(props.onRejected)
+      );
+    } else {
+      // this is temporary value until the `runResource` is executed and promise is assigned to the value
+      return Promise.resolve(undefined);
+    }
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),

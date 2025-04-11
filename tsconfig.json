@@ -12,7 +12,6 @@
     "outDir": "./dist-dev/tsc-out",
     "declarationDir": "./dist-dev/dts-out",
     "strict": true,
-    "verbatimModuleSyntax": true,
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true,

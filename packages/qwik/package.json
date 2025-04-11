@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.8",
+  "version": "2.0.0-alpha.9",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -18,7 +18,7 @@
     "kleur": "4.1.5",
     "prettier": "3.4.2",
     "ts-morph": "23.0.0",
-    "vitest": "3.0.8"
+    "vitest": "3.1.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -157,7 +157,6 @@
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
-    "Builder.io",
     "framework",
     "generator",
     "prerender",
@@ -167,14 +166,20 @@
     "static-site",
     "static-site-generator",
     "webapp",
-    "website"
+    "website",
+    "javascript streaming",
+    "lazy execution",
+    "resumability",
+    "resumable",
+    "performance",
+    "Automatic Optimization"
   ],
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "*",
-    "vite": "^5",
-    "vitest": "^2"
+    "vite": ">=5 <7",
+    "vitest": ">=2 <3"
   },
   "peerDependenciesMeta": {
     "vitest": {

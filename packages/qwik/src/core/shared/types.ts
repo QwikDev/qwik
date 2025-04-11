@@ -56,6 +56,7 @@ export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
+  vNode?: WeakRef<VNode>;
 }
 
 export type qWindow = Window & {
@@ -77,7 +78,7 @@ export type QwikLoaderEventScope = '-document' | '-window' | '';
  */
 export const DEBUG_TYPE = 'q:type';
 
-export enum VirtualType {
+export const enum VirtualType {
   Virtual = 'V',
   Fragment = 'F',
   WrappedSignal = 'S',

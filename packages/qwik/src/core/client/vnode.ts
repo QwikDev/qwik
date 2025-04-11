@@ -121,7 +121,13 @@ import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
+import {
+  DEBUG_TYPE,
+  QContainerValue,
+  VirtualType,
+  VirtualTypeName,
+  type QElement,
+} from '../shared/types';
 import { isText } from '../shared/utils/element';
 import {
   dangerouslySetInnerHTML,
@@ -169,7 +175,7 @@ import {
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
 import { mergeMaps } from '../shared/utils/maps';
-import { _EFFECT_BACK_REF } from '../signal/flags';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -210,6 +216,7 @@ export const vnode_newElement = (element: Element, elementName: string): Element
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
+  (element as QElement).vNode = new WeakRef(vnode);
   return vnode;
 };
 
@@ -228,6 +235,7 @@ export const vnode_newUnMaterializedElement = (element: Element): ElementVNode =
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
+  (element as QElement).vNode = new WeakRef(vnode);
   return vnode;
 };
 
@@ -670,6 +678,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     refElement = qVNodeRefs.get(elementOffset)!;
   } else {
     refElement = id;
+
+    const vNode = (refElement as QElement).vNode?.deref();
+    if (vNode) {
+      return vNode;
+    }
   }
   assertDefined(refElement, 'Missing refElement.');
   if (!vnode_isVNode(refElement)) {

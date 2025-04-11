@@ -1,4 +1,4 @@
-import { WrappedSignal } from '../../signal/signal';
+import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 
 /** @internal */
 export const _fnSignal = <T extends (...args: any) => any>(
@@ -6,5 +6,5 @@ export const _fnSignal = <T extends (...args: any) => any>(
   args: Parameters<T>,
   fnStr?: string
 ) => {
-  return new WrappedSignal(null, fn, args, fnStr || null);
+  return new WrappedSignalImpl(null, fn, args, fnStr || null);
 };

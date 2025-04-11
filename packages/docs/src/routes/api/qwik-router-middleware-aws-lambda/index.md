@@ -23,17 +23,17 @@ export declare function createQwikRouter(opts: AwsOpt): {
   fixPath: (pathT: string) => string;
   router: (
     req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse<import("http").IncomingMessage>,
+    res: import("http").ServerResponse,
     next: import("@qwik.dev/router/middleware/node").NodeRequestNextFunction,
   ) => Promise<void>;
   staticFile: (
     req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse<import("http").IncomingMessage>,
+    res: import("http").ServerResponse,
     next: (e?: any) => void,
   ) => Promise<void>;
   notFound: (
     req: import("http").IncomingMessage | import("http2").Http2ServerRequest,
-    res: import("http").ServerResponse<import("http").IncomingMessage>,
+    res: import("http").ServerResponse,
     next: (e: any) => void,
   ) => Promise<void>;
   handle: (req: any, res: any) => void;
@@ -67,7 +67,7 @@ AwsOpt
 </tbody></table>
 **Returns:**
 
-{ fixPath: (pathT: string) =&gt; string; router: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: import("@qwik.dev/router/middleware/node").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse&lt;import("http").IncomingMessage&gt;, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }
+{ fixPath: (pathT: string) =&gt; string; router: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse, next: import("@qwik.dev/router/middleware/node").NodeRequestNextFunction) =&gt; Promise&lt;void&gt;; staticFile: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse, next: (e?: any) =&gt; void) =&gt; Promise&lt;void&gt;; notFound: (req: import("http").IncomingMessage \| import("http2").Http2ServerRequest, res: import("http").ServerResponse, next: (e: any) =&gt; void) =&gt; Promise&lt;void&gt;; handle: (req: any, res: any) =&gt; void; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/aws-lambda/index.ts)
 

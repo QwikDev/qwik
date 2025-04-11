@@ -10,21 +10,21 @@ import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, isSignal } from '../signal/signal';
-import { BackRef, clearAllEffects } from '../signal/signal-cleanup';
-import { type Signal } from '../signal/signal.public';
+import { isSignal } from '../reactive-primitives/utils';
+import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
+import { type Signal } from '../reactive-primitives/signal.public';
 import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
-import { getSubscriber } from '../signal/subscriber';
+import { getSubscriber } from '../reactive-primitives/subscriber';
 import {
-  STORE_ALL_PROPS,
   addStoreEffect,
   getStoreHandler,
   getStoreTarget,
   isStore,
-} from '../signal/store';
+} from '../reactive-primitives/impl/store';
+import { EffectProperty, STORE_ALL_PROPS } from '../reactive-primitives/types';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,

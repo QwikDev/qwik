@@ -821,10 +821,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     this.openElement('script', ['type', 'qwik/state']);
-    return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
-      return maybeThen(this.serializationCtx.$serialize$(), () => {
-        this.closeElement();
-      });
+    return maybeThen(this.serializationCtx.$serialize$(), () => {
+      this.closeElement();
     });
   }
 

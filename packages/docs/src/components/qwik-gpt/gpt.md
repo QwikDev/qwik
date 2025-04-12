@@ -50,7 +50,7 @@ export const MyComponent = component$((props: MyComponentProps) => {
       <header>
         <button
           class={{
-            'button': true,
+            button: true,
             [styles.darkMode]: darkMode.value, // Conditional classes are supported
           }}
           onClick$={toggleDarkMode}
@@ -59,26 +59,22 @@ export const MyComponent = component$((props: MyComponentProps) => {
         </button>
       </header>
       <main class={styles.main}>
-        <button onClick$={() => {
-          // Event handlers have the `$` suffix.
-          count.value = count.value + props.step;
-        }}>
+        <button
+          onClick$={() => {
+            // Event handlers have the `$` suffix.
+            count.value = count.value + props.step;
+          }}
+        >
           Count: {count.value}
         </button>
-        <MyOtherComponent>
-          {count.value > 10 && <p>Count is greater than 10</p>}
-        </MyOtherComponent>
+        <MyOtherComponent>{count.value > 10 && <p>Count is greater than 10</p>}</MyOtherComponent>
         <ul>
           {US_PRESIDENTS.map((president) => (
-            <li key={president.id}>
-              {president.name}
-            </li>
+            <li key={president.id}>{president.name}</li>
           ))}
         </ul>
       </main>
-      <footer>
-        Seconds: {seconds.value}
-      </footer>
+      <footer>Seconds: {seconds.value}</footer>
     </>
   );
 });
@@ -101,7 +97,7 @@ export const useUserData = routeLoader$(async (requestEvent) => {
   return {
     name: user.name,
     email: user.email,
-  }
+  };
 });
 
 export default component$(() => {

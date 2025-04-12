@@ -44,3 +44,9 @@ packages/qwik-labs/vite
 # TODO: Figure out why this doesn't pass in CI
 packages/qwik/src/core/props/props.ts
 packages/docs/src/routes/docs/overview/index.mdx
+
+# insights cache files
+**/q-insights.json
+
+# Exclude builder js files from formatting - delete after migration
+packages/docs/public/builder

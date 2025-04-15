@@ -4,11 +4,12 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import { getPlatform } from '../shared/platform/platform';
-import { emitEvent } from '../shared/qrl/qrl-class';
+import { emitEvent, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
 import {
+  getObjectById,
   inflateQRL,
   parseQRL,
   preprocessState,
@@ -118,6 +119,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
+  public $initialQRLsIndexes$: Array<number> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $stateData$: unknown[];
@@ -167,6 +169,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       preprocessState(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+      this.$scheduleInitialQRLs$();
     }
   }
 
@@ -323,14 +326,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   $getObjectById$ = (id: number | string): unknown => {
-    if (typeof id === 'string') {
-      id = parseFloat(id);
-    }
-    assertTrue(
-      id < this.$rawStateData$.length / 2,
-      `Invalid reference: ${id} >= ${this.$rawStateData$.length / 2}`
-    );
-    return this.$stateData$[id];
+    return getObjectById(id, this.$stateData$);
   };
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
@@ -377,5 +373,18 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     }
     this.$serverData$ = { containerAttributes };
+  }
+
+  private $scheduleInitialQRLs$(): void {
+    if (this.$initialQRLsIndexes$) {
+      for (const index of this.$initialQRLsIndexes$) {
+        this.$scheduler$(
+          ChoreType.QRL_RESOLVE,
+          null,
+          this.$getObjectById$(index) as QRLInternal<(...args: unknown[]) => unknown>
+        );
+      }
+      this.$initialQRLsIndexes$ = null;
+    }
   }
 }

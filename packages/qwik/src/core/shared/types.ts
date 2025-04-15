@@ -11,6 +11,7 @@ export interface DeserializeContainer {
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
   readonly $scheduler$: Scheduler | null;
 }
 

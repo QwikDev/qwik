@@ -292,7 +292,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorInputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferInput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferInput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.input<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.getvalidatorinputtype.md"
     },
@@ -306,7 +306,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
+      "content": "```typescript\nexport type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> = VALIDATOR extends StandardSchemaDataValidator<infer TYPE> ? StandardSchemaV1.InferOutput<TYPE> : VALIDATOR extends ValibotDataValidator<infer TYPE> ? v.InferOutput<TYPE> : VALIDATOR extends ZodDataValidator<infer TYPE> ? z.output<TYPE> : never;\n```\n**References:** [TypedDataValidator](#typeddatavalidator)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.getvalidatoroutputtype.md"
     },
@@ -717,6 +717,20 @@
       "mdFile": "qwik-city.routeroutlet.md"
     },
     {
+      "name": "schema$",
+      "id": "schema_",
+      "hierarchy": [
+        {
+          "name": "schema$",
+          "id": "schema_"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nschema$: StandardSchemaConstructor\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.schema_.md"
+    },
+    {
       "name": "server$",
       "id": "server_",
       "hierarchy": [
@@ -787,6 +801,20 @@
       "mdFile": "qwik-city.serviceworkerregister.md"
     },
     {
+      "name": "standardSchemaQrl",
+      "id": "standardschemaqrl",
+      "hierarchy": [
+        {
+          "name": "standardSchemaQrl",
+          "id": "standardschemaqrl"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nstandardSchemaQrl: StandardSchemaConstructorQRL\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts",
+      "mdFile": "qwik-city.standardschemaqrl.md"
+    },
+    {
       "name": "StaticGenerate",
       "id": "staticgenerate",
       "hierarchy": [
@@ -838,7 +866,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type TypedDataValidator = ValibotDataValidator | ZodDataValidator;\n```",
+      "content": "```typescript\nexport type TypedDataValidator = StandardSchemaDataValidator | ValibotDataValidator | ZodDataValidator;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts",
       "mdFile": "qwik-city.typeddatavalidator.md"
     },

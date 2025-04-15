@@ -1388,11 +1388,13 @@ T
 
 ```typescript
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferInput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferInput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.input<TYPE>
+        : never;
 ```
 
 **References:** [TypedDataValidator](#typeddatavalidator)
@@ -1403,11 +1405,13 @@ export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
 
 ```typescript
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferOutput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferOutput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.output<TYPE>
+        : never;
 ```
 
 **References:** [TypedDataValidator](#typeddatavalidator)
@@ -2173,6 +2177,14 @@ RouterOutlet: import("@builder.io/qwik").Component<unknown>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/router-outlet-component.tsx)
 
+## schema$
+
+```typescript
+schema$: StandardSchemaConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
 ## server$
 
 ```typescript
@@ -2306,6 +2318,14 @@ JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx)
 
+## standardSchemaQrl
+
+```typescript
+standardSchemaQrl: StandardSchemaConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
 ## StaticGenerate
 
 ```typescript
@@ -2373,7 +2393,10 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 ## TypedDataValidator
 
 ```typescript
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator =
+  | StandardSchemaDataValidator
+  | ValibotDataValidator
+  | ZodDataValidator;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)

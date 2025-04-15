@@ -70,6 +70,9 @@ importers:
       '@playwright/test':
         specifier: 1.50.1
         version: 1.50.1
+      '@standard-schema/spec':
+        specifier: 1.0.0
+        version: 1.0.0
       '@types/brotli':
         specifier: 1.3.4
         version: 1.3.4
@@ -242,8 +245,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       zod:
-        specifier: 3.22.4
-        version: 3.22.4
+        specifier: 3.24.2
+        version: 3.24.2
 
   e2e/adapters-e2e: {}
 
@@ -558,8 +561,8 @@ importers:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(lightningcss@1.29.1)(terser@5.31.3)
       zod:
-        specifier: 3.22.4
-        version: 3.22.4
+        specifier: 3.24.2
+        version: 3.24.2
 
   packages/qwik:
     dependencies:
@@ -638,8 +641,8 @@ importers:
         specifier: ^7
         version: 7.0.4(rollup@4.39.0)
       zod:
-        specifier: 3.22.4
-        version: 3.22.4
+        specifier: 3.24.2
+        version: 3.24.2
     devDependencies:
       '@azure/functions':
         specifier: 3.5.1
@@ -761,8 +764,8 @@ importers:
         specifier: 5.3.5
         version: 5.3.5(@types/node@20.14.11)(lightningcss@1.29.1)(terser@5.31.3)
       zod:
-        specifier: 3.22.4
-        version: 3.22.4
+        specifier: 3.24.2
+        version: 3.24.2
 
   packages/qwik-react:
     devDependencies:
@@ -1111,6 +1114,7 @@ packages:
 
   '@effect/schema@0.66.5':
     resolution: {integrity: sha512-xfu5161JyrfAS1Ruwv0RXd4QFiCALbm3iu9nlW9N9K+52wbS0WdO6XUekPZ9V/O7LN+XmlIh5Y9xhJaIWCZ/gw==}
+    deprecated: this package has been merged into the main effect package
     peerDependencies:
       effect: ^3.0.3
       fast-check: ^3.13.2
@@ -3335,6 +3339,9 @@ packages:
   '@sindresorhus/transliterate@1.6.0':
     resolution: {integrity: sha512-doH1gimEu3A46VX6aVxpHTeHrytJAG6HgdxntYnCFiIFHEM/ZGpG8KiZGBChchjQmG0XFIBL552kBTjVcMZXwQ==}
     engines: {node: '>=12'}
+
+  '@standard-schema/spec@1.0.0':
+    resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
 
   '@supabase/auth-helpers-shared@0.6.3':
     resolution: {integrity: sha512-xYQRLFeFkL4ZfwC7p9VKcarshj3FB2QJMgJPydvOY7J5czJe6xSG5/wM1z63RmAzGbCkKg+dzpq61oeSyWiGBQ==}
@@ -9419,6 +9426,9 @@ packages:
   ufo@1.5.4:
     resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
 
+  ufo@1.6.1:
+    resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
+
   uid-safe@2.1.5:
     resolution: {integrity: sha512-KPHm4VL5dDXKz01UuEd88Df+KzynaohSL9fBh096KWAxSKZQDI2uBrVqtvRM4rwrIrRRKsdLNML/lnaaVSRioA==}
     engines: {node: '>= 0.8'}
@@ -10020,11 +10030,11 @@ packages:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
 
-  zod@3.22.4:
-    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
-
   zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+
+  zod@3.24.2:
+    resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -11936,7 +11946,7 @@ snapshots:
       unixify: 1.0.0
       urlpattern-polyfill: 8.0.2
       yargs: 17.7.2
-      zod: 3.23.8
+      zod: 3.24.2
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -12365,6 +12375,8 @@ snapshots:
   '@sindresorhus/transliterate@1.6.0':
     dependencies:
       escape-string-regexp: 5.0.0
+
+  '@standard-schema/spec@1.0.0': {}
 
   '@supabase/auth-helpers-shared@0.6.3(@supabase/supabase-js@2.44.4)':
     dependencies:
@@ -15592,7 +15604,7 @@ snapshots:
       iron-webcrypto: 1.0.0
       ohash: 1.1.3
       radix3: 1.1.0
-      ufo: 1.5.4
+      ufo: 1.6.1
       uncrypto: 0.1.3
       unenv: 1.10.0
 
@@ -16478,7 +16490,7 @@ snapshots:
       node-forge: 1.3.1
       pathe: 1.1.2
       std-env: 3.7.0
-      ufo: 1.5.4
+      ufo: 1.6.1
       untun: 0.1.3
       uqr: 0.1.2
 
@@ -17214,7 +17226,7 @@ snapshots:
       workerd: 1.20240718.0
       ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@5.0.10)
       youch: 3.3.3
-      zod: 3.22.4
+      zod: 3.24.2
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -17687,7 +17699,7 @@ snapshots:
     dependencies:
       destr: 2.0.3
       node-fetch-native: 1.6.6
-      ufo: 1.5.4
+      ufo: 1.6.1
 
   ohash@1.1.3: {}
 
@@ -19530,6 +19542,8 @@ snapshots:
 
   ufo@1.5.4: {}
 
+  ufo@1.6.1: {}
+
   uid-safe@2.1.5:
     dependencies:
       random-bytes: 1.0.0
@@ -19567,7 +19581,7 @@ snapshots:
       mime: 3.0.0
       node-fetch-native: 1.6.6
       pathe: 1.1.2
-      ufo: 1.5.4
+      ufo: 1.6.1
 
   unenv@1.10.0:
     dependencies:
@@ -19657,7 +19671,7 @@ snapshots:
       mri: 1.2.0
       node-fetch-native: 1.6.6
       ofetch: 1.3.3
-      ufo: 1.5.4
+      ufo: 1.6.1
     optionalDependencies:
       '@netlify/blobs': 8.1.0
     transitivePeerDependencies:
@@ -20206,8 +20220,8 @@ snapshots:
       compress-commons: 6.0.2
       readable-stream: 4.5.2
 
-  zod@3.22.4: {}
-
   zod@3.23.8: {}
+
+  zod@3.24.2: {}
 
   zwitch@2.0.4: {}

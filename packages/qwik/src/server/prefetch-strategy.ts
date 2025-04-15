@@ -65,10 +65,10 @@ export const expandBundles = (names: string[], resolvedManifest?: ResolvedManife
 
   resetQueue();
 
-  let probability = 0.8;
+  let probability = 0.99;
   for (const name of names) {
     preload(name, probability);
-    // later bundles have less probability
+    // later symbols have less probability
     probability *= 0.95;
   }
 

@@ -16,11 +16,18 @@ FEAT: Major improvements to prefetching with automatic bundle preloading
 
 ⚠️ **ATTENTION:**
 
-**Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+- **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+- **Configure** your server to provide long caching headers.
+
+Service Worker:
 
 This new implementation will use it to uninstall the current service worker to reduce the unnecessary duplication.
 
 The builtin service workers components are deprecated but still exist for backwards compatibility.
+
+Caching Headers:
+
+The bundles under build/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/**/*.js` with `Cache-Control: public, max-age=31536000, immutable`.
 
 ---
 
@@ -52,3 +59,4 @@ npm run qwik add service-worker
 ```
 
 This will add a basic service worker setup that you can customize for specific caching strategies, offline support, or other PWA features beyond just prefetching.
+

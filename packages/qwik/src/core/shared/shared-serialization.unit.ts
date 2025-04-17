@@ -495,20 +495,17 @@ describe('shared-serialization', () => {
       const objs = await serialize(custom);
       expect(dumpState(objs)).toMatchInlineSnapshot(`
       "
-      0 SerializerSignal [
-        RootRef 1
+      0 ForwardRef 0
+      1 SerializerSignal [
+        QRL 2
         Constant null
-        ForwardRef 0
-      ]
-      1 QRL "mock-chunk#custom_createSerializer_qrl"
-      2 Promise [
-        Constant true
         Number 4
       ]
+      2 String "mock-chunk#custom_createSerializer_qrl"
       3 ForwardRefs [
-        2
+        1
       ]
-      (81 chars)"
+      (72 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -899,9 +896,9 @@ describe('shared-serialization', () => {
           Number 1
         ]
       ]
-      1 QRL "mock-chunk#foo[0 0]"
+      1 QRL "mock-chunk#foo[2]"
       2 RootRef "0 0"
-      (58 chars)"
+      (56 chars)"
       `);
       // make sure shared1 is only serialized once
       expect([objs[4], objs[5]]).toEqual([TypeIds.RootRef, '0 0']);

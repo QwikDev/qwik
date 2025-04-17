@@ -3651,7 +3651,7 @@ opts
 </tbody></table>
 **Returns:**
 
-JSXNode&lt;'script'&gt;
+[JSXNode](#jsxnode)&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 

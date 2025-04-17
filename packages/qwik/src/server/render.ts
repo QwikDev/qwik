@@ -5,7 +5,7 @@ import type { QContext } from '../core/state/context';
 import { QInstance } from '../core/util/markers';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
-import { includePreloader } from './prefetch-implementation';
+import { includePreloader } from './preload-impl';
 import { getPreloadPaths } from './prefetch-strategy';
 import { getQwikLoaderScript } from './scripts';
 import type {
@@ -129,7 +129,14 @@ export async function renderToStream(
   await setServerPlatform(opts, resolvedManifest);
   const bundleGraph = resolvedManifest?.manifest.bundleGraph;
   if (bundleGraph) {
-    initPreloader(bundleGraph);
+    const preloaderOpts: Parameters<typeof initPreloader>[1] =
+      typeof opts.preloader === 'object'
+        ? {
+            debug: opts.preloader.debug,
+            preloadProbability: opts.preloader.ssrPreloadProbability,
+          }
+        : undefined;
+    initPreloader(bundleGraph, preloaderOpts);
   }
 
   const injections = resolvedManifest?.manifest.injections;
@@ -178,15 +185,16 @@ export async function renderToStream(
       snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const children: (JSXNode | null)[] = [];
-      if (opts.prefetchStrategy !== null) {
+      if (opts.preloader !== false) {
         // skip prefetch implementation if prefetchStrategy === null
         const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
         const base = containerAttributes['q:base']!;
+        // If no preloadBundles, there is no reactivity, so no need to include the preloader
         if (preloadBundles.length > 0) {
           const prefetchImpl = includePreloader(
             base,
             resolvedManifest,
-            opts.prefetchStrategy,
+            opts.preloader,
             preloadBundles,
             opts.serverData?.nonce
           );

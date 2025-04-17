@@ -31,21 +31,20 @@ The bundles under build/ are named with their content hash and may therefore be 
 
 ---
 
-You can configure the prefetch behavior in your SSR configuration:
+You can configure the preload behavior in your SSR configuration:
 
 ```ts
 // entry.ssr.ts
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    prefetchStrategy: {
-      implementation: {
-        // Enable debug logging for prefetch operations
-        debug: true,
-        // Maximum simultaneous preload links
-        maxSimultaneousPreloads: 5,
-        // Minimum probability threshold for preloading
-        minPreloadProbability: 0.25
-      },
+    preload: {
+      // Enable debug logging for preload operations
+      debug: true,
+      // Maximum simultaneous preload links
+      maxBufferPreloads: 5,
+      // Minimum probability threshold for preloading
+      preloadProbability: 0.25
+      // ...and more, see the type JSDoc on hover
     },
     ...opts,
   });

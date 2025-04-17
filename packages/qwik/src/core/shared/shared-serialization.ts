@@ -877,7 +877,9 @@ class ResourceResult extends PromiseResult {
 class SerializerResult extends PromiseResult {
   constructor(
     public $resolved$: boolean,
-    public $value$: unknown
+    public $value$: unknown,
+    public $effects$: null | Set<EffectSubscription>,
+    public $qrl$: QRLInternal | null
   ) {
     super($resolved$, $value$);
   }
@@ -1126,7 +1128,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       const result = value[SerializerSymbol](value);
       if (isPromise(result)) {
         const forwardRef = $resolvePromise$(result, $addRoot$, (resolved, resolvedValue) => {
-          return new SerializerResult(resolved, resolvedValue);
+          return new SerializerResult(resolved, resolvedValue, null, null);
         });
         output(TypeIds.ForwardRef, forwardRef);
       } else {
@@ -1154,13 +1156,27 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
       output(TypeIds.RefVNode, value.$ssrNode$.id);
     } else if (value instanceof SignalImpl) {
+      if (value instanceof SerializerSignalImpl) {
+        const forwardRefId = $resolvePromise$(
+          $getCustomSerializerPromise$(value, value.$untrackedValue$),
+          $addRoot$,
+          (resolved, resolvedValue) => {
+            return new SerializerResult(
+              resolved,
+              resolvedValue,
+              value.$effects$,
+              value.$computeQrl$
+            );
+          }
+        );
+        output(TypeIds.ForwardRef, forwardRefId);
+        return;
+      }
       /**
        * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
        * It can never be meant to become a vNode, because vNodes are internal only.
        */
-      const isSerialized = value instanceof SerializerSignalImpl;
       const v: unknown =
-        !isSerialized &&
         value instanceof ComputedSignalImpl &&
         (value.$flags$ & SignalFlags.INVALID || fastSkipSerialize(value.$untrackedValue$))
           ? NEEDS_COMPUTATION
@@ -1182,13 +1198,9 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           value.$effects$,
         ];
         if (v !== NEEDS_COMPUTATION) {
-          if (isSerialized) {
-            out.push($getCustomSerializerPromise$(value, v));
-          } else {
-            out.push(v);
-          }
+          out.push(v);
         }
-        output(isSerialized ? TypeIds.SerializerSignal : TypeIds.ComputedSignal, out);
+        output(TypeIds.ComputedSignal, out);
       } else {
         output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
@@ -1276,7 +1288,9 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       if (value instanceof ResourceResult) {
         output(TypeIds.Resource, [value.$resolved$, value.$value$, value.$effects$]);
       } else if (value instanceof SerializerResult) {
-        if (value.$resolved$) {
+        if (value.$qrl$) {
+          output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
+        } else if (value.$resolved$) {
           writeValue(value.$value$);
         } else {
           console.error(value.$value$);

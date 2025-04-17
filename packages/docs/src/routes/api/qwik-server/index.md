@@ -210,6 +210,10 @@ export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
 ## PrefetchImplementation
 
+> Warning: This API is now obsolete.
+>
+> Use `preloader` instead
+
 ```typescript
 export interface PrefetchImplementation
 ```
@@ -233,23 +237,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[debug?](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ If true, the preloader will log debug information to the console.
-
-Defaults to `false`
-
-</td></tr>
-<tr><td>
-
 [linkFetchPriority?](#)
 
 </td><td>
@@ -260,7 +247,7 @@ Defaults to `false`
 
 </td><td>
 
-_(Optional)_ Value of the `<link fetchpriority="...">` attribute when links are added. Defaults to `null`.
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -290,77 +277,7 @@ _(Optional)_
 
 </td><td>
 
-_(Optional)_ Value of the `<link rel="...">` attribute when links are added. The preloader itself will autodetect which attribute to use based on the browser capabilities.
-
-Defaults to `modulepreload`.
-
-</td></tr>
-<tr><td>
-
-[maxPreloads?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This includes the 2 preloads used for the preloader script itself and the bundle information. Setting this to 0 will disable all preload links.
-
-Defaults to `5`
-
-</td></tr>
-<tr><td>
-
-[maxSimultaneousPreloads?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain.
-
-Defaults to `5`
-
-</td></tr>
-<tr><td>
-
-[minPreloadProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ The minimum probability for a bundle to be added to the preload queue.
-
-Defaults to `0.25` (25% probability)
-
-</td></tr>
-<tr><td>
-
-[minProbability?](#)
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ The minimum probability of a bundle to be added as a preload link during SSR.
-
-Defaults to `0.6` (60% probability)
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -501,6 +418,122 @@ _(Optional)_
 </td><td>
 
 _(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
+
+## PreloaderOptions
+
+```typescript
+export interface PreloaderOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[debug?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Log preloader debug information to the console.
+
+Defaults to `false`
+
+</td></tr>
+<tr><td>
+
+[maxBufferPreloads?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain. If you set this higher, the browser will have all JS files in memory sooner, but it will contend with other resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait longer to be preloaded.
+
+Bundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.
+
+Defaults to `25`
+
+</td></tr>
+<tr><td>
+
+[preloadProbability?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ The minimum probability for a bundle to be added to the preload queue.
+
+Defaults to `0.35` (35% probability)
+
+</td></tr>
+<tr><td>
+
+[ssrPreloadProbability?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
+
+Defaults to `0.7` (70% probability)
+
+</td></tr>
+<tr><td>
+
+[ssrPreloads?](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This most likely includes the core and the preloader script itself. Setting this to 0 will disable all preload links.
+
+Preload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a Core Web Vital but more noticeable to the user.
+
+Defaults to `5`
 
 </td></tr>
 </tbody></table>
@@ -668,6 +701,21 @@ _(Optional)_ Language to use when rendering the document.
 </td><td>
 
 [PrefetchStrategy](#prefetchstrategy) \| null
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[preloader?](#)
+
+</td><td>
+
+</td><td>
+
+[PreloaderOptions](#preloaderoptions) \| boolean
 
 </td><td>
 

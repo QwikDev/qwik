@@ -468,8 +468,8 @@ describe('shared-serialization', () => {
           Constant null
           Number 2
         ]
-        2 QRL "mock-chunk#dirty[4]"
-        3 QRL "mock-chunk#clean[4]"
+        2 PreloadQRL "mock-chunk#dirty[4]"
+        3 PreloadQRL "mock-chunk#clean[4]"
         4 Signal [
           Number 1
         ]
@@ -496,14 +496,14 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
       "
       0 ForwardRef 0
-      1 SerializerSignal [
-        QRL 2
+      1 PreloadQRL "mock-chunk#custom_createSerializer_qrl"
+      2 SerializerSignal [
+        RootRef 1
         Constant null
         Number 4
       ]
-      2 String "mock-chunk#custom_createSerializer_qrl"
       3 ForwardRefs [
-        1
+        2
       ]
       (72 chars)"
       `);

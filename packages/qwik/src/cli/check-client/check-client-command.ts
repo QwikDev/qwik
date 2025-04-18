@@ -3,9 +3,9 @@ import fs from 'fs/promises';
 import type { Stats } from 'fs';
 import path from 'path';
 
-import { intro, log, outro, spinner } from '@clack/prompts';
+import { intro, log, outro } from '@clack/prompts';
 import { getPackageManager } from '../utils/utils';
-import { bgBlue, bgMagenta, bold, cyan, gray, green, red, yellow } from 'kleur/colors';
+import { bgBlue, bgMagenta, bold, cyan, gray, green, yellow } from 'kleur/colors';
 import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
 
@@ -128,8 +128,7 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
     log.info('Client build outdated, building...');
     reasonsForBuild.forEach((reason) => log.info(`  - ${reason}`));
 
-    const s = spinner();
-    s.start('Running client build...');
+    log.info('Running client build...');
     try {
       // Execute the build command
       // Ensure runCommand returns an object with an 'install' promise or similar structure
@@ -137,7 +136,6 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
       buildSuccess = await install; // Await the promise indicating build completion/success
 
       if (buildSuccess) {
-        s.stop(green('Client build completed successfully.'));
         // **Important:** Re-check manifest mtime after successful build
         try {
           const newStats = await fs.stat(MANIFEST_PATH);
@@ -150,12 +148,10 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
         }
       } else {
         // Handle build failure reported by runCommand
-        s.stop(red('Client build failed.'), 1);
         throw new Error('Client build command reported failure.');
       }
     } catch (buildError: any) {
       // Catch errors during the build process itself (e.g., command not found, script errors)
-      s.stop(red('Client build failed.'), 1);
       log.error(`Build error: ${buildError.message}`);
       // Throw error to indicate failure, let the caller handle exit logic if needed
       throw new Error('Client build process encountered an error.');

@@ -447,7 +447,7 @@ describe('shared-serialization', () => {
           Constant null
         ]
         2 RootRef "1 1 0 0"
-        (96 chars)"
+        (88 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

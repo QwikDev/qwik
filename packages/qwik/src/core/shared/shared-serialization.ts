@@ -712,7 +712,7 @@ export const createSerializationContext = (
     } as StreamWriter;
   }
   const seenObjsMap = new Map<unknown, SeenRef>();
-  const pathMap = new Map<unknown, string | number>();
+  const rootsPathMap = new Map<unknown, string | number>();
   const syncFnMap = new Map<string, number>();
   const syncFns: string[] = [];
   const roots: unknown[] = [];
@@ -723,14 +723,13 @@ export const createSerializationContext = (
   };
 
   const $addRootPath$ = (obj: unknown) => {
-    const rootPath = pathMap.get(obj);
+    const rootPath = rootsPathMap.get(obj);
     if (rootPath) {
       return rootPath;
     }
     const seen = seenObjsMap.get(obj);
     if (!seen) {
-      // TODO:
-      throw qError(QError.serializeErrorMissingRootId);
+      throw qError(QError.serializeErrorMissingRootId, [obj]);
     }
     const path = [];
     let current: typeof seen | undefined = seen;
@@ -745,7 +744,7 @@ export const createSerializationContext = (
     }
 
     const pathStr = path.length > 1 ? path.join(' ') : path.length ? path[0] : seen.$index$;
-    pathMap.set(obj, pathStr);
+    rootsPathMap.set(obj, pathStr);
     return pathStr;
   };
 
@@ -818,7 +817,7 @@ export const createSerializationContext = (
     $getProp$: getProp,
     $setProp$: setProp,
     $prepVNodeData$: prepVNodeData,
-    $pathMap$: pathMap,
+    $pathMap$: rootsPathMap,
   };
 };
 
@@ -1296,7 +1295,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
 
   function $resolvePromise$(
     promise: Promise<unknown>,
-    $addRoot$: (obj: unknown) => string | number,
+    $addRoot$: (obj: unknown) => number,
     classCreator: (resolved: boolean, resolvedValue: unknown) => PromiseResult
   ) {
     const forwardRefId = forwardRefsId++;
@@ -1315,44 +1314,50 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     return forwardRefId;
   }
 
-  $writer$.write('[');
+  const outputRoots = async () => {
+    $writer$.write('[');
 
-  let lastRootsLength = 0;
-  let rootsLength = serializationContext.$roots$.length;
-  while (lastRootsLength < rootsLength || promises.size) {
-    if (lastRootsLength !== 0) {
-      $writer$.write(',');
-    }
-    for (let i = lastRootsLength; i < rootsLength; i++) {
-      const root = serializationContext.$roots$[i];
-      writeValue(root);
-      const isLast = i === rootsLength - 1;
-      if (!isLast) {
+    let lastRootsLength = 0;
+    let rootsLength = serializationContext.$roots$.length;
+    while (lastRootsLength < rootsLength || promises.size) {
+      if (lastRootsLength !== 0) {
         $writer$.write(',');
       }
-    }
 
-    if (promises.size) {
-      try {
-        await Promise.race(promises);
-      } catch {
-        // ignore rejections, they will be serialized as rejected promises
+      let separator = false;
+      for (let i = lastRootsLength; i < rootsLength; i++) {
+        if (separator) {
+          $writer$.write(',');
+        } else {
+          separator = true;
+        }
+        writeValue(serializationContext.$roots$[i]);
       }
+
+      if (promises.size) {
+        try {
+          await Promise.race(promises);
+        } catch {
+          // ignore rejections, they will be serialized as rejected promises
+        }
+      }
+
+      lastRootsLength = rootsLength;
+      rootsLength = serializationContext.$roots$.length;
     }
 
-    lastRootsLength = rootsLength;
-    rootsLength = serializationContext.$roots$.length;
-  }
+    if (forwardRefs.length) {
+      $writer$.write(',');
+      $writer$.write(TypeIds.ForwardRefs + ',');
+      outputArray(forwardRefs, (value) => {
+        $writer$.write(String(value));
+      });
+    }
 
-  if (forwardRefs.length) {
-    $writer$.write(',');
-    $writer$.write(TypeIds.ForwardRefs + ',');
-    outputArray(forwardRefs, (value) => {
-      $writer$.write(String(value));
-    });
-  }
+    $writer$.write(']');
+  };
 
-  $writer$.write(']');
+  await outputRoots();
 }
 
 function $getCustomSerializerPromise$<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {

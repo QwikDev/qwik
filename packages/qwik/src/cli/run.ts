@@ -57,7 +57,7 @@ const COMMANDS = [
   {
     value: 'check-client',
     label: 'check-client',
-    hint: 'Check if the bundle is latest version',
+    hint: 'Make sure the client bundle is up-to-date with the source code',
     run: (app: AppCommand) => runQwikClientCommand(app),
     showInHelp: true,
   },

@@ -1,21 +1,18 @@
 #!/usr/bin/env node
-
 import fs from 'fs/promises';
 import type { Stats } from 'fs';
 import path from 'path';
 
-// Import Clack and Kleur for interactive prompts and colors
-import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
-import { bye, getPackageManager } from '../utils/utils'; // Assuming these utils exist
+import { intro, log, outro, spinner } from '@clack/prompts';
+import { getPackageManager } from '../utils/utils';
 import { bgBlue, bgMagenta, bold, cyan, gray, green, red, yellow } from 'kleur/colors';
-import type { AppCommand } from '../utils/app-command'; // Assuming this type exists
+import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
 
 const DISK_DIR: string = path.resolve('dist');
 const SRC_DIR: string = path.resolve('src');
 const MANIFEST_PATH: string = path.resolve(DISK_DIR, 'q-manifest.json');
-const BUILD_COMMAND: string = 'npm';
-const BUILD_ARGS: string[] = ['run', 'build'];
+const BUILD_ARGS: string[] = ['run', 'build.client'];
 
 /**
  * Recursively finds the latest modification time (mtime) of any file in the given directory.
@@ -66,7 +63,6 @@ async function getLatestMtime(directoryPath: string): Promise<number> {
  * @param {AppCommand} app - Application command context (assuming structure).
  */
 export async function checkClientCommand(app: AppCommand): Promise<void> {
-  // Display introductory message
   intro(`🚀 ${bgBlue(bold(' Qiwk Client Check '))}`);
   const pkgManager = getPackageManager();
 
@@ -75,18 +71,14 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
   let needsBuild: boolean = false;
   const reasonsForBuild: string[] = [];
 
-  // Step 1: Check the manifest file
-  log.step(`Checking manifest file: ${cyan(MANIFEST_PATH)}`);
   try {
     // Get stats for the manifest file
     const stats: Stats = await fs.stat(MANIFEST_PATH); // Use the resolved path
     manifestMtime = stats.mtimeMs;
     manifestExists = true;
-    log.info(`Manifest file found, modified: ${gray(new Date(manifestMtime).toLocaleString())}`);
   } catch (err: any) {
     // Handle errors accessing the manifest file
     if (err.code === 'ENOENT') {
-      log.warn(`Manifest file not found: ${yellow(MANIFEST_PATH)}`);
       needsBuild = true;
       reasonsForBuild.push('Manifest file not found');
     } else {
@@ -96,13 +88,10 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
     }
   }
 
-  // Step 2: Check the source directory
   log.step(`Checking source directory: ${cyan(SRC_DIR)}`);
   let latestSrcMtime: number = 0;
   try {
-    // Confirm source directory exists and is accessible
     await fs.access(SRC_DIR);
-    // Find the latest modification time within the source directory
     latestSrcMtime = await getLatestMtime(SRC_DIR);
 
     if (latestSrcMtime > 0) {
@@ -134,30 +123,11 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
     }
   }
 
-  // Step 3: Perform build if necessary
-  let buildSuccess: boolean | undefined = undefined; // Initialize build success status
+  let buildSuccess: boolean | undefined = undefined;
   if (needsBuild) {
-    log.step(yellow('Client build detected as necessary'));
-    // Log reasons why a build is needed
+    log.info('Client build outdated, building...');
     reasonsForBuild.forEach((reason) => log.info(`  - ${reason}`));
 
-    // Confirm with the user before proceeding with the build
-    const proceed: boolean | symbol = await select({
-      message: `Proceed with client build based on the reasons above (${cyan(BUILD_COMMAND + ' ' + BUILD_ARGS.join(' '))})?`,
-      options: [
-        { value: true, label: 'Yes, proceed with build', hint: 'Will run the build command' },
-        { value: false, label: 'No, cancel operation' },
-      ],
-      initialValue: true,
-    });
-
-    // Check if the user cancelled the operation
-    if (isCancel(proceed) || proceed === false) {
-      bye(); // Exit gracefully (assuming bye handles this)
-      return; // Stop further execution
-    }
-
-    // Show a spinner while the build command runs
     const s = spinner();
     s.start('Running client build...');
     try {
@@ -195,7 +165,6 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
     log.info(green('Client is up-to-date, no build needed.'));
   }
 
-  // Step 4: Check the Disk directory (usually after build)
   log.step(`Checking Disk directory: ${cyan(DISK_DIR)}`);
   try {
     // Check if the disk directory exists and is accessible
@@ -219,6 +188,5 @@ export async function checkClientCommand(app: AppCommand): Promise<void> {
     }
   }
 
-  // Display completion message
   outro(`✅ ${bgMagenta(bold(' Check complete '))}`);
 }

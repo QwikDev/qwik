@@ -47,16 +47,7 @@ export function includePreloader(
     return jsx('link', linkProps as any);
   };
 
-  const preloadChunk = manifest?.manifest.preloader;
   const manifestHash = manifest?.manifest.manifestHash;
-  if (allowed && preloadChunk) {
-    allowed--;
-    nodes.push(makeLink(base, preloadChunk!));
-    if (allowed && manifestHash) {
-      allowed--;
-      nodes.push(makeLink(base, `q-bundle-graph-${manifestHash}.js`));
-    }
-  }
   if (allowed) {
     const expandedBundles = expandBundles(referencedBundles, manifest);
     // Keep the same as in expandBundles (but *10)
@@ -76,6 +67,8 @@ export function includePreloader(
       }
     }
   }
+
+  const preloadChunk = manifestHash && manifest?.manifest.preloader;
   if (preloadChunk) {
     const opts: string[] = [];
     if (debug) {
@@ -88,16 +81,21 @@ export function includePreloader(
       opts.push(`Q:${minPreloadProbability}`);
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    const script = `let b=fetch("${base}q-bundle-graph-${manifestHash}.json");import("${base}${preloadChunk}").then(({l,p})=>{l(${JSON.stringify(base)},b${optsStr});p(${JSON.stringify(referencedBundles)});})`;
     /**
      * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
      * import the preloader as well and have all the state there, plus it makes it easy to write a
      * complex implementation.
+     *
+     * Note that we don't preload the preloader or bundlegraph, they are requested after the SSR
+     * preloads because they are not as important. Also the preloader includes the vitePreload
+     * function and will in fact already be in that list.
      */
     nodes.push(
       jsx('script', {
         type: 'module',
         'q:type': 'link-js',
-        dangerouslySetInnerHTML: `import("${base}${preloadChunk}").then(({l,p})=>{l(${JSON.stringify(base)}${manifestHash ? `,${JSON.stringify(manifestHash)}` : ''}${optsStr});p(${JSON.stringify(referencedBundles)});})`,
+        dangerouslySetInnerHTML: script,
         nonce,
       })
     );
@@ -117,7 +115,7 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  maxPreloads: import.meta.env.DEV ? 10 : 5,
+  maxPreloads: import.meta.env.DEV ? 15 : 7,
   minProbability: 0.6,
   debug: false,
   maxSimultaneousPreloads: 5,

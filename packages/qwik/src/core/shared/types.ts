@@ -10,6 +10,9 @@ export interface DeserializeContainer {
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
+  readonly $scheduler$: Scheduler | null;
 }
 
 export interface Container {

@@ -36,7 +36,7 @@ import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ChoreType } from '../core/shared/util-chore-type';
-import { dumpState } from '../core/shared/shared-serialization';
+import { dumpState, preprocessState } from '../core/shared/shared-serialization';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -134,9 +134,10 @@ export async function ssrRenderToDom(
   }
 
   const document = createDocument({ html });
-  const containerElement = document.querySelector('[q\\:container]') as _ContainerElement;
+  const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
+  await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -147,11 +148,11 @@ export async function ssrRenderToDom(
     console.log(vnode_toString.call(container.rootVNode, Number.MAX_SAFE_INTEGER, '', true));
     console.log('------------------- SERIALIZED STATE -------------------');
     // We use the original state so we don't get deserialized data
-    const origState = container.element.querySelector('script[type="qwik/state"]')?.textContent;
-    console.log(
-      origState ? dumpState(JSON.parse(origState), true, '', null) : 'No state found',
-      '\n'
+    const origState = JSON.parse(
+      container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
     );
+    preprocessState(origState, container);
+    console.log(origState ? dumpState(origState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {

@@ -18,6 +18,8 @@ export interface ClientContainer extends Container {
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
   renderDone: Promise<void> | null;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }

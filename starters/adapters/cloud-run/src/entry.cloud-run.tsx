@@ -53,7 +53,7 @@ const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
   static: {
-    cacheControl: "public, max-age=31557600",
+    cacheControl: "public, max-age=31536000, immutable",
   },
   getOrigin(req) {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

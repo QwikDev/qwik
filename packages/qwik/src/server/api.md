@@ -41,17 +41,14 @@ export interface InOrderDisabled {
 // @public (undocumented)
 export type InOrderStreaming = InOrderAuto | InOrderDisabled | InOrderDirect;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export interface PrefetchImplementation {
-    debug?: boolean;
+    // @deprecated (undocumented)
     linkFetchPriority?: 'auto' | 'low' | 'high' | null;
     // @deprecated (undocumented)
     linkInsert?: 'js-append' | 'html-append' | null;
+    // @deprecated (undocumented)
     linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-    maxPreloads?: number;
-    maxSimultaneousPreloads?: number;
-    minPreloadProbability?: number;
-    minProbability?: number;
     // @deprecated (undocumented)
     prefetchEvent?: 'always' | null;
     // @deprecated (undocumented)
@@ -75,6 +72,15 @@ export interface PrefetchStrategy {
 }
 
 // @public (undocumented)
+export interface PreloaderOptions {
+    debug?: boolean;
+    maxBufferPreloads?: number;
+    preloadProbability?: number;
+    ssrPreloadProbability?: number;
+    ssrPreloads?: number;
+}
+
+// @public (undocumented)
 export interface QwikLoaderOptions {
     // (undocumented)
     include?: 'always' | 'never' | 'auto';
@@ -92,8 +98,10 @@ export interface RenderOptions extends SerializeDocumentOptions {
     containerAttributes?: Record<string, string>;
     containerTagName?: string;
     locale?: string | ((options: RenderOptions) => string);
-    // (undocumented)
+    // @deprecated (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
+    // (undocumented)
+    preloader?: PreloaderOptions | boolean;
     qwikLoader?: QwikLoaderOptions;
     // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
     //

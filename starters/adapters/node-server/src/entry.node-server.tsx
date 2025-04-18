@@ -19,6 +19,9 @@ const PORT = process.env.PORT ?? 3004;
 const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
+  static: {
+    cacheControl: "public, max-age=31536000, immutable",
+  },
 });
 
 const server = createServer();

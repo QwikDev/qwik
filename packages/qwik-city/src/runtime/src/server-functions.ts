@@ -13,6 +13,7 @@ import {
   type ValueOrPromise,
 } from '@builder.io/qwik';
 
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import * as v from 'valibot';
 import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
@@ -47,6 +48,9 @@ import type {
   ZodConstructor,
   ZodConstructorQRL,
   ZodDataValidator,
+  StandardSchemaDataValidator,
+  StandardSchemaConstructorQRL,
+  StandardSchemaConstructor,
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
@@ -252,6 +256,61 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
     return acc;
   }, {});
 };
+
+/** @public */
+export const standardSchemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
+  if (isServer) {
+    return {
+      __brand: 'standard-schema',
+      async validate(ev, inputData) {
+        const schema: StandardSchemaV1 = await qrl
+          .resolve()
+          .then((obj) => ('~standard' in obj ? obj : obj(ev)));
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema['~standard'].validate(data);
+        if (!result.issues) {
+          return {
+            success: true,
+            data: result.value,
+          };
+        } else {
+          if (isDev) {
+            console.error('ERROR: Standard Schema validation failed', result.issues);
+          }
+          const formErrors: string[] = [];
+          const fieldErrors: Partial<Record<string, string[]>> = {};
+          for (const issue of result.issues) {
+            const dotPath = issue.path
+              ?.map((item) => (typeof item === 'object' ? item.key : item))
+              .join('.');
+            if (dotPath) {
+              const sub = fieldErrors[dotPath];
+              if (sub) {
+                sub.push(issue.message);
+              } else {
+                fieldErrors[dotPath] = [issue.message];
+              }
+            } else {
+              formErrors.push(issue.message);
+            }
+          }
+          return {
+            success: false,
+            status: 400,
+            error: { formErrors, fieldErrors },
+          };
+        }
+      },
+    };
+  }
+  return undefined as never;
+};
+
+/** @public */
+export const schema$: StandardSchemaConstructor =
+  /*#__PURE__*/ implicit$FirstArg(standardSchemaQrl);
 
 /** @alpha */
 export const valibotQrl: ValibotConstructorQRL = (

@@ -17,6 +17,7 @@ import type {
 } from '@builder.io/qwik-city/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export type {
   Cookie,
@@ -363,19 +364,23 @@ export type JSONObject = { [x: string]: JSONValue };
 
 /** @public */
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferInput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferInput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.input<TYPE>
+        : never;
 
 /** @public */
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferOutput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferOutput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.output<TYPE>
+        : never;
 
 /** @public */
 export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
@@ -826,6 +831,29 @@ export type ValidatorConstructorQRL = {
   ): T extends ValidatorReturnFail<infer ERROR> ? DataValidator<ERROR> : DataValidator<never>;
 };
 
+/** @public */
+export type StandardSchemaDataValidator<T extends StandardSchemaV1 = StandardSchemaV1> = {
+  readonly __brand: 'standard-schema';
+  validate(
+    ev: RequestEvent,
+    data: unknown
+  ): Promise<ValidatorReturn<ValidatorErrorType<StandardSchemaV1.InferInput<T>>>>;
+};
+
+/** @public */
+export type StandardSchemaConstructor = {
+  <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(schema: (ev: RequestEvent) => T): StandardSchemaDataValidator<T>;
+};
+
+/** @public */
+export type StandardSchemaConstructorQRL = {
+  <T extends StandardSchemaV1>(schema: QRL<T>): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: QRL<(ev: RequestEvent) => T>
+  ): StandardSchemaDataValidator<T>;
+};
+
 /** @alpha */
 export type ValibotDataValidator<
   T extends v.GenericSchema | v.GenericSchemaAsync = v.GenericSchema | v.GenericSchemaAsync,
@@ -883,7 +911,10 @@ export type ZodConstructorQRL = {
 };
 
 /** @public */
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator =
+  | StandardSchemaDataValidator
+  | ValibotDataValidator
+  | ZodDataValidator;
 
 /** @public */
 export interface ServerConfig {

@@ -118,13 +118,10 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
 
     const container = this.$container$;
-    let propValue = value;
-    if (typeId !== TypeIds.ForwardRefs) {
-      propValue = allocate(container, typeId, value);
-      /** We stored the reference, so now we can inflate, allowing cycles. */
-      if (typeId >= TypeIds.Error) {
-        propValue = inflate(container, propValue, typeId, value);
-      }
+    let propValue = allocate(container, typeId, value);
+    /** We stored the reference, so now we can inflate, allowing cycles. */
+    if (typeId >= TypeIds.Error) {
+      propValue = inflate(container, propValue, typeId, value);
     }
 
     Reflect.set(target, property, propValue);
@@ -454,6 +451,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         throw qError(QError.serializeErrorCannotAllocate, ['forward ref']);
       }
       return container.$getObjectById$(container.$forwardRefs$[value as number]);
+    case TypeIds.ForwardRefs:
+      return value;
     case TypeIds.Constant:
       return _constants[value as Constants];
     case TypeIds.Number:

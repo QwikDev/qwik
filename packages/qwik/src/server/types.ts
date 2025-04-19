@@ -55,7 +55,7 @@ export interface PreloaderOptions {
    *
    * Defaults to `25`
    */
-  maxBufferPreloads?: number;
+  maxBufferedPreloads?: number;
   /**
    * The minimum probability for a bundle to be added to the preload queue.
    *

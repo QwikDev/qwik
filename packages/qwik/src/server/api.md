@@ -74,7 +74,7 @@ export interface PrefetchStrategy {
 // @public (undocumented)
 export interface PreloaderOptions {
     debug?: boolean;
-    maxBufferPreloads?: number;
+    maxBufferedPreloads?: number;
     preloadProbability?: number;
     ssrPreloadProbability?: number;
     ssrPreloads?: number;

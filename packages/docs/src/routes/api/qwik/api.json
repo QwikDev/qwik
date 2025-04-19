@@ -2572,7 +2572,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n}>\n```",
+      "content": "Allows to project the children of the current component. `<Slot/>` can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n}>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/slot.public.ts",
       "mdFile": "qwik.slot.md"
     },

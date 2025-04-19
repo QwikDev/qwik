@@ -13,7 +13,7 @@ export function includePreloader(
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
-  const { ssrPreloads, ssrPreloadProbability, debug, maxBufferPreloads, preloadProbability } =
+  const { ssrPreloads, ssrPreloadProbability, debug, maxBufferedPreloads, preloadProbability } =
     normalizePreLoaderOptions(typeof options === 'boolean' ? undefined : options);
   let allowed = ssrPreloads;
 
@@ -70,8 +70,8 @@ export function includePreloader(
     if (debug) {
       opts.push('d:1');
     }
-    if (maxBufferPreloads) {
-      opts.push(`P:${maxBufferPreloads}`);
+    if (maxBufferedPreloads) {
+      opts.push(`P:${maxBufferedPreloads}`);
     }
     if (preloadProbability) {
       opts.push(`Q:${preloadProbability}`);
@@ -128,6 +128,6 @@ const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 5,
   ssrPreloadProbability: 0.7,
   debug: false,
-  maxBufferPreloads: 25,
+  maxBufferedPreloads: 25,
   preloadProbability: 0.35,
 };

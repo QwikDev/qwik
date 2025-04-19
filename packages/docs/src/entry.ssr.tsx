@@ -6,7 +6,7 @@ import Root from './root';
 const preloaderSettings = [
   'ssrPreloads',
   'ssrPreloadProbability',
-  'maxBufferPreloads',
+  'maxBufferedPreloads',
   'preloadProbability',
 ] as const;
 

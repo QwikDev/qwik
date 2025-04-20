@@ -7,7 +7,7 @@ export const preloadStr = 'preload';
 
 export const config = {
   $DEBUG$: false,
-  $maxBufferPreloads$: 25,
+  $maxBufferedPreloads$: 25,
   $invPreloadProbability$: 0.65,
 };
 

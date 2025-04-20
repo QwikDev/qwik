@@ -41,7 +41,7 @@ export default function (opts: RenderToStreamOptions) {
       // Enable debug logging for preload operations
       debug: true,
       // Maximum simultaneous preload links
-      maxBufferPreloads: 5,
+      maxBufferedPreloads: 5,
       // Minimum probability threshold for preloading
       preloadProbability: 0.25
       // ...and more, see the type JSDoc on hover

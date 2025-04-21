@@ -10,12 +10,12 @@
     "@typescript-eslint/parser": "7.16.1",
     "eslint": "8.57.0",
     "eslint-plugin-qwik": "workspace:^",
-    "np": "10.0.1",
-    "prettier": "3.3.3",
-    "typescript": "5.4.5",
+    "np": "10.2.0",
+    "prettier": "3.5.3",
+    "typescript": "5.8.3",
     "undici": "*",
     "vite": "5.3.5",
-    "zod": "3.22.4"
+    "zod": "3.24.3"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -39,7 +39,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "vite": "^5",
-    "zod": "3.22.4"
+    "zod": "3.24.3"
   },
   "private": true,
   "qwik": "./lib/index.qwik.mjs",

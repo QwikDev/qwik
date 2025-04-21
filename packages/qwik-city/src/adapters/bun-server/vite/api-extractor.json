@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/adapters/bun-server/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "adapter.bun-server",
     "reportFolder": "<projectFolder>/src/adapters/bun-server/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/adapters/bun-server"
   },

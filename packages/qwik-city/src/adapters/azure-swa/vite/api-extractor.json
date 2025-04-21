@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/adapters/azure-swa/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "adapter.azure-swa",
     "reportFolder": "<projectFolder>/src/adapters/azure-swa/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/adapters/azure-swa"
   },

@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/runtime/src/service-worker/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "qwik-city.service-worker",
     "reportFolder": "<projectFolder>/src/runtime/src/service-worker/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/src/runtime/service-worker"
   },

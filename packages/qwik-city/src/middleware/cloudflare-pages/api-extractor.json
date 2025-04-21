@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/middleware/cloudflare-pages/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "middleware.cloudflare-pages",
     "reportFolder": "<projectFolder>/src/middleware/cloudflare-pages/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/cloudflare-pages"
   },

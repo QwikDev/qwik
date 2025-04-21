@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/buildtime/vite/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "qwik-city.buildtime",
     "reportFolder": "<projectFolder>/src/buildtime/vite/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/vite"
   },

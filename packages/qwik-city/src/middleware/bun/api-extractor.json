@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/middleware/bun/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "middleware.bun",
     "reportFolder": "<projectFolder>/src/middleware/bun/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/bun"
   },

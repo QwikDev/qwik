@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/middleware/firebase/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "middleware.firebase",
     "reportFolder": "<projectFolder>/src/middleware/firebase/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/firebase"
   },

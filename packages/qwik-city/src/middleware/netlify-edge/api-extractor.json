@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/middleware/netlify-edge/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "middleware.netlify-edge",
     "reportFolder": "<projectFolder>/src/middleware/netlify-edge/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-city/middleware/netlify-edge"
   },

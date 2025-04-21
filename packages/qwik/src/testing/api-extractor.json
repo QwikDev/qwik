@@ -4,7 +4,7 @@
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/testing/index.d.ts",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "api.md",
+    "reportFileName": "qwik.testing",
     "reportFolder": "<projectFolder>/src/testing/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/testing/"
   },

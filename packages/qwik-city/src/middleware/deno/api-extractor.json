@@ -2,6 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-city/src/middleware/deno/index.d.ts",
+  "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
     "reportFileName": "middleware.deno",

@@ -24,6 +24,10 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 //
 // @internal (undocumented)
 export interface ClientContainer extends Container {
+    // (undocumented)
+    $forwardRefs$: Array<number> | null;
+    // (undocumented)
+    $initialQRLsIndexes$: Array<number> | null;
     // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -177,7 +181,11 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $appendStyle$(content: string, styleId: string, host: _VirtualVNode, scoped: boolean): void;
     // (undocumented)
+    $forwardRefs$: Array<number> | null;
+    // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
+    // (undocumented)
+    $initialQRLsIndexes$: Array<number> | null;
     // (undocumented)
     $instanceHash$: string;
     // (undocumented)

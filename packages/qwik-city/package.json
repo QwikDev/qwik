@@ -37,7 +37,7 @@
     "remark-gfm": "4.0.1",
     "set-cookie-parser": "2.7.1",
     "tsm": "2.3.0",
-    "typescript": "5.8.3",
+    "typescript": "5.4.5",
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",

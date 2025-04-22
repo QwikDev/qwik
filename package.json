@@ -171,7 +171,7 @@
     "tmp": "0.2.3",
     "tree-kill": "1.2.2",
     "tsx": "4.19.3",
-    "typescript": "5.8.3",
+    "typescript": "5.4.5",
     "undici": "*",
     "vfile": "6.0.3",
     "vite": "5.3.5",
@@ -193,7 +193,7 @@
   "pnpm": {
     "overrides": {
       "@supabase/realtime-js": "2.8.4",
-      "typescript": "5.8.3",
+      "typescript": "5.4.5",
       "vfile": "6.0.3"
     },
     "patchedDependencies": {

@@ -5,7 +5,7 @@
   "author": "Builder.io Team",
   "bugs": "https://github.com/QwikDev/qwik",
   "devDependencies": {
-    "@algolia/autocomplete-core": "1.18.1",
+    "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
     "@builder.io/partytown": "0.10.2",
     "@builder.io/qwik": "workspace:^",
@@ -51,7 +51,7 @@
     "tailwindcss": "4.1.4",
     "terser": "5.39.0",
     "tsm": "2.3.0",
-    "typescript": "5.8.3",
+    "typescript": "5.4.5",
     "undici": "*",
     "valibot": "0.33.3",
     "vite": "5.3.5",

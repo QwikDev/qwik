@@ -12,7 +12,7 @@
     "eslint-plugin-qwik": "workspace:^",
     "np": "10.2.0",
     "prettier": "3.5.3",
-    "typescript": "5.8.3",
+    "typescript": "5.4.5",
     "undici": "*",
     "vite": "5.3.5",
     "zod": "3.24.3"

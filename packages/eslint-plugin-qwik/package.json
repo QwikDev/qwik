@@ -13,7 +13,7 @@
     "@builder.io/qwik-city": "workspace:^",
     "@types/eslint": "9.6.1",
     "@types/estree": "1.0.7",
-    "@typescript-eslint/rule-tester": "8.30.1",
+    "@typescript-eslint/rule-tester": "8.31.0",
     "redent": "4.0.0"
   },
   "engines": {

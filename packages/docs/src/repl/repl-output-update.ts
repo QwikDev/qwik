@@ -16,7 +16,10 @@ const deepUpdate = (prev: any, next: any) => {
       // can't use Object as a matcher
       // because it will be a different object
       // so we need to use the path or code
-      if (!next.map((item: any) => item.path || item.code).includes(item.path || item.code)) {
+
+      if (
+        next.some((nextItem: any) => (nextItem.path || nextItem.code) === (item.path || item.code))
+      ) {
         prev.splice(prev.indexOf(item), 1);
       }
     }

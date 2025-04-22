@@ -1,4 +1,4 @@
-import { component$, useContext, useStyles$, useVisibleTask$ } from '@qwik.dev/core';
+import { component$, useContext, useStyles$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
@@ -8,26 +8,13 @@ import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import {
-  colorSchemeChangeListener,
-  getColorPreference,
-  setPreference,
-  ThemeToggle,
-} from '../theme-toggle/theme-toggle';
+import { ThemeToggle } from '../theme-toggle/theme-toggle';
 import styles from './header.css?inline';
 
 export const Header = component$(() => {
   useStyles$(styles);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().url.pathname;
-
-  useVisibleTask$(() => {
-    globalStore.theme = getColorPreference();
-    return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
-    });
-  });
 
   return (
     <>

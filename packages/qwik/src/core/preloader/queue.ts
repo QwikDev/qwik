@@ -1,22 +1,16 @@
 import { isBrowser } from '@builder.io/qwik/build';
 import { base, getBundle, graph } from './bundle-graph';
-import {
-  config,
-  doc,
-  loadStart,
-  maxSimultaneousPreloadsStr,
-  maxSignificantInverseProbabilityStr,
-  rel,
-} from './constants';
+import { config, doc, loadStart, rel } from './constants';
 import type { BundleImport, BundleImports } from './types';
 import {
-  BundleImportState_None,
-  BundleImportState_Queued,
-  BundleImportState_Preload,
   BundleImportState_Loaded,
+  BundleImportState_None,
+  BundleImportState_Preload,
+  BundleImportState_Queued,
 } from './types';
 
 export const bundles: BundleImports = new Map();
+export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
@@ -32,6 +26,7 @@ export const log = (...args: any[]) => {
 export const resetQueue = () => {
   bundles.clear();
   queueDirty = false;
+  shouldResetFactor = true;
   preloadCount = 0;
   queue.length = 0;
 };
@@ -83,7 +78,7 @@ export const trigger = () => {
     const probability = 1 - inverseProbability;
     const allowedPreloads = graph
       ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config[maxSimultaneousPreloadsStr] * probability)
+        Math.max(1, config.$maxBufferedPreloads$ * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
     // When we're 100% sure, everything needs to be queued
@@ -98,7 +93,7 @@ export const trigger = () => {
    * The low priority bundles are opportunistic, and we want to give the browser some breathing room
    * for other resources, so we cycle between 4 and 10 outstanding modulepreloads.
    */
-  if (config.DEBUG && !queue.length) {
+  if (config.$DEBUG$ && !queue.length) {
     const loaded = [...bundles.values()].filter((b) => b.$state$ > BundleImportState_None);
     const waitTime = loaded.reduce((acc, b) => acc + b.$waitedMs$, 0);
     const loadTime = loaded.reduce((acc, b) => acc + b.$loadedMs$, 0);
@@ -118,7 +113,7 @@ const preloadOne = (bundle: BundleImport) => {
   bundle.$waitedMs$ = start - bundle.$createdTs$;
   bundle.$state$ = BundleImportState_Preload;
 
-  config.DEBUG &&
+  config.$DEBUG$ &&
     log(
       `<< load ${Math.round((1 - bundle.$inverseProbability$) * 100)}% after ${`${bundle.$waitedMs$}ms`}`,
       bundle.$name$
@@ -135,7 +130,7 @@ const preloadOne = (bundle: BundleImport) => {
     const end = Date.now();
     bundle.$loadedMs$ = end - start;
     bundle.$state$ = BundleImportState_Loaded;
-    config.DEBUG && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
+    config.$DEBUG$ && log(`>> done after ${bundle.$loadedMs$}ms`, bundle.$name$);
     // Keep the <head> clean
     link.remove();
     // More bundles may be ready to preload
@@ -162,12 +157,12 @@ export const adjustProbabilities = (
 
   if (
     bundle.$state$ < BundleImportState_Preload &&
-    bundle.$inverseProbability$ < config[maxSignificantInverseProbabilityStr]
+    bundle.$inverseProbability$ < config.$invPreloadProbability$
   ) {
     if (bundle.$state$ === BundleImportState_None) {
       bundle.$state$ = BundleImportState_Queued;
       queue.push(bundle);
-      config.DEBUG &&
+      config.$DEBUG$ &&
         log(`queued ${Math.round((1 - bundle.$inverseProbability$) * 100)}%`, bundle.$name$);
     }
 
@@ -178,6 +173,7 @@ export const adjustProbabilities = (
   if (bundle.$deps$) {
     seen ||= new Set();
     seen.add(bundle);
+    const probability = 1 - bundle.$inverseProbability$;
     for (const dep of bundle.$deps$) {
       const depBundle = getBundle(dep.$name$)!;
       const prevAdjust = dep.$factor$;
@@ -188,7 +184,7 @@ export const adjustProbabilities = (
        * We can multiply this chance together with all other bundle adjustments to get the chance
        * that a dep will be loaded given all the chances of the other bundles
        */
-      const newInverseProbability = 1 - dep.$probability$ * (1 - bundle.$inverseProbability$);
+      const newInverseProbability = 1 - dep.$probability$ * probability;
 
       /** We need to undo the previous adjustment */
       const factor = newInverseProbability / prevAdjust;

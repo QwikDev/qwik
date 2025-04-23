@@ -1,0 +1,133 @@
+---
+title: 'Qwik 1.14: Module Preloader'
+authorName: 'Wout Mertens'
+tags: ['Web development']
+date: 'April 23, 2025'
+canonical: 'https://qwik.dev/blog/qwik-1-14-preloader'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+
+<ArticleBlock>
+
+# Qwik 1.14 Introduces a Smarter, Simpler Preloader
+
+With the release of Qwik 1.14, we are introducing a major enhancement to our JavaScript loading strategy: **a new, smarter preloader**. This preloader ensures that JavaScript QRL segments needed by your users are downloaded before they're required, significantly improving application responsiveness.
+
+```json
+"@builder.io/qwik": "~1.14.0",
+"@builder.io/qwik-city": "~1.14.0",
+"eslint-plugin-qwik": "~1.14.0",
+```
+
+Let’s explore what’s changed, why it matters, and how you can prepare your apps for this upgrade.
+
+## What's New: Simplified Preloading in Qwik 1.14
+
+Previously, Qwik relied on a service worker to cache and manage JavaScript segments. This gave us precise control over the cache, but also had some drawbacks:
+
+- **Complexity**: Additional layer of service worker configuration and maintenance overhead.
+- **Performance Penalty**: Some delays in startup, and every fetch triggered the service worker, both of which are problematic for older devices.
+- **Insensitive**: The browser has more information about the user's device and network speed and can make better decisions about when to honor preload requests.
+
+In Qwik 1.14, we've transitioned away from the service worker in favor of a solution leveraging [`<link rel="modulepreload">`](https://devdocs.io/html/attributes/rel/modulepreload). This change:
+
+- Reduces complexity in deployment and maintenance.
+- Improves startup performance across all devices.
+- Eliminates unnecessary overhead during network fetches.
+- Leverages the browser's native preload mechanism, which is more efficient and better suited for our use case. For example, the browser can pre-parse the module before it is run, speeding up execution.
+
+This change is possible because currently 93% of browsers support [`<link rel="modulepreload">`](https://devdocs.io/html/attributes/rel/modulepreload), which wasn't the case when we started using the service worker.
+
+Rest assured, the preloader has a fallback mechanism that will work even if the browser doesn't support `modulepreload`.
+
+## Quick Recap: Qwik Segments and Why They Matter
+
+Before diving deeper, a quick reminder of Qwik QRL segments:
+
+- **QRL segments** are pieces of code identified by the Qwik Optimizer, extracted from calls like `someFunction$(...)` and JSX attributes like `someAttr$={...}`, moved into a separate file, and turned into dynamic imports.
+- Qwik’s resumability architecture means there isn’t one entry point for your app; instead, the tiny embedded `qwikloader` orchestrates execution based on browser events (clicks, inputs, loads, custom events, etc.).
+
+## Why Preloading Matters
+
+This approach makes Qwik extremely efficient, but only if the segments are available exactly when needed. If a segment is not loaded yet, the browser has to wait for the network request, and possible import waterfalls after that. The preloader tries to make sure this doesn't happen.
+
+When clicking, user will notice delays of 200ms or more, and it is quite easy for initial script loading to take way longer than that.
+
+Therefore, we must make sure that the segments are available before the user needs them. This is where the preloader comes in.
+
+## How the New Qwik Preloader Works (Technical Deep Dive – Optional)
+
+*(Feel free to skip ahead if you just want the practical details!)*
+
+Here's what's going on behind the scenes in Qwik 1.14:
+
+- Qwik uses a bundler (Vite) to pack segments into `build/q-*.js` files called **bundles**. These bundles are ES modules,group multiple segments, and can import both static and dynamic dependencies.
+- Each Qwik segment has a dynamically adjusted probability of usage. For instance, running a `component$` segment usually indicates a high probability that a related `useVisibleTask$` segment will be needed soon, while something like a `window:beforePrint$` event might rarely be preloaded.
+- At build time, bundles are scored based on their interactivity impact and static import dependencies (which have a 100% probability).
+- This information is used to create a **bundlegraph**, a compact representation of all known bundles and their interaction probabilities.
+- This bundlegraph also stores information about which bundles are needed to render each route, for preloading `<Link />` tags.
+
+During server-side rendering (SSR), Qwik collects the event handler segments. These are combined to find the most likely needed bundles.
+
+A small inline script, injected below the SSR HTML output, performs the following sequence:
+  1. Waits for the `window:load` event.
+  2. Requests a browser idle callback.
+  3. Inserts `<link rel="modulepreload">` tags for highly probable bundles.
+  4. Concurrently dynamically imports the Qwik preloader module itself, setting up further probability-driven preloading.
+
+Steps 1 and 2 combined ensure that the browser is focused on rendering the page. This allows the best LCP (Largest Contentful Paint) scores.
+Step 3 then asks the browser to preload the bundles that are most likely to be needed, while step 4 is loading the preloader module itself, which will be used later to preload other bundles. Step 3 reduces the latency for the most important bundles.
+
+Another elegant detail: the preloader module itself is dynamically imported and later reused by Qwik core, preserving state seamlessly across the loading lifecycle.
+
+Once the Qwik Core is active, it informs the preloader about newly important segments, which will update the probabilities, and trigger preloading of most likely needed bundles.
+
+The browser will therefore only download code that is actually needed, before it is needed.
+
+## Results
+
+Our full CI tests now run in about 12 minutes instead of 15 minutes, and most of it can be attributed to the E2E tests which do many renders in a browser. Those seem to be about 30% faster now.
+
+We hope that you will also see such improvements in your app!
+
+## How to Prepare Your App for Qwik 1.14
+
+Here are some practical considerations for upgrading:
+
+### Service Worker
+
+The service worker is no longer used, but it needs to be unregistered for existing users. Both the qwik-city service worker and the experimental qwik prefetch service worker have been updated to do this.
+
+So do not remove the service worker registration (in `root.tsx`) from your app just yet, wait until your users have loaded your site at least once.
+
+### Cache Headers
+
+With the service worker no longer forcibly caching segments, it’s important you configure appropriate HTTP caching headers. 
+
+The bundles and assets are normally served at `/build` and `/assets`, respectively. Their filenames contain a content-based hash, making them immutable. If they change, their name changes as well. You can therefore set long-lived caching headers for these.
+
+The recommended header is:
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+
+You can re-add the starter for your deployment target with `npx qwik add`, which should update the deployment configuration to use the correct headers.
+
+### Caveat for Translations
+
+If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), translated bundles (`build/[locale]/*.js`) might retain identical filenames across builds, even when translations change. Consider how long you want to cache these files for so users get the latest translations.
+
+Note that this was also a problem with the service worker, and now you have the ability to configure the cache headers for these files, so it's a positive change.
+
+### Qwik Insights
+
+If you're using Qwik Insights, you don't have to do anything. The preloader is fully compatible with it and takes its recommendations into account.
+
+---
+
+*We'd love your feedback—let us know how this update improves your apps!*
+
+</ArticleBlock>

@@ -1,3 +1,5 @@
+import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-1-14-preloader.png';
+
 export const authors: Record<string, { socialLink: string }> = {
   'The Qwik Team': { socialLink: 'https://bsky.app/profile/qwik.dev' },
   'Jack Shelton': { socialLink: 'https://twitter.com/TheJackShelton' },
@@ -6,6 +8,7 @@ export const authors: Record<string, { socialLink: string }> = {
   'Steve Sewell': { socialLink: 'https://twitter.com/steve8708' },
   'Yoav Ganbar': { socialLink: 'https://twitter.com/HamatoYogi' },
   'Miško Hevery': { socialLink: 'https://twitter.com/mhevery' },
+  'Wout Mertens': { socialLink: 'https://twitter.com/wmertens' },
 };
 
 type BlogArticle = {
@@ -18,6 +21,14 @@ type BlogArticle = {
 };
 
 export const blogArticles: BlogArticle[] = [
+  {
+    title: 'Qwik 1.14: Module Preloader',
+    image: preloaderImage,
+    path: '/blog/qwik-1-14-preloader/',
+    tags: ['Web Development'],
+    featuredTitlePosition: 'top',
+    readingTime: 4,
+  },
   {
     title: 'Moving Forward Together',
     image:

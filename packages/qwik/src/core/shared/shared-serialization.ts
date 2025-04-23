@@ -1570,7 +1570,11 @@ export function _createDeserializeContainer(
 }
 
 /**
- * Preprocess the state data to replace RootRef with the actual object.
+ * Preprocess the state data to:
+ *
+ * - Replace RootRef with the actual object
+ * - Create a map for forward refs
+ * - Create an array of indexes for initial QRLs
  *
  * Before:
  *

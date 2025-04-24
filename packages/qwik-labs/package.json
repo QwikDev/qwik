@@ -14,7 +14,7 @@
     "prettier": "3.5.3",
     "typescript": "5.4.5",
     "undici": "*",
-    "vite": "5.3.5",
+    "vite": "5.4.18",
     "zod": "3.24.3"
   },
   "engines": {
@@ -46,7 +46,7 @@
   "scripts": {
     "build": "pnpm build.vite && qwik build",
     "build.lib": "vite build --mode lib",
-    "build.vite": "vite -c vite.config-src-vite.mts build",
+    "build.vite": "vite -c vite.config-src-vite.ts build",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",

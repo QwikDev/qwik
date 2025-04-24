@@ -27,7 +27,7 @@
     "prettier": "latest",
     "typescript": "latest",
     "undici": "latest",
-    "vite": "^4.5.2",
+    "vite": "^5.4.18",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {

@@ -1,6 +1,6 @@
 ---
-'@builder.io/qwik-city': major
-'@builder.io/qwik': major
+'@builder.io/qwik-city': patch
+'@builder.io/qwik': patch
 ---
 
 follow version 2 to fix this ts error

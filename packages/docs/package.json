@@ -54,7 +54,7 @@
     "typescript": "5.4.5",
     "undici": "*",
     "valibot": "0.33.3",
-    "vite": "5.4.18",
+    "vite": "5.3.5",
     "vite-plugin-inspect": "0.8.5",
     "vite-tsconfig-paths": "4.3.2",
     "wrangler": "3.65.1"
@@ -72,8 +72,8 @@
     "build": "qwik build",
     "build.client": "vite build",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
-    "build.repl-sw": "vite --config vite.config-repl-sw.ts build",
-    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config.ts",
+    "build.repl-sw": "vite --config vite.config-repl-sw.mts build",
+    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config.mts",
     "build.showcase": "pnpm node scripts/showcase.js",
     "codesandbox.sync": "tsx codesandbox.sync.ts",
     "contributors": "tsx contributors.ts",
@@ -85,6 +85,5 @@
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",
     "start": "pnpm dev"
-  },
-  "type": "module"
+  }
 }

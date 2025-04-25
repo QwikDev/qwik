@@ -30,7 +30,9 @@ test('rollup default input options, client', async () => {
   const rollupInputOpts: Rollup.InputOptions = await plugin.options!({});
 
   assert.deepEqual(typeof rollupInputOpts.onwarn, 'function');
-  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((rollupInputOpts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
 });
 
 test('rollup default input options, ssr', async () => {
@@ -44,8 +46,12 @@ test('rollup default input options, ssr', async () => {
 
   assert.deepEqual(typeof rollupInputOpts.onwarn, 'function');
   assert.deepEqual(rollupInputOpts.treeshake, undefined);
-  assert.deepEqual(rollupInputOpts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual((rollupInputOpts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
 });
 
 test('rollup default set input options, ssr', async () => {

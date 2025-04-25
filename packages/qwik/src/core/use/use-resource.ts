@@ -192,7 +192,7 @@ export const useResource$ = <T>(
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
   onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
-  onPending?: () => JSXOutput;
+  onPending?: () => JSXOutput | Promise<JSXOutput>;
   onRejected?: (reason: Error) => JSXOutput;
 }
 

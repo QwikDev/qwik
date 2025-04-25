@@ -5,7 +5,6 @@
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
   },
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "qwik build",
     "build.client": "vite build",
@@ -15,16 +14,17 @@
     "deploy": "vercel deploy",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "express": "pnpm build && pnpm serve",
     "fmt": "prettier --write .",
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open",
-    "express": "pnpm build && pnpm serve",
+    "qwik": "qwik",
     "serve": "node server/entry.express",
     "start": "vite --open --mode ssr",
-    "qwik": "qwik",
     "test": "playwright test",
-    "test.ui": "playwright test --ui",
-    "test.debug": "playwright test --debug"
-  }
+    "test.debug": "playwright test --debug",
+    "test.ui": "playwright test --ui"
+  },
+  "type": "module"
 }

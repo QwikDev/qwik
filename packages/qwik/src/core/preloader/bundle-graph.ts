@@ -1,13 +1,8 @@
 import { isBrowser } from '@builder.io/qwik/build';
-import {
-  config,
-  doc,
-  maxSignificantInverseProbabilityStr,
-  maxSimultaneousPreloadsStr,
-} from './constants';
-import { adjustProbabilities, bundles, log, trigger } from './queue';
+import { config, doc } from './constants';
+import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
-import { BundleImportState } from './types';
+import { BundleImportState_None, BundleImportState_Alias } from './types';
 
 export let base: string | undefined;
 export let graph: BundleGraph;
@@ -21,8 +16,8 @@ const makeBundle = (name: string, deps?: ImportProbability[]) => {
   return {
     $name$: name,
     $url$: url,
-    $state$: url ? BundleImportState.None : BundleImportState.Alias,
-    $deps$: deps,
+    $state$: url ? BundleImportState_None : BundleImportState_Alias,
+    $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
     $createdTs$: Date.now(),
     $waitedMs$: 0,
@@ -73,7 +68,7 @@ export const getBundle = (name: string) => {
 /** Used in browser */
 export const loadBundleGraph = (
   basePath: string,
-  manifestHash: string,
+  serializedResponse?: ReturnType<typeof fetch>,
   opts?: {
     /** Enable logging */
     debug?: boolean;
@@ -85,13 +80,13 @@ export const loadBundleGraph = (
 ) => {
   if (opts) {
     if ('d' in opts) {
-      config.DEBUG = !!opts.d;
+      config.$DEBUG$ = !!opts.d;
     }
     if ('P' in opts) {
-      config[maxSimultaneousPreloadsStr] = opts['P'] as number;
+      config.$maxBufferedPreloads$ = opts['P'] as number;
     }
     if ('Q' in opts) {
-      config[maxSignificantInverseProbabilityStr] = 1 - (opts['Q'] as number);
+      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -99,10 +94,11 @@ export const loadBundleGraph = (
   }
   base = basePath;
 
-  if (manifestHash) {
-    import(/* @vite-ignore */ `${basePath}q-bundle-graph-${manifestHash}.js`)
-      .then((m) => {
-        graph = parseBundleGraph(m.B);
+  if (serializedResponse) {
+    serializedResponse
+      .then((r) => r.text())
+      .then((text) => {
+        graph = parseBundleGraph(JSON.parse(text));
         const toAdjust: [BundleImport, number][] = [];
         for (const [name, deps] of graph.entries()) {
           const bundle = getBundle(name)!;
@@ -112,7 +108,7 @@ export const loadBundleGraph = (
             bundle.$inverseProbability$ = 1;
           }
         }
-        config.DEBUG &&
+        config.$DEBUG$ &&
           log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
         for (const [bundle, inverseProbability] of toAdjust) {
           adjustProbabilities(bundle, inverseProbability);
@@ -128,17 +124,15 @@ export const initPreloader = (
   serializedBundleGraph?: (string | number)[],
   opts?: {
     debug?: boolean;
-    maxSignificantInverseProbability?: number;
+    preloadProbability?: number;
   }
 ) => {
   if (opts) {
     if ('debug' in opts) {
-      config.DEBUG = !!opts.debug;
+      config.$DEBUG$ = !!opts.debug;
     }
-    if (maxSignificantInverseProbabilityStr in opts) {
-      config[maxSignificantInverseProbabilityStr] = opts[
-        maxSignificantInverseProbabilityStr
-      ] as number;
+    if ('preloadProbability' in opts) {
+      config.$invPreloadProbability$ = 1 - (opts.preloadProbability as number);
     }
   }
   if (base != null || !serializedBundleGraph) {

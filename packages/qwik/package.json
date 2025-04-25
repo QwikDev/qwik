@@ -25,7 +25,8 @@
     }
   ],
   "dependencies": {
-    "csstype": "^3.1"
+    "csstype": "^3.1",
+    "rollup": ">= 4.39.0"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
@@ -126,8 +127,6 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
-    "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
-    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
     "./package.json": "./dist/package.json"
   },
   "files": [

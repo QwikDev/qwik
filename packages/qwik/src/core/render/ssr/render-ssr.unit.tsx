@@ -677,16 +677,12 @@ test('AsyncResource', async () => {
     <body>
       <ul>
         <AsyncResource text="thing" />
-        <AsyncResource text="thing" />
       </ul>
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
     <body>
       <ul>
         <!--qv q:id=0 q:key=sX:-->
-          <div class="cmp"><!--qkssr-f--><span>thing</span>;</div>
-        <!--/qv-->
-        <!--qv q:id=1 q:key=sX:-->
           <div class="cmp"><!--qkssr-f--><span>thing</span>;</div>
         <!--/qv-->
       </ul>

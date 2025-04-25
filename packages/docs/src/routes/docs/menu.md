@@ -17,7 +17,7 @@
 - [Slots](</docs/(qwik)/components/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [API Reference](</api/qwik/>)
+- [API Reference](/api/qwik/)
 
 ## Qwik City
 
@@ -32,7 +32,7 @@
 - [Middleware](</docs/(qwikcity)/middleware/index.mdx>)
 - [server$](</docs/(qwikcity)/server$/index.mdx>)
 - [Error handling](</docs/(qwikcity)/error-handling/index.mdx>)
-- [Re-exporting loaders](/docs/(qwikcity)/re-exporting-loaders/index.mdx)
+- [Re-exporting loaders](</docs/(qwikcity)/re-exporting-loaders/index.mdx>)
 - [Caching](</docs/(qwikcity)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikcity)/html-attributes/index.mdx>)
 - [API reference](</docs/(qwikcity)/api/index.mdx>)

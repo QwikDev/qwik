@@ -11,4 +11,4 @@
   Cache-Control: public, max-age=604800, s-maxage=604800
 
 /*
-  Cache-Control: public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=3600, s-maxage=3600

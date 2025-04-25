@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ReplInputOptions, ReplResult } from '../types';
 import { appBundleClient } from './app-bundle-client';
 import { appBundleSsr } from './app-bundle-ssr';

@@ -43,7 +43,6 @@
     "qwik-image": "0.0.10",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "shiki": "3.1.0",
     "snarkdown": "2.0.0",
     "tailwindcss": "3.4.6",
     "terser": "5.31.3",
@@ -58,7 +57,6 @@
     "@shikijs/transformers": "3.1.0",
     "@shikijs/colorized-brackets": "3.1.0",
     "@shikijs/types": "3.1.0",
-    "vite-tsconfig-paths": "4.3.2",
     "wrangler": "3.65.1"
   },
   "engines": {

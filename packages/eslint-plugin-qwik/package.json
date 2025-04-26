@@ -5,7 +5,7 @@
   "author": "Builder Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@typescript-eslint/utils": "^8.30.1",
+    "@typescript-eslint/utils": "^8.31.0",
     "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
@@ -31,6 +31,9 @@
   ],
   "license": "MIT",
   "main": "dist/index.js",
+  "peerDependencies": {
+    "eslint": "^8.57.0 || ^9.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/QwikDev/qwik.git",

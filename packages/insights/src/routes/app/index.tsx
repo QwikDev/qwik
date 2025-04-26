@@ -44,7 +44,7 @@ export default component$(() => {
           <input
             type="text"
             class="border border-gray-300 rounded-md px-4 py-2 w-1/2 ml-5"
-            onInput$={(e, target) => (filter.value = target.value.toLocaleLowerCase())}
+            onInput$={(_e, target) => (filter.value = target.value.toLocaleLowerCase())}
           />
         </div>
         <div class="grid grid-cols-2 gap-6 py-10">

@@ -22,5 +22,5 @@
       "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
     }
   },
-  "exclude": ["./dist"]
+  "exclude": ["./dist", "eslint.config.mjs"]
 }

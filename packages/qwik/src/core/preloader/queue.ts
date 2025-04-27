@@ -78,7 +78,7 @@ export const trigger = () => {
     const probability = 1 - inverseProbability;
     const allowedPreloads = graph
       ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config.$maxBufferPreloads$ * probability)
+        Math.max(1, config.$maxBufferedPreloads$ * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
     // When we're 100% sure, everything needs to be queued

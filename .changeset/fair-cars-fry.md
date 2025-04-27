@@ -27,7 +27,9 @@ The builtin service workers components are deprecated but still exist for backwa
 
 Caching Headers:
 
-The bundles under build/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/**/*.js` with `Cache-Control: public, max-age=31536000, immutable`.
+The files under build/ and assets/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/*` and `assets/*` with `Cache-Control: public, max-age=31536000, immutable`.
+
+However, if you changed the rollup configuration for output filenames, you will have to adjust the caching configuration accordingly.
 
 ---
 
@@ -41,7 +43,7 @@ export default function (opts: RenderToStreamOptions) {
       // Enable debug logging for preload operations
       debug: true,
       // Maximum simultaneous preload links
-      maxBufferPreloads: 5,
+      maxBufferedPreloads: 5,
       // Minimum probability threshold for preloading
       preloadProbability: 0.25
       // ...and more, see the type JSDoc on hover
@@ -58,4 +60,3 @@ npm run qwik add service-worker
 ```
 
 This will add a basic service worker setup that you can customize for specific caching strategies, offline support, or other PWA features beyond just prefetching.
-

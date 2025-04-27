@@ -23,19 +23,14 @@ yarn add -D eslint-plugin-qwik
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { globalIgnores } from 'eslint/config';
 import { qwikEslint9Plugin } from 'eslint-plugin-qwik';
 
-export const qwikConfig = [
+export const qwikConfig = tseslint.config(
+  globalIgnores(['node_modules/*', 'dist/*', 'server/*', 'tmp/*']),
   js.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-  },
+  tseslint.configs.recommended,
+  qwikEslint9Plugin.configs.recommended,
   {
     files: ['**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}'],
     languageOptions: {
@@ -44,16 +39,14 @@ export const qwikConfig = [
         ...globals.browser,
         ...globals.node,
       },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
-  },
-  ...qwikEslint9Plugin.configs.recommended,
-  {
-    ignores: ['node_modules/*', 'dist/*', 'server/*', 'tmp/*'],
-  },
-];
+  }
+);
 ```
-
-> `ignores` must always be the last configuration in the array. Note that in shared configs, the `ignores` must be defined where the config is used, not in the shared config.
 
 ### Legacy config (`eslint < 9`)
 

@@ -1,3 +1,12 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient as serverClint } from '@supabase/ssr';
+import type { CookieMethodsBrowser, CookieOptionsWithName } from '@supabase/ssr';
+import type {
+  GenericSchema,
+  SupabaseClientOptions,
+} from '@supabase/supabase-js/dist/module/lib/types';
+import type { RequestEventBase } from 'packages/qwik-city/lib';
+
 export function createServerClient<
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
@@ -10,20 +19,20 @@ export function createServerClient<
   supabaseUrl: string,
   supabaseKey: string,
   requestEv: RequestEventBase,
-  opts?: {
-    options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
+  options?: SupabaseClientOptions<SchemaName> & {
+    cookies?: CookieMethodsBrowser;
     cookieOptions?: CookieOptionsWithName;
+    cookieEncoding?: 'raw' | 'base64url';
+    isSingleton?: boolean;
   }
 ): SupabaseClient<Database, SchemaName, Schema> {
-  const options = opts?.options;
-  const cookieOptions = opts?.cookieOptions;
   if (!supabaseUrl || !supabaseKey) {
     throw new Error(
       'supabaseUrl and supabaseKey are required to create a Supabase client! Find these under `Settings` > `API` in your Supabase dashboard.'
     );
   }
 
-  return createSupabaseClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+  return serverClint<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
     ...options,
     global: {
       ...options?.global,
@@ -33,8 +42,20 @@ export function createServerClient<
       },
     },
     auth: {
-      storageKey: cookieOptions?.name,
-      storage: new QwikServerAuthStorageAdapter(requestEv, cookieOptions),
+      storageKey: options?.cookieOptions?.name,
+    },
+    cookies: {
+      getAll: () => {
+        const cookies = requestEv.cookie.getAll();
+        return Object.keys(cookies).map((name) => {
+          return { name, value: cookies[name].value };
+        });
+      },
+      setAll: (cookies) => {
+        cookies.map((cookie) => {
+          requestEv.cookie.set(cookie.name, cookie.value, cookie.options);
+        });
+      },
     },
   });
 }

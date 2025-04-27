@@ -19,7 +19,7 @@ export default defineConfig((config) => {
           '@builder.io/qwik-city',
           '@builder.io/qwik/build',
           '@supabase/supabase-js',
-          '@supabase/ssr',
+          '@supabase/auth-helpers-shared',
         ],
       },
     },

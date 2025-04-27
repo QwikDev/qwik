@@ -683,7 +683,7 @@ test('AsyncResource', async () => {
     <body>
       <ul>
         <!--qv q:id=0 q:key=sX:-->
-          <div class="cmp"><!--qkssr-f--><span>thing</span>;</div>
+          <div class="cmp"><!--qkssr-f--><span>1</span>;</div>
         <!--/qv-->
       </ul>
     </body>

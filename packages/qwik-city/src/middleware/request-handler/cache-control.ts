@@ -20,7 +20,6 @@ export function createCacheControl(cacheControl: CacheControl) {
       public: true,
       immutable: true,
       maxAge: 60 * 60 * 24 * 365,
-      staleWhileRevalidate: 60 * 60 * 24 * 365,
     };
   } else if (cacheControl === 'no-cache') {
     cacheControl = {
@@ -32,7 +31,6 @@ export function createCacheControl(cacheControl: CacheControl) {
     cacheControl = {
       maxAge: cacheControl,
       sMaxAge: cacheControl,
-      staleWhileRevalidate: cacheControl,
     };
   }
 

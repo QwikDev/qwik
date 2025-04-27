@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { RenderOptions, RenderToStringResult } from '@builder.io/qwik/server';
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';

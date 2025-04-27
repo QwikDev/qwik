@@ -33,7 +33,6 @@ export function createBrowserClient<
     );
   }
 
-  // return browserClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey);
   return browserClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
     ...options,
     global: {
@@ -45,7 +44,6 @@ export function createBrowserClient<
     },
     auth: {
       storageKey: options?.cookieOptions?.name,
-      storage: new BrowserCookieAuthStorageAdapter(cookieOptions),
     },
   });
 }

@@ -83,7 +83,7 @@ export const loadBundleGraph = (
       config.$DEBUG$ = !!opts.d;
     }
     if ('P' in opts) {
-      config.$maxBufferPreloads$ = opts['P'] as number;
+      config.$maxBufferedPreloads$ = opts['P'] as number;
     }
     if ('Q' in opts) {
       config.$invPreloadProbability$ = 1 - (opts['Q'] as number);

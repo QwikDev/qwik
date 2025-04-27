@@ -884,7 +884,7 @@ export interface ResourceProps<T> {
     // (undocumented)
     onPending?: () => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXOutput;
+    onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
     onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)

@@ -1907,7 +1907,13 @@ export const AsyncResource = component$((props: { text: string }) => {
   });
   return (
     <div class="cmp">
-      <Resource value={resource} onResolved={async (value) => <span>{value}</span>} />;
+      <Resource
+        value={resource}
+        onResolved={async (value) => <span>{value}</span>}
+        onRejected={async () => <span>1</span>}
+        onPending={async () => <span>{1}</span>}
+      />
+      ;
     </div>
   );
 });

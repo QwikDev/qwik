@@ -694,7 +694,7 @@ test('using promises with DelayResource', async () => {
       </ul>
       </body>
     </html>`
-  ).catch((e) => {});
+  );
 });
 
 test('using component', async () => {

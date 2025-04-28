@@ -1554,7 +1554,7 @@ test('AsyncResource', async () => {
   await testSSR(
     <body>
       <ul>
-        <AsyncResource text="thing" delay={100} />
+        <AsyncResource text="thing" delay={500} />
       </ul>
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">

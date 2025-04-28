@@ -27,82 +27,25 @@ Qwik provides several adapters suited for self-hosting scenarios. Choose the one
 
 The Express adapter is ideal for self-hosting on VPS or bare metal servers, offering full server-side functionality.
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
 ```shell
-pnpm run qwik add express
+npx qwik add express
 ```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add express
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add express
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add express
-```
-</span>
-</PackageManagerTabs>
 
 ### Fastify (Node.js)
 
 Fastify offers better performance than Express and is another good option for self-hosting:
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
 ```shell
-pnpm run qwik add fastify
+npx qwik add fastify
 ```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add fastify
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add fastify
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add fastify
-```
-</span>
-</PackageManagerTabs>
 
 ### Static Site
 
-For simple applications without dynamic server functionality, the static site adapter generates fully static HTML:
+For simple applications without dynamic server functionality:
 
-<PackageManagerTabs>
-<span q:slot="pnpm">
 ```shell
-pnpm run qwik add static
+npx qwik add static
 ```
-</span>
-<span q:slot="npm">
-```shell
-npm run qwik add static
-```
-</span>
-<span q:slot="yarn">
-```shell
-yarn run qwik add static
-```
-</span>
-<span q:slot="bun">
-```shell
-bun run qwik add static
-```
-</span>
-</PackageManagerTabs>
 
 When using the static adapter, make sure to update your `adapters/static/vite.config.ts` file with your actual domain:
 
@@ -212,6 +155,33 @@ pm2 start server/entry.express.js --name qwik-app
 
 # For Fastify
 pm2 start server/entry.fastify.js --name qwik-app
+```
+
+### Using systemd
+
+Create a systemd service file:
+
+```ini
+[Unit]
+Description=Qwik Application
+After=network.target
+
+[Service]
+Type=simple
+User=qwikuser
+WorkingDirectory=/path/to/your/app
+ExecStart=/usr/bin/node server/entry.express.js
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+```shell
+sudo systemctl enable qwik-app
+sudo systemctl start qwik-app
 ```
 
 ### Method 2: Docker Deployment
@@ -355,6 +325,32 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
 }
+
+# Static asset handling with caching
+location /build/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, no-transform";
+    try_files $uri =404;
+    gzip_static on;
+    brotli_static on;
+}
+
+location /assets/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, no-transform";
+    try_files $uri =404;
+    gzip_static on;
+    brotli_static on;
+}
+
+# Route loader data caching
+location ~ /[^/]+/q-data\.json$ {
+    expires 30s;
+    add_header Cache-Control "public, must-revalidate";
+    try_files $uri =404;
+}
 ```
 
 ### Nginx Configuration for Static Sites
@@ -490,6 +486,12 @@ const { router, notFound } = createQwikCity({
 3. Consider adding application monitoring with:
    - Prometheus + Grafana for self-hosted monitoring
    - New Relic, Datadog, or Sentry for managed monitoring
+   - Lightweight monitoring with Netdata
+     ```shell
+     # Install Netdata
+     bash <(curl -Ss https://get.netdata.cloud/kickstart.sh)
+     ```
+     Access metrics dashboard at `http://localhost:19999`
 
 ## Optimizing Performance
 
@@ -500,6 +502,47 @@ Qwik's resumable architecture already provides excellent performance, but you ca
 3. Enable Brotli compression for smaller payload sizes
 4. Configure proper cache headers for Qwik's immutable assets
 5. Use CloudFlare or similar services for additional edge caching
+
+### Asset Compression
+
+Enable efficient compression for static assets:
+
+1. Pre-compress static files during build:
+```shell
+# Install compression tools
+npm install -g brotli-cli gzip-cli
+
+# Compress build assets
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -exec sh -c '
+  brotli -k {}
+  gzip -k {}
+' \;
+```
+
+2. Configure Nginx to serve pre-compressed files:
+```nginx
+location /build/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    
+    # Enable pre-compressed file serving
+    gzip_static on;
+    brotli_static on;
+    try_files $uri =404;
+}
+
+location /assets/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+    
+    # Enable pre-compressed file serving
+    gzip_static on;
+    brotli_static on;
+    try_files $uri =404;
+}
+```
 
 ## Scaling Considerations
 

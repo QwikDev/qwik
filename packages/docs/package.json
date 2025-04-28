@@ -52,7 +52,11 @@
     "vite": "5.3.5",
     "vite-tsconfig-paths": "4.3.2",
     "vite-plugin-inspect": "0.8.5",
-    "vite-tsconfig-paths": "4.3.2",
+    "shiki": "3.1.0",	    "vite-tsconfig-paths": "4.3.2",
+    "@shikijs/rehype": "3.1.0",	
+    "@shikijs/transformers": "3.1.0",	
+    "@shikijs/colorized-brackets": "3.1.0",	
+    "@shikijs/types": "3.1.0",
     "wrangler": "3.65.1"
   },
   "engines": {

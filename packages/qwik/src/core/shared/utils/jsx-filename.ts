@@ -1,4 +1,14 @@
-import type { DevJSX } from '../jsx/types/jsx-node';
+import type { DevJSX, JSXNodeInternal } from '../jsx/types/jsx-node';
+import { qwikInspectorAttr } from './markers';
+
+export function appendQwikInspectorAttribute(
+  jsx: JSXNodeInternal,
+  qwikInspectorAttrValue: string | null
+) {
+  if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
+    (jsx.constProps ||= {})[qwikInspectorAttr] = qwikInspectorAttrValue;
+  }
+}
 
 export function getFileLocationFromJsx(jsxDev?: DevJSX): string | null {
   if (!jsxDev) {

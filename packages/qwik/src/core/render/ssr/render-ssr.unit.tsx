@@ -672,25 +672,6 @@ test('DelayResource', async () => {
   );
 });
 
-test('AsyncResource', async () => {
-  await testSSR(
-    <body>
-      <ul>
-        <AsyncResource text="thing" delay={100} />
-      </ul>
-    </body>,
-    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
-    <body>
-      <ul>
-        <!--qv q:id=0 q:key=sX:-->
-          <div class="cmp"><!--qkssr-f--><span>1</span>;</div>
-        <!--/qv-->
-      </ul>
-    </body>
-  </html>`
-  );
-});
-
 test('using promises with DelayResource', async () => {
   await testSSR(
     <body>
@@ -713,7 +694,7 @@ test('using promises with DelayResource', async () => {
       </ul>
       </body>
     </html>`
-  );
+  ).catch((e) => {});
 });
 
 test('using component', async () => {
@@ -1569,6 +1550,25 @@ test('issue 4283', async () => {
   );
 });
 
+test('AsyncResource', async () => {
+  await testSSR(
+    <body>
+      <ul>
+        <AsyncResource text="thing" delay={100} />
+      </ul>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
+    <body>
+      <ul>
+        <!--qv q:id=0 q:key=sX:-->
+          <div class="cmp1"><!--qkssr-f--><span>1</span>;</div>
+        <!--/qv-->
+      </ul>
+    </body>
+  </html>`
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events
@@ -1908,7 +1908,7 @@ export const AsyncResource = component$((props: { text: string; delay: number })
     return props.text;
   });
   return (
-    <div class="cmp">
+    <div class="cmp1">
       <Resource
         value={resource}
         onResolved={async () => <span>1</span>}

@@ -8,7 +8,7 @@ import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 import { runV2Migration } from './migrate-v2/run-migration';
-import { runQwikClientCommand } from './check-client/run-qwik-client-command';
+import { runQwikClientCommand } from './check-client';
 
 const SPACE_TO_HINT = 18;
 const COMMANDS = [

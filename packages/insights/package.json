@@ -12,6 +12,7 @@
     "drizzle-kit": "^0.28.1",
     "drizzle-orm": "0.36.4"
   },
+  "type": "module",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
@@ -33,6 +34,7 @@
     "prettier": "3.3.3",
     "prettier-plugin-tailwindcss": "0.5.14",
     "tailwindcss": "4.0.12",
+    "@tailwindcss/vite": "4.0.12",
     "typescript": "5.4.5",
     "undici": "*",
     "vite": "5.3.5",
@@ -69,6 +71,5 @@
     "test.cluster": "tsx src/cluster.ts",
     "test.unit": "vitest",
     "test.watch": "vitest --watch"
-  },
-  "type": "module"
+  }
 }

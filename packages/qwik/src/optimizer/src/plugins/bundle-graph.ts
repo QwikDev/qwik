@@ -69,17 +69,9 @@ export function convertManifestToBundleGraph(
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const dynamicImports =
-      bundle.dynamicImports?.filter(
-        // we only want to include dynamic imports that belong to the app
-        // e.g. not all languages supported by shiki
-        (dep) =>
-          graph[dep] &&
-          // either there are qrls
-          (graph[dep].symbols ||
-            // or it's a dynamic import from the app source
-            graph[dep].origins?.some((o) => !o.includes('node_modules')))
-      ) || [];
+    // we only want to include symbols to avoid preloading all the dynamically imports of external modules
+    // e.g. syntax files from shiki (> 10MB) or import.meta.glob files
+    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep]?.symbols) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

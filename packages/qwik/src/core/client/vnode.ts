@@ -1810,7 +1810,7 @@ function materializeFromVNodeData(
 
   const addVNode = (node: VNode) => {
     node[VNodeProps.flags] =
-      (node[VNodeProps.flags] & VNodeFlagsIndex.negated_mask) | (idx << VNodeFlagsIndex.shift);
+      (node[VNodeProps.flags] & VNodeFlagsIndex.mask) | (idx << VNodeFlagsIndex.shift);
     idx++;
     vLast && (vLast[VNodeProps.nextSibling] = node);
     node[VNodeProps.previousSibling] = vLast;

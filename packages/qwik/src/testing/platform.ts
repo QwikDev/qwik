@@ -11,8 +11,20 @@ function createPlatform() {
   }
 
   let render: Queue<any> | null = null;
+  let resolveNextTickImmediate = false;
 
   const moduleCache = new Map<string, { [symbol: string]: any }>();
+  const flushNextTick = async () => {
+    await Promise.resolve();
+    if (render) {
+      try {
+        render.resolve(await render.fn());
+      } catch (e) {
+        render.reject(e);
+      }
+      render = null;
+    }
+  };
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
@@ -39,7 +51,7 @@ function createPlatform() {
         return mod[symbolName];
       });
     },
-    nextTick: (renderMarked) => {
+    nextTick: async (renderMarked) => {
       if (!render) {
         render = {
           fn: renderMarked,
@@ -51,6 +63,10 @@ function createPlatform() {
           render!.resolve = resolve;
           render!.reject = reject;
         });
+        if (resolveNextTickImmediate) {
+          resolveNextTickImmediate = false;
+          await flushNextTick();
+        }
       } else if (renderMarked !== render.fn) {
         // TODO(misko): proper error and test
         throw new Error(
@@ -69,14 +85,9 @@ function createPlatform() {
       });
     },
     flush: async () => {
-      await Promise.resolve();
-      if (render) {
-        try {
-          render.resolve(await render.fn());
-        } catch (e) {
-          render.reject(e);
-        }
-        render = null;
+      await flushNextTick();
+      if (!render) {
+        resolveNextTickImmediate = true;
       }
     },
     chunkForSymbol() {

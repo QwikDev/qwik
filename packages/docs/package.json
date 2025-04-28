@@ -43,15 +43,20 @@
     "react-dom": "18.3.1",
     "snarkdown": "2.0.0",
     "tailwindcss": "4.0.12",
-    
+    "@tailwindcss/vite": "4.0.12",
     "terser": "5.31.3",
     "tsm": "2.3.0",
     "typescript": "5.4.5",
     "undici": "*",
     "valibot": "0.33.3",
-    "vite": "5.3.5",
-    "vite-plugin-inspect": "0.8.5",
+    "shiki": "3.1.0",
     "vite-tsconfig-paths": "4.3.2",
+    "@shikijs/rehype": "3.1.0",	
+    "@shikijs/transformers": "3.1.0",	
+    "@shikijs/colorized-brackets": "3.1.0",	
+    "@shikijs/types": "3.1.0","vite": "5.3.5",
+    "vite-tsconfig-paths": "4.3.2",
+    "vite-plugin-inspect": "0.8.5",
     "wrangler": "3.65.1"
   },
   "engines": {

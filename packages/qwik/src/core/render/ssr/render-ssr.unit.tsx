@@ -676,7 +676,7 @@ test('AsyncResource', async () => {
   await testSSR(
     <body>
       <ul>
-        <AsyncResource text="thing" />
+        <AsyncResource text="thing" delay={100} />
       </ul>
     </body>,
     `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
@@ -1901,17 +1901,19 @@ export const DelayResource = component$((props: { text: string; delay: number })
   );
 });
 
-export const AsyncResource = component$((props: { text: string }) => {
-  const resource = useResource$<string>(() => {
+export const AsyncResource = component$((props: { text: string; delay: number }) => {
+  const resource = useResource$<string>(async ({ track }) => {
+    track(() => props.text);
+    await delay(props.delay);
     return props.text;
   });
   return (
     <div class="cmp">
       <Resource
         value={resource}
-        onResolved={async (value) => <span>{value}</span>}
+        onResolved={async () => <span>1</span>}
         onRejected={async () => <span>1</span>}
-        onPending={async () => <span>{1}</span>}
+        onPending={async () => <span>1</span>}
       />
       ;
     </div>

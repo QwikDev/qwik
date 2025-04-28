@@ -263,23 +263,23 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
       if (props.onRejected) {
-        resource.value.catch(() => {});
         if (resource._state === 'rejected') {
-          return props.onRejected(resource._error!);
+          return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));
         }
       }
       if (props.onPending) {
         const state = resource._state;
         if (state === 'resolved') {
-          return props.onResolved(resource._resolved!);
+          return Promise.resolve(resource._resolved!).then(useBindInvokeContext(props.onResolved));
         } else if (state === 'pending') {
-          return props.onPending();
+          return Promise.resolve().then(useBindInvokeContext(props.onPending));
         } else if (state === 'rejected') {
           throw resource._error;
         }
       }
+      const resolvedValue = untrack(() => resource._resolved) as T;
       if (untrack(() => resource._resolved) !== undefined) {
-        return props.onResolved(resource._resolved!);
+        return Promise.resolve(resolvedValue).then(useBindInvokeContext(props.onResolved));
       }
     }
     const value = resource.value;

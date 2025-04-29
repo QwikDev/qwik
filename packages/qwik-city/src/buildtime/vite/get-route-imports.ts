@@ -1,7 +1,6 @@
 import type { QwikBundle, QwikManifest } from '@builder.io/qwik/optimizer';
 import { removeExtension } from '../../utils/fs';
 import type { BuildRoute } from '../types';
-import { QWIK_CITY_PLAN_ID } from './plugin';
 
 export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
   const result: Record<string, { imports?: string[]; dynamicImports?: string[] }> = {};

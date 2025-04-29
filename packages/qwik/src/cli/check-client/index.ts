@@ -30,16 +30,12 @@ export async function runQwikClientCommand(app: AppCommand) {
  */
 async function checkClientCommand(app: AppCommand, src: string, dist: string): Promise<void> {
   if (!(await clientDirExists(dist))) {
-    intro(`🚀 ${bgBlue(bold(' Qwik Client Check '))}`);
-    log.step(`Checking Disk directory: ${cyan(dist)}`);
     await goBuild(app);
   } else {
-    log.step(`Checking q-manifest.json file: ${cyan(dist)}`);
     const manifest = await getManifestTs(getManifestPath(dist));
     if (manifest === null) {
       await goBuild(app);
     } else {
-      log.step(`Compare source modification time with q-manifest.json modification time`);
       if (await isNewerThan(getSrcPath(src), manifest)) {
         await goBuild(app);
       }
@@ -57,17 +53,12 @@ async function checkClientCommand(app: AppCommand, src: string, dist: string): P
 
 async function goBuild(app: AppCommand) {
   const pkgManager = getPackageManager();
-  log.step('Building client (manifest missing or outdated)...');
-  try {
-    const { install } = await runInPkg(pkgManager, ['run', 'build.client'], app.rootDir);
-    if (!(await install)) {
-      throw new Error('Client build command reported failure.');
-    }
-  } catch (buildError: any) {
-    log.error(`Build error: ${buildError.message}`);
-    throw new Error('Client build process encountered an error.');
+  intro('Building client (manifest missing or outdated)...');
+  const { install } = await runInPkg(pkgManager, ['run', 'build.client'], app.rootDir);
+  if (!(await install)) {
+    throw new Error('Client build command reported failure.');
   }
-  outro(`✅ ${bgMagenta(bold(' Check complete '))}`);
+  outro('Client build complete');
 }
 
 /**
@@ -104,7 +95,9 @@ export async function clientDirExists(dist: string): Promise<boolean> {
     await fs.access(getDiskPath(dist));
     return true; // Directory exists
   } catch (err: any) {
-    panic(`Error accessing disk directory ${dist}: ${err.message}`);
+    if (!(err.code === 'ENOENT')) {
+      panic(`Error accessing disk directory ${dist}: ${err.message}`);
+    }
     return false; // Directory doesn't exist or there was an error
   }
 }
@@ -127,12 +120,15 @@ export async function isNewerThan(srcPath: string, timestamp: number): Promise<b
       items = await fs.readdir(dir, { withFileTypes: true });
     } catch (err: any) {
       if (err.code !== 'ENOENT') {
-        console.warn(`Cannot read directory ${dir}: ${err.message}`);
+        log.warn(`Cannot read directory ${dir}: ${err.message}`);
       }
       return;
     }
 
     for (const item of items) {
+      if (returnValue) {
+        return;
+      }
       const fullPath = path.join(dir, item.name);
       try {
         if (item.isDirectory()) {
@@ -145,7 +141,7 @@ export async function isNewerThan(srcPath: string, timestamp: number): Promise<b
           }
         }
       } catch (err: any) {
-        console.warn(`Cannot access ${fullPath}: ${err.message}`);
+        log.warn(`Cannot access ${fullPath}: ${err.message}`);
       }
     }
   }

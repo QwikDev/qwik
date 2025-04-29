@@ -1,6 +1,6 @@
 import type { AppCommand } from '../utils/app-command';
 import { intro, log, outro } from '@clack/prompts';
-import { bgBlue, bgMagenta, bold, cyan, red } from 'kleur/colors';
+import { red } from 'kleur/colors';
 import { runInPkg } from '../utils/install-deps';
 import { getPackageManager, panic } from '../utils/utils';
 import fs from 'fs/promises';

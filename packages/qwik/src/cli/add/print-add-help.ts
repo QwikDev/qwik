@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { magenta, dim } from 'kleur/colors';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { pmRunCmd, note, bye, limitLength } from '../utils/utils';

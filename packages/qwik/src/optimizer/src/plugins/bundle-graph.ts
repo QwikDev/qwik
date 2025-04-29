@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { QwikBundle, QwikBundleGraph, QwikManifest } from '../types';
 
 const minimumSpeed = 300; // kbps
@@ -69,9 +70,21 @@ export function convertManifestToBundleGraph(
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    // we only want to include symbols to avoid preloading all the dynamically imports of external modules
-    // e.g. syntax files from shiki (> 10MB) or import.meta.glob files
-    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep]?.symbols) || [];
+
+    const dynamicImports =
+      bundle.dynamicImports?.filter(
+        // we only want to include symbols to avoid preloading all the dynamically imports of external modules
+        // e.g. syntax files from shiki (> 10MB) or import.meta.glob files        (dep) =>
+        (dep) => {
+          return (
+            graph[dep] &&
+            // either there are qrls
+            (graph[dep].symbols ||
+              // or it's a dynamic import from the app source
+              graph[dep].origins?.some((o) => /@qwik-city-plan|index\.tsx$|layout\.tsx$/.test(o)))
+          );
+        }
+      ) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

@@ -56,30 +56,21 @@ export default component$(() => {
     }
   `);
 
-  const isSPA = useSignal(false);
-  const LinkCmp = isSPA.value ? Link : "a";
-
   return (
     <div class="layout">
       <header class="header">
         <div class="container nav-container">
           <nav class="nav">
-            <LinkCmp href="/">Home</LinkCmp>
-            <LinkCmp href="/form">Form</LinkCmp>
-            <LinkCmp href="/about">About</LinkCmp>
+            <Link href="/">Home</Link>
+            <Link href="/form">Form</Link>
+            <Link href="/about">About</Link>
           </nav>
-          <label class="toggle-label">
-            <input type="checkbox" bind:checked={isSPA} />
-            <span class="toggle-text">Use SPA links</span>
-          </label>
         </div>
       </header>
 
       <main class="main container">
         <Slot />
       </main>
-      {/* workaround: invisible Link to ensure qwik city context inclusion */}
-      <Link href="/" />
     </div>
   );
 });

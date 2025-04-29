@@ -16,6 +16,21 @@
       "loc": [238, 675]
     },
     {
+      "origin": "components/router-head/router-head.tsx",
+      "name": "s_dAo05yeFq1I",
+      "entry": "components/router-head/router-head.tsx_entry_RouterHead",
+      "displayName": "router-head.tsx_RouterHead_component",
+      "hash": "dAo05yeFq1I",
+      "canonicalFilename": "router-head.tsx_RouterHead_component_dAo05yeFq1I",
+      "path": "components/router-head",
+      "extension": "js",
+      "parent": null,
+      "ctxKind": "function",
+      "ctxName": "component$",
+      "captures": false,
+      "loc": [243, 1134]
+    },
+    {
       "origin": "../../../../packages/qwik-city/lib/index.qwik.mjs",
       "name": "s_p0qDGZV34Qs",
       "entry": "../../../../packages/qwik-city/lib/index.qwik.mjs_entry_Form",
@@ -331,21 +346,6 @@
       "loc": [39728, 42018]
     },
     {
-      "origin": "components/router-head/router-head.tsx",
-      "name": "s_dAo05yeFq1I",
-      "entry": "components/router-head/router-head.tsx_entry_RouterHead",
-      "displayName": "router-head.tsx_RouterHead_component",
-      "hash": "dAo05yeFq1I",
-      "canonicalFilename": "router-head.tsx_RouterHead_component_dAo05yeFq1I",
-      "path": "components/router-head",
-      "extension": "js",
-      "parent": null,
-      "ctxKind": "function",
-      "ctxName": "component$",
-      "captures": false,
-      "loc": [243, 1134]
-    },
-    {
       "origin": "routes/layout.tsx",
       "name": "s_MOLFIZOhXmE",
       "entry": "routes/layout.tsx_entry_layout",
@@ -362,21 +362,6 @@
     },
     {
       "origin": "routes/layout.tsx",
-      "name": "s_eevMxFvmCM8",
-      "entry": "routes/layout.tsx_entry_layout",
-      "displayName": "layout.tsx_layout_component_div_header_div_label_input_bind_checked",
-      "hash": "eevMxFvmCM8",
-      "canonicalFilename": "layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_SHtFir1Ia94",
-      "ctxKind": "eventHandler",
-      "ctxName": "onInput$",
-      "captures": true,
-      "loc": [0, 0]
-    },
-    {
-      "origin": "routes/layout.tsx",
       "name": "s_SHtFir1Ia94",
       "entry": "routes/layout.tsx_entry_layout",
       "displayName": "layout.tsx_layout_component",
@@ -388,7 +373,127 @@
       "ctxKind": "function",
       "ctxName": "component$",
       "captures": false,
-      "loc": [169, 1737]
+      "loc": [169, 1361]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_vG0UuU4cNCg",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component",
+      "hash": "vG0UuU4cNCg",
+      "canonicalFilename": "index.tsx_routes_component_vG0UuU4cNCg",
+      "path": "routes",
+      "extension": "js",
+      "parent": null,
+      "ctxKind": "function",
+      "ctxName": "component$",
+      "captures": false,
+      "loc": [440, 1724]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_C5dy6D0CZVg",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component_getMessage",
+      "hash": "C5dy6D0CZVg",
+      "canonicalFilename": "index.tsx_routes_component_getMessage_C5dy6D0CZVg",
+      "path": "routes",
+      "extension": "js",
+      "parent": "s_vG0UuU4cNCg",
+      "ctxKind": "function",
+      "ctxName": "$",
+      "captures": true,
+      "loc": [781, 896]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_ZcKyJR3xn1o",
+      "entry": "routes/index.tsx_entry_getLibA",
+      "displayName": "index.tsx_getLibA",
+      "hash": "ZcKyJR3xn1o",
+      "canonicalFilename": "index.tsx_getLibA_ZcKyJR3xn1o",
+      "path": "routes",
+      "extension": "js",
+      "parent": null,
+      "ctxKind": "function",
+      "ctxName": "$",
+      "captures": false,
+      "loc": [369, 379]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_Iyy38y0K3Hw",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component_useStyles",
+      "hash": "Iyy38y0K3Hw",
+      "canonicalFilename": "index.tsx_routes_component_useStyles_Iyy38y0K3Hw",
+      "path": "routes",
+      "extension": "js",
+      "parent": "s_vG0UuU4cNCg",
+      "ctxKind": "function",
+      "ctxName": "useStyles$",
+      "captures": false,
+      "loc": [461, 690]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_BjxcCeNQ9ak",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component_div_button_onClick",
+      "hash": "BjxcCeNQ9ak",
+      "canonicalFilename": "index.tsx_routes_component_div_button_onClick_BjxcCeNQ9ak",
+      "path": "routes",
+      "extension": "js",
+      "parent": "s_vG0UuU4cNCg",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [1568, 1587]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_W55i0lhTtbg",
+      "entry": "routes/index.tsx_entry_getLibB",
+      "displayName": "index.tsx_getLibB",
+      "hash": "W55i0lhTtbg",
+      "canonicalFilename": "index.tsx_getLibB_W55i0lhTtbg",
+      "path": "routes",
+      "extension": "js",
+      "parent": null,
+      "ctxKind": "function",
+      "ctxName": "$",
+      "captures": false,
+      "loc": [400, 410]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_yfU04lE1Qrw",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component_div_button_onClick_1",
+      "hash": "yfU04lE1Qrw",
+      "canonicalFilename": "index.tsx_routes_component_div_button_onClick_1_yfU04lE1Qrw",
+      "path": "routes",
+      "extension": "js",
+      "parent": "s_vG0UuU4cNCg",
+      "ctxKind": "eventHandler",
+      "ctxName": "onClick$",
+      "captures": true,
+      "loc": [1667, 1686]
+    },
+    {
+      "origin": "routes/index.tsx",
+      "name": "s_HEFxKy9cwuk",
+      "entry": "routes/index.tsx_entry_routes",
+      "displayName": "index.tsx_routes_component_useVisibleTask",
+      "hash": "HEFxKy9cwuk",
+      "canonicalFilename": "index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk",
+      "path": "routes",
+      "extension": "js",
+      "parent": "s_vG0UuU4cNCg",
+      "ctxKind": "function",
+      "ctxName": "useVisibleTask$",
+      "captures": true,
+      "loc": [918, 1049]
     },
     {
       "origin": "routes/about/index.tsx",
@@ -419,96 +524,6 @@
       "ctxName": "component$",
       "captures": false,
       "loc": [146, 1688]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_vG0UuU4cNCg",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component",
-      "hash": "vG0UuU4cNCg",
-      "canonicalFilename": "index.tsx_routes_component_vG0UuU4cNCg",
-      "path": "routes",
-      "extension": "js",
-      "parent": null,
-      "ctxKind": "function",
-      "ctxName": "component$",
-      "captures": false,
-      "loc": [395, 1763]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_ep3t0fF0SDA",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component_handleClick",
-      "hash": "ep3t0fF0SDA",
-      "canonicalFilename": "index.tsx_routes_component_handleClick_ep3t0fF0SDA",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_vG0UuU4cNCg",
-      "ctxKind": "function",
-      "ctxName": "$",
-      "captures": true,
-      "loc": [956, 1095]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_99K9SAWjPFQ",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component_useTask",
-      "hash": "99K9SAWjPFQ",
-      "canonicalFilename": "index.tsx_routes_component_useTask_99K9SAWjPFQ",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_vG0UuU4cNCg",
-      "ctxKind": "function",
-      "ctxName": "useTask$",
-      "captures": true,
-      "loc": [876, 927]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_Iyy38y0K3Hw",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component_useStyles",
-      "hash": "Iyy38y0K3Hw",
-      "canonicalFilename": "index.tsx_routes_component_useStyles_Iyy38y0K3Hw",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_vG0UuU4cNCg",
-      "ctxKind": "function",
-      "ctxName": "useStyles$",
-      "captures": false,
-      "loc": [416, 645]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_BjxcCeNQ9ak",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component_div_button_onClick",
-      "hash": "BjxcCeNQ9ak",
-      "canonicalFilename": "index.tsx_routes_component_div_button_onClick_BjxcCeNQ9ak",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_vG0UuU4cNCg",
-      "ctxKind": "eventHandler",
-      "ctxName": "onClick$",
-      "captures": true,
-      "loc": [1706, 1725]
-    },
-    {
-      "origin": "routes/index.tsx",
-      "name": "s_HEFxKy9cwuk",
-      "entry": "routes/index.tsx_entry_routes",
-      "displayName": "index.tsx_routes_component_useVisibleTask",
-      "hash": "HEFxKy9cwuk",
-      "canonicalFilename": "index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk",
-      "path": "routes",
-      "extension": "js",
-      "parent": "s_vG0UuU4cNCg",
-      "ctxKind": "function",
-      "ctxName": "useVisibleTask$",
-      "captures": true,
-      "loc": [731, 861]
     },
     {
       "origin": "routes/form/index.tsx",
@@ -1343,9 +1358,9 @@
           "r",
           "s",
           "x",
-          "q",
           "f",
           "S",
+          "q",
           "u",
           "y",
           "z",
@@ -1412,7 +1427,7 @@
         "importedAssets": {},
         "importedCss": {}
       },
-      "code": "var _a, _b, _c, _d, _e, _f;\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { j as useQwikCityEnv, c as createDocumentHead, C as ContentContext, d as ContentInternalContext, D as DocumentHeadContext, R as RouteLocationContext, e as RouteNavigateContext, f as RouteStateContext, h as RouteActionContext, i as RouteInternalContext, k as RoutePreventNavigateContext, m as loadRoute, l as loadClientData, n as isSamePath, r as resolveHead, o as getScrollHistory, Q as QWIK_CITY_SCROLLER, q as restoreScroll, t as CLIENT_DATA_CACHE, v as isSameOrigin, w as saveScrollHistory, x as currentScrollState, y as spaInit, z as clientNavigate, A as getContainer, B as preventNav, E as internalState, F as toUrl } from \"./qwik-city.js\";\nimport { t as useStylesQrl, j as useServerData, b as useStore, v as _weakSerialize, r as useSignal, s as useContextProvider, x as useTaskQrl, q as qrl, f as _jsxC, S as Slot, u as useLexicalScope, y as getLocale, z as _getContextElement, n as noSerialize, A as _waitUntilRendered, _hW } from \"./core.js\";\nconsole.log(\">>> running\", \"/Users/maieul/dev/work/qwik/packages/qwik-city/lib/index.qwik.mjs_QwikCityProvider_component_OzSZb6UyaCs.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/Users/maieul/dev/work/qwik/packages/qwik-city/lib/index.qwik.mjs_QwikCityProvider_component_OzSZb6UyaCs.js\");\nconst s_OzSZb6UyaCs = (props) => {\n  useStylesQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_useStyles_OC53PuG02nc), true ? void 0 : void 0), \"s_OC53PuG02nc\"));\n  const env = useQwikCityEnv();\n  if (!(env == null ? void 0 : env.params)) throw new Error(`Missing Qwik City Env Data for help visit https://github.com/QwikDev/qwik/issues/6237`);\n  const urlEnv = useServerData(\"url\");\n  if (!urlEnv) throw new Error(`Missing Qwik URL Env Data`);\n  const url = new URL(urlEnv);\n  const routeLocation = useStore({\n    url,\n    params: env.params,\n    isNavigating: false,\n    prevUrl: void 0\n  }, {\n    deep: false\n  });\n  const navResolver = {};\n  const loaderState = _weakSerialize(useStore(env.response.loaders, {\n    deep: false\n  }));\n  const routeInternal = useSignal({\n    type: \"initial\",\n    dest: url,\n    forceReload: false,\n    replaceState: false,\n    scroll: true\n  });\n  const documentHead = useStore(createDocumentHead);\n  const content = useStore({\n    headings: void 0,\n    menu: void 0\n  });\n  const contentInternal = useSignal();\n  const currentActionId = env.response.action;\n  const currentAction = currentActionId ? env.response.loaders[currentActionId] : void 0;\n  const actionState = useSignal(currentAction ? {\n    id: currentActionId,\n    data: env.response.formData,\n    output: {\n      result: currentAction,\n      status: env.response.status\n    }\n  } : void 0);\n  const registerPreventNav = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_registerPreventNav_zQJLLuPn6rA), true ? void 0 : void 0), \"s_zQJLLuPn6rA\");\n  const goto = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_goto_IDVXhQLfmNQ), true ? void 0 : void 0), \"s_IDVXhQLfmNQ\", [\n    actionState,\n    navResolver,\n    routeInternal,\n    routeLocation\n  ]);\n  useContextProvider(ContentContext, content);\n  useContextProvider(ContentInternalContext, contentInternal);\n  useContextProvider(DocumentHeadContext, documentHead);\n  useContextProvider(RouteLocationContext, routeLocation);\n  useContextProvider(RouteNavigateContext, goto);\n  useContextProvider(RouteStateContext, loaderState);\n  useContextProvider(RouteActionContext, actionState);\n  useContextProvider(RouteInternalContext, routeInternal);\n  useContextProvider(RoutePreventNavigateContext, registerPreventNav);\n  useTaskQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_useTask_n397ZlNS8UY), true ? void 0 : void 0), \"s_n397ZlNS8UY\", [\n    actionState,\n    content,\n    contentInternal,\n    documentHead,\n    env,\n    goto,\n    loaderState,\n    navResolver,\n    props,\n    routeInternal,\n    routeLocation\n  ]));\n  return /* @__PURE__ */ _jsxC(Slot, null, 3, \"uY_3\");\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"/ofjMNErQEnybIjkRwyliJ8ia78eUSUaxBvncE0o0TpsNVarPqdMztAfkPpB5XWuQGx5JmoIn1fJN3fM3cEppw==fA74lTRe50BPm0SxsiFNmk50zrB1KdeTnWND4Zi0yMoDZ/WKZ4jANjaWi32p7ug6tbs19la7GwC5V7uxIr9z4Q==n4p+qDKKUN7KZa4Q/ZDNCJMC2oiv/F3S40umowdUhIpX0yKroMKYShs6fF9k9jJ9J1/QWD0I/30jo5N2zdHn4A==tABkvACiEerJHV42nEYf+8rsB//x0aFyttKRY8TdKMd46+8YGeZX6iP+PUEXclZ07T0EethsCFZK+SHs6QpiAA==tL6YpKbS+XQkyocYmYmu6kwrJ1DK+3XWL4sIYOUOWueE7XEsVhE01SKbU8GFRhEGI/1U7jv/DeXwxC7TVoXbIA==4EU82kpyV3+dc6HGQ3taRuyiD4Wsnw0S+ccTrsLstwqLT62HSnav3Pk6GNTli+ot/SIuNOtQAU+zRqVx0DBrtw==//uVE1q9VvY1vq+lD8papxbmHoJDzWG0KR2NKSGZxRc6aQi7QHip32cos4PvrDmHROGdly15s7/7swXJx9V6hw==NEJHg9ab+7nnR3gx+JEHZqVKNlmBY+oa+KlJtwdskFnj9/AP8DSnKgTOuyokFtzHjMk3",
+      "code": "var _a, _b, _c, _d, _e, _f;\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { j as useQwikCityEnv, c as createDocumentHead, C as ContentContext, d as ContentInternalContext, D as DocumentHeadContext, R as RouteLocationContext, e as RouteNavigateContext, f as RouteStateContext, h as RouteActionContext, i as RouteInternalContext, k as RoutePreventNavigateContext, m as loadRoute, l as loadClientData, n as isSamePath, r as resolveHead, o as getScrollHistory, Q as QWIK_CITY_SCROLLER, q as restoreScroll, t as CLIENT_DATA_CACHE, v as isSameOrigin, w as saveScrollHistory, x as currentScrollState, y as spaInit, z as clientNavigate, A as getContainer, B as preventNav, E as internalState, F as toUrl } from \"./qwik-city.js\";\nimport { t as useStylesQrl, j as useServerData, b as useStore, v as _weakSerialize, r as useSignal, s as useContextProvider, x as useTaskQrl, f as _jsxC, S as Slot, q as qrl, u as useLexicalScope, y as getLocale, z as _getContextElement, n as noSerialize, A as _waitUntilRendered, _hW } from \"./core.js\";\nconsole.log(\">>> running\", \"/Users/maieul/dev/work/qwik/packages/qwik-city/lib/index.qwik.mjs_QwikCityProvider_component_OzSZb6UyaCs.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/Users/maieul/dev/work/qwik/packages/qwik-city/lib/index.qwik.mjs_QwikCityProvider_component_OzSZb6UyaCs.js\");\nconst s_OzSZb6UyaCs = (props) => {\n  useStylesQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_useStyles_OC53PuG02nc), true ? void 0 : void 0), \"s_OC53PuG02nc\"));\n  const env = useQwikCityEnv();\n  if (!(env == null ? void 0 : env.params)) throw new Error(`Missing Qwik City Env Data for help visit https://github.com/QwikDev/qwik/issues/6237`);\n  const urlEnv = useServerData(\"url\");\n  if (!urlEnv) throw new Error(`Missing Qwik URL Env Data`);\n  const url = new URL(urlEnv);\n  const routeLocation = useStore({\n    url,\n    params: env.params,\n    isNavigating: false,\n    prevUrl: void 0\n  }, {\n    deep: false\n  });\n  const navResolver = {};\n  const loaderState = _weakSerialize(useStore(env.response.loaders, {\n    deep: false\n  }));\n  const routeInternal = useSignal({\n    type: \"initial\",\n    dest: url,\n    forceReload: false,\n    replaceState: false,\n    scroll: true\n  });\n  const documentHead = useStore(createDocumentHead);\n  const content = useStore({\n    headings: void 0,\n    menu: void 0\n  });\n  const contentInternal = useSignal();\n  const currentActionId = env.response.action;\n  const currentAction = currentActionId ? env.response.loaders[currentActionId] : void 0;\n  const actionState = useSignal(currentAction ? {\n    id: currentActionId,\n    data: env.response.formData,\n    output: {\n      result: currentAction,\n      status: env.response.status\n    }\n  } : void 0);\n  const registerPreventNav = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_registerPreventNav_zQJLLuPn6rA), true ? void 0 : void 0), \"s_zQJLLuPn6rA\");\n  const goto = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_goto_IDVXhQLfmNQ), true ? void 0 : void 0), \"s_IDVXhQLfmNQ\", [\n    actionState,\n    navResolver,\n    routeInternal,\n    routeLocation\n  ]);\n  useContextProvider(ContentContext, content);\n  useContextProvider(ContentInternalContext, contentInternal);\n  useContextProvider(DocumentHeadContext, documentHead);\n  useContextProvider(RouteLocationContext, routeLocation);\n  useContextProvider(RouteNavigateContext, goto);\n  useContextProvider(RouteStateContext, loaderState);\n  useContextProvider(RouteActionContext, actionState);\n  useContextProvider(RouteInternalContext, routeInternal);\n  useContextProvider(RoutePreventNavigateContext, registerPreventNav);\n  useTaskQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_qwik_mjs_QwikCityProvider_component_useTask_n397ZlNS8UY), true ? void 0 : void 0), \"s_n397ZlNS8UY\", [\n    actionState,\n    content,\n    contentInternal,\n    documentHead,\n    env,\n    goto,\n    loaderState,\n    navResolver,\n    props,\n    routeInternal,\n    routeLocation\n  ]));\n  return /* @__PURE__ */ _jsxC(Slot, null, 3, \"uY_3\");\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"/ofjMNErQEnybIjkRwyliJ8ia78eUSUaxBvncE0o0TpsNVarPqdMztAfkPpB5XWuQGx5JmoIn1fJN3fM3cEppw==fA74lTRe50BPm0SxsiFNmk50zrB1KdeTnWND4Zi0yMoDZ/WKZ4jANjaWi32p7ug6tbs19la7GwC5V7uxIr9z4Q==n4p+qDKKUN7KZa4Q/ZDNCJMC2oiv/F3S40umowdUhIpX0yKroMKYShs6fF9k9jJ9J1/QWD0I/30jo5N2zdHn4A==tABkvACiEerJHV42nEYf+8rsB//x0aFyttKRY8TdKMd46+8YGeZX6iP+PUEXclZ07T0EethsCFZK+SHs6QpiAA==tL6YpKbS+XQkyocYmYmu6kwrJ1DK+3XWL4sIYOUOWueE7XEsVhE01SKbU8GFRhEGI/1U7jv/DeXwxC7TVoXbIA==4EU82kpyV3+dc6HGQ3taRuyiD4Wsnw0S+ccTrsLstwqLT62HSnav3Pk6GNTli+ot/SIuNOtQAU+zRqVx0DBrtw==//uVE1q9VvY1vq+lD8papxbmHoJDzWG0KR2NKSGZxRc6aQi7QHip32cos4PvrDmHROGdly15s7/7swXJx9V6hw==NEJHg9ab+7nnR3gx+JEHZqVKNlmBY+oa+KlJtwdskFnj9/AP8DSnKgTOuyokFtzHjMk3",
       "map": "<removed>",
       "preliminaryFileName": "build/index.qwik.mjs_QwikCityProvider_component_OzSZb6UyaCs.js",
       "sourcemapFileName": null
@@ -1577,7 +1592,7 @@
       "modules": {
         "/src/routes/layout.tsx": {
           "code": "<removed 627 bytes>",
-          "originalLength": 1806,
+          "originalLength": 1430,
           "removedExports": [],
           "renderedExports": ["default", "head"],
           "renderedLength": 627
@@ -1597,12 +1612,12 @@
       "exports": [
         "_hW",
         "i",
-        "s_99K9SAWjPFQ",
         "s_BjxcCeNQ9ak",
+        "s_C5dy6D0CZVg",
         "s_HEFxKy9cwuk",
         "s_Iyy38y0K3Hw",
-        "s_ep3t0fF0SDA",
-        "s_vG0UuU4cNCg"
+        "s_vG0UuU4cNCg",
+        "s_yfU04lE1Qrw"
       ],
       "facadeModuleId": "/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js",
       "isDynamicEntry": true,
@@ -1611,50 +1626,46 @@
       "moduleIds": [
         "/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js",
         "/src/routes/index.tsx",
-        "/src/routes/index.tsx_routes_component_handleClick_ep3t0fF0SDA.js",
-        "/src/routes/index.tsx_routes_component_useTask_99K9SAWjPFQ.js",
+        "/src/routes/index.tsx_routes_component_getMessage_C5dy6D0CZVg.js",
         "/src/routes/index.tsx_routes_component_useStyles_Iyy38y0K3Hw.js",
         "/src/routes/index.tsx_routes_component_div_button_onClick_BjxcCeNQ9ak.js",
+        "/src/routes/index.tsx_routes_component_div_button_onClick_1_yfU04lE1Qrw.js",
         "/src/routes/index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk.js"
       ],
       "name": "index.tsx_routes_component_vG0UuU4cNCg",
       "type": "chunk",
-      "dynamicImports": ["build/src-vendor-lib-libA.ts.js", "build/src-vendor-lib-libB.ts.js"],
+      "dynamicImports": [
+        "build/index.tsx_getLibA_ZcKyJR3xn1o.js",
+        "build/index.tsx_getLibB_W55i0lhTtbg.js"
+      ],
       "fileName": "build/index.tsx_routes_component_vG0UuU4cNCg.js",
       "implicitlyLoadedBefore": [],
       "importedBindings": {
         "build/preloader.js": ["_"],
-        "build/core.js": ["t", "r", "G", "x", "B", "m", "q", "g", "u", "_hW"]
+        "build/core.js": ["t", "r", "G", "B", "m", "q", "g", "u", "_hW"]
       },
       "imports": ["build/preloader.js", "build/core.js"],
       "modules": {
         "/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js": {
-          "code": "<removed 23584 bytes>",
-          "originalLength": 2341,
+          "code": "<removed 23581 bytes>",
+          "originalLength": 2291,
           "removedExports": [],
           "renderedExports": ["s_vG0UuU4cNCg"],
-          "renderedLength": 23584
+          "renderedLength": 23581
         },
         "/src/routes/index.tsx": {
-          "code": "<removed 15591 bytes>",
-          "originalLength": 1954,
+          "code": "<removed 15681 bytes>",
+          "originalLength": 1915,
           "removedExports": [],
           "renderedExports": ["default", "head", "_auto_getLibA", "_auto_getLibB"],
-          "renderedLength": 15591
+          "renderedLength": 15681
         },
-        "/src/routes/index.tsx_routes_component_handleClick_ep3t0fF0SDA.js": {
-          "code": "<removed 57402 bytes>",
-          "originalLength": 418,
+        "/src/routes/index.tsx_routes_component_getMessage_C5dy6D0CZVg.js": {
+          "code": "<removed 519 bytes>",
+          "originalLength": 385,
           "removedExports": [],
-          "renderedExports": ["s_ep3t0fF0SDA"],
-          "renderedLength": 57402
-        },
-        "/src/routes/index.tsx_routes_component_useTask_99K9SAWjPFQ.js": {
-          "code": "<removed 539 bytes>",
-          "originalLength": 211,
-          "removedExports": [],
-          "renderedExports": ["s_99K9SAWjPFQ"],
-          "renderedLength": 539
+          "renderedExports": ["s_C5dy6D0CZVg"],
+          "renderedLength": 519
         },
         "/src/routes/index.tsx_routes_component_useStyles_Iyy38y0K3Hw.js": {
           "code": "<removed 43811 bytes>",
@@ -1670,12 +1681,19 @@
           "renderedExports": ["s_BjxcCeNQ9ak"],
           "renderedLength": 45953
         },
+        "/src/routes/index.tsx_routes_component_div_button_onClick_1_yfU04lE1Qrw.js": {
+          "code": "<removed 2573 bytes>",
+          "originalLength": 155,
+          "removedExports": [],
+          "renderedExports": ["s_yfU04lE1Qrw"],
+          "renderedLength": 2573
+        },
         "/src/routes/index.tsx_routes_component_useVisibleTask_HEFxKy9cwuk.js": {
-          "code": "<removed 551 bytes>",
-          "originalLength": 409,
+          "code": "<removed 561 bytes>",
+          "originalLength": 307,
           "removedExports": [],
           "renderedExports": ["s_HEFxKy9cwuk"],
-          "renderedLength": 551
+          "renderedLength": 561
         }
       },
       "referencedFiles": [],
@@ -1683,7 +1701,7 @@
         "importedAssets": {},
         "importedCss": {}
       },
-      "code": "var _a, _b, _c, _d, _e, _f, _g;\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { t as useStylesQrl, r as useSignal, G as useVisibleTaskQrl, x as useTaskQrl, B as _jsxQ, m as _fnSignal, q as qrl, g as componentQrl, u as useLexicalScope, _hW } from \"./core.js\";\nconsole.log(\">>> running\", \"/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js\");\nconst s_vG0UuU4cNCg = () => {\n  useStylesQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_useStyles_Iyy38y0K3Hw), true ? void 0 : void 0), \"s_Iyy38y0K3Hw\"));\n  const count = useSignal(0);\n  const message = useSignal(\"\");\n  useVisibleTaskQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_useVisibleTask_HEFxKy9cwuk), true ? void 0 : void 0), \"s_HEFxKy9cwuk\", [\n    count,\n    message\n  ]));\n  useTaskQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_useTask_99K9SAWjPFQ), true ? void 0 : void 0), \"s_99K9SAWjPFQ\", [\n    message\n  ]));\n  const handleClick$ = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_handleClick_ep3t0fF0SDA), true ? void 0 : void 0), \"s_ep3t0fF0SDA\", [\n    count,\n    message\n  ]);\n  return /* @__PURE__ */ _jsxQ(\"div\", null, {\n    class: \"home-container\"\n  }, [\n    /* @__PURE__ */ _jsxQ(\"h1\", null, {\n      class: \"title\"\n    }, \"Welcome to Preloader Test\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, {\n      class: \"paragraph\"\n    }, \"This is a test application to demonstrate preloading capabilities in Qwik.\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, {\n      class: \"paragraph\"\n    }, \"Navigate to the Form page to try out the form functionality, or visit the About page to learn more.\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, null, [\n      \"Count: \",\n      _fnSignal((p0) => p0.value, [\n        count\n      ])\n    ], 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, null, [\n      \"Message: \",\n      _fnSignal((p0) => p0.value, [\n        message\n      ])\n    ], 3, null),\n    /* @__PURE__ */ _jsxQ(\"button\", null, {\n      onClick$: handleClick$\n    }, \"Increment\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"button\", null, {\n      onClick$: /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_div_button_onClick_BjxcCeNQ9ak), true ? void 0 : void 0), \"s_BjxcCeNQ9ak\", [\n        count\n      ])\n    }, \"Decrement\", 3, null)\n  ], 3, \"B7_0\");\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"dpkBISGb2N/vnFQsdmHavLprxVysH8CkRJ0LyEungGiFUuNMJxT6Ym8FBLD97JnnunDpzMjWfwqAo3i8SOSBnw==6xiDu4H66GYwS7Evgx26yavvmRo7zJ5oSnGPMdwZSMzzzUujBedT/O+XaVITkW7/rbtxZh4xWp/bNmAHPLVIiw==UoiVJG2VXCLKcrJhGiBwt/JGsw3KqDxl3LKa+d/I8dEEHwCcxhMjZW9nBqya+BE7ixoORr0rLZRexc0+cm8F3A==b0DTrleHqR1ZvdJeEtGNlIoXaEtrN8ht3WujxbczDdBxwByyZnYWi/RHFSgrmsRUd7pgVaWq8mJrxjPt3hY6GQ==lyRg1lz/ZiGxVBrBiwnMB2VEHz9p60dOVdamXwV2ci8FeYRycOqCbE3a5czOtaY6PpsEhSUstjsrHE5cRyvXLQ==LNoL30iXwE3UZizSs9o5vtdhKIz43RwW/N8NqX6lRRcrHlxl507y7NI1c5qHxIjevzG7VXCOJRmssgty1Pk9Ng==t6mG7YRGykPYHvlDIO1Smt3YwLFGaAYR6nwNFteYU4GRI72jogXovi14hGE6qMyI+RmgPiwGiI2wQ5WuuJTDBw==hWl62dwPEaU92pRQkHp9T6y2iXko+q+MAh5CRpL4BS4Is7543jfS/uk0iNJqsb6J70Zli2PGh32MtSfw9DeDaA==uT1bOynDIaW8D1XDHBnUFIOJXPUeXzPjwpBwWVDcxs16CcbtyxHa4EfZpJqfgzwsH7onycBPWREaxz4WTaLQrQ==srddqfMA4MbEngVk9V2ZCVP82uDj/dO+oxxOcJe+megQY8Ou8oC/ePqCl2G8aRiUXYBD2ktqEXVoCkT72m4X3A==3viB+Bq6MPzE0Ma+op4Wsimo1hnMj/dmChwk6x5aCKf5Edz08FiJ3qNSgL1l9JjxvvNUn5K8YCDjmLlFtR7jhA==G/qmLC+AoNVslMMTSK2dCuQMZLGkmWkMYwERQ3OGl7WML3LlPgI8IQ8P2rCzV/dfQ+BVMXiQtkBl+b5y6K+WAw==2jgs1bXvFwDxQM0tjtYv1RM9fWb/heKUUbbOSWPo2zj2VrYpq5i82BsK4mEF0PQ4JeHY794CTJvqY9fY9SBTTw==j75esiTg8lLOEUw96kuovyFYBOibJPDLq/DGd2JS2QCrfzf7WNo9UwedwaLQ45T3cAITItBn0y+dFMdnuSlWbQ==xtqfB8hSiYHGeXSqpFnvFzAfno9BqMA/2XhYR18lWV90KHQOSDOIObU2OJhd5T/NmxgqYwrIPHzjFajJGEDfVw==CkfGIXB28CHs+xtIaRSOu+p3pr/bTRZoGog5tsahlqQMgHEs3ibAN62PrW7erroFexJeAdUaAwf2tCdemye8/w==YNSc3ffku0wvCNy1t1PZO3GrJzsj+l3QobxToO1jwdP5s/BhUF+YBEcq26Rzy11/FVOVbCuPWTqz8k71dMSuOg==3bgqz9M0XD/3DGFzwYz4JsM4l0hf59ZPke59sZcHCWpvShOBBbv7VBH3AH4A4Nj2G0ULR2I9opq+Z0UGLgbX+A==IxRiUW1UbV/G5b5hinfnCVBIHMTnoSPdUVbu635rlBMeXcJTX1Zxolzxq9HJmajI0AK20cQhpoQV3232/PFMIw==CQ1SPMFx6mhLJyQmdynPCdKVwQ26EH5/ilAHv49Etk79mOZD/r7F9uxYCAiUdg1O4HWHlKb7EhHZcBdASAtG7g==3UUfmAyjpsjmH1gyZfeohxksT3hV8F/+TGVWOwqO3Qg8E439u3HmbPHWV9+kfjdM14s6kRuhYECiIMA/zEcTcw==2MLRF8TMnZVLA4fM73JnZQqomDnaxjl/V+xtsCJO9k1oZLXbmV70TG3ng/VWaIjLmGOOYdN3I2ZJiEhlBao20A==rkHGayJj+AmtE976WDcdehHBR7Lwxzh1GNGbtNs+GE9nh3wreesKtexLBIX+vVu20byN2kuN0o0iD2Po71PyGQ==z6RND2JinG2T9ZsXzgl1tMTkS0rxMMoWzsAUBliqs2+u4LFXVeEZiyRtmlj5Ns8b6EYTDud6BPGuSInxZ4v57Q==qtNe/GcNV1npBgo9orDXWXR6j7JNfivO4xJuig3G2EGIlbQfMkvzbjfxOmr9sstYDtVL6C6p7zfTB8Swjojn8",
+      "code": "var _a, _b, _c, _d, _e, _f, _g;\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { t as useStylesQrl, r as useSignal, G as useVisibleTaskQrl, B as _jsxQ, m as _fnSignal, q as qrl, g as componentQrl, u as useLexicalScope, _hW } from \"./core.js\";\nconsole.log(\">>> running\", \"/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/index.tsx_routes_component_vG0UuU4cNCg.js\");\nconst s_vG0UuU4cNCg = () => {\n  useStylesQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_useStyles_Iyy38y0K3Hw), true ? void 0 : void 0), \"s_Iyy38y0K3Hw\"));\n  const count = useSignal(0);\n  const message = useSignal(\"\");\n  const getMessage = /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_getMessage_C5dy6D0CZVg), true ? void 0 : void 0), \"s_C5dy6D0CZVg\", [\n    count\n  ]);\n  useVisibleTaskQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_useVisibleTask_HEFxKy9cwuk), true ? void 0 : void 0), \"s_HEFxKy9cwuk\", [\n    count,\n    getMessage,\n    message\n  ]));\n  return /* @__PURE__ */ _jsxQ(\"div\", null, {\n    class: \"home-container\"\n  }, [\n    /* @__PURE__ */ _jsxQ(\"h1\", null, {\n      class: \"title\"\n    }, \"Welcome to Preloader Test\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, {\n      class: \"paragraph\"\n    }, \"This is a test application to demonstrate preloading capabilities in Qwik.\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, {\n      class: \"paragraph\"\n    }, \"Navigate to the Form page to try out the form functionality, or visit the About page to learn more.\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, null, [\n      \"Count: \",\n      _fnSignal((p0) => p0.value, [\n        count\n      ])\n    ], 3, null),\n    /* @__PURE__ */ _jsxQ(\"p\", null, null, [\n      \"Message: \",\n      _fnSignal((p0) => p0.value, [\n        message\n      ])\n    ], 3, null),\n    /* @__PURE__ */ _jsxQ(\"button\", null, {\n      onClick$: /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_div_button_onClick_BjxcCeNQ9ak), true ? void 0 : void 0), \"s_BjxcCeNQ9ak\", [\n        count\n      ])\n    }, \"Increment\", 3, null),\n    /* @__PURE__ */ _jsxQ(\"button\", null, {\n      onClick$: /* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => index_tsx_routes_component_div_button_onClick_1_yfU04lE1Qrw), true ? void 0 : void 0), \"s_yfU04lE1Qrw\", [\n        count\n      ])\n    }, \"Decrement\", 3, null)\n  ], 3, \"B7_0\");\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"dpkBISGb2N/vnFQsdmHavLprxVysH8CkRJ0LyEungGiFUuNMJxT6Ym8FBLD97JnnunDpzMjWfwqAo3i8SOSBnw==6xiDu4H66GYwS7Evgx26yavvmRo7zJ5oSnGPMdwZSMzzzUujBedT/O+XaVITkW7/rbtxZh4xWp/bNmAHPLVIiw==UoiVJG2VXCLKcrJhGiBwt/JGsw3KqDxl3LKa+d/I8dEEHwCcxhMjZW9nBqya+BE7ixoORr0rLZRexc0+cm8F3A==b0DTrleHqR1ZvdJeEtGNlIoXaEtrN8ht3WujxbczDdBxwByyZnYWi/RHFSgrmsRUd7pgVaWq8mJrxjPt3hY6GQ==lyRg1lz/ZiGxVBrBiwnMB2VEHz9p60dOVdamXwV2ci8FeYRycOqCbE3a5czOtaY6PpsEhSUstjsrHE5cRyvXLQ==LNoL30iXwE3UZizSs9o5vtdhKIz43RwW/N8NqX6lRRcrHlxl507y7NI1c5qHxIjevzG7VXCOJRmssgty1Pk9Ng==t6mG7YRGykPYHvlDIO1Smt3YwLFGaAYR6nwNFteYU4GRI72jogXovi14hGE6qMyI+RmgPiwGiI2wQ5WuuJTDBw==hWl62dwPEaU92pRQkHp9T6y2iXko+q+MAh5CRpL4BS4Is7543jfS/uk0iNJqsb6J70Zli2PGh32MtSfw9DeDaA==uT1bOynDIaW8D1XDHBnUFIOJXPUeXzPjwpBwWVDcxs16CcbtyxHa4EfZpJqfgzwsH7onycBPWREaxz4WTaLQrQ==srddqfMA4MbEngVk9V2ZCVP82uDj/dO+oxxOcJe+megQY8Ou8oC/ePqCl2G8aRiUXYBD2ktqEXVoCkT72m4X3A==3viB+Bq6MPzE0Ma+op4Wsimo1hnMj/dmChwk6x5aCKf5Edz08FiJ3qNSgL1l9JjxvvNUn5K8YCDjmLlFtR7jhA==G/qmLC+AoNVslMMTSK2dCuQMZLGkmWkMYwERQ3OGl7WML3LlPgI8IQ8P2rCzV/dfQ+BVMXiQtkBl+b5y6K+WAw==2jgs1bXvFwDxQM0tjtYv1RM9fWb/heKUUbbOSWPo2zj2VrYpq5i82BsK4mEF0PQ4JeHY794CTJvqY9fY9SBTTw==j75esiTg8lLOEUw96kuovyFYBOibJPDLq/DGd2JS2QCrfzf7WNo9UwedwaLQ45T3cAITItBn0y+dFMdnuSlWbQ==xtqfB8hSiYHGeXSqpFnvFzAfno9BqMA/2XhYR18lWV90KHQOSDOIObU2OJhd5T/NmxgqYwrIPHzjFajJGEDfVw==CkfGIXB28CHs+xtIaRSOu+p3pr/bTRZoGog5tsahlqQMgHEs3ibAN62PrW7erroFexJeAdUaAwf2tCdemye8/w==YNSc3ffku0wvCNy1t1PZO3GrJzsj+l3QobxToO1jwdP5s/BhUF+YBEcq26Rzy11/FVOVbCuPWTqz8k71dMSuOg==3bgqz9M0XD/3DGFzwYz4JsM4l0hf59ZPke59sZcHCWpvShOBBbv7VBH3AH4A4Nj2G0ULR2I9opq+Z0UGLgbX+A==IxRiUW1UbV/G5b5hinfnCVBIHMTnoSPdUVbu635rlBMeXcJTX1Zxolzxq9HJmajI0AK20cQhpoQV3232/PFMIw==CQ1SPMFx6mhLJyQmdynPCdKVwQ26EH5/ilAHv49Etk79mOZD/r7F9uxYCAiUdg1O4HWHlKb7EhHZcBdASAtG7g==3UUfmAyjpsjmH1gyZfeohxksT3hV8F/+TGVWOwqO3Qg8E439u3HmbPHWV9+kfjdM14s6kRuhYECiIMA/zEcTcw==2MLRF8TMnZVLA4fM73JnZQqomDnaxjl/V+xtsCJO9k1oZLXbmV70TG3ng/VWaIjLmGOOYdN3I2ZJiEhlBao20A==rkHGayJj+AmtE976WDcdehHBR7Lwxzh1GNGbtNs+GE9nh3wreesKtexLBIX+vVu20byN2kuN0o0iD2Po71PyGQ==z6RND2JinG2T9ZsXzgl1tMTkS0rxMMoWzsAUBliqs2+u4LFXVeEZiyRtmlj5Ns8b6EYTDud6BPGuSInxZ4v57Q==qtNe/GcNV1npBgo9orDXWXR6j7JNfivO4xJuig3G2EGIlbQfMkvzbjfxOmr9sstYDtVL6C6p7zfTB8Swjojn8A==h7EmC2fCP3cDJPSlLRJWVp3",
       "map": "<removed>",
       "preliminaryFileName": "build/index.tsx_routes_component_vG0UuU4cNCg.js",
       "sourcemapFileName": null
@@ -1890,9 +1908,9 @@
       "sourcemapFileName": null
     },
     "build/src-vendor-lib-libA.ts.js": {
-      "exports": ["getMessage"],
-      "facadeModuleId": "/src/vendor-lib/libA.ts",
-      "isDynamicEntry": true,
+      "exports": ["l"],
+      "facadeModuleId": null,
+      "isDynamicEntry": false,
       "isEntry": false,
       "isImplicitEntry": false,
       "moduleIds": ["/src/vendor-lib/libA.ts"],
@@ -1919,15 +1937,15 @@
         "importedAssets": {},
         "importedCss": {}
       },
-      "code": "var _a;\nimport { h as helper } from \"./src-vendor-lib-helper.ts.js\";\nconsole.log(\">>> running\", \"/src/vendor-lib/libA.ts\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/vendor-lib/libA.ts\");\nconst getMessage = () => {\n  return `Message from LibA: ${helper()}`;\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"r1bnbh/9tPbOMRJ7hdAvpffUNEFTUrN7UfDvF5rPcxWyOganzjipzrYNVA7E3N2DJ/ha6BRBL5THHx7cvW6afg==qvGoVulHhHJ1/3OcqrAL6hGcp0ngxLwxY4HFFa1KIaakfr0Yblh/2+1tlIK80gd3AKgJTKYrvWWJvp5X6RtrmQ==xFPMJgImi+WQ08QjcS2kJK99iNbDw/j7szA8j0FmikYdvur/GGv1/omXbfYQ8QdMhLMbytmtzTlnz1SsfepzAA==FtFY+0sbBcfztEVPL8OXAbYCCMajaKX1fXVLAg8p09nnPpMpNyj05KZCLZpKXTUvDcWD9M+Zqojw+QQdzk/kyQ==EY0zkwIANj4P+mXHQCqEqzOIeFprBJNdYG/VNgy2hHdvSuBR8jduUQh5hPufm1u5i0rbWyrmFMZR1K4VhWhF3A==IbDBVa8+QXR3m8y2UxmxB+xaqetyzTYaJF4x03LTA2Puo0AJCPo5hzERRUq6pXIJON3v/rY9BAtylzbiuI5ltg==O/Kt7LTtE+sWNkKw9untFmNTNCVST5mpIzzOIo2Sel58WiEPh10dQmLcGtMiqxsqOSjKWuEQVzMXJT+0j1pfTw==Rgyxz0chTgAcAIGInBS/GUhaEO0HlU/1qSXpHiRryikZzvD23lrJXSn0Dsc/upAutoiKXplwxgcnuPnPPX6alQ==44lIKErNqPkB/R9p/w+3PRFcrHoA8rug/8sab2iiRYQLJVyMdtIB43Bsjp0HH09ntsHcCexFdHODf6c8rrPgxw==iOitxMF0B/OM9/7Msz1DQt4JUVuqGQUA9dHsqRJ2gRVWAXiPVS21NLsF1GCjvm9zQSrAimkInNztLDJ/RIldig==Kc2IYBbKdWbhmmk0XheU9u2ovCPrhFNMb+iW9zWOQCPFfr2TUkReWU66EPuJz1KFMkhC2dHG6fJREIHsYALQtg==dPOub8Byvf9uzzevEZpyV0PKyfhGswh1FbUFQj8KPJPi/K38Sojw86qNdz1pkewMihTOkxjeePek5/WtPk5llg==RqWRjyLFbrZCZXCZ+fAX7W5wSzB8AB4AfWXoYpmtJ1Mxc85RGeIRljc700CxneqLQw0zyUPZnFeT/XhtU4pmbw==XKN+ob7KdwKFM8y+z7Gw1zKtV6qsW0t0/fBM1CRsm8f/jwI7K0qQi914bj5BpBn/biQkleKbXA6z2/liB3wB8Q==J0ZErnrib95lzA8pUtq9pFVuF3XhNRHURS+bvCRnElZ8L+JHSSmn16PaJ1DxGP4QMCJhY0sUfoz9n+ljJIhYVg==/mkr6/SRbFFrYJ93SxccbW4H9WLIrontq3V1EWoXBz6yTdPhP/0W2lmv1hJdHmeg7T7maNBu3SSGsH9ThS15Pg==+vomApWD7W7pzBzaJVv+6awzie3KX9fkiHYqb1XKKkesJDU0DEY8ax4XJ8yMoJPpYqwNPzYCkkmpJpSfDqat1g==I82836mcsghhUS9TgUqGG0YlV2p2vOzfIrhSRU0zcI062twVcN343tR30o9IjBUp4L2ueqd2iQfsH1wlg6Oq1Q==zuNWNfCCRqcm7ywFbcCZKE2DUb7w+gTVvQUtwY8D4uLtIDaKjrwQqmKWdqihdMcZGSspqpkWQNEjaSw+teKmHA==aicdy7KuizbGiEtG1M8/1/dtBpyLI5vkCTehjsl8Dz4btvoQyYcXIgrHtv4oo75Mm3S0955nFu0QRpljR+jWNg==CG028bKAS/QCFnp8DuiX8UbxEf9N/bCOybBphEM2Slb/OxbfvdmzYjX1u8GXeJ8tEs2pn9DjjdkS28ug9j+yJg==Gxxn4JL/3Hy6e4rCz+KOrHCbw9a2Wbh1Gd3H8YbqknSr2QGxnk8n7bEBoAi8IlO95M966N0Lt0K+HW7H2yyQvg==FH6sPyvECxRUuSiS+1Xbp/6xZu9ZIwvZmEA/PfNq2eLDGPEEVxCd2XU21schaGlm4TsfGUYOUV/P6HveMevJ9g==J5avRrfQhR3olNUCDA52t1Z+YINMb+8pEGpCeW1RBqpOoY0HRtiPyGUbGThSfl0OCHpcV46yGBm7vyLnUEjnPw==7Adv6xUS1cPDxalFyRxjE7HfVU5c1oo94vwdGEIXRnmF8iMWfEps6EqKP5O7NFDAq0CL4s8OcYzKhFgDcWC4Iw==f0gRAU8KzqGJDtz6xucpsVwFmLn2Halntua4dUUCakafsCEQxJQe+DHfVm72cOJm0K5zSmjUNj/1eYHKwGoo8A==8T/3izhDXtZTTMvwgVg2CvSRhRJG9ewGqE1McfMcq0DL2rL7jkntb/1krRXMxbwq2FBY0o3NwbTP4sXNJm7jGQ==En/MtHupyWTUHVDjCxtBaTQXZFN3qw+p+N/uxU4s1U7Y/8+y3/bpRg7XnlkuXEl/HhedklxSOFl805qvSHLQ/A==zprdrNM8z4hvJXeT/fg9D2DofXdJFIGhfwSJZPr9OckhkzVA+pOKFfbxcQqNSt7cP6CHhzAGxb/gUzYptTJZNw==TNgsGbu92aN4g2iPjmJaCbcP0FoCYPy9zTEjmIP99tfcrJsnnkKdxoCytJTy/umN35lzzNL55CAYn/r40zLqzA==Eg5jnFHTKyYF6dMaHIjoVPp7UejgxeKdPDr1Tpmk/iT3u8TkEE1mMdftvujem789JWUk2gTVN28EMTweU6t5TQ==evp5NE3FowLiwghQVMn1H2FovIUmHmcwX/BpW/GCbwnDJN+fhMy8bUufyVWw5JUWrC+VAozp+bK9RafMV7ZJSQ==fx85V+H+spXDOdiyYPzImDocd5c9oi6YJg9vE+BMuky/ns/ELbmtSXrWDBB6LZsN7gUTWQJ8CD8GBfr5i5xU0w==fzsA2JpmmlJJyy9M3sAtO+0WfzPGLC8z9tcRFPueWORJaavluLuVGyRo4xRiTq8L1tVTdPGEJ9jk3WQqlYqoSQ==\");\nexport {\n  getMessage\n};\n",
+      "code": "var _a;\nimport { h as helper } from \"./src-vendor-lib-helper.ts.js\";\nconsole.log(\">>> running\", \"/src/vendor-lib/libA.ts\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/vendor-lib/libA.ts\");\nconst getMessage = () => {\n  return `Message from LibA: ${helper()}`;\n};\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"r1bnbh/9tPbOMRJ7hdAvpffUNEFTUrN7UfDvF5rPcxWyOganzjipzrYNVA7E3N2DJ/ha6BRBL5THHx7cvW6afg==qvGoVulHhHJ1/3OcqrAL6hGcp0ngxLwxY4HFFa1KIaakfr0Yblh/2+1tlIK80gd3AKgJTKYrvWWJvp5X6RtrmQ==xFPMJgImi+WQ08QjcS2kJK99iNbDw/j7szA8j0FmikYdvur/GGv1/omXbfYQ8QdMhLMbytmtzTlnz1SsfepzAA==FtFY+0sbBcfztEVPL8OXAbYCCMajaKX1fXVLAg8p09nnPpMpNyj05KZCLZpKXTUvDcWD9M+Zqojw+QQdzk/kyQ==EY0zkwIANj4P+mXHQCqEqzOIeFprBJNdYG/VNgy2hHdvSuBR8jduUQh5hPufm1u5i0rbWyrmFMZR1K4VhWhF3A==IbDBVa8+QXR3m8y2UxmxB+xaqetyzTYaJF4x03LTA2Puo0AJCPo5hzERRUq6pXIJON3v/rY9BAtylzbiuI5ltg==O/Kt7LTtE+sWNkKw9untFmNTNCVST5mpIzzOIo2Sel58WiEPh10dQmLcGtMiqxsqOSjKWuEQVzMXJT+0j1pfTw==Rgyxz0chTgAcAIGInBS/GUhaEO0HlU/1qSXpHiRryikZzvD23lrJXSn0Dsc/upAutoiKXplwxgcnuPnPPX6alQ==44lIKErNqPkB/R9p/w+3PRFcrHoA8rug/8sab2iiRYQLJVyMdtIB43Bsjp0HH09ntsHcCexFdHODf6c8rrPgxw==iOitxMF0B/OM9/7Msz1DQt4JUVuqGQUA9dHsqRJ2gRVWAXiPVS21NLsF1GCjvm9zQSrAimkInNztLDJ/RIldig==Kc2IYBbKdWbhmmk0XheU9u2ovCPrhFNMb+iW9zWOQCPFfr2TUkReWU66EPuJz1KFMkhC2dHG6fJREIHsYALQtg==dPOub8Byvf9uzzevEZpyV0PKyfhGswh1FbUFQj8KPJPi/K38Sojw86qNdz1pkewMihTOkxjeePek5/WtPk5llg==RqWRjyLFbrZCZXCZ+fAX7W5wSzB8AB4AfWXoYpmtJ1Mxc85RGeIRljc700CxneqLQw0zyUPZnFeT/XhtU4pmbw==XKN+ob7KdwKFM8y+z7Gw1zKtV6qsW0t0/fBM1CRsm8f/jwI7K0qQi914bj5BpBn/biQkleKbXA6z2/liB3wB8Q==J0ZErnrib95lzA8pUtq9pFVuF3XhNRHURS+bvCRnElZ8L+JHSSmn16PaJ1DxGP4QMCJhY0sUfoz9n+ljJIhYVg==/mkr6/SRbFFrYJ93SxccbW4H9WLIrontq3V1EWoXBz6yTdPhP/0W2lmv1hJdHmeg7T7maNBu3SSGsH9ThS15Pg==+vomApWD7W7pzBzaJVv+6awzie3KX9fkiHYqb1XKKkesJDU0DEY8ax4XJ8yMoJPpYqwNPzYCkkmpJpSfDqat1g==I82836mcsghhUS9TgUqGG0YlV2p2vOzfIrhSRU0zcI062twVcN343tR30o9IjBUp4L2ueqd2iQfsH1wlg6Oq1Q==zuNWNfCCRqcm7ywFbcCZKE2DUb7w+gTVvQUtwY8D4uLtIDaKjrwQqmKWdqihdMcZGSspqpkWQNEjaSw+teKmHA==aicdy7KuizbGiEtG1M8/1/dtBpyLI5vkCTehjsl8Dz4btvoQyYcXIgrHtv4oo75Mm3S0955nFu0QRpljR+jWNg==CG028bKAS/QCFnp8DuiX8UbxEf9N/bCOybBphEM2Slb/OxbfvdmzYjX1u8GXeJ8tEs2pn9DjjdkS28ug9j+yJg==Gxxn4JL/3Hy6e4rCz+KOrHCbw9a2Wbh1Gd3H8YbqknSr2QGxnk8n7bEBoAi8IlO95M966N0Lt0K+HW7H2yyQvg==FH6sPyvECxRUuSiS+1Xbp/6xZu9ZIwvZmEA/PfNq2eLDGPEEVxCd2XU21schaGlm4TsfGUYOUV/P6HveMevJ9g==J5avRrfQhR3olNUCDA52t1Z+YINMb+8pEGpCeW1RBqpOoY0HRtiPyGUbGThSfl0OCHpcV46yGBm7vyLnUEjnPw==7Adv6xUS1cPDxalFyRxjE7HfVU5c1oo94vwdGEIXRnmF8iMWfEps6EqKP5O7NFDAq0CL4s8OcYzKhFgDcWC4Iw==f0gRAU8KzqGJDtz6xucpsVwFmLn2Halntua4dUUCakafsCEQxJQe+DHfVm72cOJm0K5zSmjUNj/1eYHKwGoo8A==8T/3izhDXtZTTMvwgVg2CvSRhRJG9ewGqE1McfMcq0DL2rL7jkntb/1krRXMxbwq2FBY0o3NwbTP4sXNJm7jGQ==En/MtHupyWTUHVDjCxtBaTQXZFN3qw+p+N/uxU4s1U7Y/8+y3/bpRg7XnlkuXEl/HhedklxSOFl805qvSHLQ/A==zprdrNM8z4hvJXeT/fg9D2DofXdJFIGhfwSJZPr9OckhkzVA+pOKFfbxcQqNSt7cP6CHhzAGxb/gUzYptTJZNw==TNgsGbu92aN4g2iPjmJaCbcP0FoCYPy9zTEjmIP99tfcrJsnnkKdxoCytJTy/umN35lzzNL55CAYn/r40zLqzA==Eg5jnFHTKyYF6dMaHIjoVPp7UejgxeKdPDr1Tpmk/iT3u8TkEE1mMdftvujem789JWUk2gTVN28EMTweU6t5TQ==evp5NE3FowLiwghQVMn1H2FovIUmHmcwX/BpW/GCbwnDJN+fhMy8bUufyVWw5JUWrC+VAozp+bK9RafMV7ZJSQ==fx85V+H+spXDOdiyYPzImDocd5c9oi6YJg9vE+BMuky/ns/ELbmtSXrWDBB6LZsN7gUTWQJ8CD8GBfr5i5xU0w==fzsA2JpmmlJJyy9M3sAtO+0WfzPGLC8z9tcRFPueWORJaavluLuVGyRo4xRiTq8L1tVTdPGEJ9jk3WQqlYqoSQ==\");\nconst libA = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({\n  __proto__: null,\n  getMessage\n}, Symbol.toStringTag, { value: \"Module\" }));\nexport {\n  libA as l\n};\n",
       "map": "<removed>",
       "preliminaryFileName": "build/src-vendor-lib-libA.ts.js",
       "sourcemapFileName": null
     },
     "build/src-vendor-lib-libB.ts.js": {
-      "exports": ["getMessage"],
-      "facadeModuleId": "/src/vendor-lib/libB.ts",
-      "isDynamicEntry": true,
+      "exports": ["l"],
+      "facadeModuleId": null,
+      "isDynamicEntry": false,
       "isEntry": false,
       "isImplicitEntry": false,
       "moduleIds": ["/src/vendor-lib/libB.ts"],
@@ -2091,15 +2109,100 @@
       "preliminaryFileName": "build/index.tsx_about_component_useStyles_WOcPLNnm2is.js",
       "sourcemapFileName": null
     },
+    "build/index.tsx_getLibA_ZcKyJR3xn1o.js": {
+      "exports": ["_hW", "s_ZcKyJR3xn1o"],
+      "facadeModuleId": "/src/routes/index.tsx_getLibA_ZcKyJR3xn1o.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": ["/src/routes/index.tsx_getLibA_ZcKyJR3xn1o.js"],
+      "name": "index.tsx_getLibA_ZcKyJR3xn1o",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/index.tsx_getLibA_ZcKyJR3xn1o.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/src-vendor-lib-libA.ts.js": ["l"],
+        "build/core.js": ["_hW"],
+        "build/src-vendor-lib-helper.ts.js": [],
+        "build/preloader.js": []
+      },
+      "imports": [
+        "build/src-vendor-lib-libA.ts.js",
+        "build/core.js",
+        "build/src-vendor-lib-helper.ts.js",
+        "build/preloader.js"
+      ],
+      "modules": {
+        "/src/routes/index.tsx_getLibA_ZcKyJR3xn1o.js": {
+          "code": "<removed 425 bytes>",
+          "originalLength": 123,
+          "removedExports": [],
+          "renderedExports": ["s_ZcKyJR3xn1o"],
+          "renderedLength": 425
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "var _a;\nimport { l as libA } from \"./src-vendor-lib-libA.ts.js\";\nimport { _hW } from \"./core.js\";\nimport \"./src-vendor-lib-helper.ts.js\";\nimport \"./preloader.js\";\nconsole.log(\">>> running\", \"/src/routes/index.tsx_getLibA_ZcKyJR3xn1o.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/index.tsx_getLibA_ZcKyJR3xn1o.js\");\nconst s_ZcKyJR3xn1o = () => libA;\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"sEpIrj/c/AebWuef2GLoQTPBimRz2QVfqf4dilcgHccs4/S3Am19+ltXfFdHNm6JW6pEIxDRQOTlxPuVr7T6lA==\");\nexport {\n  _hW,\n  s_ZcKyJR3xn1o\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/index.tsx_getLibA_ZcKyJR3xn1o.js",
+      "sourcemapFileName": null
+    },
+    "build/index.tsx_getLibB_W55i0lhTtbg.js": {
+      "exports": ["_hW", "s_W55i0lhTtbg"],
+      "facadeModuleId": "/src/routes/index.tsx_getLibB_W55i0lhTtbg.js",
+      "isDynamicEntry": true,
+      "isEntry": true,
+      "isImplicitEntry": false,
+      "moduleIds": ["/src/routes/index.tsx_getLibB_W55i0lhTtbg.js"],
+      "name": "index.tsx_getLibB_W55i0lhTtbg",
+      "type": "chunk",
+      "dynamicImports": [],
+      "fileName": "build/index.tsx_getLibB_W55i0lhTtbg.js",
+      "implicitlyLoadedBefore": [],
+      "importedBindings": {
+        "build/src-vendor-lib-libB.ts.js": ["l"],
+        "build/core.js": ["_hW"],
+        "build/src-vendor-lib-helper.ts.js": [],
+        "build/preloader.js": []
+      },
+      "imports": [
+        "build/src-vendor-lib-libB.ts.js",
+        "build/core.js",
+        "build/src-vendor-lib-helper.ts.js",
+        "build/preloader.js"
+      ],
+      "modules": {
+        "/src/routes/index.tsx_getLibB_W55i0lhTtbg.js": {
+          "code": "<removed 4737 bytes>",
+          "originalLength": 123,
+          "removedExports": [],
+          "renderedExports": ["s_W55i0lhTtbg"],
+          "renderedLength": 4737
+        }
+      },
+      "referencedFiles": [],
+      "viteMetadata": {
+        "importedAssets": {},
+        "importedCss": {}
+      },
+      "code": "var _a;\nimport { l as libB } from \"./src-vendor-lib-libB.ts.js\";\nimport { _hW } from \"./core.js\";\nimport \"./src-vendor-lib-helper.ts.js\";\nimport \"./preloader.js\";\nconsole.log(\">>> running\", \"/src/routes/index.tsx_getLibB_W55i0lhTtbg.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/index.tsx_getLibB_W55i0lhTtbg.js\");\nconst s_W55i0lhTtbg = () => libB;\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"BFUdgVqFVsoLRKK8X8lQTKhg8ZJAP0YTr47wedxQfl04CsQMFgMYj3Mx6nnRxVzzvb40/lcxgb/KoBuHkwLgJA==kyhlvb8mTiMqvs9FNHzuLB8W78Ghi98Y5Av9rwBzypYBdDDNnV+wiyj3SNL3z1eGmSKf9zk43eInkc7mHRjOjA==ivTWHjeHY3PEfGlIWQt4oe1q5nCNF2kxIeQ75YXQPOufubRyBfxXH6WJSUf23V53nvenWzJJ1RpzDs6EvUe+vg==EMYOzIjVgSqQP+3XlshAxCEGsmPE406iwy058KxnxuU/GZOSv5zs0OPhZwnNAhZNsMVMFt4YcAjt6ohH4Za2cQ==B6mZGEgpoCjHkclrBV/DsrkRwCXaRQ/dbkGK9y4qo5hWqvgzDXuzjzUuQNNCZglcQDbi6Bm0bBUNLZgLHTiz4Q==Xmqa30RC3eWhUQW/4bqpzzSUI+vlYulI7jw2XFwlRxAwuKeAm6P4nXx5PxaTG++qu5iawOj4fm9HNjLeBoDpuw==PajR6A/o5GGuZPIWyy5RkHuTvgq7ttOvtN0nAB8sZt6mNuEeQo6UaADumstS6ZegN0Lo9xR2Z9CkUfQAqWw0rg==zp2TyHXfCXuVBl+jNGb0D903MPkJw3mCtAmcul4QhfbuH2hkXzN9vchwdQnPCHV9zgHPsOqJYWmge8yejRFSNg==+ZacKNEgrEBY6/fLbcPJzTyD+ftNbLg9QpSPC2P2pMvKQHJhGqhtRByGAt7bHZiiu/qPd9ZN/0es3aM04Rrc6w==XuHLyCF3bx/XJwt/4xb4Ke9IGebDhMNEsKtzor9MIkGVMJ6tBnevCen38887KD96cy3hvHLSDi27KtWvkQozOA==8oNGPifGL+Yz6pPEHr0/bigigkW9g07mJm5wQ8KEFHJTQ9zpPzdYGkEzqmhN1Im2DhSkyYoMLmsWi7rAMYEPdg==seZIL4KcNf3M6t1fJ2vpgbr4Olc7EoQZiAML8XKUWxZQLWZsfwInbfBrRyEIc/EEGfGYuyBCIDPFarWggYehgw==IyeH+VMB0432wcjDSvgCIONXLs7kcMsP1sGbN0EAO3WjkrLA3apPSCMmopboXEF5XAWwTi7oET4DKaH40vPJ+A==BxLOBKQ4kOfwzcGRIzgxohcoPZuCVasZ+AkiX3tIBNqXif7ZbH47rftRtOGQp48Ex7tKo5RxwyA5AsK4vqIzHg==awu9bDiBO8REjXkf2mI3FNPUlPsy46z1Xvrl/9bZkfufBTpqB4OKN5dQnYdRj1DF0NJMf9oGRyEufq4STWEa3w==EoYGMHQf9knO1nvr9MsehbTMM4d5ePfYlt/CXepPGqGpTu9XWGmXNl9zXTbXoCmzDA7qkMpQWAPP5oKxZqKvyA==8KkwBj4TBDHfM+7cz3QGINehRLNtyRXGW1yK8klro6LT5S3xtuuPfOzP/5gbfC3iAVgEHkqpKl6GsuW0mK1t0g==mKfLjmwRgcetE3s+7I+cV0U9HoDnKy7/A2N4p/agcY2KBJoHLQu3kFldpdWe9wSUjes5J6iQqSSxPefR60qQjg==ICMtnkXo1MihMSKBHmjrPVt0QRZj3sGpE4HbtxoKQ6mepTRRIZoS524UgO/lTc7c+3Sl1RPBqObrH/ZhAViJpQ==SzTEXkBhreSMBtTaW1SFD/6ZpF+p99VgQFAxBFE0mZpvmIhZuLh3RL6ObFdyza85uGf64D+QEmFF0G38Cgvt1w==cLunfk5mlq+qS0TUvlTwqpi+W9bNz7LZZaNOkM05bS6uauWzkQOx2FzbAUsdYUWArBgcg6ZAzfyPEGETAkiYJw==WRD+/rQr2ERkJTGcR0iXnhs6AhbiiiWHrcME91T6VbHN80TB3jAg13eMciz501PmMPJyIvXVupk4SE0S5a66QA==a0GFIjuCT4jrJAsmwUGH9jdLfS9I2toNEUIPsjoPzeNsXgFEVzDDSXrwmJh+H3Eq3VKPoPgR0vgRNqbsfxR5MA==XRnRe9iH0ytcPJE5aY+czCNGVEyZNgwqUGRsNnHctRSD8HvxyE5ILOthj8NOXwGQDZGStYhqCVc0jF0AC2zwsA==2D7Qsvjw5s7ftvI6gzCriDbjpksSX5O7IBEL/NLiWYRBTo+Y0+lGRwBAX6ctwxrSnp4y6JlJalPJ6oDk9TKfNA==xwRtfdemp9O1HFzG5+pvV0Hw3Dd3Vyqey4BaLxc7nHWZgg+wOhKOsZcswhhAle9qfUw79pzV7nVm/hKD63NdDg==JKxn/BFNZwymgHrI/O0EIwqQZP3V6HeDZnajfyefEnX8ZCsdIFXpl6IS2sjY6HST6ZaROxszF1J+n0ljrP2l1w==KGB3qJDuNGiHicmp++A454Xyio88/UvLvY0vJiSGujph3/zw0R6Jo2BmI/jz91m6KW0ks914phQ6PEy6yCN1rw==VBWyLqiwPB4u6A+zlwuiaWyy5cNeIVbLpvkox0k/1nJE3Qn80Buz7sSzlCZXDjPkkKVnMnXdTH/0qM4ccOiYkw==YFgMn0/EbYFx4X/Qai2mMXbTTDVH8kOk3SfLUoSzM2Qn9DQiDi2vRz7kTiwOVIlpOaHImsloSTy2qCzfw48/mQ==VubgmWNWrqISPIACDKsDCDgufHMQnBvvcEIMDX5ArzwrOTQJc1raxBxDph3KH2gkqgx2MY5ZTO+V/6J4rKB7TA==J07zHpVU4iyP8NwPdfCDUkFkhWpmvCULnsAZx9Y6bnzGZOxkFobVFmxh1p/Z4bJlFndH1pESYhGwIR5HeHaEjQ==hnG8Xt9SzE96khbtoVZvMlrLn7oFMGI5bfCjdvoZ1m5IWKnx43UxN1DEqrq6QjsG2ivgZgDPq+Z8JwNezp4r/Q==Ylag9mepRwv8GQom0ZsA+uGsnEXHauPCCKap1osCwdBiQZQvw1iTA0ViRykhqoqiforJilHHRGZPKeUnAC6lQA==Oqc/cmAPiO8ZZVvc7vrUaBJ6y5uDsbN1va2izS256WiqWuWM8toYPCs7a2EsSqJrB+q+LVNBoTvc2G5rj1FmNw==3ojuT/12d7xmImKCI2i3ra2jAmWcBMO3cfe6UOeSRq5BLk8jo59W8xufn0t56mOYELzZ8jyZB8Ukvo3JwQ9pqQ==1n0FZ2dOym/P2rH+MTa+F9E6MAODRa59rVTgI1gjsauxL7TlrMvd/XO/yhU6Pauq5GvrKvAeuSRftlnqO5RHXw==Ft/iyq4Uh5MzGjm2V1abC/1c/kkQtRuOjx9iGJxPuwCcz5O9KVrcqicMnczlwOi71dU5s9why8pGAh1kpvdA6g==LudAhX+o37gqrDuhnbHMtmN5hIN2aEslJzfoGksiZQM08rdNRBDRgPGUgyddIgDUx44KYEnt5cgZdboIXAoPIA==t0i8qyve60jeA5GnbQQbnmHvimwREhZIKEJbT7CbeGlYnlsoUe3ZhDxYr1bUQ63uM17cDllUMENIe9aONJoaBg==prngNwU622mvUHfAo6URfwTP2TvsrowtzfIhAi8CmtP4N7viSCTtvZ6ocpjCOWXX9JJsfOOZcMwmNFmbo0l7Kw==v4/iTLLULWloqeyNPdbagLSix9WCXX9mmAfpNHMXJf72/GKzcqlaXDA8t3uMXut1aBHlpfwqP9IKuzKOT0CZYw==vV5p/2jh8vEjOj7ZlAd4wZL9efHDclXKC2AzI5YdmPxsb2sphrAC3WPShlc4g3hDekr+y+ls5xLy39U/WCBqCQ==FNkHe3c3BoukI2/Kv8lBkjDqWm++OuU1qWIgGTsLu2uOVq2Ec2PrpOz31fibI8FpiYWAG+wSY84UrGuX5vKRsA==mOpjhbTiqkqmIdHahZo1WatzaYcMkK+OM92jqTRlGsYBgeCFbDbG0qzSZgMJt9j6BPzjXu532ufs6i8zaSG+bQ==4phmy3BVjYvV/4b+kHKv8TisRxIm4XJWexyuwkagnWN4WmWnWhQ31udrwiztwXRyJ9MMVy7AssJmF5WBKL40QQ==H4bJ+/Q5DDApaUFrlKgfEWGKIuD5Kr6HL62sqXrSXbyskyXWu3012PY6oscvUwA6pFHF8/rVCPDUDyJ8ETWK3A==57TSJ3+fGM8lBk/Z0l1x9AyPox5644ZC/q9uWyNOCbdq2uDRw1G43cJd9+xnKE7zE6iAroUMulTNYYXf1La0Qw==UbXSlUhgBmJKlzP02lZql96J9pCnrcKTpZzlW2MCiFw9FUe1wDSNtMHRRA8XPHc6E8ZyDr9eAGDkTMFSgiEREg==WX3P1CavCbh6Swd85ew3ZiliTMN9g0MZFFoO2FnOxwpOTmK0eejFrAHm4dFawyI3Lhmi8E93A4BQgmBjsmvhHw==\");\nexport {\n  _hW,\n  s_W55i0lhTtbg\n};\n",
+      "map": "<removed>",
+      "preliminaryFileName": "build/index.tsx_getLibB_W55i0lhTtbg.js",
+      "sourcemapFileName": null
+    },
     "build/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": {
-      "exports": ["l", "s_MOLFIZOhXmE", "s_SHtFir1Ia94", "s_eevMxFvmCM8"],
+      "exports": ["l", "s_MOLFIZOhXmE", "s_SHtFir1Ia94"],
       "facadeModuleId": "/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
       "isDynamicEntry": true,
       "isEntry": true,
       "isImplicitEntry": false,
       "moduleIds": [
         "/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
-        "/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js",
         "/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js"
       ],
       "name": "layout.tsx_layout_component_useStyles_MOLFIZOhXmE",
@@ -2108,11 +2211,11 @@
       "fileName": "build/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
       "implicitlyLoadedBefore": [],
       "importedBindings": {
-        "build/core.js": ["u", "t", "r", "B", "f", "k", "q", "S"],
         "build/preloader.js": ["_"],
-        "build/qwik-city.js": ["O"]
+        "build/qwik-city.js": ["O"],
+        "build/core.js": ["t", "B", "f", "k", "S", "q"]
       },
-      "imports": ["build/core.js", "build/preloader.js", "build/qwik-city.js"],
+      "imports": ["build/preloader.js", "build/qwik-city.js", "build/core.js"],
       "modules": {
         "/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js": {
           "code": "<removed 1143 bytes>",
@@ -2121,19 +2224,12 @@
           "renderedExports": ["s_MOLFIZOhXmE"],
           "renderedLength": 1143
         },
-        "/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js": {
-          "code": "<removed 29778 bytes>",
-          "originalLength": 216,
-          "removedExports": [],
-          "renderedExports": ["s_eevMxFvmCM8"],
-          "renderedLength": 29778
-        },
         "/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js": {
-          "code": "<removed 2933 bytes>",
-          "originalLength": 2722,
+          "code": "<removed 1833 bytes>",
+          "originalLength": 1655,
           "removedExports": [],
           "renderedExports": ["s_SHtFir1Ia94"],
-          "renderedLength": 2933
+          "renderedLength": 1833
         }
       },
       "referencedFiles": [],
@@ -2141,18 +2237,18 @@
         "importedAssets": {},
         "importedCss": {}
       },
-      "code": "var _a, _b, _c;\nimport { u as useLexicalScope, t as useStylesQrl, r as useSignal, B as _jsxQ, f as _jsxC, k as _IMMUTABLE, q as qrl, S as Slot } from \"./core.js\";\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { O as Link } from \"./qwik-city.js\";\nconsole.log(\">>> running\", \"/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js\");\nconst s_MOLFIZOhXmE = `\n    .layout {\n      min-height: 100vh;\n      display: flex;\n      flex-direction: column;\n    }\n    \n    .header {\n      background-color: #1f2937;\n      color: white;\n      padding: 1rem;\n    }\n\n    .container {\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 0 1rem;\n    }\n\n    .nav-container {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n    }\n\n    .nav {\n      display: flex;\n      gap: 1rem;\n    }\n\n    .nav a {\n      color: white;\n      text-decoration: none;\n    }\n\n    .nav a:hover {\n      color: #d1d5db;\n    }\n\n    .toggle-label {\n      display: flex;\n      align-items: center;\n      gap: 0.5rem;\n    }\n\n    .toggle-text {\n      font-size: 0.875rem;\n    }\n\n    .main {\n      flex-grow: 1;\n    }\n  `;\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"\");\nconst layout_tsx_layout_component_useStyles_MOLFIZOhXmE = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({\n  __proto__: null,\n  s_MOLFIZOhXmE\n}, Symbol.toStringTag, { value: \"Module\" }));\nconsole.log(\">>> running\", \"/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/layout.tsx_layout_component_div_header_div_label_input_bind_checked_eevMxFvmCM8.js\");\nconst s_eevMxFvmCM8 = (_, elm) => {\n  const [isSPA] = useLexicalScope();\n  return isSPA.value = elm.type == \"number\" ? elm.valueAsNumber : elm.checked;\n};\n(_b = globalThis._fakeBulk) == null ? void 0 : _b.call(globalThis, \"86ELmMF0ocOiy9vtmfDB8qmjQh43LEW7Vhd5KrQUu9OIe5Kf8gClxbym8dZ4+LMq8y1dGqSkU1ld8Q/sKD4D5w==sPutYCCfJfFq1lgTUgaKCySRXta9iwbcNqqcrbVJv/JF6CRhQoBLDdgICqHYCpnJnqvGK6tCTBBlkEcgYow66A==rUmINw8fNBXZFBJuafh0EPvkDBntvLj+8uurxaFg1wb9hlI4gkqffe9QJhkh789+RvUyHyuCIaS0TniPbBeanA==KFjmWzGMv/BSJIJpWiPfBBYKy5TQNUFbssJlTgr2oYdgzhTiPlHr4F2knASpWkSqmQIpH3gbNk28YENYptnYHA==RfO1Obur9fwF4jWqnUmuOc4waUdZv2f9QlGI++cUJlNCiAoU/lbCd6+9521XUG7QXmPGtT/RJ0PytgsJXvK0BA==tR6dPEZx5OV38SNbmmpgLUflF3JcUCcldNuYSePSFmq1+Gf0wUb998erLXc2gFlVVDxYUkwN8FlFV3p0vCMY7Q==lvmpXobQ5udHJQTBX2uPvqKAQ/Upughu8mLaiR0YJQ8uRCXPQlXyu3tTZuVChpBe8wK/jpI+CHgNLZnSFIJRtw==n97d2T60kDJ/04LqIL+X3oEzuKnUGL0iosy7lyg+aA8/wkWdrSrAT1SOKN3WFbcI91V6+Fv+d1TjQMBOdYEoYw==ANJ82EZajjpvaCUA5qiTgTbxP7lYU8vmuQ1TlqDIkJYPCtulhRJzX7wZL5/zXGpF6YQgoTNZHALJygMLoxbFSw==p/UvMKMP+/IbhZiNtciJXpwykWIY8m0PbvSJdmGRZmoCg7e4Y+1DWBVW0N61EgwtG9EY+TIT79w5ypPEAf0H2Q==8T8VDXu79AmM6JCCbtHUrQ6CVDZRDcoXs3WYkLUUDWZZ8sP0sf5VbIkTViGjRn+WKEqczIGz6ifrkFjotoObMg==xCsy1/4Iex3YSsi66If3OKxE8f9lvRXyhPDUbH/0xABRd2KzmfwzgV+XblIWf0HcgRiOGb4Imc06g4nXU06GTA==Yn8A2v/oPr/L+R6UZexsQq0f3sHo2KZAp19RFiQGlAtwLGr/PP1UmiXAT/tPn+235Msm/tCWJrloi33qPiem9w==0hfN8MaeeywdZUjmRpEMm5NP5WflKO3WF5OmD3hb0Xd5M0CtJE9ZQXtIfXpA7zW7oYzwklO02nMDsyOjVSQ4Gg==mYaHdJqbppTKEFZYVV2Q9xFTgYHMBbjyqGcf7t9PXNxq6n8cBOG/nPcXRfHrAiC3GvRAe5B+Bi7ZxMNVOX4qlA==GISmAGUbU1WxbjQb/Mav3rktdOPAMXj5mo0GetbcQH4LB4GGo5LuDxse2bLhJc0zWOXfnK3l/DgWGo514YA8qw==UbFrO+4qYa3YcXWeeIcyFsdi/ARA1pfgPhC0+AkYMua4CbEVfnhOdeZ6jsU4WusdMqk5ga3zBkkpvI5kXEIXTg==L5gc9hjHx0sda746aOY1FUB9GBavPre6XqHZRjIvW6rqK3TrS6iyg3Ci7zrfqOxVUQRwI/R7QxAoxofAkY48/A==4/RjWjgtgaHpYMHpWiHLxzYWFpylH71JDnZZXEly7CO3MK6etLrcUJyI4u2yJ8wOznIAxkaVLKO9+OSdb22DGg==uOddw8HNCYhSuhyhjoPWrR0uhdlUBZ0PJr4l2CBzpSrc4yE/9cqfeyhVt9WHPNGRU7kAewX7l+AiprZwClzRQQ==w1Pv2vwgZW0zeHNm1QSa8nAFVqgI2R6Sn9WtXH/AWTc9N/9NbTb6DuHATF7jaPN1g5iDzAhTG+BCxFEDyhUcBg==g9s4+/TUEovkwXMesc4lJr7SO5TgIrGE2L19H4CPxBcjmU6gwud6WEt6dFT4neyaWTwKgow2YOYD78TalxjiYA==ve1ziDhPtB1vq6BWaNhzqzRgUkVGYfJvaavAPL+z15/WmDmLjKFHpmxiWC3CiVneloH7mbz6okgYqMK862k1LQ==f6qEZt5gc+Nl2QGJXM10jwdve+r3AymbJTd4Zni+JhxK11bggRKszFBlEEc3PS29iCZkdpAbu+7VO5oP4qHeBA==Yd/Cq6HmhEDA3+HacOZ0EFJj9KtfDI2aLzQbowbzzUSgAsduAwj+xB6aK37T3GnolPmGB4vPcJaKVo+Ve8j0oQ==82jAh7xuuMByRjbQMJat6e20aJrWixgEfyaMl8DJlXSQH2qTlClZfpz8UT7+dnK/aK1wgRHZd+WVtrRB85YOIg==jtLIEUKPRe2X6TWHtFHo6mhBTjQ5aAuLxqB7Ub/SxbCcLG69nQo2SQ5ROlYmA4OBivH/TxFGaUGnRTy2jZffPw==lo4bOEnsZVRQTbqslrRwv2VOs2Q364LuSxyr6AExUnmHY+tvKbiXUFTvRTLQvlxEsws2PLAf4BRFW/JIr0OAmg==W/zSpo71oNhDZeFzn5AcwNEyqENivxra6JEB7aHX430v4qoW720zrpmpQGBhQkwE4FsIcSM/zDsqfyr5LX9LMQ==KeuvkBa3a0kBtZXlPD2WxFoJ1txT8+tdlsu/qg/yLbnE7thm9/kyKhVqktjJwpLM4NlnkrKGYIsRP5re0zXTZQ==+rVn2c3HIGyO2aOCWWr2fVUycr2y0kKk7M56wRWBA1XHc8c4Y+nqDohdD2mqWmGNIEVIUdJfmOjtXWuGD",
+      "code": "var _a, _b;\nimport { _ as __vitePreload } from \"./preloader.js\";\nimport { O as Link } from \"./qwik-city.js\";\nimport { t as useStylesQrl, B as _jsxQ, f as _jsxC, k as _IMMUTABLE, S as Slot, q as qrl } from \"./core.js\";\nconsole.log(\">>> running\", \"/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js\");\nconst s_MOLFIZOhXmE = `\n    .layout {\n      min-height: 100vh;\n      display: flex;\n      flex-direction: column;\n    }\n    \n    .header {\n      background-color: #1f2937;\n      color: white;\n      padding: 1rem;\n    }\n\n    .container {\n      max-width: 1200px;\n      margin: 0 auto;\n      padding: 0 1rem;\n    }\n\n    .nav-container {\n      display: flex;\n      justify-content: space-between;\n      align-items: center;\n    }\n\n    .nav {\n      display: flex;\n      gap: 1rem;\n    }\n\n    .nav a {\n      color: white;\n      text-decoration: none;\n    }\n\n    .nav a:hover {\n      color: #d1d5db;\n    }\n\n    .toggle-label {\n      display: flex;\n      align-items: center;\n      gap: 0.5rem;\n    }\n\n    .toggle-text {\n      font-size: 0.875rem;\n    }\n\n    .main {\n      flex-grow: 1;\n    }\n  `;\n(_a = globalThis._fakeBulk) == null ? void 0 : _a.call(globalThis, \"\");\nconst layout_tsx_layout_component_useStyles_MOLFIZOhXmE = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({\n  __proto__: null,\n  s_MOLFIZOhXmE\n}, Symbol.toStringTag, { value: \"Module\" }));\nconsole.log(\">>> running\", \"/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js\");\n(globalThis._loaded || (globalThis._loaded = [])).push(\"/src/routes/layout.tsx_layout_component_SHtFir1Ia94.js\");\nconst s_SHtFir1Ia94 = () => {\n  useStylesQrl(/* @__PURE__ */ qrl(() => __vitePreload(() => Promise.resolve().then(() => layout_tsx_layout_component_useStyles_MOLFIZOhXmE), true ? void 0 : void 0), \"s_MOLFIZOhXmE\"));\n  return /* @__PURE__ */ _jsxQ(\"div\", null, {\n    class: \"layout\"\n  }, [\n    /* @__PURE__ */ _jsxQ(\"header\", null, {\n      class: \"header\"\n    }, /* @__PURE__ */ _jsxQ(\"div\", null, {\n      class: \"container nav-container\"\n    }, /* @__PURE__ */ _jsxQ(\"nav\", null, {\n      class: \"nav\"\n    }, [\n      /* @__PURE__ */ _jsxC(Link, {\n        href: \"/\",\n        children: \"Home\",\n        [_IMMUTABLE]: {\n          href: _IMMUTABLE\n        }\n      }, 3, \"rW_0\"),\n      /* @__PURE__ */ _jsxC(Link, {\n        href: \"/form\",\n        children: \"Form\",\n        [_IMMUTABLE]: {\n          href: _IMMUTABLE\n        }\n      }, 3, \"rW_1\"),\n      /* @__PURE__ */ _jsxC(Link, {\n        href: \"/about\",\n        children: \"About\",\n        [_IMMUTABLE]: {\n          href: _IMMUTABLE\n        }\n      }, 3, \"rW_2\")\n    ], 1, null), 1, null), 1, null),\n    /* @__PURE__ */ _jsxQ(\"main\", null, {\n      class: \"main container\"\n    }, /* @__PURE__ */ _jsxC(Slot, null, 3, \"rW_3\"), 1, null)\n  ], 1, \"rW_4\");\n};\n(_b = globalThis._fakeBulk) == null ? void 0 : _b.call(globalThis, \"ocSUaHGdC/YlrlBfQPO+TN/3AuimdZf/pKGrHFrKSyIipROGG4Y4zAphH7kr9gWuwNgathZugRxYyAn6w2Sbhg==\");\nconst layout_tsx_layout_component_SHtFir1Ia94 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({\n  __proto__: null,\n  s_SHtFir1Ia94\n}, Symbol.toStringTag, { value: \"Module\" }));\nexport {\n  layout_tsx_layout_component_SHtFir1Ia94 as l,\n  s_MOLFIZOhXmE,\n  s_SHtFir1Ia94\n};\n",
       "map": "<removed>",
       "preliminaryFileName": "build/layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
       "sourcemapFileName": null
     },
-    "build/q-bundle-graph-qozlk6.json": {
-      "fileName": "build/q-bundle-graph-qozlk6.json",
+    "build/q-bundle-graph-sh6tpt.json": {
+      "fileName": "build/q-bundle-graph-sh6tpt.json",
       "names": [],
       "needsCodeReference": false,
       "originalFileName": null,
       "originalFileNames": [],
-      "source": "<removed 1700 bytes>",
+      "source": "<removed 1965 bytes>",
       "type": "asset"
     },
     "q-manifest.json": {
@@ -2161,7 +2257,7 @@
       "needsCodeReference": false,
       "originalFileName": null,
       "originalFileNames": [],
-      "source": "<removed 29035 bytes>",
+      "source": "<removed 30266 bytes>",
       "type": "asset"
     }
   }

@@ -31,6 +31,8 @@ export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $computeQrl$: ComputeQRL<T>;
   $flags$: SignalFlags;
   $forceRunEffects$: boolean = false;
+  private $resolvedPromiseValue$: T | null = null;
+
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
@@ -82,13 +84,13 @@ export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE));
     try {
-      const untrackedValue = computeQrl.getFn(ctx)() as T;
+      const untrackedValue = this.$resolvedPromiseValue$ || (computeQrl.getFn(ctx)() as T);
       if (isPromise(untrackedValue)) {
-        throw qError(QError.computedNotSync, [
-          computeQrl.dev ? computeQrl.dev.file : '',
-          computeQrl.$hash$,
-        ]);
+        throw untrackedValue.then((promiseValue) => {
+          this.$resolvedPromiseValue$ = promiseValue;
+        });
       }
+      this.$resolvedPromiseValue$ = null;
       DEBUG && log('Signal.$compute$', untrackedValue);
 
       this.$flags$ &= ~SignalFlags.INVALID;

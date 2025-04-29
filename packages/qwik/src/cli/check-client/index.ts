@@ -90,13 +90,13 @@ async function getManifestTs(manifestPath: string) {
  * @returns {Promise<boolean>} Returns true if the directory exists and can be accessed, returns
  *   false if it doesn't exist or an error occurs.
  */
-export async function clientDirExists(dist: string): Promise<boolean> {
+export async function clientDirExists(path: string): Promise<boolean> {
   try {
-    await fs.access(getDiskPath(dist));
+    await fs.access(getDiskPath(path));
     return true; // Directory exists
   } catch (err: any) {
     if (!(err.code === 'ENOENT')) {
-      panic(`Error accessing disk directory ${dist}: ${err.message}`);
+      panic(`Error accessing disk directory ${path}: ${err.message}`);
     }
     return false; // Directory doesn't exist or there was an error
   }

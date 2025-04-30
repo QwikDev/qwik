@@ -56,6 +56,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'WrappedSignal is read-only', // 48
       'Attribute value is unsafe for SSR', // 49
       'SerializerSymbol function returned rejected promise', // 50
+      'Please wrap your client-side code with an isBrowser check, because this function/component also runs during server-side rendering.',
     ];
     let text = MAP[code] ?? '';
     if (parts.length) {
@@ -126,6 +127,7 @@ export const enum QError {
   wrappedReadOnly = 48,
   unsafeAttr = 49,
   serializerSymbolRejectedPromise = 50,
+  notUsingBrowserAPiInserver = 51,
 }
 
 export const qError = (code: number, errorMessageArgs: any[] = []): Error => {

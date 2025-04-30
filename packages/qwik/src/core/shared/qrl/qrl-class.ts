@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
@@ -113,6 +113,17 @@ export const createQRL = <TYPE>(
       context.$event$ ||= this as Event;
       try {
         return invoke.call(this, context, symbolRef as any, ...(args as any));
+      } catch (e) {
+        if (isDev) {
+          if (isServer) {
+            if (
+              e instanceof ReferenceError &&
+              ['window', 'document'].some((v) => e.message.includes(v))
+            ) {
+              throw qError(QError.notUsingBrowserAPiInserver);
+            }
+          }
+        }
       } finally {
         context.$qrl$ = prevQrl;
         context.$event$ = prevEvent;

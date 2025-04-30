@@ -3,6 +3,7 @@ import {
   Fragment,
   Fragment as Signal,
   component$,
+  isServer,
   useSignal,
   useStore,
   useTask$,
@@ -809,5 +810,22 @@ describe.each([
     });
     const { vNode } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
+  });
+
+  it.only('catch the ', async () => {
+    const Cmp = component$(() => {
+      useTask$(() => {
+        if (isServer) {
+          document.body.innerHTML = '';
+        }
+      });
+
+      return <div>1</div>;
+    });
+    try {
+      await render(<Cmp />, { debug });
+    } catch (e: unknown) {
+      expect((e as Error).message.includes('Code(Q51)')).toBeTruthy;
+    }
   });
 });

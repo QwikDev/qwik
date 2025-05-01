@@ -74,6 +74,9 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 // @public (undocumented)
 export type ComputedFn<T> = () => T;
 
+// @public (undocumented)
+export type ComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
     force(): void;
@@ -1605,12 +1608,12 @@ export const untrack: <T>(fn: () => T) => T;
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>;
+export const useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>;
+export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => ComputedReturnType<T>;
 
 // @public
 export const useConstant: <T>(value: (() => T) | T) => T;

@@ -353,6 +353,17 @@ export type ComputedFn<T> = () => T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
+## ComputedReturnType
+
+```typescript
+export type ComputedReturnType<T> =
+  T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+```
+
+**References:** [ReadonlySignal](#readonlysignal)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
+
 ## ComputedSignal
 
 A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
@@ -8424,7 +8435,7 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>
+useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -8454,7 +8465,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
+[ComputedReturnType](#computedreturntype)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 

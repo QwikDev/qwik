@@ -38,6 +38,7 @@ export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvShareServerTiming = '@serverTiming';
+/** @internal */
 export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(

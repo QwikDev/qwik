@@ -99,7 +99,7 @@ export const shouldSerialize = (obj: unknown): boolean => {
 };
 
 export const fastSkipSerialize = (obj: object): boolean => {
-  return typeof obj === 'object' && obj && (NoSerializeSymbol in obj || noSerializeSet.has(obj));
+  return obj && isObject(obj) && (NoSerializeSymbol in obj || noSerializeSet.has(obj));
 };
 
 /**

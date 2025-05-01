@@ -1,6 +1,6 @@
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import { requestHandler, RequestEvShareQData } from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import type { QwikSerializer } from '../middleware/request-handler/types';
@@ -12,7 +12,6 @@ import type {
   StaticWorkerRenderResult,
   System,
 } from './types';
-import { RequestEvShareQData } from '../middleware/request-handler/request-event';
 
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();

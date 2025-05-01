@@ -57,13 +57,14 @@ import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import { isObject } from './utils/types';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
 
 export const isDeserializerProxy = (value: unknown): value is DeserializerProxy => {
-  return typeof value === 'object' && value !== null && SERIALIZER_PROXY_UNWRAP in value;
+  return isObject(value) && SERIALIZER_PROXY_UNWRAP in value;
 };
 
 export const SERIALIZER_PROXY_UNWRAP = Symbol('UNWRAP');
@@ -917,6 +918,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
   let forwardRefsId = 0;
   const promises: Set<Promise<unknown>> = new Set();
   const preloadQrls = new Set<QRLInternal>();
+  const uninitializedRefs = new Map<unknown, number>();
   let parent: unknown = null;
   const isRootObject = () => depth === 0;
 
@@ -991,7 +993,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
         if (!outputRootRef(value)) {
-          const qrl = qrlToString(serializationContext, value);
+          const qrl = qrlToString(serializationContext, value, uninitializedRefs);
           const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
           if (isRootObject()) {
             output(type, qrl);
@@ -1128,6 +1130,10 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           return new PromiseResult(TypeIds.SerializerSignal, resolved, resolvedValue, null, null);
         });
         output(TypeIds.ForwardRef, forwardRef);
+      } else if (result === _UNINITIALIZED && !uninitializedRefs.has(value)) {
+        const forwardRefId = forwardRefsId++;
+        uninitializedRefs.set(value, forwardRefId);
+        output(TypeIds.ForwardRef, forwardRefId);
       } else {
         depth--;
         writeValue(result);
@@ -1398,6 +1404,14 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       rootsLength = serializationContext.$roots$.length;
     }
 
+    if (uninitializedRefs.size) {
+      for (const [value, forwardRefId] of uninitializedRefs) {
+        $writer$.write(',');
+        forwardRefs[forwardRefId] = serializationContext.$roots$.length;
+        writeValue(value);
+      }
+    }
+
     if (forwardRefs.length) {
       $writer$.write(',');
       $writer$.write(TypeIds.ForwardRefs + ',');
@@ -1461,7 +1475,8 @@ function serializeWrappingFn(
 
 export function qrlToString(
   serializationContext: SerializationContext,
-  value: QRLInternal | SyncQRLInternal
+  value: QRLInternal | SyncQRLInternal,
+  uninitializedRefs?: Map<unknown, number>
 ) {
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
@@ -1513,8 +1528,17 @@ export function qrlToString(
       if (i > 0) {
         serializedReferences += ' ';
       }
+      const captureRef = value.$captureRef$[i];
+      if (
+        isObject(captureRef) &&
+        uninitializedRefs &&
+        uninitializedRefs.has(captureRef) &&
+        SerializerSymbol in captureRef
+      ) {
+        captureRef[SerializerSymbol] = undefined;
+      }
       // We refer by id so every capture needs to be a root
-      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
+      serializedReferences += serializationContext.$addRoot$(captureRef);
     }
     qrlStringInline += `[${serializedReferences}]`;
   } else if (value.$capture$ && value.$capture$.length > 0) {
@@ -1742,7 +1766,7 @@ function shouldTrackObj(obj: unknown) {
   return (
     // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
     // and see if we have a test case which requires them.
-    (typeof obj === 'object' && obj !== null) ||
+    isObject(obj) ||
     /**
      * We track all strings greater than 1 character, because those take at least 6 bytes to encode
      * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
@@ -1775,9 +1799,7 @@ function isResource<T = unknown>(value: object): value is ResourceReturnInternal
 
 const frameworkType = (obj: any) => {
   return (
-    (typeof obj === 'object' &&
-      obj !== null &&
-      (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
+    (isObject(obj) && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
     isQrl(obj)
   );
 };
@@ -1965,8 +1987,8 @@ const circularProofJson = (obj: unknown, indent?: string | number) => {
   const seen = new WeakSet();
   return JSON.stringify(
     obj,
-    (key, value) => {
-      if (typeof value === 'object' && value !== null) {
+    (_, value) => {
+      if (isObject(value)) {
         if (seen.has(value)) {
           return `[Circular ${value.constructor.name}]`;
         }
@@ -2011,7 +2033,7 @@ export const dumpState = (
     if (key === undefined) {
       hasRaw = true;
       out.push(
-        `${RED}[raw${typeof value === 'object' && value ? ` ${value.constructor.name}` : ''}]${RESET} ${printRaw(value, `${prefix}  `)}`
+        `${RED}[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]${RESET} ${printRaw(value, `${prefix}  `)}`
       );
     } else {
       if (key === TypeIds.Constant) {

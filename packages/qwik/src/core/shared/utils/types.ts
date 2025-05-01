@@ -9,7 +9,7 @@ export const isSerializableObject = (v: unknown): v is Record<string, unknown> =
 };
 
 export const isObject = (v: unknown): v is object => {
-  return !!v && typeof v === 'object';
+  return typeof v === 'object' && v !== null;
 };
 
 export const isArray = (v: unknown): v is unknown[] => {

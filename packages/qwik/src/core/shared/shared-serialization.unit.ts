@@ -1,6 +1,6 @@
 import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _wrapProp } from '../internal';
+import { _fnSignal, _UNINITIALIZED, _wrapProp } from '../internal';
 import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import {
   createComputedQrl,
@@ -25,7 +25,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
 import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { StoreFlags } from '../reactive-primitives/types';
+import { StoreFlags, type CustomSerializable } from '../reactive-primitives/types';
 import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
 import { retryOnPromise } from './utils/promises';
 import { QError } from './error/error';
@@ -79,6 +79,47 @@ describe('shared-serialization', () => {
         17 Constant MIN_SAFE_INTEGER
         (81 chars)"
       `);
+    });
+    describe('UNINITIALIZED', () => {
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, not serialized object', async () => {
+        const uninitializedObject = {
+          shouldNot: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+        expect(await dump(uninitializedObject)).toMatchInlineSnapshot(`
+        "
+        0 ForwardRef 0
+        1 Constant _UNINITIALIZED
+        2 ForwardRefs [
+          1
+        ]
+        (15 chars)"
+      `);
+      });
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, serialized object', async () => {
+        const uninitializedObject = {
+          should: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+        const qrl = inlinedQrl(() => uninitializedObject.should, 'dump_qrl', [uninitializedObject]);
+        expect(await dump(uninitializedObject, qrl)).toMatchInlineSnapshot(`
+        "
+        0 ForwardRef 0
+        1 QRL "mock-chunk#dump_qrl[0]"
+        2 Object [
+          String "should"
+          String "serialize"
+        ]
+        3 ForwardRefs [
+          2
+        ]
+        (69 chars)"
+      `);
+      });
     });
     it(title(TypeIds.Number), async () => {
       expect(await dump(123)).toMatchInlineSnapshot(`
@@ -820,6 +861,39 @@ describe('shared-serialization', () => {
       const effect = deserialize(objs)[0] as SubscriptionData;
       expect(effect).toBeInstanceOf(SubscriptionData);
       expect(effect.data).toEqual({ $isConst$: true, $scopedStyleIdPrefix$: null });
+    });
+
+    describe('UNINITIALIZED', () => {
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, not serialized object', async () => {
+        const uninitializedObject = {
+          shouldNot: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+
+        const objs = await serialize(uninitializedObject);
+        const effect = deserialize(objs)[0] as any;
+        expect(effect).toBe(_UNINITIALIZED);
+      });
+      it(title(TypeIds.Constant) + ' - UNINITIALIZED, serialized object', async () => {
+        const uninitializedObject = {
+          should: 'serialize',
+        };
+        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
+          return _UNINITIALIZED;
+        };
+        const qrl = inlinedQrl(() => uninitializedObject.should, 'dump_qrl', [uninitializedObject]);
+        const objs = await serialize(uninitializedObject, qrl);
+        const state = deserialize(objs);
+        delete (uninitializedObject as any)[SerializerSymbol];
+        const deserializedObject = state[0];
+        expect(deserializedObject).toEqual(uninitializedObject);
+
+        const deserializedQrl = state[1] as QRLInternal;
+        expect(isQrl(deserializedQrl)).toBeTruthy();
+        expect(await (deserializedQrl.getFn() as any)()).toBe(uninitializedObject.should);
+      });
     });
   });
 

@@ -101,7 +101,7 @@ export const shouldSerialize = (obj: unknown): boolean => {
 export const fastSkipSerialize = (obj: object | Function): boolean => {
   return (
     obj &&
-    (typeof obj === 'object' || typeof obj === 'function') &&
+    (isObject(obj) || typeof obj === 'function') &&
     (NoSerializeSymbol in obj || noSerializeSet.has(obj))
   );
 };
@@ -136,7 +136,7 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
   // only add supported values to the noSerializeSet, prevent console errors
-  if ((typeof input === 'object' && input !== null) || typeof input === 'function') {
+  if ((isObject(input) && input !== null) || typeof input === 'function') {
     noSerializeSet.add(input);
   }
   return input as any;

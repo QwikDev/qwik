@@ -255,7 +255,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
 
         // mark skipped loaders as null
         for (const skippedLoader of skippedLoaders) {
-          loaders[skippedLoader.__id] = null;
+          loaders[skippedLoader.__id] = _UNINITIALIZED;
         }
       } else {
         currentLoaders = routeLoaders;
@@ -604,7 +604,7 @@ export async function renderQData(requestEv: RequestEvent) {
   for (const loaderId in allLoaders) {
     const loader = allLoaders[loaderId];
     if (typeof loader === 'object' && loader !== null && SerializerSymbol in loader) {
-      delete (loader as any)[SerializerSymbol];
+      (loader as any)[SerializerSymbol] = undefined;
     }
     if (loader !== _UNINITIALIZED) {
       loaders[loaderId] = loader;

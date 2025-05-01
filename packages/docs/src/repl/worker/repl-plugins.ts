@@ -25,6 +25,9 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         if (pkgPath === '/server') {
           return '\0qwikServer';
         }
+        if (pkgPath === '/preloader') {
+          return '\0qwikPreloader';
+        }
         if (/^(|\/jsx(-dev)?-runtime|\/internal|\/handlers.mjs)$/.test(pkgPath)) {
           return '\0qwikCore';
         }
@@ -69,6 +72,12 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
           return rsp.text();
         }
         throw new Error(`Unable to load Qwik core`);
+      }
+      if (id === '\0qwikPreloader') {
+        const rsp = await depResponse('@qwik.dev/core', '/preloader.mjs');
+        if (rsp) {
+          return rsp.text();
+        }
       }
 
       // We're the fallback, we know all the files

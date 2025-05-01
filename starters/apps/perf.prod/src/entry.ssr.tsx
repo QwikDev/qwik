@@ -1,4 +1,3 @@
-import { manifest } from "@qwik-client-manifest";
 import { renderToStream, RenderToStreamOptions } from "@qwik.dev/core/server";
 import Root from "./root";
 
@@ -8,8 +7,5 @@ import Root from "./root";
 export default function (opts: RenderToStreamOptions) {
   // Render the Root component to a string
   // Pass in the manifest that was generated from the client build
-  return renderToStream(<Root />, {
-    manifest,
-    ...opts,
-  });
+  return renderToStream(<Root />, opts);
 }

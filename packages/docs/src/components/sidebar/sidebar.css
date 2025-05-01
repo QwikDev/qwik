@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .sidebar {
   @apply hidden lg:block;
 

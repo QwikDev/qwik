@@ -10,13 +10,13 @@ export type {
   SegmentAnalysis as HookAnalysis,
   SegmentEntryStrategy as HookEntryStrategy,
   InlineEntryStrategy,
-  InsightManifest,
   MinifyMode,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   Path,
   QwikBundle,
+  QwikBundleGraph,
   QwikManifest,
   QwikSymbol,
   ResolvedManifest,
@@ -45,6 +45,8 @@ export type {
   QwikVitePluginApi,
   QwikVitePluginOptions,
 } from './plugins/vite';
+
+export type { BundleGraphAdder } from './plugins/bundle-graph';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';

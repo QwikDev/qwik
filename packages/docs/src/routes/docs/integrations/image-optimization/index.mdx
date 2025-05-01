@@ -79,7 +79,10 @@ Use the image in the template as a component:
 
 #### Result
 
-This script will generate the following `<img>` element:
+This script will generate the following `<img>` element with the following optimizations:
+
+- Quality = 75
+- Format = .webp
 
 ```tsx
 <img
@@ -125,7 +128,76 @@ export default component$(() => {
   );
 });
 ```
+#### Customize image format
+Images are automatically converted to `.webp` format, but you can also specify the format manually:
+Available formats:
 
+<div class="docs-long-list">
+- `heic`
+- `heif`
+- `avif`
+- `jpeg`
+- `jpg`
+- `jpe`
+- `tile`
+- `dz`
+- `png`
+- `raw`
+- `tiff`
+- `tif`
+- `webp`
+- `gif`
+- `jp2`
+- `jpx`
+- `j2k`
+- `j2c`
+- `jxl`
+</div>
+
+Supported file formats to be converted are:
+<div class="docs-long-list">
+- `jpg`
+- `jpeg`
+- `png`
+- `webp`
+- `gif`
+- `tiff`
+- `avif`
+</div>
+
+In the below example, a `jpg` image is converted to a `png` format:
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import Image from '~/media/your_image.jpg?format=png&jsx';
+
+export default component$(() => {
+  return (
+    <div>
+      <Image />
+    </div>
+  );
+});
+```
+
+#### Customize image quality
+As noted above, the default quality is set to 75, but you can also specify the quality manually.
+
+Quality parameter is an integer between 1 and 100.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import Image from '~/media/your_image.png?quality=100&jsx';
+
+export default component$(() => {
+  return (
+    <div>
+      <Image />
+    </div>
+  );
+});
+
+```
 
 #### Customize image `width`  and `height`
 
@@ -176,6 +248,24 @@ export default component$(() => {
 }
 ```
 
+#### Image Optimization for SVGs
+<abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you can also use the image optimization approach to optimize them:
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import SvgImage from '~/media/your_image.svg?jsx';
+
+export default component$(() => {
+  return (
+    <>
+      <h1>Image Example</h1>
+      <div class="image-wrapper" >
+        <SvgImage />
+      </div>
+    </>
+  );
+});
+```
 ## `@unpic/qwik`
 
 - Site with detailed instructions on usage: [@unpic/qwik](https://unpic.pics/img/qwik/)

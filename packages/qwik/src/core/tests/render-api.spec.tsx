@@ -246,7 +246,6 @@ describe('render api', () => {
         });
         expect(result).toMatchObject({
           isStatic: true,
-          prefetchResources: expect.any(Array),
           timing: expect.any(Object),
           manifest: expect.any(Object),
           snapshotResult: expect.any(Object),
@@ -510,53 +509,10 @@ describe('render api', () => {
         );
       });
     });
-    describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => {
-        // TODO: not used?
-      });
-    });
-    describe('prefetchStrategy', () => {
-      it('should render with default prefetch implementation', async () => {
+    describe('preloader', () => {
+      it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-          },
-          manifest: defaultManifest,
-        });
-        expect(result.prefetchResources).toEqual(expect.any(Array));
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=prefetch][as=script]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-            },
-          },
           manifest: defaultManifest,
         });
         const document = createDocument({ html: result.html });
@@ -775,7 +731,7 @@ describe('render api', () => {
             symbol1: {
               canonicalFilename: 'symbol1filename',
               captures: false,
-              ctxKind: 'event',
+              ctxKind: 'eventHandler',
               ctxName: 'symbol1ctxname',
               displayName: 'symbol1displayname',
               hash: 'symbol1hash',
@@ -787,6 +743,7 @@ describe('render api', () => {
           bundles: {
             bundle1: {
               size: 1,
+              total: 1,
               dynamicImports: [],
             },
           },

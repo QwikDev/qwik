@@ -1,162 +1,110 @@
-import {
-  flattenPrefetchResources,
-  getMostReferenced,
-  prefetchUrlsEventScript,
-  workerFetchScript,
-} from './prefetch-utils';
-import type { PrefetchImplementation, PrefetchResource, PrefetchStrategy } from './types';
-import type { SsrAttrs, SSRContainer } from './qwik-types';
+import { Fragment, jsx, type JSXNode, type PropsOf } from '@qwik.dev/core';
+import { expandBundles } from './prefetch-strategy';
+import type { PrefetchImplementation, PrefetchStrategy } from './types';
+import type { ResolvedManifest, SSRContainer } from './qwik-types';
 
-export function applyPrefetchImplementation2(
+export function includePreloader(
   container: SSRContainer,
+  resolved: ResolvedManifest | undefined,
   prefetchStrategy: PrefetchStrategy | undefined,
-  prefetchResources: PrefetchResource[],
+  referencedBundles: string[],
   nonce?: string
-): void {
-  // if prefetchStrategy is undefined, use defaults
-  // set default if implementation wasn't provided
-  const prefetchImpl = normalizePrefetchImplementation(prefetchStrategy?.implementation);
+): JSXNode | null {
+  if (referencedBundles.length === 0) {
+    return null;
+  }
+  const {
+    maxPreloads,
+    linkRel,
+    linkFetchPriority,
+    minProbability,
+    debug,
+    maxSimultaneousPreloads,
+    minPreloadProbability,
+  } = normalizePrefetchImplementation(prefetchStrategy?.implementation);
+  let allowed = maxPreloads;
 
-  if (prefetchImpl.prefetchEvent === 'always') {
-    prefetchUrlsEvent2(container, prefetchResources, nonce);
+  const nodes: JSXNode[] = [];
+
+  let base = container.$buildBase$!;
+  if (import.meta.env.DEV) {
+    // Vite dev server active
+    // in dev, all bundles are absolute paths from the base url, not /build
+    base = import.meta.env.BASE_URL;
+    if (base.endsWith('/')) {
+      base = base.slice(0, -1);
+    }
   }
 
-  if (prefetchImpl.linkInsert === 'html-append') {
-    linkHtmlImplementation2(container, prefetchResources, prefetchImpl);
-  }
-
-  if (prefetchImpl.linkInsert === 'js-append') {
-    linkJsImplementation2(container, prefetchResources, prefetchImpl, nonce);
-  } else if (prefetchImpl.workerFetchInsert === 'always') {
-    workerFetchImplementation2(container, prefetchResources, nonce);
-  }
-}
-
-function prefetchUrlsEvent2(
-  container: SSRContainer,
-  prefetchResources: PrefetchResource[],
-  nonce?: string
-) {
-  const mostReferenced = getMostReferenced(prefetchResources);
-  for (const url of mostReferenced) {
-    const attrs = ['rel', 'modulepreload', 'href', url];
-    if (nonce) {
-      attrs.push('nonce', nonce);
+  const makeLink = (base: string, href: string) => {
+    const attrs = ['rel', linkRel, 'href', `${base}${href}`];
+    if (linkRel !== 'modulepreload') {
+      attrs.push('fetchPriority', linkFetchPriority!);
+      attrs.push('as', 'script');
     }
     container.openElement('link', null, attrs);
     container.closeElement();
-  }
-  const scriptAttrs = ['q:type', 'prefetch-bundles'];
-  if (nonce) {
-    scriptAttrs.push('nonce', nonce);
-  }
-  container.openElement('script', null, scriptAttrs);
-  container.writer.write(prefetchUrlsEventScript(container.$buildBase$ || '', prefetchResources));
-  container.writer.write(
-    `;document.dispatchEvent(new CustomEvent('qprefetch', {detail:{links: [location.pathname]}}))`
-  );
+  };
 
-  container.closeElement();
-}
-
-/** Creates the `<link>` within the rendered html. Optionally add the JS worker fetch */
-function linkHtmlImplementation2(
-  container: SSRContainer,
-  prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>
-) {
-  const urls = flattenPrefetchResources(prefetchResources);
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  const priority = prefetchImpl.linkFetchPriority;
-
-  for (const url of urls) {
-    const attributes: SsrAttrs = ['href', url, 'rel', rel];
-    if (priority) {
-      attributes.push('fetchpriority', priority);
-    }
-    if (rel === 'prefetch' || rel === 'preload') {
-      if (url.endsWith('.js')) {
-        attributes.push('as', 'script');
+  const manifestHash = resolved?.manifest.manifestHash;
+  if (allowed) {
+    const expandedBundles = expandBundles(referencedBundles, resolved);
+    // Keep the same as in expandBundles (but *10)
+    let probability = 8;
+    const tenXMinProbability = minProbability * 10;
+    for (const bundleOrProbability of expandedBundles) {
+      if (typeof bundleOrProbability === 'string') {
+        if (probability < tenXMinProbability) {
+          break;
+        }
+        makeLink(base, bundleOrProbability);
+        if (--allowed === 0) {
+          break;
+        }
+      } else {
+        probability = bundleOrProbability;
       }
     }
-
-    container.openElement('link', null, attributes);
-    container.closeElement();
-  }
-}
-
-/**
- * Uses JS to add the `<link>` elements at runtime, and if the link prefetching isn't supported,
- * it'll also add the web worker fetch.
- */
-function linkJsImplementation2(
-  container: SSRContainer,
-  prefetchResources: PrefetchResource[],
-  prefetchImpl: Required<PrefetchImplementation>,
-  nonce?: string
-) {
-  const scriptAttrs = ['type', 'module', 'q:type', 'link-js'];
-  if (nonce) {
-    scriptAttrs.push('nonce', nonce);
-  }
-  container.openElement('script', null, scriptAttrs);
-
-  const rel = prefetchImpl.linkRel || 'prefetch';
-  const priority = prefetchImpl.linkFetchPriority;
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    container.writer.write(`let supportsLinkRel = true;`);
   }
 
-  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
-  container.writer.write(`u.map((u,i)=>{`);
-
-  container.writer.write(`const l=document.createElement('link');`);
-  container.writer.write(`l.setAttribute("href",u);`);
-  container.writer.write(`l.setAttribute("rel","${rel}");`);
-  if (priority) {
-    container.writer.write(`l.setAttribute("fetchpriority","${priority}");`);
+  const preloadChunk = manifestHash && resolved?.manifest.preloader;
+  if (preloadChunk) {
+    const opts: string[] = [];
+    if (debug) {
+      opts.push('d:1');
+    }
+    if (maxSimultaneousPreloads) {
+      opts.push(`P:${maxSimultaneousPreloads}`);
+    }
+    if (minPreloadProbability) {
+      opts.push(`Q:${minPreloadProbability}`);
+    }
+    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+    const script = `let b=fetch("${base}q-bundle-graph-${manifestHash}.json");import("${base}${preloadChunk}").then(({l,p})=>{l(${JSON.stringify(base)},b${optsStr});p(${JSON.stringify(referencedBundles)});})`;
+    /**
+     * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
+     * import the preloader as well and have all the state there, plus it makes it easy to write a
+     * complex implementation.
+     *
+     * Note that we don't preload the preloader or bundlegraph, they are requested after the SSR
+     * preloads because they are not as important. Also the preloader includes the vitePreload
+     * function and will in fact already be in that list.
+     */
+    nodes.push(
+      jsx('script', {
+        type: 'module',
+        'q:type': 'link-js',
+        dangerouslySetInnerHTML: script,
+        nonce,
+      })
+    );
   }
 
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    container.writer.write(`if(i===0){`);
-    container.writer.write(`try{`);
-    container.writer.write(`supportsLinkRel=l.relList.supports("${rel}");`);
-    container.writer.write(`}catch(e){}`);
-    container.writer.write(`}`);
+  if (nodes.length > 0) {
+    return jsx(Fragment, { children: nodes });
   }
 
-  container.writer.write(`document.body.appendChild(l);`);
-
-  container.writer.write(`});`);
-
-  if (prefetchImpl.workerFetchInsert === 'no-link-support') {
-    container.writer.write(`if(!supportsLinkRel){`);
-    container.writer.write(workerFetchScript());
-    container.writer.write(`}`);
-  }
-
-  if (prefetchImpl.workerFetchInsert === 'always') {
-    container.writer.write(workerFetchScript());
-  }
-  container.closeElement();
-}
-
-function workerFetchImplementation2(
-  container: SSRContainer,
-  prefetchResources: PrefetchResource[],
-  nonce?: string
-) {
-  const scriptAttrs = ['type', 'module', 'q:type', 'prefetch-worker'];
-  if (nonce) {
-    scriptAttrs.push(nonce, 'nonce');
-  }
-  container.openElement('script', null, scriptAttrs);
-
-  container.writer.write(`const u=${JSON.stringify(flattenPrefetchResources(prefetchResources))};`);
-  container.writer.write(workerFetchScript());
-
-  container.closeElement();
+  return null;
 }
 
 function normalizePrefetchImplementation(
@@ -166,9 +114,14 @@ function normalizePrefetchImplementation(
 }
 
 const PrefetchImplementationDefault: Required<PrefetchImplementation> = {
-  linkInsert: null,
-  linkRel: null,
-  linkFetchPriority: null,
-  workerFetchInsert: null,
-  prefetchEvent: 'always',
+  maxPreloads: import.meta.env.DEV ? 15 : 7,
+  minProbability: 0.6,
+  debug: false,
+  maxSimultaneousPreloads: 5,
+  minPreloadProbability: 0.25,
+  linkRel: 'modulepreload',
+  linkFetchPriority: undefined!,
+  linkInsert: undefined!,
+  workerFetchInsert: undefined!,
+  prefetchEvent: undefined!,
 };

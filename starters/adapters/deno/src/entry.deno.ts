@@ -8,7 +8,6 @@
  * - https://docs.deno.com/runtime/tutorials/http_server
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import { createQwikRouter } from "@qwik.dev/router/middleware/deno";
 import render from "./entry.ssr";
@@ -17,7 +16,6 @@ import render from "./entry.ssr";
 const { router, notFound, staticFile } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
 });
 
 // Allow for dynamic port

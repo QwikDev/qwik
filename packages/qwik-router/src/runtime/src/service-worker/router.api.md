@@ -4,7 +4,7 @@
 
 ```ts
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export const setupServiceWorker: () => void;
 
 // (No @packageDocumentation comment for this package)

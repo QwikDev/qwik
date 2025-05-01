@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
@@ -52,7 +51,6 @@ const DEFAULT_HEADERS = {
 const { router, notFound, staticFile } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
   static: {
     cacheControl: "public, max-age=31557600",
   },

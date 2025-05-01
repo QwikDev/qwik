@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
@@ -34,7 +33,6 @@ const PORT = process.env.PORT ?? 3000;
 const { router, notFound } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

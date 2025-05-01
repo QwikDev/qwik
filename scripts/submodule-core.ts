@@ -29,7 +29,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build'],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader'],
     plugins: [
       {
         name: 'setVersion',
@@ -64,6 +64,8 @@ async function submoduleCoreProd(config: BuildConfig) {
     sourcemap: true,
     globals: {
       '@qwik.dev/core/build': 'qwikBuild',
+      // not actually used
+      '@qwik.dev/core/preloader': 'qwikPreloader',
     },
     banner: getBanner('@qwik.dev/core', config.distVersion),
   };
@@ -76,6 +78,7 @@ async function submoduleCoreProd(config: BuildConfig) {
 
   const inputCore = join(config.distQwikPkgDir, 'core.mjs');
   const inputMin: InputOptions = {
+    external: ['@qwik.dev/core/preloader'],
     input: inputCore,
     onwarn: rollupOnWarn,
     plugins: [
@@ -228,20 +231,24 @@ async function submoduleCoreDev(config: BuildConfig) {
     },
   };
 
-  const esm = build({
+  const esm = await build({
     ...opts,
-    external: ['@qwik.dev/core/build'],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader'],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });
 
+  // We do a CJS build, only for the repl service worker
   const cjs = build({
     ...opts,
     // we don't externalize qwik build because then the repl service worker sees require()
     define: {
       ...opts.define,
+      // We need to get rid of the import.meta.env values
       // Vite's base url
       'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      // Vite's devserver mode
+      'import.meta.env.DEV': 'false',
     },
     format: 'cjs',
     outExtension: { '.js': '.cjs' },

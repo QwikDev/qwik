@@ -9,9 +9,9 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { applyPrefetchImplementation2 } from './prefetch-implementation';
-import { getPrefetchResources } from './prefetch-strategy';
+import { getPreloadPaths } from './prefetch-strategy';
 import {
+  ChoreType,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -19,10 +19,12 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBackRefs,
   QBaseAttr,
   QContainerAttr,
   QContainerValue,
   QCtxAttr,
+  QError,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -45,11 +47,8 @@ import {
   mapArray_get,
   mapArray_set,
   maybeThen,
-  serializeAttribute,
-  QBackRefs,
-  QError,
   qError,
-  ChoreType,
+  serializeAttribute,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -60,6 +59,7 @@ import {
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
+  type QRLInternal,
   type SerializationContext,
   type SsrAttrKey,
   type SsrAttrValue,
@@ -68,6 +68,7 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
+import { getQwikLoaderScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -77,17 +78,12 @@ import {
   isSelfClosingTag,
   isTagAllowed,
 } from './tag-nesting';
-import {
-  VNodeDataFlag,
-  type PrefetchResource,
-  type RenderOptions,
-  type RenderToStreamResult,
-} from './types';
+import { VNodeDataFlag, type RenderOptions, type RenderToStreamResult } from './types';
 import { createTimer } from './utils';
 import {
   CLOSE_FRAGMENT,
-  WRITE_ELEMENT_ATTRS,
   OPEN_FRAGMENT,
+  WRITE_ELEMENT_ATTRS,
   encodeAsAlphanumeric,
   vNodeData_addTextSize,
   vNodeData_closeFragment,
@@ -97,7 +93,9 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import { getQwikLoaderScript } from './scripts';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- it's ok here
+import { initPreloader } from '../core/preloader/bundle-graph';
+import { includePreloader } from './prefetch-implementation';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -179,7 +177,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
-  public prefetchResources: PrefetchResource[] = [];
   public serializationCtx: SerializationContext;
   /**
    * We use this to append additional nodes in the head node
@@ -251,6 +248,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.renderOptions = opts.renderOptions;
 
     this.$processInjectionsFromManifest$();
+    const bundleGraph = this.resolvedManifest?.manifest.bundleGraph;
+    if (bundleGraph) {
+      initPreloader(bundleGraph);
+    }
   }
 
   ensureProjectionResolved(_host: HostElement): void {}
@@ -610,7 +611,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       maybeThen(this.emitStateData(), () => {
         this.$noMoreRoots$ = true;
         this.emitVNodeData();
-        this.emitPrefetchResourcesData();
+        this.emitPreloads();
         this.emitSyncFnsData();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
@@ -843,19 +844,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private emitPrefetchResourcesData() {
-    const qrls = Array.from(this.serializationCtx.$eventQrls$);
+  private emitPreloads() {
+    const qrls = Array.from(this.serializationCtx.$eventQrls$) as QRLInternal[];
+    // skip prefetch implementation if prefetchStrategy === null
     if (this.renderOptions.prefetchStrategy !== null && qrls.length) {
-      // skip prefetch implementation if prefetchStrategy === null
-      const prefetchResources = getPrefetchResources(
-        qrls,
-        this.renderOptions,
-        this.resolvedManifest
+      const preloadBundles = getPreloadPaths(qrls, this.renderOptions, this.resolvedManifest);
+      includePreloader(
+        this,
+        this.resolvedManifest,
+        this.renderOptions.prefetchStrategy,
+        preloadBundles
       );
-      if (prefetchResources.length > 0) {
-        applyPrefetchImplementation2(this, this.renderOptions.prefetchStrategy, prefetchResources);
-        this.prefetchResources = prefetchResources;
-      }
     }
   }
 
@@ -879,8 +878,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (includeLoader) {
         this.emitQwikLoader();
 
-        // Assume there will be at least click handlers
-        this.emitQwikEvents(['"click"'], {
+        // Assume there will be at least click and input handlers
+        // Maybe we should allow configuring this
+        this.emitQwikEvents(['"click"', '"input"'], {
           includeLoader: true,
           includeNonce: false,
         });
@@ -893,6 +893,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let includeLoader = true;
 
     if (positionMode === 'bottom') {
+      // TODO check if the container element is `html`, if not, don't emit unless requested
       const needLoader = !this.isStatic();
       const includeMode = this.getQwikLoaderIncludeMode();
       includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);

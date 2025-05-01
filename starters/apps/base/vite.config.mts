@@ -3,7 +3,7 @@
  * When building, the adapter config is used which loads this file and extends it.
  */
 import { qwikVite } from "@qwik.dev/core/optimizer";
-import { qwikRouter } from "@qwik.dev/router/vite";
+import { qwikRouter } from "@qwik.dev/router";
 import { defineConfig, type UserConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import pkg from "./package.json";

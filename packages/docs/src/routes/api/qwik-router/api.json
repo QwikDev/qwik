@@ -824,7 +824,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"@qwik.dev/core\").JSXNode<\"script\">\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"@qwik.dev/core\").JSXNode&lt;\"script\"&gt;",
+      "content": "Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a service worker.\n\n\n```typescript\nServiceWorkerRegister: (props: {\n    nonce?: string;\n}) => import(\"packages/qwik/public\").JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n{ nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nimport(\"packages/qwik/public\").JSXOutput",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/sw-component.tsx",
       "mdFile": "router.serviceworkerregister.md"
     },

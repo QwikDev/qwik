@@ -515,15 +515,15 @@ export interface OnVisibleTaskOptions {
     strategy?: VisibleTaskStrategy;
 }
 
-// @beta
-export const PrefetchGraph: (opts?: {
+// @alpha @deprecated (undocumented)
+export const PrefetchGraph: (_opts?: {
     base?: string;
     manifestHash?: string;
     manifestURL?: string;
     nonce?: string;
 }) => JSXOutput;
 
-// @beta
+// @alpha @deprecated (undocumented)
 export const PrefetchServiceWorker: (opts: {
     base?: string;
     scope?: string;

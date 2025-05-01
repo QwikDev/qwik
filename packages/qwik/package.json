@@ -8,7 +8,8 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "csstype": "^3.1"
+    "csstype": "^3.1",
+    "rollup": ">= 4.39.0"
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -118,6 +119,9 @@
       "types": "./dist/optimizer.d.ts",
       "import": "./dist/optimizer.mjs",
       "require": "./dist/optimizer.cjs"
+    },
+    "./preloader": {
+      "import": "./dist/preloader.mjs"
     },
     "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",

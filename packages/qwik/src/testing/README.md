@@ -4,7 +4,7 @@
 //vite.config.mts
 import { defineConfig } from 'vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import { qwikRouter } from '@qwik.dev/router/vite';
+import { qwikRouter } from '@qwik.dev/router';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {

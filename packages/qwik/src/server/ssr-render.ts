@@ -1,10 +1,5 @@
 import { getSymbolHash, setServerPlatform } from './platform';
-import {
-  FLUSH_COMMENT,
-  STREAM_BLOCK_END_COMMENT,
-  STREAM_BLOCK_START_COMMENT,
-  getValidManifest,
-} from './qwik-copy';
+import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
 import type {
   JSXOutput,
   ResolvedManifest,
@@ -22,6 +17,7 @@ import type {
 } from './types';
 import { createTimer, getBuildBase } from './utils';
 import { ssrCreateContainer } from './ssr-container';
+import { manifest as builtManifest } from '@qwik-client-manifest';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -55,7 +51,6 @@ export const renderToString = async (
   });
   return {
     isStatic: result.isStatic,
-    prefetchResources: result.prefetchResources,
     timing: result.timing,
     manifest: result.manifest,
     snapshotResult: result.snapshotResult,
@@ -109,14 +104,12 @@ export const renderToStream = async (
 
   const isDynamic = snapshotResult.resources.some((r) => r._cache !== Infinity);
   const result: RenderToStreamResult = {
-    prefetchResources: ssrContainer.prefetchResources,
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
     size: totalSize,
     isStatic: !isDynamic,
     timing: timing,
-    _symbols: Array.from(ssrContainer.serializationCtx.$renderSymbols$),
   };
 
   return result;
@@ -246,25 +239,30 @@ function shouldSkipChunk(chunk: string): boolean {
   );
 }
 
-/** @public */
+/**
+ * Merges a given manifest with the built manifest and provides mappings for symbols.
+ *
+ * @public
+ */
 export function resolveManifest(
-  manifest: QwikManifest | ResolvedManifest | undefined
+  manifest?: Partial<QwikManifest | ResolvedManifest> | undefined
 ): ResolvedManifest | undefined {
-  if (!manifest) {
-    return undefined;
+  const mergedManifest = (manifest ? { ...builtManifest, ...manifest } : builtManifest) as
+    | ResolvedManifest
+    | QwikManifest;
+
+  if (!mergedManifest || 'mapper' in mergedManifest) {
+    return mergedManifest;
   }
-  if ('mapper' in manifest) {
-    return manifest;
-  }
-  manifest = getValidManifest(manifest);
-  if (manifest) {
+  if (mergedManifest!.mapping) {
     const mapper: SymbolMapper = {};
-    Object.entries(manifest.mapping).forEach(([key, value]) => {
-      mapper[getSymbolHash(key)] = [key, value];
+    Object.entries(mergedManifest.mapping).forEach(([symbol, bundleFilename]) => {
+      mapper[getSymbolHash(symbol)] = [symbol, bundleFilename];
     });
     return {
       mapper,
-      manifest,
+      manifest: mergedManifest,
+      injections: mergedManifest.injections || [],
     };
   }
   return undefined;

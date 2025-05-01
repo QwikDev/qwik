@@ -1,5 +1,4 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
@@ -11,6 +10,7 @@ import type {
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
+import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
@@ -26,7 +26,6 @@ import type {
   ServerRequestMode,
 } from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
-import { ServerError } from './error-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -42,7 +41,6 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
@@ -61,7 +59,6 @@ export function createRequestEvent(
     }
     sharedMap.set(IsQData, true);
   }
-  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
@@ -120,11 +117,7 @@ export function createRequestEvent(
         const writableStream = requestEv.getWritableStream();
         statusOrResponse.body.pipeTo(writableStream);
       } else {
-        if (status >= 300 && status < 400) {
-          return new RedirectMessage();
-        } else {
-          requestEv.getWritableStream().getWriter().close();
-        }
+        requestEv.getWritableStream().getWriter().close();
       }
     }
     return exit();

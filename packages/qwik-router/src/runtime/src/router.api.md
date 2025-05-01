@@ -10,8 +10,7 @@ import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
 import { CookieValue } from '@qwik.dev/router/middleware/request-handler';
 import { DeferReturn } from '@qwik.dev/router/middleware/request-handler';
 import type { EnvGetter } from '@qwik.dev/router/middleware/request-handler';
-import { JSXNode } from '@qwik.dev/core';
-import { JSXOutput } from '@qwik.dev/core';
+import { JSXOutput as JSXOutput_2 } from '@qwik.dev/core';
 import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
@@ -220,7 +219,7 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput;
+export const Form: <O, I>({ action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>, key: string | null) => JSXOutput_2;
 
 // @public (undocumented)
 export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
@@ -475,10 +474,12 @@ export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...a
 // @internal (undocumented)
 export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
 
-// @public (undocumented)
+// Warning: (ae-forgotten-export) The symbol "JSXOutput" needs to be exported by the entry point index.d.ts
+//
+// @public
 export const ServiceWorkerRegister: (props: {
     nonce?: string;
-}) => JSXNode<"script">;
+}) => JSXOutput;
 
 // @public (undocumented)
 export interface StaticGenerate {

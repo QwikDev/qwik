@@ -2363,9 +2363,11 @@ export type ServerQRL<T extends ServerFunction> = QRL<
 
 ## ServiceWorkerRegister
 
+Loads the service workers that are defined in the routes. Any file named `service-worker.*` (all JS extensions are allowed) will be picked up, bundled into a separate file, and registered as a service worker.
+
 ```typescript
 ServiceWorkerRegister: (props: { nonce?: string }) =>
-  import("@qwik.dev/core").JSXNode<"script">;
+  import("packages/qwik/public").JSXOutput;
 ```
 
 <table><thead><tr><th>
@@ -2395,7 +2397,7 @@ props
 </tbody></table>
 **Returns:**
 
-import("@qwik.dev/core").JSXNode&lt;"script"&gt;
+import("packages/qwik/public").JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/sw-component.tsx)
 

@@ -52,6 +52,24 @@ _(Optional)_
 
 string
 
+## BundleGraphAdder
+
+A function that returns a map of bundle names to their dependencies.
+
+```typescript
+export type BundleGraphAdder = (manifest: QwikManifest) => Record<
+  string,
+  {
+    imports?: string[];
+    dynamicImports?: string[];
+  }
+>;
+```
+
+**References:** [QwikManifest](#qwikmanifest)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts)
+
 ## ComponentEntryStrategy
 
 ```typescript
@@ -592,72 +610,6 @@ Description
 </td><td>
 
 'inline'
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
-
-## InsightManifest
-
-```typescript
-export interface InsightManifest
-```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[manual](#)
-
-</td><td>
-
-</td><td>
-
-Record&lt;string, string&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[prefetch](#)
-
-</td><td>
-
-</td><td>
-
-{ route: string; symbols: string[]; }[]
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[type](#)
-
-</td><td>
-
-</td><td>
-
-'smart'
 
 </td><td>
 
@@ -1314,7 +1266,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Dynamic imports
 
 </td></tr>
 <tr><td>
@@ -1329,22 +1281,22 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Direct imports
 
 </td></tr>
 <tr><td>
 
-[isTask?](#)
+[interactivity?](#)
 
 </td><td>
 
 </td><td>
 
-boolean
+number
 
 </td><td>
 
-_(Optional)_ Not precise, but an indication of whether this import may be a task
+_(Optional)_ Interactivity score of the bundle
 
 </td></tr>
 <tr><td>
@@ -1359,7 +1311,7 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Source files of the bundle
 
 </td></tr>
 <tr><td>
@@ -1374,6 +1326,8 @@ number
 
 </td><td>
 
+Size of the bundle
+
 </td></tr>
 <tr><td>
 
@@ -1387,10 +1341,37 @@ string[]
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Symbols in the bundle
+
+</td></tr>
+<tr><td>
+
+[total](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Total size of this bundle's static import graph
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## QwikBundleGraph
+
+Bundle graph.
+
+Format: [ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bundle-b.js', 5, // Depends on 'bundle-c.js' 'bundle-c.js', ]
+
+```typescript
+export type QwikBundleGraph = Array<string | number>;
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -1420,6 +1401,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[bundleGraph?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikBundleGraph](#qwikbundlegraph)
+
+</td><td>
+
+_(Optional)_ All bundles in a compact graph format with probabilities
+
+</td></tr>
+<tr><td>
 
 [bundles](#)
 
@@ -1487,11 +1483,11 @@ Where QRLs are located
 
 </td><td>
 
-{ target?: string; buildMode?: string; entryStrategy?: { [key: string]: any; }; }
+{ target?: string; buildMode?: string; entryStrategy?: { type: [EntryStrategy](#entrystrategy)['type']; }; }
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ The options used to build the manifest
 
 </td></tr>
 <tr><td>
@@ -1506,7 +1502,22 @@ _(Optional)_
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ The platform used to build the manifest
+
+</td></tr>
+<tr><td>
+
+[preloader?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The preloader bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1535,6 +1546,8 @@ QRL symbols
 string
 
 </td><td>
+
+The version of the manifest
 
 </td></tr>
 </tbody></table>
@@ -1894,7 +1907,7 @@ boolean
 
 </td><td>
 
-'function' \| 'event'
+'function' \| 'eventHandler'
 
 </td><td>
 
@@ -2157,19 +2170,6 @@ Description
 </td></tr>
 <tr><td>
 
-[getInsightsManifest](#)
-
-</td><td>
-
-</td><td>
-
-(clientOutDir?: string \| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \| null&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 [getManifest](#)
 
 </td><td>
@@ -2216,6 +2216,19 @@ Description
 </td><td>
 
 () =&gt; string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[registerBundleGraphAdder](#)
+
+</td><td>
+
+</td><td>
+
+(adder: [BundleGraphAdder](#bundlegraphadder)) =&gt; void
 
 </td><td>
 
@@ -2340,6 +2353,36 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[bundleGraph?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikBundleGraph](#qwikbundlegraph)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[injections?](#)
+
+</td><td>
+
+</td><td>
+
+[GlobalInjections](#globalinjections)[]
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
 [manifest](#)
 
 </td><td>
@@ -2425,7 +2468,7 @@ boolean
 
 </td><td>
 
-'event' \| 'function'
+'eventHandler' \| 'function'
 
 </td><td>
 

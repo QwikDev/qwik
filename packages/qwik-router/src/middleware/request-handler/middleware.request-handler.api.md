@@ -150,6 +150,11 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform> extends Reque
     resolveValue: ResolveValue;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "RequestEvShareQData" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const RequestEvShareQData = "qData";
+
 // @public (undocumented)
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 

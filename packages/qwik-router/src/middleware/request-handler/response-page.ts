@@ -36,17 +36,12 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
   const loaders = getRequestLoaders(requestEv);
 
   // shallow serialize loaders data
-  (loaders as any)[SerializerSymbol] = (loaders: Record<string, unknown>) => {
-    const result: Record<string, unknown> = {};
-    for (const key in loaders) {
-      const loader = loaders[key];
-      if (typeof loader === 'object' && loader !== null) {
-        (loader as any)[SerializerSymbol] = () => _UNINITIALIZED;
-      }
-      result[key] = _UNINITIALIZED;
+  for (const key in loaders) {
+    const loader = loaders[key];
+    if (typeof loader === 'object' && loader !== null) {
+      (loader as any)[SerializerSymbol] = () => _UNINITIALIZED;
     }
-    return result;
-  };
+  }
 
   return {
     url: reconstructedUrl.href,

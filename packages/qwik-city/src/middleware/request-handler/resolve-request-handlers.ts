@@ -515,18 +515,18 @@ export async function handleRedirect(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const location = requestEv.headers.get('Redirect-Location');
+  const location = requestEv.headers.get('Location');
   const isRedirect = status >= 301 && status <= 308 && location;
 
   if (isRedirect) {
     const adaptedLocation = makeQDataPath(location);
     if (adaptedLocation) {
-      requestEv.headers.set('Redirect-Location', adaptedLocation);
+      requestEv.headers.set('Location', adaptedLocation);
       requestEv.getWritableStream().close();
       return;
     } else {
       requestEv.status(200);
-      requestEv.headers.delete('Redirect-Location');
+      requestEv.headers.delete('Location');
     }
   }
 }
@@ -576,7 +576,7 @@ export async function renderQData(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const redirectLocation = requestEv.headers.get('Redirect-Location');
+  const redirectLocation = requestEv.headers.get('Location');
   const rewriteLocation = requestEv.headers.get('Rewrite-Location');
   const trailingSlash = getRequestTrailingSlash(requestEv);
 

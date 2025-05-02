@@ -248,7 +248,7 @@ export const jsxKey = {
       },
 
       // Array.prototype.map
-      // eslint-disable-next-line no-multi-str
+
       'CallExpression[callee.type="MemberExpression"][callee.property.name="map"],\
        CallExpression[callee.type="OptionalMemberExpression"][callee.property.name="map"],\
        OptionalCallExpression[callee.type="MemberExpression"][callee.property.name="map"],\

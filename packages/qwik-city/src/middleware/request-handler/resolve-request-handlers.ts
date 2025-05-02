@@ -515,18 +515,18 @@ export async function handleRedirect(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const location = requestEv.headers.get('Location');
+  const location = requestEv.headers.get('Redirect-Location');
   const isRedirect = status >= 301 && status <= 308 && location;
 
   if (isRedirect) {
     const adaptedLocation = makeQDataPath(location);
     if (adaptedLocation) {
-      requestEv.headers.set('Location', adaptedLocation);
+      requestEv.headers.set('Redirect-Location', adaptedLocation);
       requestEv.getWritableStream().close();
       return;
     } else {
       requestEv.status(200);
-      requestEv.headers.delete('Location');
+      requestEv.headers.delete('Redirect-Location');
     }
   }
 }
@@ -548,18 +548,18 @@ export async function handleRewrite(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const location = requestEv.headers.get('Location');
+  const location = requestEv.headers.get('Rewrite-Location');
   const isRewrite = status === 200 && location;
 
   if (isRewrite) {
     const adaptedLocation = makeQDataPath(location);
     if (adaptedLocation) {
-      requestEv.headers.set('Location', adaptedLocation);
+      requestEv.headers.set('Rewrite-Location', adaptedLocation);
       requestEv.getWritableStream().close();
       return;
     } else {
       requestEv.status(200);
-      requestEv.headers.delete('Location');
+      requestEv.headers.delete('Rewrite-Location');
     }
   }
 }
@@ -576,7 +576,8 @@ export async function renderQData(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const location = requestEv.headers.get('Location');
+  const redirectLocation = requestEv.headers.get('Redirect-Location');
+  const rewriteLocation = requestEv.headers.get('Rewrite-Location');
   const trailingSlash = getRequestTrailingSlash(requestEv);
 
   const requestHeaders: Record<string, string> = {};
@@ -588,7 +589,8 @@ export async function renderQData(requestEv: RequestEvent) {
     action: requestEv.sharedMap.get(RequestEvSharedActionId),
     status: status !== 200 ? status : 200,
     href: getPathname(requestEv.url, trailingSlash),
-    redirect: location ?? undefined,
+    redirect: redirectLocation ?? undefined,
+    rewrite: rewriteLocation ?? undefined,
   };
   const writer = requestEv.getWritableStream().getWriter();
   const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];

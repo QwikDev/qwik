@@ -197,6 +197,12 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
                 error: (message) => this.error(message),
               });
             }
+            this.warn(
+              `\n==============================================` +
+                `\nNote: Make sure that you are serving the built files with proper cache headers.` +
+                `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
+                `\n==============================================`
+            );
           }
         }
       },

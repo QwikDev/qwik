@@ -81,7 +81,7 @@ export async function build(config: BuildConfig) {
     }
     if (config.qwik) {
       // server bundling must happen after the results from the others
-      // because it inlines the qwik loader and prefetch scripts
+      // because it inlines the qwik loader
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 

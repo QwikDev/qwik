@@ -137,8 +137,6 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
-    "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
-    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
     "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import {
   component$,
   createContextId,

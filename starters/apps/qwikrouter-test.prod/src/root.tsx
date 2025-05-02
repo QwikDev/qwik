@@ -1,10 +1,10 @@
-import { QwikCityProvider, RouterOutlet } from "@qwik.dev/core-city";
+import { QwikRouterProvider, RouterOutlet } from "@qwik.dev/router";
 import { RouterHead } from "./components/router-head/router-head";
 import "./global.css";
 
 export default function Root() {
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
         <meta charset="utf-8" />
         <RouterHead />
@@ -12,6 +12,6 @@ export default function Root() {
       <body>
         <RouterOutlet />
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 }

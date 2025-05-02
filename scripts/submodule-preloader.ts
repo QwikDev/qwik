@@ -51,6 +51,8 @@ function customTerserPlugin(): Plugin {
 export async function submodulePreloader(config: BuildConfig) {
   await build({
     build: {
+      emptyOutDir: false,
+      copyPublicDir: false,
       lib: {
         entry: join(config.srcQwikDir, 'core/preloader'),
         formats: ['es'],

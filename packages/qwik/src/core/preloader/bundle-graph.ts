@@ -1,10 +1,5 @@
 import { isBrowser } from '@qwik.dev/core/build';
-import {
-  config,
-  doc,
-  maxSignificantInverseProbabilityStr,
-  maxSimultaneousPreloadsStr,
-} from './constants';
+import { config, doc } from './constants';
 import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
@@ -85,13 +80,13 @@ export const loadBundleGraph = (
 ) => {
   if (opts) {
     if ('d' in opts) {
-      config.DEBUG = !!opts.d;
+      config.$DEBUG$ = !!opts.d;
     }
     if ('P' in opts) {
-      config[maxSimultaneousPreloadsStr] = opts['P'] as number;
+      config.$maxBufferedPreloads$ = opts['P'] as number;
     }
     if ('Q' in opts) {
-      config[maxSignificantInverseProbabilityStr] = 1 - (opts['Q'] as number);
+      config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
     }
   }
   if (!isBrowser || basePath == null) {
@@ -113,7 +108,7 @@ export const loadBundleGraph = (
             bundle.$inverseProbability$ = 1;
           }
         }
-        config.DEBUG &&
+        config.$DEBUG$ &&
           log(`parseBundleGraph got ${graph.size} bundles, adjusting ${toAdjust.length}`);
         for (const [bundle, inverseProbability] of toAdjust) {
           adjustProbabilities(bundle, inverseProbability);
@@ -129,17 +124,15 @@ export const initPreloader = (
   serializedBundleGraph?: (string | number)[],
   opts?: {
     debug?: boolean;
-    maxSignificantInverseProbability?: number;
+    preloadProbability?: number;
   }
 ) => {
   if (opts) {
     if ('debug' in opts) {
-      config.DEBUG = !!opts.debug;
+      config.$DEBUG$ = !!opts.debug;
     }
-    if (maxSignificantInverseProbabilityStr in opts) {
-      config[maxSignificantInverseProbabilityStr] = opts[
-        maxSignificantInverseProbabilityStr
-      ] as number;
+    if ('preloadProbability' in opts) {
+      config.$invPreloadProbability$ = 1 - (opts.preloadProbability as number);
     }
   }
   if (base != null || !serializedBundleGraph) {

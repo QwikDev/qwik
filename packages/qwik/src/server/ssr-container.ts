@@ -93,9 +93,9 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- it's ok here
-import { initPreloader } from '../core/preloader/bundle-graph';
-import { includePreloader } from './prefetch-implementation';
+// @ts-ignore
+import { I as initPreloader } from '@qwik.dev/core/preloader';
+import { includePreloader } from './preload-impl';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -250,7 +250,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$processInjectionsFromManifest$();
     const bundleGraph = this.resolvedManifest?.manifest.bundleGraph;
     if (bundleGraph) {
-      initPreloader(bundleGraph);
+      const preloaderOpts: Parameters<typeof initPreloader>[1] =
+        typeof opts.renderOptions.preloader === 'object'
+          ? {
+              debug: opts.renderOptions.preloader.debug,
+              preloadProbability: opts.renderOptions.preloader.ssrPreloadProbability,
+            }
+          : undefined;
+      initPreloader(bundleGraph, preloaderOpts);
     }
   }
 
@@ -846,15 +853,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private emitPreloads() {
     const qrls = Array.from(this.serializationCtx.$eventQrls$) as QRLInternal[];
-    // skip prefetch implementation if prefetchStrategy === null
-    if (this.renderOptions.prefetchStrategy !== null && qrls.length) {
+    /**
+     * Skip preloader injection if preloader is exactly `null` or if there are no qrls (since then
+     * there is no reactivity)
+     */
+    if (this.renderOptions.preloader !== null && qrls.length) {
       const preloadBundles = getPreloadPaths(qrls, this.renderOptions, this.resolvedManifest);
-      includePreloader(
-        this,
-        this.resolvedManifest,
-        this.renderOptions.prefetchStrategy,
-        preloadBundles
-      );
+      includePreloader(this, this.resolvedManifest, this.renderOptions.preloader, preloadBundles);
     }
   }
 

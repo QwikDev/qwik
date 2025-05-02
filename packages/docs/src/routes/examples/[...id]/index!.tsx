@@ -184,8 +184,6 @@ export const onGet: RequestHandler = ({ cacheControl }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
   });
 };
 

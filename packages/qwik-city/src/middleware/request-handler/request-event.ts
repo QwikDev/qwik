@@ -26,6 +26,7 @@ import type {
   ServerRequestMode,
 } from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { RewriteMessage } from './rewrite-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -218,6 +219,19 @@ export function createRequestEvent(
       }
       exit();
       return new RedirectMessage();
+    },
+
+    rewrite: (url: string) => {
+      check();
+      if (url) {
+        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
+        if (url !== fixedURL) {
+          console.warn(`Rewrite URL ${url} is invalid, fixing to ${fixedURL}`);
+        }
+        headers.set('Location', fixedURL);
+      }
+      exit();
+      return new RewriteMessage();
     },
 
     defer: (returnData) => {

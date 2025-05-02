@@ -211,7 +211,7 @@ export function createRequestEvent(
         if (url !== fixedURL) {
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
         }
-        headers.set('Redirect-Location', fixedURL);
+        headers.set('Location', fixedURL);
       }
       // Fallback to 'no-store' when end user is not managing Cache-Control header
       if (statusCode > 301 && !headers.get('Cache-Control')) {

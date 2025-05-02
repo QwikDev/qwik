@@ -77,6 +77,7 @@ export const resolveRequestHandlers = (
     }
     const routeModules = route[2];
     requestHandlers.push(handleRedirect);
+    requestHandlers.push(handleRewrite);
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -505,7 +506,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   try {
     await requestEv.next();
   } catch (err) {
-    if (!(err instanceof RedirectMessage || err instanceof RewriteMessage)) {
+    if (!(err instanceof RedirectMessage)) {
       throw err;
     }
   }
@@ -516,7 +517,41 @@ export async function handleRedirect(requestEv: RequestEvent) {
   const status = requestEv.status();
   const location = requestEv.headers.get('Location');
   const isRedirect = status >= 301 && status <= 308 && location;
+
   if (isRedirect) {
+    const adaptedLocation = makeQDataPath(location);
+    if (adaptedLocation) {
+      requestEv.headers.set('Location', adaptedLocation);
+      requestEv.getWritableStream().close();
+      return;
+    } else {
+      requestEv.status(200);
+      requestEv.headers.delete('Location');
+    }
+  }
+}
+
+export async function handleRewrite(requestEv: RequestEvent) {
+  const isPageDataReq = requestEv.sharedMap.has(IsQData);
+  if (!isPageDataReq) {
+    return;
+  }
+  try {
+    await requestEv.next();
+  } catch (err) {
+    if (!(err instanceof RewriteMessage)) {
+      throw err;
+    }
+  }
+  if (requestEv.headersSent) {
+    return;
+  }
+
+  const status = requestEv.status();
+  const location = requestEv.headers.get('Location');
+  const isRewrite = status === 200 && location;
+
+  if (isRewrite) {
     const adaptedLocation = makeQDataPath(location);
     if (adaptedLocation) {
       requestEv.headers.set('Location', adaptedLocation);

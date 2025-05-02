@@ -12,6 +12,7 @@ import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { RewriteMessage } from './rewrite-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
@@ -26,7 +27,6 @@ import type {
   ServerRequestMode,
 } from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
-import { RewriteMessage } from './rewrite-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -211,7 +211,7 @@ export function createRequestEvent(
         if (url !== fixedURL) {
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
         }
-        headers.set('Location', fixedURL);
+        headers.set('Redirect-Location', fixedURL);
       }
       // Fallback to 'no-store' when end user is not managing Cache-Control header
       if (statusCode > 301 && !headers.get('Cache-Control')) {
@@ -228,7 +228,7 @@ export function createRequestEvent(
         if (url !== fixedURL) {
           console.warn(`Rewrite URL ${url} is invalid, fixing to ${fixedURL}`);
         }
-        headers.set('Location', fixedURL);
+        headers.set('Rewrite-Location', fixedURL);
       }
       exit();
       return new RewriteMessage();

@@ -14,6 +14,7 @@ import type {
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
+import { RewriteMessage } from './rewrite-handler';
 import {
   RequestEvQwikSerializer,
   RequestEvSharedActionId,
@@ -504,7 +505,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   try {
     await requestEv.next();
   } catch (err) {
-    if (!(err instanceof RedirectMessage)) {
+    if (!(err instanceof RedirectMessage || err instanceof RewriteMessage)) {
       throw err;
     }
   }

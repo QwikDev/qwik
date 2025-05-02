@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
@@ -10,6 +11,7 @@ import {
 } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import { RewriteMessage } from './rewrite-handler';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -39,6 +41,7 @@ export function runQwikCity<T>(
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
+  console.log('runQwikCity - start', loadedRoute);
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(
@@ -65,6 +68,11 @@ async function runNext(requestEv: RequestEventInternal, resolve: (value: any) =>
     await requestEv.next();
   } catch (e) {
     if (e instanceof RedirectMessage) {
+      console.log('OMER___runNext - RedirectMessage');
+      const stream = requestEv.getWritableStream();
+      await stream.close();
+    } else if (e instanceof RewriteMessage) {
+      console.log('OMER___runNext - RewriteMessage');
       const stream = requestEv.getWritableStream();
       await stream.close();
     } else if (e instanceof ServerError) {

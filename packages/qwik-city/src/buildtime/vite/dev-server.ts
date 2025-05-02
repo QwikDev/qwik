@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
@@ -143,6 +144,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
   return async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
     try {
+      console.log('OMER___ssrDevMiddleware - try');
       const url = getUrl(req, computeOrigin(req));
 
       if (shouldSkipRequest(url.pathname) || isVitePing(url.pathname, req.headers)) {
@@ -169,6 +171,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
 
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
+        console.log('OMER___ssrDevMiddleware - resolveRoute', url);
         const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
 
         const renderFn = async (requestEv: RequestEvent) => {
@@ -211,6 +214,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           }
         };
 
+        console.log('OMER___ssrDevMiddleware - resolveRequestHandlers', url);
         const requestHandlers = resolveRequestHandlers(
           serverPlugins,
           loadedRoute,
@@ -219,7 +223,9 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           renderFn
         );
 
+        console.log('OMER___ssrDevMiddleware - requestHandlers', requestHandlers);
         if (requestHandlers.length > 0) {
+          console.log('OMER___ssrDevMiddleware - requestHandlers.length > 0');
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
@@ -244,6 +250,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             return;
           }
         } else {
+          console.log('OMER___ssrDevMiddleware - requestHandlers.length === 0');
           // no matching route
 
           // test if this is a dev service-worker.js request
@@ -257,6 +264,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           }
         }
       } catch (e: any) {
+        console.log('OMER___ssrDevMiddleware - catch', `${e}`);
         if (e instanceof Error) {
           server.ssrFixStacktrace(e);
           formatError(e);

@@ -649,7 +649,6 @@ describe.each([
       );
     });
 
-    // help me to get a description
     it('should update the sum when input values change', async () => {
       const AppTest = component$(() => {
         const a = useSignal(1);

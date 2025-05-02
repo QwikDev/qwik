@@ -78,7 +78,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
           // bun fails to redirect if there is a body.
           // remove the body if there a redirect.
           const status = response.status;
-          const location = response.headers.get('Redirect-Location');
+          const location = response.headers.get('Location');
           const isRedirect = status >= 301 && status <= 308 && location;
           if (isRedirect) {
             return new Response(null, response);

@@ -4,6 +4,7 @@ import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import type { ServerError } from './error-handler';
+import type { RewriteMessage } from './rewrite-handler';
 
 /** @public */
 export interface EnvGetter {
@@ -200,6 +201,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
    */
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+
+  /**
+   * URL to rewrite to. When called, the response will immediately end with the correct rewrite url.
+   * URL will remain unchanged in the browser history.
+   */
+  readonly rewrite: (url: string) => RewriteMessage;
 
   /**
    * When called, the response will immediately end with the given status code. This could be useful

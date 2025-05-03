@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { ValueOrPromise } from '@builder.io/qwik';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
@@ -67,11 +68,21 @@ export function createRequestEvent(
   let locale = serverRequestEv.locale;
   let status = 200;
 
-  const next = async () => {
+  const next = async (_loadedRoute = loadedRoute, _requestHandlers = requestHandlers) => {
+    console.log('OMER___next - start', _requestHandlers);
     routeModuleIndex++;
 
-    while (routeModuleIndex < requestHandlers.length) {
-      const moduleRequestHandler = requestHandlers[routeModuleIndex];
+    // Replace loadedRoute with _loadedRoute incase of a rewrite.
+    if (loadedRoute !== _loadedRoute && _loadedRoute !== null && loadedRoute !== null) {
+      for (let i = 0; i < _loadedRoute.length; i++) {
+        loadedRoute[i] = _loadedRoute[i];
+      }
+      loadedRoute.splice(_loadedRoute.length);
+    }
+
+    while (routeModuleIndex < _requestHandlers.length) {
+      console.log('OMER___next - routeModuleIndex', routeModuleIndex);
+      const moduleRequestHandler = _requestHandlers[routeModuleIndex];
       const asyncStore = globalThis.qcAsyncRequestStore;
       const result = asyncStore?.run
         ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
@@ -81,6 +92,8 @@ export function createRequestEvent(
       }
       routeModuleIndex++;
     }
+
+    console.log('OMER___next - end');
   };
 
   const check = () => {
@@ -221,16 +234,17 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    rewrite: (url: string) => {
+    rewrite: (_url: string) => {
+      console.log('OMER___rewrite - start');
       check();
-      if (url) {
-        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
-        if (url !== fixedURL) {
-          console.warn(`Rewrite URL ${url} is invalid, fixing to ${fixedURL}`);
-        }
-        headers.set('Rewrite-Location', fixedURL);
+      const fixedURL = _url.replace(/([^:])\/{2,}/g, '$1/');
+      if (_url !== fixedURL) {
+        console.warn(`Rewrite URL ${_url} is invalid, fixing to ${fixedURL}`);
       }
-      exit();
+      url.pathname = fixedURL;
+      headers.set('Rewrite-Location', fixedURL);
+      // should be restarted!
+      routeModuleIndex = -1;
       return new RewriteMessage();
     },
 

@@ -233,10 +233,27 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
+          const applyRewrite = async (url: URL) => {
+            const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
+            const requestHandlers = resolveRequestHandlers(
+              serverPlugins,
+              loadedRoute,
+              req.method ?? 'GET',
+              false,
+              renderFn
+            );
+
+            return {
+              loadedRoute,
+              requestHandlers,
+            };
+          };
+
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
+            applyRewrite,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

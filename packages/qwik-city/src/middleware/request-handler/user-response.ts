@@ -85,15 +85,12 @@ async function runNext(
         await requestEv.next(loadedRoute, requestHandlers);
       } catch (e) {
         if (e instanceof RewriteMessage) {
-          console.log('OMER___runNext - RewriteMessage');
-
           if (rewriteAttempt > 5) {
             throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
           }
 
           const url = new URL(requestEv.url);
           url.pathname = requestEv.headers.get('Rewrite-Location')!;
-          console.log('OMER___runNext - RewriteMessage - url', url);
           const { loadedRoute, requestHandlers } = await applyRewrite(url);
           return await _runNext(resolve, loadedRoute, requestHandlers, rewriteAttempt + 1);
         }
@@ -102,7 +99,6 @@ async function runNext(
       }
     } catch (e) {
       if (e instanceof RedirectMessage) {
-        console.log('OMER___runNext - RedirectMessage');
         const stream = requestEv.getWritableStream();
         await stream.close();
       } else if (e instanceof ServerError) {

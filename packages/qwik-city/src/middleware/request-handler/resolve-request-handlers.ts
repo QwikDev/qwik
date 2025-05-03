@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { QRL } from '@builder.io/qwik';
 import type { Render, RenderToStringResult } from '@builder.io/qwik/server';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
@@ -49,7 +48,6 @@ export const resolveRequestHandlers = (
   const requestHandlers: RequestHandler[] = [];
 
   const isPageRoute = !!(route && isLastModulePageRoute(route[2]));
-  console.log('resolveRequestHandlers - isPageRoute', isPageRoute);
 
   if (serverPlugins) {
     _resolveRequestHandlers(
@@ -82,7 +80,6 @@ export const resolveRequestHandlers = (
     const routeModules = route[2];
     requestHandlers.push(handleRedirect);
 
-    console.log('resolveRequestHandlers - handleRewrite', route, routeName);
     requestHandlers.push(handleRewrite);
     _resolveRequestHandlers(
       routeLoaders,
@@ -507,10 +504,8 @@ export function renderQwikMiddleware(render: Render) {
 export async function handleRedirect(requestEv: RequestEvent) {
   const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (!isPageDataReq) {
-    console.log('handleRedirect - isPageDataReq=false');
     return;
   }
-  console.log('handleRedirect - isPageDataReq=true');
 
   try {
     await requestEv.next();
@@ -543,11 +538,8 @@ export async function handleRedirect(requestEv: RequestEvent) {
 export async function handleRewrite(requestEv: RequestEvent) {
   const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (!isPageDataReq) {
-    console.log('handleRewrite - isPageDataReq=false');
-
     return;
   }
-  console.log('handleRewrite - isPageDataReq=true');
   try {
     await requestEv.next();
   } catch (err) {
@@ -578,7 +570,6 @@ export async function handleRewrite(requestEv: RequestEvent) {
 
 export async function renderQData(requestEv: RequestEvent) {
   const isPageDataReq = requestEv.sharedMap.has(IsQData);
-  console.log('renderQData - isPageDataReq', isPageDataReq);
   if (!isPageDataReq) {
     return;
   }

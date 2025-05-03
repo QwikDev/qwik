@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   $,
   component$,
@@ -368,7 +367,6 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
       if (loadedRoute) {
         const [routeName, params, mods, menu] = loadedRoute;
-        console.log('OMER___loadedRoute', routeName, params, mods, menu);
         const contentModules = mods as ContentModule[];
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 

@@ -1,5 +1,5 @@
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import type { LoadedRoute } from '../../runtime/src/types';
+import type { ApplyRewriteInternal, LoadedRoute } from '../../runtime/src/types';
 import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import {
@@ -36,9 +36,7 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  applyRewrite: (
-    url: URL
-  ) => Promise<{ loadedRoute: LoadedRoute; requestHandlers: RequestHandler<any>[] }>,
+  applyRewrite: ApplyRewriteInternal,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -66,9 +64,7 @@ export function runQwikCity<T>(
 
 async function runNext(
   requestEv: RequestEventInternal,
-  applyRewrite: (
-    url: URL
-  ) => Promise<{ loadedRoute: LoadedRoute; requestHandlers: RequestHandler<any>[] }>,
+  applyRewrite: ApplyRewriteInternal,
   resolve: (value: any) => void
 ) {
   async function _runNext(

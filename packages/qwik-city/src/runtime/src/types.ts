@@ -81,6 +81,10 @@ export type RouteStateInternal = {
   scroll?: boolean;
 };
 
+export type ApplyRewriteInternal = (
+  url: URL
+) => Promise<{ loadedRoute: LoadedRoute | null; requestHandlers: RequestHandler<any>[] }>;
+
 /**
  * @param url - The URL that the user is trying to navigate to, or a number to indicate the user is
  *   trying to navigate back/forward in the application history. If it is missing, the event is sent

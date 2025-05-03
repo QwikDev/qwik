@@ -207,7 +207,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    * URL to rewrite to. When called, the response will immediately end with the correct rewrite url.
    * URL will remain unchanged in the browser history.
    */
-  readonly rewrite: (url: string) => RewriteMessage;
+  readonly rewrite: (url: string | URL) => RewriteMessage;
 
   /**
    * When called, the response will immediately end with the given status code. This could be useful

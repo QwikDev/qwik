@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ValueOrPromise } from '@builder.io/qwik';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
@@ -69,7 +68,6 @@ export function createRequestEvent(
   let status = 200;
 
   const next = async (_loadedRoute = loadedRoute, _requestHandlers = requestHandlers) => {
-    console.log('OMER___next - start', _requestHandlers);
     routeModuleIndex++;
 
     // Replace loadedRoute with _loadedRoute incase of a rewrite.
@@ -81,7 +79,6 @@ export function createRequestEvent(
     }
 
     while (routeModuleIndex < _requestHandlers.length) {
-      console.log('OMER___next - routeModuleIndex', routeModuleIndex);
       const moduleRequestHandler = _requestHandlers[routeModuleIndex];
       const asyncStore = globalThis.qcAsyncRequestStore;
       const result = asyncStore?.run
@@ -92,8 +89,6 @@ export function createRequestEvent(
       }
       routeModuleIndex++;
     }
-
-    console.log('OMER___next - end');
   };
 
   const check = () => {
@@ -222,7 +217,6 @@ export function createRequestEvent(
       if (url) {
         const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
         if (url !== fixedURL) {
-          console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
         }
         headers.set('Location', fixedURL);
       }
@@ -235,11 +229,9 @@ export function createRequestEvent(
     },
 
     rewrite: (_url: string) => {
-      console.log('OMER___rewrite - start');
       check();
       const fixedURL = _url.replace(/([^:])\/{2,}/g, '$1/');
       if (_url !== fixedURL) {
-        console.warn(`Rewrite URL ${_url} is invalid, fixing to ${fixedURL}`);
       }
       url.pathname = fixedURL;
       headers.set('Rewrite-Location', fixedURL);

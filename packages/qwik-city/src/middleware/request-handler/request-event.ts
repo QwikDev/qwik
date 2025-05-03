@@ -217,6 +217,7 @@ export function createRequestEvent(
       if (url) {
         const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
         if (url !== fixedURL) {
+          console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
         }
         headers.set('Location', fixedURL);
       }
@@ -232,6 +233,7 @@ export function createRequestEvent(
       check();
       const fixedURL = _url.replace(/([^:])\/{2,}/g, '$1/');
       if (_url !== fixedURL) {
+        console.warn(`Rewrite URL ${_url} is invalid, fixing to ${fixedURL}`);
       }
       url.pathname = fixedURL;
       headers.set('Rewrite-Location', fixedURL);

@@ -345,15 +345,16 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
-          // TODO - fix it asap with better logic! it works but it's probably the worst way of doing it.
-          trackUrl = pageData.rewrite ? new URL(trackUrl) : newURL;
+          // Change our path to the canonical path in the response unless rewrite.
+          if (!pageData.rewrite) {
+            trackUrl = newURL;
+          }
 
           loadRoutePromise = loadRoute(
             qwikCity.routes,
             qwikCity.menus,
             qwikCity.cacheModules,
-            newURL.pathname
+            newURL.pathname // Load the canonical path.
           );
         }
 

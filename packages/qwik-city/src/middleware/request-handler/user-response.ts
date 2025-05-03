@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
 import type { LoadedRoute } from '../../runtime/src/types';
 import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
@@ -44,7 +43,6 @@ export function runQwikCity<T>(
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikCityRun<T> {
-  console.log('runQwikCity - start', loadedRoute);
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
   const requestEv = createRequestEvent(

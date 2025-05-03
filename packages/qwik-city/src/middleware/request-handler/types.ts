@@ -5,6 +5,7 @@ import type { RequestEventInternal } from './request-event';
 import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
 import type { ServerError } from './error-handler';
 import type { RewriteMessage } from './rewrite-handler';
+import type { LoadedRoute } from '../../runtime/src/types';
 
 /** @public */
 export interface EnvGetter {
@@ -456,7 +457,10 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
    *
    * NOTE: Ensure that the call to `next()` is `await`ed.
    */
-  readonly next: () => Promise<void>;
+  readonly next: (
+    loadedRoute?: LoadedRoute | null,
+    requestHandlers?: RequestHandler<any>[]
+  ) => Promise<void>;
 }
 
 declare global {

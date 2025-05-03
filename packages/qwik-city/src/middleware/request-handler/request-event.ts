@@ -229,8 +229,10 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    rewrite: (_url: string) => {
+    rewrite: (__url: string | URL) => {
       check();
+
+      const _url = typeof __url === 'string' ? __url : __url.toString();
       const fixedURL = _url.replace(/([^:])\/{2,}/g, '$1/');
       if (_url !== fixedURL) {
         console.warn(`Rewrite URL ${_url} is invalid, fixing to ${fixedURL}`);

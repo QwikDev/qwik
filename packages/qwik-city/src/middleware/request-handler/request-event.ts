@@ -70,12 +70,8 @@ export function createRequestEvent(
   const next = async (_loadedRoute = loadedRoute, _requestHandlers = requestHandlers) => {
     routeModuleIndex++;
 
-    // Replace loadedRoute with _loadedRoute incase of a rewrite.
     if (loadedRoute !== _loadedRoute && _loadedRoute !== null && loadedRoute !== null) {
-      for (let i = 0; i < _loadedRoute.length; i++) {
-        loadedRoute[i] = _loadedRoute[i];
-      }
-      loadedRoute.splice(_loadedRoute.length);
+      loadedRoute = _loadedRoute;
     }
 
     while (routeModuleIndex < _requestHandlers.length) {
@@ -142,14 +138,18 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvRoute]: loadedRoute,
+    get [RequestEvRoute]() {
+      return loadedRoute;
+    },
     [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[1] ?? {},
+    get params() {
+      return loadedRoute?.[1] ?? {};
+    },
     pathname: url.pathname,
     platform,
     query: url.searchParams,

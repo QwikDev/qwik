@@ -263,7 +263,7 @@ export function createRequestEvent(
       url.search = rewriteUrl.search;
 
       headers.set('Rewrite-Location', rewriteUrl.pathname);
-      // should be restarted!
+      // We need to restart the handlers chain, because the loadedRoute has changed.
       routeModuleIndex = -1;
       return new RewriteMessage();
     },

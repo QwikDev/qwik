@@ -74,27 +74,21 @@ async function runNext(
     rewriteAttempt = 1
   ) {
     try {
-      try {
-        // Run all middlewares
-        await requestEv.next(loadedRoute, requestHandlers);
-      } catch (e) {
-        if (e instanceof RewriteMessage) {
-          if (rewriteAttempt > 5) {
-            throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
-          }
-
-          const url = new URL(requestEv.url);
-          url.pathname = requestEv.headers.get('Rewrite-Location')!;
-          const { loadedRoute, requestHandlers } = await applyRewrite(url);
-          return await _runNext(resolve, loadedRoute, requestHandlers, rewriteAttempt + 1);
-        }
-
-        throw e;
-      }
+      // Run all middlewares
+      await requestEv.next(loadedRoute, requestHandlers);
     } catch (e) {
       if (e instanceof RedirectMessage) {
         const stream = requestEv.getWritableStream();
         await stream.close();
+      } else if (e instanceof RewriteMessage) {
+        if (rewriteAttempt > 5) {
+          throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
+        }
+
+        const url = new URL(requestEv.url);
+        url.pathname = requestEv.headers.get('Rewrite-Location')!;
+        const { loadedRoute, requestHandlers } = await applyRewrite(url);
+        return await _runNext(resolve, loadedRoute, requestHandlers, rewriteAttempt + 1);
       } else if (e instanceof ServerError) {
         if (!requestEv.headersSent) {
           const status = e.status as StatusCodes;

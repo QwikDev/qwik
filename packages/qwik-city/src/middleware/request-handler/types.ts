@@ -204,7 +204,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
-   * URL to rewrite to. When called, the flow will be reset to the new url.
+   * URL to rewrite to. When called, the flow will reset to display the given url route.
    *
    * URL will remain unchanged in the browser history.
    *

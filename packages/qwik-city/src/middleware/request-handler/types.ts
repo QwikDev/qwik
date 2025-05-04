@@ -204,10 +204,14 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
-   * URL to rewrite to. When called, the response will immediately end with the correct rewrite url.
+   * URL to rewrite to. When called, the flow will be reset to the new url.
+   *
    * URL will remain unchanged in the browser history.
+   *
+   * @param url - The url to rewrite to.
+   * @param keepCurrentSearchParams - Whether to keep the current search params.
    */
-  readonly rewrite: (url: string | URL) => RewriteMessage;
+  readonly rewrite: (url: string | URL, keepCurrentSearchParams?: boolean) => RewriteMessage;
 
   /**
    * When called, the response will immediately end with the given status code. This could be useful

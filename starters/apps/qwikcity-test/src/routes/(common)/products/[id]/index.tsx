@@ -70,6 +70,22 @@ export default component$(() => {
         </li>
         <li>
           <Link
+            href="/qwikcity-test/products/shirt-rewrite-plain_string/"
+            data-test-link="products-shirt-rewrite-plain_string"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikcity-test/products/shirt-rewrite-url_object/"
+            data-test-link="products-shirt-rewrite-url_object"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
             href="/qwikcity-test/products/hoodie/"
             data-test-link="products-hoodie"
           >
@@ -112,7 +128,17 @@ export const PRODUCT_DB: Record<string, string> = {
 };
 
 export const useProductLoader = routeLoader$(
-  async ({ headers, json, error, params, query, redirect, status }) => {
+  async ({
+    headers,
+    json,
+    error,
+    params,
+    query,
+    redirect,
+    rewrite,
+    status,
+    url,
+  }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object
     // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -126,6 +152,16 @@ export const useProductLoader = routeLoader$(
     if (id === "shirt") {
       // Redirect, which will skip any rendering and the server will immediately redirect
       throw redirect(301, "/qwikcity-test/products/tshirt/");
+    }
+
+    if (id === "shirt-rewrite-plain_string") {
+      // Rewrite, which should have the same effect as redirect but with keep the url
+      throw rewrite("/qwikcity-test/products/tshirt/");
+    }
+
+    if (id === "shirt-rewrite-url_object") {
+      // Rewrite, which should have the same effect as redirect but with keep the url
+      throw rewrite(new URL("/qwikcity-test/products/tshirt/", url.origin));
     }
 
     if (id === "error") {

@@ -813,7 +813,7 @@ True if headers have been sent, preventing any more headers from being set.
 
 </td><td>
 
-() =&gt; Promise&lt;void&gt;
+(loadedRoute?: LoadedRoute \| null, requestHandlers?: [RequestHandler](#requesthandler)&lt;any&gt;[]) =&gt; Promise&lt;void&gt;
 
 </td><td>
 
@@ -1312,6 +1312,25 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 </td></tr>
 <tr><td>
 
+[rewrite](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(url: string \| URL, keepCurrentSearchParams?: boolean) =&gt; [RewriteMessage](#rewritemessage)
+
+</td><td>
+
+URL to rewrite to. When called, the flow will be reset to the new url.
+
+URL will remain unchanged in the browser history.
+
+</td></tr>
+<tr><td>
+
 [send](#)
 
 </td><td>
@@ -1461,6 +1480,16 @@ export interface ResolveValue
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
+
+## RewriteMessage
+
+```typescript
+export declare class RewriteMessage extends AbortMessage
+```
+
+**Extends:** [AbortMessage](#abortmessage)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/rewrite-handler.ts)
 
 ## ServerError
 

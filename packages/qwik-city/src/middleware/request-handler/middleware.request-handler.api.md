@@ -136,7 +136,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
-    readonly rewrite: (url: string | URL, keepCurrentSearchParams?: boolean) => RewriteMessage;
+    readonly rewrite: (url: string | URL) => RewriteMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts

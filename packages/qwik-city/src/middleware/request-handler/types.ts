@@ -208,10 +208,12 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
    *
    * URL will remain unchanged in the browser history.
    *
+   * Note that if the url is a string without a protocol, the rewritten url will inherit the search
+   * params from the canonical url.
+   *
    * @param url - The url to rewrite to.
-   * @param keepCurrentSearchParams - Whether to keep the current search params.
    */
-  readonly rewrite: (url: string | URL, keepCurrentSearchParams?: boolean) => RewriteMessage;
+  readonly rewrite: (url: string | URL) => RewriteMessage;
 
   /**
    * When called, the response will immediately end with the given status code. This could be useful

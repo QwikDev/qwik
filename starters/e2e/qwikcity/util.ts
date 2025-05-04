@@ -23,6 +23,16 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
     expect(canonicalUrl.pathname).toBe(test.pathname);
   }
 
+  if (test.searchParams) {
+    if (test.searchParams === "empty") {
+      expect(pageUrl.searchParams.size).toBe(0);
+    } else {
+      for (const [key, value] of Object.entries(test.searchParams)) {
+        expect(pageUrl.searchParams.get(key)).toBe(value);
+      }
+    }
+  }
+
   if (test.title) {
     const title = head.locator("title");
     expect(await title.innerText()).toBe(test.title);
@@ -76,6 +86,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
 interface AssertPage {
   pathname?: string;
+  searchParams?: Record<string, string> | "empty";
   title?: string;
   h1?: string;
   layoutHierarchy?: string[];

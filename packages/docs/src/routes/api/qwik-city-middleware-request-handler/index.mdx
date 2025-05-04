@@ -1343,13 +1343,15 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 
 </td><td>
 
-(url: string \| URL, keepCurrentSearchParams?: boolean) =&gt; [RewriteMessage](#rewritemessage)
+(url: string \| URL) =&gt; [RewriteMessage](#rewritemessage)
 
 </td><td>
 
 URL to rewrite to. When called, the flow will reset to display the given url route.
 
 URL will remain unchanged in the browser history.
+
+Note that if the url is a string without a protocol, the rewritten url will inherit the search params from the canonical url.
 
 </td></tr>
 <tr><td>

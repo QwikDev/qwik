@@ -61,7 +61,7 @@ export function getPreloadPaths(
 
 export const expandBundles = (names: string[], resolvedManifest?: ResolvedManifest) => {
   if (!resolvedManifest?.manifest.bundleGraph) {
-    return [...new Set(names)];
+    return [8, ...new Set(names)];
   }
 
   resetQueue();

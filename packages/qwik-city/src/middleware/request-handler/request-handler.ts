@@ -26,17 +26,23 @@ export async function requestHandler<T = unknown>(
     render
   );
 
+  console.log('routeAndHandlers', routeAndHandlers);
+
   if (routeAndHandlers) {
     const [route, requestHandlers] = routeAndHandlers;
 
     const applyRewrite: ApplyRewriteInternal = async (url: URL) => {
+      console.log('applyRewrite__url', url);
+      const matchPathname = getRouteMatchPathname(url.pathname, qwikCityPlan.trailingSlash);
       const routeAndHandlers = await loadRequestHandlers(
         qwikCityPlan,
-        url.pathname,
+        matchPathname,
         serverRequestEv.request.method,
         checkOrigin ?? true,
         render
       );
+
+      console.log('applyRewrite__routeAndHandlers', routeAndHandlers);
 
       if (routeAndHandlers) {
         const [loadedRoute, requestHandlers] = routeAndHandlers;

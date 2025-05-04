@@ -36,7 +36,6 @@ import { parseId } from './vite-utils';
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const FONTS = ['.woff', '.woff2', '.ttf'];
 
 /**
  * Workaround to make the api be defined in the type.
@@ -518,21 +517,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     attributes: {
                       rel: 'stylesheet',
                       href: baseFilename,
-                    },
-                  });
-                }
-              } else {
-                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont) {
-                  injections.unshift({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'preload',
-                      href: baseFilename,
-                      as: 'font',
-                      type: `font/${selectedFont.slice(1)}`,
-                      crossorigin: '',
                     },
                   });
                 }

@@ -93,7 +93,8 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
     readonly headersSent: boolean;
-    readonly next: () => Promise<void>;
+    // Warning: (ae-forgotten-export) The symbol "LoadedRoute" needs to be exported by the entry point index.d.ts
+    readonly next: (loadedRoute?: LoadedRoute | null, requestHandlers?: RequestHandler<any>[]) => Promise<void>;
 }
 
 // @public (undocumented)
@@ -134,6 +135,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+    readonly rewrite: (url: string | URL, keepCurrentSearchParams?: boolean) => RewriteMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts
@@ -172,6 +174,10 @@ export interface ResolveValue {
     <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
     <T>(action: Action<T>): Promise<T | undefined>;
+}
+
+// @public (undocumented)
+export class RewriteMessage extends AbortMessage {
 }
 
 // @public (undocumented)

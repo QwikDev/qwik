@@ -108,6 +108,32 @@ function tests() {
         h1: "Product: tshirt",
         activeHeaderLink: "Products",
       });
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(
+        ctx,
+        '[data-test-link="products-shirt-rewrite-plain_string"]',
+      );
+      await assertPage(ctx, {
+        pathname: "/qwikcity-test/products/shirt-rewrite-plain_string/",
+        title: "Product tshirt - Qwik",
+        layoutHierarchy: ["root"],
+        h1: "Product: tshirt",
+        activeHeaderLink: "Products",
+      });
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(
+        ctx,
+        '[data-test-link="products-shirt-rewrite-url_object"]',
+      );
+      await assertPage(ctx, {
+        pathname: "/qwikcity-test/products/shirt-rewrite-url_object/",
+        title: "Product tshirt - Qwik",
+        layoutHierarchy: ["root"],
+        h1: "Product: tshirt",
+        activeHeaderLink: "Products",
+      });
     }
 
     /***********  Products: hoodie (404)  ***********/

@@ -427,8 +427,8 @@ importers:
         specifier: 0.8.5
         version: 0.8.5(rollup@4.39.0)(vite@6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5))
       vite-tsconfig-paths:
-        specifier: 4.3.2
-        version: 4.3.2(typescript@5.8.2)(vite@6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5))
+        specifier: 5.1.4
+        version: 5.1.4(typescript@5.8.2)(vite@6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5))
       wrangler:
         specifier: 3.65.1
         version: 3.65.1(bufferutil@4.0.8)(utf-8-validate@5.0.10)
@@ -9515,14 +9515,6 @@ packages:
       vite: ^3.1.0 || ^4.0.0 || ^5.0.0-0
     peerDependenciesMeta:
       '@nuxt/kit':
-        optional: true
-
-  vite-tsconfig-paths@4.3.2:
-    resolution: {integrity: sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==}
-    peerDependencies:
-      vite: '*'
-    peerDependenciesMeta:
-      vite:
         optional: true
 
   vite-tsconfig-paths@5.1.4:
@@ -19517,17 +19509,6 @@ snapshots:
     transitivePeerDependencies:
       - rollup
       - supports-color
-
-  vite-tsconfig-paths@4.3.2(typescript@5.8.2)(vite@6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5)):
-    dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
-      globrex: 0.1.2
-      tsconfck: 3.1.5(typescript@5.8.2)
-    optionalDependencies:
-      vite: 6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5)
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
 
   vite-tsconfig-paths@5.1.4(typescript@5.8.2)(vite@6.2.6(@types/node@20.14.11)(jiti@2.4.2)(lightningcss@1.29.3)(terser@5.37.0)(tsx@4.19.2)(yaml@2.4.5)):
     dependencies:

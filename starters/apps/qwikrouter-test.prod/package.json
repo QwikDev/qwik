@@ -2,6 +2,6 @@
   "description": "QwikCity e2e prod app",
   "type": "module",
   "__qwik__": {
-    "qwikCity": true
+    "qwikRouter": true
   }
 }

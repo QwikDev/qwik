@@ -56,7 +56,7 @@
     "valibot": "0.33.3",
     "vite": "6.2.6",
     "vite-plugin-inspect": "0.8.5",
-    "vite-tsconfig-paths": "4.3.2",
+    "vite-tsconfig-paths": "5.1.4",
     "wrangler": "3.65.1"
   },
   "engines": {

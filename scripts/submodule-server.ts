@@ -56,7 +56,12 @@ export async function submoduleServer(config: BuildConfig) {
         name: 'forbid-core',
         setup(build) {
           build.onLoad({ filter: /src\/core\// }, (args) => {
-            if (args.path.includes('util') || args.path.includes('shared')) {
+            if (
+              args.path.includes('util') ||
+              args.path.includes('shared') ||
+              // we allow building preloader into server builds
+              args.path.includes('preloader')
+            ) {
               return null;
             }
             console.error('forbid-core', args);

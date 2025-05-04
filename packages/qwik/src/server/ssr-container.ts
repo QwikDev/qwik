@@ -93,8 +93,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-// @ts-ignore
-import { I as initPreloader } from '@qwik.dev/core/preloader';
+import { initPreloader } from '../core/preloader/bundle-graph';
 import { includePreloader } from './preload-impl';
 
 export interface SSRRenderOptions {

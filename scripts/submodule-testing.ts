@@ -14,7 +14,14 @@ export async function submoduleTesting(config: BuildConfig) {
     sourcemap: config.dev,
     bundle: true,
     target,
-    external: ['@qwik.dev/core/build', 'prettier', 'vitest'],
+    external: [
+      'prettier',
+      'vitest',
+      '@qwik.dev/core',
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      '@qwik-client-manifest',
+    ],
     platform: 'node',
   };
 

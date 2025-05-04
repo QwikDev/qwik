@@ -1,6 +1,6 @@
 import { isBrowser } from '@qwik.dev/core';
 // @ts-expect-error we don't have types for the preloader yet
-import { p as preload } from '@qwik.dev/preloader';
+import { p as preload } from '@qwik.dev/core/preloader';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
 

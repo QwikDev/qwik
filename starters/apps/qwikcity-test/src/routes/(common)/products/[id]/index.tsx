@@ -86,6 +86,15 @@ export default component$(() => {
         </li>
         <li>
           <Link
+            href="/qwikcity-test/products/shirt-rewrite-plain_string"
+            data-test-link="products-shirt-rewrite-plain_string_no_trailing_slash"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
             href="/qwikcity-test/products/hoodie/"
             data-test-link="products-hoodie"
           >
@@ -155,12 +164,11 @@ export const useProductLoader = routeLoader$(
     }
 
     if (id === "shirt-rewrite-plain_string") {
-      // Rewrite, which should have the same effect as redirect but with keep the url
       throw rewrite("/qwikcity-test/products/tshirt/");
     }
 
     if (id === "shirt-rewrite-url_object") {
-      // Rewrite, which should have the same effect as redirect but with keep the url
+      // Rewrite with a URL object.
       throw rewrite(new URL("/qwikcity-test/products/tshirt/", url.origin));
     }
 

@@ -234,7 +234,7 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    rewrite: (_rewriteUrl: string | URL, keepCurrentSearchParams = true) => {
+    rewrite: (_rewriteUrl: string | URL) => {
       check();
       let rewriteUrl: URL;
       if (typeof _rewriteUrl === 'string') {
@@ -250,6 +250,9 @@ export function createRequestEvent(
         rewriteUrl.pathname = fixedPathname;
       }
 
+      // Assume that if Devs passed a string without a protocol, they want to keep the current search
+      const keepCurrentSearchParams =
+        typeof _rewriteUrl === 'string' && !_rewriteUrl.startsWith('http');
       if (keepCurrentSearchParams) {
         url.searchParams.forEach((value, key) => {
           // rewriteUrl values should take precedence over current url values

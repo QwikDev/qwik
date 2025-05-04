@@ -359,7 +359,8 @@ async function pureServerFunction(ev: RequestEvent) {
 
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const { basePathname, pathname, url, sharedMap } = ev;
+  const { basePathname, canonicalUrl, sharedMap } = ev;
+  const { pathname, search } = canonicalUrl;
   const isQData = sharedMap.has(IsQData);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
@@ -367,7 +368,7 @@ function fixTrailingSlash(ev: RequestEvent) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + search);
       }
     } else {
       // should not have a trailing slash
@@ -375,7 +376,7 @@ function fixTrailingSlash(ev: RequestEvent) {
         // remove slash from existing pathname
         throw ev.redirect(
           HttpStatus.MovedPermanently,
-          pathname.slice(0, pathname.length - 1) + url.search
+          pathname.slice(0, pathname.length - 1) + search
         );
       }
     }

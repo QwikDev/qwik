@@ -147,12 +147,17 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
+    canonicalUrl: new URL(url),
     get params() {
       return loadedRoute?.[1] ?? {};
     },
-    pathname: url.pathname,
+    get pathname() {
+      return url.pathname;
+    },
     platform,
-    query: url.searchParams,
+    get query() {
+      return url.searchParams;
+    },
     request,
     url,
     basePathname,

@@ -10,7 +10,7 @@ import {
 } from './request-event';
 
 export function getQwikCityServerData(requestEv: RequestEvent) {
-  const { url, params, request, status, locale } = requestEv;
+  const { params, request, status, locale, canonicalUrl } = requestEv;
   const requestHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
@@ -19,7 +19,7 @@ export function getQwikCityServerData(requestEv: RequestEvent) {
   const routeName = requestEv.sharedMap.get(RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
   const headers = requestEv.request.headers;
-  const reconstructedUrl = new URL(url.pathname + url.search, url);
+  const reconstructedUrl = new URL(canonicalUrl.pathname + canonicalUrl.search, canonicalUrl);
   const host = headers.get('X-Forwarded-Host')!;
   const protocol = headers.get('X-Forwarded-Proto')!;
   if (host) {

@@ -69,10 +69,7 @@ export function createRequestEvent(
 
   const next = async (_loadedRoute = loadedRoute, _requestHandlers = requestHandlers) => {
     routeModuleIndex++;
-
-    if (loadedRoute !== _loadedRoute) {
-      loadedRoute = _loadedRoute;
-    }
+    loadedRoute = _loadedRoute;
 
     while (routeModuleIndex < _requestHandlers.length) {
       const moduleRequestHandler = _requestHandlers[routeModuleIndex];

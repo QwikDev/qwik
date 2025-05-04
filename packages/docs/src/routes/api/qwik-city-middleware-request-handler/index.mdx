@@ -929,6 +929,29 @@ See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control and 
 </td></tr>
 <tr><td>
 
+[canonicalUrl](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URL
+
+</td><td>
+
+HTTP request Canonical URL.
+
+This property was introduced to support the rewrite feature.
+
+If rewrite is called, the canonicalUrl will remain as the original url, and the url property will be changed to the rewritten url.
+
+If rewrite is never called as part of the request, the url property and the canonicalUrl are considered equal.
+
+</td></tr>
+<tr><td>
+
 [clientConn](#)
 
 </td><td>
@@ -1324,7 +1347,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 
 </td><td>
 
-URL to rewrite to. When called, the flow will be reset to the new url.
+URL to rewrite to. When called, the flow will reset to display the given url route.
 
 URL will remain unchanged in the browser history.
 

@@ -299,6 +299,19 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   /** HTTP request URL. */
   readonly url: URL;
 
+  /**
+   * HTTP request Canonical URL.
+   *
+   * This property was introduced to support the rewrite feature.
+   *
+   * If rewrite is called, the canonicalUrl will remain as the original url, and the url property
+   * will be changed to the rewritten url.
+   *
+   * If rewrite is never called as part of the request, the url property and the canonicalUrl are
+   * considered equal.
+   */
+  readonly canonicalUrl: URL;
+
   /** The base pathname of the request, which can be configured at build time. Defaults to `/`. */
   readonly basePathname: string;
 

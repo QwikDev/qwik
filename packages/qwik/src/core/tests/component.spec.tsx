@@ -319,7 +319,7 @@ describe.each([
       );
     });
 
-    const { vNode } = await render(<IssueChildrenSpread />, { debug });
+    const { vNode, document } = await render(<IssueChildrenSpread />, { debug });
 
     const props = { type: 'div' };
 
@@ -335,6 +335,25 @@ describe.each([
           </InlineComponent>
           <div>
             <div {...props}>Hello</div>
+          </div>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>Change</button>
+          <InlineComponent>
+            <div>
+              <div>1</div>
+              <div>2</div>
+            </div>
+          </InlineComponent>
+          <div>
+            <div {...props}>Changed</div>
           </div>
         </div>
       </Component>

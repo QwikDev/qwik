@@ -13,7 +13,13 @@ const deepUpdate = (prev: any, next: any) => {
   }
   if (Array.isArray(prev)) {
     for (const item of prev) {
-      if (!next.includes(item)) {
+      // can't use Object as a matcher
+      // because it will be a different object
+      // so we need to use the path or code
+
+      if (
+        next.some((nextItem: any) => (nextItem.path || nextItem.code) === (item.path || item.code))
+      ) {
         prev.splice(prev.indexOf(item), 1);
       }
     }
@@ -33,6 +39,7 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
     if (store.html !== result.html) {
       store.html = result.html;
     }
+
     deepUpdate(store.transformedModules, result.transformedModules);
     deepUpdate(store.clientBundles, result.clientBundles);
     deepUpdate(store.ssrModules, result.ssrModules);

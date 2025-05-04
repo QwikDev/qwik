@@ -465,6 +465,8 @@ test.describe("signals", () => {
       await expect(resultC).toHaveText("0:0");
       await expect(resultTotal).toHaveText("0:0");
 
+      await page.waitForLoadState("networkidle");
+
       await buttonA.click();
       await expect(resultA).toHaveText("1:1");
       await expect(resultB).toHaveText("0:0");

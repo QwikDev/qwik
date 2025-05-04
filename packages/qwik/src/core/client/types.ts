@@ -18,6 +18,8 @@ export interface ClientContainer extends Container {
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
   renderDone: Promise<void> | null;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
@@ -94,8 +96,7 @@ export const enum VNodeFlags {
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11_111111,
-  negated_mask /* ****** */ = 0b11_111111,
+  mask /* ************** */ = 0b11_111111,
   shift /* ************* */ = 8,
 }
 

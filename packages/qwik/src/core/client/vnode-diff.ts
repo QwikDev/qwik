@@ -991,7 +991,13 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey && !!jsxKey) {
+    const checkKey = type === VirtualType.Fragment;
+    if (
+      vCurrent &&
+      vnode_isVirtualVNode(vCurrent) &&
+      getKey(vCurrent) === jsxKey &&
+      (checkKey ? !!jsxKey : true)
+    ) {
       // All is good.
       return;
     } else if (jsxKey !== null) {

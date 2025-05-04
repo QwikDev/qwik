@@ -1808,6 +1808,86 @@ describe.each([
         </Component>
       );
     });
+
+    it('should correctly inflate text nodes from q:template', async () => {
+      const Cmp = component$((props: { show: boolean }) => {
+        return <span>{props.show && <Slot />}</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <Cmp show={show.value}>a</Cmp>
+            <Cmp show={show.value}>b</Cmp>
+          </>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+    });
   });
 
   describe('svg', () => {

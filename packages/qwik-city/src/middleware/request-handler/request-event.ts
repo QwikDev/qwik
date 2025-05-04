@@ -229,16 +229,35 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    rewrite: (_rewriteUrl: string | URL) => {
+    rewrite: (_rewriteUrl: string | URL, keepCurrentSearchParams = true) => {
       check();
-
-      const rewriteUrl = typeof _rewriteUrl === 'string' ? _rewriteUrl : _rewriteUrl.toString();
-      const fixedURL = rewriteUrl.replace(/([^:])\/{2,}/g, '$1/');
-      if (rewriteUrl !== fixedURL) {
-        console.warn(`Rewrite URL ${rewriteUrl} is invalid, fixing to ${fixedURL}`);
+      let rewriteUrl: URL;
+      if (typeof _rewriteUrl === 'string') {
+        rewriteUrl = new URL(_rewriteUrl, _rewriteUrl.startsWith('http') ? undefined : url);
+      } else {
+        rewriteUrl = _rewriteUrl;
       }
-      url.pathname = fixedURL;
-      headers.set('Rewrite-Location', fixedURL);
+
+      // Fix consecutive slashes - e.g //path//to//page -> /path/to/page
+      const fixedPathname = rewriteUrl.pathname.replace(/(^|[^:])\/{2,}/g, '$1/');
+      if (rewriteUrl.pathname !== fixedPathname) {
+        console.warn(`Rewrite URL ${rewriteUrl.pathname} is invalid, fixing to ${fixedPathname}`);
+        rewriteUrl.pathname = fixedPathname;
+      }
+
+      if (keepCurrentSearchParams) {
+        url.searchParams.forEach((value, key) => {
+          // rewriteUrl values should take precedence over current url values
+          if (!rewriteUrl.searchParams.has(key)) {
+            rewriteUrl.searchParams.set(key, value);
+          }
+        });
+      }
+
+      url.pathname = rewriteUrl.pathname;
+      url.search = rewriteUrl.search;
+
+      headers.set('Rewrite-Location', rewriteUrl.pathname);
       // should be restarted!
       routeModuleIndex = -1;
       return new RewriteMessage();

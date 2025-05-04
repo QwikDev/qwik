@@ -1,3 +1,6 @@
+import { getPlatform, isServerPlatform } from '../platform/platform';
+import { verifySerializable } from '../utils/serialize-utils';
+// ^ keep these above to prevent circular dep issues
 import { isBrowser, isDev } from '@qwik.dev/core/build';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
@@ -11,11 +14,9 @@ import {
 } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { getPlatform, isServerPlatform } from '../platform/platform';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
-import { verifySerializable } from '../utils/serialize-utils';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';

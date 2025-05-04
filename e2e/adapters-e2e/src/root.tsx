@@ -1,5 +1,5 @@
 import { component$ } from '@qwik.dev/core';
-import { QwikCityProvider, RouterOutlet } from '@qwik.dev/router';
+import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
 
 export default component$(() => {
@@ -11,14 +11,14 @@ export default component$(() => {
    */
 
   return (
-    <QwikCityProvider>
+    <QwikRouterProvider>
       <head>
-        <meta charSet="utf-8" />
+        <meta charset="utf-8" />
         <RouterHead />
       </head>
       <body lang="en">
         <RouterOutlet />
       </body>
-    </QwikCityProvider>
+    </QwikRouterProvider>
   );
 });

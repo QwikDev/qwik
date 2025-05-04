@@ -99,6 +99,7 @@ export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
     optimizeDeps: {
+      include: ['@docsearch/css'],
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
     },
     preview: {
@@ -187,9 +188,6 @@ export default defineConfig(async () => {
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
-    optimizeDeps: {
-      include: ['@docsearch/css'],
-    },
     build: {
       sourcemap: true,
       rollupOptions: {

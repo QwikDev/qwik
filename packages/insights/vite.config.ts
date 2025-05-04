@@ -1,7 +1,7 @@
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
-import { qwikRouter } from '@qwik.dev/router';
+import { qwikRouter } from '@qwik.dev/router/vite';
 import { defineConfig, loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';

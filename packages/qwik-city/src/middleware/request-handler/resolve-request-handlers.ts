@@ -79,7 +79,6 @@ export const resolveRequestHandlers = (
     }
     const routeModules = route[2];
     requestHandlers.push(handleRedirect);
-
     requestHandlers.push(handleRewrite);
     _resolveRequestHandlers(
       routeLoaders,

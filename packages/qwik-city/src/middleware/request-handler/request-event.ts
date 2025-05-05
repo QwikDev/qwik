@@ -67,12 +67,11 @@ export function createRequestEvent(
   let locale = serverRequestEv.locale;
   let status = 200;
 
-  const next = async (_loadedRoute = loadedRoute, _requestHandlers = requestHandlers) => {
+  const next = async () => {
     routeModuleIndex++;
-    loadedRoute = _loadedRoute;
 
-    while (routeModuleIndex < _requestHandlers.length) {
-      const moduleRequestHandler = _requestHandlers[routeModuleIndex];
+    while (routeModuleIndex < requestHandlers.length) {
+      const moduleRequestHandler = requestHandlers[routeModuleIndex];
       const asyncStore = globalThis.qcAsyncRequestStore;
       const result = asyncStore?.run
         ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
@@ -82,6 +81,19 @@ export function createRequestEvent(
       }
       routeModuleIndex++;
     }
+  };
+
+  const replay = (
+    _loadedRoute: LoadedRoute | null,
+    _requestHandlers: RequestHandler<any>[],
+    _url = url,
+    _routeModuleIndex = -1
+  ) => {
+    loadedRoute = _loadedRoute;
+    requestHandlers = _requestHandlers;
+    url.pathname = _url.pathname;
+    url.search = _url.search;
+    routeModuleIndex = _routeModuleIndex;
   };
 
   const check = () => {
@@ -171,6 +183,8 @@ export function createRequestEvent(
 
     next,
 
+    replay,
+
     exit,
 
     cacheControl: (cacheControl: CacheControl, target: CacheControlTarget = 'Cache-Control') => {
@@ -259,12 +273,7 @@ export function createRequestEvent(
         });
       }
 
-      url.pathname = rewriteUrl.pathname;
-      url.search = rewriteUrl.search;
-
-      headers.set('Rewrite-Location', rewriteUrl.pathname);
-      // We need to restart the handlers chain, because the loadedRoute has changed.
-      routeModuleIndex = -1;
+      headers.set('Rewrite-Location', rewriteUrl.toString());
       return new RewriteMessage();
     },
 
@@ -344,6 +353,21 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
    * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
+
+  /**
+   * Replay the request handlers chain with new loadedRoute and requestHandlers.
+   *
+   * @param loadedRoute - The new loaded route.
+   * @param requestHandlers - The new request handlers.
+   * @param url - The new URL (defaults to the current URL).
+   * @param routeModuleIndex - The new route module index (defaults to -1, full replay).
+   */
+  replay(
+    loadedRoute: LoadedRoute | null,
+    requestHandlers: RequestHandler<any>[],
+    url?: URL,
+    routeModuleIndex?: number
+  ): void;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

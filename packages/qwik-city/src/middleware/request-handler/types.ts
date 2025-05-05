@@ -476,10 +476,7 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
    *
    * NOTE: Ensure that the call to `next()` is `await`ed.
    */
-  readonly next: (
-    loadedRoute?: LoadedRoute | null,
-    requestHandlers?: RequestHandler<any>[]
-  ) => Promise<void>;
+  readonly next: () => Promise<void>;
 }
 
 declare global {

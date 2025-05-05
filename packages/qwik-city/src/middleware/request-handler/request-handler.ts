@@ -1,6 +1,6 @@
 import type { Render } from '@builder.io/qwik/server';
 import { loadRoute } from '../../runtime/src/routing';
-import type { ApplyRewriteInternal, QwikCityPlan } from '../../runtime/src/types';
+import type { RebuildRouteInfoInternal, QwikCityPlan } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from './user-response';
@@ -29,7 +29,7 @@ export async function requestHandler<T = unknown>(
   if (routeAndHandlers) {
     const [route, requestHandlers] = routeAndHandlers;
 
-    const applyRewrite: ApplyRewriteInternal = async (url: URL) => {
+    const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
       const matchPathname = getRouteMatchPathname(url.pathname, qwikCityPlan.trailingSlash);
       const routeAndHandlers = await loadRequestHandlers(
         qwikCityPlan,
@@ -51,7 +51,7 @@ export async function requestHandler<T = unknown>(
       serverRequestEv,
       route,
       requestHandlers,
-      applyRewrite,
+      rebuildRouteInfo,
       qwikCityPlan.trailingSlash,
       qwikCityPlan.basePathname,
       qwikSerializer

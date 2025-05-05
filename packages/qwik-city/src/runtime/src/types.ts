@@ -81,7 +81,7 @@ export type RouteStateInternal = {
   scroll?: boolean;
 };
 
-export type ApplyRewriteInternal = (
+export type RebuildRouteInfoInternal = (
   url: URL
 ) => Promise<{ loadedRoute: LoadedRoute | null; requestHandlers: RequestHandler<any>[] }>;
 

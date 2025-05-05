@@ -1,5 +1,5 @@
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
-import type { ApplyRewriteInternal, LoadedRoute } from '../../runtime/src/types';
+import type { RebuildRouteInfoInternal, LoadedRoute } from '../../runtime/src/types';
 import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import {
@@ -36,7 +36,7 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  applyRewrite: ApplyRewriteInternal,
+  rebuildRouteInfo: RebuildRouteInfoInternal,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -57,25 +57,25 @@ export function runQwikCity<T>(
     response: responsePromise,
     requestEv,
     completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, applyRewrite, resolve!)
-      : runNext(requestEv, applyRewrite, resolve!),
+      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+      : runNext(requestEv, rebuildRouteInfo, resolve!),
   };
 }
 
 async function runNext(
   requestEv: RequestEventInternal,
-  applyRewrite: ApplyRewriteInternal,
+  rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
-  async function _runNext(
-    resolve: (value: any) => void,
-    loadedRoute?: LoadedRoute | null,
-    requestHandlers?: RequestHandler<any>[],
-    rewriteAttempt = 1
-  ) {
+  let rewriteAttempt = 1;
+  let didRewrite = false;
+
+  async function _runNext() {
+    didRewrite = false;
+
     try {
       // Run all middlewares
-      await requestEv.next(loadedRoute, requestHandlers);
+      await requestEv.next();
     } catch (e) {
       if (e instanceof RedirectMessage) {
         const stream = requestEv.getWritableStream();
@@ -85,10 +85,7 @@ async function runNext(
           throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
         }
 
-        const url = new URL(requestEv.url);
-        url.pathname = requestEv.headers.get('Rewrite-Location')!;
-        const { loadedRoute, requestHandlers } = await applyRewrite(url);
-        return await _runNext(resolve, loadedRoute, requestHandlers, rewriteAttempt + 1);
+        didRewrite = true;
       } else if (e instanceof ServerError) {
         if (!requestEv.headersSent) {
           const status = e.status as StatusCodes;
@@ -122,15 +119,27 @@ async function runNext(
         }
         return e;
       }
-    } finally {
-      if (!requestEv.isDirty()) {
-        resolve(null);
-      }
     }
+
     return undefined;
   }
 
-  return _runNext(resolve);
+  try {
+    let runResult = await _runNext();
+    if (didRewrite) {
+      rewriteAttempt += 1;
+      const url = new URL(requestEv.headers.get('Rewrite-Location')!);
+      const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
+      requestEv.replay(loadedRoute, requestHandlers, url);
+      runResult = await _runNext();
+    }
+
+    return runResult;
+  } finally {
+    if (!requestEv.isDirty()) {
+      resolve(null);
+    }
+  }
 }
 
 /**

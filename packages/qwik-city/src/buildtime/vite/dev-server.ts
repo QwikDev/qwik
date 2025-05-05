@@ -18,7 +18,7 @@ import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
-  ApplyRewriteInternal,
+  RebuildRouteInfoInternal,
   ContentMenu,
   LoadedRoute,
   LoaderInternal,
@@ -228,7 +228,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
 
-          const applyRewrite: ApplyRewriteInternal = async (url: URL) => {
+          const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
             const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
             const requestHandlers = resolveRequestHandlers(
               serverPlugins,
@@ -248,7 +248,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             serverRequestEv,
             loadedRoute,
             requestHandlers,
-            applyRewrite,
+            rebuildRouteInfo,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

@@ -97,6 +97,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(renderHandler);
     }
   }
+
   return requestHandlers;
 };
 
@@ -547,6 +548,7 @@ export async function handleRewrite(requestEv: RequestEvent) {
       throw err;
     }
   }
+
   if (requestEv.headersSent) {
     return;
   }
@@ -557,13 +559,12 @@ export async function handleRewrite(requestEv: RequestEvent) {
 
   if (isRewrite) {
     const adaptedLocation = makeQDataPath(location);
+
     if (adaptedLocation) {
       requestEv.headers.set('Rewrite-Location', adaptedLocation);
-      requestEv.getWritableStream().close();
       return;
     } else {
       requestEv.status(200);
-      requestEv.headers.delete('Rewrite-Location');
     }
   }
 }

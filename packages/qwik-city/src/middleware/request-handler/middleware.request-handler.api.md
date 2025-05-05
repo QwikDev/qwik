@@ -93,8 +93,7 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
     readonly exited: boolean;
     readonly getWritableStream: () => WritableStream<Uint8Array>;
     readonly headersSent: boolean;
-    // Warning: (ae-forgotten-export) The symbol "LoadedRoute" needs to be exported by the entry point index.d.ts
-    readonly next: (loadedRoute?: LoadedRoute | null, requestHandlers?: RequestHandler<any>[]) => Promise<void>;
+    readonly next: () => Promise<void>;
 }
 
 // @public (undocumented)

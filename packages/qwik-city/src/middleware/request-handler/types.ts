@@ -298,7 +298,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
   readonly url: URL;
 
   /**
-   * HTTP request Canonical URL.
+   * The original HTTP request URL.
    *
    * This property was introduced to support the rewrite feature.
    *

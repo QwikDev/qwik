@@ -177,6 +177,16 @@ export function getPage(ctx: TestContext) {
   return ctx.browserContext.pages()[0]!;
 }
 
+export async function setPage(ctx: TestContext, pathname: string) {
+  const page = getPage(ctx);
+  const response = (await page.goto(pathname))!;
+  const status = response.status();
+  if (status !== 200) {
+    const text = await response.text();
+    expect(status, `${pathname} (${status})\n${text}`).toBe(200);
+  }
+}
+
 export async function load(
   browserContext: BrowserContext,
   javaScriptEnabled: boolean | undefined,

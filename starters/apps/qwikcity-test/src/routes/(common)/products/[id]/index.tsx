@@ -70,24 +70,33 @@ export default component$(() => {
         </li>
         <li>
           <Link
-            href="/qwikcity-test/products/shirt-rewrite-plain_string/"
-            data-test-link="products-shirt-rewrite-plain_string"
+            href="/qwikcity-test/products/shirt-rewrite/"
+            data-test-link="products-shirt-rewrite"
           >
             T-Shirt (Rewrite to /products/tshirt)
           </Link>
         </li>
         <li>
           <Link
-            href="/qwikcity-test/products/shirt-rewrite-url_object/"
-            data-test-link="products-shirt-rewrite-url_object"
+            href="/qwikcity-test/products/shirt-rewrite/?search=true"
+            data-test-link="products-shirt-rewrite-with-search"
           >
             T-Shirt (Rewrite to /products/tshirt)
           </Link>
         </li>
         <li>
           <Link
-            href="/qwikcity-test/products/shirt-rewrite-plain_string"
-            data-test-link="products-shirt-rewrite-plain_string_no_trailing_slash"
+            href="/qwikcity-test/products/shirt-rewrite"
+            data-test-link="products-shirt-rewrite-no-trailing-slash"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikcity-test/products/shirt-rewrite-absolute-url/"
+            data-test-link="products-shirt-rewrite-absolute-url"
           >
             T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
             added.
@@ -163,13 +172,13 @@ export const useProductLoader = routeLoader$(
       throw redirect(301, "/qwikcity-test/products/tshirt/");
     }
 
-    if (id === "shirt-rewrite-plain_string") {
+    if (id === "shirt-rewrite") {
       throw rewrite("/qwikcity-test/products/tshirt/");
     }
 
-    if (id === "shirt-rewrite-url_object") {
-      // Rewrite with a URL object.
-      throw rewrite(new URL("/qwikcity-test/products/tshirt/", url.origin));
+    // Should throw an error
+    if (id === "shirt-rewrite-absolute-url") {
+      throw rewrite(`${url.origin}/qwikcity-test/products/tshirt/`);
     }
 
     if (id === "error") {

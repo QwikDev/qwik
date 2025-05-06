@@ -1,6 +1,6 @@
 <br>
 <p align="center">
-  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/QwikDev/qwik/main/.github/assets/qwik-logo.svg" />
+  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/public/logos/qwik.svg" />
 </p>
 <br>
 <p align="center">

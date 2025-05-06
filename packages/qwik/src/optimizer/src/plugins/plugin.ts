@@ -953,7 +953,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     // the vite preload helper must be included or to prevent breaking circular dependencies
     if (
       opts.target === 'client' &&
-      (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js')
+      (/\/(core|qwik)\/dist\/preloader\.[cm]js/.test(id) || id === '\0vite/preload-helper.js')
     ) {
       return 'qwik-preloader';
     }
@@ -1105,7 +1105,6 @@ export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
-export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
 
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
 

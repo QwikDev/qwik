@@ -346,7 +346,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
           // Change our path to the canonical path in the response unless rewrite.
-          if (!pageData.rewrite) {
+          if (!pageData.isRewrite) {
             trackUrl = newURL;
           }
 
@@ -354,7 +354,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             qwikCity.routes,
             qwikCity.menus,
             qwikCity.cacheModules,
-            newURL.pathname // Load the canonical path.
+            newURL.pathname // Load the actual required path.
           );
         }
 

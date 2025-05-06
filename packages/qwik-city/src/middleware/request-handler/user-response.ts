@@ -68,11 +68,8 @@ async function runNext(
   resolve: (value: any) => void
 ) {
   let rewriteAttempt = 1;
-  let didRewrite = false;
 
   async function _runNext() {
-    didRewrite = false;
-
     try {
       // Run all middlewares
       await requestEv.next();
@@ -85,7 +82,12 @@ async function runNext(
           throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
         }
 
-        didRewrite = true;
+        rewriteAttempt += 1;
+        const url = new URL(requestEv.url);
+        url.pathname = e.pathname;
+        const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
+        requestEv.resetRoute(loadedRoute, requestHandlers, url);
+        return await _runNext();
       } else if (e instanceof ServerError) {
         if (!requestEv.headersSent) {
           const status = e.status as StatusCodes;
@@ -117,6 +119,7 @@ async function runNext(
             console.error('Unable to render error page');
           }
         }
+
         return e;
       }
     }
@@ -125,16 +128,7 @@ async function runNext(
   }
 
   try {
-    let runResult = await _runNext();
-    if (didRewrite) {
-      rewriteAttempt += 1;
-      const url = new URL(requestEv.headers.get('Rewrite-Location')!);
-      const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
-      requestEv.resetRoute(loadedRoute, requestHandlers, url);
-      runResult = await _runNext();
-    }
-
-    return runResult;
+    return await _runNext();
   } finally {
     if (!requestEv.isDirty()) {
       resolve(null);

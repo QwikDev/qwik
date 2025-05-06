@@ -1,4 +1,8 @@
 import { AbortMessage } from './redirect-handler';
 
 /** @public */
-export class RewriteMessage extends AbortMessage {}
+export class RewriteMessage extends AbortMessage {
+  constructor(readonly pathname: string) {
+    super();
+  }
+}

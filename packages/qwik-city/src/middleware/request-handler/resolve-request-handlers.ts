@@ -14,9 +14,9 @@ import type {
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
-import { RewriteMessage } from './rewrite-handler';
 import {
   RequestEvQwikSerializer,
+  RequestEvIsRewrite,
   RequestEvSharedActionId,
   RequestRouteName,
   getRequestLoaders,
@@ -79,7 +79,6 @@ export const resolveRequestHandlers = (
     }
     const routeModules = route[2];
     requestHandlers.push(handleRedirect);
-    requestHandlers.push(handleRewrite);
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -536,39 +535,6 @@ export async function handleRedirect(requestEv: RequestEvent) {
   }
 }
 
-export async function handleRewrite(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.sharedMap.has(IsQData);
-  if (!isPageDataReq) {
-    return;
-  }
-  try {
-    await requestEv.next();
-  } catch (err) {
-    if (!(err instanceof RewriteMessage)) {
-      throw err;
-    }
-  }
-
-  if (requestEv.headersSent) {
-    return;
-  }
-
-  const status = requestEv.status();
-  const location = requestEv.headers.get('Rewrite-Location');
-  const isRewrite = status === 200 && location;
-
-  if (isRewrite) {
-    const adaptedLocation = makeQDataPath(location);
-
-    if (adaptedLocation) {
-      requestEv.headers.set('Rewrite-Location', adaptedLocation);
-      return;
-    } else {
-      requestEv.status(200);
-    }
-  }
-}
-
 export async function renderQData(requestEv: RequestEvent) {
   const isPageDataReq = requestEv.sharedMap.has(IsQData);
   if (!isPageDataReq) {
@@ -582,7 +548,6 @@ export async function renderQData(requestEv: RequestEvent) {
 
   const status = requestEv.status();
   const redirectLocation = requestEv.headers.get('Location');
-  const rewriteLocation = requestEv.headers.get('Rewrite-Location');
   const trailingSlash = getRequestTrailingSlash(requestEv);
 
   const requestHeaders: Record<string, string> = {};
@@ -595,7 +560,7 @@ export async function renderQData(requestEv: RequestEvent) {
     status: status !== 200 ? status : 200,
     href: getPathname(requestEv.url, trailingSlash),
     redirect: redirectLocation ?? undefined,
-    rewrite: rewriteLocation ?? undefined,
+    isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };
   const writer = requestEv.getWritableStream().getWriter();
   const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];

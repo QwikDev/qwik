@@ -203,16 +203,13 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
-   * URL to rewrite to. When called, the flow will reset to display the given url route.
+   * When called, qwik-city will execute the path's matching route flow.
    *
-   * URL will remain unchanged in the browser history.
+   * The url in the browser will remain unchanged.
    *
-   * Note that if the url is a string without a protocol, the rewritten url will inherit the search
-   * params from the canonical url.
-   *
-   * @param url - The url to rewrite to.
+   * @param pathname - The pathname to rewrite to.
    */
-  readonly rewrite: (url: string | URL) => RewriteMessage;
+  readonly rewrite: (pathname: string) => RewriteMessage;
 
   /**
    * When called, the response will immediately end with the given status code. This could be useful
@@ -305,13 +302,13 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
    *
    * This property was introduced to support the rewrite feature.
    *
-   * If rewrite is called, the canonicalUrl will remain as the original url, and the url property
-   * will be changed to the rewritten url.
+   * If rewrite is called, the url property will be changed to the rewritten url. while originalUrl
+   * will stay the same(e.g the url inserted to the address bar).
    *
-   * If rewrite is never called as part of the request, the url property and the canonicalUrl are
-   * considered equal.
+   * If rewrite is never called as part of the request, the url property and the originalUrl are
+   * equal.
    */
-  readonly canonicalUrl: URL;
+  readonly originalUrl: URL;
 
   /** The base pathname of the request, which can be configured at build time. Defaults to `/`. */
   readonly basePathname: string;

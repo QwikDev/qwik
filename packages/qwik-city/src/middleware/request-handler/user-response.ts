@@ -130,7 +130,7 @@ async function runNext(
       rewriteAttempt += 1;
       const url = new URL(requestEv.headers.get('Rewrite-Location')!);
       const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
-      requestEv.replay(loadedRoute, requestHandlers, url);
+      requestEv.resetRoute(loadedRoute, requestHandlers, url);
       runResult = await _runNext();
     }
 

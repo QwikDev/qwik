@@ -38,11 +38,8 @@ export const onRequest: RequestHandler = async ({ url, rewrite }) => {
 };
 ```
 
-The `rewrite()` function, which was destructured in the RequestHandler function arguments, takes a pathname string or a URL object.
+The `rewrite()` function, which was destructured in the RequestHandler function arguments, is invoked with a pathname string.
 
 ```tsx
 throw rewrite(`/articles/777/`);
-throw rewrite(new URL(`/articles/777/`, url));
 ```
-
-Note: If you provide a relative path, Qwik City will rewrite the URL and apply search params from the original URL.

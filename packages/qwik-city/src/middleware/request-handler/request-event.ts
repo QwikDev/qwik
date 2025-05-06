@@ -83,17 +83,16 @@ export function createRequestEvent(
     }
   };
 
-  const replay = (
+  const resetRoute = (
     _loadedRoute: LoadedRoute | null,
     _requestHandlers: RequestHandler<any>[],
-    _url = url,
-    _routeModuleIndex = -1
+    _url = url
   ) => {
     loadedRoute = _loadedRoute;
     requestHandlers = _requestHandlers;
     url.pathname = _url.pathname;
     url.search = _url.search;
-    routeModuleIndex = _routeModuleIndex;
+    routeModuleIndex = -1;
   };
 
   const check = () => {
@@ -156,7 +155,7 @@ export function createRequestEvent(
     env,
     method: request.method,
     signal: request.signal,
-    canonicalUrl: new URL(url),
+    originalUrl: new URL(url),
     get params() {
       return loadedRoute?.[1] ?? {};
     },
@@ -183,7 +182,7 @@ export function createRequestEvent(
 
     next,
 
-    replay,
+    resetRoute,
 
     exit,
 
@@ -245,32 +244,20 @@ export function createRequestEvent(
       return new RedirectMessage();
     },
 
-    rewrite: (_rewriteUrl: string | URL) => {
+    rewrite: (pathname: string) => {
       check();
-      let rewriteUrl: URL;
-      if (typeof _rewriteUrl === 'string') {
-        rewriteUrl = new URL(_rewriteUrl, _rewriteUrl.startsWith('http') ? undefined : url);
-      } else {
-        rewriteUrl = _rewriteUrl;
+      if (pathname.startsWith('http')) {
+        throw new Error('Rewrite does not support absolute urls');
       }
+
+      const rewriteUrl = new URL(url);
+      rewriteUrl.pathname = pathname;
 
       // Fix consecutive slashes - e.g //path//to//page -> /path/to/page
       const fixedPathname = rewriteUrl.pathname.replace(/(^|[^:])\/{2,}/g, '$1/');
       if (rewriteUrl.pathname !== fixedPathname) {
         console.warn(`Rewrite URL ${rewriteUrl.pathname} is invalid, fixing to ${fixedPathname}`);
         rewriteUrl.pathname = fixedPathname;
-      }
-
-      // Assume that if Devs passed a string without a protocol, they want to keep the current search
-      const keepCurrentSearchParams =
-        typeof _rewriteUrl === 'string' && !_rewriteUrl.startsWith('http');
-      if (keepCurrentSearchParams) {
-        url.searchParams.forEach((value, key) => {
-          // rewriteUrl values should take precedence over current url values
-          if (!rewriteUrl.searchParams.has(key)) {
-            rewriteUrl.searchParams.set(key, value);
-          }
-        });
       }
 
       headers.set('Rewrite-Location', rewriteUrl.toString());
@@ -355,18 +342,16 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   isDirty(): boolean;
 
   /**
-   * Replay the request handlers chain with new loadedRoute and requestHandlers.
+   * Reset the request event to the given route data.
    *
    * @param loadedRoute - The new loaded route.
    * @param requestHandlers - The new request handlers.
-   * @param url - The new URL (defaults to the current URL).
-   * @param routeModuleIndex - The new route module index (defaults to -1, full replay).
+   * @param url - The new URL of the route.
    */
-  replay(
+  resetRoute(
     loadedRoute: LoadedRoute | null,
     requestHandlers: RequestHandler<any>[],
-    url?: URL,
-    routeModuleIndex?: number
+    url: URL
   ): void;
 }
 

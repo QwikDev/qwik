@@ -107,12 +107,12 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly basePathname: string;
     // Warning: (ae-forgotten-export) The symbol "CacheControlTarget" needs to be exported by the entry point index.d.ts
     readonly cacheControl: (cacheControl: CacheControl, target?: CacheControlTarget) => void;
-    readonly canonicalUrl: URL;
     readonly clientConn: ClientConn;
     readonly cookie: Cookie;
     readonly env: EnvGetter;
     readonly headers: Headers;
     readonly method: string;
+    readonly originalUrl: URL;
     readonly params: Readonly<Record<string, string>>;
     readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
@@ -135,7 +135,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
-    readonly rewrite: (url: string | URL) => RewriteMessage;
+    readonly rewrite: (pathname: string) => RewriteMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts

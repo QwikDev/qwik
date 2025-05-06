@@ -2,10 +2,11 @@
 '@builder.io/qwik-city': minor
 ---
 
-FEAT: Support rewrite feature. should work like redirect, but without modifying the address bar url
+FEAT: Added rewrite() to the RequestEvent object. It works like redirect but does not change the URL,
+      think of it as an internal redirect.
 
 Example usage:
-```
+```ts
 export const onRequest: RequestHandler = async ({ url, rewrite }) => {
   if (url.pathname.includes("/articles/the-best-article-in-the-world")) {
     const artistId = db.getArticleByName("the-best-article-in-the-world");

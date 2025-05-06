@@ -37,6 +37,7 @@ export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
+export const RequestEvIsRewrite = '@rewrite';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -249,19 +250,8 @@ export function createRequestEvent(
       if (pathname.startsWith('http')) {
         throw new Error('Rewrite does not support absolute urls');
       }
-
-      const rewriteUrl = new URL(url);
-      rewriteUrl.pathname = pathname;
-
-      // Fix consecutive slashes - e.g //path//to//page -> /path/to/page
-      const fixedPathname = rewriteUrl.pathname.replace(/(^|[^:])\/{2,}/g, '$1/');
-      if (rewriteUrl.pathname !== fixedPathname) {
-        console.warn(`Rewrite URL ${rewriteUrl.pathname} is invalid, fixing to ${fixedPathname}`);
-        rewriteUrl.pathname = fixedPathname;
-      }
-
-      headers.set('Rewrite-Location', rewriteUrl.toString());
-      return new RewriteMessage();
+      sharedMap.set(RequestEvIsRewrite, true);
+      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
     },
 
     defer: (returnData) => {

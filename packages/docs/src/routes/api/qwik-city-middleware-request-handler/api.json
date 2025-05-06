@@ -262,6 +262,23 @@
       "mdFile": "qwik-city.mergeheaderscookies.md"
     },
     {
+      "name": "pathname",
+      "id": "rewritemessage-pathname",
+      "hierarchy": [
+        {
+          "name": "RewriteMessage",
+          "id": "rewritemessage-pathname"
+        },
+        {
+          "name": "pathname",
+          "id": "rewritemessage-pathname"
+        }
+      ],
+      "kind": "Property",
+      "content": "```typescript\nreadonly pathname: string;\n```",
+      "mdFile": "qwik-city.rewritemessage.pathname.md"
+    },
+    {
       "name": "RedirectMessage",
       "id": "redirectmessage",
       "hierarchy": [
@@ -411,7 +428,7 @@
         }
       ],
       "kind": "Class",
-      "content": "```typescript\nexport declare class RewriteMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)",
+      "content": "```typescript\nexport declare class RewriteMessage extends AbortMessage \n```\n**Extends:** [AbortMessage](#abortmessage)\n\n\n<table><thead><tr><th>\n\nConstructor\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[(constructor)(pathname)](#)\n\n\n</td><td>\n\n\n</td><td>\n\nConstructs a new instance of the `RewriteMessage` class\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[pathname](#rewritemessage-pathname)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/rewrite-handler.ts",
       "mdFile": "qwik-city.rewritemessage.md"
     },

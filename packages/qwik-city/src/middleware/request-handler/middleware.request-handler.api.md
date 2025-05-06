@@ -178,6 +178,9 @@ export interface ResolveValue {
 
 // @public (undocumented)
 export class RewriteMessage extends AbortMessage {
+    constructor(pathname: string);
+    // (undocumented)
+    readonly pathname: string;
 }
 
 // @public (undocumented)

@@ -311,7 +311,7 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   status: number;
   href: string;
   redirect?: string;
-  rewrite?: string;
+  isRewrite?: boolean;
 }
 
 /** @public */

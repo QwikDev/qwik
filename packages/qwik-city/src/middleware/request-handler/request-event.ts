@@ -279,7 +279,7 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return requestEv;
+  return Object.freeze(requestEv);
 }
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {

@@ -187,46 +187,44 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
     }
 
     if (routeLoaders.length > 0) {
-      await Promise.all(loader() || []);
+      await Promise.all(routeLoaders.map(loader));
     }
-    function loader() {
-      return routeLoaders.map((loader) => {
-        const loaderId = loader.__id;
-        loaders[loaderId] = runValidators(
-          requestEv,
-          loader.__validators,
-          undefined, // data
-          isDev
-        )
-          .then((res) => {
-            if (res.success) {
-              if (isDev) {
-                return measure<Promise<unknown>>(
-                  requestEv,
-                  loader.__qrl.getSymbol().split('_', 1)[0],
-                  () => loader.__qrl.call(requestEv, requestEv)
-                );
-              } else {
-                return loader.__qrl.call(requestEv, requestEv);
-              }
+    function loader(loader: LoaderInternal) {
+      const loaderId = loader.__id;
+      loaders[loaderId] = runValidators(
+        requestEv,
+        loader.__validators,
+        undefined, // data
+        isDev
+      )
+        .then((res) => {
+          if (res.success) {
+            if (isDev) {
+              return measure<Promise<unknown>>(
+                requestEv,
+                loader.__qrl.getSymbol().split('_', 1)[0],
+                () => loader.__qrl.call(requestEv, requestEv)
+              );
             } else {
-              return requestEv.fail(res.status ?? 500, res.error);
+              return loader.__qrl.call(requestEv, requestEv);
             }
-          })
-          .then((resolvedLoader) => {
-            if (typeof resolvedLoader === 'function') {
-              loaders[loaderId] = resolvedLoader();
-            } else {
-              if (isDev) {
-                verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
-              }
-              loaders[loaderId] = resolvedLoader;
+          } else {
+            return requestEv.fail(res.status ?? 500, res.error);
+          }
+        })
+        .then((resolvedLoader) => {
+          if (typeof resolvedLoader === 'function') {
+            loaders[loaderId] = resolvedLoader();
+          } else {
+            if (isDev) {
+              verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
             }
-            return resolvedLoader;
-          });
+            loaders[loaderId] = resolvedLoader;
+          }
+          return resolvedLoader;
+        });
 
-        return loaders[loaderId];
-      });
+      return loaders[loaderId];
     }
 
     if (method === 'POST') {
@@ -267,7 +265,7 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       }
     }
     if (routeLoaders.length > 0 && isAction) {
-      await Promise.all(loader() || []);
+      await Promise.all(routeLoaders.map(loader));
     }
     isAction = false;
   };

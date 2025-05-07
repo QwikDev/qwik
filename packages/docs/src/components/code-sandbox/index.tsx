@@ -30,12 +30,7 @@ export default component$<{
           ))}
         </div>
       )}
-      <div
-        class="overflow-auto slot-container mb-4"
-        style={{
-          '--pretty-code-fragment-max-height': maxHeight ? maxHeight + 'px' : 'none',
-        }}
-      >
+      <div class="overflow-auto slot-container mb-4">
         <Slot name={tabs ? String(activeTab.value) : ''} />
       </div>
       <div class="browser shadow-xl">

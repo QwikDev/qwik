@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME, QWIK_REPL_DEPS_CACHE } from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
@@ -52,7 +51,7 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
     isServer: true,
     isBrowser: false,
     isDev: false,
-  } as typeof self.qwikBuild;
+  } as typeof import('@builder.io/qwik/build') as any;
 
   const cachedCjsCode = `qwikWasmCjs${realQwikVersion}`;
   const cachedWasmRsp = `qwikWasmRsp${realQwikVersion}`;

@@ -12,7 +12,6 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from '../../runtime/src/types';
-import { ServerError } from './error-handler';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
 import {
@@ -25,8 +24,15 @@ import {
   type RequestEventInternal,
 } from './request-event';
 import { getQwikCityServerData } from './response-page';
-import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import type {
+  ErrorCodes,
+  QwikSerializer,
+  RequestEvent,
+  RequestEventBase,
+  RequestHandler,
+} from './types';
 import { IsQData, QDATA_JSON } from './user-response';
+import { ServerError } from './error-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -315,13 +321,9 @@ async function pureServerFunction(ev: RequestEvent) {
           }
         } catch (err) {
           if (err instanceof ServerError) {
-            ev.headers.set('Content-Type', 'application/qwik-json');
-            ev.send(err.status, await qwikSerializer._serializeData(err.data, true));
-            return;
+            throw ev.error(err.status as ErrorCodes, err.data);
           }
-          ev.headers.set('Content-Type', 'application/qwik-json');
-          ev.send(500, await qwikSerializer._serializeData(err, true));
-          return;
+          throw ev.error(500, 'Invalid request');
         }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/qwik-json-stream');

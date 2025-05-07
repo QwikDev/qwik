@@ -1,47 +1,30 @@
 # Starters
 
-This folder stores "starter" projects for the CLI. The idea is that during the CLI execution, the developer can choose a particular starter app and combine it with a specific server and features.
+This folder stores "starter" projects for the cli. The idea is that during the cli execution, the developer can choose a particular starter app and combine it with a specific server and features.
 
 All starters are based on `starters/apps/base`, including the `package.json` and `tsconfig.json`. Depending on the options the user selects, their starter merges into the `base` app.
 
 ## Developer
 
-Here are steps to try out the CLI in a local environment.
+Here are steps to try out the cli in a local environment.
 
-1. Build CLI:
+1. Build the cli:
 
-   ```
-   # pnpm build.cli
-   ```
+```zsh
+pnpm build.cli
+```
 
-1. Run CLI:
+2. Run the cli:
 
-   ```
-   # node ./packages/create-qwik/dist/create-qwik.cjs
-   💫 Let's create a Qwik project 💫
+```zsh
+pnpm cli.qwik
+```
 
-   ✔ Project name … todo-express
-   ✔ Select a starter › Todo
-   ✔ Select a server › Express
+> If you want to test the cli on consumer repository, you can `pnpm link.dist` on the qwik monorepo, then `pnpm link --global @builder.io/qwik` on the consumer project, and finally run the cli from there.
 
-   ⭐️ Success! Project saved in todo-express directory
+## Publishing `create-qwik` cli Package
 
-   📟 Next steps:
-   cd todo-express
-   npm install
-   npm start
-   ```
-
-1. Change to generated location
-   ```
-   cd todo-express
-   npm install
-   npm start
-   ```
-
-## Publishing `create-qwik` CLI Package
-
-The starter CLI is published at the same time as `@builder.io/qwik`. When published, the CLI will update the `base` app's package.json to point to the published version of Qwik.
+The starter cli is published at the same time as `@builder.io/qwik`. When published, the cli will update the `base` app's package.json to point to the published version of Qwik.
 
 The base app's package.json's devDependencies are updated with:
 

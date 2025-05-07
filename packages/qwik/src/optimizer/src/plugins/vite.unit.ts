@@ -1,16 +1,34 @@
 import path, { resolve } from 'node:path';
 import type { Rollup } from 'vite';
-import { assert, expect, suite, test } from 'vitest';
+import { assert, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
-import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import {
-  convertManifestToBundleGraph,
-  qwikVite,
-  type QwikVitePlugin,
-  type QwikVitePluginOptions,
-} from './vite';
+import type { OptimizerOptions } from '../types';
+import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 
 const cwd = process.cwd();
+
+const chunkInfoMocks: Rollup.PreRenderedChunk[] = [
+  {
+    exports: [''],
+    name: 'chunk.tsx',
+    facadeModuleId: 'chunk.tsx',
+    isDynamicEntry: false,
+    isEntry: false,
+    isImplicitEntry: false,
+    moduleIds: ['chunk.tsx'],
+    type: 'chunk',
+  },
+  {
+    exports: [''],
+    name: cwd + '/app/chunk.tsx',
+    facadeModuleId: cwd + '/app/chunk.tsx',
+    isDynamicEntry: false,
+    isEntry: false,
+    isImplicitEntry: false,
+    moduleIds: [cwd + '/app/chunk.tsx'],
+    type: 'chunk',
+  },
+];
 
 function mockOptimizerOptions(): OptimizerOptions {
   return {
@@ -61,6 +79,12 @@ test('command: serve, mode: development', async () => {
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -71,8 +95,10 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -131,6 +157,12 @@ test('command: build, mode: development', async () => {
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -144,8 +176,10 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -454,30 +488,4 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
-});
-
-suite('convertManifestToBundleGraph', () => {
-  test('empty', () => {
-    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
-  });
-
-  test('simple file set', () => {
-    const manifest = {
-      bundles: {
-        'a.js': {
-          size: 0,
-          imports: ['b.js'],
-          dynamicImports: ['c.js'],
-        },
-        'b.js': {
-          size: 0,
-          dynamicImports: ['c.js'],
-        },
-        'c.js': {
-          size: 0,
-        },
-      } as Record<string, QwikBundle>,
-    } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['a.js', 2, 'b.js', 'c.js']);
-  });
 });

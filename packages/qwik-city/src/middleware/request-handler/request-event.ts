@@ -1,32 +1,31 @@
-import type {
-  RequestEvent,
-  RequestEventLoader,
-  ServerRequestEvent,
-  ServerRequestMode,
-  RequestHandler,
-  RequestEventCommon,
-  ResolveValue,
-  QwikSerializer,
-  CacheControlTarget,
-  CacheControl,
-} from './types';
+import type { ValueOrPromise } from '@builder.io/qwik';
+import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
+  FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
-  FailReturn,
 } from '../../runtime/src/types';
+import { isPromise } from './../../runtime/src/utils';
+import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
-import { ErrorResponse } from './error-handler';
+import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import { encoder } from './resolve-request-handlers';
-import { createCacheControl } from './cache-control';
-import type { ValueOrPromise } from '@builder.io/qwik';
-import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type {
+  CacheControl,
+  CacheControlTarget,
+  QwikSerializer,
+  RequestEvent,
+  RequestEventCommon,
+  RequestEventLoader,
+  RequestHandler,
+  ResolveValue,
+  ServerRequestEvent,
+  ServerRequestMode,
+} from './types';
 import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
-import { isPromise } from './../../runtime/src/utils';
-import { QDATA_KEY } from '../../runtime/src/constants';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -42,7 +41,6 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
@@ -61,7 +59,6 @@ export function createRequestEvent(
     }
     sharedMap.set(IsQData, true);
   }
-  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
@@ -102,17 +99,25 @@ export function createRequestEvent(
     } else {
       status = statusOrResponse.status;
       statusOrResponse.headers.forEach((value, key) => {
+        if (key.toLowerCase() === 'set-cookie') {
+          return;
+        }
         headers.append(key, value);
+      });
+      statusOrResponse.headers.getSetCookie().forEach((ck) => {
+        const index = ck.indexOf('=');
+        if (index === -1) {
+          return;
+        }
+        const key = ck.slice(0, index).trim();
+        const value = ck.slice(index + 1).trim();
+        cookie.set(key, value);
       });
       if (statusOrResponse.body) {
         const writableStream = requestEv.getWritableStream();
         statusOrResponse.body.pipeTo(writableStream);
       } else {
-        if (status >= 300 && status < 400) {
-          return new RedirectMessage();
-        } else {
-          requestEv.getWritableStream().getWriter().close();
-        }
+        requestEv.getWritableStream().getWriter().close();
       }
     }
     return exit();
@@ -192,9 +197,9 @@ export function createRequestEvent(
       return locale || '';
     },
 
-    error: (statusCode: number, message: string) => {
+    error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
-      return new ErrorResponse(statusCode, message);
+      return new ServerError(statusCode, message);
     },
 
     redirect: (statusCode: number, url: string) => {

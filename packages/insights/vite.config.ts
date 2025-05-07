@@ -4,16 +4,19 @@ import { qwikCity } from '@builder.io/qwik-city/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { qwikInsights, qwikTypes } from '@builder.io/qwik-labs/vite';
 import { macroPlugin } from '@builder.io/vite-plugin-macro';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(async () => {
   return {
     plugins: [
       macroPlugin({ preset: 'pandacss' }),
+      // Disable CSRF protection
       qwikCity(),
       qwikTypes(),
       qwikVite(),
       tsconfigPaths({ projects: ['.'] }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
+      tailwindcss(),
     ],
     dev: {
       headers: {

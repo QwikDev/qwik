@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
 import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
@@ -103,14 +102,6 @@ export const appBundleClient = async (
       }
     });
   }
-
-  result.transformedModules = result.transformedModules.filter((f) => {
-    return (
-      !f.path.endsWith('app.js') &&
-      !f.path.endsWith('entry.server.js') &&
-      !f.path.endsWith('root.js')
-    );
-  });
 
   result.events.push({
     kind: 'console-log',

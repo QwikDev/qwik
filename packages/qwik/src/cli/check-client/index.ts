@@ -36,7 +36,7 @@ async function checkClientCommand(app: AppCommand, src: string, dist: string): P
     if (manifest === null) {
       await goBuild(app);
     } else {
-      if (await isNewerThan(getSrcPath(src), manifest)) {
+      if (await hasNewer(getSrcPath(src), manifest)) {
         await goBuild(app);
       }
     }
@@ -109,7 +109,7 @@ export async function clientDirExists(path: string): Promise<boolean> {
  * @returns {Promise<number>} Returns the latest mtime (Unix timestamp in milliseconds), or 0 if the
  *   directory doesn't exist or is empty.
  */
-export async function isNewerThan(srcPath: string, timestamp: number): Promise<boolean> {
+export async function hasNewer(srcPath: string, timestamp: number): Promise<boolean> {
   let returnValue = false;
   async function traverse(dir: string): Promise<void> {
     if (returnValue) {

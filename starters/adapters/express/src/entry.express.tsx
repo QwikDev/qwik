@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
@@ -26,6 +25,7 @@ declare global {
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
 const buildDir = join(distDir, "build");
+const assetsDir = join(distDir, "assets");
 
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
@@ -34,7 +34,6 @@ const PORT = process.env.PORT ?? 3000;
 const { router, notFound } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
@@ -55,6 +54,10 @@ const app = express();
 // Static asset handlers
 // https://expressjs.com/en/starter/static-files.html
 app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: "1y" }));
+app.use(
+  `/assets`,
+  express.static(assetsDir, { immutable: true, maxAge: "1y" }),
+);
 app.use(express.static(distDir, { redirect: false }));
 
 // Use Qwik Router's page and endpoint request handler

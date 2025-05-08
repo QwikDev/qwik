@@ -13,7 +13,8 @@ contributors:
   - wtlin1228
   - aendel
   - jemsco
-updated_at: '2023-06-25T19:43:33Z'
+  - wmertens
+updated_at: '2025-03-25T12:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -23,94 +24,11 @@ Qwik is able to load a page and become interactive extremely fast due to its abi
 
 Qwik's goal is to optimize loading by caching only the necessary parts of the application based on potential user interactions. It avoids loading unnecessary bundles by understanding which interactions are not possible.
 
-- [Pre-populating the Cache with a Service Worker](#pre-populating-the-cache-with-a-service-worker)
-- [Caching Request and Response Pairs](#caching-request-and-response-pairs)
-- [Parallelizing Network Requests](#parallelizing-network-requests)
-
 ### Pre-populating the Cache
 
-Each page load will pre-populate the cache with bundles that _could_ be executed on the page by the user at that moment. For example, let's say that the page has a click listener on a button. When the page loads, the service worker's first job is to ensure the code for that click listener is already in the [cache](#cache-api). When the user clicks the button, Qwik makes a request to the event listener's function and any code dependencies to execute that function. The goal is for the code to already be in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) ready to execute.
+Each page load will pre-populate the cache with bundles that _could_ be executed on the page by the user at that moment. For example, let's say that the page has a click listener on a button. When the page loads, the Qwik's first job is to ensure the code for that click listener is already in the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). When the user clicks the button, Qwik makes a request to the event listener's function and any code dependencies to execute that function. This might include importing other modules.
 
-The initial page load prepares the cache for the next probable interaction and also downloads other necessary code incrementally in a separate thread. When a follow-up interaction happens, such as opening a modal or menu, Qwik will emit another event with additional code that could be used since the last interaction. Pre-populating the cache happens continuously as users interact with the application.
-
-### Pre-populate Cache Event
-
-The recommended strategy is to use a [service worker](#pre-populating-the-cache-with-a-service-worker) to populate the [browser's cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The Qwik framework itself should use the [prefetchEvent](../../../(qwik)/advanced/modules-prefetching/index.mdx#implementation) implementation, which is already the default.
-
-## Pre-populating the Cache with a Service Worker
-
-Traditionally, a service worker is used to cache most or all of the bundles that an application uses. [Service workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers) are commonly seen only as a way to make an application work offline.
-
-Qwik Router uses service workers quite differently to provide a powerful caching strategy. Instead of downloading the entire application, the goal is to use the service worker to dynamically pre-populate the cache with what's _possible_ to execute. By _not_ downloading the entire application, resources are freed up, enabling users to request only the necessary parts they _could_ use to complete their current task on the screen.
-
-Additionally, the service worker will automatically add listeners for these events emitted from Qwik.
-
-### Background Task
-
-An advantage of using a service worker is that it's also an extension of a [worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API), which runs in a background thread.
-
-> Web Workers makes it possible to run a script operation in a background thread separate from the main execution thread of a web application. The advantage of this is that laborious processing can be performed in a separate thread, allowing the main (usually the UI) thread to run without being blocked/slowed down.
-
-By pre-populating the cache from within a service worker (which is a worker), we're able to essentially run the code in a background task, in order to not interfere with the main UI thread. By not interfering with the main thread, we can enhance the performance of the Qwik application for users.
-
-### Interactively Pre-populating the Cache
-
-Qwik itself should be configured to use the [prefetchEvent](../../../(qwik)/advanced/modules-prefetching/index.mdx#implementation) implementation. This is the default. When Qwik emits the event, the service worker registration actively forwards the event data to the installed and active service worker.
-
-Running in a background thread, the service worker then fetches the modules and adds them to the browser’s [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache). The main thread only needs to emit data about the required bundles, while the service worker’s sole focus is to cache those bundles.
-
-1. If the browser already has it cached? Great, do nothing!
-2. If the browser hasn't already cached this bundle, then let's kick off the fetch request.
-
-> The service worker ensures that multiple requests for the same bundle [do not happen at the same time](#avoiding-duplicate-requests).
-
-## Caching Request and Response Pairs
-
-In many traditional frameworks, the preferred strategy is to use the html `<link>` tag with a `rel` attribute set to `prefetch`, `preload` or `modulepreload`. However, due to [known issues](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel) Qwik avoids using this approach as the default prefetching strategy, it can still be [configured](../../../(qwik)/advanced/modules-prefetching/index.mdx) if required.
-
-Instead, Qwik prefers to use a newer approach that takes full advantage of the browser's [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), which is better supported compared to [modulepreload](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel).
-
-### Cache API
-
-The [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache), often associated with service workers, is a way to store request and response pairs in order for an application to work offline. In addition to enabling applications to work without connectivity, the same Cache API provides an extremely powerful caching mechanism available to Qwik.
-
-Using the installed and activated [service worker](#pre-populating-the-cache-with-a-service-worker) to intercept requests, Qwik is able to handle specific requests for _known_ bundles. In contrast to the common way service workers are used, the default does not attempt to handle all requests, only known bundles generated by Qwik. The site's installed service worker can still be [customized by each site](#user-service-worker-code).
-
-An advantage of Qwik's optimizer is that it generates a `q-manifest.json` file. The `q-manifest.json` includes a detailed module graph of how bundles are associated and which symbols are within each bundle. This same module graph data is provided to the service worker allowing for every network request for known bundles to be handled by the cache.
-
-### Dynamic Imports and Caching
-
-When Qwik requests a module it uses a dynamic `import()`. For example, let's say a user interaction happened, requiring Qwik to execute a dynamic import for `/build/q-abc.js`. The code to do so would look something like this:
-
-```ts
-const module = await import('/build/q-abc.js');
-```
-
-What's important here is that Qwik itself has no knowledge of a prefetching or caching strategy. It's simply making a request for a URL. However, because we've installed a service worker, and the service worker is intercepting requests, it's able to inspect the URL and say, "look, this is a request for `/build/q-abc.js`! This is one of our bundles! Let's first check to see if we already have this in the cache before we do an actual network request."
-
-This is the power of the service worker and Cache API! In another thread, Qwik pre-populates the cache for modules the user may soon request. If these modules are already cached, then the browser doesn't need to do anything.
-
-## Parallelizing Network Requests
-
-In the [Caching Request and Response Pairs](#cache-api) docs we explained the powerful combination of the [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache) and [Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker) APIs. However, in Qwik, we can go further by ensuring that duplicate requests are not created for the same bundle and prevent network waterfalls, all from within the background thread.
-
-### Avoiding Duplicate Requests
-
-As an example, let's say an end-user currently has a very slow connection. When they first request the landing page, the device downloads the HTML and renders the content (an area where Qwik really shines). On this slow connection, it'd be a shame if users had to download several hundred more kilobytes just to [make their app work and become interactive](https://www.builder.io/blog/hydration-is-pure-overhead).
-
-However, because the app was built with Qwik, the end-user doesn't need to download the entire application for it to become interactive. Instead, the end-user already downloaded the SSR rendered HTML app, and any interactive parts, such as an "Add to cart" button, can be prefetched immediately.
-
-> Note that we're only prefetching the actual listener code, and _not_ the entire stack of the component tree render functions.
-
-In this extremely common real-world example of a device with a slow connection, the device immediately starts to pre-populate the cache for the possible interactions that are visible by the end-user. However, due to their slow connection, even though we started to cache the modules as soon as possible in a [background thread](#background-task), the fetch request itself could still be in flight.
-
-For demo purposes, let's say the fetching for this bundle takes two seconds. However, after one second of viewing the page, the user clicks on the button. 
-
-In a traditional framework, there's a good chance that absolutely nothing would happen! The event listener can't be added to the button yet if the framework hasn't finished downloading, hydrating and re-rendering.  This means that the user's interaction would just be lost.
-
-With Qwik's caching strategy, if a user clicks a button and we already initiated a request one second earlier, with only one second remaining until it's fully received, then the end-user only needs to wait for that one second. Remember, they're on a slow connection in this demo. Luckily the user already received the fully rendered landing page and are already looking at a completed page. Next, they're only pre-populating the cache with the parts of the app they could interact with, and their slow connection is dedicated to just those bundle(s). This is in contrast to their slow connection downloading all of the app, just to execute one listener.
-
-Qwik can intercept requests for known bundles. If a fetch is in flight in a background thread and a user requests the same bundle, it'll ensure that the second request is able to re-use the same bundle, which may already be done downloading. Trying to perform any of this with the [link](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel) also shows why Qwik preferred to use the caching API and intercepts requests with a service worker as the default instead of using  [link](../../../(qwik)/advanced/modules-prefetching/index.mdx#link-rel).
+The initial page load prepares the cache for the next probable interaction and also downloads other necessary code incrementally. When a follow-up interaction happens, such as opening a modal or menu, Qwik will ask the browser to preload the code for that interaction. Pre-populating the cache happens continuously as users interact with the application.
 
 ### Reducing Network Waterfalls
 
@@ -138,62 +56,23 @@ console.log('Module C');
 
 In this example, when Module `A` is first requested, the browser has no idea that it should also start requesting Module `B` and `C`. It doesn't even know it needs to start requesting Module `B`, until AFTER Module `A` has finished downloading. It's a common problem in that the browser doesn't know ahead of time what it should start to request, until after each module has finished downloading.
 
-However, because our service worker contains a module graph generated from the manifest, we do know all of the modules which _will_ be requested next. So when either user interaction or a prefetch for a bundle happens, the browser initiates the request for all of the bundles that _will_ be requested. This allows us to drastically reduce the time it takes to request all bundles.
+However, Qwik knows the module graph and controls QRL segment loading, we do know all of the modules which _will_ be requested next. So when Qwik sees that it will require a module, it will tell the browser to preload it and all of its dependencies.
 
-## User Service Worker Code
+### Details
 
-The default service worker that is installed by Qwik Router can still be controlled entirely by the application. For example, the source file `src/routes/service-worker.ts` becomes `/service-worker.js`, which is the script requested by the browser. Notice how its place within `src/routes` still follows the same directory-based routing pattern.
+The Qwik build process generates a `q-manifest.json` file. The `q-manifest.json` includes a detailed module graph of how bundles are associated and which symbols are within each bundle.
 
-Below is an example of a default `src/routes/service-worker.ts` source file:
+This is then further used to generate the `build/q-bundle-graph-xyz.json` file, which is a compact representation of the module graph, including probabilities of which bundlers are more likely to be requested next given a certain bundle has loaded, and is loaded by Qwik to preload QRL segment loading.
 
-```ts
-import { setupServiceWorker } from '@qwik.dev/router/service-worker';
+Qwik-City also injects all routes with their dependencies into this bundlegraph file.
 
-setupServiceWorker();
+When a container resumes, it will fetch the bundlegraph file (probably from the cache) and use it to prefetch modules needed for event handlers and routes.
 
-addEventListener('install', () => self.skipWaiting());
+Static imports are preloaded with high priority, and dynamic imports are preloaded with low priority. The browser will decide when to download the modules.
 
-addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));
-```
+The preloading happens with the `_preload` function, which is an internal Qwik API. It works by traversing the bundlegraph and adding `<link rel="modulepreload">` tags for each bundle that is likely to be requested next.
 
-The source code for `src/routes/service-worker.ts` can be modified which includes opting-in, or opting-out, of setting up Qwik Router's service worker.
+## During Development
 
-Notice that the `setupServiceWorker()` function is imported from `@qwik.dev/router/service-worker` and executed at the top of the source file. Developers have the flexibility to modify when and where this function is called according to their needs. For example, if a developer prefers to handle fetch requests first, they can add their fetch listener above the  `setupServiceWorker()`. Or if they didn't want to use Qwik Router's service worker at all, they would just remove `setupServiceWorker()` from the file.
-
-Additionally, the default `src/routes/service-worker.ts` file comes with an [install](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/install_event) and [activate](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/activate_event) event listeners, each added at the bottom of the file. The callbacks provided are the recommended callbacks. However, the developer can modify these callbacks depending on their own app's requirements.
-
-Another important note is that Qwik Router's request intercepting is _only_ for Qwik bundles, it does not attempt to handle any requests which are not a part of its build.
-
-So while Qwik Router does provide a way to help prefetch and cache bundles, it does not take full control of the app's service worker. This still allows developers to add their service worker logic without conflicting with Qwik.
-
-## Disabled During Development
-
-Speculative module fetching only kicks in preview or on a production build. In development, the service worker is disabled which also disables speculative module fetching. This is because during development we want to always ensure the latest development code is being used, rather than what's been previously cached.
-
-
-### HTTP Cache vs. Service Worker Cache
-
-Speculative module fetching may not appear to be working partly due to the various levels of caching. For example, the browser itself may cache requests in its [HTTP cache](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching), and the service worker may cache requests in the [Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Cache). Just emptying one of the caches may not be enough to see the effects of speculative module fetching.
-
-### Misleading Empty Cache and Hard Reload
-
-When developers run [Empty Cache and Hard Reload](https://developer.chrome.com/blog/hard-reload/), it's a bit misleading because it actually _only_ empties the browser's HTTP cache. It's not, however, emptying the service worker's cache. Even though the browser's HTTP cache is empty, the service worker still has the previous cached requests.
-
-Additionally, when "Empty Cache and Hard Reload" is used, the browser sends a `no-cache` cache-control header in the _request_ to the server. Because the request has a `no-cache` cache-control header, the service worker purposely does not use its own cache, and instead the browser performs the usual HTTP fetch again.
-
-### Emptying the Service Worker Cache
-
-The recommended way to test speculative module fetching is to:
-
-- **Unregister the service worker**: In Chrome DevTools, go to the Application tab, and under Service Workers, click the "Unregister" link for the for your site's service worker.
-- **Delete the "QwikBuild" Cache Storage**: In Chrome DevTools, go to the Application tab, and under Cache Storage on the left side, right click "Delete" on the "QwikBuild" cache storage.
-- **Do not hard reload**: Instead of hard reloading, which would send a no-cache cache-control to the service worker, just click the URL bar and hit enter. This will send a normal request as if you were a first time visitor.
-
-Note that this process is only for testing the speculative module fetching, and is not required for new builds. Each build will create a new service worker, and the old service worker will be automatically unregistered.
-
-### Debug Mode
-
-The service worker in Qwik core, which uses the `<PrefetchServiceWorker />` and `<PrefetchGraph />` components in `root.tsx` has a debug mode.
-
-To see the service worker logs, add `window.qwikPrefetchSW.push(['verbose', '', []])` to the JavaScript console and press the `Enter` key.
+Speculative module fetching only really works in preview or on a production build. In development, we don't have the bundle graph available, so we can't prevent waterfalls from happening. However, we do ask the browser to preload the bundles that are most likely to be requested after SSR.
 

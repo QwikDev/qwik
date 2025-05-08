@@ -2,8 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../../api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/adapters/static/vite/index.d.ts",
+  "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
+    "reportFileName": "adapter.static",
     "reportFolder": "<projectFolder>/src/adapters/static/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/adapters/static"
   },

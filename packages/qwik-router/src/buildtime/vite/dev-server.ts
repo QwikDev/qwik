@@ -1,4 +1,4 @@
-import type { QwikManifest, QwikViteDevResponse } from '@qwik.dev/core/optimizer';
+import type { QwikViteDevResponse } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -11,8 +11,8 @@ import {
 import { getQwikRouterServerData } from '../../middleware/request-handler/response-page';
 import type { QwikSerializer } from '../../middleware/request-handler/types';
 import {
-  getRouteMatchPathname,
   QDATA_JSON,
+  getRouteMatchPathname,
   runQwikRouter,
 } from '../../middleware/request-handler/user-response';
 import { matchRoute } from '../../runtime/src/route-matcher';
@@ -224,15 +224,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
-          const manifest: QwikManifest = {
-            manifestHash: '',
-            symbols: {},
-            mapping: {},
-            bundles: {},
-            injections: [],
-            version: '1',
-          };
-
           const { _deserialize, _serialize, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
@@ -241,7 +232,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             serverRequestEv,
             loadedRoute,
             requestHandlers,
-            manifest,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer
@@ -451,7 +441,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
           fs.createReadStream(filePath).pipe(res);
           return;
         }
-      } catch (e) {
+      } catch {
         //
       }
     }
@@ -488,7 +478,7 @@ function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule
         if (line > -1) {
           err.loc.line = line + 1;
         }
-      } catch (e) {
+      } catch {
         // nothing
       }
     }

@@ -18,12 +18,10 @@ import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
-import {
-  generateServiceWorkerRegister,
-  prependManifestToServiceWorker,
-} from '../runtime-generation/generate-service-worker';
+import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
   QwikCityVitePluginOptions,
@@ -33,7 +31,7 @@ import type {
 import { validatePlugin } from './validate-plugin';
 
 const QWIK_SERIALIZER = '@qwik-serializer';
-const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
+export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
 const QWIK_ROUTER_SW_REGISTER = '@qwik-router-sw-register';
@@ -132,6 +130,9 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+      qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
+        return getRouteImports(ctx!.routes, manifest);
+      });
 
       // @ts-ignore `format` removed in Vite 5
       if (config.ssr?.format === 'cjs') {
@@ -207,6 +208,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         if (isRouterConfig || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
+
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
               this.warn(d.message);
@@ -299,37 +301,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       async handler() {
         if (ctx?.target === 'ssr' && !ctx?.isDevServer) {
           // ssr build
-          const manifest = qwikPlugin!.api.getManifest();
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
-
-          if (manifest && clientOutDir) {
-            const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
-            const clientOutBaseDir = join(clientOutDir, basePathRelDir);
-            const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
-
-            for (const swEntry of ctx.serviceWorkers) {
-              try {
-                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
-                const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
-                try {
-                  const swCodeUpdate = prependManifestToServiceWorker(
-                    ctx,
-                    manifest,
-                    insightsManifest?.prefetch || null,
-                    swCode
-                  );
-                  if (swCodeUpdate) {
-                    await fs.promises.mkdir(clientOutDir, { recursive: true });
-                    await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
-                  }
-                } catch (e2) {
-                  console.error(e2);
-                }
-              } catch (e) {
-                // safe to ignore if a service-worker.js not found
-              }
-            }
-          }
 
           if (outDir && clientOutDir) {
             const assetsDir = qwikPlugin!.api.getAssetsDir();

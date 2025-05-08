@@ -205,10 +205,9 @@ import {
   type PlatformCloudflarePages,
 } from '@qwik.dev/router/middleware/cloudflare-pages';
 import qwikRouterConfig from '@qwik-router-config';
-import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 
-const fetch = createQwikRouter({ render, qwikRouterConfig, manifest });
+const fetch = createQwikRouter({ render, qwikRouterConfig });
 
 export { fetch };
 ```

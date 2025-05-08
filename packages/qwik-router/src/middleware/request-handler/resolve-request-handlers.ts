@@ -24,8 +24,15 @@ import {
   type RequestEventInternal,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
-import type { QwikSerializer, RequestEvent, RequestEventBase, RequestHandler } from './types';
+import type {
+  ErrorCodes,
+  QwikSerializer,
+  RequestEvent,
+  RequestEventBase,
+  RequestHandler,
+} from './types';
 import { IsQData, QDATA_JSON } from './user-response';
+import { ServerError } from './error-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -304,12 +311,19 @@ async function pureServerFunction(ev: RequestEvent) {
       const [qrl, ...args] = data;
       if (isQrl(qrl) && qrl.getHash() === fn) {
         let result: unknown;
-        if (isDev) {
-          result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
-            (qrl as Function).apply(ev, args)
-          );
-        } else {
-          result = await (qrl as Function).apply(ev, args);
+        try {
+          if (isDev) {
+            result = await measure(ev, `server_${qrl.getSymbol()}`, () =>
+              (qrl as Function).apply(ev, args)
+            );
+          } else {
+            result = await (qrl as Function).apply(ev, args);
+          }
+        } catch (err) {
+          if (err instanceof ServerError) {
+            throw ev.error(err.status as ErrorCodes, err.data);
+          }
+          throw ev.error(500, 'Invalid request');
         }
         if (isAsyncIterator(result)) {
           ev.headers.set('Content-Type', 'text/qwik-json-stream');

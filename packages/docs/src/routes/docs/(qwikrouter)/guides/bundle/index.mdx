@@ -143,7 +143,7 @@ To collect symbol usage from a running application:
     </script>
     ```
 2. Perform some set of operations mimicking user behavior.
-3. Open the console and type `symbols` to see the list of symbols used. Used that information to update the `vite.config.mts` file.
+3. Open the console and type `symbols` to see the list of symbols used. Use that information to update the `vite.config.ts` file.
 
 
 > **NOTE:** We are looking into creating better ways of collecting this information in the future. (See [Insights](/docs/labs/insights/index.mdx).)
@@ -165,7 +165,7 @@ All information regarding when the symbols are loaded can be observed by listeni
 
 ### `qprefetch` custom event details.
 
-`qprefetch` event is fired when a new code path is exposed to the user by rendering a new application view. (For example, rendering a new model dialog will have a new button. We would like the ensure that the new button code is prefetched so that if the user interacts with the button there will be no delay.)
+`qprefetch` event is fired when a new code path is exposed to the user by rendering a new application view. (For example, rendering a new modal dialog will have a new button. We would like to ensure that the new button code is prefetched so that if the user interacts with the button there will be no delay.)
 Usually, a service worker listens to the `qprefetch` event and loads the symbol into the cache. The service worker has a map of symbols to bundles, and it uses this information to determine which bundles to prefetch based on a symbol.
 
 ```typescript

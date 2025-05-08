@@ -1,14 +1,9 @@
 import path, { resolve } from 'node:path';
 import type { Rollup } from 'vite';
-import { assert, expect, suite, test } from 'vitest';
+import { assert, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
-import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import {
-  convertManifestToBundleGraph,
-  qwikVite,
-  type QwikVitePlugin,
-  type QwikVitePluginOptions,
-} from './vite';
+import type { OptimizerOptions } from '../types';
+import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 
 const cwd = process.cwd();
 
@@ -493,30 +488,4 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
-});
-
-suite('convertManifestToBundleGraph', () => {
-  test('empty', () => {
-    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
-  });
-
-  test('simple file set', () => {
-    const manifest = {
-      bundles: {
-        'a.js': {
-          size: 0,
-          imports: ['b.js'],
-          dynamicImports: ['c.js'],
-        },
-        'b.js': {
-          size: 0,
-          dynamicImports: ['c.js'],
-        },
-        'c.js': {
-          size: 0,
-        },
-      } as Record<string, QwikBundle>,
-    } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['a.js', 2, 'b.js', 'c.js']);
-  });
 });

@@ -583,7 +583,7 @@ export function parseQRL(qrl: string): QRLInternal<any> {
       : null;
   let qrlRef = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
-    const backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
+    const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
@@ -1431,9 +1431,9 @@ export function qrlToString(
     }
     // in Dev mode we need to keep track of the symbols
     if (isDev) {
-      let backChannel: Map<string, Function> = (globalThis as any)[QRL_RUNTIME_CHUNK];
+      let backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
       if (!backChannel) {
-        backChannel = (globalThis as any)[QRL_RUNTIME_CHUNK] = new Map();
+        backChannel = (globalThis as any).__qrl_back_channel__ = new Map();
       }
       backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
       if (!chunk) {

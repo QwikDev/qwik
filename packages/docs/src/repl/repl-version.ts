@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { QWIK_PKG_NAME, bundled } from './bundled';
 
 const bundledVersion = bundled[QWIK_PKG_NAME].version;

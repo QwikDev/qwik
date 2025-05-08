@@ -2,8 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik/src/testing/index.d.ts",
+  "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
+    "reportFileName": "qwik.testing",
     "reportFolder": "<projectFolder>/src/testing/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/testing/"
   },

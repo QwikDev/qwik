@@ -85,6 +85,8 @@ export type {
   QwikHTMLElements,
   QwikSVGElements,
   SVGAttributes,
+  HTMLElementAttrs,
+  SVGProps,
 } from './shared/jsx/types/jsx-generated';
 export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';

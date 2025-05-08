@@ -353,17 +353,6 @@ export type ComputedFn<T> = () => T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
-## ComputedReturnType
-
-```typescript
-export type ComputedReturnType<T> =
-  T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
-```
-
-**References:** [ReadonlySignal](#readonlysignal)
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
-
 ## ComputedSignal
 
 A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
@@ -1343,16 +1332,6 @@ any[]
 [JSXNode](#jsxnode)&lt;TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
-
-## HTMLElementAttrs
-
-```typescript
-export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement>
-```
-
-**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
 ## implicit$FirstArg
 
@@ -2597,7 +2576,7 @@ export type QwikHTMLElements = {
 };
 ```
 
-**References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
+**References:** [QwikAttributes](#qwikattributes)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -2794,8 +2773,6 @@ export type QwikSVGElements = {
   >]: SVGProps<SVGElementTagNameMap[K]>;
 };
 ```
-
-**References:** [SVGProps](#svgprops)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -8132,16 +8109,6 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
-## SVGProps
-
-```typescript
-export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
-```
-
-**Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
-
 ## sync$
 
 Extract function into a synchronously loadable QRL.
@@ -8481,7 +8448,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-[ComputedReturnType](#computedreturntype)&lt;T&gt;
+ComputedReturnType&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 

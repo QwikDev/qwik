@@ -104,7 +104,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/docs/**/*.{ts,tsx}'],
+    files: ['packages/docs/demo/**/*.{ts,tsx}'],
     rules: {
       'no-console': 'off',
     },

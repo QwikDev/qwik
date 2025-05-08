@@ -453,7 +453,12 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       if (!container.$forwardRefs$) {
         throw qError(QError.serializeErrorCannotAllocate, ['forward ref']);
       }
-      return container.$getObjectById$(container.$forwardRefs$[value as number]);
+      const rootRef = container.$forwardRefs$[value as number];
+      if (rootRef === -1) {
+        return _UNINITIALIZED;
+      } else {
+        return container.$getObjectById$(rootRef);
+      }
     case TypeIds.ForwardRefs:
       return value;
     case TypeIds.Constant:
@@ -656,8 +661,6 @@ export interface SerializationContext {
    */
   $addRoot$: (obj: unknown, parent?: unknown) => number;
 
-  $getOwningSerializationRoots$: (obj: unknown) => unknown[];
-
   $seen$: (obj: unknown, parent: unknown | null, index: number) => void;
 
   $roots$: unknown[];
@@ -725,43 +728,6 @@ export const createSerializationContext = (
       $index$: index,
       $rootIndex$: -1,
     });
-  };
-
-  const $getOwningSerializationRoots$ = (obj: unknown): unknown[] => {
-    const rootsFound: unknown[] = [];
-    const queue: unknown[] = [obj];
-    const visited = new Set<unknown>();
-
-    while (queue.length > 0) {
-      const currentObj = queue.shift();
-      if (!currentObj || visited.has(currentObj)) {
-        continue;
-      }
-      visited.add(currentObj);
-
-      const seen = seenObjsMap.get(currentObj);
-
-      if (!seen) {
-        continue;
-      }
-
-      // Only add actual root objects (those added via $addRoot$ with no parent or seen before $addRoot$)
-      // Ensure it's actually in the roots array by checking $rootIndex$ != -1
-      const rootPath = objectPathStringCache.get(currentObj);
-      if ((seen.$rootIndex$ !== -1 || rootPath) && !rootsFound.includes(currentObj)) {
-        rootsFound.push(currentObj);
-      }
-
-      // Add its structural parent to the queue to continue traversal
-      if (seen.$structuralParents$) {
-        for (const structuralParent of seen.$structuralParents$) {
-          if (structuralParent) {
-            queue.push(structuralParent);
-          }
-        }
-      }
-    }
-    return rootsFound;
   };
 
   const $getObjectIndexPath$ = (
@@ -847,7 +813,6 @@ export const createSerializationContext = (
       return id?.$refParent$ === null ? id.$index$ : undefined;
     },
     $addRoot$,
-    $getOwningSerializationRoots$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
@@ -930,6 +895,14 @@ class PromiseResult {
     public $qrl$: QRLInternal | null = null
   ) {}
 }
+
+class SerializationWeakRef {
+  constructor(public $obj$: unknown) {}
+}
+
+/** @internal */
+export const _serializationWeakRef = (obj: unknown) => new SerializationWeakRef(obj);
+
 /**
  * Format:
  *
@@ -950,12 +923,12 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     $wasSeen$,
   } = serializationContext;
   let depth = 0;
+  let rootIdx = 0;
   const forwardRefs: number[] = [];
   let forwardRefsId = 0;
   const promises: Set<Promise<unknown>> = new Set();
   const preloadQrls = new Set<QRLInternal>();
-  const uninitializedRefs = new Map<unknown, number>();
-  const captureRefs = new Set<unknown>();
+  const s11nWeakRefs = new Map<unknown, number>();
   let parent: unknown = null;
   const isRootObject = () => depth === 0;
 
@@ -1003,10 +976,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     serializationContext.$addRoot$(qrl);
   };
 
-  const outputRootRef = (value: unknown, rootDepth = 0): boolean => {
-    if (!serializationContext.$outputRootRefs$) {
-      return false;
-    }
+  const outputAsRootRef = (value: unknown, rootDepth = 0): boolean => {
     const seen = $wasSeen$(value);
     const rootRefPath = $objectPathStringCache$.get(value);
 
@@ -1023,9 +993,22 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       // Otherwise serialize as normal
       output(TypeIds.RootRef, seen.$rootIndex$);
       return true;
-    } else {
-      return false;
+    } else if (s11nWeakRefs.has(value)) {
+      const forwardRefId = s11nWeakRefs.get(value)!;
+      // We see the object again, we must now make it a root and update the forward ref
+      if (rootDepth === depth) {
+        // It's already a root
+        forwardRefs[forwardRefId] = rootIdx;
+      } else {
+        // ref
+        const rootRef = $addRoot$(value);
+        output(TypeIds.RootRef, rootRef);
+        forwardRefs[forwardRefId] = rootRef;
+        return true;
+      }
     }
+
+    return false;
   };
 
   const writeValue = (value: unknown) => {
@@ -1041,8 +1024,8 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
-        if (!outputRootRef(value)) {
-          const qrl = qrlToString(serializationContext, value, uninitializedRefs, captureRefs);
+        if (!outputAsRootRef(value)) {
+          const qrl = qrlToString(serializationContext, value);
           const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
           if (isRootObject()) {
             output(type, qrl);
@@ -1096,7 +1079,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       if (value.length === 0) {
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        if (!outputRootRef(value)) {
+        if (!outputAsRootRef(value)) {
           output(TypeIds.String, value);
         }
       }
@@ -1118,9 +1101,12 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
      * The object writer outputs an array object (without type prefix) and this increases the depth
      * for the objects within (depth 1).
      */
-    if (outputRootRef(value, 1)) {
+    if (outputAsRootRef(value, 1)) {
       return;
     }
+    // handle custom serializers
+    // add to the seen map
+
     if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];
@@ -1169,49 +1155,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
     } else if (isSerializerObj(value)) {
-      const rootObjects = serializationContext.$getOwningSerializationRoots$(value);
-
-      /**
-       * Check if the current object 'value' or any of its ancestors in the object graph are part of
-       * the set of objects captured by QRLs (`captureRefs`). Notice, that this value can be equal
-       * to `false` even if the object is a capture ref of a QRL. This is a case when the `value` is
-       * processed before the QRL and we don't know yet about the capture refs of the QRL.
-       */
-      let isKnownCaptureRefTarget = false;
-      for (const rootObject of rootObjects) {
-        if (captureRefs.has(rootObject)) {
-          isKnownCaptureRefTarget = true;
-          break;
-        }
-      }
-
       let result = value[SerializerSymbol](value);
-
-      /**
-       * Special case for _UNINITIALIZED
-       *
-       * UNINITIALIZED is a special value that is used to indicate that the object should be shallow
-       * serialized.
-       *
-       * If the object is a capture ref target, we have to serialize it as a normal object. If the
-       * object is not a capture ref target, we need to serialize it as a forward ref and defer the
-       * serialization of the object until the capture refs are known (at the end of the
-       * serialization process).
-       */
-      if (result === _UNINITIALIZED) {
-        if (isKnownCaptureRefTarget) {
-          // we are sure that the object is a capture ref target, so we can serialize it as a normal object
-          // remove the SerializerSymbol from the object
-          (value as any)[SerializerSymbol] = undefined;
-          result = value;
-        } else if (!uninitializedRefs.has(value)) {
-          // we don't know yet if the object is a capture ref target, so we need to serialize it as a forward ref
-          const forwardRefId = forwardRefsId++;
-          uninitializedRefs.set(value, forwardRefId);
-          output(TypeIds.ForwardRef, forwardRefId);
-          return;
-        }
-      }
       if (isPromise(result)) {
         const forwardRef = $resolvePromise$(result, $addRoot$, (resolved, resolvedValue) => {
           return new PromiseResult(TypeIds.SerializerSignal, resolved, resolvedValue, null, null);
@@ -1394,6 +1338,11 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       }
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
+    } else if (value instanceof SerializationWeakRef) {
+      const forwardRefId = forwardRefsId++;
+      s11nWeakRefs.set(value.$obj$, forwardRefId);
+      forwardRefs[forwardRefId] = -1;
+      output(TypeIds.ForwardRef, forwardRefId);
     } else if (vnode_isVNode(value)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else {
@@ -1425,21 +1374,20 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
   const outputRoots = async () => {
     $writer$.write('[');
 
-    let lastRootsLength = 0;
     let rootsLength = serializationContext.$roots$.length;
-    while (lastRootsLength < rootsLength || promises.size) {
-      if (lastRootsLength !== 0) {
+    while (rootIdx < rootsLength || promises.size) {
+      if (rootIdx !== 0) {
         $writer$.write(',');
       }
 
       let separator = false;
-      for (let i = lastRootsLength; i < rootsLength; i++) {
+      for (; rootIdx < rootsLength; rootIdx++) {
         if (separator) {
           $writer$.write(',');
         } else {
           separator = true;
         }
-        writeValue(serializationContext.$roots$[i]);
+        writeValue(serializationContext.$roots$[rootIdx]);
       }
 
       if (promises.size) {
@@ -1450,24 +1398,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         }
       }
 
-      lastRootsLength = rootsLength;
       rootsLength = serializationContext.$roots$.length;
-    }
-
-    if (uninitializedRefs.size) {
-      // We need to disable root refs for uninitialized refs.
-      // Here we need to serialize them as normal objects
-      // even if they were already seen, because we used
-      // the forwardRefs map to track them.
-      serializationContext.$outputRootRefs$ = false;
-      const lastRootIndex = serializationContext.$roots$.length;
-      let i = lastRootIndex;
-      for (const [value, forwardRefId] of uninitializedRefs) {
-        $writer$.write(',');
-        forwardRefs[forwardRefId] = i;
-        writeValue(value);
-        i++;
-      }
     }
 
     if (forwardRefs.length) {
@@ -1533,9 +1464,7 @@ function serializeWrappingFn(
 
 export function qrlToString(
   serializationContext: SerializationContext,
-  value: QRLInternal | SyncQRLInternal,
-  uninitializedRefs?: Map<unknown, number>,
-  captureRefs?: Set<unknown>
+  value: QRLInternal | SyncQRLInternal
 ) {
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
@@ -1587,20 +1516,8 @@ export function qrlToString(
       if (i > 0) {
         serializedReferences += ' ';
       }
-      const captureRef = value.$captureRef$[i];
-      if (isObject(captureRef) && uninitializedRefs) {
-        if (SerializerSymbol in captureRef && uninitializedRefs.has(captureRef)) {
-          // we already seen shallow object before the qrl
-          captureRef[SerializerSymbol] = undefined;
-        }
-        if (captureRefs) {
-          // we didn't see shallow object before the qrl, so it might be shallow
-          // object if SerializerSymbol value is resolved to the UNINITIALIZED symbol
-          captureRefs.add(captureRef);
-        }
-      }
       // We refer by id so every capture needs to be a root
-      serializedReferences += serializationContext.$addRoot$(captureRef);
+      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
     }
     qrlStringInline += `[${serializedReferences}]`;
   } else if (value.$capture$ && value.$capture$.length > 0) {

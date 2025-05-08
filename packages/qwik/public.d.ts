@@ -78,4 +78,6 @@ export {
   version,
   withLocale,
   SVGAttributes,
+  HTMLElementAttrs,
+  SVGProps,
 } from './dist/core-internal';

@@ -1,4 +1,4 @@
-import { type QwikBundle, type QwikManifest } from '@builder.io/qwik/optimizer';
+import { type QwikBundle, type QwikManifest } from '@qwik.dev/core/optimizer';
 import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from '../manifest';

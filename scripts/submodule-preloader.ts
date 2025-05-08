@@ -55,11 +55,11 @@ export async function submodulePreloader(config: BuildConfig) {
       copyPublicDir: false,
       lib: {
         entry: join(config.srcQwikDir, 'core/preloader'),
-        formats: ['es'],
-        fileName: () => 'preloader.mjs',
+        formats: ['es', 'cjs'],
+        fileName: (format) => (format === 'es' ? 'preloader.mjs' : 'preloader.cjs'),
       },
       rollupOptions: {
-        external: ['@builder.io/qwik/build'],
+        external: ['@qwik.dev/core/build'],
       },
       minify: false, // This is the default, just to be explicit
       outDir: config.distQwikPkgDir,

@@ -5,7 +5,8 @@ contributors:
   - manucorporat
   - gioboa
   - maiieul
-updated_at: '2023-11-22T07:02:07Z'
+  - wmertens
+updated_at: '2025-03-18T00:00:00Z'
 created_at: '2023-05-20T00:04:28Z'
 ---
 
@@ -15,6 +16,7 @@ created_at: '2023-05-20T00:04:28Z'
 [//]: <> ( to update run: pnpm eslint.update    )
 [//]: <> ( after changing the rule metadata on  )
 [//]: <> ( packages/eslint-plugin-qwik/index.ts )
+[//]: <> ( and update the frontmatter if needed )
 [//]: <> (--------------------------------------)
 
 import './styles.css';
@@ -323,7 +325,33 @@ import './styles.css';
         </span>
         <span
           class={{
-            'icon': true,
+            'icon': false,
+            'icon icon-inactive': true,
+          }}
+        >
+          🔔
+        </span>
+      </div>
+    </a>
+  
+
+    <a href="#serializer-signal-usage" class="p-4 flex panel">
+      <div class="flex-1">
+        <code>serializer-signal-usage</code>
+        <span class="rule-description">Ensure signals used in update() are also used in deserialize()</span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span
+          class={{
+            'icon': false,
+            'icon icon-inactive': false,
+          }}
+        >
+          ✅
+        </span>
+        <span
+          class={{
+            'icon': false,
             'icon icon-inactive': false,
           }}
         >
@@ -383,7 +411,7 @@ export const Counter = (() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {1,4} /print/#a /$((msg: string)/#b)
-import { component$, useTask$, $ } from '@builder.io/qwik';
+import { component$, useTask$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = $((msg: string) => {
@@ -402,7 +430,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {1,4} /print/#a /(msg: string)/#b)
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = (msg: string) => {
@@ -424,7 +452,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {1} /click/#a
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = $(() => console.log());
@@ -438,7 +466,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {1} /click/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = () => console.log();
@@ -455,7 +483,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {4} /person/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const person = { name: 'Bob' };
@@ -474,7 +502,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {4} /personName/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   let personName = 'Bob';
@@ -504,7 +532,7 @@ export const HelloWorld = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /routeLoader$/#a title="src/routes/product/[productId]/index.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -517,7 +545,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3} /routeLoader$/#a title="src/components/product/product.tsx"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -533,7 +561,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /export/#a
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -546,7 +574,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3}
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -562,7 +590,7 @@ const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /use/#a
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -575,7 +603,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {3} /get/#a
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const getProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -591,7 +619,7 @@ export const getProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {3} /=>/#a
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 export const useProductDetails = routeLoader$(async (requestEvent) => {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -604,7 +632,7 @@ export const useProductDetails = routeLoader$(async (requestEvent) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {9} /fetcher/#a
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
  
 async function fetcher() {
   const res = await fetch(`https://.../products/${requestEvent.params.productId}`);
@@ -655,7 +683,7 @@ export const useProductDetails = routeLoader$(fetcher);
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {7-10,15,16} /class/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
  
 export default component$((props) => {
@@ -679,7 +707,7 @@ export default component$((props) => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {2,7-13} /classnames/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import classnames from 'classnames';
 import styles from './MyComponent.module.css';
  
@@ -735,7 +763,7 @@ export default component$((props) => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {13} /key=/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Person = component$(() => {
   const person  = {
@@ -758,7 +786,7 @@ export const Person = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {13}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const Person = component$(() => {
   const person  = {
@@ -784,7 +812,7 @@ export const Person = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {14} /Fragment/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Card from './Card';
 import Summary from './Summary';
 
@@ -810,7 +838,7 @@ export const Person = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {14}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Card from './Card';
 import Summary from './Summary';
 
@@ -839,7 +867,7 @@ export const Person = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {9} /key=/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -858,7 +886,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {9}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -880,7 +908,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {8,11} /Fragment/#a
-import { component$, Fragment } from '@builder.io/qwik';
+import { component$, Fragment } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -900,7 +928,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {8,11}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -923,7 +951,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {9} /key=/#a
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -942,7 +970,7 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {9} /key=/#a /not-a-good-idea/#b
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ColorList = component$(() => {
   const colors = ['red', 'green', 'blue'];
@@ -972,8 +1000,8 @@ export const ColorList = component$(() => {
 <div class="code-wrapper">
 <span class="badge good">✓</span>
 ```tsx {4,12} /serverGreeter/#a
-import { $, component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = `Hello ${firstName} ${lastName}`;
@@ -982,10 +1010,10 @@ const serverGreeter = server$((firstName: string, lastName: string) => {
  
 export default component$(() => (
     <button
-      onClick$={$(async () => {
+      onClick$={async () => {
         const greeting = await serverGreeter('John', 'Doe');
         alert(greeting);
-      })}
+      }}
     >
       greet
     </button>
@@ -997,8 +1025,8 @@ export default component$(() => (
 <div class="code-wrapper">
 <span class="badge bad">✕</span>
 ```tsx {4,12} /serverGreeter/#a
-import { component$ } from '@builder.io/qwik';
-import { server$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { server$ } from '@qwik.dev/router';
  
 const serverGreeter = server$((firstName: string, lastName: string) => {
   const greeting = `Hello ${firstName} ${lastName}`;
@@ -1083,6 +1111,62 @@ import Image from '~/media/image.png';
   
 <h4>noUseVisibleTask</h4>
 <div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/noUseVisibleTask.ts" target="_blank" class="edit-btn">Edit examples</a></div>
+
+    </div>
+  
+
+    <div class="rule-wrapper">
+      <h3 id="serializer-signal-usage">serializer-signal-usage</h3>
+      <span>Ensure signals used in update() are also used in deserialize()</span>
+  
+<h4>serializerSignalMismatch</h4>
+<p>Examples of <b>correct</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge good">✓</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: () => new MyClass(countSignal.value),
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+</div>
+<p>Examples of <b>incorrect</b> code for this rule:</p>
+<div class="code-wrapper">
+<span class="badge bad">✕</span>
+```tsx /countSignal/#a
+import { useSignal, useSerializer$ } from '@qwik.dev/core';
+import MyClass from './my-class';
+
+export default component$(() => {
+  const countSignal = useSignal(0);
+  
+  useSerializer$(() => ({
+    deserialize: (count) => new MyClass(count),
+		initial: 2,
+    update: (myClass) => {
+      myClass.count = countSignal.value;
+      return myClass;
+    }
+  }));
+
+  return <div>{myClass.count}</div>;
+});
+```
+<p class="code-description">The countSignal is used in update() but not in deserialize()</p>
+</div>
+<div class="edit-examples-wrapper"><a href="https://github.com/QwikDev/qwik/edit/main/packages/eslint-plugin-qwik/src/serializerSignalUsage.ts" target="_blank" class="edit-btn">Edit examples</a></div>
 
     </div>
   

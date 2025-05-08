@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from "@builder.io/qwik";
-import { type DocumentHead, routeAction$, Form } from "@builder.io/qwik-city";
+import { component$, useStyles$ } from "@qwik.dev/core";
+import { type DocumentHead, routeAction$, Form } from "@qwik.dev/router";
 
 export const useFormAction = routeAction$((data) => {
   // This runs on the server

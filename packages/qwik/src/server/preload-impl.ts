@@ -1,15 +1,15 @@
-import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import type { ResolvedManifest } from '../optimizer/src/types';
 import { expandBundles } from './prefetch-strategy';
+import type { SSRContainer } from './qwik-types';
 import type { PreloaderOptions } from './types';
 
 export function includePreloader(
-  base: string,
-  manifest: ResolvedManifest | undefined,
+  container: SSRContainer,
+  resolved: ResolvedManifest | undefined,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
   nonce?: string
-): JSXNode | null {
+) {
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
@@ -17,8 +17,7 @@ export function includePreloader(
     normalizePreLoaderOptions(typeof options === 'boolean' ? undefined : options);
   let allowed = ssrPreloads;
 
-  const nodes: JSXNode[] = [];
-
+  let base = container.$buildBase$!;
   if (import.meta.env.DEV) {
     // Vite dev server active
     // in dev, all bundles are absolute paths from the base url, not /build
@@ -30,9 +29,9 @@ export function includePreloader(
 
   const links = [];
 
-  const manifestHash = manifest?.manifest.manifestHash;
+  const manifestHash = resolved?.manifest.manifestHash;
   if (allowed) {
-    const expandedBundles = expandBundles(referencedBundles, manifest);
+    const expandedBundles = expandBundles(referencedBundles, resolved);
     // Keep the same as in getQueue (but *10)
     let probability = 4;
     const tenXMinProbability = ssrPreloadProbability * 10;
@@ -51,7 +50,7 @@ export function includePreloader(
     }
   }
 
-  const preloadChunk = manifestHash && manifest?.manifest.preloader;
+  const preloadChunk = manifestHash && resolved?.manifest.preloader;
   if (preloadChunk) {
     const insertLinks = links.length
       ? /**
@@ -70,10 +69,10 @@ export function includePreloader(
     if (debug) {
       opts.push('d:1');
     }
-    if (maxBufferedPreloads) {
+    if (maxBufferedPreloads !== preLoaderOptionsDefault.maxBufferedPreloads) {
       opts.push(`P:${maxBufferedPreloads}`);
     }
-    if (preloadProbability) {
+    if (preloadProbability !== preLoaderOptionsDefault.preloadProbability) {
       opts.push(`Q:${preloadProbability}`);
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
@@ -101,30 +100,23 @@ export function includePreloader(
      * preloads because they are not as important. Also the preloader includes the vitePreload
      * function and will in fact already be in that list.
      */
-    nodes.push(
-      jsx('script', {
-        type: 'module',
-        'q:type': 'preload',
-        dangerouslySetInnerHTML: script,
-        nonce,
-      })
-    );
+    const attrs = ['type', 'module', 'q:type', 'preload'];
+    if (nonce) {
+      attrs.push('nonce', nonce);
+    }
+    container.openElement('script', null, attrs);
+    container.writer.write(script);
+    container.closeElement();
   }
-
-  if (nodes.length > 0) {
-    return jsx(Fragment, { children: nodes });
-  }
-
-  return null;
 }
 
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined
 ): Required<PreloaderOptions> {
-  return { ...PreLoaderOptionsDefault, ...input };
+  return { ...preLoaderOptionsDefault, ...input };
 }
 
-const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
+const preLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloads: 5,
   ssrPreloadProbability: 0.7,
   debug: false,

@@ -215,7 +215,7 @@ plugins: {
 3. Update your Qwik component `index.tsx` to use the Device plugin:
 
 ```tsx
-import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import { Device } from '@capacitor/device';
 
 export const DeviceInfoComponent = component$(() => {
@@ -284,8 +284,8 @@ import {
   useComputed$,
   useSignal,
   useVisibleTask$,
-} from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+} from "@qwik.dev/core";
+import type { DocumentHead } from "@qwik.dev/router";
 import { LiveUpdate } from "@capawesome/capacitor-live-update";
 
 const VERSION = "1.0.0";

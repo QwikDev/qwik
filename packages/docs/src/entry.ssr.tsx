@@ -1,4 +1,4 @@
-import type { PreloaderOptions, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { PreloaderOptions, RenderToStreamOptions } from '@qwik.dev/core/server';
 import { renderToStream } from '@builder.io/qwik/server';
 import Root from './root';
 

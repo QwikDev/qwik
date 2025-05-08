@@ -1,10 +1,10 @@
-import type { NoSerialize, Signal } from '@builder.io/qwik';
+import type { NoSerialize, Signal } from '@qwik.dev/core';
 import type {
   Diagnostic,
   QwikManifest,
   QwikRollupPluginOptions,
   TransformModule,
-} from '@builder.io/qwik/optimizer';
+} from '@qwik.dev/core/optimizer';
 
 export interface ReplAppInput {
   buildId: number;
@@ -130,3 +130,7 @@ export type OutputPanel =
   | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';
+
+export interface PathInView {
+  selectedPath: string;
+}

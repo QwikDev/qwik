@@ -1,4 +1,4 @@
-import { renderToStream, RenderOptions } from "@builder.io/qwik/server";
+import { RenderOptions, renderToStream } from "@qwik.dev/core/server";
 import Root from "./root";
 
 /**

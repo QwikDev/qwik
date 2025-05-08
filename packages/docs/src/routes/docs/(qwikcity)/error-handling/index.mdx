@@ -1,5 +1,5 @@
 ---
-title: Error handling | Qwik City
+title: Error handling | Qwik Router
 contributors:
   - DustinJSilk
 updated_at: '2025-01-11T18:00:00Z'
@@ -65,9 +65,9 @@ Intercepting errors with middleware has a few usecases: you might want to hide e
 
 ```tsx
 // src/routes/plugin@errors.ts
-import { type RequestHandler } from '@builder.io/qwik-city'
-import { RedirectMessage } from '@builder.io/qwik-city/middleware/request-handler'
-import { isDev } from '@builder.io/qwik/build'
+import { type RequestHandler } from '@qwik.dev/router'
+import { RedirectMessage } from '@qwik.dev/router/middleware/request-handler'
+import { isDev } from '@qwik.dev/core/build'
 
 export const onRequest: RequestHandler = async ({ next }) => {
   try {

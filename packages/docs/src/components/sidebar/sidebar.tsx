@@ -5,8 +5,8 @@ import {
   useContext,
   useOnDocument,
   useStyles$,
-} from '@builder.io/qwik';
-import { server$, useContent, useLocation, type ContentMenu } from '@builder.io/qwik-city';
+} from '@qwik.dev/core';
+import { type ContentMenu, server$, useContent, useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
@@ -24,7 +24,7 @@ export const getMarkdownItems = server$(() => {
         return [
           k
             .replace('../../routes', '')
-            .replace('(qwikcity)/', '')
+            .replace('(qwikrouter)/', '')
             .replace('(qwik)/', '')
             .replaceAll(/([()])/g, '')
             .replace('index.mdx', '')
@@ -80,7 +80,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   const { menu } = useContent();
   const { url } = useLocation();
   const markdownItems = useComputed$(() => getMarkdownItems());
-  const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
+  const allOpen = url.pathname.startsWith('/qwikrouter/') || props.allOpen;
 
   useOnDocument(
     'DOMContentLoaded',

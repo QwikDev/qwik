@@ -1,13 +1,13 @@
 import {
-  useStore,
   component$,
   createContextId,
-  useContextProvider,
-  useContext,
   Slot,
+  useContext,
+  useContextProvider,
   useSignal,
+  useStore,
   useVisibleTask$,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export interface ContextI {
   displayName: string;
@@ -28,6 +28,7 @@ export const ContextRoot = component$(() => {
       <button id="btn-rerender" onClick$={() => count.value++}>
         Client Rerender
       </button>
+      <span id="render-count">{count.value}</span>
       <ContextApp key={count.value} />
     </div>
   );

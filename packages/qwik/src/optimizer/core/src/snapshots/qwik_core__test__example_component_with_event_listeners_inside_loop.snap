@@ -1,0 +1,413 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3979
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+import { $, component$, useStore, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+      const cart = useStore<string[]>([]);
+      const results = useSignal(['foo']);
+      function loopArrowFn(results: string[]) {
+        return results.map((item) => (
+          <span
+            onClick$={() => {
+              cart.push(item);
+            }}
+          >
+            {item}
+          </span>
+        ));
+      }
+      function loopForI(results: string[]) {
+        const items = [];
+        for (let i = 0; i < results.length; i++) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForOf(results: string[]) {
+        const items = [];
+        for (const item of results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopForIn(results: string[]) {
+        const items = [];
+        for (const key in results) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[key]);
+              }}
+            >
+              {results[key]}
+            </span>
+          );
+        }
+        return items;
+      }
+      function loopWhile(results: string[]) {
+        const items = [];
+        let i = 0;
+        while (i < results.length) {
+          items.push(
+            <span
+              onClick$={() => {
+                cart.push(results[i]);
+              }}
+            >
+              {results[i]}
+            </span>
+          );
+          i++;
+        }
+        return items;
+      }
+      return (
+        <div>
+          {results.value.map((item) => (
+            <button
+              id="second"
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          {loopArrowFn(results.value)}
+          {loopForI(results.value)}
+          {loopForOf(results.value)}
+          {loopForIn(results.value)}
+          {loopWhile(results.value)}
+        </div>
+      );
+    });
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,oBAAM,iHA+FZ\"}")
+============================= test.tsx_App_component_loopWhile_span_onClick_ycCPdh6iazg.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_loopWhile_span_onClick_ycCPdh6iazg = ()=>{
+    const [cart, i, results] = useLexicalScope();
+    cart.push(results[i]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAmEwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_loopWhile_span_onClick_ycCPdh6iazg",
+  "entry": null,
+  "displayName": "test.tsx_App_component_loopWhile_span_onClick",
+  "hash": "ycCPdh6iazg",
+  "canonicalFilename": "test.tsx_App_component_loopWhile_span_onClick_ycCPdh6iazg",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1693,
+    1755
+  ]
+}
+*/
+============================= test.tsx_App_component_loopArrowFn_span_onClick_xyQUo7XwaEM.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_loopArrowFn_span_onClick_xyQUo7XwaEM = ()=>{
+    const [cart, item] = useLexicalScope();
+    cart.push(item);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAQsB;;IACR,KAAK,IAAI,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_loopArrowFn_span_onClick_xyQUo7XwaEM",
+  "entry": null,
+  "displayName": "test.tsx_App_component_loopArrowFn_span_onClick",
+  "hash": "xyQUo7XwaEM",
+  "canonicalFilename": "test.tsx_App_component_loopArrowFn_span_onClick_xyQUo7XwaEM",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    319,
+    371
+  ]
+}
+*/
+============================= test.tsx_App_component_loopForIn_span_onClick_1mDJD4xhUZ8.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_loopForIn_span_onClick_1mDJD4xhUZ8 = ()=>{
+    const [cart, key, results] = useLexicalScope();
+    cart.push(results[key]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAmDwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,IAAI\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_loopForIn_span_onClick_1mDJD4xhUZ8",
+  "entry": null,
+  "displayName": "test.tsx_App_component_loopForIn_span_onClick",
+  "hash": "1mDJD4xhUZ8",
+  "canonicalFilename": "test.tsx_App_component_loopForIn_span_onClick_1mDJD4xhUZ8",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1319,
+    1383
+  ]
+}
+*/
+============================= test.tsx_App_component_loopForOf_span_onClick_AjlGKUbcCKY.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_loopForOf_span_onClick_AjlGKUbcCKY = ()=>{
+    const [cart, item] = useLexicalScope();
+    cart.push(item);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAoCwB;;IACR,KAAK,IAAI,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_loopForOf_span_onClick_AjlGKUbcCKY",
+  "entry": null,
+  "displayName": "test.tsx_App_component_loopForOf_span_onClick",
+  "hash": "AjlGKUbcCKY",
+  "canonicalFilename": "test.tsx_App_component_loopForOf_span_onClick_AjlGKUbcCKY",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    980,
+    1036
+  ]
+}
+*/
+============================= test.tsx_App_component_div_button_onClick_f5NwW9e63a4.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_div_button_onClick_f5NwW9e63a4 = ()=>{
+    const [cart, item] = useLexicalScope();
+    cart.push(item);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4DAmFwB;;IACR,KAAK,IAAI,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_button_onClick_f5NwW9e63a4",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_button_onClick",
+  "hash": "f5NwW9e63a4",
+  "canonicalFilename": "test.tsx_App_component_div_button_onClick_f5NwW9e63a4",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    2026,
+    2082
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+import { useStore } from "@qwik.dev/core";
+export const App_component_ckEPmXZlub0 = ()=>{
+    const cart = useStore([]);
+    const results = useSignal([
+        'foo'
+    ]);
+    function loopArrowFn(results) {
+        return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopArrowFn_span_onClick_xyQUo7XwaEM"), "App_component_loopArrowFn_span_onClick_xyQUo7XwaEM", [
+                    cart,
+                    item
+                ])
+            }, null, item, 0, "u6_0"));
+    }
+    function loopForI(results) {
+        const items = [];
+        for(let i = 0; i < results.length; i++)items.push(/*#__PURE__*/ _jsxSorted("span", {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForI_span_onClick_MXjGbUTgkco"), "App_component_loopForI_span_onClick_MXjGbUTgkco", [
+                cart,
+                i,
+                results
+            ])
+        }, null, _fnSignal((p0, p1)=>p1[p0], [
+            i,
+            results
+        ], "p1[p0]"), 0, "u6_1"));
+        return items;
+    }
+    function loopForOf(results) {
+        const items = [];
+        for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForOf_span_onClick_AjlGKUbcCKY"), "App_component_loopForOf_span_onClick_AjlGKUbcCKY", [
+                cart,
+                item
+            ])
+        }, null, item, 2, "u6_2"));
+        return items;
+    }
+    function loopForIn(results) {
+        const items = [];
+        for(const key in results)items.push(/*#__PURE__*/ _jsxSorted("span", {
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopForIn_span_onClick_1mDJD4xhUZ8"), "App_component_loopForIn_span_onClick_1mDJD4xhUZ8", [
+                cart,
+                key,
+                results
+            ])
+        }, null, _fnSignal((p0, p1)=>p1[p0], [
+            key,
+            results
+        ], "p1[p0]"), 0, "u6_3"));
+        return items;
+    }
+    function loopWhile(results) {
+        const items = [];
+        let i = 0;
+        while(i < results.length){
+            items.push(/*#__PURE__*/ _jsxSorted("span", {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_loopWhile_span_onClick_ycCPdh6iazg"), "App_component_loopWhile_span_onClick_ycCPdh6iazg", [
+                    cart,
+                    i,
+                    results
+                ])
+            }, null, _fnSignal((p0, p1)=>p1[p0], [
+                i,
+                results
+            ], "p1[p0]"), 0, "u6_4"));
+            i++;
+        }
+        return items;
+    }
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        results.value.map((item)=>/*#__PURE__*/ _jsxSorted("button", {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_button_onClick_f5NwW9e63a4"), "App_component_div_button_onClick_f5NwW9e63a4", [
+                    cart,
+                    item
+                ])
+            }, {
+                id: "second"
+            }, item, 0, "u6_5")),
+        loopArrowFn(results.value),
+        loopForI(results.value),
+        loopForOf(results.value),
+        loopForIn(results.value),
+        loopWhile(results.value)
+    ], 1, "u6_6");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAE8B;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,QAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAG;;;;QAIjB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAK;;;;QAInB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,QAAQ;;;;;yCAIP,EAAO,IAAG;;;;YAGf;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,QAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    101,
+    2370
+  ]
+}
+*/
+============================= test.tsx_App_component_loopForI_span_onClick_MXjGbUTgkco.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_loopForI_span_onClick_MXjGbUTgkco = ()=>{
+    const [cart, i, results] = useLexicalScope();
+    cart.push(results[i]);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAqBwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_loopForI_span_onClick_MXjGbUTgkco",
+  "entry": null,
+  "displayName": "test.tsx_App_component_loopForI_span_onClick",
+  "hash": "MXjGbUTgkco",
+  "canonicalFilename": "test.tsx_App_component_loopForI_span_onClick_MXjGbUTgkco",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    628,
+    690
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

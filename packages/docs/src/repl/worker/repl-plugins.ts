@@ -1,9 +1,9 @@
+import type { QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { Plugin } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
+import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
@@ -19,18 +19,19 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (!importer) {
         return id;
       }
-      if (
-        id === '@builder.io/qwik' ||
-        id === '@builder.io/qwik/jsx-runtime' ||
-        id === '@builder.io/qwik/jsx-dev-runtime'
-      ) {
-        return '\0qwikCore';
-      }
-      if (id === '@builder.io/qwik/server') {
-        return '\0qwikServer';
-      }
-      if (id === '@builder.io/qwik/preloader') {
-        return '\0qwikPreloader';
+      const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
+      if (match) {
+        const pkgPath = match[2];
+        if (pkgPath === '/server') {
+          return '\0qwikServer';
+        }
+        if (pkgPath === '/preloader') {
+          return '\0qwikPreloader';
+        }
+        if (/^(|\/jsx(-dev)?-runtime|\/internal|\/handlers.mjs)$/.test(pkgPath)) {
+          return '\0qwikCore';
+        }
+        console.error(`Unknown package ${id}`, match);
       }
       // Simple relative file resolution
       if (id.startsWith('./')) {
@@ -60,20 +61,20 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       }
       if (id === '\0qwikCore') {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
+          const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
           if (rsp) {
             return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
+        const rsp = await depResponse('@qwik.dev/core', '/core.mjs');
         if (rsp) {
           return rsp.text();
         }
         throw new Error(`Unable to load Qwik core`);
       }
       if (id === '\0qwikPreloader') {
-        const rsp = await depResponse('@builder.io/qwik', '/preloader.mjs');
+        const rsp = await depResponse('@qwik.dev/core', '/preloader.mjs');
         if (rsp) {
           return rsp.text();
         }

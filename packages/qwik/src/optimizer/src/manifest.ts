@@ -1,6 +1,10 @@
 import type { OutputBundle } from 'rollup';
-import { QWIK_PRELOADER_REAL_ID, type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
+
+// The handlers that are exported by the core package
+// See handlers.mjs
+const extraSymbols = new Set(['_run', '_task']);
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -423,6 +427,7 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
+  let qwikBundleName: string | undefined;
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
@@ -446,7 +451,6 @@ export function generateManifestFromBundles(
         }
       }
     }
-
     const bundleImports = outputBundle.imports
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
@@ -471,8 +475,12 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js/.test(m))) {
         manifest.preloader = bundleFileName;
+      } else if (
+        modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod)?\.[cm]js/.test(m))
+      ) {
+        qwikBundleName = bundleFileName;
       }
     }
 
@@ -498,6 +506,24 @@ export function generateManifestFromBundles(
       parent: segment.parent,
       loc: segment.loc,
     };
+  }
+  if (qwikBundleName) {
+    for (const symbol of extraSymbols) {
+      manifest.symbols[symbol] = {
+        origin: 'Qwik core',
+        displayName: symbol,
+        canonicalFilename: '',
+        hash: symbol,
+        ctxKind: 'function',
+        ctxName: symbol,
+        captures: false,
+        parent: null,
+        loc: [0, 0],
+      };
+      manifest.mapping[symbol] = qwikBundleName;
+    }
+  } else {
+    console.error('Qwik bundle not found, is Qwik actually used in this project?');
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

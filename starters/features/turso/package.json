@@ -28,6 +28,6 @@
     "@libsql/client": "latest"
   },
   "devDependencies": {
-    "@builder.io/qwik-city": "latest"
+    "@qwik.dev/router": "latest"
   }
 }

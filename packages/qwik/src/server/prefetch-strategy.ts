@@ -1,16 +1,17 @@
-import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import { getPlatform } from '@qwik.dev/core';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- will fix soon
 import { getQueue, preload, resetQueue } from '../core/preloader/queue';
-import type { QRLInternal } from '../core/qrl/qrl-class';
-import { flattenPrefetchResources } from './prefetch-utils';
-import type { RenderToStringOptions, SnapshotResult } from './types';
-import { getPlatform } from '@builder.io/qwik';
 import { getSymbolHash } from './platform';
+import { flattenPrefetchResources } from './prefetch-utils';
+import type { QRLInternal } from './qwik-types';
+import type { RenderToStringOptions } from './types';
 
-const getBundles = (snapshotResult: SnapshotResult | null) => {
+const getBundles = (qrls: QRLInternal[]) => {
   const platform = getPlatform();
-  return (snapshotResult?.qrls as QRLInternal[])
+  return qrls
     ?.map((qrl) => {
-      const symbol = qrl.$refSymbol$ || qrl.$symbol$;
+      const symbol = qrl.$symbol$;
       const chunk = qrl.$chunk$;
       const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
       if (result) {
@@ -22,7 +23,7 @@ const getBundles = (snapshotResult: SnapshotResult | null) => {
 };
 /** Returns paths to preload relative to the buildBase, with probabilities */
 export function getPreloadPaths(
-  snapshotResult: SnapshotResult | null,
+  qrls: QRLInternal[],
   opts: RenderToStringOptions,
   resolvedManifest: ResolvedManifest | undefined
 ): string[] {
@@ -31,7 +32,7 @@ export function getPreloadPaths(
     return [];
   }
   if (!resolvedManifest?.manifest.bundleGraph) {
-    return getBundles(snapshotResult);
+    return getBundles(qrls);
   }
 
   // TODO should we deprecate this?
@@ -49,8 +50,8 @@ export function getPreloadPaths(
 
   // If we have a bundle graph, all we need is the symbols
   const symbols = new Set<string>();
-  for (const qrl of (snapshotResult?.qrls || []) as QRLInternal[]) {
-    const symbol = getSymbolHash(qrl.$refSymbol$ || qrl.$symbol$);
+  for (const qrl of qrls) {
+    const symbol = getSymbolHash(qrl.$symbol$);
     if (symbol && symbol.length >= 10) {
       symbols.add(symbol);
     }
@@ -60,7 +61,7 @@ export function getPreloadPaths(
 
 export const expandBundles = (names: string[], resolvedManifest?: ResolvedManifest) => {
   if (!resolvedManifest?.manifest.bundleGraph) {
-    return [...new Set(names)];
+    return [8, ...new Set(names)];
   }
 
   resetQueue();

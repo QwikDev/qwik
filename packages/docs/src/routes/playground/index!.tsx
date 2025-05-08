@@ -1,13 +1,20 @@
-import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from '@builder.io/qwik';
-import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/repl';
-import { Header } from '../../components/header/header';
-import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
-import type { ReplAppInput } from '../../repl/types';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
+import {
+  $,
+  component$,
+  isBrowser,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import type { DocumentHead, RequestHandler } from '@qwik.dev/router';
+import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik';
+import { Repl } from '../../repl/repl';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
+import type { ReplAppInput } from '../../repl/types';
+import styles from './playground.css?inline';
 
 export default component$(() => {
   useStyles$(styles);

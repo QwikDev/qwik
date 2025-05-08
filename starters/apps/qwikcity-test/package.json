@@ -1,7 +1,0 @@
-{
-  "description": "QwikCity e2e app",
-  "type": "module",
-  "__qwik__": {
-    "qwikCity": true
-  }
-}

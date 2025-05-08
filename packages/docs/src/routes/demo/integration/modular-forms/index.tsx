@@ -1,9 +1,9 @@
 // @ts-nocheck
 
-import { $, component$, type QRL } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
+import { $, component$, type QRL } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 import * as v from 'valibot';
 
 const LoginSchema = v.object({

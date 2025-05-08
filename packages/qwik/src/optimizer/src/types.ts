@@ -3,15 +3,6 @@ export interface Optimizer {
   /** Transforms the input code string, does not access the file system. */
   transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
 
-  /** Transforms the input code string, does not access the file system. */
-  transformModulesSync(opts: TransformModulesOptions): TransformOutput;
-
-  /** Transforms the directory from the file system. */
-  transformFs(opts: TransformFsOptions): Promise<TransformOutput>;
-
-  /** Transforms the directory from the file system. */
-  transformFsSync(opts: TransformFsOptions): TransformOutput;
-
   /** Optimizer system use. This can be updated with a custom file system. */
   sys: OptimizerSystem;
 }
@@ -73,11 +64,6 @@ export interface TransformModulesOptions extends TransformOptions {
   input: TransformModuleInput[];
 }
 
-/** @public */
-export interface TransformFsOptions extends TransformOptions {
-  vendorRoots: string[];
-}
-
 // OPTION INPUTS ***************
 
 /** @public */
@@ -134,7 +120,7 @@ export interface Diagnostic {
   code: string | null;
   file: string;
   message: string;
-  highlights: SourceLocation[];
+  highlights: SourceLocation[] | null;
   suggestions: string[] | null;
 }
 
@@ -344,5 +330,6 @@ export interface Path {
 export interface ResolvedManifest {
   mapper: SymbolMapper;
   manifest: QwikManifest;
-  injections: GlobalInjections[];
+  injections?: GlobalInjections[];
+  bundleGraph?: QwikBundleGraph;
 }

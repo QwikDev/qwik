@@ -179,8 +179,8 @@ export function normalizeRollupOutputOptionsObject(
         if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
           return 'build/core.js';
         }
-        if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-city/lib/index.qwik.mjs'))) {
-          return 'build/qwik-city.js';
+        if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-router/lib/index.qwik.mjs'))) {
+          return 'build/qwik-router.js';
         }
 
         // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
@@ -203,7 +203,7 @@ export function normalizeRollupOutputOptionsObject(
     }
   } else if (opts.buildMode === 'production') {
     // server production output
-    // everything in same dir so './@qwik-city...' imports work from entry and chunks
+    // everything in same dir so './@qwik-router...' imports work from entry and chunks
     if (!outputOpts.chunkFileNames) {
       outputOpts.chunkFileNames = 'q-[hash].js';
     }
@@ -237,11 +237,11 @@ export function normalizeRollupOutputOptionsObject(
 }
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {
-  const loc = diagnostic.highlights[0] ?? {};
+  const loc = diagnostic.highlights?.[0];
   const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
-    loc: {
+    loc: loc && {
       column: loc.startCol,
       line: loc.startLine,
     },

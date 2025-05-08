@@ -1,17 +1,18 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { readPackageJson } from './package-json';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 
 /**
- * Builds @builder.io/server
+ * Builds @qwik.dev/core/server
  *
  * This is submodule for helping to generate server-side rendered pages, along with providing
  * utilities for prerendering and unit testing.
  */
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
+  console.log('🐰 start', submodule);
 
   const qwikDomPlugin = await bundleQwikDom(config);
   const qwikDomVersion = await getQwikDomVersion(config);
@@ -25,9 +26,10 @@ export async function submoduleServer(config: BuildConfig) {
     platform: 'node',
     target,
     external: [
-      /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
-      '@builder.io/qwik/build',
-      '@builder.io/qwik/preloader',
+      '@qwik.dev/dom',
+      '@qwik.dev/core',
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
       '@qwik-client-manifest',
     ],
   };
@@ -35,9 +37,41 @@ export async function submoduleServer(config: BuildConfig) {
   const esm = build({
     ...opts,
     format: 'esm',
-    banner: { js: getBanner('@builder.io/qwik/server', config.distVersion) },
+    banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    plugins: [
+      // uncomment this if you want to find what imports what
+      // so you can make sure client isn't being imported
+      // {
+      //   name: 'spy-resolve',
+      //   setup(build) {
+      //     build.onResolve({ filter: /./ }, (args) => {
+      //       console.log('spy-resolve', args);
+      //       return undefined;
+      //     });
+      //   },
+      // },
+      {
+        // throws an error if files from src/core are loaded, except for some allowed imports
+        name: 'forbid-core',
+        setup(build) {
+          build.onLoad({ filter: /src\/core\// }, (args) => {
+            if (
+              args.path.includes('util') ||
+              args.path.includes('shared') ||
+              // we allow building preloader into server builds
+              args.path.includes('preloader')
+            ) {
+              return null;
+            }
+            console.error('forbid-core', args);
+            throw new Error('Import of core files is not allowed in server builds.');
+          });
+        },
+      },
+      importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'),
+      qwikDomPlugin,
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
@@ -48,7 +82,7 @@ export async function submoduleServer(config: BuildConfig) {
   });
 
   const cjsBanner = [
-    getBanner('@builder.io/qwik/server', config.distVersion),
+    getBanner('@qwik.dev/core/server', config.distVersion),
     `globalThis.qwikServer = (function (module) {`,
     browserCjsRequireShim,
   ].join('\n');
@@ -63,7 +97,7 @@ export async function submoduleServer(config: BuildConfig) {
       js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
     },
     outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@builder\.io\/qwik$/, '@builder.io/qwik'), qwikDomPlugin],
+    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
@@ -103,7 +137,7 @@ async function bundleQwikDom(config: BuildConfig) {
   const qwikDomPlugin: Plugin = {
     name: 'qwikDomPlugin',
     setup(build) {
-      build.onResolve({ filter: /@builder.io\/qwik-dom/ }, () => {
+      build.onResolve({ filter: /@qwik.dev\/dom/ }, () => {
         return {
           path: outfile,
         };
@@ -124,13 +158,13 @@ const browserCjsRequireShim = `
 if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
   // shim cjs require() for core.cjs within a browser
   globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@builder.io/qwik') {
+    if (path === './core.cjs' || path === '@qwik.dev/core') {
       if (!self.qwikCore) {
         throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikCore;
     }
-    if (path === '@builder.io/qwik/build') {
+    if (path === '@qwik.dev/core/build') {
       if (!self.qwikBuild) {
         throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
       }

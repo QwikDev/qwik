@@ -18,21 +18,9 @@ importers:
 
   .:
     dependencies:
-      '@tailwindcss/typography':
-        specifier: ^0.5.16
-        version: 0.5.16(tailwindcss@4.0.12)
-      autoprefixer:
-        specifier: 10.4.19
-        version: 10.4.19(postcss@8.4.39)
       esbuild-plugin-raw:
         specifier: ^0.1.8
         version: 0.1.8(esbuild@0.20.2)
-      postcss:
-        specifier: 8.4.39
-        version: 8.4.39
-      tailwindcss:
-        specifier: 4.0.12
-        version: 4.0.12
     devDependencies:
       '@builder.io/partytown':
         specifier: 0.10.2

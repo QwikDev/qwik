@@ -953,7 +953,8 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     // the vite preload helper must be included or to prevent breaking circular dependencies
     if (
       opts.target === 'client' &&
-      (/\/(core|qwik)\/dist\/preloader\.[cm]js/.test(id) || id === '\0vite/preload-helper.js')
+      (/[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js/.test(id) ||
+        id === '\0vite/preload-helper.js')
     ) {
       return 'qwik-preloader';
     }

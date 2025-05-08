@@ -70,7 +70,11 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const compiled = await compile(file, options);
       const output = String(compiled.value);
       const addImport = `import { jsx } from '@qwik.dev/core';\n`;
+      // the _missingMdxReference call is automatically added by mdxjs
       const newDefault = `
+function _missingMdxReference(id, component, place) {
+  throw new Error("${id}: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+}
 const WrappedMdxContent = () => {
   const content = _createMdxContent({});
   return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;

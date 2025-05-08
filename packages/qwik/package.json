@@ -8,7 +8,8 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "csstype": "^3.1"
+    "csstype": "^3.1",
+    "rollup": ">= 4.39.0"
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -119,6 +120,10 @@
       "import": "./dist/optimizer.mjs",
       "require": "./dist/optimizer.cjs"
     },
+    "./preloader": {
+      "import": "./dist/preloader.mjs",
+      "require": "./dist/preloader.cjs"
+    },
     "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",
     "./server": {
@@ -133,8 +138,6 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
-    "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
-    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
     "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",

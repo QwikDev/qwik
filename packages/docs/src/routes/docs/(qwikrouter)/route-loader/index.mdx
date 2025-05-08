@@ -24,7 +24,7 @@ Route Loaders load data in the server so it becomes available to use inside Qwik
 
 Please note that route loaders should be exported only from `layout.tsx` or `index.tsx` files. But they can be declared in any valid way ES modules allow. To reuse a route loader across multiple `layout.tsx` or `index.tsx files, define it in a separate file, export it, then import it in `layout.tsx` or `index.tsx files and [`re-export`](/docs/(qwikrouter)/re-exporting-loaders/index.mdx) it as a named export.
 
-> If you want to manage common reusable routeLoaders$ it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).
+> If you want to manage common reusable `routeLoader$()`s it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception. For more information [check this section](/docs/(qwikrouter)/re-exporting-loaders/index.mdx).
 
 ```tsx /routeLoader$/ /useProductData/#a title="src/routes/product/[productId]/index.tsx"
 import { component$ } from '@qwik.dev/core';

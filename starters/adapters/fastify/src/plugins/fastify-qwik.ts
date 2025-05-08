@@ -9,6 +9,7 @@ import render from "../entry.ssr";
 export interface FastifyQwikOptions {
   distDir: string;
   buildDir: string;
+  assetsDir: string;
 }
 
 const { router, notFound } = createQwikRouter({ render, qwikRouterConfig });
@@ -17,7 +18,7 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify,
   options,
 ) => {
-  const { buildDir, distDir } = options;
+  const { buildDir, distDir, assetsDir } = options;
 
   fastify.register(fastifyStatic, {
     root: buildDir,
@@ -25,6 +26,13 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
     immutable: true,
     maxAge: "1y",
     decorateReply: false,
+  });
+
+  fastify.register(fastifyStatic, {
+    root: assetsDir,
+    prefix: "/assets",
+    immutable: true,
+    maxAge: "1y",
   });
 
   fastify.register(fastifyStatic, {

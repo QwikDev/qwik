@@ -129,7 +129,7 @@ export const CorrelationMatrix = component$<{
               <td scope="col" class="px-6 py-3">
                 <code
                   class={[
-                    'rounded px-8 py-1 inline-block',
+                    'rounded-xs px-8 py-1 inline-block',
                     { 'bg-lime-500': Math.round(callout.value * 100) >= 70 },
                     {
                       'bg-lime-300':

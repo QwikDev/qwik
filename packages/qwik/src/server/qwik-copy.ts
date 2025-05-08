@@ -62,4 +62,3 @@ export {
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
-export { getValidManifest } from '../optimizer/src/manifest';

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Diagnostic, QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { InputOptions } from 'rollup';
 import type { ReplInputOptions, ReplResult } from '../types';

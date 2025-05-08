@@ -1,4 +1,4 @@
-import type { NoSerialize } from '@qwik.dev/core';
+import type { NoSerialize, Signal } from '@qwik.dev/core';
 import type {
   Diagnostic,
   QwikManifest,
@@ -58,6 +58,7 @@ export interface ReplModuleOutput {
   path: string;
   code: string;
   size?: string;
+  shorten?: Signal<boolean>;
 }
 
 export interface ReplMessageBase {

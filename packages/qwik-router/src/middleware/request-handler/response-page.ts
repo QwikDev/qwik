@@ -1,5 +1,3 @@
-import { SerializerSymbol } from '@qwik.dev/core';
-import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
@@ -34,14 +32,6 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
   }
 
   const loaders = getRequestLoaders(requestEv);
-
-  // shallow serialize loaders data
-  for (const key in loaders) {
-    const loader = loaders[key];
-    if (typeof loader === 'object' && loader !== null) {
-      (loader as any)[SerializerSymbol] = () => _UNINITIALIZED;
-    }
-  }
 
   return {
     url: reconstructedUrl.href,

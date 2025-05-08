@@ -1,6 +1,6 @@
-import { $, componentQrl, noSerialize, useLexicalScope } from '@qwik.dev/core';
+import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _UNINITIALIZED, _wrapProp } from '../internal';
+import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../internal';
 import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import {
   createComputedQrl,
@@ -28,7 +28,6 @@ import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { StoreFlags, type CustomSerializable } from '../reactive-primitives/types';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 const DEBUG = false;
 
@@ -82,104 +81,43 @@ describe('shared-serialization', () => {
     });
     describe(constantToName(Constants.UNINITIALIZED), () => {
       it('should not serialize object', async () => {
-        const uninitializedObject = {
-          shouldNot: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-        expect(await dump(uninitializedObject)).toMatchInlineSnapshot(`
-        "
-        0 ForwardRef 0
-        1 Constant _UNINITIALIZED
-        2 ForwardRefs [
-          1
-        ]
-        (15 chars)"
-      `);
-      });
-      it('should serialize object before qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-        const qrl = inlinedQrl(() => uninitializedObject.should, 'dump_qrl', [uninitializedObject]);
-        expect(await dump(uninitializedObject, qrl)).toMatchInlineSnapshot(`
-        "
-        0 ForwardRef 0
-        1 QRL "mock-chunk#dump_qrl[0]"
-        2 Object [
-          String "should"
-          String "serialize"
-        ]
-        3 ForwardRefs [
-          2
-        ]
-        (69 chars)"
-      `);
-      });
-      it('should serialize object after qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-        const qrl = inlinedQrl(() => uninitializedObject.should, 'dump_qrl', [uninitializedObject]);
-        expect(await dump(qrl, uninitializedObject)).toMatchInlineSnapshot(`
-        "
-        0 QRL "mock-chunk#dump_qrl[1]"
-        1 Object [
-          String "should"
-          String "serialize"
-        ]
-        (59 chars)"
-      `);
-      });
-      it('should not serialize nested object', async () => {
-        const uninitializedObject = {
-          shouldNot: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
         const parent = {
-          child: uninitializedObject,
+          child: { should: 'serialize' },
         };
+
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
         expect(await dump(parent)).toMatchInlineSnapshot(`
         "
         0 Object [
           String "child"
           ForwardRef 0
         ]
-        1 Constant _UNINITIALIZED
-        2 ForwardRefs [
-          1
+        1 ForwardRefs [
+          -1
         ]
-        (30 chars)"
+        (27 chars)"
       `);
       });
-      it('should serialize nested object before qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
+      it('should serialize object before qrl', async () => {
+        const parent = {
+          child: { should: 'serialize' },
         };
 
-        const parent = {
-          child: uninitializedObject,
-        };
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
+        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
         expect(await dump(parent, qrl)).toMatchInlineSnapshot(`
         "
         0 Object [
           String "child"
           ForwardRef 0
         ]
-        1 QRL "mock-chunk#dump_qrl[0]"
+        1 QRL "mock-chunk#dump_qrl[2]"
         2 Object [
           String "should"
           String "serialize"
@@ -190,225 +128,78 @@ describe('shared-serialization', () => {
         (84 chars)"
       `);
       });
-      it('should serialize nested object after qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
+      it('should serialize object after qrl', async () => {
+        const parent = {
+          child: { should: 'serialize' },
         };
 
-        const parent = {
-          child: uninitializedObject,
-        };
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
+        (parent as any)[SerializerSymbol] = () => ({
+          child: _serializationWeakRef(parent.child),
+        });
+
+        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
         expect(await dump(qrl, parent)).toMatchInlineSnapshot(`
         "
-        0 QRL "mock-chunk#dump_qrl[1]"
-        1 Object [
-          String "child"
-          Object [
-            String "should"
-            String "serialize"
-          ]
-        ]
-        (74 chars)"
-      `);
-      });
-      it('should serialize nested root ref object before qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-
-        const parent = {
-          child: uninitializedObject,
-        };
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
-        expect(await dump(parent, uninitializedObject, qrl)).toMatchInlineSnapshot(`
-        "
-        0 Object [
-          String "child"
-          RootRef 1
-        ]
-        1 ForwardRef 0
-        2 QRL "mock-chunk#dump_qrl[0]"
-        3 Object [
-          String "should"
-          String "serialize"
-        ]
-        4 ForwardRefs [
-          3
-        ]
-        (88 chars)"
-      `);
-      });
-      it('should serialize nested root ref object after qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-
-        const parent = {
-          child: uninitializedObject,
-        };
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
-        expect(await dump(qrl, parent, uninitializedObject)).toMatchInlineSnapshot(`
-        "
-        0 QRL "mock-chunk#dump_qrl[1]"
-        1 Object [
-          String "child"
-          RootRef 2
-        ]
-        2 Object [
-          String "should"
-          String "serialize"
-        ]
-        (78 chars)"
-      `);
-      });
-      it('should serialize nested object inside wrapped signal before qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-
-        const parent = {
-          child: uninitializedObject,
-        };
-        const wrappedSignal = new WrappedSignalImpl(
-          null,
-          (obj: any) => obj.child.should,
-          [parent],
-          null
-        );
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
-        expect(await dump(wrappedSignal, qrl)).toMatchInlineSnapshot(`
-        "
-        0 WrappedSignal [
-          Number 0
-          Array [
-            Object [
-              String "child"
-              ForwardRef 0
-            ]
-          ]
-          Constant null
-          Number 3
-          Constant null
-        ]
-        1 QRL "mock-chunk#dump_qrl[2]"
-        2 RootRef "0 1 0"
-        3 Object [
-          String "should"
-          String "serialize"
-        ]
-        4 ForwardRefs [
-          3
-        ]
-        (119 chars)"
-      `);
-      });
-      it('should serialize nested object inside wrapped signal after qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-
-        const parent = {
-          child: uninitializedObject,
-        };
-        const wrappedSignal = new WrappedSignalImpl(
-          null,
-          (obj: any) => obj.child.should,
-          [parent],
-          null
-        );
-        const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent]);
-        expect(await dump(qrl, wrappedSignal)).toMatchInlineSnapshot(`
-        "
         0 QRL "mock-chunk#dump_qrl[2]"
-        1 WrappedSignal [
-          Number 0
-          Array [
-            RootRef 2
-          ]
-          Constant null
-          Number 3
-          Constant null
-        ]
-        2 Object [
-          String "child"
-          Object [
-            String "should"
-            String "serialize"
-          ]
-        ]
-        (103 chars)"
-      `);
-      });
-      it('should serialize nested object inside wrapped signal after qrl', async () => {
-        const uninitializedObject = {
-          should: 'serialize',
-        };
-        (uninitializedObject as unknown as CustomSerializable<any, any>)[SerializerSymbol] = () => {
-          return _UNINITIALIZED;
-        };
-
-        const parent = {
-          child: uninitializedObject,
-        };
-        const anotherParent = {
-          child: uninitializedObject,
-        };
-        const wrappedSignal = new WrappedSignalImpl(null, (obj: any) => obj.child, [parent], null);
-        const qrl = inlinedQrl(
-          () => {
-            const [signal] = useLexicalScope();
-            return signal.value.should;
-          },
-          'dump_qrl',
-          [wrappedSignal]
-        );
-        expect(await dump(anotherParent, wrappedSignal, qrl)).toMatchInlineSnapshot(`
-        "
-        0 Object [
+        1 Object [
           String "child"
           ForwardRef 0
         ]
-        1 WrappedSignal [
-          Number 0
-          Array [
-            Object [
-              RootRef 3
-              RootRef 4
-            ]
-          ]
-          Constant null
-          Number 3
-          Constant null
-        ]
-        2 QRL "mock-chunk#dump_qrl[1]"
-        3 RootRef "0 0"
-        4 RootRef "0 1"
-        5 Object [
+        2 Object [
           String "should"
           String "serialize"
         ]
-        6 ForwardRefs [
-          5
+        3 ForwardRefs [
+          2
         ]
-        (138 chars)"
+        (84 chars)"
       `);
       });
+
+      // it.only('should serialize wrapped signal args', async () => {
+      //   const parent = createStore(
+      //     null,
+      //     {
+      //       child: { should: 'serialize' },
+      //     },
+      //     StoreFlags.RECURSIVE
+      //   );
+
+      //   (parent as any)[SerializerSymbol] = () => ({
+      //     child: _serializationWeakRef(parent.child),
+      //   });
+
+      //   const wrappedSignal = _wrapStore(parent, 'child');
+      //   expect(await dump(parent, wrappedSignal)).toMatchInlineSnapshot(`
+      //   "
+      //   0 Store [
+      //     Object [
+      //       String "child"
+      //       ForwardRef 0
+      //     ]
+      //     Number 1
+      //   ]
+      //   1 WrappedSignal [
+      //     Number 0
+      //     Array [
+      //       RootRef 0
+      //       RootRef 2
+      //     ]
+      //     Constant null
+      //     Number 1
+      //     Constant null
+      //   ]
+      //   2 String "child"
+      //   3 Object [
+      //     String "should"
+      //     String "serialize"
+      //   ]
+      //   4 ForwardRefs [
+      //     3
+      //   ]
+      //   (79 chars)"
+      // `);
+      // });
     });
     it(title(TypeIds.Number), async () => {
       expect(await dump(123)).toMatchInlineSnapshot(`
@@ -964,7 +755,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.VNode));
     it(title(TypeIds.BigInt), async () => {
       const objs = await serialize(BigInt('12345678901234567890'));
-      const bi = deserialize(objs)[0] as BigInt;
+      const bi = deserialize(objs)[0] as bigint;
       expect(bi).toBeTypeOf('bigint');
       expect(bi.toString()).toBe('12345678901234567890');
     });
@@ -1435,7 +1226,6 @@ async function serialize(...roots: any[]): Promise<any[]> {
   }
   await sCtx.$serialize$();
   const objs = JSON.parse(sCtx.$writer$.toString());
-  // eslint-disable-next-line no-console
   DEBUG && console.log(objs);
   return objs;
 }

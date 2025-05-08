@@ -512,11 +512,10 @@ Enable efficient compression for static assets:
 # Install compression tools
 npm install -g brotli-cli gzip-cli
 
-# Compress build assets
-find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -exec sh -c '
-  brotli -k {}
-  gzip -k {}
-' \;
+# Compress build assets in parallel
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 gzip -k &
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 brotli -k &
+wait
 ```
 
 2. Configure Nginx to serve pre-compressed files:

@@ -19,8 +19,13 @@ import {
 import {
   _getContextElement,
   _getQContainerElement,
+  _UNINITIALIZED,
   _waitUntilRendered,
+  SerializerSymbol,
+  _serializationWeakRef,
   type _ElementVNode,
+  createSignal,
+  type Signal,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, Q_ROUTE } from './constants';
@@ -145,7 +150,21 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     { deep: false }
   );
   const navResolver: { r?: () => void } = {};
-  const loaderState = useStore(env.response.loaders, { deep: false });
+  const loaderState = Object.fromEntries(
+    Object.entries(env.response.loaders).map(([k, v]) => {
+      const value = createSignal(v);
+      return [k, value];
+    })
+  );
+
+  (loaderState as any)[SerializerSymbol] = async (o: Record<string, unknown>) => {
+    const resultPs = Object.entries(o).map(async ([k, val]) => {
+      const v = await val;
+      return [k, _serializationWeakRef(v)];
+    });
+    return Object.fromEntries(await Promise.all(resultPs));
+  };
+
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
@@ -278,7 +297,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
         if (!scroller) {
           scroller = document.getElementById(QWIK_CITY_SCROLLER);
-          if (scroller) {
+          if (scroller && isDev) {
             console.warn(
               `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
             );
@@ -460,12 +479,17 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           }
 
           const loaders = clientPageData?.loaders;
-          const win = window as ClientSPAWindow;
           if (loaders) {
-            Object.assign(loaderState, loaders);
+            for (const [key, value] of Object.entries(loaders)) {
+              const signal = loaderState[key] as Signal<unknown> | typeof _UNINITIALIZED;
+              if (signal && signal !== _UNINITIALIZED) {
+                signal.value = value;
+              }
+            }
           }
           CLIENT_DATA_CACHE.clear();
 
+          const win = window as ClientSPAWindow;
           if (!win._qRouterSPA) {
             // only add event listener once
             win._qRouterSPA = true;
@@ -698,7 +722,7 @@ export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) =>
     { deep: false }
   );
 
-  const loaderState = useSignal({});
+  const loaderState = {};
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =

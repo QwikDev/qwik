@@ -427,7 +427,7 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
-  let qwikBundleName: string | undefined;
+  let qwikHandlersName: string | undefined;
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
@@ -475,12 +475,10 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js/.test(m))) {
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
         manifest.preloader = bundleFileName;
-      } else if (
-        modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod)?\.[cm]js/.test(m))
-      ) {
-        qwikBundleName = bundleFileName;
+      } else if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
+        qwikHandlersName = bundleFileName;
       }
     }
 
@@ -507,7 +505,7 @@ export function generateManifestFromBundles(
       loc: segment.loc,
     };
   }
-  if (qwikBundleName) {
+  if (qwikHandlersName) {
     for (const symbol of extraSymbols) {
       manifest.symbols[symbol] = {
         origin: 'Qwik core',
@@ -520,7 +518,7 @@ export function generateManifestFromBundles(
         parent: null,
         loc: [0, 0],
       };
-      manifest.mapping[symbol] = qwikBundleName;
+      manifest.mapping[symbol] = qwikHandlersName;
     }
   } else {
     console.error('Qwik bundle not found, is Qwik actually used in this project?');

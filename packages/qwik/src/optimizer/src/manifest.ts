@@ -475,9 +475,11 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      if (modulePaths.some((m) => /\/(core|qwik)\/dist\/preloader\.[cm]js$/.test(m))) {
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js/.test(m))) {
         manifest.preloader = bundleFileName;
-      } else if (modulePaths.some((m) => /\/(core|qwik)\/dist\/core(\.prod)?\.[cm]js$/.test(m))) {
+      } else if (
+        modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(\.prod)?\.[cm]js/.test(m))
+      ) {
         qwikBundleName = bundleFileName;
       }
     }

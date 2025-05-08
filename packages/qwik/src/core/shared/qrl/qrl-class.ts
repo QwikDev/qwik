@@ -120,7 +120,9 @@ export const createQRL = <TYPE>(
               e instanceof ReferenceError &&
               ['window', 'document'].some((v) => e.message.includes(v))
             ) {
-              throw qError(QError.notUsingBrowserAPiInserver);
+              e.message =
+                'It seems like you forgot to add "if (isBrowser) {...}" here: ' + e.message;
+              throw e;
             }
           }
         }

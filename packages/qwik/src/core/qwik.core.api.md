@@ -351,13 +351,6 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
-// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
-}
-
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
 
@@ -652,6 +645,7 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
 // Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
 //
 // @public
 export type QwikHTMLElements = {
@@ -708,6 +702,8 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
+// Warning: (ae-forgotten-export) The symbol "SVGProps" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
@@ -856,6 +852,11 @@ export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => 
 
 // @internal
 export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
+
+// Warning: (ae-forgotten-export) The symbol "SerializationWeakRef" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _serializationWeakRef: (obj: unknown) => SerializationWeakRef;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
@@ -1573,10 +1574,6 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
     zoomAndPan?: string | undefined;
 }
 
-// @public (undocumented)
-export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
-}
-
 // @public
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
@@ -1865,9 +1862,6 @@ export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(...args:
 
 // @internal @deprecated (undocumented)
 export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
-
-// @internal (undocumented)
-export const _wrapStore: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => Signal<T>;
 
 // (No @packageDocumentation comment for this package)
 

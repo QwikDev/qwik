@@ -1,5 +1,4 @@
 import { type QRL } from '@qwik.dev/core';
-import { SerializerSymbol, _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -604,9 +603,6 @@ export async function renderQData(requestEv: RequestEvent) {
   for (const loaderId in allLoaders) {
     const loader = allLoaders[loaderId];
     if (loader !== null) {
-      if (typeof loader === 'object' && SerializerSymbol in loader) {
-        (loader as any)[SerializerSymbol] = undefined;
-      }
       loaders[loaderId] = loader;
     }
   }

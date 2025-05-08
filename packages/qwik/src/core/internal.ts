@@ -16,7 +16,7 @@ export type {
   VNodeFlags as _VNodeFlags,
 } from './client/types';
 export { vnode_toString as _vnode_toString } from './client/vnode';
-export { _wrapProp, _wrapSignal, _wrapStore } from './reactive-primitives/internal-api';
+export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export { _EFFECT_BACK_REF } from './reactive-primitives/types';
 export {
@@ -37,6 +37,7 @@ export {
   _deserialize,
   dumpState as _dumpState,
   preprocessState as _preprocessState,
+  _serializationWeakRef,
   _serialize,
 } from './shared/shared-serialization';
 export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS, _UNINITIALIZED } from './shared/utils/constants';

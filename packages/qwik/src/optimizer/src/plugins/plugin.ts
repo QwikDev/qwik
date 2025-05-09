@@ -949,14 +949,21 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk if it's a client build
-    // the vite preload helper must be included or to prevent breaking circular dependencies
-    if (
-      opts.target === 'client' &&
-      (/[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js/.test(id) ||
-        id === '\0vite/preload-helper.js')
-    ) {
-      return 'qwik-preloader';
+    if (opts.target === 'client') {
+      if (
+        // The preloader has to stay in a separate chunk if it's a client build
+        // the vite preload helper must be included or to prevent breaking circular dependencies
+        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
+        id === '\0vite/preload-helper.js'
+      ) {
+        return 'qwik-preloader';
+      } else if (
+        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
+        id.endsWith('@qwik.dev/core/build') ||
+        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
+      ) {
+        return 'qwik-core';
+      }
     }
 
     const module = getModuleInfo(id)!;

@@ -1,7 +1,6 @@
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { getPlatform } from '@qwik.dev/core';
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- will fix soon
-import { getQueue, preload, resetQueue } from '../core/preloader/queue';
+import { getQueue, preload, resetQueue } from './qwik-copy';
 import { getSymbolHash } from './platform';
 import { flattenPrefetchResources } from './prefetch-utils';
 import type { QRLInternal } from './qwik-types';

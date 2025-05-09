@@ -14,7 +14,6 @@ export function runQwikJsonDebug(window: Window, document: Document, debug: type
       )?.qFuncs || [];
     const debugData = debug(document, rawData, derivedFns);
     (window as any).qwikJson = debugData;
-    // eslint-disable-next-line no-console
     console.log(debugData);
   };
   if (document.querySelector('script[type="qwik/json"]')) {

@@ -30,11 +30,14 @@ const ignores = [
   'packages/docs/src/routes/examples/apps',
   'packages/docs/src/routes/playground/app',
   'packages/docs/src/routes/tutorial',
+  'packages/qwik/src/optimizer/core/src/fixtures',
+  'packages/qwik/bindings',
   'packages/qwik-labs/lib',
   'packages/qwik-labs/lib-types',
   'packages/qwik-labs/vite',
   'packages/insights/drizzle.config.ts',
   'packages/insights/panda.config.ts',
+  'packages/qwik/src/napi',
   'starters/apps/base',
   'starters/apps/library',
   'starters/templates',
@@ -46,6 +49,8 @@ const ignores = [
   // eslint.config.*
   '**/eslint.config.mjs',
   '**/eslint.config.js',
+  '.changeset',
+  'packages/docs/public/builder',
 ];
 
 export default tseslint.config(
@@ -107,6 +112,50 @@ export default tseslint.config(
     files: ['packages/docs/**/*.{ts,tsx}'],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['packages/qwik/src/server/**/*.ts'],
+    ignores: ['packages/qwik/src/server/qwik-copy.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['packages/*'],
+              message: 'Absolute imports are not allowed.',
+            },
+            {
+              group: ['../**'],
+              message: 'Relative imports are not allowed.',
+            },
+          ],
+        },
+      ],
+      'no-duplicate-imports': 'error',
+    },
+  },
+  {
+    files: ['packages/qwik/src/server/qwik-types.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['packages/*'],
+              message: 'Absolute imports are not allowed.',
+              allowTypeImports: true,
+            },
+            {
+              group: ['../**'],
+              message: 'Relative imports are not allowed.',
+              allowTypeImports: true,
+            },
+          ],
+        },
+      ],
     },
   }
 );

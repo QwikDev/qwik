@@ -1,6 +1,5 @@
-import type { ResolvedManifest } from '../optimizer/src/types';
 import { expandBundles } from './prefetch-strategy';
-import type { SSRContainer } from './qwik-types';
+import type { SSRContainer, ResolvedManifest } from './qwik-types';
 import type { PreloaderOptions } from './types';
 
 export function includePreloader(

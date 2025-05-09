@@ -61,6 +61,7 @@ import {
   type JSXOutput,
   type QRLInternal,
   type SerializationContext,
+  type SignalImpl,
   type SsrAttrKey,
   type SsrAttrValue,
   type SsrAttrs,
@@ -1150,7 +1151,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (key === 'ref') {
           const lastNode = this.getLastNode();
           if (isSignal(value)) {
-            value.value = new DomRef(lastNode);
+            (value as SignalImpl<unknown>).$untrackedValue$ = new DomRef(lastNode);
             continue;
           } else if (typeof value === 'function') {
             value(new DomRef(lastNode));

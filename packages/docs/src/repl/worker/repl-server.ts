@@ -5,7 +5,6 @@
  * - Public static html source file: "public/repl/~repl-server-host.html"
  */
 
-/* eslint-disable no-console */
 import type { ReplMessage, ReplResult } from '../types';
 
 export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {

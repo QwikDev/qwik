@@ -40,7 +40,11 @@ export function logAppCreated(pkgManager: string, result: CreateAppResult, ranIn
   if (!ranInstall) {
     outString.push(`   ${pkgManager} install`);
   }
-  outString.push(`   ${pkgManager} start`);
+  if (pkgManager === 'deno') {
+    outString.push(`   deno task start`);
+  } else {
+    outString.push(`   ${pkgManager} start`);
+  }
   outString.push(``);
 
   note(outString.join('\n'), 'Result');

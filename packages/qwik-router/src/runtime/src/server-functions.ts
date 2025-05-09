@@ -2,24 +2,28 @@ import {
   $,
   implicit$FirstArg,
   noSerialize,
-  useContext,
   useStore,
   type QRL,
   type ValueOrPromise,
+  untrack,
+  isBrowser,
+  isDev,
+  isServer,
 } from '@qwik.dev/core';
 import {
   _deserialize,
   _getContextElement,
   _getContextEvent,
   _serialize,
-  _wrapStore,
+  _useInvokeContext,
+  _UNINITIALIZED,
 } from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
 import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
-import { RouteStateContext } from './contexts';
+import { RouteLocationContext, RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -52,10 +56,9 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
-import { isDev, isServer } from '@qwik.dev/core';
-
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './utils';
+import { loadClientData } from './use-endpoint';
 
 /** @internal */
 export const routeActionQrl = ((
@@ -193,17 +196,29 @@ export const routeLoaderQrl = ((
 ): LoaderInternal => {
   const { id, validators } = getValidators(rest, loaderQrl);
   function loader() {
-    return useContext(RouteStateContext, (state) => {
-      if (!(id in state)) {
-        throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
+    const iCtx = _useInvokeContext();
+    const state = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteStateContext)!;
+    const location = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteLocationContext)!;
+
+    if (!(id in state)) {
+      throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
     This is because the routeLoader$ was not exported in a 'layout.tsx' or 'index.tsx' file of the existing route.
     For more information check: https://qwik.dev/docs/route-loader/
 
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
-      }
-      return _wrapStore(state, id);
-    });
+    }
+    const loaderData = untrack(() => state[id].value);
+    if (loaderData === _UNINITIALIZED && isBrowser) {
+      // Request the loader data from the server and throw the Promise
+      // so the client can load it synchronously.
+      throw loadClientData(location.url, iCtx.$hostElement$, {
+        loaderIds: [id],
+      }).then((clientData) => {
+        state[id].value = clientData?.loaders[id];
+      });
+    }
+    return state[id];
   }
   loader.__brand = 'server_loader' as const;
   loader.__qrl = loaderQrl;

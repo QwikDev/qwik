@@ -1,8 +1,9 @@
-module.exports = {
-  extends: '../../../../.eslintrc.cjs',
+export default tseslint.config({
   plugins: ['import'],
   ignorePatterns: ['**/*.unit.*', '**/*.spec.*'],
   rules: {
+    // Note: you must disable the base rule as it can report incorrect errors
+    'no-restricted-imports': 'off',
     '@typescript-eslint/no-restricted-imports': [
       'error',
       {
@@ -45,4 +46,4 @@ module.exports = {
       },
     },
   ],
-};
+});

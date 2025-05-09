@@ -3,17 +3,17 @@ export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _SharedContainer } from './shared/shared-container';
 export { queueQRL as _run } from './client/queue-qrl';
 export { scheduleTask as _task } from './use/use-task';
-export { _wrapSignal, _wrapProp, _wrapStore } from './reactive-primitives/internal-api';
+export { _wrapSignal, _wrapProp } from './reactive-primitives/internal-api';
 export { _restProps } from './shared/utils/prop';
-export { _IMMUTABLE } from './shared/utils/constants';
+export { _IMMUTABLE, _UNINITIALIZED } from './shared/utils/constants';
 export { _CONST_PROPS, _VAR_PROPS } from './shared/utils/constants';
-export { _weakSerialize } from './shared/utils/serialize-utils';
 export { verifySerializable as _verifySerializable } from './shared/utils/serialize-utils';
 export {
   _getContextElement,
   _getContextEvent,
   _jsxBranch,
   _waitUntilRendered,
+  useInvokeContext as _useInvokeContext,
 } from './use/use-core';
 export { _jsxSorted, _jsxSplit, isJSXNode as _isJSXNode } from './shared/jsx/jsx-runtime';
 export { _fnSignal } from './shared/qrl/inlined-fn';
@@ -35,7 +35,7 @@ export {
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
-export { _serialize, _deserialize } from './shared/shared-serialization';
+export { _serialize, _deserialize, _serializationWeakRef } from './shared/shared-serialization';
 export { _jsxQ, _jsxC, _jsxS } from './shared/jsx/jsx-runtime';
 export { _EFFECT_BACK_REF } from './reactive-primitives/types';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';

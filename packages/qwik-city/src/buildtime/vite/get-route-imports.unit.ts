@@ -63,10 +63,6 @@ describe('modifyBundleGraph', () => {
             "fake-bundle-part-of-layout.js",
           ],
         },
-        "q-city-plan.js": {
-          "dynamicImports": [],
-          "imports": undefined,
-        },
       }
     `);
   });

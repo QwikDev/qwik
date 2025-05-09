@@ -1,7 +1,6 @@
 import type { QwikBundle, QwikManifest } from '@builder.io/qwik/optimizer';
 import { removeExtension } from '../../utils/fs';
 import type { BuildRoute } from '../types';
-import { QWIK_CITY_PLAN_ID } from './plugin';
 
 export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
   const result: Record<string, { imports?: string[]; dynamicImports?: string[] }> = {};
@@ -23,15 +22,6 @@ export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
       result[route.routeName] = { dynamicImports: bundles };
     }
   });
-  for (const bundleName of Object.keys(manifest.bundles)) {
-    const bundle = manifest.bundles[bundleName];
-    if (bundle.origins?.some((s) => s.endsWith(QWIK_CITY_PLAN_ID))) {
-      // Don't consider the city plan for preloading
-      // we keep imports because something might be bundled with it
-      result[bundleName] = { imports: bundle.imports, dynamicImports: [] };
-      break;
-    }
-  }
   return result;
 }
 

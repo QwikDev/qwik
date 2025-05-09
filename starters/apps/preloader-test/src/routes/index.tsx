@@ -8,10 +8,11 @@ import {
   useStyles$,
 } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
-
+import * as libA from "../vendor-lib/libA";
+import * as libB from "../vendor-lib/libB";
 // This will be in a separate chunk due to dynamic import
-const getLibA = () => import("../vendor-lib/libA");
-const getLibB = () => import("../vendor-lib/libB");
+const getLibA = $(() => libA);
+const getLibB = $(() => libB);
 
 export default component$(() => {
   useStyles$(`
@@ -34,19 +35,16 @@ export default component$(() => {
   const count = useSignal(0);
   const message = useSignal("");
 
+  const getMessage = $(async () => {
+    const lib = count.value & 1 ? await getLibA() : await getLibB();
+    return lib.getMessage();
+  });
+
   useVisibleTask$(async ({ track }) => {
-    const lib = track(count) & 1 ? getLibA() : getLibB();
-    message.value = (await lib).getMessage();
-  });
-
-  useTask$(async () => {
     message.value = "loading...";
-  });
 
-  const handleClick$ = $(async () => {
-    count.value++;
-    const lib = await (count.value & 1 ? getLibA() : getLibB());
-    message.value = lib.getMessage();
+    track(() => count.value);
+    message.value = await getMessage();
   });
 
   return (
@@ -63,7 +61,7 @@ export default component$(() => {
       <p>Count: {count.value}</p>
       <p>Message: {message.value}</p>
       {/* event handler with $ */}
-      <button onClick$={handleClick$}>Increment</button>
+      <button onClick$={() => count.value++}>Increment</button>
       {/* inline event handler */}
       <button onClick$={() => count.value--}>Decrement</button>
     </div>

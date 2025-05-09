@@ -16,29 +16,37 @@ FEAT: Major improvements to prefetching with automatic bundle preloading
 
 ⚠️ **ATTENTION:**
 
-**Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+- **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+- **Configure** your server to provide long caching headers.
+
+Service Worker:
 
 This new implementation will use it to uninstall the current service worker to reduce the unnecessary duplication.
 
 The builtin service workers components are deprecated but still exist for backwards compatibility.
 
+Caching Headers:
+
+The files under build/ and assets/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/*` and `assets/*` with `Cache-Control: public, max-age=31536000, immutable`.
+
+However, if you changed the rollup configuration for output filenames, you will have to adjust the caching configuration accordingly.
+
 ---
 
-You can configure the prefetch behavior in your SSR configuration:
+You can configure the preload behavior in your SSR configuration:
 
 ```ts
 // entry.ssr.ts
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    prefetchStrategy: {
-      implementation: {
-        // Enable debug logging for prefetch operations
-        debug: true,
-        // Maximum simultaneous preload links
-        maxSimultaneousPreloads: 5,
-        // Minimum probability threshold for preloading
-        minPreloadProbability: 0.25
-      },
+    preload: {
+      // Enable debug logging for preload operations
+      debug: true,
+      // Maximum simultaneous preload links
+      maxBufferedPreloads: 5,
+      // Minimum probability threshold for preloading
+      preloadProbability: 0.25
+      // ...and more, see the type JSDoc on hover
     },
     ...opts,
   });

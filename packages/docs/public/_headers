@@ -1,11 +1,8 @@
+/assets/*
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+
 /build/*
   Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
-
-/fonts/*
-  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
-
-/*.png
-  Cache-Control: public, max-age=86400, s-maxage=86400
 
 /*.svg
   Cache-Control: public, max-age=86400, s-maxage=86400

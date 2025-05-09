@@ -78,7 +78,11 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
         .replace('+', '-')
         .replace('/', '_');
       const addImport = `import { jsx, _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
-      const newDefault = ` 
+      // the _missingMdxReference call is automatically added by mdxjs
+      const newDefault = `
+function _missingMdxReference(id, component, place) {
+  throw new Error("${id}: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+}
 const WrappedMdxContent = (props = {}) => {
   const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, ${JSON.stringify(key)});
   if (typeof MDXLayout === 'function'){

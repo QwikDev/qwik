@@ -49,6 +49,7 @@ import {
   maybeThen,
   qError,
   serializeAttribute,
+  initPreloader,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -93,7 +94,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import { initPreloader } from '../core/preloader/bundle-graph';
 import { includePreloader } from './preload-impl';
 
 export interface SSRRenderOptions {

@@ -1,5 +1,12 @@
 # @qwik.dev/react
 
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [[`6ddb0cf`](https://github.com/QwikDev/qwik/commit/6ddb0cf2923d09317b1c8eeb87138337c02691ea), [`7968493`](https://github.com/QwikDev/qwik/commit/79684932b0ae329dda11adb247ca7f9197235519), [`11dce5d`](https://github.com/QwikDev/qwik/commit/11dce5d0a5d104d84a2a8e84a844ab822ffb5cc4), [`eb493de`](https://github.com/QwikDev/qwik/commit/eb493deb3e1af3cb2ea9a4d1f60f822f5731f778), [`f5732f5`](https://github.com/QwikDev/qwik/commit/f5732f509853840a0337f823ed7d40920fae325b)]:
+  - @qwik.dev/core@2.0.0-alpha.10
+
 ## 2.0.0-alpha.9
 
 ### Patch Changes

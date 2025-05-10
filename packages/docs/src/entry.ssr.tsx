@@ -1,5 +1,5 @@
 import type { PreloaderOptions, RenderToStreamOptions } from '@qwik.dev/core/server';
-import { renderToStream } from '@builder.io/qwik/server';
+import { renderToStream } from '@qwik.dev/core/server';
 import Root from './root';
 
 // You can pass these as query parameters, as well as `preloadDebug`

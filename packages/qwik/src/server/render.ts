@@ -121,7 +121,7 @@ export async function renderToStream(
     }
   }
 
-  if (!resolvedManifest) {
+  if (!resolvedManifest && !isDev) {
     console.warn(
       `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
     );

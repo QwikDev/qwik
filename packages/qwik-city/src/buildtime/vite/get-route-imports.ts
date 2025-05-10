@@ -28,7 +28,9 @@ export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
     if (bundle.origins?.some((s) => s.endsWith(QWIK_CITY_PLAN_ID))) {
       result[bundleName] = {
         ...bundle,
-        dynamicImports: bundle.dynamicImports?.filter((d) => d.includes('menu')),
+        dynamicImports: bundle.dynamicImports?.filter((d) =>
+          manifest.bundles[d].origins?.some((s) => s.endsWith('menu.md'))
+        ),
       };
       break;
     }

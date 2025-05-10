@@ -345,13 +345,16 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
-          trackUrl = newURL;
+          // Change our path to the canonical path in the response unless rewrite.
+          if (!pageData.isRewrite) {
+            trackUrl = newURL;
+          }
+
           loadRoutePromise = loadRoute(
             qwikCity.routes,
             qwikCity.menus,
             qwikCity.cacheModules,
-            trackUrl.pathname
+            newURL.pathname // Load the actual required path.
           );
         }
 

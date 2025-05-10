@@ -76,7 +76,7 @@
   },
   "devDependencies": {
     "@builder.io/partytown": "0.10.2",
-    "@changesets/cli": "2.28.1",
+    "@changesets/cli": "2.29.3",
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.1.0",
     "@clack/prompts": "0.7.0",

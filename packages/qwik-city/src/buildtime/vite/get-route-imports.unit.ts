@@ -64,8 +64,12 @@ describe('modifyBundleGraph', () => {
           ],
         },
         "q-city-plan.js": {
-          "dynamicImports": [],
-          "imports": undefined,
+          "dynamicImports": undefined,
+          "origins": [
+            "@qwik-city-plan",
+          ],
+          "size": 0,
+          "total": 0,
         },
       }
     `);

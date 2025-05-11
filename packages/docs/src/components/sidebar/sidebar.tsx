@@ -1,24 +1,11 @@
-import {
-  component$,
-  sync$,
-  useComputed$,
-  useContext,
-  useOnDocument,
-  useStyles$,
-} from '@builder.io/qwik';
-import { server$, useContent, useLocation, type ContentMenu } from '@builder.io/qwik-city';
+import { component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
+import { type ContentMenu, useContent, useLocation, routeLoader$ } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
 
-let markdownItems: MarkdownItems | undefined;
-let markdownItemsPromise: Promise<MarkdownItems> | undefined;
-export const getMarkdownItems = server$(() => {
-  if (markdownItems) {
-    return markdownItems;
-  }
-
-  markdownItemsPromise ||= Promise.all(
+export const useMarkdownItems = routeLoader$(async () => {
+  const rawData = await Promise.all(
     Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
       async ([k, v]) => {
         return [
@@ -33,22 +20,20 @@ export const getMarkdownItems = server$(() => {
         ] as const;
       }
     )
-  ).then((rawData) => {
-    markdownItems = {};
-    rawData.map(([k, v]) => {
-      if (v.frontmatter?.updated_at) {
-        markdownItems![k] = {
-          title: v.frontmatter.title,
-          contributors: v.frontmatter.contributors,
-          created_at: v.frontmatter.created_at,
-          updated_at: v.frontmatter.updated_at,
-        };
-      }
-    });
-
-    return markdownItems;
+  );
+  const markdownItems: MarkdownItems = {};
+  rawData.map(([k, v]) => {
+    if (v.frontmatter?.updated_at) {
+      markdownItems[k] = {
+        title: v.frontmatter.title,
+        contributors: v.frontmatter.contributors,
+        created_at: v.frontmatter.created_at,
+        updated_at: v.frontmatter.updated_at,
+      };
+    }
   });
-  return markdownItemsPromise;
+
+  return markdownItems;
 });
 
 type MarkdownItems = Record<string, MDX>;
@@ -79,7 +64,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
   const globalStore = useContext(GlobalStore);
   const { menu } = useContent();
   const { url } = useLocation();
-  const markdownItems = useComputed$(() => getMarkdownItems());
+  const markdownItems = useMarkdownItems();
   const allOpen = url.pathname.startsWith('/qwikcity/') || props.allOpen;
 
   useOnDocument(
@@ -93,7 +78,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           el.scrollTop = savedScroll;
           el.style.visibility = 'visible';
         }
-      } catch {
+      } catch (err) {
         //
       }
     })
@@ -118,7 +103,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
             try {
               const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
               sessionStorage.setItem('qwik-sidebar', String(scrollTop));
-            } catch {
+            } catch (err) {
               //
             }
           })}

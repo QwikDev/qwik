@@ -151,6 +151,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   ],
   "paramNames": [
     "track"
+  ],
+  "captureNames": [
+    "hostElement",
+    "props",
+    "reactCmpQrl",
+    "store"
   ]
 }
 */
@@ -221,6 +227,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   ],
   "paramNames": [
     "props"
+  ],
+  "captureNames": [
+    "reactCmpQrl"
   ]
 }
 */

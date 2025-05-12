@@ -180,6 +180,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     835,
     921
+  ],
+  "captureNames": [
+    "store"
   ]
 }
 */
@@ -215,6 +218,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "{track}"
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */

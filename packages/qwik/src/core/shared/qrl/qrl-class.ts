@@ -122,8 +122,8 @@ export const createQRL = <TYPE>(
             ) {
               e.message =
                 'It seems like you forgot to add "if (isBrowser) {...}" here: ' + e.message;
-              throw e;
             }
+            throw e;
           }
         }
       } finally {

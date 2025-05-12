@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix(core): prevent server-side usage of browser APIs
+FEAT: When an error occurs during SSR due to using the browser APIs, show an explanation.

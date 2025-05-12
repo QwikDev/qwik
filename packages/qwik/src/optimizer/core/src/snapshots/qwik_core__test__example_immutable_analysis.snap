@@ -118,6 +118,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     760,
     792
+  ],
+  "paramNames": [
+    "ev"
   ]
 }
 */
@@ -238,6 +241,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     164,
     1148
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
@@ -269,6 +275,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     256,
     358
+  ],
+  "paramNames": [
+    "id"
   ]
 }
 */

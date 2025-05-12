@@ -6,7 +6,7 @@ import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-ha
 
 interface AwsOpt {
   render: Render;
-  manifest: QwikManifest;
+  manifest?: QwikManifest;
   qwikRouterConfig: QwikRouterConfig;
   /** @deprecated Use `QwikRouterConfig` instead. Will be removed in V3 */
   qwikCityPlan?: QwikCityPlan;

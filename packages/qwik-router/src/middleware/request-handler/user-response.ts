@@ -1,6 +1,4 @@
-import type { QwikManifest, ResolvedManifest } from '@qwik.dev/core/optimizer';
-import type { RequestEvent, RequestHandler } from '@qwik.dev/router';
-import type { LoadedRoute } from '../../runtime/src/types';
+import type { LoadedRoute, RequestEvent, RequestHandler } from '../../runtime/src/types';
 import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
 import {
@@ -36,7 +34,6 @@ export function runQwikRouter<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -47,7 +44,6 @@ export function runQwikRouter<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
-    manifest,
     trailingSlash,
     basePathname,
     qwikSerializer,

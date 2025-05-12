@@ -8,6 +8,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import tailwindcss from '@tailwindcss/vite';
 import shikiRehype from '@shikijs/rehype';
 import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
@@ -98,6 +99,7 @@ export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
     optimizeDeps: {
+      include: ['@docsearch/css'],
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
     },
     preview: {
@@ -117,6 +119,10 @@ export default defineConfig(async () => {
           // polyfill fetch in the edge.
           find: '@supabase/node-fetch',
           replacement: path.resolve(__dirname, 'src', 'empty.ts'),
+        },
+        {
+          find: '@docsearch/css',
+          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
       ],
     },
@@ -167,7 +173,7 @@ export default defineConfig(async () => {
         },
       }),
       qwikVite({
-        lint: false,
+        debug: false,
         experimental: ['insights'],
       }),
       partytownVite({
@@ -180,6 +186,7 @@ export default defineConfig(async () => {
       qwikReact(),
       Inspect(),
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      tailwindcss(),
     ],
     build: {
       sourcemap: true,
@@ -187,6 +194,7 @@ export default defineConfig(async () => {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
+        external: ['@docsearch/css'],
       },
     },
     clearScreen: false,

@@ -154,4 +154,19 @@ test.describe("server$", () => {
       await expect(button).toContainText("🤍");
     });
   });
+
+  test("should return 500 on invalid request", async ({ request }) => {
+    const notExistingServerFunction = await request.post(
+      "/qwikrouter-test.prod/?qfunc=ThisDoesNotExist",
+      {
+        headers: {
+          "X-Qrl": "ThisDoesNotExist",
+          "Content-Type": "application/qwik-json",
+        },
+        data: [20, "_#s_ThisDoesNotExist"],
+      },
+    );
+
+    expect(notExistingServerFunction.status()).toBe(500);
+  });
 });

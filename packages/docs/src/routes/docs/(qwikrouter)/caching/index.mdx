@@ -19,7 +19,7 @@ created_at: '2023-05-24T03:52:24Z'
 
 Caching responses is critical for keeping your site as fast as possible, both for [pages](/docs/(qwikrouter)/pages/index.mdx) as well as [middleware](/docs/(qwikrouter)/middleware/index.mdx).
 
-A good default is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. 
+A option is to use [stale-while-revalidate](https://web.dev/stale-while-revalidate/) caching for all responses. Note that this means that users will see a cached response even if the server is updated, and only when the user refreshes will they see the updated content.
 
 For instance, we can add an `onGet` export to our root [layout](/docs/(qwikrouter)/layout/index.mdx) (`src/routes/layout.tsx`) like so, to apply good caching defaults site-wide:
 
@@ -143,3 +143,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
     }, "CDN-Cache-Control");
 };
 ```
+
+### Caching bundles and assets
+
+See [Cache Headers](/docs/deployments/#cache-headers) for more information.

@@ -48,7 +48,7 @@ export function createPlatform(
       if (!modulePath.endsWith('.js')) {
         modulePath += '.js';
       }
-      const module = require(modulePath); // eslint-disable-line  @typescript-eslint/no-var-requires
+      const module = require(modulePath);
       if (!(symbolName in module)) {
         throw new Error(`Q-ERROR: missing symbol '${symbolName}' in module '${modulePath}'.`);
       }

@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import { createQwikRouter } from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
@@ -20,7 +19,9 @@ const PORT = process.env.PORT ?? 3004;
 const { router, notFound, staticFile } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
+  static: {
+    cacheControl: "public, max-age=31536000, immutable",
+  },
 });
 
 const server = createServer();

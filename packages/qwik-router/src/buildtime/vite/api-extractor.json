@@ -2,8 +2,10 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "../../api-extractor.json",
   "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/buildtime/vite/index.d.ts",
+  "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
+    "reportFileName": "qwik-city.buildtime",
     "reportFolder": "<projectFolder>/src/buildtime/vite/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/vite"
   },

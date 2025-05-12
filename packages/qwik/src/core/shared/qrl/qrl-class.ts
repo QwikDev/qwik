@@ -1,8 +1,11 @@
-import { isDev, isServer } from '@qwik.dev/core/build';
+import { isDev, isServer, isBrowser } from '@qwik.dev/core/build';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../utils/serialize-utils';
+// ^ keep these above to prevent circular dep issues
+// @ts-expect-error we don't have types for the preloader
+import { p as preload } from '@qwik.dev/core/preloader';
 import {
   invoke,
   newInvokeContext,
@@ -16,8 +19,8 @@ import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
-import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
+import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -184,6 +187,11 @@ export const createQRL = <TYPE>(
       return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
     }
 
+    if (isBrowser && chunk) {
+      /** We run the QRL, so now the probability of the chunk is 100% */
+      preload(chunk, 1);
+    }
+
     const start = now();
     const ctx = tryGetInvokeContext();
     if (symbolFn !== null) {
@@ -201,7 +209,6 @@ export const createQRL = <TYPE>(
           console.error(`qrl ${symbol} failed to load`, err);
           // We shouldn't cache rejections, we can try again later
           symbolRef = null;
-          throw err;
         }
       );
     }
@@ -251,6 +258,13 @@ export const createQRL = <TYPE>(
   }
   if (qDev) {
     seal(qrl);
+  }
+  if (isBrowser && symbol) {
+    /**
+     * Preloading the symbol instead of the chunk allows us to get probabilities for the bundle
+     * based on its contents.
+     */
+    preload(symbol, 0.8);
   }
   return qrl;
 };

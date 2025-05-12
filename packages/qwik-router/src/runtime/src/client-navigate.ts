@@ -1,5 +1,6 @@
 import { isBrowser } from '@qwik.dev/core';
-import { PREFETCHED_NAVIGATE_PATHS } from './constants';
+// @ts-expect-error we don't have types for the preloader yet
+import { p as preload } from '@qwik.dev/core/preloader';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';
 
@@ -43,9 +44,7 @@ export const newScrollState = (): ScrollState => {
 export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
-    if (!PREFETCHED_NAVIGATE_PATHS.has(path)) {
-      PREFETCHED_NAVIGATE_PATHS.add(path);
-      document.dispatchEvent(new CustomEvent('qprefetch', { detail: { links: [path] } }));
-    }
+    path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
+    preload(path, 0.8);
   }
 };

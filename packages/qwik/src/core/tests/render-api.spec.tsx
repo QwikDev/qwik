@@ -68,6 +68,7 @@ const defaultManifest: QwikManifest = {
   bundles: {},
   mapping,
   version: '1',
+  preloader: 'preloader.js',
 };
 
 const ManyEventsComponent = component$(() => {
@@ -246,7 +247,6 @@ describe('render api', () => {
         });
         expect(result).toMatchObject({
           isStatic: true,
-          prefetchResources: expect.any(Array),
           timing: expect.any(Object),
           manifest: expect.any(Object),
           snapshotResult: expect.any(Object),
@@ -431,7 +431,7 @@ describe('render api', () => {
         const secondQwikEventsScriptElement = document.body.lastChild as HTMLElement;
 
         expect(firstQwikEventsScriptElement.textContent).toContain(
-          'window.qwikevents.push("click")'
+          'window.qwikevents.push("click", "input")'
         );
         expect(secondQwikEventsScriptElement.textContent).toContain('window.qwikevents.push');
 
@@ -510,171 +510,17 @@ describe('render api', () => {
         );
       });
     });
-    describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => {
-        // TODO: not used?
-      });
-    });
-    describe('prefetchStrategy', () => {
-      it('should render with default prefetch implementation', async () => {
+    describe('preloader', () => {
+      it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-          },
-          manifest: defaultManifest,
-        });
-        expect(result.prefetchResources).toEqual(expect.any(Array));
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-            },
-          },
           manifest: defaultManifest,
         });
         const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=prefetch][as=script]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","prefetch")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-              linkRel: 'modulepreload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=modulepreload]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-              linkRel: 'modulepreload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","modulepreload")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append" and linkRel: "preload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-              linkRel: 'preload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=preload]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append" and linkRel: "preload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-              linkRel: 'preload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","preload")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with prefetchEvent: "null"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              prefetchEvent: null,
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with workerFetchInsert: "always"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              workerFetchInsert: 'always',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(1);
+        const preloadScript = document.querySelectorAll('script[q\\:type=preload]');
+        expect(preloadScript).toHaveLength(1);
+        expect(preloadScript[0]?.textContent).toContain(`createElement('link')`);
+        expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
     });
@@ -775,7 +621,7 @@ describe('render api', () => {
             symbol1: {
               canonicalFilename: 'symbol1filename',
               captures: false,
-              ctxKind: 'event',
+              ctxKind: 'eventHandler',
               ctxName: 'symbol1ctxname',
               displayName: 'symbol1displayname',
               hash: 'symbol1hash',
@@ -787,6 +633,7 @@ describe('render api', () => {
           bundles: {
             bundle1: {
               size: 1,
+              total: 1,
               dynamicImports: [],
             },
           },

@@ -1,7 +1,7 @@
 import { Image } from 'qwik-image';
 import { ClockIcon } from '../icons/clock-icon';
 import { blogArticles } from '../../data';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const FeaturedArticle = component$(() => {
   return (
@@ -32,7 +32,7 @@ export const FeaturedArticle = component$(() => {
             {blogArticles[0].tags.map((tag, key) => (
               <span
                 key={key}
-                class="mb-4 px-3 py-1 mr-2 text-xs text-[#0e201a] bg-white rounded-full backdrop-blur-sm"
+                class="mb-4 px-3 py-1 mr-2 text-xs text-[#0e201a] bg-white rounded-full backdrop-blur-xs"
               >
                 {tag}
               </span>

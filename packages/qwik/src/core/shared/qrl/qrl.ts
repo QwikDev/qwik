@@ -2,7 +2,7 @@ import { QError, qError } from '../error/error';
 import { EMPTY_ARRAY } from '../utils/flyweight';
 import { qSerialize } from '../utils/qdev';
 import { isFunction, isString } from '../utils/types';
-import { createQRL, emitEvent, type QRLInternal } from './qrl-class';
+import { createQRL, type QRLInternal } from './qrl-class';
 import type { QRL } from './qrl.public';
 
 // https://regexr.com/68v72
@@ -14,8 +14,6 @@ const EXTRACT_SELF_IMPORT = /Promise\s*\.\s*resolve/;
 
 // https://regexr.com/6a83h
 const EXTRACT_FILE_NAME = /[\\/(]([\w\d.\-_]+\.(js|ts)x?):/;
-
-const announcedQRL = /*#__PURE__*/ new Set<string>();
 
 /** @public */
 export interface QRLDev {
@@ -74,15 +72,6 @@ export const qrl = <T = any>(
     chunk = chunkOrFn;
   } else {
     throw qError(QError.unknownTypeArgument, [chunkOrFn]);
-  }
-
-  if (!announcedQRL.has(symbol)) {
-    // Emit event
-    announcedQRL.add(symbol);
-    emitEvent('qprefetch', {
-      symbols: [symbol],
-      bundles: chunk && [chunk],
-    });
   }
 
   // Unwrap subscribers

@@ -17,7 +17,7 @@
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",
-    "@microsoft/api-extractor": "7.52.1",
+    "@microsoft/api-extractor": "7.52.4",
     "@netlify/edge-functions": "2.10.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
@@ -155,7 +155,7 @@
       "require": "./lib/vite/index.cjs"
     },
     "./service-worker": {
-      "types": "./lib/service-worker.d.ts",
+      "types": "./service-worker.d.ts",
       "import": "./lib/service-worker.mjs",
       "require": "./lib/service-worker.cjs"
     },

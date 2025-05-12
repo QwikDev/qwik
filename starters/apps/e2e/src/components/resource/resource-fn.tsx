@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { component$, Resource, useResource$, useSignal } from "@qwik.dev/core";
 
 export const ResourceFn = component$(() => {

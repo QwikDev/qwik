@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/aws/
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
@@ -24,7 +23,6 @@ declare global {
 export const { handle } = createQwikRouter({
   render,
   qwikRouterConfig,
-  manifest,
 });
 
 export const qwikApp = serverless({ handle }, { binary: true });

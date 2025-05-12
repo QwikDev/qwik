@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 import type { CreateAppResult } from '../../qwik/src/cli/types';
 import { clearDir } from './helpers/clearDir';
 import { createApp } from './create-app';
-/* eslint-disable no-console */
+
 import fs from 'node:fs';
 import { getRandomJoke } from './helpers/jokes';
 import { installDepsCli } from './helpers/installDepsCli';

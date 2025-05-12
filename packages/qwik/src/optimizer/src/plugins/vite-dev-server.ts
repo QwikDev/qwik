@@ -4,15 +4,21 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
+import type {
+  OptimizerSystem,
+  Path,
+  ServerQwikManifest,
+  SymbolMapper,
+  SymbolMapperFn,
+} from '../types';
 import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
-import { type NormalizedQwikPluginOptions, parseId, QWIK_HANDLERS_ID } from './plugin';
+import { type NormalizedQwikPluginOptions, QWIK_HANDLERS_ID } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import { formatError } from './vite-utils';
+import { formatError, parseId } from './vite-utils';
 import { SYNC_QRL } from 'packages/qwik/src/core/shared/qrl/qrl-utils';
 
 function getOrigin(req: IncomingMessage) {
@@ -139,13 +145,10 @@ export async function configureDevServer(
         const render: Render = ssrModule.default ?? ssrModule.render;
 
         if (typeof render === 'function') {
-          const manifest: QwikManifest = {
+          const manifest: ServerQwikManifest = {
             manifestHash: '',
-            symbols: {},
             mapping: {},
-            bundles: {},
             injections: [],
-            version: '1',
           };
 
           const added = new Set();
@@ -212,7 +215,6 @@ export async function configureDevServer(
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly ? undefined : symbolMapper,
-            prefetchStrategy: null,
             serverData,
             containerAttributes: { ...serverData.containerAttributes },
           };

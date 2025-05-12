@@ -15,7 +15,7 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikRouterRun<T> | null> {
-  const { render, qwikRouterConfig, manifest, checkOrigin } = opts;
+  const { render, qwikRouterConfig, checkOrigin } = opts;
   if (!qwikRouterConfig) {
     throw new Error('qwikRouterConfig is required.');
   }
@@ -35,7 +35,6 @@ export async function requestHandler<T = unknown>(
       serverRequestEv,
       route,
       requestHandlers,
-      manifest,
       qwikRouterConfig.trailingSlash,
       qwikRouterConfig.basePathname,
       qwikSerializer

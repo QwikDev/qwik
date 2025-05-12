@@ -1,10 +1,10 @@
 import { ChildProcess, exec, execSync } from 'child_process';
-import { dirSync } from 'tmp';
-import { existsSync, mkdirSync, readFileSync, rmSync, rmdirSync, writeFileSync } from 'fs';
-import { promisify } from 'util';
-import { resolve, join, dirname } from 'path';
-import treeKill from 'tree-kill';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { yellow } from 'kleur/colors';
+import { dirname, join, resolve } from 'path';
+import { dirSync } from 'tmp';
+import treeKill from 'tree-kill';
+import { promisify } from 'util';
 import { createDocument } from '../../../packages/qwik/src/testing/document';
 
 export function scaffoldQwikProject(): { tmpDir: string; cleanupFn: () => void } {
@@ -106,6 +106,7 @@ export function runCommandUntil(
 
     function checkCriteria(c: any) {
       output += c.toString();
+      console.warn(output);
       if (criteria(stripConsoleColors(output)) && !complete) {
         complete = true;
         res(p);

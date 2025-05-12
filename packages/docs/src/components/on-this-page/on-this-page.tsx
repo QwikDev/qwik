@@ -13,7 +13,7 @@ const QWIK_GROUP = [
   'concepts',
   'faq',
   'getting-started',
-  'think-qwik',
+  'index',
   'deprecated-features',
 ];
 
@@ -35,23 +35,25 @@ const QWIKROUTER_GROUP = [
   'api',
   'caching',
   'endpoints',
-  'env-variables',
-  'guides',
+  'error-handling',
   'html-attributes',
   'layout',
   'middleware',
   'pages',
   'project-structure',
   'qwikrouter',
+  're-exporting-loaders',
   'route-loader',
   'routing',
   'server$',
-  'troubleshooting',
   'validator',
 ];
+
 const QWIKROUTER_ADVANCED_GROUP = [
+  'complex-forms',
   'content-security-policy',
   'menu',
+  'plugins',
   'request-handling',
   'routing',
   'sitemaps',
@@ -64,7 +66,13 @@ const makeEditPageUrl = (url: string): string => {
   if (segments[0] !== 'docs') {
     return url;
   }
+
   let group = '';
+  if (segments.length === 1) {
+    // Handle root /docs path - it maps to the qwik overview page
+    return 'docs/(qwik)';
+  }
+
   if (segments[1] == 'advanced') {
     if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
       group = '(qwik)';
@@ -79,6 +87,24 @@ const makeEditPageUrl = (url: string): string => {
 
   if (group) {
     segments.splice(1, 0, group);
+  }
+
+  // Handle special cases for components and concepts which have a different structure
+  if (segments.includes('components') || segments.includes('concepts')) {
+    // Check if this is a subpage under components or concepts
+    const componentIndex = segments.indexOf('components');
+    const conceptIndex = segments.indexOf('concepts');
+    const index = componentIndex !== -1 ? componentIndex : conceptIndex;
+
+    // If there's a subpage (like components/overview or concepts/resumable)
+    if (index !== -1 && index + 1 >= segments.length) {
+      // These are directory paths without subpaths, map to their overview pages
+      if (componentIndex !== -1) {
+        return 'docs/(qwik)/components/overview';
+      } else if (conceptIndex !== -1) {
+        return 'docs/(qwik)/concepts/think-qwik';
+      }
+    }
   }
 
   return segments.join('/');

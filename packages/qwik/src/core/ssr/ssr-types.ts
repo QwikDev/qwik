@@ -4,15 +4,15 @@ import type {
   Container,
   JSXChildren,
   JSXOutput,
+  ResolvedManifest,
   SerializationContext,
   ValueOrPromise,
 } from '../../server/qwik-types';
-import type { PrefetchResource } from '../../server/types';
-import type { QRL } from '../shared/qrl/qrl.public';
-import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
-import type { ResourceReturnInternal } from '../use/use-resource';
-import type { Signal } from '../reactive-primitives/signal.public';
 import type { VNodeData } from '../../server/vnode-data';
+import type { Signal } from '../reactive-primitives/signal.public';
+import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { ResourceReturnInternal } from '../use/use-resource';
 
 export type SsrAttrKey = string;
 export type SsrAttrValue = string | Signal<any> | boolean | object | null;
@@ -57,9 +57,9 @@ export type SymbolToChunkResolver = (symbol: string) => string;
 export interface SSRContainer extends Container {
   readonly tag: string;
   readonly writer: StreamWriter;
-  readonly prefetchResources: PrefetchResource[];
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
+  readonly resolvedManifest: ResolvedManifest;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];

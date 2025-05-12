@@ -61,6 +61,9 @@ describe('mdx', async () => {
         });
       }
 
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
       const WrappedMdxContent = () => {
         const content = _createMdxContent({});
         return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
@@ -135,6 +138,9 @@ export default function Layout({ children: content }) {
         });
       }
 
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
       const WrappedMdxContent = () => {
         const content = _createMdxContent({});
         return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;

@@ -12,6 +12,7 @@ import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './u
  */
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
+  console.log('🐰 start', submodule);
 
   const qwikDomPlugin = await bundleQwikDom(config);
   const qwikDomVersion = await getQwikDomVersion(config);
@@ -24,7 +25,13 @@ export async function submoduleServer(config: BuildConfig) {
     bundle: true,
     platform: 'node',
     target,
-    external: ['@qwik.dev/dom', '@qwik.dev/core', '@qwik.dev/core/build'],
+    external: [
+      '@qwik.dev/dom',
+      '@qwik.dev/core',
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      '@qwik-client-manifest',
+    ],
   };
 
   const esm = build({
@@ -49,7 +56,12 @@ export async function submoduleServer(config: BuildConfig) {
         name: 'forbid-core',
         setup(build) {
           build.onLoad({ filter: /src\/core\// }, (args) => {
-            if (args.path.includes('util') || args.path.includes('shared')) {
+            if (
+              args.path.includes('util') ||
+              args.path.includes('shared') ||
+              // we allow building preloader into server builds
+              args.path.includes('preloader')
+            ) {
               return null;
             }
             console.error('forbid-core', args);
@@ -93,6 +105,11 @@ export async function submoduleServer(config: BuildConfig) {
       'globalThis.IS_ESM': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+      // We need to get rid of the import.meta.env values
+      // Vite's base url
+      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      // Vite's devserver mode
+      'import.meta.env.DEV': 'false',
     },
   });
 
@@ -152,6 +169,9 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
         throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikBuild;
+    }
+    if (path === '@qwik-client-manifest') {
+      return {};
     }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };

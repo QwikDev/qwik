@@ -8,10 +8,7 @@ import { Component } from '@qwik.dev/core';
 import { SyncQRL } from '@qwik.dev/core';
 
 // @beta (undocumented)
-export const Insights: Component<    {
-publicApiKey?: string;
-postUrl?: string;
-}>;
+export const Insights: Component<unknown>;
 
 // @public (undocumented)
 export interface InsightsError {

@@ -29,11 +29,19 @@ export async function qwikInsights(qwikInsightsOpts: {
   outDir?: string;
 }): Promise<PluginOption> {
   const { publicApiKey, baseUrl = 'https://insights.qwik.dev', outDir = '' } = qwikInsightsOpts;
+
+  if (!publicApiKey) {
+    console.warn('qwikInsights: publicApiKey is required, skipping...');
+    return;
+  }
   let isProd = false;
   let jsonDir: string;
   let jsonFile: string;
   let data: InsightManifest | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
+
+  const apiUrl = `${baseUrl}/api/v1/${publicApiKey}`;
+  const postUrl = `${apiUrl}/post/`;
 
   async function loadQwikInsights(): Promise<InsightManifest | null> {
     if (data) {
@@ -49,11 +57,19 @@ export async function qwikInsights(qwikInsightsOpts: {
   const vitePlugin: PluginOption = {
     name: 'vite-plugin-qwik-insights',
     enforce: 'pre',
+    // Only activate in production builds
     apply: 'build',
     async config(viteConfig) {
       jsonDir = resolve(viteConfig.root || '.', outDir);
       jsonFile = join(jsonDir, 'q-insights.json');
       isProd = viteConfig.mode !== 'ssr';
+
+      return {
+        define: {
+          'globalThis.__QI_KEY__': JSON.stringify(publicApiKey),
+          'globalThis.__QI_URL__': JSON.stringify(postUrl),
+        },
+      };
     },
     configResolved: {
       // we want to register the bundle graph adder last so we overwrite existing routes
@@ -69,7 +85,7 @@ export async function qwikInsights(qwikInsightsOpts: {
         if (isProd) {
           try {
             const qManifest: InsightManifest = { manual: {}, prefetch: [] };
-            const response = await fetch(`${baseUrl}/api/v1/${publicApiKey}/bundles/strategy/`);
+            const response = await fetch(`${apiUrl}/bundles/strategy/`);
             const strategy = await response.json();
             Object.assign(qManifest, strategy);
             data = qManifest;
@@ -77,7 +93,7 @@ export async function qwikInsights(qwikInsightsOpts: {
             log('Fetched latest Qwik Insight data into: ' + jsonFile);
             await writeFile(jsonFile, JSON.stringify(qManifest));
           } catch (e) {
-            logWarn('Failed to fetch manifest from Insights DB', e);
+            logWarn(`Failed to fetch manifest from Insights DB at ${apiUrl}/bundles/strategy/`, e);
             await loadQwikInsights();
           }
         } else {
@@ -119,12 +135,12 @@ export async function qwikInsights(qwikInsightsOpts: {
         const qManifest = await readFile(path, 'utf-8');
 
         try {
-          await fetch(`${baseUrl}/api/v1/${publicApiKey}/post/manifest`, {
+          await fetch(`${postUrl}manifest`, {
             method: 'post',
             body: qManifest,
           });
         } catch (e) {
-          logWarn('Failed to post manifest to Insights DB', e);
+          logWarn(`Failed to post manifest to Insights DB at ${postUrl}manifest`, e);
         }
       }
     },

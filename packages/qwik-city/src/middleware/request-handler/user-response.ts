@@ -78,8 +78,8 @@ async function runNext(
         const stream = requestEv.getWritableStream();
         await stream.close();
       } else if (e instanceof RewriteMessage) {
-        if (rewriteAttempt > 5) {
-          throw new Error(`Rewrite failed - Max rewrite attempts reached: ${rewriteAttempt - 1}`);
+        if (rewriteAttempt > 50) {
+          throw new Error(`Infinite rewrite loop`);
         }
 
         rewriteAttempt += 1;

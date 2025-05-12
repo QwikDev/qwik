@@ -99,7 +99,6 @@ export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
     optimizeDeps: {
-      include: ['@docsearch/css'],
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
     },
     preview: {

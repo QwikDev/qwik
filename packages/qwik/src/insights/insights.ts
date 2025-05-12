@@ -1,6 +1,7 @@
 import { component$, sync$ } from '@qwik.dev/core';
 import { jsx } from '@qwik.dev/core/jsx-runtime';
 
+/** @public */
 export interface InsightsPayload {
   /** Qwik version */
   qVersion: string;
@@ -28,6 +29,7 @@ export interface InsightsPayload {
   symbols: InsightSymbol[];
 }
 
+/** @public */
 export interface InsightSymbol {
   /** Symbol name */
   symbol: string;
@@ -51,6 +53,7 @@ export interface InsightSymbol {
   interaction: boolean;
 }
 
+/** @public */
 export interface InsightsError {
   /** Manifest Hash of the container. */
   manifestHash: string;
@@ -208,23 +211,33 @@ declare var __QI_URL__: string;
  * @beta
  * @experimental
  */
-export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
-  ({ publicApiKey, postUrl }) => {
-    if (!__EXPERIMENTAL__.insights) {
-      throw new Error(
-        'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
-      );
-    }
-    if (!publicApiKey) {
-      return null;
-    }
+export const Insights = component$<{
+  /** The public Insights API key of your application, when using the Qwik Insights service */
+  publicApiKey?: string;
 
-    return (
-      // the script will set the variables before the qinit event
-      /* @__PURE__ */ jsx('script', {
-        'document:onQInit$': insightsPing,
-        dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`,
-      })
+  /**
+   * The URL to post the data to your own Insights service. This disables the use of the Qwik
+   * Insights service.
+   *
+   * Be sure to configure the insights plugin to use your own service.
+   */
+  postUrl?: string;
+}>(({ publicApiKey, postUrl }) => {
+  if (!__EXPERIMENTAL__.insights) {
+    throw new Error(
+      'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
     );
   }
-);
+  if (!(publicApiKey || postUrl)) {
+    return null;
+  }
+
+  // TODO configure these via the plugin instead
+  return (
+    // the script will set the variables before the qinit event
+    /* @__PURE__ */ jsx('script', {
+      'document:onQInit$': insightsPing,
+      dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`,
+    })
+  );
+});

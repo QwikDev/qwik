@@ -233,7 +233,7 @@ export interface QwikRollupPluginOptions {
 export interface QwikSymbol {
     // (undocumented)
     canonicalFilename: string;
-    // (undocumented)
+    captureNames?: string[];
     captures: boolean;
     // (undocumented)
     ctxKind: 'function' | 'eventHandler';
@@ -247,6 +247,7 @@ export interface QwikSymbol {
     loc: [number, number];
     // (undocumented)
     origin: string;
+    paramNames?: string[];
     // (undocumented)
     parent: string | null;
 }
@@ -313,6 +314,7 @@ export interface ResolvedManifest {
 interface SegmentAnalysis {
     // (undocumented)
     canonicalFilename: string;
+    captureNames?: string[];
     // (undocumented)
     captures: boolean;
     // (undocumented)
@@ -333,6 +335,7 @@ interface SegmentAnalysis {
     name: string;
     // (undocumented)
     origin: string;
+    paramNames?: string[];
     // (undocumented)
     parent: string | null;
 }

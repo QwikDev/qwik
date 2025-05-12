@@ -67,6 +67,7 @@ export default component$(() => {
             <LinkCmp href="/">Home</LinkCmp>
             <LinkCmp href="/form">Form</LinkCmp>
             <LinkCmp href="/about">About</LinkCmp>
+            <LinkCmp href="/counters">Counters</LinkCmp>
           </nav>
           <label class="toggle-label">
             <input type="checkbox" bind:checked={isSPA} />

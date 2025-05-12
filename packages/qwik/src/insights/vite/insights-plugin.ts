@@ -1,6 +1,6 @@
 import type { QwikVitePlugin, SmartEntryStrategy } from '@qwik.dev/core/optimizer';
-import { existsSync, mkdirSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
+import { existsSync, mkdirSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { PluginOption } from 'vite';
 

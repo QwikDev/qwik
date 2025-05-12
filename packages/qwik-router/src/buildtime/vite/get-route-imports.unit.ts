@@ -66,7 +66,7 @@ describe('modifyBundleGraph', () => {
         "q-router-config.js": {
           "dynamicImports": undefined,
           "origins": [
-            "@qwik-city-plan",
+            "@qwik-router-config",
           ],
           "size": 0,
           "total": 0,

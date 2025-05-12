@@ -76,6 +76,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     253,
     330
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
@@ -116,6 +119,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     541,
     593
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */

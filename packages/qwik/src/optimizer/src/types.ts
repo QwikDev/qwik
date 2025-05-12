@@ -97,6 +97,10 @@ export interface SegmentAnalysis {
   ctxName: string;
   captures: boolean;
   loc: [number, number];
+  /** The parameter names if it's a function with parameters */
+  paramNames?: string[];
+  /** The transformed names of scoped variables, if any */
+  captureNames?: string[];
 }
 
 // RESULT OUTPUT ***************
@@ -264,9 +268,14 @@ export interface QwikSymbol {
   canonicalFilename: string;
   ctxKind: 'function' | 'eventHandler';
   ctxName: string;
+  /** Whether the symbol captures a variable */
   captures: boolean;
   parent: string | null;
   loc: [number, number];
+  /** The parameter names if it's a function with parameters */
+  paramNames?: string[];
+  /** The transformed names of scoped variables, if any */
+  captureNames?: string[];
 }
 
 /** @public */

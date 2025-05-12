@@ -130,6 +130,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ],
   "paramNames": [
     "props"
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */

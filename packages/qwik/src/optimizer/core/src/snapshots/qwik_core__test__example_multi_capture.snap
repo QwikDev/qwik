@@ -138,6 +138,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     122,
     217
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */
@@ -170,6 +173,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     277,
     331
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */

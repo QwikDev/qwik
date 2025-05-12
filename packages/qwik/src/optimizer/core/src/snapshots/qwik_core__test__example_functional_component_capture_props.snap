@@ -58,6 +58,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     319,
     353
+  ],
+  "captureNames": [
+    "count",
+    "state"
   ]
 }
 */
@@ -167,6 +171,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     282,
     456
+  ],
+  "captureNames": [
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "I2",
+    "I3",
+    "I4",
+    "I5",
+    "I6",
+    "I7",
+    "I8",
+    "count",
+    "state"
   ]
 }
 */

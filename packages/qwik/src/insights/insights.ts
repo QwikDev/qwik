@@ -1,4 +1,4 @@
-import { component$, sync$ } from '@qwik.dev/core';
+import { component$, isDev, sync$ } from '@qwik.dev/core';
 import { jsx } from '@qwik.dev/core/jsx-runtime';
 
 /** @public */
@@ -79,6 +79,12 @@ interface QSymbolDetail {
   reqTime: number;
   symbol: string;
 }
+
+// Injected by the vite plugin
+// eslint-disable-next-line no-var
+declare var __QI_KEY__: string;
+// eslint-disable-next-line no-var
+declare var __QI_URL__: string;
 
 // We use a self-invoking function to minify the code, renaming long globals and attributes
 // the qwik optimizer only minifies somewhat, so put all var declarations in the same line
@@ -173,41 +179,27 @@ export const insightsPing = sync$(() =>
   })(window as any, document, location, navigator, performance, Math.round, JSON.stringify)
 );
 
-// We don't add window. to save some bytes
-declare var __QI_KEY__: string;
-declare var __QI_URL__: string;
-
 /**
  * @beta
  * @experimental
  */
-export const Insights = component$<{
-  /** The public Insights API key of your application, when using the Qwik Insights service */
-  publicApiKey?: string;
-
-  /**
-   * The URL to post the data to your own Insights service. This disables the use of the Qwik
-   * Insights service.
-   *
-   * Be sure to configure the insights plugin to use your own service.
-   */
-  postUrl?: string;
-}>(({ publicApiKey, postUrl }) => {
+export const Insights = component$(() => {
   if (!__EXPERIMENTAL__.insights) {
     throw new Error(
       'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
     );
   }
-  if (!(publicApiKey || postUrl)) {
+  const key = (globalThis as any).__QI_KEY__;
+  const url = (globalThis as any).__QI_URL__;
+  if (!key || !url) {
+    if (!isDev) {
+      console.warn('<Insights />: no config from qwikInsights plugin, skipping...');
+    }
     return null;
   }
-
-  // TODO configure these via the plugin instead
-  return (
-    // the script will set the variables before the qinit event
-    /* @__PURE__ */ jsx('script', {
-      'document:onQInit$': insightsPing,
-      dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`,
-    })
-  );
+  return /* @__PURE__ */ jsx('script', {
+    'document:onQInit$': insightsPing,
+    // We must pass the vite injected variables via window because sync$ code doesn't get replaced by the vite plugin
+    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)}`,
+  });
 });

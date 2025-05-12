@@ -14,7 +14,7 @@ import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs
 import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import type { ShikiTransformer } from '@shikijs/types';
 
-const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
+const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
 
 // https://github.com/vitejs/vite/issues/15012#issuecomment-1825035992
@@ -184,7 +184,7 @@ export default defineConfig(async () => {
       sourceResolver(docsDir),
       qwikReact(),
       Inspect(),
-      qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
     ],
     build: {

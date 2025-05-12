@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createServerClient as serverClint } from '@supabase/ssr';
+import { createServerClient as serverClient } from '@supabase/ssr';
 import type { CookieMethodsBrowser, CookieOptionsWithName } from '@supabase/ssr';
 import type {
   GenericSchema,
@@ -32,7 +32,7 @@ export function createServerClient<
     );
   }
 
-  return serverClint<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+  return serverClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
     ...options,
     global: {
       ...options?.global,

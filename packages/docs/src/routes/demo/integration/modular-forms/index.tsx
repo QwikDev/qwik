@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import type { InitialValues, SubmitHandler } from '@modular-forms/qwik';
 import { formAction$, useForm, valiForm$ } from '@modular-forms/qwik';
 import { $, component$, type QRL } from '@qwik.dev/core';

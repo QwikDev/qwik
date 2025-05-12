@@ -1,4 +1,4 @@
-import { $, component$, useSignal } from '@qwik.dev/core';
+import { $, component$, createSignal, useSignal } from '@qwik.dev/core';
 import { CodeBlock } from '../components/code-block/code-block';
 import type { ReplModuleOutput } from './types';
 const FILE_MODULE_DIV_ID = 'file-modules-client-modules';
@@ -35,22 +35,34 @@ export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutput
         </div>
       </div>
       <div class="file-modules" id={FILE_MODULE_DIV_ID}>
-        {outputs.map((o, i) => (
-          <div class="file-item" data-output-item={i} key={o.path}>
-            <div class="file-info">
-              <span>{o.path}</span>
-              {o.size ? <span class="file-size">({o.size})</span> : null}
+        {outputs.map((o, i) => {
+          const isLarge = o.code.length > 3000;
+          if (isLarge && !o.shorten) {
+            o.shorten = createSignal(true);
+          }
+          const code = o.shorten?.value ? o.code.slice(0, 3000) : o.code;
+          return (
+            <div class="file-item" data-output-item={i} key={o.path}>
+              <div class="file-info">
+                <span>{o.path}</span>
+                {o.size ? <span class="file-size">({o.size})</span> : null}
+              </div>
+              <div class="file-text">
+                <CodeBlock
+                  pathInView$={pathInView$}
+                  path={o.path}
+                  code={code}
+                  observerRootId={FILE_MODULE_DIV_ID}
+                />
+                {o.shorten && (
+                  <button onClick$={() => (o.shorten!.value = !o.shorten!.value)}>
+                    {o.shorten!.value ? 'Truncated - show more' : 'Show less'}
+                  </button>
+                )}
+              </div>
             </div>
-            <div class="file-text">
-              <CodeBlock
-                pathInView$={pathInView$}
-                path={o.path}
-                code={o.code}
-                observerRootId={FILE_MODULE_DIV_ID}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

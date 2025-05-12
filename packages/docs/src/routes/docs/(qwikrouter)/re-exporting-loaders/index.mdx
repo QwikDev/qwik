@@ -14,7 +14,7 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 `routeAction$` and `routeLoader$` are typically declared in route boundary files such as layout.tsx, index.tsx and plugin.tsx inside the routesDir directory
 [here is docs](https://qwik.dev/docs/route-loader/).
 
-Sometimes you would like to declared them outside of the route boundaries.
+Sometimes you would like to declare them outside of the route boundaries.
 This may be useful when you want to create reusable logic or a library.
 In such a case, it is essential that this function is re-exported from within the router boundary otherwise it will not run or throw exception.
 
@@ -96,7 +96,7 @@ Here, if this library needs `routeAction$` or `routeLoader$` we must re-export t
 <CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
 ```tsx
 import { component$ } from '@qwik.dev/core';
-import { ThirdPartyPaymentComponent } from './third-party-library';
+import { ThirdPartyPaymentComponent, useThirdPartyPaymentLoader } from './third-party-library';
 
 // As mentioned, here we are re-exporting the third-party loader
 export { useThirdPartyPaymentLoader } from './third-party-library';

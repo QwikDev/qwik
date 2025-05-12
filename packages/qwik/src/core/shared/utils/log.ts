@@ -16,7 +16,7 @@ export const throwErrorAndStop = (message?: any, ...optionalParams: any[]): neve
 };
 
 export const logErrorAndStop = (message?: any, ...optionalParams: any[]) => {
-  const err = createAndLogError(true, message, ...optionalParams);
+  const err = createAndLogError(qDev, message, ...optionalParams);
   // eslint-disable-next-line no-debugger
   debugger;
   return err;

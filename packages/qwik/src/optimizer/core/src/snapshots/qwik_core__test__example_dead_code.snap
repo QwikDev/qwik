@@ -47,6 +47,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     107,
     199
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

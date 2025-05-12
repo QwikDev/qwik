@@ -212,6 +212,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     237,
     354
+  ],
+  "paramNames": [
+    "{track}"
   ]
 }
 */
@@ -247,6 +250,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     211,
     399
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

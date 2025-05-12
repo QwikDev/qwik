@@ -69,6 +69,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "loc": [
     67,
     393
+  ],
+  "paramNames": [
+    "decl1",
+    "{decl2}",
+    "[decl3]"
   ]
 }
 */

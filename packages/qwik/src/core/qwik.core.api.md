@@ -16,11 +16,21 @@ import { ValueOrPromise as ValueOrPromise_2 } from '..';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "AsyncComputedCtx" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type AsyncComputedFn<T> = (ctx: TaskCtx) => Promise<T>;
+export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
-export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+    // (undocumented)
+    error: Error | null;
+    // (undocumented)
+    pending: boolean;
+}
+
+// @public (undocumented)
+export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];

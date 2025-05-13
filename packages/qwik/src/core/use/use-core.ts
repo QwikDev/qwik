@@ -3,7 +3,7 @@ import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { AsyncComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
+import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
 import { isArray } from '../shared/utils/types';
 import { setLocale } from './use-locale';
@@ -32,7 +32,6 @@ export type PossibleEvents =
   | SimplifiedServerRequestEvent
   | typeof TaskEvent
   | typeof RenderEvent
-  | typeof AsyncComputedEvent
   | typeof ResourceEvent;
 
 export interface RenderInvokeContext extends InvokeContext {

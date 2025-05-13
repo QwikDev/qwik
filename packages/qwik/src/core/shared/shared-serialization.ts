@@ -56,6 +56,7 @@ import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -290,7 +291,8 @@ const inflate = (
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
     case TypeIds.SerializerSignal:
-    case TypeIds.ComputedSignal: {
+    case TypeIds.ComputedSignal:
+    case TypeIds.AsyncComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
       const d = data as [QRLInternal<() => {}>, EffectSubscription[] | null, unknown?];
       computed.$computeQrl$ = d[0];
@@ -498,6 +500,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new WrappedSignalImpl(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
+    case TypeIds.AsyncComputedSignal:
+      return new AsyncComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store:
@@ -1166,7 +1170,12 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         if (v !== NEEDS_COMPUTATION) {
           out.push(v);
         }
-        output(TypeIds.ComputedSignal, out);
+        output(
+          value instanceof AsyncComputedSignalImpl
+            ? TypeIds.AsyncComputedSignal
+            : TypeIds.ComputedSignal,
+          out
+        );
       } else {
         output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
       }
@@ -1825,6 +1834,7 @@ export const enum TypeIds {
   Signal,
   WrappedSignal,
   ComputedSignal,
+  AsyncComputedSignal,
   SerializerSignal,
   Store,
   StoreArray,
@@ -1862,6 +1872,7 @@ export const _typeIdNames = [
   'Signal',
   'WrappedSignal',
   'ComputedSignal',
+  'AsyncComputedSignal',
   'SerializerSignal',
   'Store',
   'StoreArray',

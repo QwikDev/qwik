@@ -9,10 +9,10 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
-  triggerEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
+import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -42,43 +42,24 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   get value() {
-    const ctx = tryGetInvokeContext();
-    if (ctx) {
-      if (this.$container$ === null) {
-        if (!ctx.$container$) {
-          return this.untrackedValue;
-        }
-        // Grab the container now we have access to it
-        this.$container$ = ctx.$container$;
-      } else {
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
-      }
-      const effectSubscriber = ctx.$effectSubscriber$;
-      if (effectSubscriber) {
-        const effects = (this.$effects$ ||= new Set());
-        // Let's make sure that we have a reference to this effect.
-        // Adding reference is essentially adding a subscription, so if the signal
-        // changes we know who to notify.
-        ensureContainsSubscription(effects, effectSubscriber);
-        // But when effect is scheduled in needs to be able to know which signals
-        // to unsubscribe from. So we need to store the reference from the effect back
-        // to this signal.
-        ensureContainsBackRef(effectSubscriber, this);
-        addQrlToSerializationCtx(effectSubscriber, this.$container$);
-        DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
-      }
-    }
-    return this.untrackedValue;
+    return setupSignalValueAccess(
+      this,
+      () => (this.$effects$ ||= new Set()),
+      () => this.untrackedValue
+    );
   }
+
   set value(value) {
     if (value !== this.$untrackedValue$) {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
-      triggerEffects(this.$container$, this, this.$effects$);
+      this.$container$?.$scheduler$(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        null,
+        this,
+        this.$effects$
+      );
     }
   }
 
@@ -105,3 +86,47 @@ export class SignalImpl<T = any> implements Signal<T> {
     return { value: this.$untrackedValue$ };
   }
 }
+
+const addEffect = (
+  signal: SignalImpl,
+  effectSubscriber: EffectSubscription,
+  effects: Set<EffectSubscription>
+) => {
+  // Let's make sure that we have a reference to this effect.
+  // Adding reference is essentially adding a subscription, so if the signal
+  // changes we know who to notify.
+  ensureContainsSubscription(effects, effectSubscriber);
+  // But when effect is scheduled in needs to be able to know which signals
+  // to unsubscribe from. So we need to store the reference from the effect back
+  // to this signal.
+  ensureContainsBackRef(effectSubscriber, signal);
+  addQrlToSerializationCtx(effectSubscriber, signal.$container$);
+};
+
+export const setupSignalValueAccess = <T, S>(
+  target: SignalImpl<T>,
+  effectsGetter: () => Set<EffectSubscription>,
+  valueGetter: () => S
+) => {
+  const ctx = tryGetInvokeContext();
+  if (ctx) {
+    if (target.$container$ === null) {
+      if (!ctx.$container$) {
+        return valueGetter();
+      }
+      // Grab the container now we have access to it
+      target.$container$ = ctx.$container$;
+    } else {
+      assertTrue(
+        !ctx.$container$ || ctx.$container$ === target.$container$,
+        'Do not use signals across containers'
+      );
+    }
+    const effectSubscriber = ctx.$effectSubscriber$;
+    if (effectSubscriber) {
+      addEffect(target, effectSubscriber, effectsGetter());
+      DEBUG && log('read->sub', pad('\n' + target.toString(), '  '));
+    }
+  }
+  return valueGetter();
+};

@@ -5,7 +5,7 @@
   "author": "Builder Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@typescript-eslint/utils": "^8.31.0",
+    "@typescript-eslint/utils": "^8.32.1",
     "jsx-ast-utils": "^3.3.5"
   },
   "devDependencies": {
@@ -13,7 +13,7 @@
     "@builder.io/qwik-city": "workspace:^",
     "@types/eslint": "9.6.1",
     "@types/estree": "1.0.7",
-    "@typescript-eslint/rule-tester": "8.31.0",
+    "@typescript-eslint/rule-tester": "8.32.1",
     "redent": "4.0.0"
   },
   "engines": {

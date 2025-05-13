@@ -12,19 +12,19 @@
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
     "vite": "^5",
-    "vite-imagetools": "^7.0.5",
-    "zod": "3.24.3"
+    "vite-imagetools": "^7.1.0",
+    "zod": "3.24.4"
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "7.52.5",
+    "@microsoft/api-extractor": "7.52.8",
     "@netlify/edge-functions": "2.12.0",
     "@types/mdast": "4.0.4",
     "@types/node": "20.14.11",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
-    "estree-util-value-to-estree": "3.3.3",
+    "estree-util-value-to-estree": "3.4.0",
     "github-slugger": "2.0.0",
     "hast-util-heading-rank": "2.1.1",
     "hast-util-to-string": "2.0.0",

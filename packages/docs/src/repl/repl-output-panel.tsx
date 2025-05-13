@@ -5,11 +5,49 @@ import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
+import { dumpState, preprocessState } from '../../../qwik/src/core/shared/shared-serialization.ts';
+import { vnode_toString } from '../../../qwik/src/core/client/vnode.ts';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = useComputed$(
     () => store.diagnostics.length + store.monacoDiagnostics.length
   );
+
+  const domContainerFromResultHtml = useComputed$(() => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(store.htmlResult.rawHtml, 'text/html');
+    return _getDomContainer(doc.documentElement);
+  });
+
+  const parsedState = useComputed$(() => {
+    const container = domContainerFromResultHtml.value;
+    const doc = container.element;
+    const qwikStates = doc.querySelectorAll('script[type="qwik/state"]');
+    if (qwikStates.length !== 0) {
+      const data = qwikStates[qwikStates.length - 1];
+      const origState = JSON.parse(data?.textContent || '[]');
+      preprocessState(origState, container as any);
+      return origState
+        ? dumpState(origState, false, '', null)
+            //remove first new line
+            .replace(/\n/, '')
+        : 'No state found';
+    }
+    return 'No state found';
+  });
+
+  const vdomTree = useComputed$(() => {
+    const container = domContainerFromResultHtml.value;
+    return vnode_toString.call(
+      container.rootVNode as any,
+      Number.MAX_SAFE_INTEGER,
+      '',
+      true,
+      false,
+      false
+    );
+  });
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -103,8 +141,19 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
-          <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} />
+          <div class="output-result output-html flex flex-col gap-2">
+            <div>
+              <span class="code-block-info">HTML</span>
+              <CodeBlock language="markup" code={store.htmlResult.prettyHtml} />
+            </div>
+            <div>
+              <span class="code-block-info">Parsed State</span>
+              <CodeBlock language="clike" code={parsedState.value} />
+            </div>
+            <div>
+              <span class="code-block-info">VNode Tree</span>
+              <CodeBlock language="markup" code={vdomTree.value} />
+            </div>
           </div>
         ) : null}
 

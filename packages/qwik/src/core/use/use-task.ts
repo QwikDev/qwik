@@ -30,7 +30,8 @@ export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
   RESOURCE = 1 << 2,
-  DIRTY = 1 << 3,
+  ASYNC_COMPUTED = 1 << 3,
+  DIRTY = 1 << 4,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -285,7 +286,12 @@ export const isTask = (value: any): value is Task => {
  */
 export const scheduleTask = (_event: Event, element: Element) => {
   const [task] = useLexicalScope<[Task]>();
-  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
+  let type = ChoreType.TASK;
+  if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
+    type = ChoreType.VISIBLE;
+  } else if (task.$flags$ & TaskFlags.ASYNC_COMPUTED) {
+    type = ChoreType.ASYNC_COMPUTED;
+  }
   const container = getDomContainer(element);
   container.$scheduler$(type, task);
 };

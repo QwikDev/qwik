@@ -16,6 +16,12 @@ import { ValueOrPromise as ValueOrPromise_2 } from '..';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// @public (undocumented)
+export type AsyncComputedFn<T> = (ctx: TaskCtx) => Promise<T>;
+
+// @public (undocumented)
+export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
@@ -73,6 +79,9 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 
 // @public (undocumented)
 export type ComputedFn<T> = () => T;
+
+// @public (undocumented)
+export type ComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
 
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
@@ -242,9 +251,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
 export { DomContainer }
 export { DomContainer as _DomContainer }
-
-// @internal (undocumented)
-export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -550,11 +556,6 @@ export const PrefetchServiceWorker: (opts: {
     fetchBundleGraph?: boolean;
     nonce?: string;
 }) => JSXOutput;
-
-// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
-//
-// @internal
-export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 
 // @public
 export type PropFunction<T> = QRL<T>;
@@ -1621,12 +1622,20 @@ export const untrack: <T>(fn: () => T) => T;
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>;
+export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+
+// Warning: (ae-internal-missing-underscore) The name "useAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>) => AsyncComputedReturnType<T>;
+
+// @public
+export const useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => T extends Promise<any> ? never : ReadonlySignal<T>;
+export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => ComputedReturnType<T>;
 
 // @public
 export const useConstant: <T>(value: (() => T) | T) => T;
@@ -1778,9 +1787,6 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
-
-// @internal (undocumented)
-export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean): string;
 
 // @internal
 export const enum _VNodeFlags {

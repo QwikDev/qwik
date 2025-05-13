@@ -119,6 +119,27 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
+## AsyncComputedFn
+
+```typescript
+export type AsyncComputedFn<T> = (ctx: TaskCtx) => Promise<T>;
+```
+
+**References:** [TaskCtx](#taskctx)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+
+## AsyncComputedReturnType
+
+```typescript
+export type AsyncComputedReturnType<T> =
+  T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+```
+
+**References:** [ReadonlySignal](#readonlysignal)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+
 ## cache
 
 ```typescript
@@ -8432,6 +8453,47 @@ T
 T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
+
+## useAsyncComputed$
+
+Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
+
+```typescript
+useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[AsyncComputedFn](#asynccomputedfn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
 
 ## useComputed$
 

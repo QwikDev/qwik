@@ -7,13 +7,11 @@ export const enum ChoreType {
   /** Ensure that the QRL promise is resolved before processing next chores in the queue */
   QRL_RESOLVE /* ********************** */ = 1,
   RUN_QRL,
-  ASYNC_COMPUTED,
   TASK,
   NODE_DIFF,
   NODE_PROP,
   COMPONENT,
   RECOMPUTE_AND_SCHEDULE_EFFECTS,
-
   // Next macro level
   JOURNAL_FLUSH /* ******************** */ = 16,
   // Next macro level

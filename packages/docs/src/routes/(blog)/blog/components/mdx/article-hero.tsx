@@ -1,5 +1,5 @@
-import { component$ } from '@builder.io/qwik';
-import { useDocumentHead } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { useDocumentHead } from '@qwik.dev/router';
 import { Image } from 'qwik-image';
 
 type Props = { image: string; authorLink: string };

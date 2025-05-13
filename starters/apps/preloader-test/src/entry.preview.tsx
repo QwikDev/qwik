@@ -10,7 +10,7 @@
  * - https://vitejs.dev/config/preview-options.html#preview-options
  *
  */
-import { createQwikCity } from "@builder.io/qwik-city/middleware/node";
+import { createQwikCity } from "@qwik.dev/router/middleware/node";
 import qwikCityPlan from "@qwik-city-plan";
 // make sure qwikCityPlan is imported before entry
 import render from "./entry.ssr";

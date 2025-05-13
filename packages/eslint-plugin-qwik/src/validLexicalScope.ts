@@ -60,7 +60,6 @@ export const validLexicalScope = createRule({
     const esTreeNodeToTSNodeMap = services.esTreeNodeToTSNodeMap;
     const typeChecker = services.program.getTypeChecker();
     const relevantScopes: Map<any, string> = new Map();
-    let exports: ts.Symbol[] = [];
 
     function walkScope(scope: Scope.Scope) {
       scope.references.forEach((ref) => {
@@ -291,7 +290,15 @@ function _isTypeCapturable(
     return;
   }
   seen.add(type);
-  if (type.getProperty('__no_serialize__') || type.getProperty('__qwik_serializable__')) {
+  if (
+    type
+      .getProperties()
+      .some((p) =>
+        /(__no_serialize__|__qwik_serializable__|NoSerializeSymbol|SerializerSymbol)/i.test(
+          p.escapedName as string
+        )
+      )
+  ) {
     return;
   }
   const isUnknown = type.flags & ts.TypeFlags.Unknown;
@@ -511,6 +518,8 @@ function isFromQwikModule(resolvedVar) {
     const importSource = def.parent.source.value;
 
     return (
+      importSource.startsWith('@qwik.dev/core') ||
+      importSource.startsWith('@qwik.dev/router') ||
       importSource.startsWith('@builder.io/qwik') ||
       importSource.startsWith('@builder.io/qwik-city')
     );
@@ -531,7 +540,7 @@ const ALLOWED_CLASSES = {
 };
 
 const referencesOutsideGood = `
-import { component$, useTask$, $ } from '@builder.io/qwik';
+import { component$, useTask$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = $((msg: string) => {
@@ -546,7 +555,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const referencesOutsideBad = `
-import { component$, useTask$ } from '@builder.io/qwik';
+import { component$, useTask$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const print = (msg: string) => {
@@ -561,7 +570,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarGood = `
-import { component$, $ } from '@builder.io/qwik';
+import { component$, $ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = $(() => console.log());
@@ -571,7 +580,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const invalidJsxDollarBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const click = () => console.log();
@@ -581,7 +590,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierGood = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   const person = { name: 'Bob' };
@@ -596,7 +605,7 @@ export const HelloWorld = component$(() => {
 });`.trim();
 
 const mutableIdentifierBad = `
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const HelloWorld = component$(() => {
   let personName = 'Bob';

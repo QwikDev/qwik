@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
-import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import { SYNC_QRL } from '../../../core/qrl/qrl-class';
 import type {
   OptimizerSystem,
   Path,
@@ -16,10 +15,11 @@ import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
 import perfWarning from './perf-warning.html?raw';
-import { type NormalizedQwikPluginOptions } from './plugin';
+import { type NormalizedQwikPluginOptions, QWIK_HANDLERS_ID } from './plugin';
 import type { QwikViteDevResponse } from './vite';
 import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
 import { formatError, parseId } from './vite-utils';
+import { SYNC_QRL } from 'packages/qwik/src/core/shared/qrl/qrl-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -43,6 +43,10 @@ function createSymbolMapper(base: string): SymbolMapperFn {
       return [symbolName, ''];
     }
     if (!parent) {
+      // Core symbols
+      if (symbolName.startsWith('_')) {
+        return [symbolName, `${base}${QWIK_HANDLERS_ID}`];
+      }
       console.error(
         'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
         symbolName
@@ -58,7 +62,7 @@ function createSymbolMapper(base: string): SymbolMapperFn {
 
 let lazySymbolMapper: ReturnType<typeof createSymbolMapper> | null = null;
 /**
- * @alpha
+ * @beta
  *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
  *
  *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
@@ -88,8 +92,8 @@ export async function configureDevServer(
     // we just needed the symbolMapper
     return;
   }
-  const hasQwikCity = server.config.plugins?.some(
-    (plugin) => plugin.name === 'vite-plugin-qwik-city'
+  const hasQwikRouter = server.config.plugins?.some(
+    (plugin) => plugin.name === 'vite-plugin-qwik-router'
   );
 
   // to maintain css importers after HMR
@@ -104,12 +108,12 @@ export async function configureDevServer(
 
       if (shouldSsrRender(req, url)) {
         const { _qwikEnvData } = res as QwikViteDevResponse;
-        if (!_qwikEnvData && hasQwikCity) {
-          console.error(`not SSR rendering ${url} because Qwik City Env data did not populate`);
+        if (!_qwikEnvData && hasQwikRouter) {
+          console.error(`not SSR rendering ${url} because Qwik Router Env data did not populate`);
           res.statusCode ||= 404;
           res.setHeader('Content-Type', 'text/plain');
           res.writeHead(res.statusCode);
-          res.end('Not a SSR URL according to Qwik City');
+          res.end('Not a SSR URL according to Qwik Router');
           return;
         }
         const serverData: Record<string, any> = {
@@ -400,7 +404,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
-  if (pathname.includes('@builder.io/qwik/build')) {
+  if (pathname.includes('@qwik.dev/core/build')) {
     return false;
   }
   const acceptHeader = req.headers.accept || '';

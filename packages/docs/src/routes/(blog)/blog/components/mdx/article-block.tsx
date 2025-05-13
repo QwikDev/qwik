@@ -1,6 +1,6 @@
-import { component$, Slot } from '@builder.io/qwik';
+import { component$, Slot } from '@qwik.dev/core';
 import { ArticleHero } from './article-hero';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 import { authors, blogArticles } from '~/routes/(blog)/data';
 
 type Props = { authorLink: string };

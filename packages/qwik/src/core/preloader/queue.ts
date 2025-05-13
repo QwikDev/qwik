@@ -1,4 +1,4 @@
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
 import { config, doc, loadStart, rel } from './constants';
 import type { BundleImport, BundleImports } from './types';

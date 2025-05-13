@@ -1,6 +1,6 @@
-import type { TransformModule } from '@builder.io/qwik/optimizer';
+import { $, component$, useSignal } from '@qwik.dev/core';
+import type { TransformModule } from '@qwik.dev/core/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
-import { $, component$, useSignal } from '@builder.io/qwik';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
 export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {
@@ -41,7 +41,17 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
           .map((o, i) => (
             <div class="file-item" data-symbol-item={i} key={o.path}>
               <div class="file-info">
-                <span>{o.segment?.canonicalFilename}</span>
+                <span>{o.segment!.canonicalFilename}</span>
+                {o.segment!.paramNames && (
+                  <div>
+                    Params: <code>{o.segment!.paramNames.join(', ')}</code>
+                  </div>
+                )}
+                {o.segment!.captureNames && (
+                  <div>
+                    Captures: <code>{o.segment!.captureNames.join(', ')}</code>
+                  </div>
+                )}
               </div>
               <div class="file-text">
                 <CodeBlock

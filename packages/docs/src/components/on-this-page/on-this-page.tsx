@@ -1,5 +1,5 @@
-import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@builder.io/qwik';
-import { useContent, useLocation } from '@builder.io/qwik-city';
+import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
+import { useContent, useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { AlertIcon } from '../svgs/alert-icon';
 import { ChatIcon } from '../svgs/chat-icon';
@@ -30,7 +30,7 @@ const QWIK_ADVANCED_GROUP = [
   'vite',
 ];
 
-const QWIKCITY_GROUP = [
+const QWIKROUTER_GROUP = [
   'action',
   'api',
   'caching',
@@ -41,7 +41,7 @@ const QWIKCITY_GROUP = [
   'middleware',
   'pages',
   'project-structure',
-  'qwikcity',
+  'qwikrouter',
   're-exporting-loaders',
   'route-loader',
   'routing',
@@ -49,7 +49,7 @@ const QWIKCITY_GROUP = [
   'validator',
 ];
 
-const QWIKCITY_ADVANCED_GROUP = [
+const QWIKROUTER_ADVANCED_GROUP = [
   'complex-forms',
   'content-security-policy',
   'menu',
@@ -76,13 +76,13 @@ const makeEditPageUrl = (url: string): string => {
   if (segments[1] == 'advanced') {
     if (QWIK_ADVANCED_GROUP.includes(segments[2])) {
       group = '(qwik)';
-    } else if (QWIKCITY_ADVANCED_GROUP.includes(segments[2])) {
-      group = '(qwikcity)';
+    } else if (QWIKROUTER_ADVANCED_GROUP.includes(segments[2])) {
+      group = '(qwikrouter)';
     }
   } else if (QWIK_GROUP.includes(segments[1])) {
     group = '(qwik)';
-  } else if (QWIKCITY_GROUP.includes(segments[1])) {
-    group = '(qwikcity)';
+  } else if (QWIKROUTER_GROUP.includes(segments[1])) {
+    group = '(qwikrouter)';
   }
 
   if (group) {

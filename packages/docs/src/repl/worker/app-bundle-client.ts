@@ -1,8 +1,8 @@
+import type { Diagnostic, QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { InputOptions, OutputAsset, OutputChunk } from 'rollup';
-import type { Diagnostic, QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
 import type { ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 import { replCss, replMinify, replResolver } from './repl-plugins';
+import type { QwikWorkerGlobal } from './repl-service-worker';
 
 export const appBundleClient = async (
   options: ReplInputOptions,
@@ -54,7 +54,7 @@ export const appBundleClient = async (
       const loc = warning.loc;
       if (loc && loc.file) {
         diagnostic.file = loc.file;
-        diagnostic.highlights.push({
+        diagnostic.highlights!.push({
           startCol: loc.column,
           endCol: loc.column + 1,
           startLine: loc.line,

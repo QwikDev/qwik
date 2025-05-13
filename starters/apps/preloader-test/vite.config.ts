@@ -3,8 +3,8 @@
  * When building, the adapter config is used which loads this file and extends it.
  */
 import { defineConfig, type UserConfig, type Plugin } from "vite";
-import { qwikVite } from "@builder.io/qwik/optimizer";
-import { qwikCity } from "@builder.io/qwik-city/vite";
+import { qwikVite } from "@qwik.dev/core/optimizer";
+import { qwikCity } from "@qwik.dev/router/vite";
 import crypto from "crypto";
 
 /**

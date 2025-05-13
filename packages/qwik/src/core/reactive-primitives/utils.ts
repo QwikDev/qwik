@@ -97,6 +97,8 @@ export const triggerEffects = (
         let choreType = ChoreType.TASK;
         if (consumer.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
+        } else if (consumer.$flags$ & TaskFlags.ASYNC_COMPUTED) {
+          choreType = ChoreType.ASYNC_COMPUTED;
         }
         container.$scheduler$(choreType, consumer);
       } else if (consumer instanceof SignalImpl) {

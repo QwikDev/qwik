@@ -1,7 +1,7 @@
 import { component$, useComputed$ } from '@qwik.dev/core';
 import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
-import { ReplOutputSymbols } from './repl-output-symbols';
+import { ReplOutputSegments } from './repl-output-segments.tsx';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
@@ -72,10 +72,10 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
 
         {store.enableClientOutput ? (
           <ReplTabButton
-            text="Symbols"
-            isActive={store.selectedOutputPanel === 'symbols'}
+            text="Segments"
+            isActive={store.selectedOutputPanel === 'segments'}
             onClick$={async () => {
-              store.selectedOutputPanel = 'symbols';
+              store.selectedOutputPanel = 'segments';
             }}
           />
         ) : null}
@@ -157,8 +157,8 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === 'symbols' ? (
-          <ReplOutputSymbols outputs={store.transformedModules} />
+        {store.selectedOutputPanel === 'segments' ? (
+          <ReplOutputSegments outputs={store.transformedModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (

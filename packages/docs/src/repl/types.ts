@@ -130,7 +130,7 @@ export type OutputPanel =
   | 'app'
   | 'html'
   | 'state'
-  | 'symbols'
+  | 'segments'
   | 'clientBundles'
   | 'serverModules'
   | 'diagnostics';

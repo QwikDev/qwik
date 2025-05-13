@@ -230,7 +230,7 @@
 .output-modules .file-tree {
   padding: 0 15px 15px 15px;
   grid-area: repl-file-tree;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .output-modules .file-tree-header {
@@ -242,8 +242,6 @@
   display: block;
   margin: 4px 0px 2px 9px;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 .output-modules .file-tree-items a:hover,
@@ -270,8 +268,7 @@
   margin-bottom: 15px;
   background-color: rgb(33 104 170 / 15%);
   padding: 5px 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .output-modules .file-size {

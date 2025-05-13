@@ -139,6 +139,7 @@ export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
+  type AsyncComputedReadonlySignal,
   type Signal,
   type ComputedSignal,
 } from './reactive-primitives/signal.public';

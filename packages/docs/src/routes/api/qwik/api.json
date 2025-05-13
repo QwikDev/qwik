@@ -230,9 +230,23 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: TaskCtx) => Promise<T>;\n```\n**References:** [TaskCtx](#taskctx)",
+      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
       "mdFile": "core.asynccomputedfn.md"
+    },
+    {
+      "name": "AsyncComputedReadonlySignal",
+      "id": "asynccomputedreadonlysignal",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReadonlySignal",
+          "id": "asynccomputedreadonlysignal"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[pending](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "mdFile": "core.asynccomputedreadonlysignal.md"
     },
     {
       "name": "AsyncComputedReturnType",
@@ -244,7 +258,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;\n```\n**References:** [ReadonlySignal](#readonlysignal)",
+      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;\n```\n**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
       "mdFile": "core.asynccomputedreturntype.md"
     },

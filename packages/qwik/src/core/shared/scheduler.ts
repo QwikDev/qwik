@@ -93,7 +93,12 @@ import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnod
 import { vnode_diff } from '../client/vnode-diff';
 import { triggerEffects } from '../reactive-primitives/utils';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
-import type { StoreTarget } from '../reactive-primitives/types';
+import {
+  type AsyncComputeQRL,
+  type ComputeQRL,
+  type EffectSubscription,
+  type StoreTarget,
+} from '../reactive-primitives/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -120,9 +125,10 @@ import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
-import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { runAsyncComputed } from '../use/use-async-computed';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import type { StoreHandler } from '../reactive-primitives/impl/store';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -171,7 +177,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.QRL_RESOLVE,
     ignore: null,
-    target: QRLInternal<(...args: unknown[]) => unknown>
+    target: ComputeQRL<any> | AsyncComputeQRL<any>
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
@@ -185,12 +191,10 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
     host: HostElement | null,
-    target: Signal
+    target: Signal | StoreHandler,
+    effects: Set<EffectSubscription> | null
   ): ValueOrPromise<void>;
-  function schedule(
-    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.ASYNC_COMPUTED,
-    task: Task
-  ): ValueOrPromise<void>;
+  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.RUN_QRL,
     host: HostElement,
@@ -229,10 +233,7 @@ export const createScheduler = (
     const runLater: boolean =
       type !== ChoreType.WAIT_FOR_ALL && !isComponentSsr && type !== ChoreType.RUN_QRL;
     const isTask =
-      type === ChoreType.TASK ||
-      type === ChoreType.VISIBLE ||
-      type === ChoreType.ASYNC_COMPUTED ||
-      type === ChoreType.CLEANUP_VISIBLE;
+      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
@@ -407,7 +408,6 @@ export const createScheduler = (
           break;
         case ChoreType.TASK:
         case ChoreType.VISIBLE:
-        case ChoreType.ASYNC_COMPUTED:
           {
             const payload = chore.$payload$ as DescriptorBase;
             if (payload.$flags$ & TaskFlags.RESOURCE) {
@@ -419,8 +419,6 @@ export const createScheduler = (
               // Awaiting on the client also causes a deadlock.
               // In any case, the resource will never throw.
               returnValue = isServer ? result : null;
-            } else if (chore.$type$ === ChoreType.ASYNC_COMPUTED) {
-              returnValue = runAsyncComputed(payload as Task<TaskFn, TaskFn>, container, host);
             } else {
               returnValue = runTask(payload as Task<TaskFn, TaskFn>, container, host);
             }
@@ -478,18 +476,29 @@ export const createScheduler = (
         case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
           {
             const target = chore.$target$ as
+              | SignalImpl
               | ComputedSignalImpl<unknown>
-              | WrappedSignalImpl<unknown>;
-            const forceRunEffects = target.$forceRunEffects$;
-            target.$forceRunEffects$ = false;
-            if (!target.$effects$?.size) {
-              break;
-            }
-            returnValue = retryOnPromise(() => {
-              if (target.$computeIfNeeded$() || forceRunEffects) {
-                triggerEffects(container, target, target.$effects$);
+              | WrappedSignalImpl<unknown>
+              | StoreHandler;
+
+            const effects = chore.$payload$ as Set<EffectSubscription>;
+
+            if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
+              const forceRunEffects = target.$forceRunEffects$;
+              target.$forceRunEffects$ = false;
+              if (!target.$effects$?.size) {
+                break;
               }
-            });
+              returnValue = retryOnPromise(() => {
+                if (target.$computeIfNeeded$() || forceRunEffects) {
+                  triggerEffects(container, target, effects);
+                }
+              });
+            } else {
+              returnValue = retryOnPromise(() => {
+                triggerEffects(container, target, effects);
+              });
+            }
           }
           break;
         }

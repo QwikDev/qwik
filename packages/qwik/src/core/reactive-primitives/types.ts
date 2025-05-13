@@ -1,11 +1,13 @@
 import type { VNode } from '../client/types';
 import type { ISsrNode } from '../ssr/ssr-types';
-import type { Task } from '../use/use-task';
+import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/utils/serialize-utils';
+import type { ComputedFn } from '../use/use-computed';
+import type { AsyncComputedFn } from '../use/use-async-computed';
 
 /**
  * # ================================
@@ -33,7 +35,11 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   untrackedValue: T;
 }
 
-export type ComputeQRL<T> = QRLInternal<() => T>;
+export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
+export type AsyncComputedCtx = {
+  track: Tracker;
+};
+export type AsyncComputeQRL<T> = QRLInternal<AsyncComputedFn<T>>;
 
 export const enum SignalFlags {
   INVALID = 1,

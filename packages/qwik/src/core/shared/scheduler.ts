@@ -122,6 +122,7 @@ import type { ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
 import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { runAsyncComputed } from '../use/use-async-computed';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -186,7 +187,10 @@ export const createScheduler = (
     host: HostElement | null,
     target: Signal
   ): ValueOrPromise<void>;
-  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
+  function schedule(
+    type: ChoreType.TASK | ChoreType.VISIBLE | ChoreType.ASYNC_COMPUTED,
+    task: Task
+  ): ValueOrPromise<void>;
   function schedule(
     type: ChoreType.RUN_QRL,
     host: HostElement,
@@ -225,7 +229,10 @@ export const createScheduler = (
     const runLater: boolean =
       type !== ChoreType.WAIT_FOR_ALL && !isComponentSsr && type !== ChoreType.RUN_QRL;
     const isTask =
-      type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
+      type === ChoreType.TASK ||
+      type === ChoreType.VISIBLE ||
+      type === ChoreType.ASYNC_COMPUTED ||
+      type === ChoreType.CLEANUP_VISIBLE;
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
@@ -400,6 +407,7 @@ export const createScheduler = (
           break;
         case ChoreType.TASK:
         case ChoreType.VISIBLE:
+        case ChoreType.ASYNC_COMPUTED:
           {
             const payload = chore.$payload$ as DescriptorBase;
             if (payload.$flags$ & TaskFlags.RESOURCE) {
@@ -411,6 +419,8 @@ export const createScheduler = (
               // Awaiting on the client also causes a deadlock.
               // In any case, the resource will never throw.
               returnValue = isServer ? result : null;
+            } else if (chore.$type$ === ChoreType.ASYNC_COMPUTED) {
+              returnValue = runAsyncComputed(payload as Task<TaskFn, TaskFn>, container, host);
             } else {
               returnValue = runTask(payload as Task<TaskFn, TaskFn>, container, host);
             }

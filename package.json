@@ -230,7 +230,7 @@
     "lint.fix": "eslint --fix \"**/*.ts*\" && pnpm -r --parallel lint.fix && pnpm prettier.fix",
     "lint.prettier": "prettier --cache --check .",
     "lint.rust": "make lint",
-    "lint.syncpack": "syncpack list",
+    "lint.syncpack": "syncpack lint",
     "preinstall": "npx only-allow pnpm",
     "prepare": "simple-git-hooks",
     "prettier.fix": "prettier --cache --write .",

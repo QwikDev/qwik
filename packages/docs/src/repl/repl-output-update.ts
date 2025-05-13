@@ -30,12 +30,13 @@ const matchByPath = (a: any, b: any) => a.path === b.path;
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
   deepUpdate(store.diagnostics, result.diagnostics);
+  if (store.htmlResult.rawHtml !== result.htmlResult.rawHtml) {
+    store.htmlResult.rawHtml = result.htmlResult.rawHtml;
+    store.htmlResult.prettyHtml = result.htmlResult.prettyHtml;
+  }
 
   if (result.diagnostics.length === 0) {
-    if (store.html !== result.html) {
-      store.html = result.html;
-    }
-
+    deepUpdate(store.htmlResult, result.htmlResult);
     deepUpdate(store.transformedModules, result.transformedModules, matchByPath);
     deepUpdate(store.clientBundles, result.clientBundles, matchByPath);
     deepUpdate(store.ssrModules, result.ssrModules, matchByPath);

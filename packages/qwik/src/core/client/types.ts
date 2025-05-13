@@ -69,7 +69,7 @@ export interface QDocument extends Document {
  *       converted into separate text nodes.
  *   - If Element: It means that the element tag attributes have not yet been read from the DOM.
  *
- * Inflation and materialization are not the same, they are two independent things.
+ * Inflation and materialization are not the same, they are two independent things.-
  *
  * @internal
  */

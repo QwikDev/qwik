@@ -237,7 +237,7 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
         const keySuffix = issue.expected === 'Array' ? '[]' : '';
         const key =
           issue.path
-            .map((item) => (item.type === 'array' ? '*' : item.key))
+            .map((item) => (item.type === 'array' ? '*' : item.origin))
             .join('.')
             .replace(/\.\*/g, '[]') + keySuffix;
         acc[key] = acc[key] || [];
@@ -246,7 +246,7 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
         }
         return acc;
       } else {
-        acc[issue.path.map((item) => item.key).join('.')] = issue.message;
+        acc[issue.path.map((item) => item.origin).join('.')] = issue.message;
       }
     }
     return acc;

@@ -5,6 +5,7 @@
 ```ts
 
 import { Component } from '@qwik.dev/core';
+import { SyncQRL } from '@qwik.dev/core';
 
 // @beta (undocumented)
 export const Insights: Component<    {
@@ -41,6 +42,11 @@ export interface InsightsPayload {
     qVersion: string;
     symbols: InsightSymbol[];
 }
+
+// Warning: (ae-internal-missing-underscore) The name "insightsPing" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const insightsPing: SyncQRL<() => void>;
 
 // @public (undocumented)
 export interface InsightSymbol {

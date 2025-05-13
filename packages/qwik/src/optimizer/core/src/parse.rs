@@ -51,6 +51,10 @@ pub struct SegmentAnalysis {
 	pub ctx_name: JsWord,
 	pub captures: bool,
 	pub loc: (u32, u32),
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub param_names: Option<Vec<JsWord>>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub capture_names: Option<Vec<JsWord>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -461,6 +465,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 									display_name: h.data.display_name,
 									hash: h.data.hash,
 									loc: (h.span.lo.0, h.span.hi.0),
+									param_names: h.param_names,
+									capture_names: if h.data.scoped_idents.is_empty() {
+										None
+									} else {
+										Some(
+											h.data
+												.scoped_idents
+												.iter()
+												.map(|id| id.0.clone())
+												.collect(),
+										)
+									},
 								}),
 							});
 						}

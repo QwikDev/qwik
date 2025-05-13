@@ -148,6 +148,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   "loc": [
     636,
     1365
+  ],
+  "paramNames": [
+    "track"
+  ],
+  "captureNames": [
+    "hostElement",
+    "props",
+    "reactCmpQrl",
+    "store"
   ]
 }
 */
@@ -215,6 +224,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/node_modules/@qwik.dev/react/inde
   "loc": [
     358,
     2020
+  ],
+  "paramNames": [
+    "props"
+  ],
+  "captureNames": [
+    "reactCmpQrl"
   ]
 }
 */

@@ -78,6 +78,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     340,
     365
+  ],
+  "captureNames": [
+    "count2",
+    "state"
   ]
 }
 */
@@ -109,6 +113,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     451,
     519
+  ],
+  "captureNames": [
+    "btn",
+    "props",
+    "state",
+    "thing"
   ]
 }
 */
@@ -162,6 +172,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     181,
     580
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

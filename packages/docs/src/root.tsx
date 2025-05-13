@@ -59,7 +59,7 @@ export default component$(() => {
         <ServiceWorkerRegister />
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
-        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        <Insights />
       </head>
       <body
         class={{

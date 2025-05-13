@@ -41,7 +41,17 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
           .map((o, i) => (
             <div class="file-item" data-symbol-item={i} key={o.path}>
               <div class="file-info">
-                <span>{o.segment?.canonicalFilename}</span>
+                <span>{o.segment!.canonicalFilename}</span>
+                {o.segment!.paramNames && (
+                  <div>
+                    Params: <code>{o.segment!.paramNames.join(', ')}</code>
+                  </div>
+                )}
+                {o.segment!.captureNames && (
+                  <div>
+                    Captures: <code>{o.segment!.captureNames.join(', ')}</code>
+                  </div>
+                )}
               </div>
               <div class="file-text">
                 <CodeBlock

@@ -5,7 +5,7 @@
   "dependencies": {
     "@auth/qwik": "0.2.2",
     "@libsql/client": "^0.14.0",
-    "@modular-forms/qwik": "^0.23.1",
+    "@modular-forms/qwik": "0.23.1",
     "@typescript/analyze-trace": "^0.10.1",
     "density-clustering": "^1.3.0",
     "dotenv": "^16.4.5",
@@ -35,7 +35,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "8.26.1",
     "undici": "*",
-    "vite": "5.3.5",
+    "vite": "^5",
     "vite-tsconfig-paths": "4.3.2",
     "vitest": "2.0.5",
     "zod": "3.22.4"

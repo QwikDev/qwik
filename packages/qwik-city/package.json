@@ -9,7 +9,7 @@
     "source-map": "^0.7.4",
     "svgo": "^3.3",
     "undici": "*",
-    "valibot": ">=0.36.0 <2",
+    "valibot": "0.33.3",
     "vfile": "6.0.2",
     "vite": "^5",
     "vite-imagetools": "^7",

@@ -15,7 +15,10 @@ import {
   useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
+import * as qError from '../shared/error/error';
+import { QError } from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -218,64 +221,31 @@ describe.each([
     );
   });
 
-  describe('async computed', () => {
-    it('should resolve promise in computed result', async () => {
-      const Counter = component$(() => {
-        const count = useSignal(1);
-        const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
-        return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
-      });
-      const { vNode, container } = await render(<Counter />, { debug });
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'2'}</Signal>
-          </button>
-        </>
-      );
-      await trigger(container.element, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'4'}</Signal>
-          </button>
-        </>
+  it('should disallow Promise in computed result', async () => {
+    const qErrorSpy = vi.spyOn(qError, 'qError');
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useComputed$(() => Promise.resolve(count.value * 2));
+      return (
+        <button onClick$={() => count.value++}>
+          {
+            // @ts-expect-error
+            doubleCount.value
+          }
+        </button>
       );
     });
-
-    it('should resolve delayed promise in computed result', async () => {
-      const Counter = component$(() => {
-        const count = useSignal(1);
-        const doubleCount = useComputed$(
-          () =>
-            new Promise<number>((resolve) => {
-              // TODO: hack: for some reason inside set timeout invoke context is undefined
-              const value = count.value * 2;
-              setTimeout(() => {
-                resolve(value);
-              });
-            })
-        );
-        return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
-      });
-      const { vNode, container } = await render(<Counter />, { debug });
-
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'2'}</Signal>
-          </button>
-        </>
+    try {
+      await render(
+        <ErrorProvider>
+          <Counter />
+        </ErrorProvider>,
+        { debug }
       );
-      await trigger(container.element, 'button', 'click');
-      expect(vNode).toMatchVDOM(
-        <>
-          <button>
-            <Signal ssr-required>{'4'}</Signal>
-          </button>
-        </>
-      );
-    });
+    } catch (e) {
+      expect((e as Error).message).toBeDefined();
+      expect(qErrorSpy).toHaveBeenCalledWith(QError.computedNotSync, expect.any(Array));
+    }
   });
 
   describe('createComputed$', () => {

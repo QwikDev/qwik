@@ -8,14 +8,11 @@ import { useSequentialScope } from './use-sequential-scope';
 
 /** @public */
 export type ComputedFn<T> = () => T;
-/** @public */
-export type ComputedReturnType<T> =
-  T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
 
 export const useComputedCommon = <T>(
   qrl: QRL<ComputedFn<T>>,
   Class: typeof ComputedSignalImpl
-): ComputedReturnType<T> => {
+): T extends Promise<any> ? never : ReadonlySignal<T> => {
   const { val, set } = useSequentialScope<Signal<T>>();
   if (val) {
     return val as any;
@@ -32,7 +29,9 @@ export const useComputedCommon = <T>(
 };
 
 /** @internal */
-export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): ComputedReturnType<T> => {
+export const useComputedQrl = <T>(
+  qrl: QRL<ComputedFn<T>>
+): T extends Promise<any> ? never : ReadonlySignal<T> => {
   return useComputedCommon(qrl, ComputedSignalImpl);
 };
 

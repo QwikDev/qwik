@@ -135,51 +135,6 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal
 
 **Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
 
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[error](#)
-
-</td><td>
-
-</td><td>
-
-Error \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[pending](#)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## AsyncComputedReturnType
@@ -426,6 +381,17 @@ _(Optional)_
 ```typescript
 export type ComputedFn<T> = () => T;
 ```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
+
+## ComputedReturnType
+
+```typescript
+export type ComputedReturnType<T> =
+  T extends Promise<any> ? never : ReadonlySignal<T>;
+```
+
+**References:** [ReadonlySignal](#readonlysignal)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
@@ -8343,6 +8309,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[cleanup](#)
+
+</td><td>
+
+</td><td>
+
+(callback: () =&gt; void) =&gt; void
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [track](#)
 
 </td><td>
@@ -8350,24 +8329,6 @@ Description
 </td><td>
 
 [Tracker](#tracker)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Method
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[cleanup(callback)](#)
 
 </td><td>
 
@@ -8557,7 +8518,7 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>
+useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -8587,7 +8548,7 @@ qrl
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)&lt;T&gt;
+[ComputedReturnType](#computedreturntype)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 

@@ -96,7 +96,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE));
     try {
-      const untrackedValue = ((computeQrl.getFn(ctx) as S)() as T);
+      const untrackedValue = (computeQrl.getFn(ctx) as S)() as T;
       if (isPromise(untrackedValue)) {
         throw qError(QError.computedNotSync, [
           computeQrl.dev ? computeQrl.dev.file : '',

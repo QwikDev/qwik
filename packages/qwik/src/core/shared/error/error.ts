@@ -51,7 +51,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unknown vnode type {{0}}.', // 43
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
       'Cannot coerce a Signal, use `.value` instead', // 45
-      '', // 46 unused
+      'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 46
       'ComputedSignal is read-only', // 47
       'WrappedSignal is read-only', // 48
       'Attribute value is unsafe for SSR', // 49
@@ -121,7 +121,7 @@ export const enum QError {
   invalidVNodeType = 43,
   materializeVNodeDataError = 44,
   cannotCoerceSignal = 45,
-  UNUSED_46 = 46,
+  computedNotSync = 46,
   computedReadOnly = 47,
   wrappedReadOnly = 48,
   unsafeAttr = 49,

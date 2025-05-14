@@ -93,41 +93,44 @@ export const Link = component$<LinkProps>((props) => {
       return;
     }
 
-    if (anchorRef.value && handlePrefetch) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              // We need to trigger the onQVisible$ in the task as well for it to fire on subsequent route navigations
-              if (linkProps.onQVisible$) {
-                const event = new CustomEvent('qvisible') as QwikVisibleEvent;
-
-                if (Array.isArray(linkProps.onQVisible$)) {
-                  linkProps.onQVisible$
-                    .flat(10)
-                    .forEach((handler) => (handler as any)?.(event, anchorRef.value));
-                } else {
-                  linkProps.onQVisible$?.(event, anchorRef.value!);
-                }
-              }
-              // Don't prefetch on visible in dev mode
-              if (!isDev) {
-                handlePrefetch(undefined, anchorRef.value!);
-              }
-              // Unobserve after the first intersection to prevent multiple prefetches
-              observer.unobserve(anchorRef.value!);
-            }
-          });
-        },
-        { threshold: 0.01 } // Trigger when a small part of the element is visible
-      );
-
-      observer.observe(anchorRef.value);
-
-      cleanup(() => {
-        observer.disconnect();
-      });
+    if (!anchorRef.value || !handlePrefetch) {
+      return;
     }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            return;
+          }
+          // We need to trigger the onQVisible$ in the task as well for it to fire on subsequent route navigations
+          if (linkProps.onQVisible$) {
+            const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+
+            if (Array.isArray(linkProps.onQVisible$)) {
+              linkProps.onQVisible$.forEach((handler) =>
+                (handler as any)?.(event, anchorRef.value)
+              );
+            } else {
+              linkProps.onQVisible$?.(event, anchorRef.value!);
+            }
+          }
+          // Don't prefetch on visible in dev mode
+          if (!isDev) {
+            handlePrefetch(undefined, anchorRef.value!);
+          }
+          // Unobserve after the first intersection to prevent multiple prefetches
+          observer.unobserve(anchorRef.value!);
+        }
+      },
+      { threshold: 0.01 } // Trigger when a small part of the element is visible
+    );
+
+    observer.observe(anchorRef.value);
+
+    cleanup(() => {
+      observer.disconnect();
+    });
   });
 
   return (

@@ -1,35 +1,37 @@
+import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
-import { QError, qError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
-import { invoke, newInvokeContext } from '../../use/use-core';
-import { isSignal, throwIfQRLNotResolved } from '../utils';
+import { trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
-import { getSubscriber } from '../subscriber';
 import type { AsyncComputeQRL, EffectSubscription } from '../types';
-import { _EFFECT_BACK_REF, EffectProperty, SignalFlags, STORE_ALL_PROPS } from '../types';
-import { addStoreEffect, getStoreHandler, getStoreTarget, isStore } from './store';
-import type { Signal } from '../signal.public';
-import { isFunction } from '../../shared/utils/types';
+import { _EFFECT_BACK_REF, EffectProperty, SignalFlags } from '../types';
+import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
-import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 const log = (...args: any[]) =>
   // eslint-disable-next-line no-console
   console.log('ASYNC COMPUTED SIGNAL', ...args.map(qwikDebugToString));
 
+/**
+ * # ================================
+ *
+ * AsyncComputedSignalImpl
+ *
+ * # ================================
+ */
 export class AsyncComputedSignalImpl<T>
   extends ComputedSignalImpl<T, AsyncComputeQRL<T>>
   implements BackRef
 {
   $untrackedPending$: boolean = false;
-  $untrackedError$: Error | null = null;
+  $untrackedFailed$: boolean = false;
 
   $pendingEffects$: null | Set<EffectSubscription> = null;
-  $errorEffects$: null | Set<EffectSubscription> = null;
+  $failedEffects$: null | Set<EffectSubscription> = null;
   private $promiseValue$: T | null = null;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
@@ -38,6 +40,10 @@ export class AsyncComputedSignalImpl<T>
     super(container, fn, flags);
   }
 
+  /**
+   * Pending is true if the signal is still waiting for the promise to resolve, false if the promise
+   * has resolved or rejected.
+   */
   get pending(): boolean {
     return setupSignalValueAccess(
       this,
@@ -62,28 +68,32 @@ export class AsyncComputedSignalImpl<T>
     return this.$untrackedPending$;
   }
 
-  get error(): Error | null {
+  /**
+   * Failed is true if the signal failed to resolve, false if the promise has resolved or is still
+   * pending.
+   */
+  get failed(): boolean {
     return setupSignalValueAccess(
       this,
-      () => (this.$errorEffects$ ||= new Set()),
-      () => this.untrackedError
+      () => (this.$failedEffects$ ||= new Set()),
+      () => this.untrackedFailed
     );
   }
 
-  set untrackedError(value: Error | null) {
-    if (value !== this.$untrackedError$) {
-      this.$untrackedError$ = value;
+  set untrackedFailed(value: boolean) {
+    if (value !== this.$untrackedFailed$) {
+      this.$untrackedFailed$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
-        this.$errorEffects$
+        this.$failedEffects$
       );
     }
   }
 
-  get untrackedError() {
-    return this.$untrackedError$;
+  get untrackedFailed() {
+    return this.$untrackedFailed$;
   }
 
   $computeIfNeeded$() {
@@ -94,10 +104,10 @@ export class AsyncComputedSignalImpl<T>
     throwIfQRLNotResolved(computeQrl);
 
     const untrackedValue =
-      this.$promiseValue$ ?? (computeQrl.getFn()({ track: this.$trackFn$.bind(this) }) as T);
+      this.$promiseValue$ ?? (computeQrl.getFn()({ track: trackFn(this, this.$container$) }) as T);
     if (isPromise(untrackedValue)) {
       this.untrackedPending = true;
-      this.untrackedError = null;
+      this.untrackedFailed = false;
       throw untrackedValue
         .then((promiseValue) => {
           this.$promiseValue$ = promiseValue;
@@ -107,7 +117,9 @@ export class AsyncComputedSignalImpl<T>
           if (isDev) {
             console.error(err);
           }
-          this.untrackedError = err;
+          // TODO: should we store the error?
+          // this.$promiseValue$ = err;
+          this.untrackedFailed = true;
         });
     }
     this.$promiseValue$ = null;
@@ -120,32 +132,5 @@ export class AsyncComputedSignalImpl<T>
       this.$untrackedValue$ = untrackedValue;
     }
     return didChange;
-  }
-
-  private $trackFn$(obj: (() => unknown) | object | Signal<unknown>, prop?: string) {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE);
-    ctx.$container$ = this.$container$ || undefined;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else if (isStore(obj)) {
-        // track whole store
-        addStoreEffect(
-          getStoreTarget(obj)!,
-          STORE_ALL_PROPS,
-          getStoreHandler(obj)!,
-          ctx.$effectSubscriber$!
-        );
-        return obj;
-      } else {
-        throw qError(QError.trackObjectWithoutProp);
-      }
-    });
   }
 }

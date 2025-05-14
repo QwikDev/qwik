@@ -111,7 +111,7 @@ export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
 export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
-export type { ComputedFn } from './use/use-computed';
+export type { ComputedFn, ComputedReturnType } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
 export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';

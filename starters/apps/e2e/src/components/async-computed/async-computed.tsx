@@ -57,7 +57,7 @@ export const PendingComponent = component$(() => {
 
   return (
     <div>
-      {double.pending ? "pending" : "not pending"}
+      {/* {double.pending ? "pending" : "not pending"} */}
       <div class="result">double: {double.value}</div>
       <button id="increment" onClick$={() => count.value++}>
         Increment

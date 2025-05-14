@@ -9,8 +9,7 @@ import { useSequentialScope } from './use-sequential-scope';
 /** @public */
 export type ComputedFn<T> = () => T;
 /** @public */
-export type ComputedReturnType<T> =
-  T extends Promise<any> ? never : ReadonlySignal<T>;
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;
 
 export const useComputedCommon = <
   T,

@@ -1,30 +1,21 @@
 import { getDomContainer } from '../client/dom-container';
-import { QError, qError } from '../shared/error/error';
+import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
+import { type Signal } from '../reactive-primitives/signal.public';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/util-chore-type';
 import { type Container, type HostElement } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
 import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
-import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { isSignal } from '../reactive-primitives/utils';
-import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
-import { type Signal } from '../reactive-primitives/signal.public';
-import { invoke, newInvokeContext } from './use-core';
+import { type NoSerialize } from '../shared/utils/serialize-utils';
+import { type ValueOrPromise } from '../shared/utils/types';
+import { newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
-import { getSubscriber } from '../reactive-primitives/subscriber';
-import {
-  addStoreEffect,
-  getStoreHandler,
-  getStoreTarget,
-  isStore,
-} from '../reactive-primitives/impl/store';
-import { EffectProperty, STORE_ALL_PROPS } from '../reactive-primitives/types';
+import { cleanupFn, trackFn } from './utils/tracker';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -127,7 +118,7 @@ export interface Tracker {
 /** @public */
 export interface TaskCtx {
   track: Tracker;
-  cleanup(callback: () => void): void;
+  cleanup: (callback: () => void) => void;
 }
 
 /** @public */
@@ -183,52 +174,8 @@ export const runTask = (
   iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
-    ctx.$container$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else if (isStore(obj)) {
-        // track whole store
-        addStoreEffect(
-          getStoreTarget(obj)!,
-          STORE_ALL_PROPS,
-          getStoreHandler(obj)!,
-          ctx.$effectSubscriber$!
-        );
-        return obj;
-      } else {
-        throw qError(QError.trackObjectWithoutProp);
-      }
-    });
-  };
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-  let cleanupFns: (() => void)[] | null = null;
-  const cleanup = (fn: () => void) => {
-    if (typeof fn == 'function') {
-      if (!cleanupFns) {
-        cleanupFns = [];
-        task.$destroy$ = noSerialize(() => {
-          task.$destroy$ = null;
-          cleanupFns!.forEach((fn) => {
-            try {
-              fn();
-            } catch (err) {
-              handleError(err);
-            }
-          });
-        });
-      }
-      cleanupFns.push(fn);
-    }
-  };
+  const track = trackFn(task, container);
+  const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
 
   const taskApi: TaskCtx = { track, cleanup };
   const result: ValueOrPromise<void> = safeCall(

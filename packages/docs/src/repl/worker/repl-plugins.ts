@@ -5,6 +5,15 @@ import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
 import type { QwikWorkerGlobal } from './repl-service-worker';
 
+/**
+ * Use paths that look like the paths ones from node modules. The plugin uses the paths to recognize
+ * the Qwik packages.
+ */
+const corePath = '/@qwik.dev/core/dist/core.mjs';
+const handlersPath = '/@qwik.dev/core/handlers.mjs';
+const serverPath = '/@qwik.dev/core/dist/server.mjs';
+const preloaderPath = '/@qwik.dev/core/dist/preloader.mjs';
+
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
   const resolveId = (id: string) => {
@@ -23,13 +32,16 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (match) {
         const pkgPath = match[2];
         if (pkgPath === '/server') {
-          return '\0qwikServer';
+          return serverPath;
         }
         if (pkgPath === '/preloader') {
-          return '\0qwikPreloader';
+          return preloaderPath;
         }
-        if (/^(|\/jsx(-dev)?-runtime|\/internal|\/handlers.mjs)$/.test(pkgPath)) {
-          return '\0qwikCore';
+        if (pkgPath === '/handlers.mjs') {
+          return handlersPath;
+        }
+        if (/^(|\/jsx(-dev)?-runtime|\/internal)$/.test(pkgPath)) {
+          return corePath;
         }
         console.error(`Unknown package ${id}`, match);
       }
@@ -52,14 +64,14 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return input.code;
       }
       if (buildMode === 'ssr') {
-        if (id === '\0qwikCore') {
+        if (id === corePath || id === handlersPath) {
           return getRuntimeBundle('qwikCore');
         }
-        if (id === '\0qwikServer') {
+        if (id === serverPath) {
           return getRuntimeBundle('qwikServer');
         }
       }
-      if (id === '\0qwikCore') {
+      if (id === corePath) {
         if (options.buildMode === 'production') {
           const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
           if (rsp) {
@@ -73,8 +85,14 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         }
         throw new Error(`Unable to load Qwik core`);
       }
-      if (id === '\0qwikPreloader') {
+      if (id === preloaderPath) {
         const rsp = await depResponse('@qwik.dev/core', '/preloader.mjs');
+        if (rsp) {
+          return rsp.text();
+        }
+      }
+      if (id === handlersPath) {
+        const rsp = await depResponse('@qwik.dev/core', '/handlers.mjs');
         if (rsp) {
           return rsp.text();
         }

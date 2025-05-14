@@ -96,6 +96,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     217,
     581
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
@@ -157,6 +160,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     240,
     577
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */

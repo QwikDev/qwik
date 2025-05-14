@@ -58,16 +58,7 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL
   return null;
 };
 
-export const shouldPrefetchData = (clientNavPath: string | null, currentLoc: { url: URL }) => {
-  if (clientNavPath) {
-    const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
-    const currentUrl = toUrl('', currentLoc.url);
-    return !isSamePath(prefetchUrl, currentUrl);
-  }
-  return false;
-};
-
-export const shouldPrefetchSymbols = (clientNavPath: string | null, currentLoc: { url: URL }) => {
+export const shouldPreload = (clientNavPath: string | null, currentLoc: { url: URL }) => {
   if (clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
     const currentUrl = toUrl('', currentLoc.url);

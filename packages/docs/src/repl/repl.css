@@ -199,6 +199,15 @@
   overflow: auto;
 }
 
+.output-html .code-block-info {
+  display: block;
+  font-weight: bold;
+  background-color: rgb(33 104 170 / 15%);
+  padding: 5px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .output-html pre {
   height: 100%;
 }

@@ -1614,6 +1614,7 @@ export function _createDeserializeContainer(
  *
  * @param data - The state data to preprocess
  * @returns The preprocessed state data
+ * @internal
  */
 export function preprocessState(data: unknown[], container: DeserializeContainer) {
   const isRootDeepRef = (type: TypeIds, value: unknown) => {
@@ -1934,6 +1935,7 @@ const printRaw = (value: any, prefix: string) => {
   return result.includes('\n') ? (result = `\n${prefix}${result}`) : result;
 };
 let hasRaw = false;
+/** @internal */
 export const dumpState = (
   state: unknown[],
   color = false,

@@ -28,7 +28,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { isPromise, retryOnPromise } from '../shared/utils/promises';
+import { isPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -78,7 +78,7 @@ export async function _walkJSX(
         await (value as StackFn).apply(ssr);
         continue;
       }
-      await processJSXNode(ssr, enqueue, value as JSXOutput, {
+      processJSXNode(ssr, enqueue, value as JSXOutput, {
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
       });
@@ -87,7 +87,7 @@ export async function _walkJSX(
   await drain();
 }
 
-async function processJSXNode(
+function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
   value: JSXOutput,
@@ -114,9 +114,7 @@ async function processJSXNode(
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getLastNode();
       enqueue(ssr.closeFragment);
-      await retryOnPromise(() => {
-        enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
-      });
+      enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);

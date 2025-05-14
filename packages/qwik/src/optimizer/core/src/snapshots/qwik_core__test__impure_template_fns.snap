@@ -98,6 +98,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     418,
     437
+  ],
+  "captureNames": [
+    "count"
   ]
 }
 */

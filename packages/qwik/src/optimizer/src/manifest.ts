@@ -503,6 +503,8 @@ export function generateManifestFromBundles(
       captures: segment.captures,
       parent: segment.parent,
       loc: segment.loc,
+      paramNames: segment.paramNames,
+      captureNames: segment.captureNames,
     };
   }
   if (qwikHandlersName) {

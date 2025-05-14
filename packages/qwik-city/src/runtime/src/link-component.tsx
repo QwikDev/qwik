@@ -5,8 +5,10 @@ import {
   $,
   sync$,
   useSignal,
-  useVisibleTask$,
   untrack,
+  useTask$,
+  isServer,
+  type QwikVisibleEvent,
 } from '@builder.io/qwik';
 import { getClientNavPath, shouldPreload } from './utils';
 import { loadClientData } from './use-endpoint';
@@ -83,11 +85,48 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
 
-  useVisibleTask$(({ track }) => {
+  // Complements the onQVisible$ event to handle subsequent route navigations
+  useTask$(({ track, cleanup }) => {
     track(() => loc.url.pathname);
-    // Don't prefetch on visible in dev mode
-    if (!isDev && anchorRef.value) {
-      handlePrefetch?.(undefined, anchorRef.value!);
+
+    if (isServer) {
+      return;
+    }
+
+    if (anchorRef.value && handlePrefetch) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // We need to trigger the onQVisible$ in the task as well for it to fire on subsequent route navigations
+              if (linkProps.onQVisible$) {
+                const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+
+                if (Array.isArray(linkProps.onQVisible$)) {
+                  linkProps.onQVisible$
+                    .flat(10)
+                    .forEach((handler) => (handler as any)?.(event, anchorRef.value));
+                } else {
+                  linkProps.onQVisible$?.(event, anchorRef.value!);
+                }
+              }
+              // Don't prefetch on visible in dev mode
+              if (!isDev) {
+                handlePrefetch(undefined, anchorRef.value!);
+              }
+              // Unobserve after the first intersection to prevent multiple prefetches
+              observer.unobserve(anchorRef.value!);
+            }
+          });
+        },
+        { threshold: 0.01 } // Trigger when a small part of the element is visible
+      );
+
+      observer.observe(anchorRef.value);
+
+      cleanup(() => {
+        observer.disconnect();
+      });
     }
   });
 
@@ -101,6 +140,8 @@ export const Link = component$<LinkProps>((props) => {
       data-prefetch={prefetchData}
       onMouseOver$={[linkProps.onMouseOver$, handlePrefetch]}
       onFocus$={[linkProps.onFocus$, handlePrefetch]}
+      // Don't prefetch on visible in dev mode
+      onQVisible$={[linkProps.onQVisible$, !isDev ? handlePrefetch : undefined]}
     >
       <Slot />
     </a>

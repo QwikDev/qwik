@@ -1,5 +1,15 @@
-import { component$, Slot, type QwikIntrinsicElements, untrack, $, sync$ } from '@builder.io/qwik';
-import { getClientNavPath, shouldPrefetchData, shouldPrefetchSymbols } from './utils';
+import {
+  component$,
+  Slot,
+  type QwikIntrinsicElements,
+  $,
+  sync$,
+  useSignal,
+  useVisibleTask$,
+  type QwikVisibleEvent,
+  untrack,
+} from '@builder.io/qwik';
+import { getClientNavPath, shouldPreload } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
 import { prefetchSymbols } from './client-navigate';
@@ -10,6 +20,7 @@ export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
   const originalHref = props.href;
+  const anchorRef = useSignal<HTMLAnchorElement>();
   const {
     onClick$,
     prefetch: prefetchProp,
@@ -22,18 +33,13 @@ export const Link = component$<LinkProps>((props) => {
   linkProps.href = clientNavPath || originalHref;
 
   const prefetchData = untrack(
-    () =>
-      (!!clientNavPath &&
-        prefetchProp !== false &&
-        prefetchProp !== 'js' &&
-        shouldPrefetchData(clientNavPath, loc)) ||
-      undefined
+    () => (!!clientNavPath && prefetchProp !== false && prefetchProp !== 'js') || undefined
   );
 
   const prefetch = untrack(
     () =>
       prefetchData ||
-      (!!clientNavPath && prefetchProp !== false && shouldPrefetchSymbols(clientNavPath, loc))
+      (!!clientNavPath && prefetchProp !== false && shouldPreload(clientNavPath, loc))
   );
 
   const handlePrefetch = prefetch
@@ -77,8 +83,29 @@ export const Link = component$<LinkProps>((props) => {
         }
       })
     : undefined;
+
+  useVisibleTask$(({ track }) => {
+    track(() => loc.url.pathname);
+    if (linkProps.onQVisible$) {
+      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+
+      if (Array.isArray(linkProps.onQVisible$)) {
+        linkProps.onQVisible$
+          .flat(10)
+          .forEach((handler) => (handler as any)?.(event, anchorRef.value));
+      } else {
+        linkProps.onQVisible$?.(event, anchorRef.value!);
+      }
+    }
+    // Don't prefetch on visible in dev mode
+    if (!isDev && anchorRef.value) {
+      handlePrefetch?.(undefined, anchorRef.value!);
+    }
+  });
+
   return (
     <a
+      ref={anchorRef}
       // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
       {...{ 'q:link': !!clientNavPath }}
       {...linkProps}
@@ -86,8 +113,6 @@ export const Link = component$<LinkProps>((props) => {
       data-prefetch={prefetchData}
       onMouseOver$={[linkProps.onMouseOver$, handlePrefetch]}
       onFocus$={[linkProps.onFocus$, handlePrefetch]}
-      // Don't prefetch on visible in dev mode
-      onQVisible$={[linkProps.onQVisible$, !isDev ? handlePrefetch : undefined]}
     >
       <Slot />
     </a>

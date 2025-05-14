@@ -44,7 +44,8 @@ export const PrefetchServiceWorker = (opts: {
   }
   let code = PREFETCH_CODE.replace('URL', resolvedOpts.path);
   if (!isDev) {
-    code = code.replaceAll(/\s+/gm, '');
+    // consecutive spaces are indentation
+    code = code.replaceAll(/\s\s+/gm, '');
   }
   const props = {
     dangerouslySetInnerHTML: [

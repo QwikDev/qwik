@@ -51,7 +51,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unknown vnode type {{0}}.', // 43
       'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
       'Cannot coerce a Signal, use `.value` instead', // 45
-      'useComputedSignal$ QRL {{0}} {{1}} returned a Promise', // 46
+      'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 46
       'ComputedSignal is read-only', // 47
       'WrappedSignal is read-only', // 48
       'Attribute value is unsafe for SSR', // 49

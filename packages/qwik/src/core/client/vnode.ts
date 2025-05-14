@@ -1718,6 +1718,7 @@ export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
   return vnode[TextVNodeProps.node]!;
 };
 
+/** @internal */
 export function vnode_toString(
   this: VNode | null,
   depth: number = 20,

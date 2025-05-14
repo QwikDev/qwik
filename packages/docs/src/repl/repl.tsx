@@ -27,7 +27,10 @@ export const Repl = component$((props: ReplProps) => {
       clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
         .toString(36)
         .toLowerCase(),
-      html: '',
+      htmlResult: {
+        rawHtml: '',
+        prettyHtml: '',
+      },
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],

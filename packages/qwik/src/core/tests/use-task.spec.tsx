@@ -813,6 +813,7 @@ describe.each([
   });
 
   it('catch the ', async () => {
+    const error = new Error('HANDLE ME');
     const Cmp = component$(() => {
       useTask$(() => {
         if (isServer) {
@@ -824,20 +825,30 @@ describe.each([
     });
     const Cmp1 = component$(() => {
       useTask$(() => {
-        throw new Error('should not reach here');
+        throw error;
       });
 
       return <div>1</div>;
     });
     try {
-      await render(<Cmp />, { debug });
+      await render(
+        <ErrorProvider>
+          <Cmp />
+        </ErrorProvider>,
+        { debug }
+      );
     } catch (e: unknown) {
       expect((e as Error).message).toBeTruthy;
     }
     try {
-      await render(<Cmp1 />, { debug });
+      await render(
+        <ErrorProvider>
+          <Cmp1 />
+        </ErrorProvider>,
+        { debug }
+      );
     } catch (error) {
-      expect((error as Error).message).toBe('should not reach here');
+      expect((error as Error).message).toBe('HANDLE ME');
     }
   });
 });

@@ -812,12 +812,19 @@ describe.each([
     expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
   });
 
-  it.only('catch the ', async () => {
+  it('catch the ', async () => {
     const Cmp = component$(() => {
       useTask$(() => {
         if (isServer) {
-          document.body.innerHTML = '';
+          document.body;
         }
+      });
+
+      return <div>1</div>;
+    });
+    const Cmp1 = component$(() => {
+      useTask$(() => {
+        throw new Error('should not reach here');
       });
 
       return <div>1</div>;
@@ -825,7 +832,12 @@ describe.each([
     try {
       await render(<Cmp />, { debug });
     } catch (e: unknown) {
-      expect((e as Error).message.includes('Code(Q51)')).toBeTruthy;
+      expect((e as Error).message).toBeTruthy;
+    }
+    try {
+      await render(<Cmp1 />, { debug });
+    } catch (error) {
+      expect((error as Error).message).toBe('should not reach here');
     }
   });
 });

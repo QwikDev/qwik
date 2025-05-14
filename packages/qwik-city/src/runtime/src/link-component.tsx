@@ -6,7 +6,6 @@ import {
   sync$,
   useSignal,
   useVisibleTask$,
-  type QwikVisibleEvent,
   untrack,
 } from '@builder.io/qwik';
 import { getClientNavPath, shouldPreload } from './utils';
@@ -86,17 +85,6 @@ export const Link = component$<LinkProps>((props) => {
 
   useVisibleTask$(({ track }) => {
     track(() => loc.url.pathname);
-    if (linkProps.onQVisible$) {
-      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
-
-      if (Array.isArray(linkProps.onQVisible$)) {
-        linkProps.onQVisible$
-          .flat(10)
-          .forEach((handler) => (handler as any)?.(event, anchorRef.value));
-      } else {
-        linkProps.onQVisible$?.(event, anchorRef.value!);
-      }
-    }
     // Don't prefetch on visible in dev mode
     if (!isDev && anchorRef.value) {
       handlePrefetch?.(undefined, anchorRef.value!);

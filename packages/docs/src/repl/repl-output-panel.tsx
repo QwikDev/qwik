@@ -6,8 +6,7 @@ import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
 import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
-import { dumpState, preprocessState } from '../../../qwik/src/core/shared/shared-serialization';
-import { vnode_toString } from '../../../qwik/src/core/client/vnode';
+import { _dumpState, _preprocessState, _vnode_toString } from '@qwik.dev/core/internal';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = useComputed$(
@@ -33,9 +32,9 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
       if (qwikStates.length !== 0) {
         const data = qwikStates[qwikStates.length - 1];
         const origState = JSON.parse(data?.textContent || '[]');
-        preprocessState(origState, container as any);
+        _preprocessState(origState, container as any);
         return origState
-          ? dumpState(origState, false, '', null)
+          ? _dumpState(origState, false, '', null)
               //remove first new line
               .replace(/\n/, '')
           : 'No state found';
@@ -50,7 +49,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
   const vdomTree = useComputed$(() => {
     try {
       const container = domContainerFromResultHtml.value;
-      return vnode_toString.call(
+      return _vnode_toString.call(
         container!.rootVNode as any,
         Number.MAX_SAFE_INTEGER,
         '',

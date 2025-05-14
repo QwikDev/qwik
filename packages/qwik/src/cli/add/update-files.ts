@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { extname, join } from 'node:path';
+import { extname, join, normalize } from 'node:path';
 import type { FsUpdates, UpdateAppOptions } from '../types';
 import { getPackageManager } from '../utils/utils';
 
@@ -22,12 +22,18 @@ export async function mergeIntegrationDir(
       const s = await fs.promises.stat(srcChildPath);
 
       if (s.isDirectory()) {
-        await mergeIntegrationDir(fileUpdates, opts, srcChildPath, destRootPath, alwaysInRoot);
+        await mergeIntegrationDir(
+          fileUpdates,
+          opts,
+          srcChildPath,
+          normalize(destRootPath).replace(/\\/g, '/'),
+          alwaysInRoot
+        );
       } else if (s.isFile()) {
         const finalDestPath = getFinalDestPath(opts, destRootPath, destDir, destName, alwaysInRoot);
 
         if (destName === 'package.json') {
-          await mergePackageJsons(fileUpdates, srcChildPath, destRootPath);
+          await mergePackageJsons(fileUpdates, srcChildPath, destRootPath.replace(/\\/g, '/'));
         } else if (destName === 'settings.json') {
           await mergeJsons(fileUpdates, srcChildPath, finalDestPath);
         } else if (destName === 'README.md') {
@@ -37,7 +43,7 @@ export async function mergeIntegrationDir(
           destName === '.prettierignore' ||
           destName === '.eslintignore'
         ) {
-          await mergeIgnoresFile(fileUpdates, srcChildPath, destRootPath);
+          await mergeIgnoresFile(fileUpdates, srcChildPath, destRootPath.replace(/\\/g, '/'));
         } else if (ext === '.css') {
           await mergeCss(fileUpdates, srcChildPath, finalDestPath, opts);
         } else if (fs.existsSync(finalDestPath)) {
@@ -79,7 +85,8 @@ function getFinalDestPath(
       ? destRootPath
       : destChildPath;
 
-  return finalDestPath;
+  // Normalize path separators to forward slashes for cross-platform compatibility
+  return normalize(finalDestPath).replace(/\\/g, '/');
 }
 
 async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {

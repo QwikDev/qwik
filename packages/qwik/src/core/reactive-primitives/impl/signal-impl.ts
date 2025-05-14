@@ -9,10 +9,10 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  triggerEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
-import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -54,12 +54,14 @@ export class SignalImpl<T = any> implements Signal<T> {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
-        this,
-        this.$effects$
-      );
+      // TODO: move this to the scheduler
+      triggerEffects(this.$container$, this, this.$effects$);
+      // this.$container$?.$scheduler$(
+      //   ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      //   null,
+      //   this,
+      //   this.$effects$
+      // );
     }
   }
 

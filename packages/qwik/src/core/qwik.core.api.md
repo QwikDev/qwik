@@ -23,10 +23,6 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
-    // (undocumented)
-    error: Error | null;
-    // (undocumented)
-    pending: boolean;
 }
 
 // @public (undocumented)
@@ -91,7 +87,7 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
-export type ComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;
 
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
@@ -261,6 +257,9 @@ class DomContainer extends _SharedContainer implements ClientContainer {
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
 export { DomContainer }
 export { DomContainer as _DomContainer }
+
+// @internal (undocumented)
+export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -566,6 +565,11 @@ export const PrefetchServiceWorker: (opts: {
     fetchBundleGraph?: boolean;
     nonce?: string;
 }) => JSXOutput;
+
+// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
 
 // @public
 export type PropFunction<T> = QRL<T>;
@@ -1594,7 +1598,7 @@ export const _task: (_event: Event, element: Element) => void;
 // @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
-    cleanup(callback: () => void): void;
+    cleanup: (callback: () => void) => void;
     // (undocumented)
     track: Tracker;
 }
@@ -1797,6 +1801,9 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+
+// @internal (undocumented)
+export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean): string;
 
 // @internal
 export const enum _VNodeFlags {

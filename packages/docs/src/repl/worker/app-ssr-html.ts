@@ -82,7 +82,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   console.error = error;
   console.debug = debug;
 
-  result.html = ssrResult.html;
+  result.htmlResult.rawHtml = ssrResult.html;
 
   result.events.push({
     kind: 'pause',
@@ -94,12 +94,12 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   if (options.buildMode !== 'production') {
     try {
-      const html = await self.prettier?.format(result.html, {
+      const html = await self.prettier?.format(result.htmlResult.rawHtml, {
         parser: 'html',
         plugins: self.prettierPlugins,
       });
       if (html) {
-        result.html = html;
+        result.htmlResult.prettyHtml = html;
       }
     } catch (e) {
       console.error(e);

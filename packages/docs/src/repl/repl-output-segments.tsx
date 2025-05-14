@@ -3,7 +3,7 @@ import type { TransformModule } from '@qwik.dev/core/optimizer';
 import { CodeBlock } from '../components/code-block/code-block';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
-export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {
+export const ReplOutputSegments = component$(({ outputs }: ReplOutputSegmentsProps) => {
   const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
   const pathInView$ = $((path: string) => {
     selectedPath.value = path;
@@ -12,7 +12,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">Symbols</div>
+        <div class="file-tree-header">Segments</div>
         <div class="file-tree-items">
           {outputs.map((o, i) => (
             <div key={o.path}>
@@ -68,6 +68,6 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
   );
 });
 
-interface ReplOutputSymbolsProps {
+interface ReplOutputSegmentsProps {
   outputs: TransformModule[];
 }

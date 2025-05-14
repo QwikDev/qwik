@@ -27,7 +27,7 @@ export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'
 
 export interface ReplStore {
   clientId: string;
-  html: string;
+  htmlResult: ReplHTMLResult;
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
@@ -112,7 +112,7 @@ export interface ReplEvent {
 export interface ReplResult extends ReplMessageBase {
   type: 'result';
   buildId: number;
-  html: string;
+  htmlResult: ReplHTMLResult;
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
@@ -121,10 +121,16 @@ export interface ReplResult extends ReplMessageBase {
   events: ReplEvent[];
 }
 
+export interface ReplHTMLResult {
+  rawHtml: string;
+  prettyHtml: string;
+}
+
 export type OutputPanel =
   | 'app'
   | 'html'
-  | 'symbols'
+  | 'state'
+  | 'segments'
   | 'clientBundles'
   | 'serverModules'
   | 'diagnostics';

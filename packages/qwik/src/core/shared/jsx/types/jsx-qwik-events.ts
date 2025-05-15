@@ -2,6 +2,11 @@ import type { AllEventKeys } from './jsx-qwik-attributes';
 
 /** Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$` @public */
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
+/**
+ * Emitted by qwik-loader when an element becomes visible, after document idle. Used by
+ * `useVisibleTask$` @public
+ */
+export type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;
 /** Emitted by qwik-loader when a module was lazily loaded @public */
 export type QwikSymbolEvent = CustomEvent<{
   symbol: string;

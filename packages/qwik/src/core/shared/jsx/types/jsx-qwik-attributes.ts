@@ -3,6 +3,7 @@ import type { Signal } from '../../../reactive-primitives/signal.public';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,
+  QwikIdlevisibleEvent,
   QwikInitEvent,
   QwikSymbolEvent,
   QwikViewTransitionEvent,
@@ -65,6 +66,7 @@ type PascalCaseNames =
   | 'PointerOver'
   | 'PointerUp'
   | 'QIdle'
+  | 'QIdlevisible'
   | 'QInit'
   | 'QSymbol'
   | 'QVisible'
@@ -111,6 +113,7 @@ type AllEventMapRaw = HTMLElementEventMap &
   DocumentEventMap &
   WindowEventHandlersEventMap & {
     qidle: QwikIdleEvent;
+    qidlevisible: QwikIdlevisibleEvent;
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
     qvisible: QwikVisibleEvent;

@@ -2891,6 +2891,16 @@ export type QwikIdleEvent = CustomEvent<{}>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
 
+## QwikIdlevisibleEvent
+
+Emitted by qwik-loader when an element becomes visible, after document idle. Used by `useVisibleTask$`
+
+```typescript
+export type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
+
 ## QwikInitEvent
 
 Emitted by qwik-loader on document when the document first becomes interactive
@@ -9864,7 +9874,8 @@ version: string;
 export type VisibleTaskStrategy =
   | "intersection-observer"
   | "document-ready"
-  | "document-idle";
+  | "document-idle"
+  | "idle-visible";
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts)

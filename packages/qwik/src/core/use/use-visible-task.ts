@@ -9,7 +9,11 @@ import { useSequentialScope } from './use-sequential-scope';
 import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';
 
 /** @public */
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+export type VisibleTaskStrategy =
+  | 'intersection-observer'
+  | 'document-ready'
+  | 'document-idle'
+  | 'idle-visible';
 
 /** @public */
 export interface OnVisibleTaskOptions {
@@ -50,6 +54,8 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
 export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {
   if (eagerness === 'intersection-observer') {
     useOn('qvisible', getTaskHandlerQrl(task));
+  } else if (eagerness === 'idle-visible') {
+    useOn('qidlevisible', getTaskHandlerQrl(task));
   } else if (eagerness === 'document-ready') {
     useOnDocument('qinit', getTaskHandlerQrl(task));
   } else if (eagerness === 'document-idle') {

@@ -1452,6 +1452,20 @@
       "mdFile": "core.qwikidleevent.md"
     },
     {
+      "name": "QwikIdlevisibleEvent",
+      "id": "qwikidlevisibleevent",
+      "hierarchy": [
+        {
+          "name": "QwikIdlevisibleEvent",
+          "id": "qwikidlevisibleevent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Emitted by qwik-loader when an element becomes visible, after document idle. Used by `useVisibleTask$`\n\n\n```typescript\nexport type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
+      "mdFile": "core.qwikidlevisibleevent.md"
+    },
+    {
       "name": "QwikInitEvent",
       "id": "qwikinitevent",
       "hierarchy": [
@@ -2595,7 +2609,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';\n```",
+      "content": "```typescript\nexport type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle' | 'idle-visible';\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-visible-task.ts",
       "mdFile": "core.visibletaskstrategy.md"
     },

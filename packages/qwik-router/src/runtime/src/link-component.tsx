@@ -83,29 +83,32 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
 
-  useVisibleTask$(({ track }) => {
-    track(() => loc.url.pathname);
-    // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
-    const handler = linkProps.onQVisible$;
-    if (handler) {
-      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+  useVisibleTask$(
+    ({ track }) => {
+      track(() => loc.url.pathname);
+      // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
+      const handler = linkProps.onQVisible$;
+      if (handler) {
+        const event = new CustomEvent('qvisible') as QwikVisibleEvent;
 
-      if (Array.isArray(handler)) {
-        (handler as any)
-          .flat(10)
-          .forEach((handler: EventHandler<QwikVisibleEvent, HTMLAnchorElement>) =>
-            handler?.(event, anchorRef.value!)
-          );
-      } else {
-        handler?.(event, anchorRef.value!);
+        if (Array.isArray(handler)) {
+          (handler as any)
+            .flat(10)
+            .forEach((handler: EventHandler<QwikVisibleEvent, HTMLAnchorElement>) =>
+              handler?.(event, anchorRef.value!)
+            );
+        } else {
+          handler?.(event, anchorRef.value!);
+        }
       }
-    }
 
-    // Don't prefetch on visible in dev mode
-    if (!isDev && anchorRef.value) {
-      handlePrefetch?.(undefined, anchorRef.value!);
-    }
-  });
+      // Don't prefetch on visible in dev mode
+      if (!isDev && anchorRef.value) {
+        handlePrefetch?.(undefined, anchorRef.value!);
+      }
+    },
+    { strategy: 'idle-visible' }
+  );
 
   return (
     <a

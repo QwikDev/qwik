@@ -711,6 +711,9 @@ export type QwikHTMLElements = {
 export type QwikIdleEvent = CustomEvent<{}>;
 
 // @public
+export type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;
+
+// @public
 export type QwikInitEvent = CustomEvent<{}>;
 
 // @public
@@ -1859,7 +1862,7 @@ _VNode | null,
 };
 
 // @public (undocumented)
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle' | 'idle-visible';
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;

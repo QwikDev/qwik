@@ -19,6 +19,7 @@ test.describe("effect-client", () => {
     const msgClientSide1 = page.locator("#client-side-msg-1");
     const msgClientSide2 = page.locator("#client-side-msg-2");
     const msgClientSide3 = page.locator("#client-side-msg-3");
+    const msgClientSide4 = page.locator("#client-side-msg-4");
 
     await expect(container).not.toHaveAttribute("data-effect");
     await expect(counter).toHaveText("0");
@@ -27,7 +28,7 @@ test.describe("effect-client", () => {
     await expect(msgClientSide1).toHaveText("run");
     await expect(msgClientSide2).toHaveText("run");
     await expect(msgClientSide3).toHaveText("run");
-
+    await expect(msgClientSide4).toHaveText("run");
     await counter.scrollIntoViewIfNeeded();
 
     await expect(container).toHaveAttribute("data-effect", "true");

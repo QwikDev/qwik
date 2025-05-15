@@ -83,13 +83,16 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
 
-  useVisibleTask$(({ track }) => {
-    track(() => loc.url.pathname);
-    // Don't prefetch on visible in dev mode
-    if (!isDev && anchorRef.value) {
-      handlePrefetch?.(undefined, anchorRef.value!);
-    }
-  });
+  useVisibleTask$(
+    ({ track }) => {
+      track(() => loc.url.pathname);
+      // Don't prefetch on visible in dev mode
+      if (!isDev && anchorRef.value) {
+        handlePrefetch?.(undefined, anchorRef.value!);
+      }
+    },
+    { strategy: 'idle-visible' }
+  );
 
   return (
     <a

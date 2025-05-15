@@ -203,6 +203,21 @@ type qWindow = Window & {
     broadcast('-window', ev, camelToKebab(ev.type));
   };
 
+  const observeVisible = (type: string) => {
+    const results = querySelectorAll(`[on\\:${type}]`);
+    if (results.length) {
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            observer.unobserve(entry.target);
+            dispatch(entry.target, '', createEvent<QwikVisibleEvent>(type, entry));
+          }
+        }
+      });
+      results.forEach((el) => observer.observe(el));
+    }
+  };
+
   const processReadyStateChange = () => {
     const readyState = doc.readyState;
     if (!hasInitialized && (readyState == 'interactive' || readyState == 'complete')) {
@@ -211,21 +226,15 @@ type qWindow = Window & {
       hasInitialized = 1;
 
       emitEvent('qinit');
-      const riC = win.requestIdleCallback ?? win.setTimeout;
-      riC.bind(win)(() => emitEvent('qidle'));
 
-      if (events.has('qvisible')) {
-        const results = querySelectorAll('[on\\:qvisible]');
-        const observer = new IntersectionObserver((entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              observer.unobserve(entry.target);
-              dispatch(entry.target, '', createEvent<QwikVisibleEvent>('qvisible', entry));
-            }
-          }
-        });
-        results.forEach((el) => observer.observe(el));
-      }
+      const riC = win.requestIdleCallback ?? win.setTimeout;
+      riC.bind(win)(() => {
+        emitEvent('qidle');
+
+        observeVisible('qidlevisible');
+      });
+
+      observeVisible('qvisible');
     }
   };
 

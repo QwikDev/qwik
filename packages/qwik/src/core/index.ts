@@ -134,9 +134,10 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
-  KnownEventNames as KnownEventNames,
+  KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
+  QwikIdlevisibleEvent,
   QwikIdleEvent,
   QwikInitEvent,
   QwikTransitionEvent,

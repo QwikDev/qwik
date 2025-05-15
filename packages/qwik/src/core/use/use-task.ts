@@ -190,7 +190,11 @@ export interface DescriptorBase<T = unknown, B = unknown> {
 export type EagernessOptions = 'visible' | 'load' | 'idle';
 
 /** @public */
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+export type VisibleTaskStrategy =
+  | 'intersection-observer'
+  | 'document-ready'
+  | 'document-idle'
+  | 'idle-visible';
 
 /** @public */
 export interface OnVisibleTaskOptions {
@@ -809,6 +813,8 @@ const useRunTask = (
 ) => {
   if (eagerness === 'visible' || eagerness === 'intersection-observer') {
     useOn('qvisible', getTaskHandlerQrl(task));
+  } else if (eagerness === 'idle-visible') {
+    useOn('qidlevisible', getTaskHandlerQrl(task));
   } else if (eagerness === 'load' || eagerness === 'document-ready') {
     useOnDocument('qinit', getTaskHandlerQrl(task));
   } else if (eagerness === 'idle' || eagerness === 'document-idle') {

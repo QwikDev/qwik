@@ -156,7 +156,7 @@
     "source-map": "0.7.4",
     "svgo": "3.3.2",
     "syncpack": "12.3.3",
-    "terser": "5.39.0",
+    "terser": "5.39.1",
     "tmp": "0.2.3",
     "tree-kill": "1.2.2",
     "tsx": "4.19.4",
@@ -179,7 +179,7 @@
     "yarn": "please-use-pnpm",
     "pnpm": ">=9.0.5"
   },
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.11.0",
   "pnpm": {
     "overrides": {
       "@supabase/realtime-js": "2.8.4",

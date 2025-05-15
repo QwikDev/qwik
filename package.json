@@ -64,6 +64,14 @@
             "rollup"
           ],
           "pinVersion": ">= 4.39.0"
+        },
+        {
+          "label": "Require minimums",
+          "dependencyTypes": [
+            "prod",
+            "peer"
+          ],
+          "range": "^"
         }
       ],
       "semverGroups": [
@@ -243,7 +251,7 @@
     "prettier.fix": "prettier --cache --write .",
     "qwik-push-build-repos": "tsx --require ./scripts/runBefore.ts ./scripts/qwik-push-build-repos.ts",
     "release": "changeset publish",
-    "release.fixup-package-json": "syncpack fix --config syncpack-release-conf.json",
+    "release.fixup-package-json": "syncpack fix --source package.json",
     "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --compact --pnpm ./packages/qwik ./packages/qwik-city ./packages/eslint-plugin-qwik ./packages/create-qwik",
     "release.prepare": "pnpm build --prepare-release",
     "serve": "tsx --require ./scripts/runBefore.ts --inspect --conditions=development starters/dev-server.ts 3300",

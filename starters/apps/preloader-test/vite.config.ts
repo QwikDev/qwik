@@ -6,7 +6,8 @@ import { defineConfig, type UserConfig, type Plugin } from "vite";
 import { qwikVite } from "@builder.io/qwik/optimizer";
 import { qwikCity } from "@builder.io/qwik-city/vite";
 import crypto from "crypto";
-
+import tsconfigPaths from "vite-tsconfig-paths";
+import basicSsl from "@vitejs/plugin-basic-ssl";
 /**
  * Note that Vite normally starts from `index.html` but the qwikCity plugin makes start at `src/entry.ssr.tsx` instead.
  */
@@ -61,7 +62,13 @@ function createBulkPlugin(): Plugin {
 
 export default defineConfig(({ command, mode }): UserConfig => {
   return {
-    plugins: [qwikCity(), qwikVite({ debug: true }), createBulkPlugin()],
+    plugins: [
+      qwikCity(),
+      qwikVite({ debug: true }),
+      createBulkPlugin(),
+      tsconfigPaths(),
+      basicSsl(),
+    ],
     build: {
       minify: false,
       rollupOptions: {

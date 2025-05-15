@@ -24,7 +24,7 @@
     "@types/node": "20.14.11",
     "autoprefixer": "10.4.19",
     "better-sqlite3": "9.6.0",
-    "eslint": "9.25.1",
+    "eslint": "^8.57.0 || ^9.0.0",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.0.0",
     "netlify-cli": "17.37.2",

@@ -33,15 +33,18 @@ export const Bar = component$(({bar}) => {
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.jsx (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { qrl } from "@qwik.dev/core";
 export const Foo_component_HTDRsvUbLiE = (props)=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY", [
+    const arg0 = _addLoc(20, "test.tsx", 6, 15);
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_n07hoBxfni0"), "Foo_n07hoBxfni0", [
+        arg0,
         props
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE7B;;;AAQD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAC7B,MAAM,OAAO,QAAA;IACb;;;;AAQD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -65,15 +68,54 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.tsx_Foo_n07hoBxfni0.jsx (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Foo_n07hoBxfni0 = ()=>{
+    const [arg0, props] = useLexicalScope();
+    const fn = _addLoc(({ aaa })=>aaa, "test.tsx", 8, 14);
+    return <div>
+				{props.foo}{fn()}{arg0}
+			</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;+BAKU;;IACR,MAAM,KAAK,QAAA,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,OAN4B,KAMtB,MAAM,KAAK;GAClB,EAAE\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_n07hoBxfni0",
+  "entry": null,
+  "displayName": "test.tsx_Foo",
+  "hash": "n07hoBxfni0",
+  "canonicalFilename": "test.tsx_Foo_n07hoBxfni0",
+  "path": "",
+  "extension": "jsx",
+  "parent": "Foo_component_HTDRsvUbLiE",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    122,
+    217
+  ],
+  "captureNames": [
+    "arg0",
+    "props"
+  ]
+}
+*/
 ============================= test.jsx ==
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"));
-export const Bar = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Foo = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE")), "test.tsx", 5, 20);
+export const Bar = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_component_L80pS8Hxf1Y"), "Bar_component_L80pS8Hxf1Y")), "test.tsx", 17, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAUjB;AAEF,OAAO,MAAM,oBAAM,iHAQjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA,qIAUjB;AAEF,OAAO,MAAM,oBAAM,QAAA,sIAQjB\"}")
 ============================= test.tsx_Bar_component_L80pS8Hxf1Y.jsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -104,42 +146,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     335
   ],
   "paramNames": [
-    "props"
-  ]
-}
-*/
-============================= test.tsx_Foo_component_1_DvU6FitWglY.jsx (ENTRY POINT)==
-
-import { useLexicalScope } from "@qwik.dev/core";
-export const Foo_component_1_DvU6FitWglY = ()=>{
-    const [props] = useLexicalScope();
-    const fn = ({ aaa })=>aaa;
-    return <div>
-				{props.foo}{fn()}{20}
-			</div>;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAKU;;IACR,MAAM,KAAK,CAAC,EAAC,GAAG,EAAC,GAAK;IACtB,QACE,IAAI;IACJ,OAN4B,KAMtB,MALI,GAKO;GAClB,EAAE\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_1_DvU6FitWglY",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_1",
-  "hash": "DvU6FitWglY",
-  "canonicalFilename": "test.tsx_Foo_component_1_DvU6FitWglY",
-  "path": "",
-  "extension": "jsx",
-  "parent": "Foo_component_HTDRsvUbLiE",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": true,
-  "loc": [
-    122,
-    217
-  ],
-  "captureNames": [
     "props"
   ]
 }

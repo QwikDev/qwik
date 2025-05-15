@@ -22,14 +22,15 @@ export const App = component$((props: Stuff) => {
 import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { Slot } from '@qwik.dev/core';
 const App_component_ckEPmXZlub0 = (props)=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(Slot, null, null, null, 3, "u6_0"), 1, "u6_1");
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0")), "test.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAA+B,IAAI,QAAQ,iBAAiB;kCAE9B,CAAC;IAC9B,qBACC,WAAC,iCACA,WAAC;AAGJ;AANA,OAAO,MAAM,oBAAM,+FAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAA+B,IAAI,QAAQ,iBAAiB;kCAE9B,CAAC;IAC9B,qBACC,WAAC,iCACA,WAAC;AAGJ;AANA,OAAO,MAAM,oBAAM,QAAA,mHAMhB\"}")
 == DIAGNOSTICS ==
 
 []

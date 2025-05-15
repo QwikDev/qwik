@@ -26,17 +26,20 @@ export const Works = component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Works = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const store = useStore({
         value: {
             count: 0
         }
     });
-    return <div ciao={store.value.countNested.hello.bye.italian.ciao}>{foo}</div>;
-}, "Works_component_t45qL4vNGv0"));
+    const countNested2 = _addLoc(store.value.countNested, "test.tsx", 7, 23);
+    const bye = _addLoc(countNested2.hello.bye, "test.tsx", 9, 14);
+    return <div ciao={bye.italian.ciao}>{foo}</div>;
+}, "Works_component_t45qL4vNGv0")), "test.tsx", 5, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAO/C,QACE,IAAI,MAJS,AADH,MAHsC,MAA3C,YAEA,MACW,GAAG,CACF,OAAO,CAAnB,OAIa,MAAM;AAE3B,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,sBAAQ,QAAA,sCAAW,CAAC;IAChC,MAAM,QAAgB,SAAS;QAAC,OAAM;YAAC,OAAM;QAAC;IAAC;IAC/C,MAAM,eAAe,cAD6B,MAA3C;IAGP,MAAM,MAAM,QAAA,AADI,aAAT,MACW,GAAG;IAIrB,QACE,IAAI,MAJS,IAAI,OAAO,CAAnB,OAIa,MAAM;AAE3B,uDAAG\"}")
 == DIAGNOSTICS ==
 
 []

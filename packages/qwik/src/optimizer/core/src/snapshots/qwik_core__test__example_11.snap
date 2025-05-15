@@ -124,11 +124,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Header = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo")), "project/test.tsx", 8, 23);
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs")), "project/test.tsx", 16, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,uBAAS,QAAA,mJAMnB;AAEH,OAAO,MAAM,oBAAM,QAAA,8IAIhB\"}")
 == DIAGNOSTICS ==
 
 []

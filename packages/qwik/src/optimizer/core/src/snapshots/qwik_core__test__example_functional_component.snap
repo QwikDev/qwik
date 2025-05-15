@@ -19,15 +19,16 @@ const Header = component$(() => {
 
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useStore } from "@qwik.dev/core";
 export const Header_component_J4uyIhaBNR4 = ()=>{
-    const thing = useStore();
+    const thing = _addLoc(useStore(), "test.tsx", 5, 16);
     const { foo, bar } = foo();
     return <div>{thing}</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAE0B;IACzB,MAAM,QAAQ;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4CAE0B;IACzB,MAAM,QAAQ,QAAA;IACd,MAAM,EAAC,GAAG,EAAE,GAAG,EAAC,GAAG;IAEnB,QACE,KAAK,QAAQ;AAEhB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -52,11 +53,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { $, component$, useStore } from '@qwik.dev/core';
-const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
+const Header = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4")), "test.tsx", 4, 16);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,iBAAiB;AACzD,MAAM,uBAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAS,CAAC,EAAE,UAAU,EAAE,QAAQ,QAAQ,iBAAiB;AACzD,MAAM,uBAAS,QAAA\"}")
 == DIAGNOSTICS ==
 
 []

@@ -2155,10 +2155,10 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	// Convert function calls, including those ending in `$`
-	fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
+	fn fold_call_expr(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
 		let mut name_token = false;
-		let mut replace_callee = None;
-		let mut ctx_name: JsWord = QSEGMENT.clone();
+		let mut replace_callee_opt: Option<ast::Callee> = None;
+		let mut ctx_name_for_qrl: JsWord = QSEGMENT.clone();
 
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			if id_eq!(ident, &self.sync_qrl_fn) {
@@ -2174,7 +2174,7 @@ impl<'a> Fold for QwikTransform<'a> {
 				return self.handle_inlined_qsegment(node);
 			} else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
 				self.stack_ctxt.push(ident.sym.to_string());
-				ctx_name = specifier.clone();
+				ctx_name_for_qrl = specifier.clone();
 				name_token = true;
 
 				if id_eq!(ident, &self.qcomponent_fn) {
@@ -2187,39 +2187,41 @@ impl<'a> Fold for QwikTransform<'a> {
 					let new_specifier =
 						convert_qrl_word(&import.specifier).expect("Specifier ends with $");
 					let new_local = self.ensure_import(&new_specifier, &import.source);
-					replace_callee = Some(new_ident_from_id(&new_local).as_callee());
+					replace_callee_opt = Some(new_ident_from_id(&new_local).as_callee());
 				} else {
 					let new_specifier =
 						convert_qrl_word(&ident.sym).expect("Specifier ends with $");
 					global_collect
-							.exports
-							.keys()
-							.find(|id| id.0 == new_specifier)
-							.map_or_else(
-								|| {
-									HANDLER.with(|handler| {
-										handler
-											.struct_span_err_with_code(
-												ident.span,
-												&format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
-												errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
+						.exports
+						.keys()
+						.find(|id| id.0 == new_specifier)
+						.map_or_else(
+							|| {
+								HANDLER.with(|handler| {
+									handler
+										.struct_span_err_with_code(
+											ident.span,
+											&format!("Found '{}' but did not find the corresponding '{}' exported in the same file. Please check that it is exported and spelled correctly", &ident.sym, &new_specifier),
+											errors::get_diagnostic_id(errors::Error::MissingQrlImplementation),
 										)
-											.emit();
-									});
-								},
-								|new_local| {
-									replace_callee = Some(new_ident_from_id(new_local).as_callee());
-								},
-							);
+										.emit();
+								});
+							},
+							|new_local| {
+								replace_callee_opt = Some(new_ident_from_id(new_local).as_callee());
+							},
+						);
 				}
 			} else {
-				self.stack_ctxt.push(ident.sym.to_string());
+				if ident.sym != *_ADD_LOC {
+					self.stack_ctxt.push(ident.sym.to_string());
+				}
 				name_token = true;
 			}
 		}
 
-		let convert_qrl = replace_callee.is_some();
-		let callee = if let Some(callee) = replace_callee {
+		let convert_qrl = replace_callee_opt.is_some();
+		let callee = if let Some(callee) = replace_callee_opt {
 			callee
 		} else {
 			node.callee
@@ -2235,7 +2237,7 @@ impl<'a> Fold for QwikTransform<'a> {
 						expr: Box::new(ast::Expr::Call(self.create_synthetic_qsegment(
 							*arg.expr,
 							SegmentKind::Function,
-							ctx_name.clone(),
+							ctx_name_for_qrl.clone(),
 							None,
 						)))
 						.fold_with(self),

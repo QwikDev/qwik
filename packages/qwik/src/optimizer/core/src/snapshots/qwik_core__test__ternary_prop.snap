@@ -22,24 +22,24 @@ snapshot_kind: text
 			);
 		});
 		
-============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.ts (ENTRY POINT)==
+============================= test.tsx_Cmp_handleClick_Cdux9TfhfDM.ts (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
+export const Cmp_handleClick_Cdux9TfhfDM = ()=>{
     const [toggleSig] = useLexicalScope();
     toggleSig.value = !toggleSig.value;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAK0B;;IACtB,UAAU,KAAK,GAAG,CAAC,UAAU,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Cmp_component_handleClick_WawHV3HwS1A",
+  "name": "Cmp_handleClick_Cdux9TfhfDM",
   "entry": null,
-  "displayName": "test.tsx_Cmp_component_handleClick",
-  "hash": "WawHV3HwS1A",
-  "canonicalFilename": "test.tsx_Cmp_component_handleClick_WawHV3HwS1A",
+  "displayName": "test.tsx_Cmp_handleClick",
+  "hash": "Cdux9TfhfDM",
+  "canonicalFilename": "test.tsx_Cmp_handleClick_Cdux9TfhfDM",
   "path": "",
   "extension": "ts",
   "parent": "Cmp_component_4ryKJTOKjWE",
@@ -57,25 +57,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.ts (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = ()=>{
-    const toggleSig = useSignal(false);
-    const handleClick$ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_handleClick_WawHV3HwS1A"), "Cmp_component_handleClick_WawHV3HwS1A", [
+    const toggleSig = _addLoc(useSignal(false), "test.tsx", 5, 22);
+    const handleClick$ = /*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_handleClick_Cdux9TfhfDM"), "Cmp_handleClick_Cdux9TfhfDM", [
         toggleSig
-    ]);
-    return /*#__PURE__*/ _jsxSorted("button", null, {
-        onClick$: handleClick$,
+    ]), "test.tsx", 7, 25);
+    return /*#__PURE__*/ _jsxSorted("button", {
         "data-open": _fnSignal((p0)=>p0.value ? true : undefined, [
             toggleSig
-        ], "p0.value?true:undefined")
-    }, "Removing data-open re-renders", 3, "u6_0");
+        ], "p0.value?true:undefined"),
+        onClick$: handleClick$
+    }, null, "Removing data-open re-renders", 2, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEgC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,UAAU;QAAc,WAAS,kBAAE,GAAU,KAAK,GAAG,OAAO;;;OAAW;AAIjF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAEgC;IAC7B,MAAM,YAAY,QAAA,UAAU;IAE5B,MAAM,6BAAe;;;IAIrB,qBACC,WAAC;QAA+B,WAAS,kBAAE,GAAU,KAAK,GAAG,OAAO;;;QAA5D,UAAU;aAA6D;AAIjF\"}")
 /*
 {
   "origin": "test.tsx",
@@ -100,10 +101,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Cmp = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE")), "test.tsx", 4, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,OAAO,MAAM,oBAAM,iHAYhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,OAAO,MAAM,oBAAM,QAAA,qIAYhB\"}")
 == DIAGNOSTICS ==
 
 []

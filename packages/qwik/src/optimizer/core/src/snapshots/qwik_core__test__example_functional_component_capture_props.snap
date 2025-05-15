@@ -27,54 +27,22 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0")), "test.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAYjB\"}")
-============================= test.tsx_App_component_div_onClick_1CGetmFZx0g.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_div_onClick_1CGetmFZx0g = ()=>{
-    const [count, state] = useLexicalScope();
-    return state.count += count + total;
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQkB;;WAAM,MAAM,KAAK,IAAI,QAAQ\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "App_component_div_onClick_1CGetmFZx0g",
-  "entry": null,
-  "displayName": "test.tsx_App_component_div_onClick",
-  "hash": "1CGetmFZx0g",
-  "canonicalFilename": "test.tsx_App_component_div_onClick_1CGetmFZx0g",
-  "path": "",
-  "extension": "js",
-  "parent": "App_component_1_w0t0o3QMovU",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    319,
-    353
-  ],
-  "captureNames": [
-    "count",
-    "state"
-  ]
-}
-*/
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA,qIAYjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ({ count, rest: [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] })=>{
-    const state = useStore({
+    const state = _addLoc(useStore({
         count: 0
-    });
+    }), "test.tsx", 6, 16);
     const { rest: [C2, { C3, v1: [C4], C5 = v2, ...C6 }, C7 = v3, ...C8] } = foo();
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU", [
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Jlq9hNxnCvw"), "App_Jlq9hNxnCvw", [
         C2,
         C3,
         C4,
@@ -95,7 +63,7 @@ export const App_component_ckEPmXZlub0 = ({ count, rest: [I2, { I3, v1: [I4], I5
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,KAAK,EAAE,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC;IAC7F,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,EAAC,KAAK,EAAE,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC;IAC7F,MAAM,QAAQ,QAAA,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -119,15 +87,49 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
+============================= test.tsx_App_div_onClick_ooDUXFGjp9U.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_div_onClick_ooDUXFGjp9U = ()=>{
+    const [count, state] = useLexicalScope();
+    return state.count += count + total;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAQkB;;WAAM,MAAM,KAAK,IAAI,QAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_div_onClick_ooDUXFGjp9U",
+  "entry": null,
+  "displayName": "test.tsx_App_div_onClick",
+  "hash": "ooDUXFGjp9U",
+  "canonicalFilename": "test.tsx_App_div_onClick_ooDUXFGjp9U",
+  "path": "",
+  "extension": "js",
+  "parent": "App_Jlq9hNxnCvw",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    319,
+    353
+  ],
+  "captureNames": [
+    "count",
+    "state"
+  ]
+}
+*/
+============================= test.tsx_App_Jlq9hNxnCvw.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App_component_1_w0t0o3QMovU = ()=>{
+export const App_Jlq9hNxnCvw = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_onClick_1CGetmFZx0g"), "App_component_div_onClick_1CGetmFZx0g", [
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_div_onClick_ooDUXFGjp9U"), "App_div_onClick_ooDUXFGjp9U", [
             count,
             state
         ])
@@ -153,15 +155,15 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+BAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_1_w0t0o3QMovU",
+  "name": "App_Jlq9hNxnCvw",
   "entry": null,
-  "displayName": "test.tsx_App_component_1",
-  "hash": "w0t0o3QMovU",
-  "canonicalFilename": "test.tsx_App_component_1_w0t0o3QMovU",
+  "displayName": "test.tsx_App",
+  "hash": "Jlq9hNxnCvw",
+  "canonicalFilename": "test.tsx_App_Jlq9hNxnCvw",
   "path": "",
   "extension": "js",
   "parent": "App_component_ckEPmXZlub0",

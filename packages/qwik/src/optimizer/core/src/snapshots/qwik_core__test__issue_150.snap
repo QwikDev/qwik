@@ -31,11 +31,12 @@ const d = $(()=>console.log('thing'));
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q"));
-/*#__PURE__*/ qrl(()=>import("./test.tsx_d_wKNFJEIQVUA"), "d_wKNFJEIQVUA");
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Greeter = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q")), "test.tsx", 6, 24);
+/*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_d_wKNFJEIQVUA"), "d_wKNFJEIQVUA"), "test.tsx", 21, 11);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,yHAapB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,QAAA,6IAapB;cAEO\"}")
 ============================= test.tsx_d_wKNFJEIQVUA.js (ENTRY POINT)==
 
 export const d_wKNFJEIQVUA = ()=>console.log('thing');
@@ -62,12 +63,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Greeter_component_1_krCndSwhX4U.js (ENTRY POINT)==
+============================= test.tsx_Greeter_LDKOk8PWmEs.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { hola } from "sdfds";
-export const Greeter_component_1_krCndSwhX4U = ()=>{
+export const Greeter_LDKOk8PWmEs = ()=>{
     const [stuff] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", {
         class: {
@@ -79,15 +80,15 @@ export const Greeter_component_1_krCndSwhX4U = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;+CAMU;;IACR,qBACC,WAAC;QACA,OAAO;YACN,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QACxB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mCAMU;;IACR,qBACC,WAAC;QACA,OAAO;YACN,OAAO;YACP,OAAO,MAAM,SAAS;YACtB,OAAO,OAAO,SAAS;QACxB\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Greeter_component_1_krCndSwhX4U",
+  "name": "Greeter_LDKOk8PWmEs",
   "entry": null,
-  "displayName": "test.tsx_Greeter_component_1",
-  "hash": "krCndSwhX4U",
-  "canonicalFilename": "test.tsx_Greeter_component_1_krCndSwhX4U",
+  "displayName": "test.tsx_Greeter",
+  "hash": "LDKOk8PWmEs",
+  "canonicalFilename": "test.tsx_Greeter_LDKOk8PWmEs",
   "path": "",
   "extension": "js",
   "parent": "Greeter_component_n7HuG2hhU0Q",
@@ -105,16 +106,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { qrl } from "@qwik.dev/core";
 export const Greeter_component_n7HuG2hhU0Q = ()=>{
-    const stuff = useStore();
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_1_krCndSwhX4U"), "Greeter_component_1_krCndSwhX4U", [
+    const stuff = _addLoc(useStore(), "test.tsx", 7, 16);
+    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_LDKOk8PWmEs"), "Greeter_LDKOk8PWmEs", [
         stuff
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAIkC;IACjC,MAAM,QAAQ;IACd;;;AAWD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6CAIkC;IACjC,MAAM,QAAQ,QAAA;IACd;;;AAWD\"}")
 /*
 {
   "origin": "test.tsx",

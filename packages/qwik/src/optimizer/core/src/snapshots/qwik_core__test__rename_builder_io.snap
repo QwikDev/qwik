@@ -120,12 +120,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { qwikifyQrl } from "@qwik.dev/react";
 import { qrl } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
-export const Foo = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_qwikify_0Yoy9qA0SC0"), "Foo_qwikify_0Yoy9qA0SC0"));
-export const Bar = /*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_GXXnVUtURSw"), "Bar_GXXnVUtURSw");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Foo = _addLoc(qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_qwikify_0Yoy9qA0SC0"), "Foo_qwikify_0Yoy9qA0SC0")), "test.tsx", 10, 22);
+export const Bar = /*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_Bar_GXXnVUtURSw"), "Bar_GXXnVUtURSw"), "test.tsx", 12, 22);
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0")), "test.tsx", 14, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQE,OAAO,MAAM,MAAM,2GAA2B;AAE9C,OAAO,MAAM,qFAAmB;AAEhC,OAAO,MAAM,oBAAM,iHAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAQE,OAAO,MAAM,MAAM,QAAA,gIAA2B;AAE9C,OAAO,MAAM,oBAAM,4GAAa;AAEhC,OAAO,MAAM,oBAAM,QAAA,sIAQhB\"}")
 == DIAGNOSTICS ==
 
 []

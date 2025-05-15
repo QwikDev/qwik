@@ -32,8 +32,9 @@ export const Issue3561 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    const props = useStore({
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Issue3561 = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    const props = _addLoc(useStore({
         product: {
             currentVariant: {
                 variantImage: 'image',
@@ -41,14 +42,14 @@ export const Issue3561 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=
                 setContents: 'contents'
             }
         }
-    });
+    }), "test.tsx", 6, 16);
     const { currentVariant: { variantImage, variantNumber, setContents } = {} } = props.product;
     console.log(variantImage, variantNumber, setContents);
     return <p></p>;
-}, "Issue3561_component_hHTw654BZB8"));
+}, "Issue3561_component_hHTw654BZB8")), "test.tsx", 5, 26);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,0BAAY,sCAAW;IACnC,MAAM,QAAQ,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,YAAY,EAAE,aAAa,EAAE,WAAW,EAAE,GAAG,CAAC,CAAC,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ,uCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,0BAAY,QAAA,sCAAW;IACnC,MAAM,QAAQ,QAAA,SAAS;QACtB,SAAS;YACT,gBAAgB;gBACf,cAAc;gBACd,eAAe;gBACf,aAAa;YACd;QACA;IACD;IACA,MAAM,EACL,gBAAgB,EAAE,YAAY,EAAE,aAAa,EAAE,WAAW,EAAE,GAAG,CAAC,CAAC,EACjE,GAAG,MAAM,OAAO;IAEjB,QAAQ,GAAG,CAAC,cAAc,eAAe;IAEzC,QAAQ,IAAI;AACZ,2DAAG\"}")
 == DIAGNOSTICS ==
 
 []

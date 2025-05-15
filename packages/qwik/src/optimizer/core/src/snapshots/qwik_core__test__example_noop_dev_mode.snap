@@ -35,58 +35,61 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0", {
     file: "/hello/from/dev/test.tsx",
     lo: 105,
     hi: 452,
     displayName: "test.tsx_App_component"
-}));
+})), "test.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAoBhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA;;;;;wBAoBhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrlDEV } from "@qwik.dev/core";
 import { serverStuffQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
-    const stuff = useStore();
-    serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_ebyHaP15ytQ", {
+    const stuff = _addLoc(useStore(), "test.tsx", 6, 16);
+    serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_serverStuff_K7K22eBny0w", {
         file: "/hello/from/dev/test.tsx",
         lo: 0,
         hi: 0,
-        displayName: "test.tsx_App_component_serverStuff"
+        displayName: "test.tsx_App_serverStuff"
     }, [
         stuff
     ]));
-    serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_component_serverStuff_1_PQCqO0ANabY", {
+    serverStuffQrl(/*#__PURE__*/ _noopQrlDEV("App_serverStuff_1_QuvWp0Ur0XM", {
         file: "/hello/from/dev/test.tsx",
         lo: 0,
         hi: 0,
-        displayName: "test.tsx_App_component_serverStuff_1"
+        displayName: "test.tsx_App_serverStuff_1"
     }));
-    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
-        class: "stuff",
-        shouldRemove$: /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_shouldRemove_uU0MG0jvQD4", {
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", {
+        shouldRemove$: /*#__PURE__*/ _noopQrlDEV("App_Cmp_p_shouldRemove_WSgJcFdaGSM", {
             file: "/hello/from/dev/test.tsx",
             lo: 0,
             hi: 0,
-            displayName: "test.tsx_App_component_Cmp_p_shouldRemove"
+            displayName: "test.tsx_App_Cmp_p_shouldRemove"
         }, [
             stuff
-        ]),
-        onClick$: /*#__PURE__*/ _noopQrlDEV("App_component_Cmp_p_onClick_vuXzfUTkpto", {
+        ])
+    }, {
+        class: "stuff",
+        onClick$: /*#__PURE__*/ _noopQrlDEV("App_Cmp_p_onClick_Hst6NasRaBo", {
             file: "/hello/from/dev/test.tsx",
             lo: 0,
             hi: 0,
-            displayName: "test.tsx_App_component_Cmp_p_onClick"
+            displayName: "test.tsx_App_Cmp_p_onClick"
         })
-    }, "Hello Qwik", 3, null, {
+    }, "Hello Qwik", 2, null, {
         fileName: "/hello/from/dev/test.tsx",
         lineNumber: 16,
         columnNumber: 4
-    }), 3, "u6_0", {
+    }), 1, "u6_0", {
         fileName: "/hello/from/dev/test.tsx",
         lineNumber: 15,
         columnNumber: 3
@@ -94,7 +97,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B;IAC7B,MAAM,QAAQ;IACd;;;;;;;;IAIA;;;;;;IAIA,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QACR,aAAa;;;;;;;;QACb,QAAQ;;;;;;OACR;;;;;;;;;AAKJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC7B,MAAM,QAAQ,QAAA;IACd;;;;;;;;IAIA;;;;;;IAIA,qBACC,WAAC,+BACA,WAAC;QACA,aAAa;;;;;;;;;QADX,OAAM;QAER,QAAQ;;;;;;OACR;;;;;;;;;AAKJ\"}")
 /*
 {
   "origin": "test.tsx",

@@ -19,15 +19,12 @@ impl ConstReplacerVisitor {
 		Self {
 			is_server,
 			is_dev,
-			is_server_ident: global_collector
-				.get_imported_local(&IS_SERVER, &BUILDER_IO_QWIK_BUILD),
-			is_browser_ident: global_collector
-				.get_imported_local(&IS_BROWSER, &BUILDER_IO_QWIK_BUILD),
-			is_dev_ident: global_collector.get_imported_local(&IS_DEV, &BUILDER_IO_QWIK_BUILD),
-			is_core_server_ident: global_collector.get_imported_local(&IS_SERVER, &BUILDER_IO_QWIK),
-			is_core_browser_ident: global_collector
-				.get_imported_local(&IS_BROWSER, &BUILDER_IO_QWIK),
-			is_core_dev_ident: global_collector.get_imported_local(&IS_DEV, &BUILDER_IO_QWIK),
+			is_server_ident: global_collector.get_imported_local(&IS_SERVER, &QWIK_CORE_BUILD),
+			is_browser_ident: global_collector.get_imported_local(&IS_BROWSER, &QWIK_CORE_BUILD),
+			is_dev_ident: global_collector.get_imported_local(&IS_DEV, &QWIK_CORE_BUILD),
+			is_core_server_ident: global_collector.get_imported_local(&IS_SERVER, &QWIK_CORE),
+			is_core_browser_ident: global_collector.get_imported_local(&IS_BROWSER, &QWIK_CORE),
+			is_core_dev_ident: global_collector.get_imported_local(&IS_DEV, &QWIK_CORE),
 		}
 	}
 }

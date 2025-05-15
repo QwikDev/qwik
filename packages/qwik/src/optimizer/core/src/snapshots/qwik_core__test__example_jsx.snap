@@ -54,20 +54,21 @@ import { _jsxSplit } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
-export const Lightweight = (props)=>{
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Lightweight = _addLoc((props)=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
         /*#__PURE__*/ _jsxSplit("button", {
             ...props
         }, null, null, 0, null)
     ], 1, "u6_0"), 1, "u6_1");
-};
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+}, "test.tsx", 5, 28);
+export const Foo = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
-});
+}), "test.tsx", 16, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,iHAuBhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,cAAc,QAAA,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,sBAAE;AAEF,OAAO,MAAM,oBAAM,QAAA,iHAuBhB;IACF,SAAS;AACV,wBAAG\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";

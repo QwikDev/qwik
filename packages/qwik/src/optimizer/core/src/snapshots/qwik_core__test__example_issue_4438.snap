@@ -25,9 +25,10 @@ import { componentQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useSignal } from '@qwik.dev/core';
 const App_component_ckEPmXZlub0 = ()=>{
-    const toggle = useSignal(false);
+    const toggle = _addLoc(useSignal(false), "test.tsx", 6, 17);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", {
             "data-nu": toggle.value ? $localize`singular` : 'plural'
@@ -35,10 +36,10 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, toggle.value ? $localize`singular` : $localize`plural`, 1, null)
     ], 1, "u6_0");
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0")), "test.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;kCAEzB;IAC7B,MAAM,SAAS,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,+FAQhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;kCAEzB;IAC7B,MAAM,SAAS,QAAA,UAAU;IACzB,qBACC;sBACC,WAAC;YAAI,WAAS,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG;;sBACnD,WAAC,mBAAK,OAAO,KAAK,GAAG,SAAS,CAAC,QAAQ,CAAC,GAAG,SAAS,CAAC,MAAM,CAAC;;AAG/D;AARA,OAAO,MAAM,oBAAM,QAAA,mHAQhB\"}")
 == DIAGNOSTICS ==
 
 []

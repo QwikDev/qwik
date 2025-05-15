@@ -58,14 +58,49 @@ snapshot_kind: text
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Input = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8")), "test.tsx", 6, 24);
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIE,OAAO,MAAM,sBAAQ,qHAanB;AAEF,6BAAe,mHA2BZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIE,OAAO,MAAM,sBAAQ,QAAA,yIAanB;AAEF,6BAAe,mHA2BZ\"}")
+============================= test.tsx_test_div_button_onClick_qjuQ2h2cKrY.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const test_div_button_onClick_qjuQ2h2cKrY = ()=>{
+    const [store] = useLexicalScope();
+    store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mDA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_div_button_onClick_qjuQ2h2cKrY",
+  "entry": null,
+  "displayName": "test.tsx_test_div_button_onClick",
+  "hash": "qjuQ2h2cKrY",
+  "canonicalFilename": "test.tsx_test_div_button_onClick_qjuQ2h2cKrY",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    835,
+    921
+  ],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Input } from "./test";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -92,9 +127,9 @@ export const test_component_LUXeXe0DQrg = ()=>{
         }),
         math4: Math.random()
     };
-    const math2 = [
+    const math2 = _addLoc([
         Math.random()
-    ];
+    ], "test.tsx", 25, 18);
     const { math3 } = {
         math3: Math.random()
     };
@@ -102,7 +137,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     const form2 = useForm2();
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU"), "test_component_div_button_onClick_TfpwI5Xb2NU", [
+            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_div_button_onClick_qjuQ2h2cKrY"), "test_div_button_onClick_qjuQ2h2cKrY", [
                 store
             ])
         }, "click", 3, null),
@@ -132,7 +167,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAmB4B;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,QAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK,kBAAE,GAAM,MAAM,CAAC,IAAI;;;YACxB,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAZJ,OAYW,MAAM,CAAC,IAAI;;;;;AAQ9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAmB4B;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ,QAAA;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,QAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK,kBAAE,GAAM,MAAM,CAAC,IAAI;;;YACxB,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAZJ,OAYW,MAAM,CAAC,IAAI;;;;;AAQ9B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -150,39 +185,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     434,
     1225
-  ]
-}
-*/
-============================= test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@qwik.dev/core";
-export const test_component_div_button_onClick_TfpwI5Xb2NU = ()=>{
-    const [store] = useLexicalScope();
-    store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_div_button_onClick_TfpwI5Xb2NU",
-  "entry": null,
-  "displayName": "test.tsx_test_component_div_button_onClick",
-  "hash": "TfpwI5Xb2NU",
-  "canonicalFilename": "test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU",
-  "path": "",
-  "extension": "js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    835,
-    921
-  ],
-  "captureNames": [
-    "store"
   ]
 }
 */

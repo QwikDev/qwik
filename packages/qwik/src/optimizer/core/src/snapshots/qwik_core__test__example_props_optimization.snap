@@ -59,7 +59,8 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Works = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     const rest = _restProps(props, [
         "count",
         "some",
@@ -90,8 +91,8 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
     }, {
         override: true
     }, _wrapProp(props, "count"), 0, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
-export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff: { hey } })=>{
+}, "Works_component_t45qL4vNGv0")), "test.tsx", 5, 22);
+export const NoWorks2 = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff: { hey } })=>{
     console.log(hey);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
@@ -103,8 +104,8 @@ export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
     return /*#__PURE__*/ _jsxSorted("div", {
         class: count
     }, null, count, 1, "u6_1");
-}, "NoWorks2_component_JPD9t2HyEKg"));
-export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff = hola() })=>{
+}, "NoWorks2_component_JPD9t2HyEKg")), "test.tsx", 22, 25);
+export const NoWorks3 = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff = hola() })=>{
     console.log(stuff);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
         const [count] = useLexicalScope();
@@ -116,10 +117,10 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
     return /*#__PURE__*/ _jsxSorted("div", {
         class: count
     }, null, count, 1, "u6_2");
-}, "NoWorks3_component_fc13h5yYn14"));
+}, "NoWorks3_component_fc13h5yYn14")), "test.tsx", 33, 25);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO/B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,QAAA,sCAAW;;;;;;;;IAO/B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;QAAU,GAAG,IAAI;;QAAE,QAAQ;;AAErE,uDAAG;AAEH,OAAO,MAAM,yBAAW,QAAA,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,2DAAG;AAEH,OAAO,MAAM,yBAAW,QAAA,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,2DAAG\"}")
 == DIAGNOSTICS ==
 
 []

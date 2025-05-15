@@ -18,14 +18,15 @@ export const App = () => {
 ============================= test.tsx ==
 
 // don't transpile jsx with non-plain-object props
+import { _addLoc } from "@qwik.dev/core/internal";
 import { jsx } from '@qwik.dev/core';
-export const App = ()=>{
-    const props = {};
+export const App = _addLoc(()=>{
+    const props = _addLoc({}, "test.tsx", 7, 19);
     return jsx('div', props, 'Hello Qwik');
-};
+}, "test.tsx", 6, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,iBAAiB;AAErC,OAAO,MAAM,MAAM;IACf,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;;AAClD,SAAS,GAAG,QAAQ,iBAAiB;AAErC,OAAO,MAAM,MAAM,QAAA;IACf,MAAM,QAAQ,QAAA,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,sBAAC\"}")
 == DIAGNOSTICS ==
 
 []

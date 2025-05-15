@@ -58,6 +58,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useStore, mutable } from '@qwik.dev/core';
 import { dep } from './file';
 const TextContent_component_puSwpKXO7Kg = (props)=>{
@@ -72,10 +73,10 @@ const TextContent_component_puSwpKXO7Kg = (props)=>{
         ], 1, null)
     ], 1, "u6_0");
 };
-export const TextContent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(TextContent_component_puSwpKXO7Kg, "TextContent_component_puSwpKXO7Kg"));
+export const TextContent = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(TextContent_component_puSwpKXO7Kg, "TextContent_component_puSwpKXO7Kg")), "test.tsx", 7, 28);
 const App_component_ckEPmXZlub0 = ()=>{
-    const signal = useSignal(0);
-    const store = useStore({});
+    const signal = _addLoc(useSignal(0), "test.tsx", 17, 17);
+    const store = _addLoc(useStore({}), "test.tsx", 18, 16);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, null, "text", 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, `text`, 3, null),
@@ -83,17 +84,17 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, true, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, `text${12}`, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, signal, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(signal), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, signal, 1, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(signal), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>12 + p0.value, [
             signal
-        ], "12+p0.value"), 3, null),
+        ], "12+p0.value"), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>p0.address.city.name, [
             store
-        ], "p0.address.city.name"), 3, null),
+        ], "p0.address.city.name"), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
             store
-        ], 'p0.address.city.name?"true":"false"'), 3, null),
+        ], 'p0.address.city.name?"true":"false"'), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing + 'stuff', 3, null),
@@ -106,10 +107,10 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, signal.value + dep, 1, null)
     ], 1, "u6_1");
 };
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0")), "test.tsx", 16, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACtC,qBACC;sBACC,WAAC;YAAI;sBAAU;;sBACf,WAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,WAAC,mBAAK;sBACN,WAAC,mBAAK;sBACN,WAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;sBACjB,WAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;sBAC7C,WAAC,mBAAK;sBACN,WAAC,6BAAK;sBACN,WAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;sBACzC,WAAC,mBAAK;sBACN,WAAC,mBAAK,IAAI,KAAK;sBACf,WAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,WAAC,mBAAK;sBACN,WAAC,mBAAK,YAAY,KAAK;sBACvB,WAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,WAAC,mBAAK,OAAO,KAAK;sBAClB,WAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,WAAC,mBAAK,QAAQ;sBACd,WAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACtC,qBACC;sBACC,WAAC;YAAI;sBAAU;;sBACf,WAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,QAAA,mIAOxB;kCAE2B;IAC7B,MAAM,SAAS,QAAA,UAAU;IACzB,MAAM,QAAQ,QAAA,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,WAAC,mBAAK;sBACN,WAAC,mBAAK;sBACN,WAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;sBACjB,WAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;sBAC7C,WAAC,mBAAK;sBACN,WAAC,6BAAK;sBACN,WAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;sBACzC,WAAC,mBAAK;sBACN,WAAC,mBAAK,IAAI,KAAK;sBACf,WAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,WAAC,mBAAK;sBACN,WAAC,mBAAK,YAAY,KAAK;sBACvB,WAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,WAAC,mBAAK,OAAO,KAAK;sBAClB,WAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,WAAC,mBAAK,QAAQ;sBACd,WAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,QAAA,oHA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

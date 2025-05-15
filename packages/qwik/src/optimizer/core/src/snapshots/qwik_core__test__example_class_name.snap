@@ -31,28 +31,30 @@ export const App2 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App2 = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs")), "test.tsx", 5, 21);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,qBAAO,QAAA,0IAgBjB\"}")
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 export const App2_component_3yveMqbQ3Fs = ()=>{
-    const signal = useSignal();
-    const computed = signal.value + 'foo';
+    const signal = _addLoc(useSignal(), "test.tsx", 6, 17);
+    const computed = _addLoc(signal.value + 'foo', "test.tsx", 7, 19);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, {
             className: "hola"
         }, null, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, {
+        /*#__PURE__*/ _jsxSorted("div", {
             className: _wrapProp(signal)
-        }, null, 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, {
+        }, null, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", {
             className: signal
-        }, null, 3, null),
+        }, null, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", {
             className: computed
         }, null, null, 3, null),
@@ -62,9 +64,9 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
         /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: _wrapProp(signal)
         }, null, 3, "u6_1"),
-        /*#__PURE__*/ _jsxSorted(Foo, null, {
+        /*#__PURE__*/ _jsxSorted(Foo, {
             className: signal
-        }, null, 3, "u6_2"),
+        }, null, null, 3, "u6_2"),
         /*#__PURE__*/ _jsxSorted(Foo, {
             className: computed
         }, null, null, 3, "u6_3")
@@ -72,7 +74,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B;IAC9B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG+B;IAC9B,MAAM,SAAS,QAAA;IACf,MAAM,WAAW,QAAA,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

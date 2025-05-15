@@ -81,13 +81,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = ()=>{
-    const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = _addLoc(()=>{
+    const Header = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Header_component_B9F3YeqcO1w"), "App_Header_component_B9F3YeqcO1w")), "test.tsx", 5, 17);
     return Header;
-};
+}, "test.tsx", 4, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACR,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,MAAM,QAAA;IAClB,MAAM,uBAAS,QAAA;IAMf,OAAO;AACR,sBAAG\"}")
 == DIAGNOSTICS ==
 
 []

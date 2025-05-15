@@ -44,11 +44,12 @@ export const Cmp = component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0")), "test.tsx", 5, 20);
+export const Cmp = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE")), "test.tsx", 27, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAoBhB;AAEH,OAAO,MAAM,oBAAM,iHAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA,qIAoBhB;AAEH,OAAO,MAAM,oBAAM,QAAA,sIAOhB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -98,26 +99,28 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { Cmp } from "./test";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
-    const store = useStore({
+    const store = _addLoc(useStore({
         count: 0,
         stuff: 0,
         nested: {
             count: 0
         }
-    });
-    const signal = useSignal(0);
-    return /*#__PURE__*/ _jsxSorted(Cmp, null, {
+    }), "test.tsx", 6, 16);
+    const signal = _addLoc(useSignal(0), "test.tsx", 13, 17);
+    return /*#__PURE__*/ _jsxSorted(Cmp, {
+        signal: signal
+    }, {
         prop: 'true',
         count: _wrapProp(store, "count"),
         nested: _fnSignal((p0)=>p0.nested.count, [
             store
         ], "p0.nested.count"),
-        signal: signal,
         store: _fnSignal((p0)=>p0.stuff + 12, [
             store
         ], "p0.stuff+12"),
@@ -128,7 +131,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAG8B;IAC7B,MAAM,QAAQ,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,UAAU;IACzB,qBACC,WAAC;QACA,MAAmB;QACnB,KAAK,YAAE;QACP,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAC1B,QAAQ;QACR,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAI/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAG8B;IAC7B,MAAM,QAAQ,QAAA,SAAS;QACtB,OAAO;QACP,OAAO;QACP,QAAQ;YACP,OAAO;QACR;IACD;IACA,MAAM,SAAS,QAAA,UAAU;IACzB,qBACC,WAAC;QAIA,QAAQ;;QAHR,MAAmB;QACnB,KAAK,YAAE;QACP,MAAM,kBAAE,GAAM,MAAM,CAAC,KAAK;;;QAE1B,KAAK,kBAAE,GAAM,KAAK,GAAG;;;QACrB,KAAK,kBAAE,GAAO,QAAQ,EAAE,IAAI;;;;AAI/B\"}")
 /*
 {
   "origin": "test.tsx",

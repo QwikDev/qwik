@@ -29,6 +29,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
@@ -37,14 +38,14 @@ export const test_component_LUXeXe0DQrg = (props)=>{
     const rest = _restProps(props, [
         "test"
     ]);
-    useSignal(rest['bind:value']);
+    _addLoc(useSignal(rest['bind:value']), "test.tsx", 6, 17);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _fnSignal((p0)=>p0.test.value, [
         props
     ], "p0.test.value"), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAE4B,CAAC;4BACA;;;IACb,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC,kDACC,GAJM,KAID,KAAK;;;AAGb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAE4B,CAAC;4BACA;;;IACb,QAAA,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC,kDACC,GAJM,KAID,KAAK;;;AAGb\"}")
 /*
 {
   "origin": "test.tsx",

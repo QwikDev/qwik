@@ -11,10 +11,11 @@ export const cache = patternCache[cacheKey] || (patternCache[cacheKey]={});
 
 ============================= project/test.tsx ==
 
-export const cache = patternCache[cacheKey] || (patternCache[cacheKey] = {});
+import { _addLoc } from "@qwik.dev/core/internal";
+export const cache = _addLoc(patternCache[cacheKey] || (patternCache[cacheKey] = {}), "project/test.tsx", 3, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"AACA,OAAO,MAAM,QAAQ,YAAY,CAAC,SAAS,IAAI,CAAC,YAAY,CAAC,SAAS,GAAC,CAAC,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";AACA,OAAO,MAAM,QAAQ,QAAA,YAAY,CAAC,SAAS,IAAI,CAAC,YAAY,CAAC,SAAS,GAAC,CAAC,CAAC,8BAAE\"}")
 == DIAGNOSTICS ==
 
 []

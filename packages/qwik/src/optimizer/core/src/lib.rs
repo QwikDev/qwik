@@ -8,6 +8,7 @@
 #[cfg(test)]
 mod test;
 
+mod add_locs;
 mod add_side_effect;
 mod clean_side_effects;
 mod code_move;
@@ -25,7 +26,7 @@ mod transform;
 mod utils;
 mod words;
 
-use words::BUILDER_IO_QWIK;
+use words::QWIK_CORE;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
@@ -73,9 +74,7 @@ pub struct TransformModulesOptions {
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
-	let core_module = config
-		.core_module
-		.map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
+	let core_module = config.core_module.map_or(QWIK_CORE.clone(), |s| s.into());
 	let src_dir = std::path::Path::new(&config.src_dir);
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 

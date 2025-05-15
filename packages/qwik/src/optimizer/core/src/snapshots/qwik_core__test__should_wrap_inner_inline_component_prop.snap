@@ -37,21 +37,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = (props)=>{
-    const renders = useStore({
+    const renders = _addLoc(useStore({
         count: 0
     }, {
         reactive: false
-    });
+    }), "test.tsx", 5, 23);
     renders.count++;
-    const rerenders = renders.count + 0;
-    const Id = (props)=>/*#__PURE__*/ _jsxSorted("div", null, null, [
+    const rerenders = _addLoc(renders.count + 0, "test.tsx", 12, 25);
+    const Id = _addLoc((props)=>/*#__PURE__*/ _jsxSorted("div", null, null, [
             "Id: ",
             _wrapProp(props, "id")
-        ], 1, "u6_0");
+        ], 1, "u6_0"), "test.tsx", 13, 18);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted(Id, null, {
             id: _wrapProp(props, "id")
@@ -61,7 +62,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAE0B,CAAC;IACrB,MAAM,UAAU,SACd;QACE,OAAO;IACT,GACA;QAAE,UAAU;IAAM;IAEpB,QAAQ,KAAK;IACb,MAAM,YAAY,QAAQ,KAAK,GAAG;IAClC,MAAM,KAAK,CAAC,sBAAe,WAAC;YAAI;sBAAK;;IACrC,qBACE;sBACE,WAAC;YAAG,EAAE,YAAE;;QACP;;AAGP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAE0B,CAAC;IACrB,MAAM,UAAU,QAAA,SACd;QACE,OAAO;IACT,GACA;QAAE,UAAU;IAAM;IAEpB,QAAQ,KAAK;IACb,MAAM,YAAY,QAAA,QAAQ,KAAK,GAAG;IAClC,MAAM,KAAK,QAAA,CAAC,sBAAe,WAAC;YAAI;sBAAK;;IACrC,qBACE;sBACE,WAAC;YAAG,EAAE,YAAE;;QACP;;AAGP\"}")
 /*
 {
   "origin": "test.tsx",

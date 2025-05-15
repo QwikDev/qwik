@@ -21,10 +21,11 @@ export const App = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0")), "test.tsx", 8, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,oBAAM,iHAGjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,oBAAM,QAAA,qIAGjB\"}")
 ============================= test.tsx_App_component_useStyles_t35nSa5UV7U.js (ENTRY POINT)==
 
 import css1 from "./global.css";

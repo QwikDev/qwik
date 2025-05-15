@@ -49,12 +49,12 @@ export const Parent = component$(() => {
 	);
 });
 
-============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
+============================= test.tsx_Parent_useTask_2FGtjOskTRQ.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
-export const s_gDH1EtUWqBU = async ()=>{
+export const s_2FGtjOskTRQ = async ()=>{
     const [state] = useLexicalScope();
     state.text = await mongo.users();
     redis.set(state.text);
@@ -65,11 +65,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 /*
 {
   "origin": "test.tsx",
-  "name": "s_gDH1EtUWqBU",
+  "name": "s_2FGtjOskTRQ",
   "entry": null,
-  "displayName": "test.tsx_Parent_component_useTask",
-  "hash": "gDH1EtUWqBU",
-  "canonicalFilename": "test.tsx_Parent_component_useTask_gDH1EtUWqBU",
+  "displayName": "test.tsx_Parent_useTask",
+  "hash": "2FGtjOskTRQ",
+  "canonicalFilename": "test.tsx_Parent_useTask_2FGtjOskTRQ",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",
@@ -89,68 +89,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo"));
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Parent = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "s_0TaiDayHrlo")), "test.tsx", 9, 23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAOA,OAAO,MAAM,uBAAS,wGAkCnB\"}")
-============================= test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc.js (ENTRY POINT)==
-
-export const s_2ca3HLDC7yc = ()=>{
-// from $(), should not be removed
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_2ca3HLDC7yc",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverStuff_a",
-  "hash": "2ca3HLDC7yc",
-  "canonicalFilename": "test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc",
-  "path": "",
-  "extension": "js",
-  "parent": "s_r1qAHX7Opp0",
-  "ctxKind": "function",
-  "ctxName": "$",
-  "captures": false,
-  "loc": [
-    538,
-    587
-  ]
-}
-*/
-============================= test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk.js (ENTRY POINT)==
-
-export const s_v9qawr2Inkk = ()=>{
-// from clien$(), should not be removed
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAwBoB;AACjB,uCAAuC;AACxC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "s_v9qawr2Inkk",
-  "entry": null,
-  "displayName": "test.tsx_Parent_component_serverStuff_b_client",
-  "hash": "v9qawr2Inkk",
-  "canonicalFilename": "test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk",
-  "path": "",
-  "extension": "js",
-  "parent": "s_r1qAHX7Opp0",
-  "ctxKind": "function",
-  "ctxName": "client$",
-  "captures": false,
-  "loc": [
-    610,
-    664
-  ]
-}
-*/
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAOA,OAAO,MAAM,uBAAS,QAAA,4HAkCnB\"}")
 ============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -160,23 +106,23 @@ import { serverStuffQrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 export const s_0TaiDayHrlo = ()=>{
-    const state = useStore({
+    const state = _addLoc(useStore({
         text: ''
-    });
+    }), "test.tsx", 10, 16);
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "s_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_useTask_2FGtjOskTRQ"), "s_2FGtjOskTRQ", [
         state
     ]));
-    serverStuffQrl(/*#__PURE__*/ _noopQrl("s_r1qAHX7Opp0"));
-    serverLoaderQrl(/*#__PURE__*/ _noopQrl("s_k1L0DiPQV1I"));
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_1_P8oRQhHsurk"), "s_P8oRQhHsurk"));
+    serverStuffQrl(/*#__PURE__*/ _noopQrl("s_24PkzVg0h0U"));
+    serverLoaderQrl(/*#__PURE__*/ _noopQrl("s_Etjb6eZWcgo"));
+    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_useTask_NEuTKj8j8Nc"), "s_NEuTKj8j8Nc"));
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A"), "s_C5XE49Nqd3A")
-    }, _wrapProp(state, "text"), 3, "u6_0");
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_div_onClick_xGBE9Cbd8Ik"), "s_xGBE9Cbd8Ik")
+    }, _wrapProp(state, "text"), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;6BAOiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAMA;IAWA;IAEA;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;6BAOiC;IAChC,MAAM,QAAQ,QAAA,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAMA;IAWA;IAEA;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -197,20 +143,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Parent_component_div_onClick_C5XE49Nqd3A.js (ENTRY POINT)==
+============================= test.tsx_div_onClick_xGBE9Cbd8Ik.js (ENTRY POINT)==
 
-export const s_C5XE49Nqd3A = ()=>console.log('parent');
+export const s_xGBE9Cbd8Ik = ()=>console.log('parent');
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqCiB,IAAM,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "s_C5XE49Nqd3A",
+  "name": "s_xGBE9Cbd8Ik",
   "entry": null,
-  "displayName": "test.tsx_Parent_component_div_onClick",
-  "hash": "C5XE49Nqd3A",
-  "canonicalFilename": "test.tsx_Parent_component_div_onClick_C5XE49Nqd3A",
+  "displayName": "test.tsx_div_onClick",
+  "hash": "xGBE9Cbd8Ik",
+  "canonicalFilename": "test.tsx_div_onClick_xGBE9Cbd8Ik",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",
@@ -223,9 +169,65 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Parent_component_useTask_1_P8oRQhHsurk.js (ENTRY POINT)==
+============================= test.tsx_Parent_b_client_JbkSeNwSBbE.js (ENTRY POINT)==
 
-export const s_P8oRQhHsurk = ()=>{
+export const s_JbkSeNwSBbE = ()=>{
+// from clien$(), should not be removed
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAwBoB;AACjB,uCAAuC;AACxC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_JbkSeNwSBbE",
+  "entry": null,
+  "displayName": "test.tsx_Parent_b_client",
+  "hash": "JbkSeNwSBbE",
+  "canonicalFilename": "test.tsx_Parent_b_client_JbkSeNwSBbE",
+  "path": "",
+  "extension": "js",
+  "parent": "s_24PkzVg0h0U",
+  "ctxKind": "function",
+  "ctxName": "client$",
+  "captures": false,
+  "loc": [
+    610,
+    664
+  ]
+}
+*/
+============================= test.tsx_Parent_serverStuff_a_0Wq8TkNlVcM.js (ENTRY POINT)==
+
+export const s_0Wq8TkNlVcM = ()=>{
+// from $(), should not be removed
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAqBc;AACX,kCAAkC;AACnC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_0Wq8TkNlVcM",
+  "entry": null,
+  "displayName": "test.tsx_Parent_serverStuff_a",
+  "hash": "0Wq8TkNlVcM",
+  "canonicalFilename": "test.tsx_Parent_serverStuff_a_0Wq8TkNlVcM",
+  "path": "",
+  "extension": "js",
+  "parent": "s_24PkzVg0h0U",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    538,
+    587
+  ]
+}
+*/
+============================= test.tsx_useTask_NEuTKj8j8Nc.js (ENTRY POINT)==
+
+export const s_NEuTKj8j8Nc = ()=>{
 // Code
 };
 
@@ -234,11 +236,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 /*
 {
   "origin": "test.tsx",
-  "name": "s_P8oRQhHsurk",
+  "name": "s_NEuTKj8j8Nc",
   "entry": null,
-  "displayName": "test.tsx_Parent_component_useTask_1",
-  "hash": "P8oRQhHsurk",
-  "canonicalFilename": "test.tsx_Parent_component_useTask_1_P8oRQhHsurk",
+  "displayName": "test.tsx_useTask",
+  "hash": "NEuTKj8j8Nc",
+  "canonicalFilename": "test.tsx_useTask_NEuTKj8j8Nc",
   "path": "",
   "extension": "js",
   "parent": "s_0TaiDayHrlo",

@@ -30,13 +30,14 @@ import { _fnSignal } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useSignal } from '@qwik.dev/core';
-const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
+const Issue3742_div_button_onClick_B8vBpxEj9AQ = ()=>{
     const [counter] = useLexicalScope();
     return counter.value++;
 };
 const Issue3742_component_svSy0PlWTAw = (props)=>{
-    const counter = useSignal(0);
+    const counter = _addLoc(useSignal(0), "test.tsx", 6, 18);
     return /*#__PURE__*/ _jsxSorted("div", {
         title: _fnSignal((p0, p1)=>(p1.description ?? '') && 'description' in p1.other ? `Hello ${p0.value}` : `Bye ${p0.value}`, [
             counter,
@@ -44,17 +45,17 @@ const Issue3742_component_svSy0PlWTAw = (props)=>{
         ], '(p1.description??"")&&"description"in p1.other?`Hello ${p0.value}`:`Bye ${p0.value}`')
     }, null, [
         "Issue3742",
-        /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ inlinedQrl(Issue3742_component_div_button_onClick_a504K2BCEXg, "Issue3742_component_div_button_onClick_a504K2BCEXg", [
+        /*#__PURE__*/ _jsxSorted("button", {
+            onClick$: /*#__PURE__*/ inlinedQrl(Issue3742_div_button_onClick_B8vBpxEj9AQ, "Issue3742_div_button_onClick_B8vBpxEj9AQ", [
                 counter
             ])
-        }, "Increment", 3, null)
-    ], 3, "u6_0");
+        }, null, "Increment", 2, null)
+    ], 1, "u6_0");
 };
-export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
+export const Issue3742 = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw")), "test.tsx", 5, 26);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;2DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;;;;QACjG;sBAED,WAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;iDASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,QAAA,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;;;;QACjG;sBAED,WAAC;YAAO,QAAQ;;;iBAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,QAAA,+HAYrB\"}")
 == DIAGNOSTICS ==
 
 []

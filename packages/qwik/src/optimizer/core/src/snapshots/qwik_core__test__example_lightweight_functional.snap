@@ -139,23 +139,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Foo = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
-});
+}), "test.tsx", 5, 20);
 export function Button({ text, color }) {
     return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Button_button_onClick_NsM0JYV00Jw"), "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
-export const ButtonArrow = (props)=>{
+export const ButtonArrow = _addLoc((props)=>{
     return <button onColor$={props.color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik"), "ButtonArrow_button_onClick_9npo43fIGik", [
         props
     ])}>{props.text}</button>;
-};
+}, "test.tsx", 22, 28);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA,iHAOhB;IACF,SAAS;AACV,uBAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc,QAAA;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,uBAAC\"}")
 == DIAGNOSTICS ==
 
 []

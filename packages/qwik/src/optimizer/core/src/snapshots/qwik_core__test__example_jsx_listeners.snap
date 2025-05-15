@@ -39,29 +39,29 @@ export const Foo = component$(() => {
 	tagName: "my-foo",
 });
 
-============================= test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY.js (ENTRY POINT)==
+============================= test.tsx_Foo_div_custom_0aBC7DwC5wU.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onDocumentScroll_Zip7mifsjRY = ()=>console.log('host:onDocument:scroll');
+export const Foo_div_custom_0aBC7DwC5wU = ()=>console.log('custom');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mEAkB4B,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAyBa,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY",
+  "name": "Foo_div_custom_0aBC7DwC5wU",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll",
-  "hash": "Zip7mifsjRY",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY",
+  "displayName": "test.tsx_Foo_div_custom",
+  "hash": "0aBC7DwC5wU",
+  "canonicalFilename": "test.tsx_Foo_div_custom_0aBC7DwC5wU",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "eventHandler",
-  "ctxName": "host:onDocumentScroll$",
+  "ctxName": "custom$",
   "captures": false,
   "loc": [
-    590,
-    631
+    802,
+    827
   ]
 }
 */
@@ -69,12 +69,39 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Foo = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
-});
+}), "test.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHA0BhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA,iHA0BhB;IACF,SAAS;AACV,uBAAG\"}")
+============================= test.tsx_Foo_div_onDocument_scroLL_XUFvJrCL7yA.js (ENTRY POINT)==
+
+export const Foo_div_onDocument_scroLL_XUFvJrCL7yA = ()=>console.log('onDocument-scroLL');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAewB,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_div_onDocument_scroLL_XUFvJrCL7yA",
+  "entry": null,
+  "displayName": "test.tsx_Foo_div_onDocument_scroLL",
+  "hash": "XUFvJrCL7yA",
+  "canonicalFilename": "test.tsx_Foo_div_onDocument_scroLL_XUFvJrCL7yA",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_1_DvU6FitWglY",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDocument-scroLL$",
+  "captures": false,
+  "loc": [
+    470,
+    506
+  ]
+}
+*/
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -104,57 +131,59 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Foo_component_div_host_onClick_cPEH970JbEY.js (ENTRY POINT)==
+============================= test.tsx_Foo_div_host_onDocumentScroll_QDhZi1GjXUk.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onClick_cPEH970JbEY = ()=>console.log('host:onClick$');
+export const Foo_div_host_onDocumentScroll_QDhZi1GjXUk = ()=>console.log('host:onDocument:scroll');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0DAiBmB,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"yDAkB4B,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_host_onClick_cPEH970JbEY",
+  "name": "Foo_div_host_onDocumentScroll_QDhZi1GjXUk",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onClick",
-  "hash": "cPEH970JbEY",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onClick_cPEH970JbEY",
+  "displayName": "test.tsx_Foo_div_host_onDocumentScroll",
+  "hash": "QDhZi1GjXUk",
+  "canonicalFilename": "test.tsx_Foo_div_host_onDocumentScroll_QDhZi1GjXUk",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "eventHandler",
-  "ctxName": "host:onClick$",
+  "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
-    528,
-    560
+    590,
+    631
   ]
 }
 */
 ============================= test.tsx_Foo_component_1_DvU6FitWglY.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const handler = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w");
-    return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onClick_M48DYiidSJw"), "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY"), "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
-        onKeyup$: handler,
+    const handler = /*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w"), "test.tsx", 8, 19);
+    return /*#__PURE__*/ _jsxSorted("div", {
         "onDocument:keyup$": handler,
-        "onWindow:keyup$": handler,
-        custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
-    }, null, 3, "u6_0");
+        onKeyup$: handler,
+        "onWindow:keyup$": handler
+    }, {
+        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_onClick_FaeKlHF3HdE"), "Foo_div_onClick_FaeKlHF3HdE"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_onDocumentScroll_0LL6A9YcMeE"), "Foo_div_onDocumentScroll_0LL6A9YcMeE"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_onDocumentScroll_1_Vp39eYXzD8M"), "Foo_div_onDocumentScroll_1_Vp39eYXzD8M"),
+        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_on_cLick_KkdRIICJbm4"), "Foo_div_on_cLick_KkdRIICJbm4"),
+        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_onDocument_sCroll_VYzXH4S4Kfg"), "Foo_div_onDocument_sCroll_VYzXH4S4Kfg"),
+        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_onDocument_scroLL_XUFvJrCL7yA"), "Foo_div_onDocument_scroLL_XUFvJrCL7yA"),
+        "host:onClick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_host_onClick_E0xiPVoj1PU"), "Foo_div_host_onClick_E0xiPVoj1PU"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_host_onDocumentScroll_QDhZi1GjXUk"), "Foo_div_host_onDocumentScroll_QDhZi1GjXUk"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4"), "Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4"),
+        custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_div_custom_0aBC7DwC5wU"), "Foo_div_custom_0aBC7DwC5wU")
+    }, null, 2, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAKU;IACR,MAAM,wBAAU;IAChB,qBACC,WAAC;QAAD,qBAcoB;QADnB,UAAU;QAbX,mBAekB;;QAdjB,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QADD,OAAO;;AAGV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -175,124 +204,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg.js (ENTRY POINT)==
+============================= test.tsx_Foo_div_on_cLick_KkdRIICJbm4.js (ENTRY POINT)==
 
-export const Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg = ()=>console.log('host:onWindow:scroll');
+export const Foo_div_on_cLick_KkdRIICJbm4 = ()=>console.log('on-cLick$');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qEAmB4B,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"4CAae,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg",
+  "name": "Foo_div_on_cLick_KkdRIICJbm4",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_host_onDocumentScroll_1",
-  "hash": "Em1LspK7JVg",
-  "canonicalFilename": "test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "host:onDocumentScroll$",
-  "captures": false,
-  "loc": [
-    661,
-    700
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_custom_pyHnxab17ms.js (ENTRY POINT)==
-
-export const Foo_component_div_custom_pyHnxab17ms = ()=>console.log('custom');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAyBa,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_custom_pyHnxab17ms",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_custom",
-  "hash": "pyHnxab17ms",
-  "canonicalFilename": "test.tsx_Foo_component_div_custom_pyHnxab17ms",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "custom$",
-  "captures": false,
-  "loc": [
-    802,
-    827
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g.js (ENTRY POINT)==
-
-export const Foo_component_div_onDocument_scroLL_1q0Sgr8te3g = ()=>console.log('onDocument-scroLL');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAewB,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onDocument_scroLL",
-  "hash": "1q0Sgr8te3g",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "onDocument-scroLL$",
-  "captures": false,
-  "loc": [
-    470,
-    506
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI.js (ENTRY POINT)==
-
-export const Foo_component_div_onDocumentScroll_1_CwneoGpmTZI = ()=>console.log('onWindowScroll');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gEAWuB,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onDocumentScroll_1",
-  "hash": "CwneoGpmTZI",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "onDocumentScroll$",
-  "captures": false,
-  "loc": [
-    303,
-    336
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc.js (ENTRY POINT)==
-
-export const Foo_component_div_on_cLick_IoAsJW8vYJc = ()=>console.log('on-cLick$');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAae,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_on_cLick_IoAsJW8vYJc",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_on_cLick",
-  "hash": "IoAsJW8vYJc",
-  "canonicalFilename": "test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc",
+  "displayName": "test.tsx_Foo_div_on_cLick",
+  "hash": "KkdRIICJbm4",
+  "canonicalFilename": "test.tsx_Foo_div_on_cLick_KkdRIICJbm4",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
@@ -305,55 +230,29 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onClick_M48DYiidSJw.js (ENTRY POINT)==
+============================= test.tsx_Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4.js (ENTRY POINT)==
 
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log('onClick$');
+export const Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4 = ()=>console.log('host:onWindow:scroll');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDASc,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2DAmB4B,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_onClick_M48DYiidSJw",
+  "name": "Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onClick",
-  "hash": "M48DYiidSJw",
-  "canonicalFilename": "test.tsx_Foo_component_div_onClick_M48DYiidSJw",
+  "displayName": "test.tsx_Foo_div_host_onDocumentScroll_1",
+  "hash": "L4jqGHGQ0a4",
+  "canonicalFilename": "test.tsx_Foo_div_host_onDocumentScroll_1_L4jqGHGQ0a4",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",
   "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
+  "ctxName": "host:onDocumentScroll$",
   "captures": false,
   "loc": [
-    191,
-    218
-  ]
-}
-*/
-============================= test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc.js (ENTRY POINT)==
-
-export const Foo_component_div_onDocumentScroll_rwFFtFiVuKc = ()=>console.log('onDocumentScroll');
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"8DAUuB,IAAI,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "Foo_component_div_onDocumentScroll_rwFFtFiVuKc",
-  "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onDocumentScroll",
-  "hash": "rwFFtFiVuKc",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc",
-  "path": "",
-  "extension": "js",
-  "parent": "Foo_component_1_DvU6FitWglY",
-  "ctxKind": "eventHandler",
-  "ctxName": "onDocumentScroll$",
-  "captures": false,
-  "loc": [
-    243,
-    278
+    661,
+    700
   ]
 }
 */
@@ -383,20 +282,124 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM.js (ENTRY POINT)==
+============================= test.tsx_Foo_div_onDocumentScroll_1_Vp39eYXzD8M.js (ENTRY POINT)==
 
-export const Foo_component_div_onDocument_sCroll_5VNik61PZOM = ()=>console.log('onDocument-sCroll');
+export const Foo_div_onDocumentScroll_1_Vp39eYXzD8M = ()=>console.log('onWindowScroll');
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+DAcwB,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAWuB,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_onDocument_sCroll_5VNik61PZOM",
+  "name": "Foo_div_onDocumentScroll_1_Vp39eYXzD8M",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onDocument_sCroll",
-  "hash": "5VNik61PZOM",
-  "canonicalFilename": "test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM",
+  "displayName": "test.tsx_Foo_div_onDocumentScroll_1",
+  "hash": "Vp39eYXzD8M",
+  "canonicalFilename": "test.tsx_Foo_div_onDocumentScroll_1_Vp39eYXzD8M",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_1_DvU6FitWglY",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDocumentScroll$",
+  "captures": false,
+  "loc": [
+    303,
+    336
+  ]
+}
+*/
+============================= test.tsx_Foo_div_onClick_FaeKlHF3HdE.js (ENTRY POINT)==
+
+export const Foo_div_onClick_FaeKlHF3HdE = ()=>console.log('onClick$');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"2CASc,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_div_onClick_FaeKlHF3HdE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_div_onClick",
+  "hash": "FaeKlHF3HdE",
+  "canonicalFilename": "test.tsx_Foo_div_onClick_FaeKlHF3HdE",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_1_DvU6FitWglY",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    191,
+    218
+  ]
+}
+*/
+============================= test.tsx_Foo_div_onDocumentScroll_0LL6A9YcMeE.js (ENTRY POINT)==
+
+export const Foo_div_onDocumentScroll_0LL6A9YcMeE = ()=>console.log('onDocumentScroll');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAUuB,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_div_onDocumentScroll_0LL6A9YcMeE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_div_onDocumentScroll",
+  "hash": "0LL6A9YcMeE",
+  "canonicalFilename": "test.tsx_Foo_div_onDocumentScroll_0LL6A9YcMeE",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_1_DvU6FitWglY",
+  "ctxKind": "eventHandler",
+  "ctxName": "onDocumentScroll$",
+  "captures": false,
+  "loc": [
+    243,
+    278
+  ]
+}
+*/
+============================= test.tsx_Foo_div_host_onClick_E0xiPVoj1PU.js (ENTRY POINT)==
+
+export const Foo_div_host_onClick_E0xiPVoj1PU = ()=>console.log('host:onClick$');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"gDAiBmB,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_div_host_onClick_E0xiPVoj1PU",
+  "entry": null,
+  "displayName": "test.tsx_Foo_div_host_onClick",
+  "hash": "E0xiPVoj1PU",
+  "canonicalFilename": "test.tsx_Foo_div_host_onClick_E0xiPVoj1PU",
+  "path": "",
+  "extension": "js",
+  "parent": "Foo_component_1_DvU6FitWglY",
+  "ctxKind": "eventHandler",
+  "ctxName": "host:onClick$",
+  "captures": false,
+  "loc": [
+    528,
+    560
+  ]
+}
+*/
+============================= test.tsx_Foo_div_onDocument_sCroll_VYzXH4S4Kfg.js (ENTRY POINT)==
+
+export const Foo_div_onDocument_sCroll_VYzXH4S4Kfg = ()=>console.log('onDocument-sCroll');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAcwB,IAAI,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_div_onDocument_sCroll_VYzXH4S4Kfg",
+  "entry": null,
+  "displayName": "test.tsx_Foo_div_onDocument_sCroll",
+  "hash": "VYzXH4S4Kfg",
+  "canonicalFilename": "test.tsx_Foo_div_onDocument_sCroll_VYzXH4S4Kfg",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_1_DvU6FitWglY",

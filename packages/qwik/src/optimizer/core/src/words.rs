@@ -18,10 +18,11 @@ lazy_static! {
 	pub static ref QSEGMENT: JsWord = JsWord::from("$");
 	pub static ref Q_SYNC: JsWord = JsWord::from("sync$");
 	pub static ref QWIK_INTERNAL: JsWord = JsWord::from("qwik");
-	pub static ref BUILDER_IO_QWIK: JsWord = JsWord::from("@qwik.dev/core");
-	pub static ref BUILDER_IO_QWIK_BUILD: JsWord = JsWord::from("@qwik.dev/core/build");
-	pub static ref BUILDER_IO_QWIK_JSX: JsWord = JsWord::from("@qwik.dev/core/jsx-runtime");
-	pub static ref BUILDER_IO_QWIK_JSX_DEV: JsWord = JsWord::from("@qwik.dev/core/jsx-dev-runtime");
+	pub static ref QWIK_CORE: JsWord = JsWord::from("@qwik.dev/core");
+	pub static ref QWIK_CORE_BUILD: JsWord = JsWord::from("@qwik.dev/core/build");
+	pub static ref QWIK_CORE_JSX: JsWord = JsWord::from("@qwik.dev/core/jsx-runtime");
+	pub static ref QWIK_CORE_JSXDEV: JsWord = JsWord::from("@qwik.dev/core/jsx-dev-runtime");
+	pub static ref QWIK_CORE_INTERNAL: JsWord = JsWord::from("@qwik.dev/core/internal");
 	pub static ref QCOMPONENT: JsWord = JsWord::from("component$");
 	pub static ref USE_LEXICAL_SCOPE: JsWord = JsWord::from("useLexicalScope");
 	pub static ref H: JsWord = JsWord::from("h");
@@ -31,6 +32,7 @@ lazy_static! {
 	pub static ref IS_BROWSER: JsWord = JsWord::from("isBrowser");
 	pub static ref IS_DEV: JsWord = JsWord::from("isDev");
 	pub static ref COMPONENT: JsWord = JsWord::from("component$");
+	pub static ref _ADD_LOC: JsWord = JsWord::from("_addLoc");
 	pub static ref _REG_SYMBOL: JsWord = JsWord::from("_regSymbol");
 	pub static ref _QRL_SYNC: JsWord = JsWord::from("_qrlSync");
 	pub static ref _WRAP_PROP: JsWord = JsWord::from("_wrapProp");

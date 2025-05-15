@@ -22,13 +22,15 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 
 ============================= test.tsx_Header_WjUaUQN7Oxg.tsx (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 export const Header_WjUaUQN7Oxg = (decl1, { decl2 }, [decl3])=>{
     const { decl4, key: decl5 } = this;
     let [decl6, ...decl7] = stuff;
+    _addLoc(1, "test.tsx", 7, 16);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IACxC,MAAM,EAAC,KAAK,EAAE,KAAK,KAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;AAQzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IACxC,MAAM,EAAC,KAAK,EAAE,KAAK,KAAK,EAAC,GAAG,IAAI;IAChC,IAAI,CAAC,OAAO,GAAG,MAAM,GAAG;IACV,QAAA;AAOf\"}")
 /*
 {
   "origin": "test.tsx",
@@ -57,10 +59,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg");
+import { _addLoc } from "@qwik.dev/core/internal";
+/*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg"), "test.tsx", 4, 16);
 
 
-Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;cAEe\"}")
 == DIAGNOSTICS ==
 
 []

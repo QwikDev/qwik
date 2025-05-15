@@ -33,43 +33,44 @@ snapshot_kind: text
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
-export const PANELS = [
+export const PANELS = _addLoc([
     'Examples',
     'Input',
     'Output',
     'Console'
-];
+], "test.tsx", 23, 40);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,6BAAe,mHAiBZ;AACH,OAAO,MAAM,SAAwB;IAAC;IAAY;IAAS;IAAU;CAAU,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,mHAiBZ;AACH,OAAO,MAAM,SAAwB,QAAA;IAAC;IAAY;IAAS;IAAU;CAAU,sBAAC\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { PANELS } from "./test";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = ()=>{
-    const panelStore = useStore(()=>({
+    const panelStore = _addLoc(useStore(()=>({
             active: 'Input',
             list: PANELS
-        }));
+        })), "test.tsx", 6, 23);
     return /*#__PURE__*/ _jsxSorted("div", {
         class: {
             'too-long-to-wrap': true,
             'examples-panel-input': panelStore.active === 'Input',
             'examples-panel-output': panelStore.active === 'Output',
             'examples-panel-console': panelStore.active === 'Console'
-        }
-    }, {
+        },
         stuff: _fnSignal((p0)=>p0.active ? 'yes' : 'no', [
             panelStore
         ], 'p0.active?"yes":"no"')
-    }, null, 3, "u6_0");
+    }, null, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B;IACzB,MAAM,aAAa,SAAS,IAAM,CAAC;YAClC,QAAQ;YACR,MAAM;QACP,CAAC;IAED,qBACC,WAAC;QAEA,OAAO;YACN,oBAAoB;YACpB,wBAAwB,WAAW,MAAM,KAAK;YAC9C,yBAAyB,WAAW,MAAM,KAAK;YAC/C,0BAA0B,WAAW,MAAM,KAAK;QACjD;;QANA,KAAK,kBAAE,GAAW,MAAM,GAAG,QAAQ;;;;AAStC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B;IACzB,MAAM,aAAa,QAAA,SAAS,IAAM,CAAC;YAClC,QAAQ;YACR,MAAM;QACP,CAAC;IAED,qBACC,WAAC;QAEA,OAAO;YACN,oBAAoB;YACpB,wBAAwB,WAAW,MAAM,KAAK;YAC9C,yBAAyB,WAAW,MAAM,KAAK;YAC/C,0BAA0B,WAAW,MAAM,KAAK;QACjD;QANA,KAAK,kBAAE,GAAW,MAAM,GAAG,QAAQ;;;;AAStC\"}")
 /*
 {
   "origin": "test.tsx",

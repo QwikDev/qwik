@@ -1990,3 +1990,27 @@ export const typeIdToName = (code: TypeIds) => {
 const constantToName = (code: Constants) => {
   return _constantNames[code] || `Unknown(${code})`;
 };
+
+const locMap = new WeakMap<object, string>();
+
+export const _addLoc = (obj: unknown, path: string, line: number, pos: number) => {
+  if (obj && (typeof obj === 'object' || typeof obj === 'function')) {
+    const loc = `${path}:${line}:${pos}`;
+    const prev = locMap.get(obj);
+    if (prev) {
+      if (!prev.includes(loc)) {
+        locMap.set(obj, `${prev}\n${loc}`);
+      }
+    } else {
+      locMap.set(obj, loc);
+    }
+  }
+  return obj;
+};
+
+export const _getLoc = (obj: unknown): string | undefined => {
+  if (obj && (typeof obj === 'object' || typeof obj === 'function')) {
+    return locMap.get(obj);
+  }
+  return undefined;
+};

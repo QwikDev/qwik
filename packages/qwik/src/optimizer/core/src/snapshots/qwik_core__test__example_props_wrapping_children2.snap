@@ -31,9 +31,10 @@ import { _wrapProp } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useSignal } from '@qwik.dev/core';
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    let fromLocal = useSignal(0);
+export const Works = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    let fromLocal = _addLoc(useSignal(0), "test.tsx", 5, 18);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         "before-",
         fromLocal,
@@ -59,10 +60,10 @@ export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)
         ], "{props:p1.fromProps,local:p0}"),
         "-after"
     ], 1, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+}, "Works_component_t45qL4vNGv0")), "test.tsx", 4, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;AAC1D,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QAAI;QAEH;kBACA;4BACA,KAAY,GAAM,SAAS;;;;wBAC3B,CAAA;gBAAC,OAAO,GAAM,SAAS;YAAA,CAAA;;;QACvB;YAAC,OAAO;QAAS;4BACjB,CAAA;gBAAC,OAAO,GAAM,SAAS;gBAAE,KAAK;YAAW,CAAA;;;;QAAE;;AAI/C,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;AAC1D,OAAO,MAAM,sBAAQ,QAAA,sCAAW,CAAC;IAChC,IAAI,YAAY,QAAA,UAAU;IAC1B,qBACC,WAAC;QAAI;QAEH;kBACA;4BACA,KAAY,GAAM,SAAS;;;;wBAC3B,CAAA;gBAAC,OAAO,GAAM,SAAS;YAAA,CAAA;;;QACvB;YAAC,OAAO;QAAS;4BACjB,CAAA;gBAAC,OAAO,GAAM,SAAS;gBAAE,KAAK;YAAW,CAAA;;;;QAAE;;AAI/C,uDAAG\"}")
 == DIAGNOSTICS ==
 
 []

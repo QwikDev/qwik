@@ -29,11 +29,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = (props)=>{
     // not destructure it so it is a var prop
-    const item = props.something.count;
+    const item = _addLoc(props.something.count, "test.tsx", 6, 15);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", {
         "data-no-wrap": item ? item * 2 : null,
         "data-wrap": _fnSignal((p0)=>p0.myobj.id + "test", [
@@ -43,7 +44,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAE0B,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS,kBAAE,GAAM,KAAK,CAAC,EAAE,GAAG;;;;AAG1E\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAE0B,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,QAAA,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS,kBAAE,GAAM,KAAK,CAAC,EAAE,GAAG;;;;AAG1E\"}")
 /*
 {
   "origin": "test.tsx",

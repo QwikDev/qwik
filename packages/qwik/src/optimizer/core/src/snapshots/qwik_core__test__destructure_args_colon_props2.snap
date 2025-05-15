@@ -29,16 +29,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = (props)=>{
-    const test = useSignal(props["bind:value"]);
-    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _wrapProp(test), 3, "u6_0");
+    const test = _addLoc(useSignal(props["bind:value"]), "test.tsx", 6, 17);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _wrapProp(test), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAE4B,CAAC;IAE1B,MAAM,OAAO,UADuB;IAEpC,qBACC,4CACC;AAGH\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAE4B,CAAC;IAE1B,MAAM,OAAO,QAAA,UADuB;IAEpC,qBACC,4CACC;AAGH\"}")
 /*
 {
   "origin": "test.tsx",

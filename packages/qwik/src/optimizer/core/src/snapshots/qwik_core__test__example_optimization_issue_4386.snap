@@ -26,17 +26,20 @@ export const FOO_MAPPING = {
 
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-export const FOO_MAPPING = {
+import { _addLoc } from "@qwik.dev/core/internal";
+export const FOO_MAPPING = _addLoc({
     A: 1,
     B: 2,
     C: 3
-};
+}, "test.tsx", 5, 28);
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    return <>{FOO_MAPPING['A']}</>;
+    const key = _addLoc('A', "test.tsx", 12, 14);
+    const value = _addLoc(FOO_MAPPING[key], "test.tsx", 13, 16);
+    return <>{value}</>;
 }, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;AAEF,6BAAe,sCAAW;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B,kCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,cAAc,QAAA;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,sBAAE;AAEF,6BAAe,sCAAW;IAC1B,MAAM,MAAM,QAAA;IACZ,MAAM,QAAQ,QAAA,WAAW,CAAC,IAAI;IAE9B,UAAU;AACV,kCAAG\"}")
 == DIAGNOSTICS ==
 
 []

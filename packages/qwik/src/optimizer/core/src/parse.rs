@@ -5,6 +5,7 @@ use std::hash::Hasher;
 use std::path::{Component, Path, PathBuf};
 use std::str;
 
+use crate::add_locs::AddLocs;
 use crate::add_side_effect::SideEffectVisitor;
 use crate::clean_side_effects::Treeshaker;
 use crate::code_move::{new_module, NewModuleCtx};
@@ -16,6 +17,7 @@ use crate::props_destructuring::transform_props_destructuring;
 use crate::rename_imports::RenameTransform;
 use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
+use crate::words::{QWIK_CORE_INTERNAL, _ADD_LOC};
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
@@ -25,6 +27,7 @@ use anyhow::{Context, Error};
 use swc_atoms::JsWord;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
+use swc_common::DUMMY_SP;
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
 use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
@@ -576,7 +579,42 @@ fn parse(
 	let mut parser = Parser::new_from(lexer);
 	match parser.parse_program() {
 		Err(err) => Err(err),
-		Ok(result) => Ok((result, comments, is_type_script, is_jsx)),
+		Ok(mut program) => {
+			let file_name = path_data.rel_path.to_slash_lossy().to_string();
+			let mut add_locs = AddLocs::new(&source_map, file_name);
+			program.visit_mut_with(&mut add_locs);
+
+			if add_locs.did_add_loc {
+				if let ast::Program::Module(module) = &mut program {
+					let import_decl =
+						ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
+							span: DUMMY_SP,
+							specifiers: vec![ast::ImportSpecifier::Named(
+								ast::ImportNamedSpecifier {
+									local: ast::Ident::new(
+										_ADD_LOC.clone(),
+										DUMMY_SP,
+										swc_common::SyntaxContext::empty(),
+									),
+									imported: None,
+									span: DUMMY_SP,
+									is_type_only: false,
+								},
+							)],
+							src: Box::new(ast::Str {
+								span: DUMMY_SP,
+								value: QWIK_CORE_INTERNAL.clone(),
+								raw: None,
+							}),
+							type_only: false,
+							with: None,
+							phase: ast::ImportPhase::Evaluation,
+						}));
+					module.body.insert(0, import_decl);
+				}
+			}
+			Ok((program, comments, is_type_script, is_jsx))
+		}
 	}
 }
 

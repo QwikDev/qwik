@@ -38,6 +38,7 @@ export {
   dumpState as _dumpState,
   preprocessState as _preprocessState,
   _serialize,
+  _addLoc,
 } from './shared/shared-serialization';
 export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';

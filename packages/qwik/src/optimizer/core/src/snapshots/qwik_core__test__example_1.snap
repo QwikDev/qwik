@@ -80,12 +80,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { component } from '@qwik.dev/core';
-export const renderHeader = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ"));
+export const renderHeader = /*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg"), "test.tsx", 5, 29);
+const renderHeader = _addLoc(component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ")), "test.tsx", 10, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,gHAIV;AACH,MAAM,eAAe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,6BAAe,6HAIzB;AACH,MAAM,eAAe,QAAA\"}")
 ============================= test.tsx_renderHeader_div_onClick_fV2uzAL99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);

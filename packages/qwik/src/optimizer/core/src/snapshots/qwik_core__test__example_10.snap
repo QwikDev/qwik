@@ -29,11 +29,12 @@ const Header = $((decl1, {decl2}, [decl3]) => {
 
 ============================= project/test.tsx_Header_WlR3xnI6u38.tsx (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 export const Header_WlR3xnI6u38 = (decl1, { decl2 }, [decl3])=>{
-    ident1.no;
+    _addLoc(ident1.no, "project/test.tsx", 6, 15);
     ident2;
-    ident1, ident3;
-    ident1, ident3;
+    _addLoc(ident1 + ident3, "project/test.tsx", 8, 12);
+    _addLoc(ident1 + ident3, "project/test.tsx", 9, 12);
     ident4(ident5, [
         ident6
     ], {
@@ -51,7 +52,7 @@ export const Header_WlR3xnI6u38 = (decl1, { decl2 }, [decl3])=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\"kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAE3B,OAAO,EAAE;IACtB;IACU,QAAS;IACT,QAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACL,OAAO,OAAO;QACd,SAAS;YACR,OAAO;QACR;IACD;IAEA,QACE,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAE1D\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";kCAEiB,CAAC,OAAO,EAAC,KAAK,EAAC,EAAE,CAAC,MAAM;IAE3B,QAAA,OAAO,EAAE;IACtB;IACU,QAAA,SAAS;IACT,QAAA,SAAS;IACnB,OAAO,QAAQ;QAAC;KAAO,EAAE;QAAC;IAAM,GAAG;QAAC,KAAK;IAAM;IAC/C,MAAM;QACL,OAAO,OAAO;QACd,SAAS;YACR,OAAO;QACR;IACD;IAEA,QACE,IAAI,SAAS,CAAC,UAAY,UAAU,SAAS,UAAU;AAE1D\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -80,10 +81,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 ============================= project/test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WlR3xnI6u38"), "Header_WlR3xnI6u38");
+import { _addLoc } from "@qwik.dev/core/internal";
+/*#__PURE__*/ _addLoc(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WlR3xnI6u38"), "Header_WlR3xnI6u38"), "project/test.tsx", 4, 16);
 
 
-Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;cAEe\"}")
 == DIAGNOSTICS ==
 
 []

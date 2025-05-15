@@ -30,32 +30,24 @@ snapshot_kind: text
 			);
 		});
 		
-============================= test.js ==
-
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;cAEc\"}")
-============================= test.tsx_Cmp_component_div_div_button_onClick_3Ra5dio0eSA.js (ENTRY POINT)==
+============================= test.tsx_Cmp_div_div_button_onClick_zfGYCZRu2hc.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const Cmp_component_div_div_button_onClick_3Ra5dio0eSA = ()=>{
+export const Cmp_div_div_button_onClick_zfGYCZRu2hc = ()=>{
     const [htmlSignal] = useLexicalScope();
     return htmlSignal.value = "<h2><span>I'm a updated signal value!</span></h2>";
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAeiB;;WACR,WAAW,KAAK,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAeiB;;WACR,WAAW,KAAK,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Cmp_component_div_div_button_onClick_3Ra5dio0eSA",
+  "name": "Cmp_div_div_button_onClick_zfGYCZRu2hc",
   "entry": null,
-  "displayName": "test.tsx_Cmp_component_div_div_button_onClick",
-  "hash": "3Ra5dio0eSA",
-  "canonicalFilename": "test.tsx_Cmp_component_div_div_button_onClick_3Ra5dio0eSA",
+  "displayName": "test.tsx_Cmp_div_div_button_onClick",
+  "hash": "zfGYCZRu2hc",
+  "canonicalFilename": "test.tsx_Cmp_div_div_button_onClick_zfGYCZRu2hc",
   "path": "",
   "extension": "js",
   "parent": "Cmp_component_4ryKJTOKjWE",
@@ -71,13 +63,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
+/*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE")), "test.tsx", 4, 15);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;cAEc,QAAA\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 export const Cmp_component_4ryKJTOKjWE = ()=>{
-    const htmlSignal = useSignal("<h2><span>I'm a signal value!</span></h2>");
+    const htmlSignal = _addLoc(useSignal("<h2><span>I'm a signal value!</span></h2>"), "test.tsx", 5, 23);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted("span", null, {
             id: "first",
@@ -89,22 +91,23 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
             class: "after"
         }, null, 3, null), 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, [
-            /*#__PURE__*/ _jsxSorted("span", null, {
+            /*#__PURE__*/ _jsxSorted("span", {
+                dangerouslySetInnerHTML: _wrapProp(htmlSignal)
+            }, {
                 id: "third",
-                dangerouslySetInnerHTML: _wrapProp(htmlSignal),
                 class: "after"
             }, null, 3, null),
-            /*#__PURE__*/ _jsxSorted("button", null, {
-                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_div_div_button_onClick_3Ra5dio0eSA"), "Cmp_component_div_div_button_onClick_3Ra5dio0eSA", [
+            /*#__PURE__*/ _jsxSorted("button", {
+                onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_div_div_button_onClick_zfGYCZRu2hc"), "Cmp_div_div_button_onClick_zfGYCZRu2hc", [
                     htmlSignal
                 ])
-            }, null, 3, null)
-        ], 3, null)
-    ], 3, "u6_0");
+            }, null, null, 2, null)
+        ], 1, null)
+    ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAEyB;IACtB,MAAM,aAAa,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAK,IAAG;gBAAQ,uBAAuB,YAAE;gBAAkB,OAAM;;0BAClE,WAAC;gBACA,QAAQ;;;;;;AAOb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAEyB;IACtB,MAAM,aAAa,QAAA,UAAU;IAC7B,qBACC,WAAC;sBACA,WAAC,iCACA,WAAC;YAAK,IAAG;YAAQ,yBAAwB;;sBAE1C,WAAC,iCACA,WAAC;YAAK,IAAG;YAAS,yBAAwB;YAAsB,OAAM;;sBAEvE,WAAC;0BACA,WAAC;gBAAgB,uBAAuB,YAAE;;gBAApC,IAAG;gBAAmD,OAAM;;0BAClE,WAAC;gBACA,QAAQ;;;;;;AAOb\"}")
 /*
 {
   "origin": "test.tsx",

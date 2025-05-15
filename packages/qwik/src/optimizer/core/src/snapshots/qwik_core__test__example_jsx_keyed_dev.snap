@@ -25,15 +25,16 @@ export const App = component$((props: Stuff) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./index.tsx_App_component_KGLYFBhvJc0.js"), "App_component_KGLYFBhvJc0", {
+import { _addLoc } from "@qwik.dev/core/internal";
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./index.tsx_App_component_KGLYFBhvJc0.js"), "App_component_KGLYFBhvJc0", {
     file: "/src/project/project/index.tsx",
     lo: 88,
     hi: 283,
     displayName: "index.tsx_App_component"
-}));
+})), "project/index.tsx", 5, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM;;;;;IAUhB\"}")
+Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,QAAA;;;;;iCAUhB\"}")
 ============================= project/index.tsx_App_component_KGLYFBhvJc0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";

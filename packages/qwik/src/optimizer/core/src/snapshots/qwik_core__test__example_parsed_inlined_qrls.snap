@@ -46,18 +46,19 @@ export const STYLES = ".red { color: red; }";
 
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { componentQrl, inlinedQrl, useStore, useLexicalScope } from '@qwik.dev/core';
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+export const App = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     useStyles$(/*#__PURE__*/ inlinedQrl(STYLES, "s_odz7dfdfdM"));
     useStyles$(/*#__PURE__*/ inlinedQrl(STYLES, "s_odzdfdfdM"));
-    const store = useStore({
+    const store = _addLoc(useStore({
         count: 0
-    });
+    }), "test.tsx", 9, 16);
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("p", null, null, [
             "Count: ",
             _wrapProp(store, "count")
-        ], 3, null),
+        ], 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
             onClick$: /*#__PURE__*/ inlinedQrl(()=>{
                 const [store] = useLexicalScope();
@@ -67,11 +68,11 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
             ])
         }, null, "Click", 2, null), 1, null)
     ], 1, "u6_0");
-}, "s_Fh88JClhbC0"));
-export const STYLES = ".red { color: red; }";
+}, "s_Fh88JClhbC0")), "test.tsx", 5, 34);
+export const STYLES = _addLoc(".red { color: red; }", "test.tsx", 35, 23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;AAEhG,OAAO,MAAM,MAAM,WAAW,GAAG,sCAAwB;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,QAAQ,2BAAa;gBACpB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,qBAAiC;AAEjC,OAAO,MAAM,SAAS,uBAAuB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAS,YAAY,EAAE,UAAU,EAAE,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;AAEhG,OAAO,MAAM,MAAM,WAAW,GAAG,QAAA,sCAAwB;IACxD,oCAAsB;IACtB,oCAAsB;IAEtB,MAAM,QAAQ,QAAA,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,QAAQ,2BAAa;gBACpB,MAAM,CAAC,MAAM,GAAG;gBAChB,OAAO,MAAM,KAAK;YACnB;;;iBAGU;KAGZ;AAEH,yCAAiC;AAEjC,OAAO,MAAM,SAAS,QAAA,4CAAuB\"}")
 == DIAGNOSTICS ==
 
 []

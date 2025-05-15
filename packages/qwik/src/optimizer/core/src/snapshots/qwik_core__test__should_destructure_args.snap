@@ -38,6 +38,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.t
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,mHAab\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
+import { _addLoc } from "@qwik.dev/core/internal";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
@@ -48,13 +49,13 @@ export const test_component_LUXeXe0DQrg = (props)=>{
         "id",
         "count"
     ]);
-    const renders = useStore({
+    const renders = _addLoc(useStore({
         renders: 0
     }, {
         reactive: false
-    });
+    }), "test.tsx", 8, 20);
     renders.renders++;
-    const rerenders = renders.renders + 0;
+    const rerenders = _addLoc(renders.renders + 0, "test.tsx", 10, 22);
     return /*#__PURE__*/ _jsxSorted("div", {
         id: _wrapProp(props, "id")
     }, null, [
@@ -72,7 +73,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,QAAA,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAA,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
 /*
 {
   "origin": "test.tsx",

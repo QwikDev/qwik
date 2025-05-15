@@ -25,21 +25,29 @@ import { componentQrl } from "@qwik.dev/core";
 import { useStyleQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { serverQrl } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
 import { _regSymbol } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-const Works_component_div_onClick_server_OsNoEFc5SM4 = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4");
+import { _addLoc } from "@qwik.dev/core/internal";
+const Works_div_onClick_server_m9AaOyPPsM0 = /*#__PURE__*/ _regSymbol(()=>{
+    const [text] = useLexicalScope();
+    return console.log('in server', text);
+}, "m9AaOyPPsM0");
 const Works_component_t45qL4vNGv0 = (props)=>{
     useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
+    const text = _addLoc('hola', "test.tsx", 7, 15);
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_OsNoEFc5SM4, "Works_component_div_onClick_server_OsNoEFc5SM4"))
+        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_div_onClick_server_m9AaOyPPsM0, "Works_div_onClick_server_m9AaOyPPsM0", [
+            text
+        ]))
     }, null, null, 2, "u6_0");
 };
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
-const STYLES = '.class {}';
+export const Works = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0")), "test.tsx", 5, 22);
+const STYLES = _addLoc('.class {}', "test.tsx", 13, 16);
 export { STYLES as _auto_STYLES };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC;IAChC,qCAAU;IAEV,qBACC,WAAC;QAAI,UAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;sEAOyB;;WAAM,QAAQ,GAAG,CAAC,aAAa;;oCAJxB,CAAC;IAChC,qCAAU;IACV,MAAM,OAAO,QAAA;IACb,qBACC,WAAC;QAAI,UAAU;;;;AAEjB;AANA,OAAO,MAAM,sBAAQ,QAAA,uHAMlB;AAEH,MAAM,SAAS,QAAA\"}")
 == DIAGNOSTICS ==
 
 []

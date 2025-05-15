@@ -56,41 +56,43 @@ import { inlinedQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 import { useStore } from '@qwik.dev/core';
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    const state = useStore({
+export const Parent = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
+    const state = _addLoc(useStore({
         text: ''
-    });
+    }), "components/component.tsx", 12, 16);
     // Double count watch
-    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_component_useClientMount_Yn2kIDABoYw", [
+    useClientMountQrl(/*#__PURE__*/ _noopQrl("Parent_useClientMount_oulcRL6yY30", [
         state
     ]));
     useTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
     // Code
-    }, "Parent_component_useTask_ngmvcygWux8"));
-    return /*#__PURE__*/ _jsxSorted("div", null, {
-        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_component_div_shouldRemove_EBj69wTX1do", [
+    }, "Parent_useTask_jEJCmVzD7yk"));
+    return /*#__PURE__*/ _jsxSorted("div", {
+        onClick$: /*#__PURE__*/ _noopQrl("Parent_div_onClick_0y7fgVd8ijk", [
             state
         ]),
-        onClick$: /*#__PURE__*/ _noopQrl("Parent_component_div_onClick_0PioS4FByUg", [
+        shouldRemove$: /*#__PURE__*/ _noopQrl("Parent_div_shouldRemove_axIATgnK8mE", [
             state
         ])
-    }, [
-        /*#__PURE__*/ _jsxSorted(Div, null, {
-            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_component_div_Div_onClick_kgowuto5dR0"),
+    }, null, [
+        /*#__PURE__*/ _jsxSorted(Div, {
             render$: /*#__PURE__*/ inlinedQrl(()=>{
                 const [state] = useLexicalScope();
                 return state.text;
-            }, "Parent_component_div_Div_render_CkMybN6xzQk", [
+            }, "Parent_div_Div_render_A0LnmnrdDcE", [
                 state
             ])
-        }, null, 3, "7R_0"),
+        }, {
+            onClick$: /*#__PURE__*/ inlinedQrl(()=>console.log('keep'), "Parent_div_Div_onClick_Cqlk0ssZvAM")
+        }, null, 2, "7R_0"),
         _wrapProp(state, "text")
-    ], 1, "7R_1");
-}, "Parent_component_t6Wy3C0Q0XM"));
+    ], 0, "7R_1");
+}, "Parent_component_t6Wy3C0Q0XM")), "components/component.tsx", 11, 23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,sCAAW;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QACA,aAAa;;;QACb,QAAQ;;;;sBAER,WAAC;YACA,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;YAC5B,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;kBAEzB;;AAGJ,oCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/components/component.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;AACA,SAAsC,QAAQ,QAAkB,iBAAiB;AAQjF,OAAO,MAAM,uBAAS,QAAA,sCAAW;IAChC,MAAM,QAAQ,QAAA,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,oCAAS;IACR,OAAO;IACR;IAEA,qBACC,WAAC;QAEA,QAAQ;;;QADR,aAAa;;;;sBAGb,WAAC;YAEA,OAAO,2BAAE;;uBAAM,MAAM,IAAI;;;;;YADzB,QAAQ,2BAAE,IAAM,QAAQ,GAAG,CAAC;;kBAG5B;;AAGJ,yEAAG\"}")
 == DIAGNOSTICS ==
 
 []

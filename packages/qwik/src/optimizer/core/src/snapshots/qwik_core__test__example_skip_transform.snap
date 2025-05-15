@@ -21,14 +21,15 @@ export const App = component$((props) => {
 ============================= test.js ==
 
 import { _jsxSorted } from "@qwik.dev/core";
-export const handler = $(()=>console.log('hola'));
-export const App = component$((props)=>{
+import { _addLoc } from "@qwik.dev/core/internal";
+export const handler = _addLoc($(()=>console.log('hola')), "test.tsx", 5, 24);
+export const App = _addLoc(component$((props)=>{
     useStyles$('hola');
     return $(()=>/*#__PURE__*/ _jsxSorted("div", null, null, state.thing, 1, "u6_0"));
-});
+}), "test.tsx", 7, 20);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAGA,OAAO,MAAM,UAAU,EAAE,IAAI,QAAQ,GAAG,CAAC,SAAS;AAElD,OAAO,MAAM,MAAM,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,UAAU,QAAA,EAAE,IAAI,QAAQ,GAAG,CAAC,6BAAS;AAElD,OAAO,MAAM,MAAM,QAAA,WAAW,CAAC;IAC9B,WAAW;IACX,OAAO,EAAE,kBACR,WAAC,mBAAK,MAAM,KAAK;AAEnB,uBAAG\"}")
 == DIAGNOSTICS ==
 
 []

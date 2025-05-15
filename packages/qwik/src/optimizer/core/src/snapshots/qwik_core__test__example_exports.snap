@@ -64,19 +64,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+import { _addLoc } from "@qwik.dev/core/internal";
 export const [a, { b, v1: [c], d = v2, ...e }, f = v3, ...g] = obj;
-const exp1 = 1;
-const internal = 2;
+const exp1 = _addLoc(1, "project/test.tsx", 7, 14);
+const internal = _addLoc(2, "project/test.tsx", 8, 18);
 export { exp1, internal as expr2 };
 export function foo() {}
 export class bar {
 }
 export default function DefaultFn() {}
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
-export const Footer = /*#__PURE__*/ componentQrl();
+export const Header = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo")), "project/test.tsx", 16, 23);
+export const Footer = /*#__PURE__*/ _addLoc(componentQrl(), "project/test.tsx", 25, 23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO;AACb,MAAM,WAAW;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,uHAOnB;AAEH,OAAO,MAAM,uBAAS,eAAa\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,CAAC,GAAG,EAAC,CAAC,EAAE,IAAI,CAAC,EAAE,EAAE,IAAE,EAAE,EAAE,GAAG,GAAE,EAAE,IAAE,EAAE,EAAE,GAAG,EAAE,GAAG,IAAI;AAE7D,MAAM,OAAO,QAAA;AACb,MAAM,WAAW,QAAA;AACjB,SAAQ,IAAI,EAAE,YAAY,KAAK,GAAE;AAEjC,OAAO,SAAS,OAAQ;AACxB,OAAO,MAAM;AAAK;AAElB,eAAe,SAAS,aAAa;AAErC,OAAO,MAAM,uBAAS,QAAA,oJAOnB;AAEH,OAAO,MAAM,uBAAS,QAAA,4CAAa\"}")
 ============================= project/test.tsx_Header_component_1_uWM1kg0IGO0.jsx (ENTRY POINT)==
 
 import { default as DefaultFn } from "./test";

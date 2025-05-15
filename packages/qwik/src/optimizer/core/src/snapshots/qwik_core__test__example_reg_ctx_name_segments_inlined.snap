@@ -19,17 +19,25 @@ export const Works = component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { serverQrl } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
 import { _regSymbol } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+import { _addLoc } from "@qwik.dev/core/internal";
+export const Works = /*#__PURE__*/ _addLoc(componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+    const text = _addLoc('hola', "test.tsx", 5, 15);
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
+        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>{
+            const [text] = useLexicalScope();
+            return console.log('in server', text);
+        }, "m9AaOyPPsM0"), "Works_div_onClick_server_m9AaOyPPsM0", [
+            text
+        ]))
     }, null, null, 2, "u6_0");
-}, "Works_component_t45qL4vNGv0"));
+}, "Works_component_t45qL4vNGv0")), "test.tsx", 4, 22);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAEhC,qBACC,WAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAF7B;;AAId,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAEA,OAAO,MAAM,sBAAQ,QAAA,sCAAW,CAAC;IAChC,MAAM,OAAO,QAAA;IACb,qBACC,WAAC;QAAI,UAAU,4DAAQ;;mBAAM,QAAQ,GAAG,CAAC,aAAa;;;;;AAExD,uDAAG\"}")
 == DIAGNOSTICS ==
 
 []

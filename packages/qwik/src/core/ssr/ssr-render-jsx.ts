@@ -448,7 +448,7 @@ function setEvent(
      *
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
-    if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
+    if (qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
       qrl = createQRL(null, '_run', queueQRL, null, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);

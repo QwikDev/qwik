@@ -88,7 +88,8 @@ export const routeActionQrl = ((
     });
 
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
-      if (isServer) {
+      // only throw in true SSR (no mock context)
+      if (isServer && typeof window === 'undefined') {
         throw new Error(`Actions can not be invoked within the server during SSR.
 Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
       }

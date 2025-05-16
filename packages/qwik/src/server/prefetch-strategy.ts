@@ -72,5 +72,8 @@ export const expandBundles = (names: string[], resolvedManifest?: ResolvedManife
     probability *= 0.95;
   }
 
-  return getQueue();
+  return getQueue().filter(
+    (name) =>
+      name !== resolvedManifest?.manifest.preloader && name !== resolvedManifest?.manifest.core
+  );
 };

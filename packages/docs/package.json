@@ -49,7 +49,7 @@
     "shiki": "3.4.2",
     "snarkdown": "2.0.0",
     "tailwindcss": "4.1.7",
-    "terser": "5.39.1",
+    "terser": "5.39.2",
     "tsm": "2.3.0",
     "typescript": "5.4.5",
     "undici": "*",

@@ -237,7 +237,9 @@ export const createScheduler = (
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
-      type === ChoreType.NODE_PROP;
+      type === ChoreType.NODE_PROP ||
+      type === ChoreType.QRL_RESOLVE ||
+      type === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS;
     if (isServer && isClientOnly) {
       DEBUG &&
         debugTrace(

@@ -31,7 +31,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.44.4"
+    "@supabase/supabase-js": "2.44.4"
   },
   "publishConfig": {
     "access": "public"

@@ -291,9 +291,6 @@ importers:
       '@builder.io/qwik-react':
         specifier: workspace:^
         version: link:../qwik-react
-      '@builder.io/sdk-qwik':
-        specifier: 0.14.31
-        version: 0.14.31(@builder.io/qwik@packages+qwik)
       '@emotion/react':
         specifier: 11.13.0
         version: 11.13.0(@types/react@18.3.3)(react@18.3.1)
@@ -978,11 +975,6 @@ packages:
     resolution: {integrity: sha512-A9U+4PREWcS+CCYzKGIPovtGB/PBgnH/8oQyCE6Nr9drDJk6cMPpLQIEajpGPmG9tYF7N3FkRvhXm/AS9+0iKg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
-
-  '@builder.io/sdk-qwik@0.14.31':
-    resolution: {integrity: sha512-b8BlVdDZdrHfMCxpZgTax3R4Ort+RU+EXs+YKg/2Yvkw2cWje4r1hA8TzXj1ocRUGkjiHzbSKApgoOrVTOno0g==}
-    peerDependencies:
-      '@builder.io/qwik': '>=1.0.0'
 
   '@builder.io/vite-plugin-macro@0.0.7':
     resolution: {integrity: sha512-tDdYnRtkxtZ3KRZMdUAetwEXPYQLQWIMtvbFY9klVKQII1P3IooAobByqNiHPy8W0EcLe8ZDVq2cK8z8RNtiHQ==}
@@ -6749,10 +6741,6 @@ packages:
     resolution: {integrity: sha512-LpB/54B+/2J5hqQ7imZHfdU31OlgQqx7ZicVlkm9kzg9/w8GKLEcFfJl/t7DCEDueOyBAD6zCCwTO6Fzs0NoEQ==}
     engines: {node: '>=16'}
 
-  isolated-vm@5.0.1:
-    resolution: {integrity: sha512-hs7+ff59Z2zDvavfcjuot/r1gm6Bmpt+GoZxmVfxUmXaX5scOvUq/Rnme+mUtSh5lW41hH8gAuvk/yTJDYO8Fg==}
-    engines: {node: '>=18.0.0'}
-
   issue-regex@4.1.0:
     resolution: {integrity: sha512-X3HBmm7+Th+l4/kMtqwcHHgELD0Lfl0Ina6S3+grr+mKmTxsrM84NAO1UuRPIxIbGLIl3TCEu45S1kdu21HYbQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -10308,11 +10296,6 @@ snapshots:
   '@bugsnag/safe-json-stringify@6.0.0': {}
 
   '@builder.io/partytown@0.10.2': {}
-
-  '@builder.io/sdk-qwik@0.14.31(@builder.io/qwik@packages+qwik)':
-    dependencies:
-      '@builder.io/qwik': link:packages/qwik
-      isolated-vm: 5.0.1
 
   '@builder.io/vite-plugin-macro@0.0.7(@types/node@20.14.11)(lightningcss@1.29.1)(rollup@4.39.0)(terser@5.31.3)':
     dependencies:
@@ -16362,10 +16345,6 @@ snapshots:
   isexe@2.0.0: {}
 
   isexe@3.1.1: {}
-
-  isolated-vm@5.0.1:
-    dependencies:
-      prebuild-install: 7.1.1
 
   issue-regex@4.1.0: {}
 

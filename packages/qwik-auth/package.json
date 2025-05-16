@@ -4,7 +4,7 @@
   "version": "0.2.2",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@auth/core": "^0.30.0"
+    "@auth/core": "^0.39.1"
   },
   "devDependencies": {
     "@auth/core": "0.30.0",

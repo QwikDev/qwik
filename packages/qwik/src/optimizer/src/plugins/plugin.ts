@@ -868,6 +868,7 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
         mapping: manifest.mapping,
         preloader: manifest.preloader,
+        core: manifest.core,
       };
     }
     return `// @qwik-client-manifest

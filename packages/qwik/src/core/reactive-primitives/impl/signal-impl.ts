@@ -107,14 +107,14 @@ const addEffect = (
 
 export const setupSignalValueAccess = <T, S>(
   target: SignalImpl<T>,
-  effectsGetter: () => Set<EffectSubscription>,
-  valueGetter: () => S
+  effectsFn: () => Set<EffectSubscription>,
+  returnValueFn: () => S
 ) => {
   const ctx = tryGetInvokeContext();
   if (ctx) {
     if (target.$container$ === null) {
       if (!ctx.$container$) {
-        return valueGetter();
+        return returnValueFn();
       }
       // Grab the container now we have access to it
       target.$container$ = ctx.$container$;
@@ -126,9 +126,9 @@ export const setupSignalValueAccess = <T, S>(
     }
     const effectSubscriber = ctx.$effectSubscriber$;
     if (effectSubscriber) {
-      addEffect(target, effectSubscriber, effectsGetter());
+      addEffect(target, effectSubscriber, effectsFn());
       DEBUG && log('read->sub', pad('\n' + target.toString(), '  '));
     }
   }
-  return valueGetter();
+  return returnValueFn();
 };

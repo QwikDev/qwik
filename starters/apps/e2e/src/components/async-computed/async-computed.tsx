@@ -51,13 +51,13 @@ export const PendingComponent = component$(() => {
       new Promise<number>((resolve) => {
         setTimeout(() => {
           resolve(track(count) * 2);
-        }, 5000);
+        }, 1000);
       }),
   );
 
   return (
     <div>
-      {/* {double.pending ? "pending" : "not pending"} */}
+      {(double as any).pending ? "pending" : "not pending"}
       <div class="result">double: {double.value}</div>
       <button id="increment" onClick$={() => count.value++}>
         Increment

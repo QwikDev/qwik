@@ -11,7 +11,7 @@ import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
 import { noSerialize } from '../../shared/utils/serialize-utils';
-import { isFunction } from '../../shared/utils/types';
+import { isFunction, isObject } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
 import type { Task, Tracker } from '../use-task';
 
@@ -29,7 +29,7 @@ export const trackFn =
         return (obj as Record<string, unknown>)[prop];
       } else if (isSignal(obj)) {
         return obj.value;
-      } else if (isStore(obj)) {
+      } else if (isObject(obj) && isStore(obj)) {
         // track whole store
         addStoreEffect(
           getStoreTarget(obj)!,

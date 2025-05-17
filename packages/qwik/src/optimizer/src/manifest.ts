@@ -473,6 +473,8 @@ export function generateManifestFromBundles(
       bundle.origins = modulePaths;
       if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
         manifest.preloader = bundleFileName;
+      } else if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
+        manifest.core = bundleFileName;
       }
     }
 

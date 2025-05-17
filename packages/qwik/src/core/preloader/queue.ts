@@ -179,12 +179,16 @@ export const adjustProbabilities = (
       const prevAdjust = dep.$factor$;
       /**
        * The chance that a dep won't be loaded is 1-(the chance that the dep will be loaded)*(the
-       * chance that the current bundle will be loaded)
+       * chance that the current bundle will be loaded).
        *
        * We can multiply this chance together with all other bundle adjustments to get the chance
-       * that a dep will be loaded given all the chances of the other bundles
+       * that a dep will be loaded given all the chances of the other bundles.
+       *
+       * But when we're very likely to load the current bundle, make the dynamic imports more likely
+       * too.
        */
-      const newInverseProbability = 1 - dep.$probability$ * probability;
+      const newInverseProbability =
+        dep.$probability$ !== 1 && adjustFactor < 0.1 ? 0.05 : 1 - dep.$probability$ * probability;
 
       /** We need to undo the previous adjustment */
       const factor = newInverseProbability / prevAdjust;
@@ -216,7 +220,6 @@ export const preload = (name: string | (number | string)[], probability?: number
         inverseProbability = 1 - item / 10;
       } else {
         handleBundle(item, inverseProbability);
-        inverseProbability *= 1.005;
       }
     }
   } else {

@@ -372,7 +372,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         containerAttributes[attr.name] = attr.value;
       }
     }
-    this.$serverData$ = { containerAttributes };
+    this.serverData = { containerAttributes };
   }
 
   /**

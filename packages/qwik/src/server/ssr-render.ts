@@ -124,7 +124,7 @@ function getSnapshotResult(ssrContainer: SSRContainer): SnapshotResult {
     ? {
         funcs: Array.from(ssrContainer.serializationCtx.$syncFns$),
         mode: canRender ? 'render' : 'listeners',
-        qrls: Array.from(ssrContainer.serializationCtx.$eventQrls$),
+        qrls: Array.from(ssrContainer.serializationCtx.eventQrls),
         resources: Array.from(ssrContainer.serializationCtx.$resources$),
       }
     : {

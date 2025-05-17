@@ -23,7 +23,7 @@ export interface Container {
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
-  readonly $serverData$: Record<string, any>;
+  readonly serverData: Record<string, any>;
   $currentUniqueId$: number;
   $buildBase$: string | null;
 

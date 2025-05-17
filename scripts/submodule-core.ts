@@ -209,7 +209,11 @@ async function submoduleCoreProduction(config: BuildConfig, code: string, outPat
       ecma: 2020,
       preamble: getBanner('@qwik.dev/core', config.distVersion),
     },
-    mangle: false,
+    mangle: {
+      properties: {
+        regex: '^\\$.+\\$$',
+      },
+    },
   });
   code = result.code!;
 

@@ -40,7 +40,7 @@ export const render = async (
   (parent as Element).setAttribute(QContainerAttr, QContainerValue.RESUMED);
 
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
-  container.$serverData$ = opts.serverData || {};
+  container.serverData = opts.serverData || {};
   const host = container.rootVNode;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
   await container.$scheduler$(ChoreType.WAIT_FOR_ALL);

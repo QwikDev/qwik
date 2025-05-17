@@ -75,7 +75,7 @@ export const addQrlToSerializationCtx = (
       qrl = container.getHostProp<QRL>(effect as ISsrNode, OnRenderProp);
     }
     if (qrl) {
-      (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
+      (container as SSRContainer).serializationCtx.eventQrls.add(qrl);
     }
   }
 };

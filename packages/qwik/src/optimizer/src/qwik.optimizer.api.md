@@ -185,6 +185,7 @@ export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
     };
+    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {

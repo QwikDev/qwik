@@ -165,6 +165,22 @@ export async function renderToStream(
       })
     );
   }
+  const preloadChunk = resolvedManifest?.manifest?.preloader;
+  if (preloadChunk && opts.preloader !== false) {
+    const core = resolvedManifest?.manifest.core;
+    beforeContent.push(
+      jsx('link', { rel: 'modulepreload', href: `${buildBase}${preloadChunk}` }),
+      jsx('link', {
+        rel: 'preload',
+        href: `${buildBase}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+      })
+    );
+    if (core) {
+      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${buildBase}${core}` }));
+    }
+  }
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];

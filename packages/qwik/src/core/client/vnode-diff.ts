@@ -99,10 +99,11 @@ import { escapeHTML } from '../shared/utils/character-escaping';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
-import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import { appendQwikInspectorAttribute, getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { EffectProperty } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { qInspector } from '../shared/utils/qdev';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -712,6 +713,9 @@ export const vnode_diff = (
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
     const currentFile = getFileLocationFromJsx(jsx.dev);
+    if (isDev && currentFile && qInspector) {
+      appendQwikInspectorAttribute(jsx, currentFile);
+    }
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.

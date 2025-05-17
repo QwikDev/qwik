@@ -150,6 +150,7 @@ import {
   QSlotParent,
   QStyle,
   QStylesAllSelector,
+  qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
@@ -1839,9 +1840,49 @@ function materializeFromVNodeData(
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (!isElement(child)) {
+        const previousChild = child;
         child = fastNextSibling(child);
         if (!child) {
-          throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
+          let childDescription: string | null = null;
+          let childDescriptionFile: string | null = null;
+          if (isDev) {
+            const getChildDescription = () => {
+              if (previousChild && isElement(previousChild)) {
+                return previousChild.outerHTML;
+              } else if (previousChild && isText(previousChild)) {
+                return previousChild.nodeValue;
+              } else {
+                return previousChild?.nodeName || null;
+              }
+            };
+
+            const getChildDescriptionFile = () => {
+              let previousChildWithFileLocation = previousChild;
+              while (!childDescriptionFile && previousChildWithFileLocation) {
+                if (
+                  isElement(previousChildWithFileLocation) &&
+                  previousChildWithFileLocation.hasAttribute(qwikInspectorAttr)
+                ) {
+                  return previousChildWithFileLocation.getAttribute(qwikInspectorAttr);
+                }
+                previousChildWithFileLocation =
+                  previousChildWithFileLocation.parentNode as Node | null;
+              }
+              return null;
+            };
+
+            childDescription = getChildDescription();
+            childDescriptionFile = getChildDescriptionFile();
+          } else {
+            childDescription = previousChild?.nodeName || null;
+          }
+          throw qError(QError.materializeVNodeDataError, [
+            childDescription,
+            childDescriptionFile,
+            vData,
+            peek(),
+            nextToConsumeIdx,
+          ]);
         }
       }
       // We pretend that style element's don't exist as they can get moved out.

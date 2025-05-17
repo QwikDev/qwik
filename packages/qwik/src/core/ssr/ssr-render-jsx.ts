@@ -18,7 +18,7 @@ import {
   jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
-import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import { appendQwikInspectorAttribute, getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
@@ -26,7 +26,6 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  qwikInspectorAttr,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
@@ -508,12 +507,6 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
     }
   }
   return directGetPropsProxyProp(jsx, 'name') || QDefaultSlot;
-}
-
-function appendQwikInspectorAttribute(jsx: JSXNodeInternal, qwikInspectorAttrValue: string | null) {
-  if (qwikInspectorAttrValue && (!jsx.constProps || !(qwikInspectorAttr in jsx.constProps))) {
-    (jsx.constProps ||= {})[qwikInspectorAttr] = qwikInspectorAttrValue;
-  }
 }
 
 // append class attribute if styleScopedId exists and there is no class attribute

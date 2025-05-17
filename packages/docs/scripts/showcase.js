@@ -66,9 +66,9 @@ async function captureMultipleScreenshots() {
         }
         const filename = href
           .replace('https://', '')
-          .replace('/', '_')
-          .replace('.', '_')
-          .replace('.', '_')
+          .replaceAll('/', '_')
+          .replaceAll('.', '_')
+          .replaceAll('.', '_')
           .toLowerCase();
 
         await wait(5000);

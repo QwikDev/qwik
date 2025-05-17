@@ -1,7 +1,7 @@
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import { getQueue, preload, resetQueue } from '../core/preloader/queue';
 import type { QRLInternal } from '../core/qrl/qrl-class';
-import { flattenPrefetchResources } from './prefetch-utils';
+import { flattenPrefetchResources } from './preload-utils';
 import type { RenderToStringOptions, SnapshotResult } from './types';
 import { getPlatform } from '@builder.io/qwik';
 import { getSymbolHash } from './platform';
@@ -66,10 +66,12 @@ export const expandBundles = (names: string[], resolvedManifest?: ResolvedManife
   resetQueue();
 
   let probability = 0.99;
-  for (const name of names) {
+  // we assume that after 15 symbols, we're beyond the first screenful of content
+  // the preloader will load the rest
+  for (const name of names.slice(0, 15)) {
     preload(name, probability);
     // later symbols have less probability
-    probability *= 0.95;
+    probability *= 0.85;
   }
 
   return getQueue().filter(

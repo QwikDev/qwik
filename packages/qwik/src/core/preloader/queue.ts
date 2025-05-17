@@ -216,7 +216,6 @@ export const preload = (name: string | (number | string)[], probability?: number
         inverseProbability = 1 - item / 10;
       } else {
         handleBundle(item, inverseProbability);
-        inverseProbability *= 1.005;
       }
     }
   } else {

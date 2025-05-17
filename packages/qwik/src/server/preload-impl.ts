@@ -1,6 +1,6 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import type { ResolvedManifest } from '../optimizer/src/types';
-import { expandBundles } from './prefetch-strategy';
+import { expandBundles } from './preload-strategy';
 import type { PreloaderOptions } from './types';
 
 export function includePreloader(
@@ -126,8 +126,8 @@ function normalizePreLoaderOptions(
 }
 
 const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 5,
-  ssrPreloadProbability: 0.7,
+  ssrPreloads: 7,
+  ssrPreloadProbability: 0.5,
   debug: false,
   maxIdlePreloads: 25,
   preloadProbability: 0.35,

@@ -6,7 +6,7 @@ import { QInstance } from '../core/util/markers';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { includePreloader } from './preload-impl';
-import { getPreloadPaths } from './prefetch-strategy';
+import { getPreloadPaths } from './preload-strategy';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,

@@ -137,6 +137,7 @@ export type {
   KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
+  QwikIdlevisibleEvent,
   QwikIdleEvent,
   QwikInitEvent,
   QwikTransitionEvent,

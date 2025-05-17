@@ -114,6 +114,7 @@ export const ClientSide = component$(() => {
     text1: "empty 1",
     text2: "empty 2",
     text3: "empty 3",
+    text4: "empty 4",
   });
 
   useVisibleTask$(
@@ -138,11 +139,21 @@ export const ClientSide = component$(() => {
     },
   );
 
+  useVisibleTask$(
+    () => {
+      state.text4 = "run";
+    },
+    {
+      strategy: "idle-visible",
+    },
+  );
+
   return (
     <>
       <div id="client-side-msg-1">{state.text1}</div>
       <div id="client-side-msg-2">{state.text2}</div>
       <div id="client-side-msg-3">{state.text3}</div>
+      <div id="client-side-msg-4">{state.text4}</div>
     </>
   );
 });

@@ -3651,7 +3651,7 @@ opts
 </tbody></table>
 **Returns:**
 
-[JSXNode](#jsxnode)&lt;'script'&gt;
+JSXNode&lt;'script'&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts)
 
@@ -4182,6 +4182,16 @@ Emitted by qwik-loader on document when the document first becomes idle
 
 ```typescript
 export type QwikIdleEvent = CustomEvent<{}>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
+
+## QwikIdlevisibleEvent
+
+Emitted by qwik-loader when an element becomes visible, after document idle. Used by `useVisibleTask$`
+
+```typescript
+export type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/render/jsx/types/jsx-qwik-events.ts)
@@ -11565,7 +11575,8 @@ export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T
 export type VisibleTaskStrategy =
   | "intersection-observer"
   | "document-ready"
-  | "document-idle";
+  | "document-idle"
+  | "idle-visible";
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts)

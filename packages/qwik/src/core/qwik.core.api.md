@@ -725,6 +725,9 @@ export type QwikHTMLElements = {
 export type QwikIdleEvent = CustomEvent<{}>;
 
 // @public
+export type QwikIdlevisibleEvent = CustomEvent<IntersectionObserverEntry>;
+
+// @public
 export type QwikInitEvent = CustomEvent<{}>;
 
 // @public
@@ -1756,7 +1759,7 @@ export interface VideoHTMLAttributes<T extends Element> extends Attrs<'video', T
 }
 
 // @public (undocumented)
-export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
+export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle' | 'idle-visible';
 
 // @internal (undocumented)
 export const _waitUntilRendered: (elm: Element) => Promise<void>;

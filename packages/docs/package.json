@@ -12,7 +12,6 @@
     "@builder.io/qwik-city": "workspace:^",
     "@builder.io/qwik-labs": "workspace:^",
     "@builder.io/qwik-react": "workspace:^",
-    "@builder.io/sdk-qwik": "0.14.31",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.0",
     "@modular-forms/qwik": "0.23.1",

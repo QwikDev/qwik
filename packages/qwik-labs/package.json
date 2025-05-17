@@ -4,9 +4,9 @@
   "version": "0.0.1",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@eslint/js": "9.26.0",
+    "@eslint/js": "9.27.0",
     "@types/node": "20.14.11",
-    "eslint": "9.26.0",
+    "eslint": "9.27.0",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.1.0",
     "np": "10.2.0",

@@ -337,7 +337,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
     containerAttributes[QInstanceAttr] = this.$instanceHash$;
 
-    this.$serverData$.containerAttributes = containerAttributes;
+    this.serverData.containerAttributes = containerAttributes;
 
     const containerAttributeArray = Object.entries(containerAttributes).reduce<string[]>(
       (acc, [key, value]) => {
@@ -473,7 +473,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.getComponentFrame();
     if (componentFrame) {
       // TODO: we should probably serialize only projection VNode
-      this.serializationCtx.$addRoot$(componentFrame.componentNode);
+      this.serializationCtx.addRoot(componentFrame.componentNode);
       componentFrame.projectionDepth++;
     }
   }
@@ -538,7 +538,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.$noMoreRoots$) {
       return this.serializationCtx.$hasRootId$(obj);
     }
-    return this.serializationCtx.$addRoot$(obj);
+    return this.serializationCtx.addRoot(obj);
   }
 
   getLastNode(): ISsrNode {
@@ -644,7 +644,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * skipped. By choosing different separators we can encode different numbers of elements to skip.
    */
   emitVNodeData() {
-    if (!this.serializationCtx.$roots$.length) {
+    if (!this.serializationCtx.roots.length) {
       return;
     }
     this.openElement('script', ['type', 'qwik/vnode']);
@@ -825,11 +825,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitStateData(): ValueOrPromise<void> {
-    if (!this.serializationCtx.$roots$.length) {
+    if (!this.serializationCtx.roots.length) {
       return;
     }
     this.openElement('script', ['type', 'qwik/state']);
-    return maybeThen(this.serializationCtx.$serialize$(), () => {
+    return maybeThen(this.serializationCtx.serialize(), () => {
       this.closeElement();
     });
   }
@@ -851,7 +851,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitPreloads() {
-    const qrls = Array.from(this.serializationCtx.$eventQrls$) as QRLInternal[];
+    const qrls = Array.from(this.serializationCtx.eventQrls) as QRLInternal[];
     /**
      * Skip preloader injection if preloader is exactly `null` or if there are no qrls (since then
      * there is no reactivity)
@@ -863,7 +863,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   isStatic(): boolean {
-    return this.serializationCtx.$eventQrls$.size === 0;
+    return this.serializationCtx.eventQrls.size === 0;
   }
 
   private getQwikLoaderPositionMode() {

@@ -870,8 +870,6 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     readonly $scheduler$: Scheduler;
     // (undocumented)
-    $serverData$: Record<string, any>;
-    // (undocumented)
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
@@ -900,6 +898,8 @@ export abstract class _SharedContainer implements Container {
             $ssrNode$: ISsrNode;
         };
     } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
+    // (undocumented)
+    serverData: Record<string, any>;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

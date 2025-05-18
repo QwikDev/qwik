@@ -5,8 +5,7 @@ import type { QContext } from '../core/state/context';
 import { QInstance } from '../core/util/markers';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
-import { includePreloader } from './preload-impl';
-import { getPreloadPaths } from './preload-strategy';
+import { preloaderPre, preloaderPost } from './preload-impl';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
@@ -18,7 +17,6 @@ import type {
 } from './types';
 import { createTimer, getBuildBase } from './utils';
 import { manifest as builtManifest } from '@qwik-client-manifest';
-import { initPreloader } from '../core/preloader/bundle-graph';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -127,17 +125,6 @@ export async function renderToStream(
     );
   }
   await setServerPlatform(opts, resolvedManifest);
-  const bundleGraph = resolvedManifest?.manifest.bundleGraph;
-  if (bundleGraph) {
-    const preloaderOpts: Parameters<typeof initPreloader>[1] =
-      typeof opts.preloader === 'object'
-        ? {
-            debug: opts.preloader.debug,
-            preloadProbability: opts.preloader.ssrPreloadProbability,
-          }
-        : undefined;
-    initPreloader(bundleGraph, preloaderOpts);
-  }
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
@@ -165,22 +152,7 @@ export async function renderToStream(
       })
     );
   }
-  const preloadChunk = resolvedManifest?.manifest?.preloader;
-  if (preloadChunk && opts.preloader !== false) {
-    const core = resolvedManifest?.manifest.core;
-    beforeContent.push(
-      jsx('link', { rel: 'modulepreload', href: `${buildBase}${preloadChunk}` }),
-      jsx('link', {
-        rel: 'preload',
-        href: `${buildBase}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
-        as: 'fetch',
-        crossorigin: 'anonymous',
-      })
-    );
-    if (core) {
-      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${buildBase}${core}` }));
-    }
-  }
+  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent);
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -201,24 +173,9 @@ export async function renderToStream(
       snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const children: (JSXNode | null)[] = [];
-      if (opts.preloader !== false) {
-        // skip prefetch implementation if prefetchStrategy === null
-        const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
-        const base = containerAttributes['q:base']!;
-        // If no preloadBundles, there is no reactivity, so no need to include the preloader
-        if (preloadBundles.length > 0) {
-          const prefetchImpl = includePreloader(
-            base,
-            resolvedManifest,
-            opts.preloader,
-            preloadBundles,
-            opts.serverData?.nonce
-          );
-          if (prefetchImpl) {
-            children.push(prefetchImpl);
-          }
-        }
-      }
+
+      preloaderPost(buildBase, snapshotResult, opts, resolvedManifest, children);
+
       const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       children.push(
         jsx('script', {

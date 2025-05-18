@@ -3,13 +3,14 @@ import { qwikDebugToString } from '../../debug';
 import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
-import { trackFn } from '../../use/utils/tracker';
+import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
 import type { AsyncComputeQRL, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, SignalFlags } from '../types';
 import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
+import type { NoSerialize } from '../../shared/utils/serialize-utils';
 
 const DEBUG = false;
 const log = (...args: any[]) =>
@@ -32,6 +33,7 @@ export class AsyncComputedSignalImpl<T>
 
   $pendingEffects$: null | Set<EffectSubscription> = null;
   $failedEffects$: null | Set<EffectSubscription> = null;
+  $destroy$: NoSerialize<() => void> | null;
   private $promiseValue$: T | null = null;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
@@ -103,8 +105,13 @@ export class AsyncComputedSignalImpl<T>
     const computeQrl = this.$computeQrl$;
     throwIfQRLNotResolved(computeQrl);
 
+    const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
     const untrackedValue =
-      this.$promiseValue$ ?? (computeQrl.getFn()({ track: trackFn(this, this.$container$) }) as T);
+      this.$promiseValue$ ??
+      (computeQrl.getFn()({
+        track: trackFn(this, this.$container$),
+        cleanup,
+      }) as T);
     if (isPromise(untrackedValue)) {
       this.untrackedPending = true;
       this.untrackedFailed = false;

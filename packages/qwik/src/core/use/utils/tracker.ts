@@ -10,10 +10,12 @@ import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-p
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { noSerialize } from '../../shared/utils/serialize-utils';
+import { noSerialize, type NoSerialize } from '../../shared/utils/serialize-utils';
 import { isFunction, isObject } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
-import type { Task, Tracker } from '../use-task';
+import type { Tracker } from '../use-task';
+
+export type Destroyable = { $destroy$: NoSerialize<() => void> | null };
 
 export const trackFn =
   (target: Consumer, container: Container | null): Tracker =>
@@ -44,8 +46,8 @@ export const trackFn =
     });
   };
 
-export const cleanupFn = (
-  target: Task,
+export const cleanupFn = <T extends Destroyable>(
+  target: T,
   handleError: (err: unknown) => void
 ): [(callback: () => void) => void, (() => void)[]] => {
   let cleanupFns: (() => void)[] | null = null;

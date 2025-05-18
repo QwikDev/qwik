@@ -407,6 +407,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
+
+    if (opts.target === 'client') {
+      const ql = await _ctx.resolve('@builder.io/qwik/qwikloader.js', undefined, {
+        skipSelf: true,
+      });
+      if (ql) {
+        _ctx.emitFile({
+          id: ql.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
+    }
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -880,12 +893,13 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        injections: manifest.injections,
-        bundleGraph: manifest.bundleGraph,
-        mapping: manifest.mapping,
-        preloader: manifest.preloader,
         core: manifest.core,
+        preloader: manifest.preloader,
+        qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
+        injections: manifest.injections,
+        mapping: manifest.mapping,
+        bundleGraph: manifest.bundleGraph,
       };
     }
     return `// @qwik-client-manifest
@@ -924,11 +938,12 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
     // The preloader has to stay in a separate chunk if it's a client build
     // the vite preload helper must be included or to prevent breaking circular dependencies
-    if (
-      opts.target === 'client' &&
-      (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js')
-    ) {
-      return 'qwik-preloader';
+    if (opts.target === 'client') {
+      if (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js') {
+        return 'qwik-preloader';
+      } else if (/qwik[\\/]dist[\\/]qwikloader\.js$/.test(id)) {
+        return 'qwik-loader';
+      }
     }
 
     const module = getModuleInfo(id)!;

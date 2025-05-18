@@ -213,6 +213,7 @@ export interface QwikManifest {
         [name: string]: string;
     };
     preloader?: string;
+    qwikLoader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
@@ -362,7 +363,7 @@ export { SegmentEntryStrategy as HookEntryStrategy }
 export { SegmentEntryStrategy }
 
 // @public
-export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core'>;
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

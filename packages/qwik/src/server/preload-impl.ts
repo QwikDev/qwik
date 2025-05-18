@@ -5,6 +5,73 @@ import type { PreloaderOptions, RenderToStreamOptions, SnapshotResult } from './
 import { initPreloader } from '../core/preloader/bundle-graph';
 import { getPreloadPaths } from './preload-strategy';
 
+export const preloaderPre = (
+  base: string,
+  resolvedManifest: ResolvedManifest | undefined,
+  options: PreloaderOptions | false | undefined,
+  beforeContent: JSXNode<string>[],
+  nonce?: string
+) => {
+  const preloadChunk = resolvedManifest?.manifest?.preloader;
+  if (preloadChunk && options !== false) {
+    // Initialize the SSR preloader
+    const preloaderOpts: Parameters<typeof initPreloader>[1] =
+      typeof options === 'object'
+        ? {
+            debug: options.debug,
+            preloadProbability: options.ssrPreloadProbability,
+          }
+        : undefined;
+    initPreloader(resolvedManifest?.manifest.bundleGraph, preloaderOpts);
+
+    // Add the preloader script to the head
+    const opts: string[] = [];
+    if (options?.debug) {
+      opts.push('d:1');
+    }
+    if (options?.maxIdlePreloads) {
+      opts.push(`P:${options.maxIdlePreloads}`);
+    }
+    if (options?.preloadProbability) {
+      opts.push(`Q:${options.preloadProbability}`);
+    }
+    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+
+    const hash = resolvedManifest?.manifest.manifestHash;
+
+    const script =
+      `let b=fetch("${base}q-bundle-graph-${hash}.json");` +
+      `import("${base}${preloadChunk}").then(({l})=>` +
+      `l(${JSON.stringify(base)},b${optsStr})` +
+      `);`;
+
+    beforeContent.push(
+      /**
+       * We add modulepreloads even when the script is at the top because they already fire during
+       * html download
+       */
+      jsx('link', { rel: 'modulepreload', href: `${base}${preloadChunk}` }),
+      jsx('link', {
+        rel: 'preload',
+        href: `${base}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+      }),
+      jsx('script', {
+        type: 'module',
+        async: true,
+        dangerouslySetInnerHTML: script,
+        nonce,
+      })
+    );
+
+    const core = resolvedManifest?.manifest.core;
+    if (core) {
+      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${base}${core}` }));
+    }
+  }
+};
+
 export const includePreloader = (
   base: string,
   resolvedManifest: ResolvedManifest | undefined,
@@ -15,8 +82,9 @@ export const includePreloader = (
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
-  const { ssrPreloads, ssrPreloadProbability, debug, maxIdlePreloads, preloadProbability } =
-    normalizePreLoaderOptions(typeof options === 'boolean' ? undefined : options);
+  const { ssrPreloads, ssrPreloadProbability } = normalizePreLoaderOptions(
+    typeof options === 'boolean' ? undefined : options
+  );
   let allowed = ssrPreloads;
 
   const nodes: JSXNode[] = [];
@@ -68,28 +136,12 @@ export const includePreloader = (
         `document.head.appendChild(e)` +
         `});`
       : '';
-    const opts: string[] = [];
-    if (debug) {
-      opts.push('d:1');
-    }
-    if (maxIdlePreloads) {
-      opts.push(`P:${maxIdlePreloads}`);
-    }
-    if (preloadProbability) {
-      opts.push(`Q:${preloadProbability}`);
-    }
-    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
     // We are super careful not to interfere with the page loading.
     const script =
-      // First we wait for the onload event
-      `let b=fetch("${base}q-bundle-graph-${manifestHash}.json");` +
       insertLinks +
+      // First we wait for the onload event
       `window.addEventListener('load',f=>{` +
-      `f=_=>{` +
-      `import("${base}${preloadChunk}").then(({l,p})=>{` +
-      `l(${JSON.stringify(base)},b${optsStr});` +
-      `p(${JSON.stringify(referencedBundles)});` +
-      `})};` +
+      `f=_=>import("${base}${preloadChunk}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
       // then we ask for idle callback
       `try{requestIdleCallback(f,{timeout:2000})}` +
       // some browsers don't support requestIdleCallback
@@ -119,41 +171,6 @@ export const includePreloader = (
   }
 
   return null;
-};
-
-export const preloaderPre = (
-  base: string,
-  resolvedManifest: ResolvedManifest | undefined,
-  options: PreloaderOptions | boolean | undefined,
-  beforeContent: JSXNode<string>[]
-) => {
-  const preloadChunk = resolvedManifest?.manifest?.preloader;
-  if (preloadChunk && options !== false) {
-    const bundleGraph = resolvedManifest?.manifest.bundleGraph;
-    if (bundleGraph) {
-      const preloaderOpts: Parameters<typeof initPreloader>[1] =
-        typeof options === 'object'
-          ? {
-              debug: options.debug,
-              preloadProbability: options.ssrPreloadProbability,
-            }
-          : undefined;
-      initPreloader(bundleGraph, preloaderOpts);
-    }
-    const core = resolvedManifest?.manifest.core;
-    beforeContent.push(
-      jsx('link', { rel: 'modulepreload', href: `${base}${preloadChunk}` }),
-      jsx('link', {
-        rel: 'preload',
-        href: `${base}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
-        as: 'fetch',
-        crossorigin: 'anonymous',
-      })
-    );
-    if (core) {
-      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${base}${core}` }));
-    }
-  }
 };
 
 export const preloaderPost = (

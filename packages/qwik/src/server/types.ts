@@ -157,7 +157,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  preloader?: PreloaderOptions | boolean;
+  preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */
   qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;

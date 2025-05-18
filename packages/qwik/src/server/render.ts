@@ -152,7 +152,7 @@ export async function renderToStream(
       })
     );
   }
-  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent);
+  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, opts.serverData?.nonce);
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];

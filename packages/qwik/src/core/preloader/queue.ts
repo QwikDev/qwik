@@ -8,6 +8,7 @@ import {
   BundleImportState_Preload,
   BundleImportState_Queued,
 } from './types';
+import type { QwikSymbolEvent } from '../render/jsx/types/jsx-qwik-events';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -184,11 +185,11 @@ export const adjustProbabilities = (
        * We can multiply this chance together with all other bundle adjustments to get the chance
        * that a dep will be loaded given all the chances of the other bundles.
        *
-       * But when we're very likely to load the current bundle, make the dynamic imports more likely
+       * But when we're very likely to load the current bundle, make the dynamic imports very likely
        * too.
        */
       const newInverseProbability =
-        dep.$probability$ !== 1 && adjustFactor < 0.1 ? 0.05 : 1 - dep.$probability$ * probability;
+        dep.$probability$ !== 1 && adjustFactor < 0.1 ? 0.01 : 1 - dep.$probability$ * probability;
 
       /** We need to undo the previous adjustment */
       const factor = newInverseProbability / prevAdjust;
@@ -229,3 +230,15 @@ export const preload = (name: string | (number | string)[], probability?: number
     trigger();
   }
 };
+
+if (isBrowser) {
+  // Get early hints from qwikloader
+  document.addEventListener('qsymbol', (ev) => {
+    const { symbol, href } = (ev as QwikSymbolEvent).detail;
+    // the qrl class doesn't emit href, we don't need to preload
+    if (href) {
+      const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
+      preload(hash, 1);
+    }
+  });
+}

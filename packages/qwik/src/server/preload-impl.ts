@@ -1,15 +1,17 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import type { ResolvedManifest } from '../optimizer/src/types';
 import { expandBundles } from './preload-strategy';
-import type { PreloaderOptions } from './types';
+import type { PreloaderOptions, RenderToStreamOptions, SnapshotResult } from './types';
+import { initPreloader } from '../core/preloader/bundle-graph';
+import { getPreloadPaths } from './preload-strategy';
 
-export function includePreloader(
+export const includePreloader = (
   base: string,
-  manifest: ResolvedManifest | undefined,
+  resolvedManifest: ResolvedManifest | undefined,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
   nonce?: string
-): JSXNode | null {
+): JSXNode | null => {
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
@@ -30,9 +32,9 @@ export function includePreloader(
 
   const links = [];
 
-  const manifestHash = manifest?.manifest.manifestHash;
+  const manifestHash = resolvedManifest?.manifest.manifestHash;
   if (allowed) {
-    const expandedBundles = expandBundles(referencedBundles, manifest);
+    const expandedBundles = expandBundles(referencedBundles, resolvedManifest);
     // Keep the same as in getQueue (but *10)
     let probability = 4;
     const tenXMinProbability = ssrPreloadProbability * 10;
@@ -51,7 +53,7 @@ export function includePreloader(
     }
   }
 
-  const preloadChunk = manifestHash && manifest?.manifest.preloader;
+  const preloadChunk = manifestHash && resolvedManifest?.manifest.preloader;
   if (preloadChunk) {
     const insertLinks = links.length
       ? /**
@@ -117,7 +119,68 @@ export function includePreloader(
   }
 
   return null;
-}
+};
+
+export const preloaderPre = (
+  base: string,
+  resolvedManifest: ResolvedManifest | undefined,
+  options: PreloaderOptions | boolean | undefined,
+  beforeContent: JSXNode<string>[]
+) => {
+  const preloadChunk = resolvedManifest?.manifest?.preloader;
+  if (preloadChunk && options !== false) {
+    const bundleGraph = resolvedManifest?.manifest.bundleGraph;
+    if (bundleGraph) {
+      const preloaderOpts: Parameters<typeof initPreloader>[1] =
+        typeof options === 'object'
+          ? {
+              debug: options.debug,
+              preloadProbability: options.ssrPreloadProbability,
+            }
+          : undefined;
+      initPreloader(bundleGraph, preloaderOpts);
+    }
+    const core = resolvedManifest?.manifest.core;
+    beforeContent.push(
+      jsx('link', { rel: 'modulepreload', href: `${base}${preloadChunk}` }),
+      jsx('link', {
+        rel: 'preload',
+        href: `${base}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+      })
+    );
+    if (core) {
+      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${base}${core}` }));
+    }
+  }
+};
+
+export const preloaderPost = (
+  base: string,
+  snapshotResult: SnapshotResult,
+  opts: RenderToStreamOptions,
+  resolvedManifest: ResolvedManifest | undefined,
+  output: (JSXNode | null)[]
+) => {
+  if (opts.preloader !== false) {
+    // skip prefetch implementation if prefetchStrategy === null
+    const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
+    // If no preloadBundles, there is no reactivity, so no need to include the preloader
+    if (preloadBundles.length > 0) {
+      const result = includePreloader(
+        base,
+        resolvedManifest,
+        opts.preloader,
+        preloadBundles,
+        opts.serverData?.nonce
+      );
+      if (result) {
+        output.push(result);
+      }
+    }
+  }
+};
 
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined

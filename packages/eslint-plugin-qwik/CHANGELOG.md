@@ -1,5 +1,7 @@
 # eslint-plugin-qwik
 
+## 2.0.0-alpha.10
+
 ## 2.0.0-alpha.9
 
 ## 2.0.0-alpha.8

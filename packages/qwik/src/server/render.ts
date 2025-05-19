@@ -6,7 +6,7 @@ import { QInstance } from '../core/util/markers';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { includePreloader } from './preload-impl';
-import { getPreloadPaths } from './prefetch-strategy';
+import { getPreloadPaths } from './preload-strategy';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
@@ -121,7 +121,7 @@ export async function renderToStream(
     }
   }
 
-  if (!resolvedManifest) {
+  if (!resolvedManifest && !isDev) {
     console.warn(
       `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
     );
@@ -164,6 +164,22 @@ export async function renderToStream(
         dangerouslySetInnerHTML: `window.qwikevents.push('click','input')`,
       })
     );
+  }
+  const preloadChunk = resolvedManifest?.manifest?.preloader;
+  if (preloadChunk && opts.preloader !== false) {
+    const core = resolvedManifest?.manifest.core;
+    beforeContent.push(
+      jsx('link', { rel: 'modulepreload', href: `${buildBase}${preloadChunk}` }),
+      jsx('link', {
+        rel: 'preload',
+        href: `${buildBase}q-bundle-graph-${resolvedManifest?.manifest.manifestHash}.json`,
+        as: 'fetch',
+        crossorigin: 'anonymous',
+      })
+    );
+    if (core) {
+      beforeContent.push(jsx('link', { rel: 'modulepreload', href: `${buildBase}${core}` }));
+    }
   }
 
   const renderTimer = createTimer();

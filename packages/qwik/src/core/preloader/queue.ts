@@ -168,6 +168,8 @@ export const adjustProbabilities = (
   }
 
   if (
+    // don't queue until we have initialized the preloader
+    base != null &&
     bundle.$state$ < BundleImportState_Preload &&
     bundle.$inverseProbability$ < config.$invPreloadProbability$
   ) {
@@ -192,7 +194,6 @@ export const adjustProbabilities = (
         // it's already at max probability
         continue;
       }
-      const prevAdjust = dep.$factor$;
       /**
        * The chance that a dep won't be loaded is 1-(the chance that the dep will be loaded)*(the
        * chance that the current bundle will be loaded).
@@ -213,13 +214,14 @@ export const adjustProbabilities = (
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
       } else {
         const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
+        /** We need to undo the previous adjustment */
+        const prevAdjust = dep.$factor$;
         const factor = newInverseImportProbability / prevAdjust;
         // limit organic probability to 98%
         newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
         dep.$factor$ = factor;
       }
 
-      /** We need to undo the previous adjustment */
       adjustProbabilities(depBundle, newInverseProbability, seen);
     }
   }
@@ -228,7 +230,7 @@ export const adjustProbabilities = (
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
-    adjustProbabilities(bundle, inverseProbability / bundle.$inverseProbability$);
+    adjustProbabilities(bundle, inverseProbability);
   }
 };
 

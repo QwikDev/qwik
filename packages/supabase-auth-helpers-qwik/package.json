@@ -7,8 +7,8 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
-    "@supabase/supabase-js": "2.49.4",
-    "@supabase/ssr": "0.6.1"
+    "@supabase/ssr": "0.6.1",
+    "@supabase/supabase-js": "2.49.4"
   },
   "exports": {
     ".": {

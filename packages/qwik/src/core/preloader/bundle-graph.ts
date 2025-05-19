@@ -83,7 +83,7 @@ export const loadBundleGraph = (
       config.$DEBUG$ = !!opts.d;
     }
     if ('P' in opts) {
-      config.$maxBufferedPreloads$ = opts['P'] as number;
+      config.$maxIdlePreloads$ = opts['P'] as number;
     }
     if ('Q' in opts) {
       config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
@@ -131,8 +131,8 @@ export const initPreloader = (
     if ('debug' in opts) {
       config.$DEBUG$ = !!opts.debug;
     }
-    if ('preloadProbability' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts.preloadProbability as number);
+    if (typeof opts.preloadProbability === 'number') {
+      config.$invPreloadProbability$ = 1 - opts.preloadProbability;
     }
   }
   if (base != null || !serializedBundleGraph) {

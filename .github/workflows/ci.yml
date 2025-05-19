@@ -919,6 +919,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: BundleMon
+        if: github.event_name != 'workflow_dispatch'
+        uses: lironer/bundlemon-action@v1
+
+      - name: BundleMon local
+        if: github.event_name != 'workflow_dispatch'
+        run: pnpm bundlemon
+
+
   ############ TRIGGER QWIKCITY E2E TEST ############
   trigger-qwikcity-e2e:
     name: Trigger Qwik City E2E

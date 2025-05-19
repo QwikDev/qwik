@@ -24,7 +24,7 @@ export type ImportProbability = {
   /** Bundle name */
   $name$: string;
   /** Probability */
-  $probability$: number;
+  $importProbability$: number;
   /** Probability adjust factor */
   $factor$: number;
 };

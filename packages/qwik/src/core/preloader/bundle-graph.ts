@@ -31,7 +31,11 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
       if (idx < 0) {
         probability = -idx / 10;
       } else {
-        deps.push({ $name$: serialized[idx] as string, $probability$: probability, $factor$: 1 });
+        deps.push({
+          $name$: serialized[idx] as string,
+          $importProbability$: probability,
+          $factor$: 1,
+        });
       }
       i++;
     }

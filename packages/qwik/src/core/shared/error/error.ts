@@ -49,7 +49,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Unable to find q:container', // 41
       "Element must have 'q:container' attribute.", // 42
       'Unknown vnode type {{0}}.', // 43
-      'Materialize error: missing element: {{0}} {{1}} {{2}}', // 44
+      'Resuming error: Expected text or element node following:\n{{0}}\nat location {{1}}\n   metadata: {{2}},\n   value: {{3}},\n   next id: {{4}}', // 44
       'Cannot coerce a Signal, use `.value` instead', // 45
       'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 46
       'ComputedSignal is read-only', // 47

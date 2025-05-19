@@ -139,7 +139,7 @@ To collect symbol usage from a running application:
     ```html
     <script>
       window.symbols = [];
-      document.addEventListener('qsymbol', (e) => window.symbols.push(e.detail));
+      document.addEventListener('qsymbol', (e) => window.symbols.push(e.detail.symbol));
     </script>
     ```
 2. Perform some set of operations mimicking user behavior.

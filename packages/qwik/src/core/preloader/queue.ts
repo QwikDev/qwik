@@ -204,7 +204,11 @@ export const adjustProbabilities = (
        * too.
        */
       let newInverseProbability: number;
-      if (probability >= 0.99) {
+      if (
+        dep.$importProbability$ > 0.5 &&
+        (probability === 1 || (probability >= 0.99 && depsCount < 100))
+      ) {
+        depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
       } else {
@@ -228,10 +232,13 @@ export const handleBundle = (name: string, inverseProbability: number) => {
   }
 };
 
+let depsCount: number;
+
 export const preload = (name: string | (number | string)[], probability?: number) => {
   if (!name?.length) {
     return;
   }
+  depsCount = 0;
 
   let inverseProbability = probability ? 1 - probability : 0.4;
   if (Array.isArray(name)) {

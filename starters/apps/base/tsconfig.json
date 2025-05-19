@@ -18,7 +18,8 @@
     "noEmit": true,
     "paths": {
       "~/*": ["./src/*"]
-    }
+    },
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
   },
   "include": ["src", "./*.d.ts", "./*.config.ts"]
 }

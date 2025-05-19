@@ -121,7 +121,8 @@ const preloadOne = (bundle: BundleImport) => {
     );
 
   const link = doc.createElement('link');
-  link.href = bundle.$url$!;
+  // Only bundles with state none are js bundles
+  link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
@@ -208,7 +209,7 @@ export const handleBundle = (name: string, inverseProbability: number) => {
 };
 
 export const preload = (name: string | (number | string)[], probability?: number) => {
-  if (base == null || !name.length) {
+  if (!name?.length) {
     return;
   }
 

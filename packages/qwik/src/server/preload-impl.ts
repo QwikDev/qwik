@@ -1,6 +1,6 @@
 import { Fragment, jsx, type JSXNode } from '@builder.io/qwik';
 import type { ResolvedManifest } from '../optimizer/src/types';
-import { expandBundles } from './prefetch-strategy';
+import { expandBundles } from './preload-strategy';
 import type { PreloaderOptions } from './types';
 
 export function includePreloader(
@@ -63,7 +63,7 @@ export function includePreloader(
         `e=document.createElement('link');` +
         `e.rel='modulepreload';` +
         `e.href=${JSON.stringify(base)}+l;` +
-        `document.body.appendChild(e)` +
+        `document.head.appendChild(e)` +
         `});`
       : '';
     const opts: string[] = [];
@@ -80,9 +80,10 @@ export function includePreloader(
     // We are super careful not to interfere with the page loading.
     const script =
       // First we wait for the onload event
+      `let b=fetch("${base}q-bundle-graph-${manifestHash}.json");` +
+      insertLinks +
       `window.addEventListener('load',f=>{` +
-      `f=b=>{${insertLinks}` +
-      `b=fetch("${base}q-bundle-graph-${manifestHash}.json");` +
+      `f=_=>{` +
       `import("${base}${preloadChunk}").then(({l,p})=>{` +
       `l(${JSON.stringify(base)},b${optsStr});` +
       `p(${JSON.stringify(referencedBundles)});` +
@@ -125,8 +126,8 @@ function normalizePreLoaderOptions(
 }
 
 const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 5,
-  ssrPreloadProbability: 0.7,
+  ssrPreloads: 7,
+  ssrPreloadProbability: 0.5,
   debug: false,
   maxIdlePreloads: 25,
   preloadProbability: 0.35,

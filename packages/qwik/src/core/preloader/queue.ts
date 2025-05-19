@@ -82,8 +82,8 @@ export const trigger = () => {
         Math.max(1, config.$maxIdlePreloads$ * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
-    // When we're 100% sure, everything needs to be queued
-    if (probability === 1 || preloadCount < allowedPreloads) {
+    // When we're 99% sure, everything needs to be queued
+    if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle);
     } else {
@@ -142,9 +142,18 @@ const preloadOne = (bundle: BundleImport) => {
   doc.head.appendChild(link);
 };
 
+/**
+ * Adjust the probability of a bundle based on the probability of its dependent bundles, and queue
+ * it if it's likely enough to be preloaded.
+ *
+ * Note that if the probability is 100%, we treat the dynamic imports as 99% sure, and both will be
+ * preloaded without limit.
+ *
+ * We also limit "organic" probability to 98% so they don't get unlimited preloads.
+ */
 export const adjustProbabilities = (
   bundle: BundleImport,
-  adjustFactor: number,
+  newInverseProbability: number,
   seen?: Set<BundleImport>
 ) => {
   if (seen?.has(bundle)) {
@@ -152,7 +161,8 @@ export const adjustProbabilities = (
   }
 
   const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ *= adjustFactor;
+  bundle.$inverseProbability$ = newInverseProbability;
+  // Don't propagate tiny changes
   if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
     return;
   }
@@ -178,6 +188,10 @@ export const adjustProbabilities = (
     const probability = 1 - bundle.$inverseProbability$;
     for (const dep of bundle.$deps$) {
       const depBundle = getBundle(dep.$name$)!;
+      if (depBundle.$inverseProbability$ === 0) {
+        // it's already at max probability
+        continue;
+      }
       const prevAdjust = dep.$factor$;
       /**
        * The chance that a dep won't be loaded is 1-(the chance that the dep will be loaded)*(the
@@ -189,14 +203,20 @@ export const adjustProbabilities = (
        * But when we're very likely to load the current bundle, make the dynamic imports very likely
        * too.
        */
-      const newInverseProbability =
-        dep.$probability$ !== 1 && adjustFactor < 0.1 ? 0.01 : 1 - dep.$probability$ * probability;
+      let newInverseProbability: number;
+      if (probability >= 0.99) {
+        // we're loaded at max probability, so elevate dynamic imports to 99% sure
+        newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+      } else {
+        const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
+        const factor = newInverseImportProbability / prevAdjust;
+        // limit organic probability to 98%
+        newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
+        dep.$factor$ = factor;
+      }
 
       /** We need to undo the previous adjustment */
-      const factor = newInverseProbability / prevAdjust;
-      dep.$factor$ = factor;
-
-      adjustProbabilities(depBundle, factor, seen);
+      adjustProbabilities(depBundle, newInverseProbability, seen);
     }
   }
 };

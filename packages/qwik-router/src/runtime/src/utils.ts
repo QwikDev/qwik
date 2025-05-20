@@ -1,6 +1,6 @@
-import type { RouteActionValue, SimpleURL } from './types';
+import type { SimpleURL } from './types';
 
-import { QACTION_KEY } from './constants';
+import { QACTION_KEY, QLOADER_KEY } from './constants';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -31,11 +31,19 @@ export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
 export const getClientDataPath = (
   pathname: string,
   pageSearch?: string,
-  action?: RouteActionValue
+  options?: {
+    actionId?: string;
+    loaderIds?: string[];
+  }
 ) => {
   let search = pageSearch ?? '';
-  if (action) {
-    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  if (options?.actionId) {
+    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(options.actionId);
+  }
+  if (options?.loaderIds) {
+    for (const loaderId of options.loaderIds) {
+      search += (search ? '&' : '?') + QLOADER_KEY + '=' + encodeURIComponent(loaderId);
+    }
   }
   return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };

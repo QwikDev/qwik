@@ -61,7 +61,7 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
+    ? sync$((event: MouseEvent) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
           event.preventDefault();
         }

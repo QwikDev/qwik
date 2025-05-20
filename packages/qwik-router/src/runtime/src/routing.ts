@@ -1,17 +1,18 @@
 import { MODULE_CACHE } from './constants';
 import { matchRoute } from './route-matcher';
-import type {
-  ContentMenu,
-  LoadedRoute,
-  MenuData,
-  MenuModule,
-  ModuleLoader,
-  RouteData,
-  RouteModule,
+import {
+  type ContentMenu,
+  type LoadedRoute,
+  type MenuData,
+  MenuDataProp,
+  type MenuModule,
+  type ModuleLoader,
+  type RouteData,
+  RouteDataProp,
+  type RouteModule,
 } from './types';
 import { deepFreeze } from './utils';
 
-export const CACHE = new Map<RouteData, Promise<any>>();
 /** LoadRoute() runs in both client and server. */
 export const loadRoute = async (
   routes: RouteData[] | undefined,
@@ -23,13 +24,13 @@ export const loadRoute = async (
     return null;
   }
   for (const routeData of routes) {
-    const routeName = routeData[0];
+    const routeName = routeData[RouteDataProp.RouteName];
     const params = matchRoute(routeName, pathname);
     if (!params) {
       continue;
     }
-    const loaders = routeData[1];
-    const routeBundleNames = routeData[3];
+    const loaders = routeData[RouteDataProp.Loaders];
+    const routeBundleNames = routeData[RouteDataProp.RouteBundleNames];
     const modules: RouteModule[] = new Array(loaders.length);
     const pendingLoads: Promise<any>[] = [];
 
@@ -93,10 +94,12 @@ export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) =
   if (menus) {
     pathname = pathname.endsWith('/') ? pathname : pathname + '/';
     const menu = menus.find(
-      (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
+      (m) =>
+        m[MenuDataProp.Pathname] === pathname ||
+        pathname.startsWith(m[MenuDataProp.Pathname] + (pathname.endsWith('/') ? '' : '/'))
     );
     if (menu) {
-      return menu[1];
+      return menu[MenuDataProp.MenuLoader];
     }
   }
 };

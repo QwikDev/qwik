@@ -5,7 +5,7 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ComputedEvent, RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
-import { isArray } from '../shared/utils/types';
+import { isArray, isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
@@ -66,7 +66,6 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
-/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -89,6 +88,7 @@ export const getInvokeContext = (): InvokeContext => {
   return ctx;
 };
 
+/** @internal */
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {
@@ -159,7 +159,7 @@ export const newInvokeContext = (
 ): InvokeContext => {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
-    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
+    locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,

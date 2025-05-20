@@ -1,4 +1,4 @@
-import preloaderImage from './blog/(articles)/qwik-1-14-preloader/hero.png';
+import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
 
 export const authors: Record<string, { socialLink: string }> = {
   'The Qwik Team': { socialLink: 'https://bsky.app/profile/qwik.dev' },

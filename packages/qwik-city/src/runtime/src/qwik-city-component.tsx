@@ -121,7 +121,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
       !__EXPERIMENTAL__.enableRequestRewrite
     ) {
-      throw new Error(`enableRequestRewrite: ${__EXPERIMENTAL__.enableRequestRewrite}`);
+      throw new Error(
+        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+      );
     }
   }
 

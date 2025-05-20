@@ -116,6 +116,15 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     throw new Error(`Missing Qwik URL Env Data`);
   }
 
+  if (isServer) {
+    if (
+      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
+      !__EXPERIMENTAL__.enableRequestRewrite
+    ) {
+      throw new Error(`enableRequestRewrite: ${__EXPERIMENTAL__.enableRequestRewrite}`);
+    }
+  }
+
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>(
     {

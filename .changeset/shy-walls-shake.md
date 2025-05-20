@@ -2,4 +2,4 @@
 '@qwik.dev/core': patch
 ---
 
-fix: support wrapping type-asserted variables in templates
+fix: reactivity for type-asserted variables in templates

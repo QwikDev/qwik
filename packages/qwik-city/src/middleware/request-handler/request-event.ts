@@ -246,6 +246,11 @@ export function createRequestEvent(
     },
 
     rewrite: (pathname: string) => {
+      if (!__EXPERIMENTAL__.enableRequestRewrite) {
+        throw new Error(
+          'enableRequestRewrite is experimental and must be enabled with `experimental: ["enableRequestRewrite"]` in the `qwikVite` plugin.'
+        );
+      }
       check();
       if (pathname.startsWith('http')) {
         throw new Error('Rewrite does not support absolute urls');

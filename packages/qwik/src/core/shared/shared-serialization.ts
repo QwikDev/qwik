@@ -297,15 +297,15 @@ const inflate = (
         Array<EffectSubscription> | null,
         Array<EffectSubscription> | null,
         boolean,
-        boolean,
+        Error,
         unknown?,
       ];
       asyncComputed.$computeQrl$ = d[0];
       asyncComputed.$effects$ = new Set(d[1]);
-      asyncComputed.$pendingEffects$ = new Set(d[2]);
-      asyncComputed.$failedEffects$ = new Set(d[3]);
-      asyncComputed.$untrackedPending$ = d[4];
-      asyncComputed.$untrackedFailed$ = d[5];
+      asyncComputed.$loadingEffects$ = new Set(d[2]);
+      asyncComputed.$errorEffects$ = new Set(d[3]);
+      asyncComputed.$untrackedLoading$ = d[4];
+      asyncComputed.$untrackedError$ = d[5];
       const hasValue = d.length > 6;
       if (hasValue) {
         asyncComputed.$untrackedValue$ = d[6];
@@ -1192,15 +1192,15 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           Set<EffectSubscription> | null,
           Set<EffectSubscription> | null,
           boolean,
-          boolean,
+          Error | null,
           unknown?,
         ] = [
           value.$computeQrl$,
           value.$effects$,
-          value.$pendingEffects$,
-          value.$failedEffects$,
-          value.$untrackedPending$,
-          value.$untrackedFailed$,
+          value.$loadingEffects$,
+          value.$errorEffects$,
+          value.$untrackedLoading$,
+          value.$untrackedError$,
         ];
         if (v !== NEEDS_COMPUTATION) {
           out.push(v);

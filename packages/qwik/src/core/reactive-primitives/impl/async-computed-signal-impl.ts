@@ -1,4 +1,3 @@
-import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../../debug';
 import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
@@ -28,11 +27,11 @@ export class AsyncComputedSignalImpl<T>
   extends ComputedSignalImpl<T, AsyncComputeQRL<T>>
   implements BackRef
 {
-  $untrackedPending$: boolean = false;
-  $untrackedFailed$: boolean = false;
+  $untrackedLoading$: boolean = false;
+  $untrackedError$: Error | null = null;
 
-  $pendingEffects$: null | Set<EffectSubscription> = null;
-  $failedEffects$: null | Set<EffectSubscription> = null;
+  $loadingEffects$: null | Set<EffectSubscription> = null;
+  $errorEffects$: null | Set<EffectSubscription> = null;
   $destroy$: NoSerialize<() => void> | null;
   private $promiseValue$: T | null = null;
 
@@ -43,59 +42,56 @@ export class AsyncComputedSignalImpl<T>
   }
 
   /**
-   * Pending is true if the signal is still waiting for the promise to resolve, false if the promise
+   * Loading is true if the signal is still waiting for the promise to resolve, false if the promise
    * has resolved or rejected.
    */
-  get pending(): boolean {
+  get loading(): boolean {
     return setupSignalValueAccess(
       this,
-      () => (this.$pendingEffects$ ||= new Set()),
-      () => this.untrackedPending
+      () => (this.$loadingEffects$ ||= new Set()),
+      () => this.untrackedLoading
     );
   }
 
-  set untrackedPending(value: boolean) {
-    if (value !== this.$untrackedPending$) {
-      this.$untrackedPending$ = value;
+  set untrackedLoading(value: boolean) {
+    if (value !== this.$untrackedLoading$) {
+      this.$untrackedLoading$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
-        this.$pendingEffects$
+        this.$loadingEffects$
       );
     }
   }
 
-  get untrackedPending() {
-    return this.$untrackedPending$;
+  get untrackedLoading() {
+    return this.$untrackedLoading$;
   }
 
-  /**
-   * Failed is true if the signal failed to resolve, false if the promise has resolved or is still
-   * pending.
-   */
-  get failed(): boolean {
+  /** The error that occurred when the signal was resolved. */
+  get error(): Error | null {
     return setupSignalValueAccess(
       this,
-      () => (this.$failedEffects$ ||= new Set()),
-      () => this.untrackedFailed
+      () => (this.$errorEffects$ ||= new Set()),
+      () => this.untrackedError
     );
   }
 
-  set untrackedFailed(value: boolean) {
-    if (value !== this.$untrackedFailed$) {
-      this.$untrackedFailed$ = value;
+  set untrackedError(value: Error | null) {
+    if (value !== this.$untrackedError$) {
+      this.$untrackedError$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
-        this.$failedEffects$
+        this.$errorEffects$
       );
     }
   }
 
-  get untrackedFailed() {
-    return this.$untrackedFailed$;
+  get untrackedError() {
+    return this.$untrackedError$;
   }
 
   $computeIfNeeded$() {
@@ -113,20 +109,17 @@ export class AsyncComputedSignalImpl<T>
         cleanup,
       }) as T);
     if (isPromise(untrackedValue)) {
-      this.untrackedPending = true;
-      this.untrackedFailed = false;
+      this.untrackedLoading = true;
+      this.untrackedError = null;
       throw untrackedValue
         .then((promiseValue) => {
           this.$promiseValue$ = promiseValue;
-          this.untrackedPending = false;
+          this.untrackedLoading = false;
+          this.untrackedError = null;
         })
         .catch((err) => {
-          if (isDev) {
-            console.error(err);
-          }
-          // TODO: should we store the error?
-          // this.$promiseValue$ = err;
-          this.untrackedFailed = true;
+          this.untrackedLoading = false;
+          this.untrackedError = err;
         });
     }
     this.$promiseValue$ = null;

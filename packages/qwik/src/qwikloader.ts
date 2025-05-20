@@ -48,10 +48,20 @@ type qWindow = Window & {
 
   const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
 
+  // Give a grace period before unregistering the event listener
+  let doNotClean = true;
   const broadcast = (infix: string, ev: Event, type = ev.type) => {
-    querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((el) =>
-      dispatch(el, infix, ev, type)
-    );
+    let found = doNotClean;
+    querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((el) => {
+      found = true;
+      dispatch(el, infix, ev, type);
+    });
+    if (!found) {
+      window[infix.slice(1) as 'window' | 'document'].removeEventListener(
+        type,
+        infix === '-window' ? processWindowEvent : processDocumentEvent
+      );
+    }
   };
 
   const resolveContainer = (containerEl: QContainerElement) => {
@@ -209,7 +219,7 @@ type qWindow = Window & {
         await results;
       }
       // if another async handler stopPropagation
-      cancelBubble =
+      cancelBubble ||=
         cancelBubble || ev.cancelBubble || element.hasAttribute('stoppropagation:' + ev.type);
       element = ev.bubbles && cancelBubble !== true ? element.parentElement : null;
     }
@@ -251,10 +261,18 @@ type qWindow = Window & {
     handler: (ev: Event) => void,
     capture = false
   ) => {
-    return el.addEventListener(eventName, handler, { capture, passive: false });
+    el.addEventListener(eventName, handler, { capture, passive: false });
   };
 
+  let cleanTimer: NodeJS.Timeout;
   const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
+    doNotClean = true;
+    clearTimeout(cleanTimer);
+    /**
+     * Give 20s to have nodes appear that use this event. Newly added nodes will have listeners
+     * attached by the DOM renderer so won't use the qwikloader.
+     */
+    cleanTimer = setTimeout(() => (doNotClean = false), 20_000);
     for (const eventNameOrNode of eventNames) {
       if (typeof eventNameOrNode === 'string') {
         // If it is string we just add the event to window and each of our roots.
@@ -277,13 +295,19 @@ type qWindow = Window & {
     }
   };
 
+  // Only the first qwikloader will handle events
   if (!('__q_context__' in doc)) {
     // Mark qwik-loader presence but falsy
     doc.__q_context__ = 0;
     const qwikevents = win.qwikevents;
     // If `qwikEvents` is an array, process it.
-    if (Array.isArray(qwikevents)) {
-      processEventOrNode(...qwikevents);
+    if (qwikevents) {
+      if (Array.isArray(qwikevents)) {
+        processEventOrNode(...qwikevents);
+      } else {
+        // Assume that there will probably be click or input listeners
+        processEventOrNode('click', 'input');
+      }
     }
     // Now rig up `qwikEvents` so we get notified of new registrations by other containers.
     win.qwikevents = {

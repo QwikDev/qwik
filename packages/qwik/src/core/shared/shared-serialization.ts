@@ -973,9 +973,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
         output(TypeIds.Component, [qrl]);
       } else {
-        // TODO this happens for inline components with render props like Resource
-        console.error('Cannot serialize function (ignoring for now): ' + value.toString());
-        output(TypeIds.Constant, Constants.Undefined);
+        throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
       }
     } else if (typeof value === 'number') {
       if (Number.isNaN(value)) {

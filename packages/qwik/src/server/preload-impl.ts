@@ -160,6 +160,11 @@ export const includePreloader = (
       jsx('script', {
         type: 'module',
         'q:type': 'preload',
+        /**
+         * This async allows the preloader to be executed before the DOM is fully parsed even though
+         * it's at the bottom of the body
+         */
+        async: true,
         dangerouslySetInnerHTML: script,
         nonce,
       })

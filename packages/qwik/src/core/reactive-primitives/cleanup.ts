@@ -64,7 +64,7 @@ function clearAsyncComputedSignal(
   if (effects) {
     effects.delete(effect);
   }
-  const pendingEffects = producer.$pendingEffects$;
+  const pendingEffects = producer.$loadingEffects$;
   if (pendingEffects) {
     pendingEffects.delete(effect);
   }

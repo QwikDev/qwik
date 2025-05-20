@@ -540,7 +540,7 @@ describe('shared-serialization', () => {
           Constant null
           Constant null
           Constant false
-          Constant false
+          Constant null
         ]
         1 AsyncComputedSignal [
           RootRef 3
@@ -548,7 +548,7 @@ describe('shared-serialization', () => {
           Constant null
           Constant null
           Constant false
-          Constant false
+          Constant null
           Number 2
         ]
         2 PreloadQRL "mock-chunk#dirty[4]"

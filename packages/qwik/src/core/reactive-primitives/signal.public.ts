@@ -16,8 +16,8 @@ export interface ReadonlySignal<T = unknown> {
 /** @public */
 export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
   // TODO: enable later this, after the scheduler changes for "streaming" signals values
-  // pending: boolean;
-  // failed: boolean;
+  // loading: boolean;
+  // error: Error | null;
 }
 
 /**

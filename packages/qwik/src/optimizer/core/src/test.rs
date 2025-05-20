@@ -4355,6 +4355,28 @@ fn should_not_wrap_var_template_string() {
 	});
 }
 
+#[test]
+fn should_wrap_type_asserted_variables_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			return (
+				<div>
+					{(count as any).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

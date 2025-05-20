@@ -585,11 +585,18 @@ impl<'a> QwikTransform<'a> {
 
 		// Handle `obj.prop` case
 		if let ast::Expr::Member(member) = folded.clone() {
-			if let ast::Expr::Ident(_) = *member.obj {
+			let obj_expr = if let ast::Expr::Paren(paren_expr) = (*member.obj).clone() {
+				// for example (obj as any).prop
+				paren_expr.expr
+			} else {
+				member.obj
+			};
+
+			if let ast::Expr::Ident(_) = *obj_expr {
 				let prop_sym = prop_to_string(&member.prop);
 				if let Some(prop_sym) = prop_sym {
 					let id = self.ensure_core_import(&_WRAP_PROP);
-					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
+					return (Some(make_wrap(&id, obj_expr, prop_sym)), is_const);
 				}
 			}
 		}

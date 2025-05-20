@@ -119,7 +119,6 @@ export async function renderToStream(
     : [];
 
   const includeMode = opts.qwikLoader?.include ?? 'auto';
-  const positionMode = opts.qwikLoader?.position ?? 'bottom';
   const qwikLoaderChunk = resolvedManifest?.manifest.qwikLoader;
   let didAddQwikLoader = false;
   if (includeMode !== 'never' && qwikLoaderChunk) {
@@ -132,15 +131,6 @@ export async function renderToStream(
       })
     );
     didAddQwikLoader = true;
-  }
-  if (positionMode === 'top') {
-    // Assume there will be at least click and input handlers
-    beforeContent.push(
-      jsx('script', {
-        // not all ESM browsers support ||=
-        dangerouslySetInnerHTML: `(window.qwikevents||(window.qwikevents=[])).push('click','input')`,
-      })
-    );
   }
   preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, opts.serverData?.nonce);
 

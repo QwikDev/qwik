@@ -183,8 +183,7 @@
   "pnpm": {
     "overrides": {
       "typescript": "5.4.5",
-      "vfile": "6.0.2",
-      "@supabase/realtime-js": "2.8.4"
+      "vfile": "6.0.2"
     },
     "patchedDependencies": {
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"

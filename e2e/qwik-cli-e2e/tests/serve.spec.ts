@@ -11,7 +11,7 @@ import {
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const SERVE_PORT = 3535;
+let SERVE_PORT = 3535;
 beforeAll(() => {
   const config = scaffoldQwikProject();
   global.tmpDir = config.tmpDir;
@@ -42,6 +42,25 @@ test(
     await promisifiedTreeKill(p.pid!, 'SIGKILL');
   }
 );
+
+test('Should preview the app', { timeout: DEFAULT_TIMEOUT }, async () => {
+  // the port doesn't clear immediately after the previous test
+  SERVE_PORT++;
+  const host = `http://localhost:${SERVE_PORT}/`;
+  await assertHostUnused(host);
+  const p = await runCommandUntil(
+    `npm run preview -- --port ${SERVE_PORT}`,
+    global.tmpDir,
+    (output) => {
+      return output.includes(host);
+    }
+  );
+  assert.equal(existsSync(global.tmpDir), true);
+
+  await expectHtmlOnARootPage(host);
+
+  await promisifiedTreeKill(p.pid!, 'SIGKILL');
+});
 
 async function expectHtmlOnARootPage(host: string) {
   expect((await getPageHtml(host)).querySelector('.container h1')?.textContent).toBe(

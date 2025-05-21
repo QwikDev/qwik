@@ -1,5 +1,15 @@
 # create-qwik
 
+## 1.14.0
+
+### Patch Changes
+
+- 🐞🩹 create-qwik logAppCreated.ts now displays correct next steps for deno. (by [@LogProphet](https://github.com/LogProphet) in [#7566](https://github.com/QwikDev/qwik/pull/7566))
+
+  After using the create-qwik command, the logAppCreated.ts file was not displaying the correct next steps for deno. Prior to this fix it would display "deno start" instead of "deno task start". This would cause a failure to run, as deno requires the 'task' keyword. This fixes bug 7520
+
+- 🐞🩹 linting errors which were previously being ignored across the monorepo. (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
+
 ## 1.13.0
 
 ## 1.12.1

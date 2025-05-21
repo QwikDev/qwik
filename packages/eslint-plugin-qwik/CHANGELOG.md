@@ -1,5 +1,7 @@
 # eslint-plugin-qwik
 
+## 1.14.1
+
 ## 1.14.0
 
 ### Minor Changes

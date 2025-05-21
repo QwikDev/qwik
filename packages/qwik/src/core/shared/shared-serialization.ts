@@ -933,20 +933,21 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     serializationContext.$addRoot$(qrl, null);
   };
 
-  const outputRootRef = (value: unknown, elseCallback: () => void) => {
+  const outputRootRef = (value: unknown, rootDepth = 0) => {
     const seen = $wasSeen$(value);
     const rootRefPath = $pathMap$.get(value);
-    if (isRootObject() && seen && seen.$parent$ !== null && rootRefPath) {
+    if (rootDepth === depth && seen && seen.$parent$ !== null && rootRefPath) {
       output(TypeIds.RootRef, rootRefPath);
-    } else if (depth > 0 && seen && seen.$rootIndex$ !== -1) {
+      return true;
+    } else if (depth > rootDepth && seen && seen.$rootIndex$ !== -1) {
       output(TypeIds.RootRef, seen.$rootIndex$);
-    } else {
-      elseCallback();
+      return true;
     }
+    return false;
   };
 
   const writeValue = (value: unknown) => {
-    if (fastSkipSerialize(value as object)) {
+    if (fastSkipSerialize(value as object | Function)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (typeof value === 'bigint') {
       output(TypeIds.BigInt, value.toString());
@@ -958,7 +959,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
-        outputRootRef(value, () => {
+        if (!outputRootRef(value)) {
           const qrl = qrlToString(serializationContext, value);
           const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
           if (isRootObject()) {
@@ -967,7 +968,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
             const id = serializationContext.$addRoot$(qrl);
             output(type, id);
           }
-        });
+        }
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
         serializationContext.$renderSymbols$.add(qrl.$symbol$);
@@ -1011,9 +1012,9 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       if (value.length === 0) {
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        outputRootRef(value, () => {
+        if (!outputRootRef(value)) {
           output(TypeIds.String, value);
-        });
+        }
       }
     } else if (typeof value === 'undefined') {
       output(TypeIds.Constant, Constants.Undefined);
@@ -1031,28 +1032,15 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
      * The object writer outputs an array object (without type prefix) and this increases the depth
      * for the objects within (depth 1).
      */
-    const isRootObject = depth === 1;
     // Objects are the only way to create circular dependencies.
     // So the first thing to to is to see if we have a circular dependency.
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
     // Also note that depth will be 1 for objects in root
-    if (isRootObject) {
-      const seen = $wasSeen$(value);
-      const rootPath = $pathMap$.get(value);
-      if (rootPath && seen && seen.$parent$ !== null) {
-        output(TypeIds.RootRef, rootPath);
-        return;
-      }
-    } else if (depth > 1) {
-      const seen = $wasSeen$(value);
-      if (seen && seen.$rootIndex$ !== -1) {
-        // We have seen this object before, so we can serialize it as a reference.
-        // Otherwise serialize as normal
-        output(TypeIds.RootRef, seen.$rootIndex$);
-        return;
-      }
+    if (outputRootRef(value, 1)) {
+      return;
     }
+
     if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];

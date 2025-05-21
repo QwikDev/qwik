@@ -26,6 +26,7 @@ import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { StoreFlags } from '../reactive-primitives/types';
+import { QError } from './error/error';
 
 const DEBUG = false;
 
@@ -1059,7 +1060,9 @@ describe('shared-serialization', () => {
         throw 'oh no';
       }
     }
-    await expect(serialize(new Foo())).rejects.toThrow('Q50');
+    await expect(serialize(new Foo())).rejects.toThrow(
+      'Q' + QError.serializerSymbolRejectedPromise
+    );
     expect(consoleSpy).toHaveBeenCalledWith('oh no');
     consoleSpy.mockRestore();
   });

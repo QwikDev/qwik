@@ -26,6 +26,7 @@ import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { StoreFlags } from '../reactive-primitives/types';
+import { QError } from './error/error';
 
 const DEBUG = false;
 
@@ -942,6 +943,32 @@ describe('shared-serialization', () => {
         (5 chars)"
       `);
     });
+    it('should ignore functions in noSerialize set', async () => {
+      const obj = { hi: true, ignore: noSerialize(() => console.warn()) };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          Constant true
+        ]
+        (17 chars)"
+      `);
+    });
+    it('should ignore functions with NoSerializeSymbol', async () => {
+      const ignore = () => console.warn();
+      (ignore as any)[NoSerializeSymbol] = true;
+      const obj = { hi: true, ignore };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          Constant true
+        ]
+        (17 chars)"
+      `);
+    });
     it('should ignore NoSerializeSymbol', async () => {
       const obj = { hi: true, [NoSerializeSymbol]: true };
       const state = await serialize(obj);
@@ -1047,7 +1074,9 @@ describe('shared-serialization', () => {
         throw 'oh no';
       }
     }
-    await expect(serialize(new Foo())).rejects.toThrow('Q50');
+    await expect(serialize(new Foo())).rejects.toThrow(
+      'Q' + QError.serializerSymbolRejectedPromise
+    );
     expect(consoleSpy).toHaveBeenCalledWith('oh no');
     consoleSpy.mockRestore();
   });

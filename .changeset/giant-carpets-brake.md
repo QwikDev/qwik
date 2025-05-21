@@ -4,4 +4,4 @@
 '@builder.io/qwik': patch
 ---
 
-Fix linting errors which were previously being ignored across the monorepo.
+FIX: linting errors which were previously being ignored across the monorepo.

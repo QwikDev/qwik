@@ -213,15 +213,54 @@ struct ObjectUsageChecker<'a> {
 	used_as_object: bool,
 }
 
-impl<'a> Visit for ObjectUsageChecker<'a> {
-	fn visit_member_expr(&mut self, node: &ast::MemberExpr) {
-		if let ast::Expr::Ident(obj_ident) = &*node.obj {
-			for id in self.identifiers {
-				if obj_ident.sym == id.0 {
+impl<'a> ObjectUsageChecker<'a> {
+	// Helper function to recursively check if an expression contains one of the target identifiers.
+	fn recursively_check_object_expr(&mut self, expr: &ast::Expr) {
+		if self.used_as_object {
+			return; // Already found
+		}
+		match expr {
+			ast::Expr::Ident(ident) => {
+				// Check if this identifier is one of the target identifiers
+				if self
+					.identifiers
+					.iter()
+					.any(|id| id.0 == ident.sym /* && id.1 == ident.ctxt */)
+				{
 					self.used_as_object = true;
-					return;
 				}
 			}
+			ast::Expr::Bin(bin_expr) => {
+				// If it's a binary expression, specifically look for logical OR
+				if bin_expr.op == ast::BinaryOp::LogicalOr {
+					self.recursively_check_object_expr(&bin_expr.left);
+					if self.used_as_object {
+						return;
+					}
+					self.recursively_check_object_expr(&bin_expr.right);
+				}
+			}
+			ast::Expr::Paren(paren_expr) => {
+				// If it's a parenthesized expression, check the inner expression
+				self.recursively_check_object_expr(&paren_expr.expr);
+			}
+			_ => {
+				// For other expression types, traversal is handled by the Visit trait
+			}
+		}
+	}
+}
+
+impl<'a> Visit for ObjectUsageChecker<'a> {
+	fn visit_member_expr(&mut self, node: &ast::MemberExpr) {
+		if self.used_as_object {
+			return;
+		}
+
+		self.recursively_check_object_expr(&node.obj);
+
+		if self.used_as_object {
+			return;
 		}
 		node.visit_children_with(self);
 	}

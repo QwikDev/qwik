@@ -1,5 +1,19 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- 🐞🩹 infinity loop while tracking element ref (by [@Varixo](https://github.com/Varixo) in [#7574](https://github.com/QwikDev/qwik/pull/7574))
+
+- 🐞🩹 add HTMLElementAttrs and SVGProps types to exports (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7510](https://github.com/QwikDev/qwik/pull/7510))
+
+- 🐞🩹 Introduce retry logic for QRL resolution to handle potential promise retries, ensuring robustness in asynchronous operations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7470](https://github.com/QwikDev/qwik/pull/7470))
+
+- 🐞🩹 signal wrapper should not rerender causing missing child error (by [@Varixo](https://github.com/Varixo) in [#7550](https://github.com/QwikDev/qwik/pull/7550))
+
+- 🐞🩹 inflating text nodes from single shared text node (by [@Varixo](https://github.com/Varixo) in [#7538](https://github.com/QwikDev/qwik/pull/7538))
+
 ## 2.0.0-alpha.9
 
 ### Minor Changes

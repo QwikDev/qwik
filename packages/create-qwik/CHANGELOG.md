@@ -1,5 +1,11 @@
 # create-qwik
 
+## 1.14.1
+
+### Patch Changes
+
+- 🐞🩹 starter app missing package and added preview cli test (by [@wmertens](https://github.com/wmertens) in [#7626](https://github.com/QwikDev/qwik/pull/7626))
+
 ## 1.14.0
 
 ### Patch Changes

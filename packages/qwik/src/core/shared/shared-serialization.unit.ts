@@ -955,6 +955,20 @@ describe('shared-serialization', () => {
         (17 chars)"
       `);
     });
+    it('should ignore functions with NoSerializeSymbol', async () => {
+      const ignore = () => console.warn();
+      (ignore as any)[NoSerializeSymbol] = true;
+      const obj = { hi: true, ignore };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          Constant true
+        ]
+        (17 chars)"
+      `);
+    });
     it('should ignore NoSerializeSymbol', async () => {
       const obj = { hi: true, [NoSerializeSymbol]: true };
       const state = await serialize(obj);

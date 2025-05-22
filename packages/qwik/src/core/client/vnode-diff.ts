@@ -1053,9 +1053,9 @@ export const vnode_diff = (
         } else {
           // We did not find the component, create it.
           insertNewComponent(host, componentQRL, jsxProps);
+          shouldRender = true;
         }
         host = vNewNode as VirtualVNode;
-        shouldRender = true;
       } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
         host = vNewNode as VirtualVNode;

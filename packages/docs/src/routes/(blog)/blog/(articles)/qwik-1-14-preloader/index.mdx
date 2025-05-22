@@ -22,16 +22,11 @@ import serviceWorkerRegistrationPenalty from './service-worker-registration-pena
 
 We’re super excited to announce the release of Qwik 1.14.0, our most fundamental update to Qwik since the release of 1.0.0!
 
-Here is how you can download it:  
-```json  
-"@builder.io/qwik": "~1.14.0",  
-"@builder.io/qwik-city": "~1.14.0",  
-"eslint-plugin-qwik": "~1.14.0",
-```
+You can try it out on a new Qwik project with `npm create qwik@latest` or update your existing project with `npm i @builder.io/qwik@latest @builder.io/qwik-city@latest eslint-plugin-qwik@latest`.
 
 ## A Qwik recap
 
-One of the core features that makes Qwik so... well... quick... is what we call “**Javascript Streaming**” – the unique ability to execute a part of the code as soon as it is ready, before all the code has been downloaded – speeding up your website’s [TTI (Time To Interactive)]([https://developer.mozilla.org/en-US/docs/Glossary/Time_to_interactive](https://developer.mozilla.org/en-US/docs/Glossary/Time_to_interactive)) similarly to how [video streaming]([https://www.cloudflare.com/learning/video/what-is-buffering/](https://www.cloudflare.com/learning/video/what-is-buffering/)) is significantly faster than downloading an entire video and then playing it thanks to buffering and on demand delivery.
+One of the core features that makes Qwik so... well... quick... is what we call “**Javascript Streaming**” – the unique ability to execute a part of the code as soon as it is ready, before all the code has been downloaded – speeding up your website’s [TTI (Time To Interactive)](https://developer.mozilla.org/en-US/docs/Glossary/Time_to_interactive) similarly to how [video streaming](https://www.cloudflare.com/learning/video/what-is-buffering/) is significantly faster than downloading an entire video and then playing it thanks to buffering and on demand delivery.
 
 This mechanism is first enabled at build-time thanks to the [Qwik optimizer](https://qwik.dev/docs/advanced/optimizer/#optimizer), which looks for $ signs and splits your application code into smaller pieces (called “segments”). Then the bundler ([Rollup](https://rollupjs.org/)) groups these segments into small javascript files (called “bundles”) that hold related segments together. 
 

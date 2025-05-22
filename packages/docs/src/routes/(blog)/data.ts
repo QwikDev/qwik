@@ -24,7 +24,7 @@ type BlogArticle = {
 
 export const blogArticles: BlogArticle[] = [
   {
-    title: 'the Preloader',
+    title: 'Introducing the Qwik Preloader',
     image: preloaderImage,
     path: '/blog/qwik-1-14-preloader/',
     tags: ['Qwik'],

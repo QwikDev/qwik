@@ -1237,7 +1237,12 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
 function Projection() {}
 
 function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolean {
-  if (!src || !dst) {
+  const srcEmpty = isPropsEmpty(src);
+  const dstEmpty = isPropsEmpty(dst);
+  if (srcEmpty && dstEmpty) {
+    return false;
+  }
+  if (srcEmpty || dstEmpty) {
     return true;
   }
   let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
@@ -1255,6 +1260,13 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
+}
+
+function isPropsEmpty(props: Record<string, any>): boolean {
+  if (!props) {
+    return true;
+  }
+  return Object.keys(props).length === 0;
 }
 
 function removePropsKeys(keys: string[], propKeys: string[]): string[] {

@@ -9,7 +9,7 @@
           "namedImports": [
             "partytownVite"
           ],
-          "importPath": "@builder.io/partytown/utils"
+          "importPath": "@qwik.dev/partytown/utils"
         },
         {
           "namedImports": [
@@ -36,6 +36,6 @@
     }
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.8.1"
+    "@qwik.dev/partytown": "^0.11.1"
   }
 }

@@ -227,6 +227,80 @@ describe.each([
     );
   });
 
+  it('should not rerender not changed component', async () => {
+    (globalThis as any).componentExecuted = [];
+    const Component1 = component$(() => {
+      (globalThis as any).componentExecuted.push('Component1');
+      const signal1 = useSignal(1);
+      return (
+        <div>
+          <span>Component 1</span>
+          {signal1.value}
+        </div>
+      );
+    });
+    const Component2 = component$(() => {
+      (globalThis as any).componentExecuted.push('Component2');
+      const signal2 = useSignal(2);
+      return (
+        <div>
+          <span>Component 2</span>
+          {signal2.value}
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      (globalThis as any).componentExecuted.push('Parent');
+      const show = useSignal(true);
+      return (
+        <main class="parent" onClick$={() => (show.value = false)}>
+          {show.value && <Component1 />}
+          <Component2 />
+        </main>
+      );
+    });
+    const { vNode, container } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          <Component ssr-required>
+            <div>
+              <span>Component 1</span>
+              <Signal ssr-required>1</Signal>
+            </div>
+          </Component>
+          <Component ssr-required>
+            <div>
+              <span>Component 2</span>
+              <Signal ssr-required>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </Component>
+    );
+    expect((globalThis as any).componentExecuted).toEqual(['Parent', 'Component1', 'Component2']);
+    await trigger(container.element, 'main.parent', 'click');
+    expect((globalThis as any).componentExecuted).toEqual([
+      'Parent',
+      'Component1',
+      'Component2',
+      'Parent',
+    ]);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          {''}
+          <Component ssr-required>
+            <div>
+              <span>Component 2</span>
+              <Signal ssr-required>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </Component>
+    );
+  });
+
   it('should remove children from component$', async () => {
     const log: string[] = [];
     const MyComp = component$((props: any) => {

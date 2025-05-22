@@ -21,9 +21,6 @@ importers:
         specifier: ^0.1.8
         version: 0.1.8(esbuild@0.25.4)
     devDependencies:
-      '@builder.io/partytown':
-        specifier: 0.10.2
-        version: 0.10.2
       '@builder.io/qwik':
         specifier: workspace:^
         version: link:packages/qwik
@@ -69,6 +66,9 @@ importers:
       '@playwright/test':
         specifier: 1.50.1
         version: 1.50.1
+      '@qwik.dev/partytown':
+        specifier: 0.11.1
+        version: 0.11.1
       '@types/brotli':
         specifier: 1.3.4
         version: 1.3.4
@@ -275,9 +275,6 @@ importers:
       '@algolia/client-search':
         specifier: 4.14.3
         version: 4.14.3
-      '@builder.io/partytown':
-        specifier: 0.10.2
-        version: 0.10.2
       '@builder.io/qwik':
         specifier: workspace:^
         version: link:../qwik
@@ -311,6 +308,9 @@ importers:
       '@qwik-ui/headless':
         specifier: 0.5.0
         version: 0.5.0(@builder.io/qwik@packages+qwik)
+      '@qwik.dev/partytown':
+        specifier: 0.11.1
+        version: 0.11.1
       '@shikijs/colorized-brackets':
         specifier: 3.1.0
         version: 3.1.0
@@ -980,11 +980,6 @@ packages:
 
   '@bugsnag/safe-json-stringify@6.0.0':
     resolution: {integrity: sha512-htzFO1Zc57S8kgdRK9mLcPVTW1BY2ijfH7Dk2CeZmspTWKdKqSo1iwmqrq2WtRjFlo8aRZYgLX0wFrDXF/9DLA==}
-
-  '@builder.io/partytown@0.10.2':
-    resolution: {integrity: sha512-A9U+4PREWcS+CCYzKGIPovtGB/PBgnH/8oQyCE6Nr9drDJk6cMPpLQIEajpGPmG9tYF7N3FkRvhXm/AS9+0iKg==}
-    engines: {node: '>=18.0.0'}
-    hasBin: true
 
   '@builder.io/vite-plugin-macro@0.0.7':
     resolution: {integrity: sha512-tDdYnRtkxtZ3KRZMdUAetwEXPYQLQWIMtvbFY9klVKQII1P3IooAobByqNiHPy8W0EcLe8ZDVq2cK8z8RNtiHQ==}
@@ -3186,6 +3181,11 @@ packages:
     peerDependencies:
       '@builder.io/qwik': ^1.5.5
 
+  '@qwik.dev/partytown@0.11.1':
+    resolution: {integrity: sha512-sOjcsBsl6T+SVdLOfEYlOBssPDL5aVScA2TjUalsxvf55fMHhUaLl16JgrNi8iouhCA1hAezp74i6y8Sd9wOWw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   '@rollup/pluginutils@5.1.4':
     resolution: {integrity: sha512-USm05zrsFxYLPdWWq+K3STlWiT/3ELn3RcV5hJMghpeAIhxfsUIg6mt12CBJBInWMV4VneoV7SfGv8xIwo2qNQ==}
     engines: {node: '>=14.0.0'}
@@ -5188,6 +5188,10 @@ packages:
 
   dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+    engines: {node: '>=12'}
+
+  dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
     engines: {node: '>=12'}
 
   drizzle-kit@0.28.1:
@@ -10524,8 +10528,6 @@ snapshots:
 
   '@bugsnag/safe-json-stringify@6.0.0': {}
 
-  '@builder.io/partytown@0.10.2': {}
-
   '@builder.io/vite-plugin-macro@0.0.7(@types/node@20.14.11)(lightningcss@1.30.1)(rollup@4.39.0)(terser@5.31.3)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
@@ -12545,6 +12547,10 @@ snapshots:
       '@oddbird/popover-polyfill': 0.4.3
       body-scroll-lock-upgrade: 1.1.0
       focus-trap: 7.5.4
+
+  '@qwik.dev/partytown@0.11.1':
+    dependencies:
+      dotenv: 16.5.0
 
   '@rollup/pluginutils@5.1.4(rollup@4.39.0)':
     dependencies:
@@ -14771,6 +14777,8 @@ snapshots:
       type-fest: 4.41.0
 
   dotenv@16.4.5: {}
+
+  dotenv@16.5.0: {}
 
   drizzle-kit@0.28.1:
     dependencies:

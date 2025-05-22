@@ -227,7 +227,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
+                <Signal ssr-required>
                   <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
                 </Signal>
               </svg>

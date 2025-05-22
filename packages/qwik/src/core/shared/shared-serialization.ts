@@ -38,7 +38,7 @@ import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { ELEMENT_ID } from './utils/markers';
+import { ELEMENT_ID, QBackRefs } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import {
@@ -843,12 +843,16 @@ function $discoverRoots$(
 const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
   Array.isArray(value) && value.length > 0;
 
-const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
+const discoverValuesForVNodeData = (
+  vnodeData: VNodeData,
+  callback: (value: unknown) => void,
+  filter: (key: string, value: unknown) => boolean = (_, attrValue) => typeof attrValue === 'string'
+) => {
   for (const value of vnodeData) {
     if (isSsrAttrs(value)) {
       for (let i = 1; i < value.length; i += 2) {
         const attrValue = value[i];
-        if (typeof attrValue === 'string') {
+        if (filter(value[i - 1] as string, attrValue)) {
           continue;
         }
         callback(attrValue);
@@ -1198,7 +1202,14 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       }
       if (value.childrenVNodeData) {
         for (const vNodeData of value.childrenVNodeData) {
-          discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => $addRoot$(vNodeDataValue));
+          discoverValuesForVNodeData(
+            vNodeData,
+            (vNodeDataValue) => {
+              $addRoot$(vNodeDataValue);
+            },
+            (key, value) => typeof value === 'string' && key !== QBackRefs
+          );
+
           vNodeData[0] |= VNodeDataFlag.SERIALIZE;
         }
       }

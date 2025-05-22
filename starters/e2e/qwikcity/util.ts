@@ -23,6 +23,16 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
     expect(canonicalUrl.pathname).toBe(test.pathname);
   }
 
+  if (test.searchParams) {
+    if (test.searchParams === "empty") {
+      expect(pageUrl.searchParams.size).toBe(0);
+    } else {
+      for (const [key, value] of Object.entries(test.searchParams)) {
+        expect(pageUrl.searchParams.get(key)).toBe(value);
+      }
+    }
+  }
+
   if (test.title) {
     const title = head.locator("title");
     expect(await title.innerText()).toBe(test.title);
@@ -76,6 +86,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
 interface AssertPage {
   pathname?: string;
+  searchParams?: Record<string, string> | "empty";
   title?: string;
   h1?: string;
   layoutHierarchy?: string[];
@@ -164,6 +175,16 @@ export function locator(ctx: TestContext, selector: string) {
 
 export function getPage(ctx: TestContext) {
   return ctx.browserContext.pages()[0]!;
+}
+
+export async function setPage(ctx: TestContext, pathname: string) {
+  const page = getPage(ctx);
+  const response = (await page.goto(pathname))!;
+  const status = response.status();
+  if (status !== 200) {
+    const text = await response.text();
+    expect(status, `${pathname} (${status})\n${text}`).toBe(200);
+  }
 }
 
 export async function load(

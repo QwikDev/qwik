@@ -25,7 +25,7 @@ export interface StreamWriter {
 
 export interface ISsrNode {
   id: string;
-  currentComponentNode: ISsrNode | null;
+  parentSsrNode: ISsrNode | null;
   vnodeData?: VNodeData;
   setProp(name: string, value: any): void;
   getProp(name: string): any;

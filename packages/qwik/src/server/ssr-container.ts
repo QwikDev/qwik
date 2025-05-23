@@ -296,14 +296,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           return value;
         }
       }
-      ssrNode = ssrNode.currentComponentNode;
+      ssrNode = ssrNode.parentSsrNode;
     }
     return undefined;
   }
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.currentComponentNode as ISsrNode | null;
+    return ssrNode.parentSsrNode as ISsrNode | null;
   }
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
@@ -510,7 +510,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.currentComponentNode || null;
+    this.currentComponentNode = this.currentComponentNode?.parentSsrNode || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -726,7 +726,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
           value = String(rootId);
         }
-        let skip = false;
         switch (key) {
           case QScopedStyle:
             write(VNodeDataChar.SCOPED_STYLE_CHAR);
@@ -741,11 +740,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             write(VNodeDataChar.PROPS_CHAR);
             break;
           case ELEMENT_KEY:
-            if (Object.keys(value).length === 0) {
-              skip = true;
-            } else {
-              write(VNodeDataChar.KEY_CHAR);
-            }
+            write(VNodeDataChar.KEY_CHAR);
             break;
           case ELEMENT_SEQ:
             write(VNodeDataChar.SEQ_CHAR);
@@ -771,9 +766,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             write(key);
             write(VNodeDataChar.SEPARATOR_CHAR);
         }
-        if (!skip) {
-          write(value);
-        }
+        write(value);
       }
     }
 

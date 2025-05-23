@@ -57,8 +57,7 @@ export abstract class _SharedContainer implements Container {
       new (...rest: any[]): { $ssrNode$: ISsrNode };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter,
-    prepVNodeData?: (vNode: any) => void
+    writer?: StreamWriter
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
@@ -67,8 +66,7 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
-      writer,
-      prepVNodeData
+      writer
     );
   }
 

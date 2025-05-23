@@ -899,7 +899,7 @@ export abstract class _SharedContainer implements Container {
         new (...rest: any[]): {
             $ssrNode$: ISsrNode;
         };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

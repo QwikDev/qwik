@@ -48,7 +48,7 @@ export class SsrNode implements ISsrNode {
   /** Local props which don't serialize; */
   private locals: SsrAttrs | null = null;
   public currentComponentNode: ISsrNode | null;
-  public childrenVNodeData: VNodeData[] | null = null;
+  public children: ISsrNode[] | null = null;
 
   get [_EFFECT_BACK_REF]() {
     return this.getProp(QBackRefs);
@@ -63,7 +63,7 @@ export class SsrNode implements ISsrNode {
     public vnodeData: VNodeData
   ) {
     this.currentComponentNode = currentComponentNode;
-    this.currentComponentNode?.addChildVNodeData(this.vnodeData);
+    this.currentComponentNode?.addChild(this);
     this.nodeType = nodeType;
     this.id = id;
     if (isDev && id.indexOf('undefined') != -1) {
@@ -105,11 +105,11 @@ export class SsrNode implements ISsrNode {
     }
   }
 
-  addChildVNodeData(child: VNodeData): void {
-    if (!this.childrenVNodeData) {
-      this.childrenVNodeData = [];
+  addChild(child: ISsrNode): void {
+    if (!this.children) {
+      this.children = [];
     }
-    this.childrenVNodeData.push(child);
+    this.children.push(child);
   }
 
   toString(): string {

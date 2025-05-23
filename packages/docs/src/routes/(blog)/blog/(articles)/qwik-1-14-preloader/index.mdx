@@ -104,7 +104,7 @@ But it's even better if the framework can already know ahead of time what to "bu
 
 It is not perfect (for that we have [Qwik Insights](https://qwik.dev/docs/labs/insights/)), but it's quite a bit better than before! Qwik now gives "better scores" to more important things like "user events" or "above the fold" components over things it assumes are less important.
 
-For example, Qwik assumes that the search input on the navbar above the fold is more likely to be used sooner than a Button on a footer far down below the fold, but if the user scrolls and clicks the button on the footer, Qwik will **re-prioritize** its bundles before the search input. 
+For example, Qwik assumes that the search input on the navbar above the fold is more likely to be used sooner than a Button on a footer far down below the fold, but if a user on a very slow network scrolls and clicks the button on the footer, Qwik will **re-prioritize** its bundles before the search input so that the button code is executed as soon as possible. 
 
 ### Faster CI times
 

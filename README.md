@@ -52,7 +52,7 @@ bun create qwik@latest
 
 ## Related
 
-- [Partytown](https://partytown.builder.io/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
+- [Partytown](https://partytown.qwik.dev/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
 - [Mitosis](https://github.com/BuilderIO/mitosis): Write components once, run everywhere. Compiles to Vue, React, Solid, Angular, Svelte, and more.
 - [Builder](https://github.com/BuilderIO/builder): Drag and drop page builder and CMS for React, Vue, Angular, and more.
 

@@ -601,7 +601,6 @@ export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any
 
 /** A selection of attributes of the real thing */
 type SsrNode = {
-  nodeType: number;
   id: string;
   children: ISsrNode[] | null;
   vnodeData: VNodeData;
@@ -689,11 +688,11 @@ export const createSerializationContext = (
    * server will not know what to do with them.
    */
   NodeConstructor: {
-    new (...rest: any[]): { nodeType: number; id: string };
+    new (...rest: any[]): { __brand__: 'SsrNode' };
   } | null,
   /** DomRef constructor, for instanceof checks. */
   DomRefConstructor: {
-    new (...rest: any[]): { $ssrNode$: ISsrNode };
+    new (...rest: any[]): { __brand__: 'DomRef' };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
@@ -760,9 +759,10 @@ export const createSerializationContext = (
     return seen.$rootIndex$;
   };
 
-  const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
-    obj: unknown
-  ) => obj is SsrNode;
+  const isSsrNode = (
+    NodeConstructor ? (obj) => obj instanceof NodeConstructor : ((() => false) as any)
+  ) as (obj: unknown) => obj is SsrNode;
+
   isDomRef = (
     DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
   ) as (obj: unknown) => obj is DomRef;

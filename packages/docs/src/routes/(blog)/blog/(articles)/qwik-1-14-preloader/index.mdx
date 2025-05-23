@@ -102,7 +102,7 @@ A powerful feature that already existed in the Qwik service worker that is also 
 
 But it's even better if the framework can already know ahead of time what to "buffer" in which order. Qwik can now out of the box guess which bundles are more likely to be requested by the user based on what is most likely to be interacted with first.
 
-It is not perfect (for that we have [Qwik Insights](https://maiieul-blog-co-writers.qwik-8nx.pages.dev/docs/labs/insights)), but it's quite a bit better than before! Qwik now gives "better scores" to more important things like "user events" or "above the fold" components over things it assumes are less important.
+It is not perfect (for that we have [Qwik Insights](https://qwik.dev/docs/labs/insights/)), but it's quite a bit better than before! Qwik now gives "better scores" to more important things like "user events" or "above the fold" components over things it assumes are less important.
 
 For example, Qwik assumes that the search input on the navbar above the fold is more likely to be used sooner than a Button on a footer far down below the fold, but if the user scrolls and clicks the button on the footer, Qwik will **re-prioritize** its bundles before the search input. 
 

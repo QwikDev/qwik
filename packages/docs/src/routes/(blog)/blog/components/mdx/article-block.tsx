@@ -3,8 +3,6 @@ import { ArticleHero } from './article-hero';
 import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
 import { authors, blogArticles } from '~/routes/(blog)/data';
 
-import { Image } from 'qwik-image';
-
 type Props = { authorLink: string };
 
 export const ArticleBlock = component$<Props>(({ authorLink }) => {

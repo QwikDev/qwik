@@ -13,6 +13,13 @@ export interface ReadonlySignal<T = unknown> {
   readonly value: T;
 }
 
+/** @public */
+export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+  // TODO: enable later this, after the scheduler changes for "streaming" signals values
+  // loading: boolean;
+  // error: Error | null;
+}
+
 /**
  * A signal is a reactive value which can be read and written. When the signal is written, all tasks
  * which are tracking the signal will be re-run and all components that read the signal will be

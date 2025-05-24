@@ -26,6 +26,8 @@ import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { StoreFlags } from '../reactive-primitives/types';
+import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
+import { retryOnPromise } from './utils/promises';
 import { QError } from './error/error';
 
 const DEBUG = false;
@@ -506,6 +508,55 @@ describe('shared-serialization', () => {
         2
       ]
       (72 chars)"
+      `);
+    });
+    it(title(TypeIds.AsyncComputedSignal), async () => {
+      const foo = createSignal(1);
+      const dirty = createAsyncComputedSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'dirty',
+          [foo]
+        )
+      );
+      const clean = createAsyncComputedSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'clean',
+          [foo]
+        )
+      );
+      await retryOnPromise(() => {
+        // note that this won't subscribe because we're not setting up the context
+        expect(clean.value).toBe(2);
+      });
+
+      const objs = await serialize(dirty, clean);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 AsyncComputedSignal [
+          RootRef 2
+          Constant null
+          Constant null
+          Constant null
+          Constant false
+          Constant null
+        ]
+        1 AsyncComputedSignal [
+          RootRef 3
+          Constant null
+          Constant null
+          Constant null
+          Constant false
+          Constant null
+          Number 2
+        ]
+        2 PreloadQRL "mock-chunk#dirty[4]"
+        3 PreloadQRL "mock-chunk#clean[4]"
+        4 Signal [
+          Number 1
+        ]
+        (122 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

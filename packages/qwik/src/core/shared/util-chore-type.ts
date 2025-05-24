@@ -12,7 +12,6 @@ export const enum ChoreType {
   NODE_PROP,
   COMPONENT,
   RECOMPUTE_AND_SCHEDULE_EFFECTS,
-
   // Next macro level
   JOURNAL_FLUSH /* ******************** */ = 16,
   // Next macro level

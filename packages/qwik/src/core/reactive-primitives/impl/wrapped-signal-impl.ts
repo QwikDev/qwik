@@ -49,7 +49,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
-      this
+      this,
+      this.$effects$
     );
   }
 

@@ -1,7 +1,9 @@
+import { isDev, isServer, isBrowser } from '@qwik.dev/core/build';
+import { assertDefined } from '../error/assert';
+import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../utils/serialize-utils';
 // ^ keep these above to prevent circular dep issues
-import { isBrowser, isDev } from '@qwik.dev/core/build';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import {
@@ -12,8 +14,6 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../../use/use-core';
-import { assertDefined } from '../error/assert';
-import { QError, qError } from '../error/error';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
@@ -116,6 +116,19 @@ export const createQRL = <TYPE>(
       context.$event$ ||= this as Event;
       try {
         return invoke.call(this, context, symbolRef as any, ...(args as any));
+      } catch (e) {
+        if (isDev) {
+          if (isServer) {
+            if (
+              e instanceof ReferenceError &&
+              ['window', 'document'].some((v) => e.message.includes(v))
+            ) {
+              e.message =
+                'It seems like you forgot to add "if (isBrowser) {...}" here: ' + e.message;
+            }
+            throw e;
+          }
+        }
       } finally {
         context.$qrl$ = prevQrl;
         context.$event$ = prevEvent;

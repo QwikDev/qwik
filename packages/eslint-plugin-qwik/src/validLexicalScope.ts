@@ -505,7 +505,7 @@ function isQwikHook(variable, context) {
     const scope = context.sourceCode.getScope(def.node);
     const ref = scope.references.find((r) => r.identifier.name === hookName);
 
-    return ref?.resolved && isFromQwikModule(ref.resolved, context);
+    return ref?.resolved && isFromQwikModule(ref.resolved);
   }
   return false;
 }

@@ -245,8 +245,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       zod:
-        specifier: 3.25.20
-        version: 3.25.20
+        specifier: 3.25.23
+        version: 3.25.23
 
   e2e/adapters-e2e: {}
 
@@ -567,8 +567,8 @@ importers:
         specifier: 2.0.5
         version: 2.0.5(@types/node@20.14.11)(lightningcss@1.30.1)(terser@5.39.2)
       zod:
-        specifier: 3.25.20
-        version: 3.25.20
+        specifier: 3.25.23
+        version: 3.25.23
 
   packages/qwik:
     dependencies:
@@ -647,8 +647,8 @@ importers:
         specifier: ^7.1.0
         version: 7.1.0(rollup@4.41.0)
       zod:
-        specifier: 3.25.20
-        version: 3.25.20
+        specifier: 3.25.23
+        version: 3.25.23
     devDependencies:
       '@azure/functions':
         specifier: 3.5.1
@@ -770,8 +770,8 @@ importers:
         specifier: 5.3.5
         version: 5.3.5(@types/node@20.14.11)(lightningcss@1.30.1)(terser@5.39.2)
       zod:
-        specifier: 3.25.20
-        version: 3.25.20
+        specifier: 3.25.23
+        version: 3.25.23
 
   packages/qwik-react:
     devDependencies:
@@ -9700,8 +9700,8 @@ packages:
   zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
 
-  zod@3.25.20:
-    resolution: {integrity: sha512-z03fqpTMDF1G02VLKUMt6vyACE7rNWkh3gpXVHgPTw28NPtDFRGvcpTtPwn2kMKtQ0idtYJUTxchytmnqYswcw==}
+  zod@3.25.23:
+    resolution: {integrity: sha512-Od2bdMosahjSrSgJtakrwjMDb1zM1A3VIHCPGveZt/3/wlrTWBya2lmEh2OYe4OIu8mPTmmr0gnLHIWQXdtWBg==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -11515,7 +11515,7 @@ snapshots:
       unixify: 1.0.0
       urlpattern-polyfill: 8.0.2
       yargs: 17.7.2
-      zod: 3.25.20
+      zod: 3.25.23
     transitivePeerDependencies:
       - encoding
       - rollup
@@ -16712,7 +16712,7 @@ snapshots:
       workerd: 1.20240718.0
       ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       youch: 3.3.4
-      zod: 3.25.20
+      zod: 3.25.23
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -19736,6 +19736,6 @@ snapshots:
 
   zod@3.23.8: {}
 
-  zod@3.25.20: {}
+  zod@3.25.23: {}
 
   zwitch@2.0.4: {}

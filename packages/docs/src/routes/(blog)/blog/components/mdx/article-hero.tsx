@@ -2,13 +2,19 @@ import { component$ } from '@builder.io/qwik';
 import { useDocumentHead } from '@builder.io/qwik-city';
 import { Image } from 'qwik-image';
 
-type Props = { image: string; authorLink: string };
+type Props = { image: string; authorLinks: string[] };
 
-export const ArticleHero = component$<Props>(({ image, authorLink }) => {
+export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
   const { title, frontmatter } = useDocumentHead();
 
-  if (!frontmatter.authorName || !frontmatter.tags || !frontmatter.date) {
-    return <>Missing frontmatter props</>;
+  if (
+    !frontmatter.authors ||
+    !Array.isArray(frontmatter.authors) ||
+    frontmatter.authors.length === 0 ||
+    !frontmatter.tags ||
+    !frontmatter.date
+  ) {
+    return <>Missing frontmatter props or authors array is empty</>;
   }
 
   return (
@@ -47,15 +53,21 @@ export const ArticleHero = component$<Props>(({ image, authorLink }) => {
             <h4 class="font-semibold uppercase text-center">{frontmatter.date}</h4>
             <div class="border border-[color:var(--text-color)] mx-4"></div>
             <div class="font-semibold uppercase text-center">
-              Written By{' '}
-              <a
-                class="text-[color:var(--qwik-blue)]"
-                target="_blank"
-                rel="noopener"
-                href={authorLink}
-              >
-                {frontmatter.authorName}
-              </a>
+              {frontmatter.authors.length > 1 && 'Co-'}Written by{' '}
+              {frontmatter.authors.map((author: string, index: number) => (
+                <span key={author}>
+                  <a
+                    class="text-[color:var(--qwik-blue)]"
+                    target="_blank"
+                    rel="noopener"
+                    href={authorLinks[index]}
+                  >
+                    {author}
+                  </a>
+                  {index < frontmatter.authors.length - 1 &&
+                    (index === frontmatter.authors.length - 2 ? ' & ' : ', ')}
+                </span>
+              ))}
             </div>
           </div>
         </div>

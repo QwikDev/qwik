@@ -682,9 +682,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">
-            <Signal>0</Signal>
-          </div>
+          <div key="0">0</div>
         </Fragment>
       </Component>
     );

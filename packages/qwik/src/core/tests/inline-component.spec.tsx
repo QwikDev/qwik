@@ -3,7 +3,6 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
-  Fragment as Signal,
   Slot,
   component$,
   useSignal,
@@ -262,19 +261,13 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>qwik</Signal>
-            </div>
+            <div>qwik</div>
           </InlineComponent>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>foo</Signal>
-            </div>
+            <div>foo</div>
           </InlineComponent>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>bar</Signal>
-            </div>
+            <div>bar</div>
           </InlineComponent>
         </footer>
       </Component>
@@ -287,19 +280,13 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>bar</Signal>
-            </div>
+            <div>bar</div>
           </InlineComponent>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>foo</Signal>
-            </div>
+            <div>foo</div>
           </InlineComponent>
           <InlineComponent>
-            <div>
-              <Signal ssr-required>qwik</Signal>
-            </div>
+            <div>qwik</div>
           </InlineComponent>
         </footer>
       </Component>
@@ -566,7 +553,7 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            <Signal>aaa</Signal>
+            aaa
             {': '}
             <Projection>
               <div>
@@ -620,12 +607,12 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            <Signal>{'bar'}</Signal>
+            {'bar'}
             {': '}
             <Projection>Test</Projection>
             <Component>
               <div>
-                <Signal>{'bbb'}</Signal>
+                {'bbb'}
                 {': '}
                 <Projection>Test2</Projection>
               </div>

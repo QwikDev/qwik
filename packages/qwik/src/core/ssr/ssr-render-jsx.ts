@@ -112,7 +112,7 @@ function processJSXNode(
       }
     } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
-      const signalNode = ssr.getLastNode();
+      const signalNode = ssr.getOrCreateLastNode();
       enqueue(ssr.closeFragment);
       enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
     } else if (isPromise(value)) {
@@ -184,7 +184,6 @@ function processJSXNode(
             attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
           }
           ssr.openFragment(attrs);
-          ssr.addCurrentElementFrameAsComponentChild();
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
@@ -198,7 +197,7 @@ function processJSXNode(
             projectionAttrs.push(QSlotParent, compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
-            const node = ssr.getLastNode();
+            const node = ssr.getOrCreateLastNode();
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
 
@@ -249,7 +248,7 @@ function processJSXNode(
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
-          const host = ssr.getLastNode();
+          const host = ssr.getOrCreateLastNode();
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,

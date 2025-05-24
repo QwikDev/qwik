@@ -1,5 +1,5 @@
 import type { ISsrNode, SsrAttrs } from './qwik-types';
-import { SsrNode, type SsrNodeType } from './ssr-node';
+import { SsrNode } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 import { VNodeDataFlag } from './types';
 import { _EMPTY_ARRAY } from '@qwik.dev/core';
@@ -88,7 +88,7 @@ export function vNodeData_createSsrNodeReference(
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   let fragmentAttrs: SsrAttrs = _EMPTY_ARRAY;
-  const stack: (SsrNodeType | number)[] = [SsrNode.ELEMENT_NODE, -1];
+  const stack: number[] = [-1];
   // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
   for (let i = 1; i < vNodeData.length; i++) {
     const value = vNodeData[i];
@@ -98,11 +98,10 @@ export function vNodeData_createSsrNodeReference(
       if (vNodeData[i] !== WRITE_ELEMENT_ATTRS) {
         // ignore pushing to the stack for WRITE_ELEMENT_ATTRS, because we don't want to create more depth. It is the same element
         stack[stack.length - 1]++;
-        stack.push(SsrNode.DOCUMENT_FRAGMENT_NODE, -1);
+        stack.push(-1);
       }
     } else if (value === CLOSE_FRAGMENT) {
       stack.pop(); // pop count
-      stack.pop(); // pop nodeType
       fragmentAttrs = _EMPTY_ARRAY;
     } else if (value < 0) {
       // Negative numbers are element counts.
@@ -118,15 +117,14 @@ export function vNodeData_createSsrNodeReference(
   let refId = String(depthFirstElementIdx);
   if (vNodeData[0] & (VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.TEXT_DATA)) {
     // encode as alphanumeric only for virtual and text nodes
-    for (let i = 1; i < stack.length; i += 2) {
+    for (let i = 0; i < stack.length; i++) {
       const childCount = stack[i] as number;
       if (childCount >= 0) {
         refId += encodeAsAlphanumeric(childCount);
       }
     }
   }
-  const type = stack[stack.length - 2] as SsrNodeType;
-  return new SsrNode(currentComponentNode, type, refId, fragmentAttrs, cleanupQueue, vNodeData);
+  return new SsrNode(currentComponentNode, refId, fragmentAttrs, cleanupQueue, vNodeData);
 }
 
 /**

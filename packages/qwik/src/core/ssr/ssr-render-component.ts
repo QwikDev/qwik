@@ -14,7 +14,7 @@ export const applyInlineComponent = (
   inlineComponentFunction: OnRenderFn<any>,
   jsx: JSXNode
 ) => {
-  const host = ssr.getLastNode();
+  const host = ssr.getOrCreateLastNode();
   return executeComponent(ssr, host, componentHost, inlineComponentFunction, jsx.props);
 };
 
@@ -23,7 +23,7 @@ export const applyQwikComponentBody = (
   jsx: JSXNode,
   component: Component
 ): ValueOrPromise<JSXOutput> => {
-  const host = ssr.getLastNode();
+  const host = ssr.getOrCreateLastNode();
   const [componentQrl] = (component as any)[SERIALIZABLE_STATE] as [QRLInternal<OnRenderFn<any>>];
   const srcProps = jsx.props;
   if (srcProps && srcProps.children) {

@@ -114,7 +114,7 @@ describe('serializer v2', () => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
           ssr.openElement('span', ['id', 'myId']);
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           ssr.addRoot({ someProp: node });
           ssr.textNode('Hello');
           ssr.openElement('b', ['id', 'child']);
@@ -133,7 +133,7 @@ describe('serializer v2', () => {
           ssr.textNode('Greetings');
           ssr.textNode(' ');
           ssr.textNode('World');
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           expect(node.id).toBe('2C');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
@@ -154,7 +154,7 @@ describe('serializer v2', () => {
           ssr.textNode(' '); // 2B
           ssr.openFragment([]); // 2C
           ssr.textNode('World'); // 2CA
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           expect(node.id).toBe('2CA');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
@@ -512,7 +512,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], [], [] as any);
+        const obj = new SsrNode(null, '', [], [], [] as any);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });

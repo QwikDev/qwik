@@ -249,7 +249,7 @@ describe.each([
                     <Fragment ssr-required>
                       <p>1</p>
                       <p>
-                        <Awaited>0</Awaited>
+                        <Awaited ssr-required>0</Awaited>
                       </p>
                       <p>
                         <WrappedSignal ssr-required>0</WrappedSignal>

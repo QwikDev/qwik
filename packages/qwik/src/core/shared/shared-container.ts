@@ -18,7 +18,7 @@ export abstract class _SharedContainer implements Container {
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
   readonly $getObjectById$: (id: number | string) => any;
-  $serverData$: Record<string, any>;
+  serverData: Record<string, any>;
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
   $buildBase$: string | null = null;
@@ -29,7 +29,7 @@ export abstract class _SharedContainer implements Container {
     serverData: Record<string, any>,
     locale: string
   ) {
-    this.$serverData$ = serverData;
+    this.serverData = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
     this.$storeProxyMap$ = new WeakMap();

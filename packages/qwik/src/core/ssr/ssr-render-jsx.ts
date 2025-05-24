@@ -484,7 +484,7 @@ function addQwikEventToSerializationContext(
   const eventName = getEventNameFromJsxEvent(key);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
-    serializationCtx.$eventQrls$.add(qrl);
+    serializationCtx.eventQrls.add(qrl);
   }
 }
 

@@ -1092,9 +1092,9 @@ async function serialize(...roots: any[]): Promise<any[]> {
     null!
   );
   for (const root of roots) {
-    sCtx.$addRoot$(root, null);
+    sCtx.addRoot(root, null);
   }
-  await sCtx.$serialize$();
+  await sCtx.serialize();
   const objs = JSON.parse(sCtx.$writer$.toString());
   // eslint-disable-next-line no-console
   DEBUG && console.log(objs);

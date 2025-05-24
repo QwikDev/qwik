@@ -621,7 +621,7 @@ type SeenRef = {
 let isDomRef = (obj: unknown): obj is DomRef => false;
 
 export interface SerializationContext {
-  $serialize$: () => void;
+  serialize: () => void;
 
   $symbolToChunkResolver$: SymbolToChunkResolver;
 
@@ -647,7 +647,7 @@ export interface SerializationContext {
    * Returns a path string representing the path from roots through all parents to the object.
    * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
    */
-  $addRoot$: (obj: unknown, parent?: unknown) => number;
+  addRoot: (obj: unknown, parent?: unknown) => number;
 
   /**
    * Get root path of the object without creating a new root.
@@ -660,7 +660,7 @@ export interface SerializationContext {
 
   $seen$: (obj: unknown, parent: unknown | null, index: number) => void;
 
-  $roots$: unknown[];
+  roots: unknown[];
   $pathMap$: Map<unknown, string | number>;
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
@@ -671,7 +671,7 @@ export interface SerializationContext {
   $writer$: StreamWriter;
   $syncFns$: string[];
 
-  $eventQrls$: Set<QRL>;
+  eventQrls: Set<QRL>;
   $eventNames$: Set<string>;
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
@@ -748,7 +748,7 @@ export const createSerializationContext = (
     return pathStr;
   };
 
-  const $addRoot$ = (obj: any, parent: unknown = null) => {
+  const addRoot = (obj: any, parent: unknown = null) => {
     let seen = seenObjsMap.get(obj);
     if (!seen) {
       const rootIndex = roots.length;
@@ -771,20 +771,20 @@ export const createSerializationContext = (
   ) as (obj: unknown) => obj is DomRef;
 
   return {
-    async $serialize$(): Promise<void> {
+    async serialize(): Promise<void> {
       return await serialize(this);
     },
     $isSsrNode$: isSsrNode,
     $isDomRef$: isDomRef,
     $symbolToChunkResolver$: symbolToChunkResolver,
     $wasSeen$,
-    $roots$: roots,
+    roots,
     $seen$,
     $hasRootId$: (obj: any) => {
       const id = seenObjsMap.get(obj);
       return id?.$parent$ === null ? id.$index$ : undefined;
     },
-    $addRoot$,
+    addRoot,
     $addRootPath$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
@@ -809,7 +809,7 @@ export const createSerializationContext = (
       return id;
     },
     $writer$: writer,
-    $eventQrls$: new Set<QRL>(),
+    eventQrls: new Set<QRL>(),
     $eventNames$: new Set<string>(),
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
@@ -827,7 +827,7 @@ function $discoverRoots$(
   parent: unknown,
   index: number
 ): void {
-  const { $wasSeen$, $seen$, $addRoot$ } = serializationContext;
+  const { $wasSeen$, $seen$, addRoot: $addRoot$ } = serializationContext;
   if (!(shouldTrackObj(obj) || frameworkType(obj))) {
     return;
   }
@@ -879,8 +879,15 @@ class PromiseResult {
  * - Therefore root indexes need to be doubled to get the actual index.
  */
 async function serialize(serializationContext: SerializationContext): Promise<void> {
-  const { $writer$, $isSsrNode$, $isDomRef$, $storeProxyMap$, $addRoot$, $pathMap$, $wasSeen$ } =
-    serializationContext;
+  const {
+    $writer$,
+    $isSsrNode$,
+    $isDomRef$,
+    $storeProxyMap$,
+    addRoot: $addRoot$,
+    $pathMap$,
+    $wasSeen$,
+  } = serializationContext;
   let depth = 0;
   const forwardRefs: number[] = [];
   let forwardRefsId = 0;
@@ -930,7 +937,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
 
   const addPreloadQrl = (qrl: QRLInternal) => {
     preloadQrls.add(qrl);
-    serializationContext.$addRoot$(qrl, null);
+    serializationContext.addRoot(qrl, null);
   };
 
   const outputRootRef = (value: unknown, rootDepth = 0) => {
@@ -965,7 +972,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           if (isRootObject()) {
             output(type, qrl);
           } else {
-            const id = serializationContext.$addRoot$(qrl);
+            const id = serializationContext.addRoot(qrl);
             output(type, id);
           }
         }
@@ -1078,7 +1085,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           if ($storeProxyMap$.has(propValue)) {
             const innerStore = $storeProxyMap$.get(propValue);
             innerStores.push(innerStore);
-            serializationContext.$addRoot$(innerStore);
+            serializationContext.addRoot(innerStore);
           }
         }
 
@@ -1304,7 +1311,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     $writer$.write('[');
 
     let lastRootsLength = 0;
-    let rootsLength = serializationContext.$roots$.length;
+    let rootsLength = serializationContext.roots.length;
     while (lastRootsLength < rootsLength || promises.size) {
       if (lastRootsLength !== 0) {
         $writer$.write(',');
@@ -1317,7 +1324,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         } else {
           separator = true;
         }
-        writeValue(serializationContext.$roots$[i]);
+        writeValue(serializationContext.roots[i]);
       }
 
       if (promises.size) {
@@ -1329,7 +1336,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       }
 
       lastRootsLength = rootsLength;
-      rootsLength = serializationContext.$roots$.length;
+      rootsLength = serializationContext.roots.length;
     }
 
     if (forwardRefs.length) {
@@ -1448,7 +1455,7 @@ export function qrlToString(
         serializedReferences += ' ';
       }
       // We refer by id so every capture needs to be a root
-      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
+      serializedReferences += serializationContext.addRoot(value.$captureRef$[i]);
     }
     qrlStringInline += `[${serializedReferences}]`;
   } else if (value.$capture$ && value.$capture$.length > 0) {
@@ -1474,9 +1481,9 @@ export async function _serialize(data: unknown[]): Promise<string> {
   );
 
   for (const root of data) {
-    serializationContext.$addRoot$(root);
+    serializationContext.addRoot(root);
   }
-  await serializationContext.$serialize$();
+  await serializationContext.serialize();
   return serializationContext.$writer$.toString();
 }
 

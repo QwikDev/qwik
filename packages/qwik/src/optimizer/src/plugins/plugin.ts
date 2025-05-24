@@ -73,6 +73,8 @@ export enum ExperimentalFeatures {
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik City */
   noSPA = 'noSPA',
+  /** Enable request.rewrite() */
+  enableRequestRewrite = 'enableRequestRewrite',
 }
 
 export interface QwikPackages {

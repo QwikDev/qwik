@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-alpha.11
+
+### Patch Changes
+
+- 🐞🩹 proper empty props diffing (by [@Varixo](https://github.com/Varixo) in [#7633](https://github.com/QwikDev/qwik/pull/7633))
+
+- 🐞🩹 don't wrap static objects with signal (by [@Varixo](https://github.com/Varixo) in [#7637](https://github.com/QwikDev/qwik/pull/7637))
+
+- 🐞🩹 ensure components are only rendered when necessary (by [@Varixo](https://github.com/Varixo) in [#7631](https://github.com/QwikDev/qwik/pull/7631))
+
+- 🐞🩹 skip serialize functions wrapped with the `noSerialize` (by [@Varixo](https://github.com/Varixo) in [#7621](https://github.com/QwikDev/qwik/pull/7621))
+
+- 🐞🩹 reactivity for type-asserted variables in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
+- 🐞🩹 reactivity for logical expressions in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
 ## 2.0.0-alpha.10
 
 ### Patch Changes

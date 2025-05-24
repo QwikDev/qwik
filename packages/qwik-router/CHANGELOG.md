@@ -1,5 +1,7 @@
 # @qwik.dev/city
 
+## 2.0.0-alpha.11
+
 ## 2.0.0-alpha.10
 
 ## 2.0.0-alpha.9

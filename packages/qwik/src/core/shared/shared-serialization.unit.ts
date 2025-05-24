@@ -415,7 +415,8 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
-      const propSignal = _wrapProp({ foo: 3 }, 'foo');
+      const foo = createSignal(3);
+      const propSignal = _wrapProp(foo, 'value');
       if (propSignal.value) {
         Math.random();
       }
@@ -437,18 +438,16 @@ describe('shared-serialization', () => {
         1 WrappedSignal [
           Number 1
           Array [
-            Object [
-              String "foo"
+            Signal [
               Number 3
             ]
-            RootRef 2
+            String "value"
           ]
           Constant null
           Number 3
           Constant null
         ]
-        2 RootRef "1 1 0 0"
-        (88 chars)"
+        (74 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {

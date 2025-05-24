@@ -15,7 +15,7 @@
     "typescript-eslint": "8.32.1",
     "undici": "*",
     "vite": "5.3.5",
-    "zod": "3.25.23"
+    "zod": "3.25.28"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -39,7 +39,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "vite": "^5",
-    "zod": "3.25.23"
+    "zod": "3.25.28"
   },
   "private": true,
   "qwik": "./lib/index.qwik.mjs",

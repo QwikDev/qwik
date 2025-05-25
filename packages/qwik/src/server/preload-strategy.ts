@@ -1,8 +1,8 @@
-import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { getPlatform } from '@qwik.dev/core';
-import { getQueue, preload, resetQueue } from './qwik-copy';
+import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import { getSymbolHash } from './platform';
-import { flattenPrefetchResources } from './prefetch-utils';
+import { flattenPrefetchResources } from './preload-utils';
+import { getQueue, preload, resetQueue } from './qwik-copy';
 import type { QRLInternal } from './qwik-types';
 import type { RenderToStringOptions } from './types';
 
@@ -60,7 +60,7 @@ export function getPreloadPaths(
 
 export const expandBundles = (names: string[], resolvedManifest?: ResolvedManifest) => {
   if (!resolvedManifest?.manifest.bundleGraph) {
-    return [8, ...new Set(names)];
+    return [...new Set(names)];
   }
 
   resetQueue();

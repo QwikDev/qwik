@@ -43,6 +43,7 @@ export {
   QwikSVGElements,
   QwikJSX as JSX,
   QwikJSX,
+  QwikVisibleEvent,
   ReadonlySignal,
   render,
   RenderOnce,

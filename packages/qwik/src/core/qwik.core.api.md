@@ -700,13 +700,13 @@ export type QwikSVGElements = {
 
 // @public
 export type QwikSymbolEvent = CustomEvent<{
-    qBase: string;
-    qManifest: string;
-    qVersion: string;
-    href: string;
     symbol: string;
     element: Element;
     reqTime: number;
+    qBase?: string;
+    qManifest?: string;
+    qVersion?: string;
+    href?: string;
 }>;
 
 // @public @deprecated (undocumented)

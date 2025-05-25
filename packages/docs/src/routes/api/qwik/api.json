@@ -1472,7 +1472,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    qBase: string;\n    qManifest: string;\n    qVersion: string;\n    href: string;\n    symbol: string;\n    element: Element;\n    reqTime: number;\n}>;\n```",
+      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    qManifest?: string;\n    qVersion?: string;\n    href?: string;\n}>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.qwiksymbolevent.md"
     },

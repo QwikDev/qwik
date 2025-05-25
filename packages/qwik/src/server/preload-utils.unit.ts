@@ -1,5 +1,5 @@
 import { assert, test } from 'vitest';
-import { flattenPrefetchResources } from './prefetch-utils';
+import { flattenPrefetchResources } from './preload-utils';
 
 test('flattenPrefetchResources, no imports', () => {
   const p = [

@@ -41,7 +41,7 @@ export const PrefetchServiceWorker = (opts: {
     // the file 'qwik-prefetch-service-worker.js' is not located in /build/
     resolvedOpts.path = baseUrl + resolvedOpts.path;
   }
-  let code = PREFETCH_CODE.replace('URL', resolvedOpts.path);
+  let code = PREFETCH_CODE.replace("'_URL_'", JSON.stringify(resolvedOpts.path));
   if (!isDev) {
     // consecutive spaces are indentation
     code = code.replaceAll(/\s\s+/gm, '');
@@ -66,7 +66,7 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
     c.getRegistrations().then((registrations) => {
       registrations.forEach((registration) => {
         if (registration.active) {
-          if (registration.active.scriptURL.endsWith('URL')) {
+          if (registration.active.scriptURL.endsWith('_URL_')) {
             registration.unregister().catch(console.error);
           }
         }

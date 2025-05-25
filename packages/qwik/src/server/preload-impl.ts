@@ -47,6 +47,7 @@ export const preloaderPre = (
      * html download
      */
     container.openElement('link', null, ['rel', 'modulepreload', 'href', `${base}${preloadChunk}`]);
+    container.closeElement();
     container.openElement('link', null, [
       'rel',
       'preload',
@@ -57,6 +58,7 @@ export const preloaderPre = (
       'crossorigin',
       'anonymous',
     ]);
+    container.closeElement();
 
     const script =
       `let b=fetch("${base}q-bundle-graph-${hash}.json");` +

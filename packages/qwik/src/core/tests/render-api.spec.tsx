@@ -511,6 +511,7 @@ describe('render api', () => {
       });
     });
     describe('preloader', () => {
+      // we need a test with a built manifest
       it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
@@ -519,8 +520,9 @@ describe('render api', () => {
         const document = createDocument({ html: result.html });
         const preloadScript = document.querySelectorAll('script[q\\:type=preload]');
         expect(preloadScript).toHaveLength(1);
-        expect(preloadScript[0]?.textContent).toContain(`createElement('link')`);
-        expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
+        expect(preloadScript[0]?.textContent).toContain(`import(`);
+        // no bundlegraph because no manifest
+        // expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
     });

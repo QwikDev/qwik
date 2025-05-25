@@ -56,8 +56,8 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
       return wrappedValue;
     }
   }
-  // We need to forward the access to the original object
-  return getWrapped(args);
+  // the object is not reactive, so we can just return the value
+  return obj[prop];
 };
 
 /** @internal */

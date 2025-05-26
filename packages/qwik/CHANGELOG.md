@@ -266,44 +266,6 @@
 
 - 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
 
-## 1.9.1
-
-### Patch Changes
-
-- ✨ showing qrl parent names. (by [@wmertens](https://github.com/wmertens) in [#6881](https://github.com/QwikDev/qwik/pull/6881))
-  in dev mode, qrl segments now start with their parent filename so it's easy to see where they came from. Furthermore, in production builds these filenames are also used so that origins in `q-manifest.json` are easy to understand.
-
-- 🐞🩹 Optimizer now ignores unknown deps in graph that caused crashes during build (by [@wmertens](https://github.com/wmertens) in [#6888](https://github.com/QwikDev/qwik/pull/6888))
-
-- 🐞🩹 Do not allow object methods to be serialized with style prop (by [@jakovljevic-mladen](https://github.com/jakovljevic-mladen) in [#6932](https://github.com/QwikDev/qwik/pull/6932))
-
-- 🐞🩹 In dev mode, changes to QRLs now explicitly invalidate the segment so that the browser will reload it (by [@wmertens](https://github.com/wmertens) in [#6938](https://github.com/QwikDev/qwik/pull/6938))
-
-## 1.11.0
-
-### Minor Changes
-
-- CHORE: Prepare backwards compatibility for V1 libraries in V2. (by [@wmertens](https://github.com/wmertens) in [#7044](https://github.com/QwikDev/qwik/pull/7044))
-
-  We move internal fields `immutableProps` and `flags` out of JSXNode as they are not meant for public use.
-
-  This will allow projects using older V1 libraries to continue to work with the Qwik V2 by adding the following `package.json` changes:
-
-  ```json
-  {
-    "dependencies": {
-      "@builder.io/qwik": "^1.11.0",
-      "@qwik.dev/core": "^2.0.0"
-    }
-  }
-  ```
-
-  And will prevent typescript errors when using libraries which haven't upgraded to V2 yet.
-
-- ✨ add monorepo support to the `qwik add` command by adding a `projectDir` param (by [@shairez](https://github.com/shairez) in [#7059](https://github.com/QwikDev/qwik/pull/7059))
-
-  That way you can run `qwik add --projectDir=packages/my-package` and it will add the feature to the specified project/package (sub) folder, instead of the root folder.
-
 ## 1.14.1
 
 ## 1.14.0

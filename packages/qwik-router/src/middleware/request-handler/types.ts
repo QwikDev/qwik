@@ -4,6 +4,7 @@ import type { Action, FailReturn, Loader, QwikCityPlan, QwikRouterConfig } from 
 import type { ServerError } from './error-handler';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
+import type { RewriteMessage } from './rewrite-handler';
 
 /** @public */
 export interface EnvGetter {
@@ -206,6 +207,15 @@ export interface RequestEventCommon<PLATFORM = QwikRouterPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
+   * When called, qwik-city will execute the path's matching route flow.
+   *
+   * The url in the browser will remain unchanged.
+   *
+   * @param pathname - The pathname to rewrite to.
+   */
+  readonly rewrite: (pathname: string) => RewriteMessage;
+
+  /**
    * When called, the response will immediately end with the given status code. This could be useful
    * to end a response with `404`, and use the 404 handler in the routes directory. See
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
@@ -290,6 +300,19 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
 
   /** HTTP request URL. */
   readonly url: URL;
+
+  /**
+   * The original HTTP request URL.
+   *
+   * This property was introduced to support the rewrite feature.
+   *
+   * If rewrite is called, the url property will be changed to the rewritten url. while originalUrl
+   * will stay the same(e.g the url inserted to the address bar).
+   *
+   * If rewrite is never called as part of the request, the url property and the originalUrl are
+   * equal.
+   */
+  readonly originalUrl: URL;
 
   /** The base pathname of the request, which can be configured at build time. Defaults to `/`. */
   readonly basePathname: string;

@@ -70,6 +70,74 @@ export default component$(() => {
         </li>
         <li>
           <Link
+            href="/qwikrouter-test/products/shirt-rewrite/"
+            data-test-link="products-shirt-rewrite"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite/?search=true"
+            data-test-link="products-shirt-rewrite-with-search"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite"
+            data-test-link="products-shirt-rewrite-no-trailing-slash"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite-absolute-url/"
+            data-test-link="products-shirt-rewrite-absolute-url"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite/"
+            data-test-link="products-shirt-rewrite"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite/?search=true"
+            data-test-link="products-shirt-rewrite-with-search"
+          >
+            T-Shirt (Rewrite to /products/tshirt)
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite"
+            data-test-link="products-shirt-rewrite-no-trailing-slash"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/qwikrouter-test/products/shirt-rewrite-absolute-url/"
+            data-test-link="products-shirt-rewrite-absolute-url"
+          >
+            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
+            added.
+          </Link>
+        </li>
+        <li>
+          <Link
             href="/qwikrouter-test/products/hoodie/"
             data-test-link="products-hoodie"
           >
@@ -112,7 +180,17 @@ export const PRODUCT_DB: Record<string, string> = {
 };
 
 export const useProductLoader = routeLoader$(
-  async ({ headers, json, error, params, query, redirect, status }) => {
+  async ({
+    headers,
+    json,
+    error,
+    params,
+    query,
+    redirect,
+    rewrite,
+    status,
+    url,
+  }) => {
     // Serverside Endpoint
     // During SSR, this method is called directly on the server and returns the data object
     // On the client, this same data can be requested with fetch() at the same URL, but also
@@ -126,6 +204,15 @@ export const useProductLoader = routeLoader$(
     if (id === "shirt") {
       // Redirect, which will skip any rendering and the server will immediately redirect
       throw redirect(301, "/qwikrouter-test/products/tshirt/");
+    }
+
+    if (id === "shirt-rewrite") {
+      throw rewrite("/qwikrouter-test/products/tshirt/");
+    }
+
+    // Should throw an error
+    if (id === "shirt-rewrite-absolute-url") {
+      throw rewrite(`${url.origin}/qwikrouter-test/products/tshirt/`);
     }
 
     if (id === "error") {

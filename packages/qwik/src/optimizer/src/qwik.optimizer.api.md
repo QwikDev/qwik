@@ -52,6 +52,7 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @public
 export enum ExperimentalFeatures {
+    enableRequestRewrite = "enableRequestRewrite",
     insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",

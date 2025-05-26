@@ -75,7 +75,6 @@
     "esbuild-plugin-raw": "^0.1.8"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.10.2",
     "@changesets/cli": "2.29.3",
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.1.0",
@@ -91,6 +90,7 @@
     "@playwright/test": "1.50.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/router": "workspace:*",
+    "@qwik.dev/partytown": "0.11.1",
     "@types/brotli": "1.3.4",
     "@types/bun": "1.1.6",
     "@types/cross-spawn": "6.0.6",
@@ -161,8 +161,7 @@
   "pnpm": {
     "overrides": {
       "typescript": "5.8.2",
-      "vfile": "6.0.2",
-      "@supabase/realtime-js": "2.8.4"
+      "vfile": "6.0.2"
     },
     "patchedDependencies": {
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch",

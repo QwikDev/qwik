@@ -33,6 +33,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
 import { parseId } from './vite-utils';
+import { target } from 'scripts/util';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -649,8 +650,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       if (!qwikViteOpts.csr) {
+        const opts = qwikPlugin.getOptions();
         const plugin = async () => {
-          const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
           const path = qwikPlugin.getPath();
           await configureDevServer(
@@ -667,7 +668,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // TODO: Removed the "__qwikCityNew" condition in V3
         const isNEW =
           (globalThis as any).__qwikRouterNew === true ||
-          (globalThis as any).__qwikCityNew === true;
+          (globalThis as any).__qwikCityNew === true ||
+          server.config.build.lib;
+
         if (isNEW) {
           return plugin;
         } else {

@@ -1,11 +1,11 @@
-import { type InferSelectModel, type InferInsertModel } from 'drizzle-orm';
+import { type InferInsertModel, type InferSelectModel } from 'drizzle-orm';
 import {
+  foreignKey,
+  index,
   integer,
   sqliteTable,
   text,
   uniqueIndex,
-  index,
-  foreignKey,
 } from 'drizzle-orm/sqlite-core';
 
 export type DatabaseSchema = {
@@ -99,9 +99,10 @@ export const symbolDetailTable = sqliteTable(
     hi: integer('hi').notNull(),
   },
   (symbolDetailTable) => ({
-    apiKeyManifestHashIndex: uniqueIndex('idx_symbolDetail_apiKey_manifestHash').on(
+    apiKeyManifestHashIndex: uniqueIndex('idx_symbolDetail_apiKey_manifestHash_hash').on(
       symbolDetailTable.publicApiKey,
-      symbolDetailTable.manifestHash
+      symbolDetailTable.manifestHash,
+      symbolDetailTable.hash
     ),
     publicApiKeyReference: foreignKey({
       columns: [symbolDetailTable.publicApiKey],

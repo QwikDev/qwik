@@ -28,43 +28,34 @@ import type { VNodeData } from './vnode-data';
  * Once deserialized the client, they will be turned to ElementVNodes.
  */
 export class SsrNode implements ISsrNode {
-  __brand__!: 'SsrNode';
-
-  static ELEMENT_NODE = 1 as const;
-  static TEXT_NODE = 3 as const;
-  static DOCUMENT_NODE = 9 as const;
-  static DOCUMENT_FRAGMENT_NODE = 11 as const;
-
-  /** @param nodeType - Node type: ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE */
-  public nodeType: SsrNodeType;
+  __brand__ = 'SsrNode' as const;
 
   /**
    * ID which the deserialize will use to retrieve the node.
    *
-   * @param refId - Unique id for the node.
+   * @param id - Unique id for the node.
    */
   public id: string;
 
+  public parentSsrNode: ISsrNode | null;
+  public children: ISsrNode[] | null = null;
+
   /** Local props which don't serialize; */
-  private locals: SsrAttrs | null = null;
-  public currentComponentNode: ISsrNode | null;
-  public childrenVNodeData: VNodeData[] | null = null;
+  private localProps: SsrAttrs | null = null;
 
   get [_EFFECT_BACK_REF]() {
     return this.getProp(QBackRefs);
   }
 
   constructor(
-    currentComponentNode: ISsrNode | null,
-    nodeType: SsrNodeType,
+    parentSsrNode: ISsrNode | null,
     id: string,
     private attrs: SsrAttrs,
     private cleanupQueue: CleanupQueue,
     public vnodeData: VNodeData
   ) {
-    this.currentComponentNode = currentComponentNode;
-    this.currentComponentNode?.addChildVNodeData(this.vnodeData);
-    this.nodeType = nodeType;
+    this.parentSsrNode = parentSsrNode;
+    this.parentSsrNode?.addChild(this);
     this.id = id;
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
@@ -76,7 +67,7 @@ export class SsrNode implements ISsrNode {
       this.attrs = [];
     }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      mapArray_set(this.locals || (this.locals = []), name, value, 0);
+      mapArray_set(this.localProps || (this.localProps = []), name, value, 0);
     } else {
       mapArray_set(this.attrs, name, value, 0);
     }
@@ -89,7 +80,7 @@ export class SsrNode implements ISsrNode {
 
   getProp(name: string): any {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      return this.locals ? mapArray_get(this.locals, name, 0) : null;
+      return this.localProps ? mapArray_get(this.localProps, name, 0) : null;
     } else {
       return mapArray_get(this.attrs, name, 0);
     }
@@ -97,19 +88,19 @@ export class SsrNode implements ISsrNode {
 
   removeProp(name: string): void {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      if (this.locals) {
-        mapApp_remove(this.locals, name, 0);
+      if (this.localProps) {
+        mapApp_remove(this.localProps, name, 0);
       }
     } else {
       mapApp_remove(this.attrs, name, 0);
     }
   }
 
-  addChildVNodeData(child: VNodeData): void {
-    if (!this.childrenVNodeData) {
-      this.childrenVNodeData = [];
+  addChild(child: ISsrNode): void {
+    if (!this.children) {
+      this.children = [];
     }
-    this.childrenVNodeData.push(child);
+    this.children.push(child);
   }
 
   toString(): string {
@@ -129,10 +120,9 @@ export class SsrNode implements ISsrNode {
 
 /** A ref to a DOM element */
 export class DomRef {
+  __brand__ = 'DomRef' as const;
   constructor(public $ssrNode$: ISsrNode) {}
 }
-
-export type SsrNodeType = 1 | 3 | 9 | 11;
 
 export class SsrComponentFrame implements ISsrComponentFrame {
   public slots = [];

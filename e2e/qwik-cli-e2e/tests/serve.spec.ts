@@ -1,47 +1,117 @@
-import { assert, test, beforeAll, expect } from 'vitest';
-import {
-  assertHostUnused,
-  getPageHtml,
-  promisifiedTreeKill,
-  killAllRegisteredProcesses,
-  runCommandUntil,
-  scaffoldQwikProject,
-  DEFAULT_TIMEOUT,
-} from '../utils';
+/* eslint-disable no-console */
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { assert, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  assertHostUnused,
+  DEFAULT_TIMEOUT,
+  getPageHtml,
+  killAllRegisteredProcesses,
+  log,
+  promisifiedTreeKill,
+  runCommandUntil,
+  scaffoldQwikProject,
+  type QwikProjectType,
+} from '../utils';
 
-const SERVE_PORT = 3535;
-beforeAll(() => {
-  const config = scaffoldQwikProject();
-  global.tmpDir = config.tmpDir;
-
-  return async () => {
-    await killAllRegisteredProcesses();
-    config.cleanupFn();
-  };
+let SERVE_PORT = 3535;
+beforeEach(() => {
+  // the port doesn't clear immediately after the previous test
+  SERVE_PORT++;
 });
+for (const type of ['empty', 'playground'] as QwikProjectType[]) {
+  describe(`template: ${type}`, () => {
+    beforeAll(() => {
+      console.log('================================================ scaffolding', type);
+      const config = scaffoldQwikProject(type);
+      global.tmpDir = config.tmpDir;
 
-test(
-  'Should serve the app in dev mode and update the content on hot reload',
-  { timeout: DEFAULT_TIMEOUT },
-  async () => {
-    const host = `http://localhost:${SERVE_PORT}/`;
-    await assertHostUnused(host);
-    const p = await runCommandUntil(
-      `npm run dev -- --port ${SERVE_PORT}`,
-      global.tmpDir,
-      (output) => {
-        return output.includes(host);
+      return async () => {
+        try {
+          await killAllRegisteredProcesses();
+        } catch (e) {
+          log(`Error during process cleanup: ${e.message}`);
+        }
+        config.cleanupFn();
+      };
+    });
+
+    if (type === 'playground') {
+      test(
+        'Should serve the app in dev mode and update the content on hot reload',
+        { timeout: DEFAULT_TIMEOUT },
+        async () => {
+          const host = `http://localhost:${SERVE_PORT}/`;
+          await assertHostUnused(host);
+          const p = await runCommandUntil(
+            `npm run dev -- --port ${SERVE_PORT}`,
+            global.tmpDir,
+            (output) => {
+              return output.includes(host);
+            }
+          );
+          assert.equal(existsSync(global.tmpDir), true);
+
+          await expectHtmlOnARootPage(host);
+
+          // Don't let process termination errors fail the test
+          try {
+            await promisifiedTreeKill(p.pid!, 'SIGKILL');
+          } catch (e) {
+            log(`Error terminating dev server: ${e.message}`);
+          }
+        }
+      );
+    }
+
+    test('Should preview the app', { timeout: DEFAULT_TIMEOUT }, async () => {
+      const host = `http://localhost:${SERVE_PORT}/`;
+      await assertHostUnused(host);
+
+      // First build the app
+      const buildProcess = await runCommandUntil(`npm run build`, global.tmpDir, (output) => {
+        return output.includes('dist/build') || output.includes('built in');
+      });
+
+      try {
+        await promisifiedTreeKill(buildProcess.pid!, 'SIGKILL');
+      } catch (e) {
+        log(`Error terminating build process: ${e.message}`);
       }
-    );
-    assert.equal(existsSync(global.tmpDir), true);
 
-    await expectHtmlOnARootPage(host);
+      // Now run the preview
+      const p = await runCommandUntil(
+        `npm run preview -- --no-open --port ${SERVE_PORT}`,
+        global.tmpDir,
+        (output) => {
+          return output.includes(host);
+        }
+      );
 
-    await promisifiedTreeKill(p.pid!, 'SIGKILL');
-  }
-);
+      assert.equal(existsSync(global.tmpDir), true);
+
+      // Wait a bit for the server to fully start
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const res = await fetch(host, { headers: { accept: 'text/html' } }).then((r) => r.text());
+      console.log('** res', res);
+
+      // Check for the appropriate content based on template type
+      if (type === 'playground') {
+        expect(res).toContain('fantastic');
+      } else if (type === 'empty') {
+        expect(res).toContain('Hi');
+        expect(res).toContain('qwik');
+      }
+
+      try {
+        await promisifiedTreeKill(p.pid!, 'SIGKILL');
+      } catch (e) {
+        log(`Error terminating preview server: ${e.message}`);
+      }
+    });
+  });
+}
 
 async function expectHtmlOnARootPage(host: string) {
   expect((await getPageHtml(host)).querySelector('.container h1')?.textContent).toBe(

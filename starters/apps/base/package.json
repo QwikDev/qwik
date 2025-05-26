@@ -23,6 +23,7 @@
     "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
+    "globals": "latest",
     "prettier": "latest",
     "typescript": "latest",
     "typescript-plugin-css-modules": "latest",

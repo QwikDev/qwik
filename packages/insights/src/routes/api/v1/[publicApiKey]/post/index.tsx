@@ -19,9 +19,9 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   const db = getDB();
   let previousSymbol = payload.previousSymbol;
   const { publicApiKey, manifestHash } = payload;
-  await dbGetManifestInfo(db, publicApiKey, manifestHash);
   if (publicApiKey && publicApiKey.length > 4) {
     await getAppInfo(db, publicApiKey, { autoCreate: true });
+    await dbGetManifestInfo(db, publicApiKey, manifestHash);
     for (const event of payload.symbols) {
       const symbolHash = cleanupSymbolName(event.symbol);
       if (symbolHash) {

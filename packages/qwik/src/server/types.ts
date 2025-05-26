@@ -55,7 +55,7 @@ export interface PreloaderOptions {
    *
    * Defaults to `25`
    */
-  maxBufferedPreloads?: number;
+  maxIdlePreloads?: number;
   /**
    * The minimum probability for a bundle to be added to the preload queue.
    *
@@ -157,7 +157,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  preloader?: PreloaderOptions | boolean;
+  preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */
   qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;

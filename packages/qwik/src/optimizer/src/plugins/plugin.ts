@@ -73,6 +73,8 @@ export enum ExperimentalFeatures {
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik City */
   noSPA = 'noSPA',
+  /** Enable request.rewrite() */
+  enableRequestRewrite = 'enableRequestRewrite',
 }
 
 export interface QwikPackages {
@@ -868,6 +870,7 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
         mapping: manifest.mapping,
         preloader: manifest.preloader,
+        core: manifest.core,
       };
     }
     return `// @qwik-client-manifest

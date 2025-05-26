@@ -781,6 +781,10 @@ export type QwikSymbolEvent = CustomEvent<{
     symbol: string;
     element: Element;
     reqTime: number;
+    qBase?: string;
+    qManifest?: string;
+    qVersion?: string;
+    href?: string;
 }>;
 
 // @public @deprecated (undocumented)

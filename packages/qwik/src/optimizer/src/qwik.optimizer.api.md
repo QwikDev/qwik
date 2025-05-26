@@ -52,6 +52,7 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @alpha
 export enum ExperimentalFeatures {
+    enableRequestRewrite = "enableRequestRewrite",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
     valibot = "valibot"
@@ -185,6 +186,7 @@ export interface QwikManifest {
     bundles: {
         [fileName: string]: QwikBundle;
     };
+    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {

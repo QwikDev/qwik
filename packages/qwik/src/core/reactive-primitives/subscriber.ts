@@ -30,5 +30,5 @@ export function getSubscriber(
 }
 
 function isSsrNode(value: any): value is ISsrNode {
-  return '__brand__' in value && 'currentComponentNode' in value;
+  return '__brand__' in value && value.__brand__ === 'SsrNode';
 }

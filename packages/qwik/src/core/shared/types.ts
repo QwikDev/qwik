@@ -45,10 +45,10 @@ export interface Container {
   ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
     NodeConstructor: {
-      new (...rest: any[]): { nodeType: number; id: string };
+      new (...rest: any[]): { __brand__: 'SsrNode' };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { $ssrNode$: ISsrNode };
+      new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter

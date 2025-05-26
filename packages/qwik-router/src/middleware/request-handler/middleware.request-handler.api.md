@@ -113,6 +113,7 @@ export interface RequestEventBase<PLATFORM = QwikRouterPlatform> {
     readonly env: EnvGetter;
     readonly headers: Headers;
     readonly method: string;
+    readonly originalUrl: URL;
     readonly params: Readonly<Record<string, string>>;
     readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
@@ -135,6 +136,7 @@ export interface RequestEventCommon<PLATFORM = QwikRouterPlatform> extends Reque
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+    readonly rewrite: (pathname: string) => RewriteMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts
@@ -173,6 +175,13 @@ export interface ResolveValue {
     <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
     <T>(action: Action<T>): Promise<T | undefined>;
+}
+
+// @public (undocumented)
+export class RewriteMessage extends AbortMessage {
+    constructor(pathname: string);
+    // (undocumented)
+    readonly pathname: string;
 }
 
 // @public (undocumented)

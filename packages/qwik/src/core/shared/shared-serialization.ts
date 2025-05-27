@@ -38,7 +38,7 @@ import type { DeserializeContainer, HostElement, ObjToProxyMap } from './types';
 import { _CONST_PROPS, _VAR_PROPS } from './utils/constants';
 import { isElement, isNode } from './utils/element';
 import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { ELEMENT_ID } from './utils/markers';
+import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from './utils/markers';
 import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import {
@@ -601,9 +601,8 @@ export function inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any
 
 /** A selection of attributes of the real thing */
 type SsrNode = {
-  nodeType: number;
   id: string;
-  childrenVNodeData: VNodeData[] | null;
+  children: ISsrNode[] | null;
   vnodeData: VNodeData;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null;
 };
@@ -679,7 +678,6 @@ export interface SerializationContext {
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
-  $prepVNodeData$?: (vNodeData: VNodeData) => void;
 }
 
 export const createSerializationContext = (
@@ -690,19 +688,17 @@ export const createSerializationContext = (
    * server will not know what to do with them.
    */
   NodeConstructor: {
-    new (...rest: any[]): { nodeType: number; id: string };
+    new (...rest: any[]): { __brand__: 'SsrNode' };
   } | null,
   /** DomRef constructor, for instanceof checks. */
   DomRefConstructor: {
-    new (...rest: any[]): { $ssrNode$: ISsrNode };
+    new (...rest: any[]): { __brand__: 'DomRef' };
   } | null,
   symbolToChunkResolver: SymbolToChunkResolver,
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
-  writer?: StreamWriter,
-  // temporary until we serdes the vnode data here
-  prepVNodeData?: (vNodeData: VNodeData) => void
+  writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
     const buffer: string[] = [];
@@ -763,9 +759,10 @@ export const createSerializationContext = (
     return seen.$rootIndex$;
   };
 
-  const isSsrNode = (NodeConstructor ? (obj) => obj instanceof NodeConstructor : () => false) as (
-    obj: unknown
-  ) => obj is SsrNode;
+  const isSsrNode = (
+    NodeConstructor ? (obj) => obj instanceof NodeConstructor : ((() => false) as any)
+  ) as (obj: unknown) => obj is SsrNode;
+
   isDomRef = (
     DomRefConstructor ? (obj) => obj instanceof DomRefConstructor : ((() => false) as any)
   ) as (obj: unknown) => obj is DomRef;
@@ -816,7 +813,6 @@ export const createSerializationContext = (
     $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
-    $prepVNodeData$: prepVNodeData,
     $pathMap$: rootsPathMap,
   };
 };
@@ -847,8 +843,14 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
   for (const value of vnodeData) {
     if (isSsrAttrs(value)) {
       for (let i = 1; i < value.length; i += 2) {
+        const keyValue = value[i - 1];
         const attrValue = value[i];
-        if (typeof attrValue === 'string') {
+        if (
+          typeof attrValue === 'string' ||
+          // skip empty props
+          (keyValue === ELEMENT_PROPS &&
+            Object.keys(attrValue as Record<string, unknown>).length === 0)
+        ) {
           continue;
         }
         callback(attrValue);
@@ -1192,14 +1194,25 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       output(TypeIds.VNode, value.id);
       const vNodeData = value.vnodeData;
       if (vNodeData) {
-        serializationContext.$prepVNodeData$?.(vNodeData);
         discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => $addRoot$(vNodeDataValue));
         vNodeData[0] |= VNodeDataFlag.SERIALIZE;
       }
-      if (value.childrenVNodeData) {
-        for (const vNodeData of value.childrenVNodeData) {
-          discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => $addRoot$(vNodeDataValue));
-          vNodeData[0] |= VNodeDataFlag.SERIALIZE;
+      if (value.children) {
+        // can be static, but we need to save vnode data structure + discover the back refs
+        for (const child of value.children) {
+          const childVNodeData = child.vnodeData;
+          if (childVNodeData) {
+            // add all back refs to the roots
+            for (const value of childVNodeData) {
+              if (isSsrAttrs(value)) {
+                const backRefKeyIndex = value.findIndex((v) => v === QBackRefs);
+                if (backRefKeyIndex !== -1) {
+                  $addRoot$(value[backRefKeyIndex + 1]);
+                }
+              }
+            }
+            childVNodeData[0] |= VNodeDataFlag.SERIALIZE;
+          }
         }
       }
     } else if (typeof FormData !== 'undefined' && value instanceof FormData) {

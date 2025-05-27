@@ -351,7 +351,7 @@ async function main() {
     startersDir,
     "..",
     "node_modules",
-    "@builder.io",
+    "@qwik.dev",
     "partytown",
     "lib",
   );

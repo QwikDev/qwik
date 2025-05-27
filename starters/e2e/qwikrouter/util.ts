@@ -105,24 +105,32 @@ export async function linkNavigate(
     expect(true, `Link selector ${linkSelector} not found`).toBe(false);
   }
 
-  const href = await link.getAttribute("href")!;
-  console.log(`       ${href}`);
+  const href = (await link.getAttribute("href"))!;
+  console.log(`   nav>    ${href}`);
 
   if (ctx.javaScriptEnabled) {
-    // SPA
+    const promise =
+      href &&
+      page.waitForURL(href.endsWith("/") ? href : href + "/", {
+        timeout: 5000,
+        waitUntil: "networkidle",
+      });
     await link.click();
-    await page.waitForTimeout(500);
+    // give time for the head to update
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await promise;
   } else {
-    // MPA
-    const [rsp] = await Promise.all([page.waitForNavigation(), link.click()]);
-
-    const rspStatus = rsp!.status();
-    if (rspStatus !== responseStatus) {
-      const content = await rsp?.text();
-      expect(rspStatus, `${href} (${rspStatus})\n${content}`).toBe(
-        responseStatus,
-      );
-    }
+    // if we didn't get a href, just wait for the next request
+    const requestPromise = page.waitForRequest(href ? href : () => true, {
+      timeout: 5000,
+    });
+    await link.click();
+    const request = (await requestPromise)!;
+    const response = await request.response();
+    expect(
+      response?.status(),
+      `Expected status ${responseStatus} for ${href}`,
+    ).toBe(responseStatus);
   }
 }
 

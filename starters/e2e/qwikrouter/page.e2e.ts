@@ -44,7 +44,7 @@ function tests() {
     });
 
     /***********  Blog: resumability  ***********/
-    await linkNavigate(ctx, '[data-test-link="blog-resumability"]');
+    await linkNavigate(ctx, '[data-test-link="blog-resumability"]', 301);
     await assertPage(ctx, {
       pathname: "/qwikrouter-test/blog/what-is-resumability/",
       title: "Blog: what-is-resumability - Qwik",
@@ -108,7 +108,7 @@ function tests() {
 
     if (!javaScriptEnabled) {
       /***********  Products: shirt (301 redirect to /products/tshirt)  ***********/
-      await linkNavigate(ctx, '[data-test-link="products-shirt"]');
+      await linkNavigate(ctx, '[data-test-link="products-shirt"]', 301);
       await assertPage(ctx, {
         pathname: "/qwikrouter-test/products/tshirt/",
         title: "Product tshirt - Qwik",
@@ -118,9 +118,9 @@ function tests() {
       });
 
       /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
-      await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite"]');
+      await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite"]', 200);
       await assertPage(ctx, {
-        pathname: "/qwikcity-test/products/shirt-rewrite/",
+        pathname: "/qwikrouter-test/products/shirt-rewrite/",
         title: "Product tshirt - Qwik",
         layoutHierarchy: ["root"],
         h1: "Product: tshirt",
@@ -133,7 +133,7 @@ function tests() {
         '[data-test-link="products-shirt-rewrite-with-search"]',
       );
       await assertPage(ctx, {
-        pathname: "/qwikcity-test/products/shirt-rewrite/",
+        pathname: "/qwikrouter-test/products/shirt-rewrite/",
         title: "Product tshirt - Qwik",
         layoutHierarchy: ["root"],
         h1: "Product: tshirt",
@@ -151,15 +151,16 @@ function tests() {
         title: "500 Internal Server Error",
       });
       // Recover from error
-      await setPage(ctx, "/qwikcity-test/products/hat/");
+      await setPage(ctx, "/qwikrouter-test/products/hat/");
 
       /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
       await linkNavigate(
         ctx,
         '[data-test-link="products-shirt-rewrite-no-trailing-slash"]',
+        301,
       );
       await assertPage(ctx, {
-        pathname: "/qwikcity-test/products/shirt-rewrite/",
+        pathname: "/qwikrouter-test/products/shirt-rewrite/",
         title: "Product tshirt - Qwik",
         layoutHierarchy: ["root"],
         h1: "Product: tshirt",

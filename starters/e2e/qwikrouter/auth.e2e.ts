@@ -67,7 +67,7 @@ function tests() {
     await page.keyboard.type("dev");
 
     /***********  Successful Sign In, Dashboard  ***********/
-    await linkNavigate(ctx, "[data-test-sign-in]", 200);
+    await linkNavigate(ctx, "[data-test-sign-in]", 302);
 
     await assertPage(ctx, {
       pathname: "/qwikrouter-test/dashboard/",
@@ -85,7 +85,7 @@ function tests() {
     });
 
     /***********  Go to Dashboard settings, shouldn't redirect if signed in  ***********/
-    await linkNavigate(ctx, '[data-test-link="dashboard-settings"]');
+    await page.locator('[data-test-link="dashboard-settings"]').click();
     await assertPage(ctx, {
       pathname: "/qwikrouter-test/dashboard/settings/",
       title: "Dashboard Settings - Qwik",
@@ -94,7 +94,7 @@ function tests() {
     });
 
     /***********  Sign out  ***********/
-    await linkNavigate(ctx, '[data-test-link="dashboard-sign-out"]');
+    await page.locator('[data-test-link="dashboard-sign-out"]').click();
     await assertPage(ctx, {
       pathname: "/qwikrouter-test/sign-in/",
     });

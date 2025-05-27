@@ -104,40 +104,6 @@ export default component$(() => {
         </li>
         <li>
           <Link
-            href="/qwikrouter-test/products/shirt-rewrite/"
-            data-test-link="products-shirt-rewrite"
-          >
-            T-Shirt (Rewrite to /products/tshirt)
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/qwikrouter-test/products/shirt-rewrite/?search=true"
-            data-test-link="products-shirt-rewrite-with-search"
-          >
-            T-Shirt (Rewrite to /products/tshirt)
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/qwikrouter-test/products/shirt-rewrite"
-            data-test-link="products-shirt-rewrite-no-trailing-slash"
-          >
-            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
-            added.
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/qwikrouter-test/products/shirt-rewrite-absolute-url/"
-            data-test-link="products-shirt-rewrite-absolute-url"
-          >
-            T-Shirt (Rewrite to /products/tshirt) Also trailing slash should be
-            added.
-          </Link>
-        </li>
-        <li>
-          <Link
             href="/qwikrouter-test/products/hoodie/"
             data-test-link="products-hoodie"
           >

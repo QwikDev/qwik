@@ -475,13 +475,16 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
+      // keep these if statements separate so that weird bundling still works
       if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
         manifest.preloader = bundleFileName;
-      } else if (
+      }
+      if (
         modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(.min|.prod)?\.[cm]js$/.test(m))
       ) {
         manifest.core = bundleFileName;
-      } else if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
+      }
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
         qwikHandlersName = bundleFileName;
       }
     }
@@ -527,7 +530,7 @@ export function generateManifestFromBundles(
       manifest.mapping[symbol] = qwikHandlersName;
     }
   } else {
-    console.error('Qwik bundle not found, is Qwik actually used in this project?');
+    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

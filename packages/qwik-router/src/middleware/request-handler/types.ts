@@ -207,7 +207,7 @@ export interface RequestEventCommon<PLATFORM = QwikRouterPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
-   * When called, qwik-city will execute the path's matching route flow.
+   * When called, qwik-router will execute the path's matching route flow.
    *
    * The url in the browser will remain unchanged.
    *

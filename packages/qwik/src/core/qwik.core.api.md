@@ -892,14 +892,13 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     serializationCtxFactory(NodeConstructor: {
         new (...rest: any[]): {
-            nodeType: number;
-            id: string;
+            __brand__: 'SsrNode';
         };
     } | null, DomRefConstructor: {
         new (...rest: any[]): {
-            $ssrNode$: ISsrNode;
+            __brand__: 'DomRef';
         };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

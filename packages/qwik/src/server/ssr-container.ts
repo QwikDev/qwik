@@ -233,8 +233,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       SsrNode,
       DomRef,
       this.symbolToChunkResolver,
-      opts.writer,
-      (vNodeData: VNodeData) => this.addVNodeToSerializationRoots(vNodeData)
+      opts.writer
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
@@ -283,14 +282,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           return value;
         }
       }
-      ssrNode = ssrNode.currentComponentNode;
+      ssrNode = ssrNode.parentSsrNode;
     }
     return undefined;
   }
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.currentComponentNode as ISsrNode | null;
+    return ssrNode.parentSsrNode as ISsrNode | null;
   }
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
@@ -439,19 +438,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openFragment(attrs: SsrAttrs) {
     this.lastNode = null;
     vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
+    // create SSRNode and add it as component child to serialize its vnode data
+    this.getOrCreateLastNode();
   }
 
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
     this.lastNode = null;
-  }
-
-  addCurrentElementFrameAsComponentChild() {
-    const vNode = this.currentElementFrame?.vNodeData;
-    if (vNode) {
-      this.currentComponentNode?.addChildVNodeData(vNode);
-    }
   }
 
   openProjection(attrs: SsrAttrs) {
@@ -475,7 +469,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes opening data to vNodeData for component boundaries */
   openComponent(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.currentComponentNode = this.getLastNode();
+    this.currentComponentNode = this.getOrCreateLastNode();
     this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
   }
 
@@ -502,7 +496,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.currentComponentNode || null;
+    this.currentComponentNode = this.currentComponentNode?.parentSsrNode || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -527,7 +521,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$addRoot$(obj);
   }
 
-  getLastNode(): ISsrNode {
+  getOrCreateLastNode(): ISsrNode {
     if (!this.lastNode) {
       this.lastNode = vNodeData_createSsrNodeReference(
         this.currentComponentNode,
@@ -765,51 +759,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.closeElement();
   }
 
-  /** This adds the vnode's data to the serialization roots */
-  addVNodeToSerializationRoots(vNodeData: VNodeData) {
-    const vNodeAttrsStack: SsrAttrs[] = [];
-    const flag = vNodeData[0];
-    if (flag !== VNodeDataFlag.NONE) {
-      if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
-        let fragmentAttrs: SsrAttrs | null = null;
-        let depth = 0;
-        for (let i = 1; i < vNodeData.length; i++) {
-          const value = vNodeData[i];
-          if (Array.isArray(value)) {
-            vNodeAttrsStack.push(fragmentAttrs!);
-            fragmentAttrs = value;
-          } else if (value === OPEN_FRAGMENT) {
-            depth++;
-          } else if (value === CLOSE_FRAGMENT) {
-            // write out fragment attributes
-            if (fragmentAttrs) {
-              for (let i = 1; i < fragmentAttrs.length; i += 2) {
-                const value = fragmentAttrs[i] as string;
-                if (typeof value !== 'string') {
-                  fragmentAttrs[i] = String(this.addRoot(value));
-                }
-              }
-              fragmentAttrs = vNodeAttrsStack.pop()!;
-            }
-            depth--;
-          }
-        }
-
-        while (depth-- > 0) {
-          if (fragmentAttrs) {
-            for (let i = 0; i < fragmentAttrs.length; i++) {
-              const value = fragmentAttrs[i] as string;
-              if (typeof value !== 'string') {
-                fragmentAttrs[i] = String(this.addRoot(value));
-              }
-            }
-            fragmentAttrs = vNodeAttrsStack.pop()!;
-          }
-        }
-      }
-    }
-  }
-
   private emitStateData(): ValueOrPromise<void> {
     if (!this.serializationCtx.$roots$.length) {
       return;
@@ -968,7 +917,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
                 : [QSlotParent, ssrComponentNode!.id]
             );
-            const lastNode = this.getLastNode();
+            const lastNode = this.getOrCreateLastNode();
             if (lastNode.vnodeData) {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
@@ -1127,7 +1076,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (key === 'ref') {
-          const lastNode = this.getLastNode();
+          const lastNode = this.getOrCreateLastNode();
           if (isSignal(value)) {
             (value as SignalImpl<unknown>).$untrackedValue$ = new DomRef(lastNode);
             continue;
@@ -1142,7 +1091,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (isSignal(value)) {
-          const lastNode = this.getLastNode();
+          const lastNode = this.getOrCreateLastNode();
           const signalData = new SubscriptionData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,

@@ -7,6 +7,7 @@
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
+    "@builder.io/qwik": "1.14.1",
     "@emotion/react": "11.13.0",
     "@emotion/styled": "11.13.0",
     "@modular-forms/qwik": "0.23.1",
@@ -15,9 +16,9 @@
     "@mui/x-data-grid": "6.20.4",
     "@qwik-ui/headless": "0.6.3",
     "@qwik.dev/core": "workspace:*",
+    "@qwik.dev/partytown": "0.11.1",
     "@qwik.dev/react": "workspace:*",
     "@qwik.dev/router": "workspace:*",
-    "@qwik.dev/partytown": "0.11.1",
     "@shikijs/colorized-brackets": "3.1.0",
     "@shikijs/rehype": "3.1.0",
     "@shikijs/transformers": "3.1.0",

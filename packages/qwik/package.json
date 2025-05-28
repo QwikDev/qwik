@@ -109,7 +109,7 @@
       "require": "./dist/insights/index.qwik.cjs"
     },
     "./insights/vite": {
-      "types": "./dist/insights/vite/index.d.ts",
+      "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs",
       "require": "./dist/insights/vite/index.cjs"
     },

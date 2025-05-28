@@ -645,8 +645,26 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             saveScrollHistory(scrollState);
           }
 
-          clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          _waitUntilRendered(elm as Element).then(() => {
+          const navigate = () => {
+            clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            return _waitUntilRendered(elm as Element);
+          };
+
+          const _waitNextPage = () => {
+            if (isServer || props.viewTransition === false) {
+              return navigate();
+            } else {
+              const viewTransition = startViewTransition({
+                update: navigate,
+                types: ['qwik-navigation'],
+              });
+              if (!viewTransition) {
+                return Promise.resolve();
+              }
+              return viewTransition.ready;
+            }
+          };
+          _waitNextPage().then(() => {
             const container = _getQContainerElement(elm as _ElementVNode)!;
             container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(scroller);
@@ -665,14 +683,8 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
     if (isServer) {
       return run();
-    }
-    if (props.viewTransition === false) {
-      run();
     } else {
-      startViewTransition({
-        update: run,
-        types: ['qwik-router-spa'],
-      });
+      run();
     }
   });
 

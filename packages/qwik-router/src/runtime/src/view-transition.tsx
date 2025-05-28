@@ -4,11 +4,8 @@ interface StartViewTransitionOptions {
   types?: string[] | null;
   update?: ViewTransitionUpdateCallback | null;
 }
-interface ViewTransitionUpdateCallback {
-  (): any;
-}
 
-interface DocumentViewTransition extends Document {
+interface DocumentViewTransition extends Omit<Document, 'startViewTransition'> {
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Document/startViewTransition) */
   startViewTransition(
     callbackOptions?: ViewTransitionUpdateCallback | StartViewTransitionOptions
@@ -43,6 +40,7 @@ export const startViewTransition = (params: StartViewTransitionOptions) => {
     }
     const event = new CustomEvent('qviewTransition', { detail: transition });
     document.dispatchEvent(event);
+    return transition;
   } else {
     params.update?.();
   }

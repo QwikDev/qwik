@@ -82,9 +82,8 @@ export interface PreloaderOptions {
 
 // @public (undocumented)
 export interface QwikLoaderOptions {
-    // (undocumented)
     include?: 'always' | 'never' | 'auto';
-    // (undocumented)
+    // @deprecated (undocumented)
     position?: 'top' | 'bottom';
 }
 

@@ -203,6 +203,7 @@ export interface QwikManifest {
         [name: string]: string;
     };
     preloader?: string;
+    qwikLoader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };

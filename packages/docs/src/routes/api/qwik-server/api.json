@@ -138,7 +138,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikLoaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[include?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'always' \\| 'never' \\| 'auto'\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[position?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'top' \\| 'bottom'\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikLoaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[include?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'always' \\| 'never' \\| 'auto'\n\n\n</td><td>\n\n_(Optional)_ Whether to include the qwikloader script in the document. Normally you don't need to worry about this, but in case of multi-container apps using different Qwik versions, you might want to only enable it on one of the containers.\n\nDefaults to `'auto'`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[position?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'top' \\| 'bottom'\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "qwik.qwikloaderoptions.md"
     },

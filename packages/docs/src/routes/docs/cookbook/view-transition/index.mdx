@@ -49,7 +49,7 @@ export default component$(({ list }) => {
 }
 ```
 
-Sometime we need to have some specific logic before the animation start. In this case you can listen to the `qviewTransition` event.
+Sometime we need to have some specific logic before the animation start. In this case you can listen to the `qviewtransition` event.
 
 For example if you want to only animate visible element:
 
@@ -57,7 +57,7 @@ For example if you want to only animate visible element:
 export default component$(() => {
   // In this case we need the callback to be sync, else the transition might have already happened
   useOnDocument(
-    'qviewTransition',
+    'qviewtransition',
     sync$((event: CustomEvent<ViewTransition>) => {
       const transition = event.detail;
       const items = document.querySelectorAll('.item');
@@ -121,7 +121,7 @@ export default component$(() => {
     }
   `);
   useOnDocument(
-    'qviewTransition',
+    'qviewtransition',
     $(async (event: CustomEvent<ViewTransition>) => {
       // Get visible item's viewTransitionName (should happen before transition is ready)
       const items = document.querySelectorAll<HTMLElement>('.item');

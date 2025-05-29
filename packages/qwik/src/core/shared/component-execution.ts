@@ -117,7 +117,7 @@ export const executeComponent = (
       (err) => {
         if (isPromise(err) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
           return err.then(() =>
-            executeComponentWithPromiseExceptionRetry(retryCount++)
+            executeComponentWithPromiseExceptionRetry(++retryCount)
           ) as Promise<JSXOutput>;
         } else {
           throw err;

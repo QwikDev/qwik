@@ -118,7 +118,7 @@ describe('signal', () => {
 
   afterEach(async () => {
     delayMap.clear();
-    await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$promise$!;
     await getTestPlatform().flush();
     container = null!;
   });
@@ -184,8 +184,8 @@ describe('signal', () => {
         expect(log).toEqual([12, 23]);
       });
     });
-    it('force', () =>
-      withContainer(async () => {
+    it('force', async () => {
+      await withContainer(async () => {
         const obj = { count: 0 };
         const computed = await retry(() => {
           return createComputedQrl(
@@ -213,7 +213,8 @@ describe('signal', () => {
         computed.force();
         await flushSignals();
         expect(log).toEqual([1, 2]);
-      }));
+      });
+    });
   });
   ////////////////////////////////////////
 
@@ -224,7 +225,7 @@ describe('signal', () => {
   }
 
   function flushSignals() {
-    return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    return container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$promise$;
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */

@@ -56,7 +56,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedLoading(value: boolean) {
     if (value !== this.$untrackedLoading$) {
       this.$untrackedLoading$ = value;
-      this.$container$?.$scheduler$(
+      this.$container$?.$scheduler$.schedule(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
@@ -81,7 +81,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedError(value: Error | null) {
     if (value !== this.$untrackedError$) {
       this.$untrackedError$ = value;
-      this.$container$?.$scheduler$(
+      this.$container$?.$scheduler$.schedule(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
@@ -92,6 +92,11 @@ export class AsyncComputedSignalImpl<T>
 
   get untrackedError() {
     return this.$untrackedError$;
+  }
+
+  override $invalidate$() {
+    super.$invalidate$();
+    this.$promiseValue$ = null;
   }
 
   $computeIfNeeded$() {

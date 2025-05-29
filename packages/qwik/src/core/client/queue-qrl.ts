@@ -28,5 +28,5 @@ export const queueQRL = (...args: unknown[]) => {
     throw qError(QError.schedulerNotFound);
   }
 
-  return scheduler(ChoreType.RUN_QRL, hostElement, runQrl, args);
+  return scheduler.schedule(ChoreType.RUN_QRL, hostElement, runQrl, args);
 };

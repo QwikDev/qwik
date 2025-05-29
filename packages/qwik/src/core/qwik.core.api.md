@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Chore as Chore_2 } from '../shared/scheduler';
 import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
@@ -11,7 +12,6 @@ import { isServer } from '@qwik.dev/core/build';
 import { QRL as QRL_2 } from './qrl.public';
 import { ReadonlySignal as ReadonlySignal_2 } from '..';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
-import { ValueOrPromise as ValueOrPromise_2 } from '..';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -231,7 +231,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    handleError(err: any, host: HostElement): void;
+    handleError(err: any, host: HostElement | null): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -855,7 +855,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
+export const _run: (...args: unknown[]) => Chore_2 | undefined;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;
@@ -890,7 +890,7 @@ export abstract class _SharedContainer implements Container {
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
-    constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
+    constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string);
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
@@ -898,7 +898,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: HostElement): void;
+    abstract handleError(err: any, $host$: HostElement | null): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts

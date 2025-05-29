@@ -78,9 +78,17 @@
  *   within component.
  * - Visible Tasks are sorted afterJournalFlush, than depth first on component and finally in
  *   declaration order within component.
+ *
+ * Blocking chores:
+ *
+ * - RUN_QRL -> TASK
+ * - TASK -> subsequent TASK
+ * - COMPONENT -> NODE_DIFF
+ * - COMPONENT -> TRIGGER_EFFECTS
+ * - QRL_RESOLVE -> RUN_QRL, COMPONENT
  */
 
-import { isDomContainer, type DomContainer } from '../client/dom-container';
+import { type DomContainer } from '../client/dom-container';
 import {
   ElementVNodeProps,
   VNodeFlags,
@@ -112,23 +120,25 @@ import {
 import { ChoreType } from './util-chore-type';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
-import { assertEqual, assertFalse } from './error/assert';
+import { assertFalse } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import { type QRLInternal } from './qrl/qrl-class';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
-import { QScopedStyle } from './utils/markers';
+import { ELEMENT_SEQ, QScopedStyle } from './utils/markers';
 import { isPromise, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
-import type { ValueOrPromise } from './utils/types';
+import { isNumber, type ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { StoreHandler } from '../reactive-primitives/impl/store';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { getPlatform, isServerPlatform } from './platform/platform';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -139,10 +149,13 @@ export interface Chore {
   $host$: HostElement;
   $target$: ChoreTarget | null;
   $payload$: unknown;
-  $resolve$?: (value: any) => void;
+  $pending$: boolean;
+  $blockedChores$: Chore[] | null;
+
   $promise$?: Promise<any>;
+  $resolve$?: (value: any) => void;
+  $reject$?: (reason?: any) => void;
   $returnValue$: any;
-  $executed$: boolean;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
@@ -153,23 +166,31 @@ type ChoreTarget =
   | Signal
   | StoreTarget;
 
-const getPromise = (chore: Chore) =>
-  (chore.$promise$ ||= new Promise((resolve) => {
+export const getChorePromise = (chore: Chore) =>
+  (chore.$promise$ ||= new Promise((resolve, reject) => {
     chore.$resolve$ = resolve;
+    chore.$reject$ = reject;
   }));
 
-export const createScheduler = (
-  container: Container,
-  scheduleDrain: () => void,
-  journalFlush: () => void
-) => {
+export const createScheduler = (container: Container, journalFlush: () => void) => {
   const choreQueue: Chore[] = [];
-  const qrlRuns: Promise<any>[] = [];
 
-  let currentChore: Chore | null = null;
-  let drainScheduled: boolean = false;
+  let drainChore: Chore | null = null;
+  let drainScheduled = false;
+  let runningChoresCount = 0;
+  let isDraining = false;
 
-  return schedule;
+  function drainInNextTick() {
+    if (!drainScheduled) {
+      drainScheduled = true;
+      getPlatform().nextTick(() => drainChoreQueue());
+    }
+  }
+  // Drain for ~16.67ms, then apply journal flush for ~16.67ms, then repeat
+  // We divide by 60 because we want to run at 60fps
+  const FREQUENCY_MS = Math.floor(1000 / 60);
+
+  return { schedule, drainChoreQueue };
 
   ////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////
@@ -178,9 +199,8 @@ export const createScheduler = (
     type: ChoreType.QRL_RESOLVE,
     ignore: null,
     target: ComputeQRL<any> | AsyncComputeQRL<any>
-  ): ValueOrPromise<void>;
-  function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
-  function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
+  ): Chore;
+  function schedule(type: ChoreType.WAIT_FOR_QUEUE): Chore;
   /**
    * Schedule rendering of a component.
    *
@@ -193,63 +213,41 @@ export const createScheduler = (
     host: HostElement | null,
     target: Signal | StoreHandler,
     effects: Set<EffectSubscription> | null
-  ): ValueOrPromise<void>;
-  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
+  ): Chore;
+  function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): Chore;
   function schedule(
     type: ChoreType.RUN_QRL,
     host: HostElement,
     target: QRLInternal<(...args: unknown[]) => unknown>,
     args: unknown[]
-  ): ValueOrPromise<void>;
+  ): Chore;
   function schedule(
     type: ChoreType.COMPONENT,
     host: HostElement,
     qrl: QRLInternal<OnRenderFn<unknown>>,
     props: Props | null
-  ): ValueOrPromise<JSXOutput>;
+  ): Chore;
   function schedule(
     type: ChoreType.NODE_DIFF,
     host: HostElement,
     target: HostElement,
     value: JSXOutput | Signal
-  ): ValueOrPromise<void>;
-  function schedule(
-    type: ChoreType.NODE_PROP,
-    host: HostElement,
-    prop: string,
-    value: any
-  ): ValueOrPromise<void>;
-  function schedule(type: ChoreType.CLEANUP_VISIBLE, task: Task): ValueOrPromise<JSXOutput>;
+  ): Chore;
+  function schedule(type: ChoreType.NODE_PROP, host: HostElement, prop: string, value: any): Chore;
+  function schedule(type: ChoreType.CLEANUP_VISIBLE, task: Task): Chore;
   ///// IMPLEMENTATION /////
   function schedule(
     type: ChoreType,
     hostOrTask: HostElement | Task | null = null,
     targetOrQrl: ChoreTarget | string | null = null,
     payload: any = null
-  ): ValueOrPromise<any> {
-    const isServer = !isDomContainer(container);
-    const isComponentSsr = isServer && type === ChoreType.COMPONENT;
+  ): Chore {
+    if (type === ChoreType.WAIT_FOR_QUEUE && drainChore) {
+      return drainChore;
+    }
 
-    const runLater: boolean =
-      type !== ChoreType.WAIT_FOR_ALL && !isComponentSsr && type !== ChoreType.RUN_QRL;
     const isTask =
       type === ChoreType.TASK || type === ChoreType.VISIBLE || type === ChoreType.CLEANUP_VISIBLE;
-    const isClientOnly =
-      type === ChoreType.JOURNAL_FLUSH ||
-      type === ChoreType.NODE_DIFF ||
-      type === ChoreType.NODE_PROP ||
-      type === ChoreType.QRL_RESOLVE ||
-      type === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS;
-    if (isServer && isClientOnly) {
-      DEBUG &&
-        debugTrace(
-          `skip client chore ${debugChoreTypeToString(type)}`,
-          null,
-          currentChore,
-          choreQueue
-        );
-      return;
-    }
 
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
@@ -264,271 +262,360 @@ export const createScheduler = (
       $host$: isTask ? (hostOrTask as Task).$el$ : (hostOrTask as HostElement),
       $target$: targetOrQrl as ChoreTarget | null,
       $payload$: isTask ? hostOrTask : payload,
-      $resolve$: null!,
-      $promise$: null!,
+      $pending$: false,
+      $blockedChores$: null,
       $returnValue$: null,
-      $executed$: false,
     };
 
-    chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
-
-    DEBUG && debugTrace('schedule', chore, currentChore, choreQueue);
-    if (!drainScheduled && runLater) {
-      // If we are not currently draining, we need to schedule a drain.
-      drainScheduled = true;
-      schedule(ChoreType.JOURNAL_FLUSH);
-      // Catch here to avoid unhandled promise rejection
-      (scheduleDrain() as any)?.catch?.(() => {});
+    if (type === ChoreType.WAIT_FOR_QUEUE) {
+      getChorePromise(chore);
+      drainChore = chore;
+      // TODO: I think this is not right, because we can drain the same queue twice
+      immediateDrain();
+      return chore;
     }
-    // TODO figure out what to do with chore errors
-    if (runLater) {
-      return getPromise(chore);
-    } else {
-      return drainUpTo(chore, isServer);
+
+    const isServer = isServerPlatform();
+    const isClientOnly =
+      type === ChoreType.NODE_DIFF ||
+      type === ChoreType.NODE_PROP ||
+      type === ChoreType.QRL_RESOLVE;
+    if (isServer && isClientOnly) {
+      DEBUG && debugTrace(`skip client chore ${debugChoreTypeToString(type)}`, null, choreQueue);
+      // TODO mark done?
+      return chore;
     }
-  }
 
-  /** Execute all of the chores up to and including the given chore. */
-  function drainUpTo(runUptoChore: Chore, isServer: boolean): ValueOrPromise<unknown> {
-    let maxRetries = 5000;
-    while (choreQueue.length) {
-      if (maxRetries-- < 0) {
-        throw new Error('drainUpTo: max retries reached');
+    let blocked = false;
+    if (
+      chore.$type$ === ChoreType.RUN_QRL ||
+      chore.$type$ === ChoreType.TASK ||
+      chore.$type$ === ChoreType.VISIBLE
+    ) {
+      const component = chore.$host$;
+      // TODO optimize
+      const qrlChore = choreQueue.find(
+        (c) => c.$type$ === ChoreType.QRL_RESOLVE && c.$host$ === component
+      );
+      if (qrlChore) {
+        qrlChore.$blockedChores$ ||= [];
+        qrlChore.$blockedChores$.push(chore);
+        blocked = true;
       }
-
-      if (currentChore) {
-        // Already running chore, which means we're waiting for async completion
-        return getPromise(currentChore)
-          .then(() => drainUpTo(runUptoChore, isServer))
-          .catch((e) => {
-            container.handleError(e, currentChore?.$host$ as any);
-          });
-      }
-
-      const nextChore = choreQueue[0];
-
-      if (nextChore.$executed$) {
-        choreQueue.shift();
-        if (nextChore === runUptoChore) {
-          break;
-        }
-        continue;
-      }
-
-      if (
-        vNodeAlreadyDeleted(nextChore) &&
-        // we need to process cleanup tasks for deleted nodes
-        nextChore.$type$ !== ChoreType.CLEANUP_VISIBLE
-      ) {
-        DEBUG && debugTrace('skip chore', nextChore, currentChore, choreQueue);
-        choreQueue.shift();
-        continue;
-      }
-
-      executeChore(nextChore, isServer);
     }
-    return runUptoChore.$returnValue$;
-  }
 
-  function executeChore(chore: Chore, isServer: boolean) {
-    const host = chore.$host$;
-    DEBUG && debugTrace('execute', chore, currentChore, choreQueue);
-    assertEqual(currentChore, null, 'Chore already running.');
-    currentChore = chore;
-    let returnValue: ValueOrPromise<unknown> | unknown = null;
-    try {
-      switch (chore.$type$) {
-        case ChoreType.WAIT_FOR_ALL:
-          {
-            if (isServer) {
-              drainScheduled = false;
-            }
-          }
-          break;
-        case ChoreType.JOURNAL_FLUSH:
-          {
-            returnValue = journalFlush();
-            drainScheduled = false;
-          }
-          break;
-        case ChoreType.COMPONENT:
-          {
-            returnValue = safeCall(
-              () =>
-                executeComponent(
-                  container,
-                  host,
-                  host,
-                  chore.$target$ as QRLInternal<OnRenderFn<unknown>>,
-                  chore.$payload$ as Props | null
-                ),
-              (jsx) => {
-                if (isServer) {
-                  return jsx;
-                } else {
-                  const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-                  return retryOnPromise(() =>
-                    vnode_diff(
-                      container as ClientContainer,
-                      jsx,
-                      host as VirtualVNode,
-                      addComponentStylePrefix(styleScopedId)
-                    )
-                  );
-                }
-              },
-              (err: any) => container.handleError(err, host)
-            );
-          }
-          break;
-        case ChoreType.RUN_QRL:
-          {
-            const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
-            const result = retryOnPromise(() => fn(...(chore.$payload$ as unknown[])));
-            if (isPromise(result)) {
-              const handled = result
-                .finally(() => {
-                  qrlRuns.splice(qrlRuns.indexOf(handled), 1);
-                })
-                .catch((error) => {
-                  container.handleError(error, chore.$host$);
-                });
-              // Don't wait for the promise to resolve
-              // TODO come up with a better solution, we also want concurrent signal handling with tasks but serial tasks
-              qrlRuns.push(handled);
-              DEBUG &&
-                debugTrace('execute.DONE (but still running)', chore, currentChore, choreQueue);
-              chore.$returnValue$ = handled;
-              chore.$resolve$?.(handled);
-              currentChore = null;
-              chore.$executed$ = true;
-              // early out so we don't call after()
-              return;
-            }
-            returnValue = null;
-          }
-          break;
-        case ChoreType.TASK:
-        case ChoreType.VISIBLE:
-          {
-            const payload = chore.$payload$ as DescriptorBase;
-            if (payload.$flags$ & TaskFlags.RESOURCE) {
-              const result = runResource(payload as ResourceDescriptor<TaskFn>, container, host);
-              // Don't await the return value of the resource, because async resources should not be awaited.
-              // The reason for this is that we should be able to update for example a node with loading
-              // text. If we await the resource, the loading text will not be displayed until the resource
-              // is loaded.
-              // Awaiting on the client also causes a deadlock.
-              // In any case, the resource will never throw.
-              returnValue = isServer ? result : null;
-            } else {
-              returnValue = runTask(payload as Task<TaskFn, TaskFn>, container, host);
-            }
-          }
-          break;
-        case ChoreType.CLEANUP_VISIBLE:
-          {
-            const task = chore.$payload$ as Task<TaskFn, TaskFn>;
-            cleanupTask(task);
-          }
-          break;
-        case ChoreType.NODE_DIFF:
-          {
-            const parentVirtualNode = chore.$target$ as VirtualVNode;
-            let jsx = chore.$payload$ as JSXOutput;
-            if (isSignal(jsx)) {
-              jsx = jsx.value as any;
-            }
-            returnValue = retryOnPromise(() =>
-              vnode_diff(container as DomContainer, jsx, parentVirtualNode, null)
-            );
-          }
-          break;
-        case ChoreType.NODE_PROP:
-          {
-            const virtualNode = chore.$host$ as unknown as ElementVNode;
-            const payload = chore.$payload$ as NodePropPayload;
-            let value: Signal<any> | string = payload.$value$;
-            if (isSignal(value)) {
-              value = value.value as any;
-            }
-            const isConst = payload.$isConst$;
-            const journal = (container as DomContainer).$journal$;
-            const property = chore.$idx$ as string;
-            const serializedValue = serializeAttribute(
-              property,
-              value,
-              payload.$scopedStyleIdPrefix$
-            );
-            if (isConst) {
-              const element = virtualNode[ElementVNodeProps.element] as Element;
-              journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
-            } else {
-              vnode_setAttr(journal, virtualNode, property, serializedValue);
-            }
-          }
-          break;
-        case ChoreType.QRL_RESOLVE: {
-          {
-            const target = chore.$target$ as QRLInternal<any>;
-            returnValue = !target.resolved ? target.resolve() : null;
-          }
-          break;
-        }
-        case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
-          {
-            const target = chore.$target$ as
-              | SignalImpl
-              | ComputedSignalImpl<unknown>
-              | WrappedSignalImpl<unknown>
-              | StoreHandler;
-
-            const effects = chore.$payload$ as Set<EffectSubscription>;
-
-            if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
-              const forceRunEffects = target.$forceRunEffects$;
-              target.$forceRunEffects$ = false;
-              if (!target.$effects$?.size) {
-                break;
+    if (chore.$type$ === ChoreType.NODE_DIFF || chore.$type$ === ChoreType.NODE_PROP) {
+      // blocked by its component chore
+      const component = chore.$host$;
+      // TODO: better way to find the component chore
+      const componentChore = choreQueue.find(
+        (c) => c.$type$ === ChoreType.COMPONENT && c.$host$ === component
+      );
+      if (componentChore) {
+        componentChore.$blockedChores$ ||= [];
+        componentChore.$blockedChores$.push(chore);
+        blocked = true;
+      }
+    } else if (chore.$type$ === ChoreType.TASK) {
+      // Tasks are blocking other tasks in the same component
+      // They should be executed in the order of declaration
+      if (isNumber(chore.$idx$) && chore.$idx$ > 0) {
+        // For tasks with index > 0, they are probably blocked by a previous task
+        const component = chore.$host$;
+        const elementSeq = container.getHostProp<unknown[] | null>(component, ELEMENT_SEQ);
+        if (elementSeq) {
+          let currentTaskFound = false;
+          for (let i = chore.$idx$; i > 0; i--) {
+            const task = elementSeq[i];
+            if (task && chore.$payload$ === task) {
+              currentTaskFound = true;
+              continue;
+            } else if (currentTaskFound && task instanceof Task && task.$flags$ & TaskFlags.TASK) {
+              // Find the chore for the task
+              const taskChore = choreQueue.find((c) => c.$payload$ === task);
+              if (taskChore) {
+                // Add the chore to the blocked chores of the previous task
+                taskChore.$blockedChores$ ||= [];
+                taskChore.$blockedChores$.push(chore);
+                blocked = true;
               }
-              returnValue = retryOnPromise(() => {
-                if (target.$computeIfNeeded$() || forceRunEffects) {
-                  triggerEffects(container, target, effects);
-                }
-              });
-            } else {
-              returnValue = retryOnPromise(() => {
-                triggerEffects(container, target, effects);
-              });
             }
           }
-          break;
+        }
+      }
+    }
+    if (!blocked) {
+      chore = sortedInsert(choreQueue, chore, (container as DomContainer).rootVNode || null);
+      DEBUG && debugTrace('schedule', chore, choreQueue);
+    } else {
+      DEBUG && debugTrace('skip blocked chore', chore, choreQueue);
+    }
+
+    if (isServer && type === ChoreType.COMPONENT && !isDraining) {
+      immediateDrain();
+    } else {
+      drainInNextTick();
+    }
+    return chore;
+  }
+
+  function immediateDrain() {
+    drainScheduled = true;
+    drainChoreQueue();
+  }
+
+  function drainChoreQueue(): void {
+    isDraining = true;
+    const isServer = isServerPlatform();
+    const startTime = performance.now();
+    let now = 0;
+
+    const shouldApplyJournalFlush = () => {
+      return !isServer && now - startTime > FREQUENCY_MS;
+    };
+
+    const applyJournalFlush = () => {
+      journalFlush();
+      DEBUG && debugTrace('journalFlush.DONE', null, choreQueue);
+    };
+
+    const maybeFinishDrain = () => {
+      if (choreQueue.length) {
+        return drainChoreQueue();
+      }
+      if (runningChoresCount || !drainScheduled) {
+        if (shouldApplyJournalFlush()) {
+          // apply journal flush even if we are not finished draining the queue
+          applyJournalFlush();
+        }
+        return;
+      }
+      currentChore = null;
+      drainScheduled = false;
+      isDraining = false;
+      applyJournalFlush();
+      drainChore?.$resolve$!(null);
+      drainChore = null;
+      DEBUG && debugTrace('drain.DONE', drainChore, choreQueue);
+    };
+
+    const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
+      if (chore.$blockedChores$) {
+        const rootVNode = (container as DomContainer).rootVNode || null;
+        for (const blockedChore of chore.$blockedChores$) {
+          DEBUG && debugTrace('schedule blocked chore', blockedChore, choreQueue);
+          sortedInsert(choreQueue, blockedChore, rootVNode);
+        }
+        chore.$blockedChores$ = null;
+      }
+      drainInNextTick();
+    };
+
+    let currentChore: Chore | null = null;
+
+    try {
+      while (choreQueue.length) {
+        now = performance.now();
+
+        currentChore = choreQueue.shift()!;
+
+        if (currentChore.$pending$) {
+          continue;
+        }
+
+        if (
+          vNodeAlreadyDeleted(currentChore) &&
+          // we need to process cleanup tasks for deleted nodes
+          currentChore.$type$ !== ChoreType.CLEANUP_VISIBLE
+        ) {
+          // skip deleted chore
+          DEBUG && debugTrace('skip chore', currentChore, choreQueue);
+          continue;
+        }
+        // TODO: check if chore is blocked by another chore
+        const result = executeChore(currentChore, isServer);
+        if (isPromise(result)) {
+          runningChoresCount++;
+          currentChore.$pending$ = true;
+          getChorePromise(currentChore);
+          result
+            .then((value) => {
+              DEBUG && debugTrace('execute.DONE', currentChore, choreQueue);
+              currentChore!.$returnValue$ = value;
+              currentChore!.$resolve$?.(value);
+
+              scheduleBlockedChoresAndDrainIfNeeded(currentChore!);
+            })
+            .catch((e) => {
+              currentChore!.$returnValue$ = null;
+              currentChore!.$reject$?.(e);
+              DEBUG && debugTrace('execute.ERROR', currentChore, choreQueue);
+              container.handleError(e, currentChore!.$host$);
+            })
+            .finally(() => {
+              currentChore!.$pending$ = false;
+              runningChoresCount--;
+              maybeFinishDrain();
+            });
+        } else {
+          DEBUG && debugTrace('execute.DONE', currentChore, choreQueue);
+          currentChore.$returnValue$ = result;
+          scheduleBlockedChoresAndDrainIfNeeded(currentChore);
+        }
+
+        if (shouldApplyJournalFlush()) {
+          applyJournalFlush();
+          drainInNextTick();
+          return;
         }
       }
     } catch (e) {
-      returnValue = Promise.reject(e);
+      DEBUG && debugTrace('execute.ERROR', currentChore, choreQueue);
+      container.handleError(e, currentChore?.$host$ || null);
+    } finally {
+      maybeFinishDrain();
     }
+  }
 
-    const after = (value?: any, error?: Error) => {
-      currentChore = null;
-      chore.$executed$ = true;
-      if (error) {
-        DEBUG && debugTrace('execute.ERROR', chore, currentChore, choreQueue);
-        container.handleError(error, host);
-      } else {
-        chore.$returnValue$ = value;
-        DEBUG && debugTrace('execute.DONE', chore, currentChore, choreQueue);
-        chore.$resolve$?.(value);
+  function executeChore(chore: Chore, isServer: boolean): ValueOrPromise<unknown> {
+    const host = chore.$host$;
+    DEBUG && debugTrace('execute', chore, choreQueue);
+    let returnValue: ValueOrPromise<unknown> | unknown = null;
+    switch (chore.$type$) {
+      case ChoreType.COMPONENT:
+        {
+          returnValue = safeCall(
+            () =>
+              executeComponent(
+                container,
+                host,
+                host,
+                chore.$target$ as QRLInternal<OnRenderFn<unknown>>,
+                chore.$payload$ as Props | null
+              ),
+            (jsx) => {
+              if (isServer) {
+                return jsx;
+              } else {
+                const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+                return retryOnPromise(() =>
+                  vnode_diff(
+                    container as ClientContainer,
+                    jsx,
+                    host as VirtualVNode,
+                    addComponentStylePrefix(styleScopedId)
+                  )
+                );
+              }
+            },
+            (err: any) => {
+              container.handleError(err, host);
+            }
+          );
+        }
+        break;
+      case ChoreType.RUN_QRL:
+        {
+          const fn = (chore.$target$ as QRLInternal<(...args: unknown[]) => unknown>).getFn();
+          returnValue = retryOnPromise(() => fn(...(chore.$payload$ as unknown[])));
+        }
+        break;
+      case ChoreType.TASK:
+      case ChoreType.VISIBLE:
+        {
+          const payload = chore.$payload$ as DescriptorBase;
+          if (payload.$flags$ & TaskFlags.RESOURCE) {
+            returnValue = runResource(payload as ResourceDescriptor<TaskFn>, container, host);
+          } else {
+            returnValue = runTask(payload as Task<TaskFn, TaskFn>, container, host);
+          }
+        }
+        break;
+      case ChoreType.CLEANUP_VISIBLE:
+        {
+          const task = chore.$payload$ as Task<TaskFn, TaskFn>;
+          cleanupTask(task);
+        }
+        break;
+      case ChoreType.NODE_DIFF:
+        {
+          const parentVirtualNode = chore.$target$ as VirtualVNode;
+          let jsx = chore.$payload$ as JSXOutput;
+          if (isSignal(jsx)) {
+            jsx = jsx.value as any;
+          }
+          returnValue = retryOnPromise(() =>
+            vnode_diff(container as DomContainer, jsx, parentVirtualNode, null)
+          );
+        }
+        break;
+      case ChoreType.NODE_PROP:
+        {
+          const virtualNode = chore.$host$ as unknown as ElementVNode;
+          const payload = chore.$payload$ as NodePropPayload;
+          let value: Signal<any> | string = payload.$value$;
+          if (isSignal(value)) {
+            value = value.value as any;
+          }
+          const isConst = payload.$isConst$;
+          const journal = (container as DomContainer).$journal$;
+          const property = chore.$idx$ as string;
+          const serializedValue = serializeAttribute(
+            property,
+            value,
+            payload.$scopedStyleIdPrefix$
+          );
+          if (isConst) {
+            const element = virtualNode[ElementVNodeProps.element] as Element;
+            journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
+          } else {
+            vnode_setAttr(journal, virtualNode, property, serializedValue);
+          }
+        }
+        break;
+      case ChoreType.QRL_RESOLVE: {
+        {
+          const target = chore.$target$ as QRLInternal<any>;
+          returnValue = !target.resolved ? target.resolve() : null;
+        }
+        break;
       }
-    };
+      case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
+        {
+          const target = chore.$target$ as
+            | SignalImpl
+            | ComputedSignalImpl<unknown>
+            | WrappedSignalImpl<unknown>
+            | StoreHandler;
 
-    if (isPromise(returnValue)) {
-      chore.$promise$ = returnValue.then(after, (error) => after(undefined, error));
-      chore.$resolve$?.(chore.$promise$);
-      chore.$resolve$ = undefined;
-    } else {
-      after(returnValue);
+          const effects = chore.$payload$ as Set<EffectSubscription>;
+          if (!target.$effects$?.size) {
+            break;
+          }
+
+          if (target instanceof AsyncComputedSignalImpl) {
+            // TODO: it should be triggered only when value is changed only
+            returnValue = retryOnPromise(() => {
+              triggerEffects(container, target, effects);
+            });
+          } else if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
+            const forceRunEffects = target.$forceRunEffects$;
+            target.$forceRunEffects$ = false;
+            returnValue = retryOnPromise(() => {
+              if (target.$computeIfNeeded$() || forceRunEffects) {
+                triggerEffects(container, target, effects);
+              }
+            });
+          } else {
+            returnValue = retryOnPromise(() => {
+              triggerEffects(container, target, effects);
+            });
+          }
+        }
+        break;
+      }
     }
+    return returnValue;
   }
 
   /**
@@ -592,11 +679,6 @@ export const createScheduler = (
       return 1;
     }
 
-    // If the chore is the same as the current chore, we will run it again
-    if (b === currentChore) {
-      return 1;
-    }
-
     // The chores are the same and will run only once
     return 0;
   }
@@ -643,11 +725,8 @@ export const createScheduler = (
      * multiple times during component execution. For this reason it is necessary for us to update
      * the chore with the latest result of the signal.
      */
-    if (existing.$type$ === ChoreType.NODE_DIFF) {
+    if (existing.$payload$ !== value.$payload$) {
       existing.$payload$ = value.$payload$;
-    }
-    if (existing.$executed$) {
-      existing.$executed$ = false;
     }
     return existing;
   }
@@ -676,10 +755,9 @@ function debugChoreTypeToString(type: ChoreType): string {
         [ChoreType.NODE_PROP]: 'NODE_PROP',
         [ChoreType.COMPONENT]: 'COMPONENT',
         [ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS]: 'RECOMPUTE_SIGNAL',
-        [ChoreType.JOURNAL_FLUSH]: 'JOURNAL_FLUSH',
         [ChoreType.VISIBLE]: 'VISIBLE',
         [ChoreType.CLEANUP_VISIBLE]: 'CLEANUP_VISIBLE',
-        [ChoreType.WAIT_FOR_ALL]: 'WAIT_FOR_ALL',
+        [ChoreType.WAIT_FOR_QUEUE]: 'WAIT_FOR_QUEUE',
       } as Record<ChoreType, string>
     )[type] || 'UNKNOWN: ' + type
   );
@@ -691,23 +769,18 @@ function debugChoreToString(chore: Chore): string {
   return `Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL ? qrlTarget : host} ${chore.$idx$})`;
 }
 
-function debugTrace(
-  action: string,
-  arg?: any | null,
-  currentChore?: Chore | null,
-  queue?: Chore[]
-) {
+function debugTrace(action: string, arg?: any | null, queue?: Chore[]) {
   const lines = ['===========================\nScheduler: ' + action];
   if (arg && !('$type$' in arg)) {
     lines.push('      arg: ' + String(arg).replaceAll(/\n.*/gim, ''));
+  } else if (arg && !queue?.length) {
+    lines.push('      arg: ' + debugChoreToString(arg));
   }
   if (queue) {
     queue.forEach((chore) => {
       const active = chore === arg ? '>>>' : '   ';
       lines.push(
-        `     ${active} > ` +
-          (chore === currentChore ? '[running] ' : '') +
-          debugChoreToString(chore)
+        `     ${active} > ` + (chore.$pending$ ? '[running] ' : '') + debugChoreToString(chore)
       );
     });
   }

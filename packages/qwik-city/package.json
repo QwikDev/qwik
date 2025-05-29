@@ -13,7 +13,7 @@
     "vfile": "6.0.3",
     "vite": "^5",
     "vite-imagetools": "^7.1.0",
-    "zod": "3.25.28"
+    "zod": "3.25.34"
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",

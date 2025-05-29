@@ -38,7 +38,7 @@ export const startViewTransition = (params: StartViewTransitionOptions) => {
       // Fallback for Chrome 111 until Chrome 125
       transition = (document as DocumentViewTransition).startViewTransition(params.update);
     }
-    const event = new CustomEvent('qviewTransition', { detail: transition });
+    const event = new CustomEvent('qviewtransition', { detail: transition });
     document.dispatchEvent(event);
     return transition;
   } else {

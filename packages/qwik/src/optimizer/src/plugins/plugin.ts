@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
-import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
+import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
+import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -7,23 +9,22 @@ import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SegmentAnalysis,
+  ServerQwikManifest,
+  SmartEntryStrategy,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
-  SmartEntryStrategy,
-  ServerQwikManifest,
 } from '../types';
-import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
-import { isWin, parseId } from './vite-utils';
-import type { BundleGraphAdder } from '..';
+import { versions } from '../versions';
 import { convertManifestToBundleGraph } from './bundle-graph';
+import { createLinter, type QwikLinter } from './eslint-plugin';
+import { isWin, parseId } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
 
@@ -939,6 +940,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
 
     manifest.platform = {
       ...manifestExtra?.platform,
+      qwik: versions.qwik,
       rollup: ctx.meta?.rollupVersion || '',
       env: optimizer.sys.env,
       os: optimizer.sys.os,

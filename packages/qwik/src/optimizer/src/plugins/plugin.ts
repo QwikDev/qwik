@@ -72,6 +72,8 @@ export enum ExperimentalFeatures {
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
+  /** Enable request.rewrite() */
+  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable worker$ */
   webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
@@ -913,6 +915,7 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
         mapping: manifest.mapping,
         preloader: manifest.preloader,
+        core: manifest.core,
       };
     }
     return `// @qwik-client-manifest

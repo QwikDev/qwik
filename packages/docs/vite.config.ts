@@ -1,4 +1,4 @@
-import { partytownVite } from '@builder.io/partytown/utils';
+import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikReact } from '@qwik.dev/react/vite';

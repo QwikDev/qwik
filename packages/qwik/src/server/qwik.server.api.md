@@ -101,7 +101,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // @deprecated (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     // (undocumented)
-    preloader?: PreloaderOptions | boolean;
+    preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     // (undocumented)
     serverData?: Record<string, any>;

@@ -95,6 +95,8 @@ export interface SSRContainer extends Container {
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
 
+  emitPreloaderPre(): void;
+
   emitQwikLoaderAtTopIfNeeded(): void;
 }
 

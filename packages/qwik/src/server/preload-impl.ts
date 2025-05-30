@@ -1,19 +1,98 @@
-import { expandBundles } from './prefetch-strategy';
-import type { SSRContainer, ResolvedManifest } from './qwik-types';
-import type { PreloaderOptions } from './types';
+import { expandBundles, getPreloadPaths } from './preload-strategy';
+import { initPreloader } from './qwik-copy';
+import type { QRLInternal, SSRContainer } from './qwik-types';
+import type { PreloaderOptions, RenderOptions, RenderToStreamOptions } from './types';
 
-export function includePreloader(
+export const preloaderPre = (
   container: SSRContainer,
-  resolved: ResolvedManifest | undefined,
+  options: RenderToStreamOptions['preloader'],
+  nonce?: string
+) => {
+  const { resolvedManifest, $buildBase$: base } = container;
+  const preloadChunk = resolvedManifest?.manifest?.preloader;
+  if (!preloadChunk || options === false || base === null) {
+    return;
+  }
+
+  const preloaderOpts: Parameters<typeof initPreloader>[1] =
+    typeof options === 'object'
+      ? {
+          debug: options.debug,
+          preloadProbability: options.ssrPreloadProbability,
+        }
+      : undefined;
+  const bundleGraph = container.resolvedManifest?.manifest.bundleGraph;
+  initPreloader(bundleGraph, preloaderOpts);
+
+  // Add the preloader script to the head
+  const opts: string[] = [];
+  if (options) {
+    if (options.debug) {
+      opts.push('d:1');
+    }
+    if (options.maxIdlePreloads) {
+      opts.push(`P:${options.maxIdlePreloads}`);
+    }
+    if (options.preloadProbability) {
+      opts.push(`Q:${options.preloadProbability}`);
+    }
+  }
+  const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
+
+  const hash = resolvedManifest?.manifest.manifestHash;
+
+  if (hash) {
+    /**
+     * We add modulepreloads even when the script is at the top because they already fire during
+     * html download
+     */
+    container.openElement('link', null, ['rel', 'modulepreload', 'href', `${base}${preloadChunk}`]);
+    container.closeElement();
+    container.openElement('link', null, [
+      'rel',
+      'preload',
+      'href',
+      `${base}q-bundle-graph-${hash}.json`,
+      'as',
+      'fetch',
+      'crossorigin',
+      'anonymous',
+    ]);
+    container.closeElement();
+
+    const script =
+      `let b=fetch("${base}q-bundle-graph-${hash}.json");` +
+      `import("${base}${preloadChunk}").then(({l})=>` +
+      `l(${JSON.stringify(base)},b${optsStr})` +
+      `);`;
+    const scriptAttrs = ['type', 'module', 'async', true];
+    if (nonce) {
+      scriptAttrs.push('nonce', nonce);
+    }
+    container.openElement('script', null, scriptAttrs);
+    container.writer.write(script);
+    container.closeElement();
+  }
+
+  const core = resolvedManifest?.manifest.core;
+  if (core) {
+    container.openElement('link', null, ['rel', 'modulepreload', 'href', `${base}${core}`]);
+    container.closeElement();
+  }
+};
+
+export const includePreloader = (
+  container: SSRContainer,
   options: PreloaderOptions | boolean | undefined,
   referencedBundles: string[],
   nonce?: string
-) {
+) => {
   if (referencedBundles.length === 0 || options === false) {
     return null;
   }
-  const { ssrPreloads, ssrPreloadProbability, debug, maxIdlePreloads, preloadProbability } =
-    normalizePreLoaderOptions(typeof options === 'boolean' ? undefined : options);
+  const { ssrPreloads, ssrPreloadProbability } = normalizePreLoaderOptions(
+    typeof options === 'boolean' ? undefined : options
+  );
   let allowed = ssrPreloads;
 
   let base = container.$buildBase$!;
@@ -28,9 +107,10 @@ export function includePreloader(
 
   const links = [];
 
-  const manifestHash = resolved?.manifest.manifestHash;
+  const { resolvedManifest } = container;
+  const manifestHash = resolvedManifest?.manifest.manifestHash;
   if (allowed) {
-    const expandedBundles = expandBundles(referencedBundles, resolved);
+    const expandedBundles = expandBundles(referencedBundles, resolvedManifest);
     // Keep the same as in getQueue (but *10)
     let probability = 4;
     const tenXMinProbability = ssrPreloadProbability * 10;
@@ -49,7 +129,7 @@ export function includePreloader(
     }
   }
 
-  const preloadChunk = manifestHash && resolved?.manifest.preloader;
+  const preloadChunk = manifestHash && resolvedManifest?.manifest.preloader;
   if (preloadChunk) {
     const insertLinks = links.length
       ? /**
@@ -61,30 +141,15 @@ export function includePreloader(
         `e=document.createElement('link');` +
         `e.rel='modulepreload';` +
         `e.href=${JSON.stringify(base)}+l;` +
-        `document.body.appendChild(e)` +
+        `document.head.appendChild(e)` +
         `});`
       : '';
-    const opts: string[] = [];
-    if (debug) {
-      opts.push('d:1');
-    }
-    if (maxIdlePreloads !== preLoaderOptionsDefault.maxIdlePreloads) {
-      opts.push(`P:${maxIdlePreloads}`);
-    }
-    if (preloadProbability !== preLoaderOptionsDefault.preloadProbability) {
-      opts.push(`Q:${preloadProbability}`);
-    }
-    const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
     // We are super careful not to interfere with the page loading.
     const script =
+      insertLinks +
       // First we wait for the onload event
       `window.addEventListener('load',f=>{` +
-      `f=b=>{${insertLinks}` +
-      `b=fetch("${base}q-bundle-graph-${manifestHash}.json");` +
-      `import("${base}${preloadChunk}").then(({l,p})=>{` +
-      `l(${JSON.stringify(base)},b${optsStr});` +
-      `p(${JSON.stringify(referencedBundles)});` +
-      `})};` +
+      `f=_=>import("${base}${preloadChunk}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
       // then we ask for idle callback
       `try{requestIdleCallback(f,{timeout:2000})}` +
       // some browsers don't support requestIdleCallback
@@ -94,12 +159,8 @@ export function includePreloader(
      * Uses the preloader chunk to add the `<link>` elements at runtime. This allows core to simply
      * import the preloader as well and have all the state there, plus it makes it easy to write a
      * complex implementation.
-     *
-     * Note that we don't preload the preloader or bundlegraph, they are requested after the SSR
-     * preloads because they are not as important. Also the preloader includes the vitePreload
-     * function and will in fact already be in that list.
      */
-    const attrs = ['type', 'module', 'q:type', 'preload'];
+    const attrs = ['type', 'module', 'async', true, 'q:type', 'preload'];
     if (nonce) {
       attrs.push('nonce', nonce);
     }
@@ -107,7 +168,21 @@ export function includePreloader(
     container.writer.write(script);
     container.closeElement();
   }
-}
+
+  return null;
+};
+
+export const preloaderPost = (ssrContainer: SSRContainer, opts: RenderOptions, nonce?: string) => {
+  if (opts.preloader !== false) {
+    const qrls = Array.from(ssrContainer.serializationCtx.$eventQrls$) as QRLInternal[];
+    // skip prefetch implementation if prefetchStrategy === null
+    const preloadBundles = getPreloadPaths(qrls, opts, ssrContainer.resolvedManifest);
+    // If no preloadBundles, there is no reactivity, so no need to include the preloader
+    if (preloadBundles.length > 0) {
+      includePreloader(ssrContainer, opts.preloader, preloadBundles, nonce);
+    }
+  }
+};
 
 function normalizePreLoaderOptions(
   input: PreloaderOptions | undefined
@@ -116,8 +191,8 @@ function normalizePreLoaderOptions(
 }
 
 const preLoaderOptionsDefault: Required<PreloaderOptions> = {
-  ssrPreloads: 5,
-  ssrPreloadProbability: 0.7,
+  ssrPreloads: 7,
+  ssrPreloadProbability: 0.5,
   debug: false,
   maxIdlePreloads: 25,
   preloadProbability: 0.35,

@@ -1,6 +1,5 @@
-import type { RequestHandler } from "@qwik.dev/router";
-import { routeLoader$ } from "@qwik.dev/router";
 import { component$, Slot, useStyles$ } from "@qwik.dev/core";
+import { routeLoader$ } from "@qwik.dev/router";
 
 import Footer from "../components/starter/footer/footer";
 import Header from "../components/starter/header/header";

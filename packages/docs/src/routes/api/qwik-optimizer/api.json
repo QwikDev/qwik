@@ -107,6 +107,23 @@
       "mdFile": "core.path.dirname.md"
     },
     {
+      "name": "enableRequestRewrite",
+      "id": "experimentalfeatures-enablerequestrewrite",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-enablerequestrewrite"
+        },
+        {
+          "name": "enableRequestRewrite",
+          "id": "experimentalfeatures-enablerequestrewrite"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "core.experimentalfeatures.enablerequestrewrite.md"
+    },
+    {
       "name": "EntryStrategy",
       "id": "entrystrategy",
       "hierarchy": [
@@ -130,7 +147,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and <Insights/> component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\nEnable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and <Insights/> component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "core.experimentalfeatures.md"
     },
@@ -451,7 +468,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "The metadata of the build. One of its uses is storing where QRL symbols are located.\n\n\n```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[bundleGraph?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBundleGraph](#qwikbundlegraph)\n\n\n</td><td>\n\n_(Optional)_ All bundles in a compact graph format with probabilities\n\n\n</td></tr>\n<tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\nAll code bundles, used to know the import graph\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ CSS etc to inject in the document head\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nContent hash of the manifest, if this changes, the code changed\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\nWhere QRLs are located\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { type: [EntryStrategy](#entrystrategy)<!-- -->\\['type'\\]; }; }\n\n\n</td><td>\n\n_(Optional)_ The options used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_ The platform used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[preloader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The preloader bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\nQRL symbols\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe version of the manifest\n\n\n</td></tr>\n</tbody></table>",
+      "content": "The metadata of the build. One of its uses is storing where QRL symbols are located.\n\n\n```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[bundleGraph?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBundleGraph](#qwikbundlegraph)\n\n\n</td><td>\n\n_(Optional)_ All bundles in a compact graph format with probabilities\n\n\n</td></tr>\n<tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\nAll code bundles, used to know the import graph\n\n\n</td></tr>\n<tr><td>\n\n[core?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The Qwik core bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ CSS etc to inject in the document head\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nContent hash of the manifest, if this changes, the code changed\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\nWhere QRLs are located\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { type: [EntryStrategy](#entrystrategy)<!-- -->\\['type'\\]; }; }\n\n\n</td><td>\n\n_(Optional)_ The options used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_ The platform used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[preloader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The preloader bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\nQRL symbols\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe version of the manifest\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.qwikmanifest.md"
     },

@@ -169,6 +169,7 @@ function processJSXNode(
         enqueue(ssr.closeElement);
 
         if (type === 'head') {
+          ssr.emitPreloaderPre();
           enqueue(ssr.additionalHeadNodes);
           enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         } else if (type === 'body') {

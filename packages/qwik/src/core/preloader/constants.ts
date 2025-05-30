@@ -17,3 +17,5 @@ export const rel =
 
 // Global state
 export const loadStart = Date.now();
+
+export const isJSRegex = /\.[mc]?js$/;

@@ -571,7 +571,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
-        run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
+        run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
         uses: actions/upload-artifact@v4

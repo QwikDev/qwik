@@ -5,7 +5,7 @@
   "newlineKind": "lf",
   "apiReport": {
     "enabled": true,
-    "reportFileName": "qwik-city.buildtime",
+    "reportFileName": "qwik-router.buildtime",
     "reportFolder": "<projectFolder>/src/buildtime/vite/",
     "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/vite"
   },

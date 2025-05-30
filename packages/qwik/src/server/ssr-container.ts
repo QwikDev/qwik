@@ -9,7 +9,6 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { getPreloadPaths } from './prefetch-strategy';
 import {
   ChoreType,
   DEBUG_TYPE,
@@ -49,7 +48,6 @@ import {
   maybeThen,
   qError,
   serializeAttribute,
-  initPreloader,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -60,7 +58,6 @@ import {
   type JSXChildren,
   type JSXNodeInternal,
   type JSXOutput,
-  type QRLInternal,
   type SerializationContext,
   type SignalImpl,
   type SsrAttrKey,
@@ -95,7 +92,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import { includePreloader } from './preload-impl';
+import { preloaderPost, preloaderPre } from './preload-impl';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -247,17 +244,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.renderOptions = opts.renderOptions;
 
     this.$processInjectionsFromManifest$();
-    const bundleGraph = this.resolvedManifest?.manifest.bundleGraph;
-    if (bundleGraph) {
-      const preloaderOpts: Parameters<typeof initPreloader>[1] =
-        typeof opts.renderOptions.preloader === 'object'
-          ? {
-              debug: opts.renderOptions.preloader.debug,
-              preloadProbability: opts.renderOptions.preloader.ssrPreloadProbability,
-            }
-          : undefined;
-      initPreloader(bundleGraph, preloaderOpts);
-    }
   }
 
   ensureProjectionResolved(_host: HostElement): void {}
@@ -612,7 +598,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       maybeThen(this.emitStateData(), () => {
         this.$noMoreRoots$ = true;
         this.emitVNodeData();
-        this.emitPreloads();
+        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
@@ -799,16 +785,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private emitPreloads() {
-    const qrls = Array.from(this.serializationCtx.$eventQrls$) as QRLInternal[];
-    /**
-     * Skip preloader injection if preloader is exactly `null` or if there are no qrls (since then
-     * there is no reactivity)
-     */
-    if (this.renderOptions.preloader !== null && qrls.length) {
-      const preloadBundles = getPreloadPaths(qrls, this.renderOptions, this.resolvedManifest);
-      includePreloader(this, this.resolvedManifest, this.renderOptions.preloader, preloadBundles);
-    }
+  emitPreloaderPre() {
+    preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
   }
 
   isStatic(): boolean {

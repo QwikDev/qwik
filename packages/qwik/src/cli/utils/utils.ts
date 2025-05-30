@@ -117,7 +117,7 @@ export function limitLength(hint: string, maxLength: number = 50) {
 }
 
 export function getPackageManager() {
-  return detectPackageManager()?.name || 'npm';
+  return detectPackageManager()?.name || 'pnpm';
 }
 
 export function pmRunCmd() {

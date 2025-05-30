@@ -74,11 +74,19 @@ export const createQRL = <TYPE>(
   }
 
   let _containerEl: Element | undefined;
-
   const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
-    const result = await boundedFn(...args);
-    return result;
+    try {
+      const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
+      const result = await boundedFn(...args);
+      return result;
+    } catch (e) {
+      if (isDev && isServer && e instanceof ReferenceError) {
+        if (e.message.includes('window')) {
+          e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+        }
+        throw e;
+      }
+    }
   } as QRLInternal<TYPE>;
 
   const setContainer = (el: Element | undefined) => {
@@ -116,19 +124,6 @@ export const createQRL = <TYPE>(
       context.$event$ ||= this as Event;
       try {
         return invoke.call(this, context, symbolRef as any, ...(args as any));
-      } catch (e) {
-        if (isDev) {
-          if (isServer) {
-            if (
-              e instanceof ReferenceError &&
-              ['window', 'document'].some((v) => e.message.includes(v))
-            ) {
-              e.message =
-                'It seems like you forgot to add "if (isBrowser) {...}" here: ' + e.message;
-            }
-            throw e;
-          }
-        }
       } finally {
         context.$qrl$ = prevQrl;
         context.$event$ = prevEvent;

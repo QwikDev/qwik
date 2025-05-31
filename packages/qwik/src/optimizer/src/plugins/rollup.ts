@@ -190,7 +190,7 @@ export function normalizeRollupOutputOptionsObject(
         const sanitized = relativePath
           .replace(/^(\.\.\/)+/, '')
           .replace(/^\/+/, '')
-          .replace(/\//g, '-');
+          .replace(/[\\/]/g, '-');
         return `build/${sanitized}.js`;
       };
     }

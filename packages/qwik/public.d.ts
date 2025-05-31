@@ -57,6 +57,7 @@ export {
   TaskCtx,
   // TODO do we really want to export this?
   untrack,
+  useAsyncComputed$,
   useComputed$,
   useConstant,
   useContext,

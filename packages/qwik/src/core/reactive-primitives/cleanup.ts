@@ -10,6 +10,7 @@ import {
   type EffectProperty,
   type EffectSubscription,
 } from './types';
+import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {
@@ -32,6 +33,8 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
     for (const producer of backRefs) {
       if (producer instanceof SignalImpl) {
         clearSignal(container, producer, effect);
+      } else if (producer instanceof AsyncComputedSignalImpl) {
+        clearAsyncComputedSignal(producer, effect);
       } else if (container.$storeProxyMap$.has(producer)) {
         const target = container.$storeProxyMap$.get(producer)!;
         const storeHandler = getStoreHandler(target)!;
@@ -50,6 +53,20 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
   if (producer instanceof WrappedSignalImpl) {
     producer.$hostElement$ = null;
     clearAllEffects(container, producer);
+  }
+}
+
+function clearAsyncComputedSignal(
+  producer: AsyncComputedSignalImpl<unknown>,
+  effect: EffectSubscription
+) {
+  const effects = producer.$effects$;
+  if (effects) {
+    effects.delete(effect);
+  }
+  const pendingEffects = producer.$loadingEffects$;
+  if (pendingEffects) {
+    pendingEffects.delete(effect);
   }
 }
 

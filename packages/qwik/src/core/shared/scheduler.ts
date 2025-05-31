@@ -93,7 +93,12 @@ import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnod
 import { vnode_diff } from '../client/vnode-diff';
 import { triggerEffects } from '../reactive-primitives/utils';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
-import type { StoreTarget } from '../reactive-primitives/types';
+import {
+  type AsyncComputeQRL,
+  type ComputeQRL,
+  type EffectSubscription,
+  type StoreTarget,
+} from '../reactive-primitives/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -120,8 +125,10 @@ import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
-import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import type { StoreHandler } from '../reactive-primitives/impl/store';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -170,7 +177,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.QRL_RESOLVE,
     ignore: null,
-    target: QRLInternal<(...args: unknown[]) => unknown>
+    target: ComputeQRL<any> | AsyncComputeQRL<any>
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.JOURNAL_FLUSH): ValueOrPromise<void>;
   function schedule(type: ChoreType.WAIT_FOR_ALL): ValueOrPromise<void>;
@@ -184,7 +191,8 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
     host: HostElement | null,
-    target: Signal
+    target: Signal | StoreHandler,
+    effects: Set<EffectSubscription> | null
   ): ValueOrPromise<void>;
   function schedule(type: ChoreType.TASK | ChoreType.VISIBLE, task: Task): ValueOrPromise<void>;
   function schedule(
@@ -229,7 +237,9 @@ export const createScheduler = (
     const isClientOnly =
       type === ChoreType.JOURNAL_FLUSH ||
       type === ChoreType.NODE_DIFF ||
-      type === ChoreType.NODE_PROP;
+      type === ChoreType.NODE_PROP ||
+      type === ChoreType.QRL_RESOLVE ||
+      type === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS;
     if (isServer && isClientOnly) {
       DEBUG &&
         debugTrace(
@@ -468,18 +478,29 @@ export const createScheduler = (
         case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
           {
             const target = chore.$target$ as
+              | SignalImpl
               | ComputedSignalImpl<unknown>
-              | WrappedSignalImpl<unknown>;
-            const forceRunEffects = target.$forceRunEffects$;
-            target.$forceRunEffects$ = false;
-            if (!target.$effects$?.size) {
-              break;
-            }
-            returnValue = retryOnPromise(() => {
-              if (target.$computeIfNeeded$() || forceRunEffects) {
-                triggerEffects(container, target, target.$effects$);
+              | WrappedSignalImpl<unknown>
+              | StoreHandler;
+
+            const effects = chore.$payload$ as Set<EffectSubscription>;
+
+            if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
+              const forceRunEffects = target.$forceRunEffects$;
+              target.$forceRunEffects$ = false;
+              if (!target.$effects$?.size) {
+                break;
               }
-            });
+              returnValue = retryOnPromise(() => {
+                if (target.$computeIfNeeded$() || forceRunEffects) {
+                  triggerEffects(container, target, effects);
+                }
+              });
+            } else {
+              returnValue = retryOnPromise(() => {
+                triggerEffects(container, target, effects);
+              });
+            }
           }
           break;
         }

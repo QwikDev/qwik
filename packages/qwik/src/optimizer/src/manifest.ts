@@ -394,7 +394,8 @@ export function generateManifestFromBundles(
   injections: GlobalInjections[],
   outputBundles: OutputBundle,
   opts: NormalizedQwikPluginOptions,
-  debug: (...args: any[]) => void
+  debug: (...args: any[]) => void,
+  canonPath: (p: string) => string
 ) {
   const manifest: QwikManifest = {
     manifestHash: '',
@@ -411,9 +412,6 @@ export function generateManifestFromBundles(
     },
   };
 
-  const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
-  const canonPath = (p: string) =>
-    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
   const getBundleName = (name: string) => {
     const bundle = outputBundles[name];
     if (!bundle) {

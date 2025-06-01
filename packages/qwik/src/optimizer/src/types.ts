@@ -225,6 +225,8 @@ export interface QwikManifest {
   bundles: { [fileName: string]: QwikBundle };
   /** All bundles in a compact graph format with probabilities */
   bundleGraph?: QwikBundleGraph;
+  /** The bundle graph fileName */
+  bundleGraphPath?: string;
   /** The preloader bundle fileName */
   preloader?: string;
   /** The Qwik core bundle fileName */
@@ -249,7 +251,13 @@ export interface QwikManifest {
  */
 export type ServerQwikManifest = Pick<
   QwikManifest,
-  'manifestHash' | 'injections' | 'bundleGraph' | 'mapping' | 'preloader' | 'core'
+  | 'manifestHash'
+  | 'injections'
+  | 'bundleGraph'
+  | 'bundleGraphPath'
+  | 'mapping'
+  | 'preloader'
+  | 'core'
 >;
 
 /**

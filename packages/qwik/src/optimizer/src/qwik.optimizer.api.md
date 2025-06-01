@@ -183,6 +183,7 @@ export type QwikBundleGraph = Array<string | number>;
 // @public
 export interface QwikManifest {
     bundleGraph?: QwikBundleGraph;
+    bundleGraphPath?: string;
     bundles: {
         [fileName: string]: QwikBundle;
     };

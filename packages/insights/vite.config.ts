@@ -14,7 +14,7 @@ export default defineConfig(async () => {
       qwikCity(),
       qwikTypes(),
       qwikVite(),
-      tsconfigPaths({ projects: ['.'] }),
+      tsconfigPaths({ root: '.' }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],

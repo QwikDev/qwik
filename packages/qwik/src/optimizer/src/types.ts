@@ -223,6 +223,8 @@ export interface QwikManifest {
   mapping: { [symbolName: string]: string };
   /** All code bundles, used to know the import graph */
   bundles: { [fileName: string]: QwikBundle };
+  /** All assets */
+  assets?: { [fileName: string]: QwikAsset };
   /** All bundles in a compact graph format with probabilities */
   bundleGraph?: QwikBundleGraph;
   /** The bundle graph fileName */
@@ -309,6 +311,14 @@ export interface QwikBundle {
   dynamicImports?: string[];
   /** Source files of the bundle */
   origins?: string[];
+}
+
+/** @public */
+export interface QwikAsset {
+  /** Name of the asset */
+  name: string | undefined;
+  /** Size of the asset */
+  size: number;
 }
 
 /** @public */

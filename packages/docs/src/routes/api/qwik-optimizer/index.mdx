@@ -1231,6 +1231,63 @@ Description
 
 ## preventNavigate
 
+## QwikAsset
+
+```typescript
+export interface QwikAsset
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+Name of the asset
+
+</td></tr>
+<tr><td>
+
+[size](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Size of the asset
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
 ## QwikBuildMode
 
 ```typescript
@@ -1417,6 +1474,21 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+[assets?](#)
+
+</td><td>
+
+</td><td>
+
+\{ [fileName: string]: [QwikAsset](#qwikasset); }
+
+</td><td>
+
+_(Optional)_ All assets
+
+</td></tr>
+<tr><td>
 
 [bundleGraph?](#)
 

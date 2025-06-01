@@ -15,6 +15,7 @@ export type {
   OptimizerOptions,
   OptimizerSystem,
   Path,
+  QwikAsset,
   QwikBundle,
   QwikBundleGraph,
   QwikManifest,

@@ -970,6 +970,11 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     });
     manifest.bundleGraphPath = outputAnalyzer.canonPath(ctx.getFileName(bgAsset));
     manifest.bundleGraph = bundleGraph;
+    // we already generated the assets list so we need to update it
+    manifest.assets![manifest.bundleGraphPath] = {
+      name: 'bundle-graph.json',
+      size: bundleGraph.length,
+    };
 
     const manifestStr = JSON.stringify(manifest, null, '\t');
     ctx.emitFile({

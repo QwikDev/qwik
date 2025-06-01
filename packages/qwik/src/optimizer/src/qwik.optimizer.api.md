@@ -161,6 +161,12 @@ export interface Path {
 }
 
 // @public (undocumented)
+export interface QwikAsset {
+    name: string | undefined;
+    size: number;
+}
+
+// @public (undocumented)
 export type QwikBuildMode = 'production' | 'development';
 
 // @public (undocumented)
@@ -182,6 +188,9 @@ export type QwikBundleGraph = Array<string | number>;
 
 // @public
 export interface QwikManifest {
+    assets?: {
+        [fileName: string]: QwikAsset;
+    };
     bundleGraph?: QwikBundleGraph;
     bundleGraphPath?: string;
     bundles: {

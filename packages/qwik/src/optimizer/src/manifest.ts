@@ -409,7 +409,7 @@ export function generateManifestFromBundles(
     },
     core: undefined,
     preloader: undefined,
-    bundleGraphPath: undefined,
+    bundleGraphAsset: undefined,
     injections,
     mapping: {},
     bundles: {},

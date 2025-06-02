@@ -1485,7 +1485,7 @@ Description
 
 </td><td>
 
-_(Optional)_ All assets
+_(Optional)_ All assets. The key is the fileName relative to the rootDir
 
 </td></tr>
 <tr><td>
@@ -1505,7 +1505,7 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 </td></tr>
 <tr><td>
 
-[bundleGraphPath?](#)
+[bundleGraphAsset?](#)
 
 </td><td>
 
@@ -1530,7 +1530,7 @@ _(Optional)_ The bundle graph fileName
 
 </td><td>
 
-All code bundles, used to know the import graph
+All code bundles, used to know the import graph. The key is the bundle fileName relative to "build/"
 
 </td></tr>
 <tr><td>
@@ -1590,7 +1590,7 @@ Content hash of the manifest, if this changes, the code changed
 
 </td><td>
 
-Where QRLs are located
+Where QRLs are located. The key is the symbol name, the value is the bundle fileName
 
 </td></tr>
 <tr><td>
@@ -2490,7 +2490,7 @@ Description
 
 </td><td>
 
-[QwikManifest](#qwikmanifest)
+[ServerQwikManifest](#serverqwikmanifest)
 
 </td><td>
 
@@ -2747,6 +2747,27 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## ServerQwikManifest
+
+The manifest values that are needed for SSR.
+
+```typescript
+export type ServerQwikManifest = Pick<
+  QwikManifest,
+  | "manifestHash"
+  | "injections"
+  | "bundleGraph"
+  | "bundleGraphAsset"
+  | "mapping"
+  | "preloader"
+  | "core"
+>;
+```
+
+**References:** [QwikManifest](#qwikmanifest)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

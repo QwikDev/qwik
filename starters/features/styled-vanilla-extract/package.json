@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@vanilla-extract/css": "^1.12.0",
-    "styled-vanilla-extract": "^0.5.4"
+    "styled-vanilla-extract": "^0.5.4",
+    "@vanilla-extract/vite-plugin": "^5.0.1"
   }
 }

@@ -2,11 +2,9 @@
  * Tailwind CSS imports
  * View the full documentation at https://tailwindcss.com
  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
+@theme {
   /* --link-offset: 0.15rem;
   --primary-50: #f0f9ff;
   --primary-100: #dff3ff;
@@ -196,11 +194,11 @@ input {
 }
 
 input {
-  @apply px-4 py-2 w-full rounded;
+  @apply px-4 py-2 w-full rounded-sm;
 }
 
 .button {
-  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded border border-slate-300 px-8 py-2;
+  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded-sm border border-slate-300 px-8 py-2;
 }
 
 svg {

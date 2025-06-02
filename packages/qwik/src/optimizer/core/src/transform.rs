@@ -752,11 +752,10 @@ impl<'a> QwikTransform<'a> {
 		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
-		let entry = self.options.entry_policy.get_entry_for_sym(
-			&segment_data.hash,
-			&self.stack_ctxt,
-			&segment_data,
-		);
+		let entry = self
+			.options
+			.entry_policy
+			.get_entry_for_sym(&self.stack_ctxt, &segment_data);
 
 		let mut import_path = ["./", &canonical_filename].concat();
 		if self.options.explicit_extensions {

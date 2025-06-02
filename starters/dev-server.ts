@@ -210,7 +210,7 @@ export {
         optimizer.qwikVite({
           /**
            * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik city imports
+           * because it causes it to try to lookup the special qwik city imports
            * even when we're not actually importing qwik-city
            */
           disableVendorScan: true,
@@ -223,7 +223,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
     }),
@@ -240,7 +240,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
       define: {

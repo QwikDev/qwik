@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { fetch } from 'undici';
 import fs from 'node:fs';
 import path from 'node:path';

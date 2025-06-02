@@ -188,6 +188,7 @@ fn transform_todo_app(b: &mut Bencher) {
           input: vec![TransformModuleInput {
               code: code.into(),
               path: "file.tsx".into(),
+              dev_path: None,
           }],
           root_dir: None,
           core_module: None,
@@ -197,7 +198,6 @@ fn transform_todo_app(b: &mut Bencher) {
           transpile_ts: true,
           transpile_jsx: true,
           preserve_filenames: false,
-          manual_chunks: None,
           entry_strategy: EntryStrategy::Single,
           mode: EmitMode::Prod,
           scope: None,

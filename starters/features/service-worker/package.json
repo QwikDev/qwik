@@ -1,0 +1,13 @@
+{
+  "description": "Add a service worker to your app",
+  "__qwik__": {
+    "displayName": "Feature: Service Worker",
+    "priority": 10,
+    "docs": [],
+    "nextSteps": {
+      "lines": [
+        "Now, make sure that you have `<ServiceWorkerRegister />` in your `src/root.tsx`. You can import it from `@builder.io/qwik-city`."
+      ]
+    }
+  }
+}

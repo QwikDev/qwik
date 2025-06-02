@@ -81,6 +81,10 @@ export type RouteStateInternal = {
   scroll?: boolean;
 };
 
+export type RebuildRouteInfoInternal = (
+  url: URL
+) => Promise<{ loadedRoute: LoadedRoute | null; requestHandlers: RequestHandler<any>[] }>;
+
 /**
  * @param url - The URL that the user is trying to navigate to, or a number to indicate the user is
  *   trying to navigate back/forward in the application history. If it is missing, the event is sent
@@ -307,6 +311,7 @@ export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
   status: number;
   href: string;
   redirect?: string;
+  isRewrite?: boolean;
 }
 
 /** @public */

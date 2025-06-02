@@ -6,7 +6,6 @@ import { OnThisPage } from '../../components/on-this-page/on-this-page';
 import { ContentNav } from '../../components/content-nav/content-nav';
 import styles from '../docs/docs.css?inline';
 
-// eslint-disable-next-line
 export { useMarkdownItems } from '../../components/sidebar/sidebar';
 
 export default component$(() => {

@@ -21,6 +21,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "files": ["./.eslintrc.cjs", "**/*.jsx"],
+  "files": ["**/*.jsx"],
   "include": ["."]
 }

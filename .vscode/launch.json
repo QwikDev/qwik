@@ -42,6 +42,18 @@
     },
     {
       "type": "node",
+      "name": "preloader-test build.client",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "run",
+        "build.client"
+      ],
+      "skipFiles": ["<node_internals>/**"],
+      "cwd": "${workspaceFolder}/starters/apps/preloader-test"
+    },
+    {
+      "type": "node",
       "name": "e2e.test",
       "request": "launch",
       "console": "integratedTerminal",

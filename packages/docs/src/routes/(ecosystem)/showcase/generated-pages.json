@@ -4,13 +4,14 @@
     "imgSrc": "/showcases/seyph_com_.webp",
     "perf": {
       "score": 0.99,
-      "fcpDisplay": "1.1 s",
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "clsScore": null,
+      "fcpDisplay": "1.2 s",
       "fcpScore": 0.99,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "1.1 s",
-      "ttiScore": 1,
-      "ttiTime": 1149.0029164682232
+      "ttiDisplay": "2.1 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2063.5015768907256
     },
     "href": "https://seyph.com/",
     "size": "large",
@@ -20,14 +21,15 @@
     "title": "Türkiye'nin En Yenilikçi Yazılım Şirketi - Hypecode Teknoloji",
     "imgSrc": "/showcases/hypecode_tech_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.95,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "2.5 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2488.5
+      "score": 0.93,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "clsScore": null,
+      "fcpDisplay": "1.8 s",
+      "fcpScore": 0.89,
+      "ttiDisplay": "3.0 s",
+      "ttiScore": 0.96,
+      "ttiTime": 3003.525184897524
     },
     "href": "https://hypecode.tech/",
     "size": "large",
@@ -37,14 +39,15 @@
     "title": "Learn Qwik | Start building with Qwik",
     "imgSrc": "/showcases/www_learn-qwik_com_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.3 s",
+      "score": 1,
+      "lcpDisplay": "1.4 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.7 s",
+      "clsScore": null,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.98,
+      "ttiDisplay": "1.4 s",
       "ttiScore": 1,
-      "ttiTime": 1734.3063735433216
+      "ttiTime": 1353.5248197636297
     },
     "href": "https://www.learn-qwik.com/",
     "size": "large",
@@ -55,13 +58,16 @@
     "imgSrc": "/showcases/sasthyaseba_com.webp",
     "perf": {
       "score": 0.97,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.94,
-      "ttiDisplay": "1.7 s",
-      "ttiScore": 1,
-      "ttiTime": 1724.5
+      "lcpDisplay": "2.5 s",
+      "lcpScore": 0.9,
+      "inpMs": 273,
+      "clsScore": 0.02,
+      "ttfbMs": 444,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "ttiDisplay": "3.9 s",
+      "ttiScore": 0.89,
+      "ttiTime": 3856.548578300652
     },
     "href": "https://sasthyaseba.com",
     "size": "large",
@@ -71,14 +77,15 @@
     "title": "Ohayo Dev & Design | Acceuil",
     "imgSrc": "/showcases/ohayo-dev-design_com_.webp",
     "perf": {
-      "score": 0.98,
+      "score": 0.89,
+      "lcpDisplay": "3.6 s",
+      "lcpScore": 0.61,
+      "clsScore": null,
       "fcpDisplay": "1.1 s",
       "fcpScore": 1,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "1.4 s",
-      "ttiScore": 1,
-      "ttiTime": 1370.12221275
+      "ttiDisplay": "3.6 s",
+      "ttiScore": 0.91,
+      "ttiTime": 3616
     },
     "href": "https://ohayo-dev-design.com/",
     "tags": "web, dev, agency"
@@ -87,14 +94,15 @@
     "title": "Wep Apps | Zhou's Portfolio",
     "imgSrc": "/showcases/linkfang-portfolio_vercel_app_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.94,
-      "ttiDisplay": "1.4 s",
-      "ttiScore": 1,
-      "ttiTime": 1406
+      "score": 0.99,
+      "lcpDisplay": "2.0 s",
+      "lcpScore": 0.97,
+      "clsScore": null,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.96,
+      "ttiDisplay": "2.0 s",
+      "ttiScore": 0.99,
+      "ttiTime": 1953
     },
     "href": "https://linkfang-portfolio.vercel.app/",
     "tags": "portfolio"
@@ -103,14 +111,15 @@
     "title": "Blueagle",
     "imgSrc": "/showcases/blueagle_top_.webp",
     "perf": {
-      "score": 0.97,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "2.0 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2000
+      "score": 1,
+      "lcpDisplay": "1.5 s",
+      "lcpScore": 1,
+      "clsScore": null,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "1.5 s",
+      "ttiScore": 1,
+      "ttiTime": 1501.0411129505082
     },
     "href": "https://blueagle.top/",
     "tags": "portfolio,site,blog"
@@ -119,14 +128,15 @@
     "title": "QuoteMingle",
     "imgSrc": "/showcases/quotemingle_com_.webp",
     "perf": {
-      "score": 0.99,
+      "score": 0.97,
+      "lcpDisplay": "2.5 s",
+      "lcpScore": 0.89,
+      "clsScore": null,
       "fcpDisplay": "1.2 s",
       "fcpScore": 0.99,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "1.3 s",
-      "ttiScore": 1,
-      "ttiTime": 1271
+      "ttiDisplay": "2.5 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2538.9087830322005
     },
     "href": "https://quotemingle.com/",
     "tags": "site"
@@ -135,14 +145,17 @@
     "title": "Frosty Tools | Streaming just got a whole lot cooler.",
     "imgSrc": "/showcases/frostytools_com.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.3 s",
-      "ttiScore": 1,
-      "ttiTime": 1283
+      "score": 0.97,
+      "lcpDisplay": "2.4 s",
+      "lcpScore": 0.91,
+      "inpMs": 123,
+      "clsScore": 0,
+      "ttfbMs": 824,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.92,
+      "ttiDisplay": "2.4 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2401
     },
     "href": "https://frostytools.com",
     "tags": "saas"
@@ -152,13 +165,15 @@
     "imgSrc": "/showcases/www_dimension_dev.webp",
     "perf": {
       "score": 0.94,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "clsScore": 0,
+      "ttfbMs": 876,
       "fcpDisplay": "1.5 s",
       "fcpScore": 0.96,
-      "lcpDisplay": "3.1 s",
-      "lcpScore": 0.76,
-      "ttiDisplay": "2.4 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2365.5
+      "ttiDisplay": "3.0 s",
+      "ttiScore": 0.96,
+      "ttiTime": 3001
     },
     "href": "https://www.dimension.dev",
     "tags": "saas"
@@ -167,14 +182,16 @@
     "title": "Index",
     "imgSrc": "/showcases/index_app_beta.webp",
     "perf": {
-      "score": 0.7,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.92,
-      "lcpDisplay": "2.0 s",
-      "lcpScore": 0.97,
-      "ttiDisplay": "7.0 s",
-      "ttiScore": 0.52,
-      "ttiTime": 7039.5
+      "score": 0.42,
+      "lcpDisplay": "42.6 s",
+      "lcpScore": 0,
+      "clsScore": 0.01,
+      "ttfbMs": 513,
+      "fcpDisplay": "37.5 s",
+      "fcpScore": 0,
+      "ttiDisplay": "42.6 s",
+      "ttiScore": 0,
+      "ttiTime": 42624.2898265884
     },
     "href": "https://index.app/beta",
     "tags": "saas"
@@ -183,14 +200,17 @@
     "title": "Wope: The New Era Of Rank Tracking",
     "imgSrc": "/showcases/wope_com_.webp",
     "perf": {
-      "score": 0.6,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.89,
-      "lcpDisplay": "3.9 s",
-      "lcpScore": 0.53,
-      "ttiDisplay": "10.0 s",
-      "ttiScore": 0.26,
-      "ttiTime": 10025.5
+      "score": 0.82,
+      "lcpDisplay": "3.3 s",
+      "lcpScore": 0.69,
+      "inpMs": 326,
+      "clsScore": 0,
+      "ttfbMs": 1350,
+      "fcpDisplay": "2.0 s",
+      "fcpScore": 0.85,
+      "ttiDisplay": "11.9 s",
+      "ttiScore": 0.17,
+      "ttiTime": 11862.802267740957
     },
     "href": "https://wope.com/",
     "tags": "saas"
@@ -199,14 +219,17 @@
     "title": "Builder.io: Ship twice as much, twice as fast",
     "imgSrc": "/showcases/www_builder_io_.webp",
     "perf": {
-      "score": 0.96,
-      "fcpDisplay": "1.9 s",
-      "fcpScore": 0.88,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.93,
-      "ttiDisplay": "4.4 s",
-      "ttiScore": 0.84,
-      "ttiTime": 4357
+      "score": 0.29,
+      "lcpDisplay": "9.6 s",
+      "lcpScore": 0,
+      "inpMs": 379,
+      "clsScore": 0.01,
+      "ttfbMs": 776,
+      "fcpDisplay": "4.5 s",
+      "fcpScore": 0.15,
+      "ttiDisplay": "15.2 s",
+      "ttiScore": 0.07,
+      "ttiTime": 15189.555562156766
     },
     "href": "https://www.builder.io/",
     "tags": "saas"
@@ -215,14 +238,17 @@
     "title": "Reflect Notes",
     "imgSrc": "/showcases/reflect_app_.webp",
     "perf": {
-      "score": 0.77,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.95,
-      "lcpDisplay": "2.3 s",
-      "lcpScore": 0.92,
-      "ttiDisplay": "5.9 s",
-      "ttiScore": 0.65,
-      "ttiTime": 5933
+      "score": 0.99,
+      "lcpDisplay": "2.1 s",
+      "lcpScore": 0.96,
+      "inpMs": 360,
+      "clsScore": 0,
+      "ttfbMs": 663,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.97,
+      "ttiDisplay": "5.1 s",
+      "ttiScore": 0.75,
+      "ttiTime": 5124.001620959254
     },
     "href": "https://reflect.app/",
     "tags": "saas"
@@ -232,13 +258,14 @@
     "imgSrc": "/showcases/jose-aguilar_vercel_app_.webp",
     "perf": {
       "score": 0.99,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
       "lcpDisplay": "1.8 s",
       "lcpScore": 0.98,
-      "ttiDisplay": "1.3 s",
+      "clsScore": null,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "ttiDisplay": "1.9 s",
       "ttiScore": 1,
-      "ttiTime": 1328
+      "ttiTime": 1866.090316772461
     },
     "href": "https://jose-aguilar.vercel.app/",
     "tags": "portfolio"
@@ -248,13 +275,14 @@
     "imgSrc": "/showcases/www_hexa_center_.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.0 s",
+      "lcpDisplay": "1.6 s",
+      "lcpScore": 0.99,
+      "clsScore": null,
+      "fcpDisplay": "1.1 s",
       "fcpScore": 1,
-      "lcpDisplay": "1.3 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.1 s",
+      "ttiDisplay": "1.6 s",
       "ttiScore": 1,
-      "ttiTime": 1103.5
+      "ttiTime": 1583.5
     },
     "href": "https://www.hexa.center/",
     "tags": "saas"
@@ -263,14 +291,15 @@
     "title": "Vendure Qwik Storefront",
     "imgSrc": "/showcases/qwik-storefront_vendure_io_.webp",
     "perf": {
-      "score": 0.94,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "2.8 s",
-      "lcpScore": 0.83,
-      "ttiDisplay": "1.8 s",
-      "ttiScore": 1,
-      "ttiTime": 1803.5
+      "score": 0.93,
+      "lcpDisplay": "3.2 s",
+      "lcpScore": 0.72,
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "4.4 s",
+      "ttiScore": 0.83,
+      "ttiTime": 4390.771881908374
     },
     "href": "https://qwik-storefront.vendure.io/",
     "tags": "ecommerce"
@@ -279,14 +308,15 @@
     "title": "Qwind — Free template for Qwik + Tailwind CSS to build your new website.",
     "imgSrc": "/showcases/qwind_pages_dev_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.0 s",
-      "fcpScore": 1,
+      "score": 0.99,
       "lcpDisplay": "2.0 s",
       "lcpScore": 0.97,
-      "ttiDisplay": "1.2 s",
-      "ttiScore": 1,
-      "ttiTime": 1202.5
+      "clsScore": null,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "2.0 s",
+      "ttiScore": 0.99,
+      "ttiTime": 2039.008242930694
     },
     "href": "https://qwind.pages.dev/",
     "tags": "template",
@@ -297,14 +327,17 @@
     "title": "Crear chatbot WhatsApp en minutos — Servicio de chatbot para whatspp gratis proyecto OpenSource",
     "imgSrc": "/showcases/bot-whatsapp_netlify_app_.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.93,
-      "lcpDisplay": "1.6 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "5.1 s",
-      "ttiScore": 0.75,
-      "ttiTime": 5138.5
+      "score": 1,
+      "lcpDisplay": "1.0 s",
+      "lcpScore": 1,
+      "inpMs": 110,
+      "clsScore": 0,
+      "ttfbMs": 970,
+      "fcpDisplay": "1.0 s",
+      "fcpScore": 1,
+      "ttiDisplay": "1.0 s",
+      "ttiScore": 1,
+      "ttiTime": 999.1098851108424
     },
     "href": "https://bot-whatsapp.netlify.app/",
     "tags": "site"
@@ -313,14 +346,15 @@
     "title": "La mejor forma de cambiar — Ibis",
     "imgSrc": "/showcases/usaibis_com_.webp",
     "perf": {
-      "score": 0.89,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.93,
-      "lcpDisplay": "2.7 s",
-      "lcpScore": 0.85,
-      "ttiDisplay": "3.1 s",
-      "ttiScore": 0.95,
-      "ttiTime": 3052.5
+      "score": 0.47,
+      "lcpDisplay": "6.3 s",
+      "lcpScore": 0.1,
+      "clsScore": 0,
+      "fcpDisplay": "2.9 s",
+      "fcpScore": 0.54,
+      "ttiDisplay": "8.3 s",
+      "ttiScore": 0.4,
+      "ttiTime": 8258.506251099498
     },
     "href": "https://usaibis.com/",
     "tags": "saas"
@@ -329,14 +363,15 @@
     "title": "Private Training Package Builder - Oasis Digital",
     "imgSrc": "/showcases/pricing_oasisdigital_com_.webp",
     "perf": {
-      "score": 0.9,
-      "fcpDisplay": "2.5 s",
-      "fcpScore": 0.66,
-      "lcpDisplay": "3.1 s",
-      "lcpScore": 0.76,
-      "ttiDisplay": "2.5 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2533
+      "score": 0.92,
+      "lcpDisplay": "3.2 s",
+      "lcpScore": 0.74,
+      "clsScore": null,
+      "fcpDisplay": "1.9 s",
+      "fcpScore": 0.86,
+      "ttiDisplay": "3.2 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3152.2848571191116
     },
     "href": "https://pricing.oasisdigital.com/",
     "tags": "saas"
@@ -345,14 +380,17 @@
     "title": "Burgers on Fleek - Home",
     "imgSrc": "/showcases/www_burgersonfleek_ca_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "1.4 s",
-      "lcpScore": 1,
-      "ttiDisplay": "1.6 s",
-      "ttiScore": 1,
-      "ttiTime": 1578
+      "score": 0.81,
+      "lcpDisplay": "4.4 s",
+      "lcpScore": 0.4,
+      "inpMs": 89,
+      "clsScore": 0.02,
+      "ttfbMs": 448,
+      "fcpDisplay": "1.8 s",
+      "fcpScore": 0.89,
+      "ttiDisplay": "4.4 s",
+      "ttiScore": 0.84,
+      "ttiTime": 4372.180530548096
     },
     "href": "https://www.burgersonfleek.ca/",
     "tags": "site",
@@ -362,14 +400,17 @@
     "title": "Birdflop - Minecraft Hosting & Resources",
     "imgSrc": "/showcases/birdflop_com_.webp",
     "perf": {
-      "score": 0.97,
+      "score": 0.91,
+      "lcpDisplay": "2.9 s",
+      "lcpScore": 0.81,
+      "inpMs": 210,
+      "clsScore": 0.15,
+      "ttfbMs": 1025,
       "fcpDisplay": "2.1 s",
-      "fcpScore": 0.81,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.96,
-      "ttiDisplay": "2.1 s",
-      "ttiScore": 0.99,
-      "ttiTime": 2087
+      "fcpScore": 0.82,
+      "ttiDisplay": "2.9 s",
+      "ttiScore": 0.96,
+      "ttiTime": 2894.467473974548
     },
     "href": "https://birdflop.com/",
     "tags": "site",
@@ -380,13 +421,14 @@
     "imgSrc": "/showcases/goshi_dev_.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
       "lcpDisplay": "1.3 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.2 s",
+      "clsScore": null,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "1.3 s",
       "ttiScore": 1,
-      "ttiTime": 1178.5
+      "ttiTime": 1297.5
     },
     "href": "https://goshi.dev/",
     "tags": "portfolio"
@@ -395,14 +437,17 @@
     "title": "ExpoBeds - Your Expo Hotel Booking And Information Directory",
     "imgSrc": "/showcases/www_expobeds_com_.webp",
     "perf": {
-      "score": 0.89,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.89,
-      "lcpDisplay": "3.5 s",
-      "lcpScore": 0.63,
-      "ttiDisplay": "4.0 s",
-      "ttiScore": 0.87,
-      "ttiTime": 4019
+      "score": 0.61,
+      "lcpDisplay": "7.0 s",
+      "lcpScore": 0.06,
+      "inpMs": 161,
+      "clsScore": 0.01,
+      "ttfbMs": 973,
+      "fcpDisplay": "2.8 s",
+      "fcpScore": 0.56,
+      "ttiDisplay": "7.8 s",
+      "ttiScore": 0.45,
+      "ttiTime": 7764.140611897724
     },
     "href": "https://www.expobeds.com/",
     "size": "large",
@@ -412,14 +457,15 @@
     "title": "Jbnado - João Bernardo",
     "imgSrc": "/showcases/jbnado_dev_.webp",
     "perf": {
-      "score": 0.92,
-      "fcpDisplay": "2.7 s",
-      "fcpScore": 0.6,
-      "lcpDisplay": "2.7 s",
-      "lcpScore": 0.85,
-      "ttiDisplay": "2.7 s",
+      "score": 0.95,
+      "lcpDisplay": "2.8 s",
+      "lcpScore": 0.84,
+      "clsScore": null,
+      "fcpDisplay": "1.5 s",
+      "fcpScore": 0.95,
+      "ttiDisplay": "2.8 s",
       "ttiScore": 0.97,
-      "ttiTime": 2710
+      "ttiTime": 2755.65
     },
     "href": "https://jbnado.dev/",
     "tags": "portfolio"
@@ -428,14 +474,15 @@
     "title": "Sanyam Jain",
     "imgSrc": "/showcases/sanyamjainqwik_vercel_app_.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "0.9 s",
-      "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
+      "score": 1,
+      "lcpDisplay": "0.8 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "clsScore": null,
+      "fcpDisplay": "0.8 s",
+      "fcpScore": 1,
+      "ttiDisplay": "0.8 s",
       "ttiScore": 1,
-      "ttiTime": 1282.4239025
+      "ttiTime": 794.2294725000002
     },
     "href": "https://sanyamjainqwik.vercel.app/",
     "tags": "portfolio"
@@ -444,14 +491,17 @@
     "title": "Framework reimagined for the edge! 📚 Qwik Documentation",
     "imgSrc": "/showcases/qwik_builder_io.webp",
     "perf": {
-      "score": 0.95,
-      "fcpDisplay": "2.1 s",
-      "fcpScore": 0.82,
-      "lcpDisplay": "2.2 s",
-      "lcpScore": 0.94,
-      "ttiDisplay": "2.6 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2618.5
+      "score": 1,
+      "lcpDisplay": "1.4 s",
+      "lcpScore": 1,
+      "inpMs": 60,
+      "clsScore": 0,
+      "ttfbMs": 958,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "1.4 s",
+      "ttiScore": 1,
+      "ttiTime": 1351.5010190283479
     },
     "href": "https://qwik.dev",
     "tags": "site",
@@ -461,14 +511,15 @@
     "title": "Pulsestax | Check the uptime and pulse of any website",
     "imgSrc": "/showcases/pulsestax_com_.webp",
     "perf": {
-      "score": 0.87,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.93,
-      "lcpDisplay": "1.6 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.9 s",
-      "ttiScore": 1,
-      "ttiTime": 1854
+      "score": 0.83,
+      "lcpDisplay": "2.6 s",
+      "lcpScore": 0.88,
+      "clsScore": null,
+      "fcpDisplay": "2.6 s",
+      "fcpScore": 0.64,
+      "ttiDisplay": "2.6 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2591.7999000397704
     },
     "href": "https://pulsestax.com/",
     "tags": "saas"
@@ -478,13 +529,14 @@
     "imgSrc": "/showcases/abdhashem_com.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "1.2 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.5 s",
+      "lcpDisplay": "1.4 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.9 s",
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "1.4 s",
       "ttiScore": 1,
-      "ttiTime": 1874.5
+      "ttiTime": 1351
     },
     "href": "https://abdhashem.com",
     "tags": "portfolio"
@@ -493,14 +545,15 @@
     "title": "Home Page | Puzzled By C#",
     "imgSrc": "/showcases/puzzledbycsharp_com_.webp",
     "perf": {
-      "score": 0.79,
-      "fcpDisplay": "2.9 s",
-      "fcpScore": 0.53,
-      "lcpDisplay": "4.1 s",
-      "lcpScore": 0.46,
-      "ttiDisplay": "3.7 s",
-      "ttiScore": 0.9,
-      "ttiTime": 3709.5
+      "score": 0.93,
+      "lcpDisplay": "3.2 s",
+      "lcpScore": 0.74,
+      "clsScore": null,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.93,
+      "ttiDisplay": "3.2 s",
+      "ttiScore": 0.95,
+      "ttiTime": 3151.8226019740177
     },
     "href": "https://puzzledbycsharp.com/",
     "tags": "site"
@@ -509,14 +562,15 @@
     "title": "Necati Koçlu - Front-end Developer",
     "imgSrc": "/showcases/necatikcl_dev_.webp",
     "perf": {
-      "score": 0.87,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "2.8 s",
-      "lcpScore": 0.82,
-      "ttiDisplay": "1.2 s",
-      "ttiScore": 1,
-      "ttiTime": 1206.5
+      "score": 0.89,
+      "lcpDisplay": "2.6 s",
+      "lcpScore": 0.88,
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "2.6 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2551
     },
     "href": "https://necatikcl.dev/",
     "tags": "personal",
@@ -526,14 +580,15 @@
     "title": "Home",
     "imgSrc": "/showcases/itbusinesshub_com_.webp",
     "perf": {
-      "score": 0.85,
-      "fcpDisplay": "2.7 s",
-      "fcpScore": 0.6,
-      "lcpDisplay": "2.7 s",
-      "lcpScore": 0.85,
-      "ttiDisplay": "6.0 s",
-      "ttiScore": 0.64,
-      "ttiTime": 6017
+      "score": 0.9,
+      "lcpDisplay": "3.6 s",
+      "lcpScore": 0.62,
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "3.6 s",
+      "ttiScore": 0.92,
+      "ttiTime": 3559.8939234596646
     },
     "href": "https://itbusinesshub.com/",
     "tags": "blog"
@@ -542,14 +597,15 @@
     "title": "Main page - Travel Calculator",
     "imgSrc": "/showcases/travelcalc_pages_dev.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.4 s",
+      "score": 1,
+      "lcpDisplay": "1.2 s",
       "lcpScore": 1,
-      "ttiDisplay": "1.3 s",
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "1.2 s",
       "ttiScore": 1,
-      "ttiTime": 1253.5
+      "ttiTime": 1201
     },
     "href": "https://travelcalc.pages.dev",
     "tags": "app"
@@ -558,14 +614,17 @@
     "title": "Pay4Me App | Fastest SEVIS Fees, WES Fees, & Payments",
     "imgSrc": "/showcases/pay4me_app.webp",
     "perf": {
-      "score": 0.94,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.92,
-      "lcpDisplay": "2.7 s",
-      "lcpScore": 0.85,
-      "ttiDisplay": "4.1 s",
-      "ttiScore": 0.86,
-      "ttiTime": 4099
+      "score": 0.69,
+      "lcpDisplay": "13.6 s",
+      "lcpScore": 0,
+      "inpMs": 229,
+      "clsScore": 0.01,
+      "ttfbMs": 1757,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.6,
+      "ttiDisplay": "15.4 s",
+      "ttiScore": 0.07,
+      "ttiTime": 15363.00545524997
     },
     "href": "https://pay4me.app",
     "tags": "saas"
@@ -574,14 +633,15 @@
     "title": "OSM POIS - Cities",
     "imgSrc": "/showcases/qwik-osm-poc_netlify_app_.webp",
     "perf": {
-      "score": 0.96,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.9,
-      "lcpDisplay": "2.4 s",
-      "lcpScore": 0.92,
-      "ttiDisplay": "1.8 s",
-      "ttiScore": 1,
-      "ttiTime": 1801.5
+      "score": 0.87,
+      "lcpDisplay": "3.3 s",
+      "lcpScore": 0.68,
+      "clsScore": null,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "3.3 s",
+      "ttiScore": 0.93,
+      "ttiTime": 3340.0793319397008
     },
     "href": "https://qwik-osm-poc.netlify.app/",
     "tags": "site"
@@ -590,14 +650,15 @@
     "title": "Welcome to LeoNerd",
     "imgSrc": "/showcases/leonerd_blog.webp",
     "perf": {
-      "score": 0.98,
-      "fcpDisplay": "1.6 s",
-      "fcpScore": 0.94,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.96,
-      "ttiDisplay": "1.9 s",
-      "ttiScore": 1,
-      "ttiTime": 1889.5
+      "score": 0.91,
+      "lcpDisplay": "3.5 s",
+      "lcpScore": 0.65,
+      "clsScore": null,
+      "fcpDisplay": "1.1 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "3.5 s",
+      "ttiScore": 0.92,
+      "ttiTime": 3469
     },
     "href": "https://leonerd.blog",
     "tags": "portfolio"
@@ -607,13 +668,14 @@
     "imgSrc": "/showcases/seifen_vercel_app_.webp",
     "perf": {
       "score": 0.88,
+      "lcpDisplay": "3.8 s",
+      "lcpScore": 0.54,
+      "clsScore": null,
       "fcpDisplay": "0.9 s",
       "fcpScore": 1,
-      "lcpDisplay": "3.9 s",
-      "lcpScore": 0.52,
-      "ttiDisplay": "1.0 s",
-      "ttiScore": 1,
-      "ttiTime": 971
+      "ttiDisplay": "3.8 s",
+      "ttiScore": 0.89,
+      "ttiTime": 3838
     },
     "href": "https://seifen.vercel.app/",
     "tags": "site"
@@ -622,47 +684,35 @@
     "title": "Built with Appwrite",
     "imgSrc": "/showcases/builtwith_appwrite_io_.webp",
     "perf": {
-      "score": 0.79,
-      "fcpDisplay": "2.8 s",
-      "fcpScore": 0.57,
-      "lcpDisplay": "4.5 s",
-      "lcpScore": 0.36,
-      "ttiDisplay": "4.7 s",
-      "ttiScore": 0.8,
-      "ttiTime": 4727.25
+      "score": 0.7,
+      "lcpDisplay": "13.2 s",
+      "lcpScore": 0,
+      "inpMs": 95,
+      "clsScore": 0,
+      "ttfbMs": 611,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.6,
+      "ttiDisplay": "13.2 s",
+      "ttiScore": 0.12,
+      "ttiTime": 13227.805611227272
     },
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
   },
   {
-    "title": "RadixStream - Rapid Cloudflare Stream plugin for WordPress",
-    "imgSrc": "/showcases/radixstream_com_.webp",
-    "perf": {
-      "score": 1,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.8 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "3.3 s",
-      "ttiScore": 0.94,
-      "ttiTime": 3296
-    },
-    "href": "https://radixstream.com/",
-    "tags": "site"
-  },
-  {
     "title": "Anirban Das - Fullstack Developer & UX Designer",
     "imgSrc": "/showcases/www_anirbandas_in_.webp",
     "perf": {
-      "score": 0.89,
+      "score": 0.93,
+      "lcpDisplay": "2.6 s",
+      "lcpScore": 0.88,
+      "clsScore": null,
       "fcpDisplay": "2.6 s",
-      "fcpScore": 0.64,
-      "lcpDisplay": "2.8 s",
-      "lcpScore": 0.82,
-      "ttiDisplay": "3.7 s",
-      "ttiScore": 0.91,
-      "ttiTime": 3663.75
+      "fcpScore": 0.65,
+      "ttiDisplay": "2.6 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2559.256468312007
     },
     "href": "https://www.anirbandas.in/",
     "tags": "portfolio"
@@ -671,14 +721,15 @@
     "title": "Polaris: Developer Analytics",
     "imgSrc": "/showcases/getpolaris_ai_.webp",
     "perf": {
-      "score": 0.76,
-      "fcpDisplay": "2.8 s",
-      "fcpScore": 0.58,
-      "lcpDisplay": "5.1 s",
-      "lcpScore": 0.25,
-      "ttiDisplay": "2.8 s",
-      "ttiScore": 0.97,
-      "ttiTime": 2838
+      "score": 0.66,
+      "lcpDisplay": "5.9 s",
+      "lcpScore": 0.14,
+      "clsScore": null,
+      "fcpDisplay": "2.7 s",
+      "fcpScore": 0.59,
+      "ttiDisplay": "5.9 s",
+      "ttiScore": 0.66,
+      "ttiTime": 5870.048988357083
     },
     "href": "https://getpolaris.ai/",
     "tags": "saas"
@@ -687,14 +738,15 @@
     "title": "Juneiker Castillo - Frontend Web Developer.",
     "imgSrc": "/showcases/juneikerc_com.webp",
     "perf": {
-      "score": 0.9,
-      "fcpDisplay": "1.8 s",
-      "fcpScore": 0.89,
-      "lcpDisplay": "3.2 s",
-      "lcpScore": 0.71,
-      "ttiDisplay": "1.8 s",
-      "ttiScore": 1,
-      "ttiTime": 1837.9132
+      "score": 0.94,
+      "lcpDisplay": "3.0 s",
+      "lcpScore": 0.78,
+      "clsScore": null,
+      "fcpDisplay": "1.7 s",
+      "fcpScore": 0.92,
+      "ttiDisplay": "3.0 s",
+      "ttiScore": 0.96,
+      "ttiTime": 3003
     },
     "href": "https://juneikerc.com",
     "tags": "portfolio,site,blog,services"
@@ -703,14 +755,17 @@
     "title": "Valibot: The modular and type safe schema library",
     "imgSrc": "/showcases/valibot_dev_.webp",
     "perf": {
-      "score": 1,
-      "fcpDisplay": "1.2 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "1.7 s",
-      "lcpScore": 0.99,
-      "ttiDisplay": "1.2 s",
-      "ttiScore": 1,
-      "ttiTime": 1235.5
+      "score": 0.97,
+      "lcpDisplay": "2.4 s",
+      "lcpScore": 0.91,
+      "inpMs": 66,
+      "clsScore": 0,
+      "ttfbMs": 778,
+      "fcpDisplay": "1.6 s",
+      "fcpScore": 0.94,
+      "ttiDisplay": "2.4 s",
+      "ttiScore": 0.98,
+      "ttiTime": 2401
     },
     "href": "https://valibot.dev/",
     "tags": "site,documentation"
@@ -719,14 +774,17 @@
     "title": "The Date Today - TodaysDateNow.com",
     "imgSrc": "/showcases/todaysdatenow_com_.webp",
     "perf": {
-      "score": 0.9,
-      "fcpDisplay": "1.4 s",
-      "fcpScore": 0.97,
-      "lcpDisplay": "1.4 s",
-      "lcpScore": 1,
-      "ttiDisplay": "2.0 s",
-      "ttiScore": 0.99,
-      "ttiTime": 1981
+      "score": 0.34,
+      "lcpDisplay": "14.0 s",
+      "lcpScore": 0,
+      "inpMs": 148,
+      "clsScore": 0.52,
+      "ttfbMs": 605,
+      "fcpDisplay": "8.3 s",
+      "fcpScore": 0,
+      "ttiDisplay": "16.1 s",
+      "ttiScore": 0.06,
+      "ttiTime": 16141.571312963108
     },
     "href": "https://todaysdatenow.com/",
     "tags": "site,tools,time"
@@ -735,14 +793,15 @@
     "title": "Finally, the Free and Fun Way to learn Stock Investing and Gain Financial Literacy",
     "imgSrc": "/showcases/finallyweb_com_.webp",
     "perf": {
-      "score": 0.9,
-      "fcpDisplay": "1.1 s",
-      "fcpScore": 0.99,
-      "lcpDisplay": "2.2 s",
-      "lcpScore": 0.95,
-      "ttiDisplay": "2.3 s",
+      "score": 0.99,
+      "lcpDisplay": "1.7 s",
+      "lcpScore": 0.99,
+      "clsScore": null,
+      "fcpDisplay": "1.3 s",
+      "fcpScore": 0.98,
+      "ttiDisplay": "2.1 s",
       "ttiScore": 0.99,
-      "ttiTime": 2260
+      "ttiTime": 2086.0305727926684
     },
     "href": "https://finallyweb.com/",
     "tags": "stock market education"
@@ -751,14 +810,15 @@
     "title": "Numeia — AI powered end-to-end platform for marketing.",
     "imgSrc": "/showcases/numeia_com.webp",
     "perf": {
-      "score": 0.99,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "2.1 s",
-      "lcpScore": 0.96,
-      "ttiDisplay": "1.6 s",
-      "ttiScore": 1,
-      "ttiTime": 1573
+      "score": 0.75,
+      "lcpDisplay": "9.0 s",
+      "lcpScore": 0.01,
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "10.7 s",
+      "ttiScore": 0.22,
+      "ttiTime": 10717.373612429348
     },
     "href": "https://numeia.com",
     "tags": "saas, marketing, ai"
@@ -767,14 +827,15 @@
     "title": "Qit.tools 🪄 online web tools",
     "imgSrc": "/showcases/qit_tools_.webp",
     "perf": {
-      "score": 0.79,
-      "fcpDisplay": "1.3 s",
-      "fcpScore": 0.98,
-      "lcpDisplay": "1.3 s",
+      "score": 1,
+      "lcpDisplay": "1.2 s",
       "lcpScore": 1,
-      "ttiDisplay": "2.5 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2480.2104514805424
+      "clsScore": null,
+      "fcpDisplay": "1.2 s",
+      "fcpScore": 0.99,
+      "ttiDisplay": "1.2 s",
+      "ttiScore": 1,
+      "ttiTime": 1222.2248473790016
     },
     "href": "https://qit.tools/",
     "tags": "online,tools,converters"
@@ -783,14 +844,17 @@
     "title": "Placement Preparation | Learn Aptitude the Right Way",
     "imgSrc": "/showcases/www_placementpreparation_io_.webp",
     "perf": {
-      "score": 0.95,
-      "fcpDisplay": "1.3 s",
+      "score": 0.81,
+      "lcpDisplay": "5.0 s",
+      "lcpScore": 0.26,
+      "inpMs": 115,
+      "clsScore": 0,
+      "ttfbMs": 883,
+      "fcpDisplay": "1.4 s",
       "fcpScore": 0.98,
-      "lcpDisplay": "2.9 s",
-      "lcpScore": 0.82,
-      "ttiDisplay": "1.9 s",
-      "ttiScore": 1,
-      "ttiTime": 1861.5315195055591
+      "ttiDisplay": "5.0 s",
+      "ttiScore": 0.76,
+      "ttiTime": 5033.5
     },
     "href": "https://www.placementpreparation.io/",
     "tags": "aptitude,learning,platform"
@@ -800,13 +864,16 @@
     "imgSrc": "/showcases/sakenowa_com.webp",
     "perf": {
       "score": 0.99,
-      "fcpDisplay": "1.5 s",
-      "fcpScore": 0.95,
-      "lcpDisplay": "1.5 s",
+      "lcpDisplay": "1.7 s",
       "lcpScore": 0.99,
+      "inpMs": 164,
+      "clsScore": 0,
+      "ttfbMs": 627,
+      "fcpDisplay": "1.4 s",
+      "fcpScore": 0.98,
       "ttiDisplay": "1.7 s",
       "ttiScore": 1,
-      "ttiTime": 1673.9
+      "ttiTime": 1666
     },
     "href": "https://sakenowa.com",
     "tags": "sns,app"
@@ -816,13 +883,14 @@
     "imgSrc": "/showcases/qwikpdf_alexismoren_fr_.webp",
     "perf": {
       "score": 1,
-      "fcpDisplay": "0.8 s",
-      "fcpScore": 1,
-      "lcpDisplay": "0.9 s",
+      "lcpDisplay": "1.1 s",
       "lcpScore": 1,
-      "ttiDisplay": "0.9 s",
+      "clsScore": null,
+      "fcpDisplay": "0.9 s",
+      "fcpScore": 1,
+      "ttiDisplay": "1.1 s",
       "ttiScore": 1,
-      "ttiTime": 901
+      "ttiTime": 1051
     },
     "href": "https://qwikpdf.alexismoren.fr/",
     "tags": "pdf,services,free"

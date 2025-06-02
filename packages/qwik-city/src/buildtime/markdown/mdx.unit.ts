@@ -60,7 +60,10 @@ describe('mdx', async () => {
           })]
         });
       }
-       
+
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
       const WrappedMdxContent = (props = {}) => {
         const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, "eB2HIyA1");
         if (typeof MDXLayout === 'function'){
@@ -137,7 +140,10 @@ export default function Layout({ children: content }) {
           })]
         });
       }
-       
+
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
       const WrappedMdxContent = (props = {}) => {
         const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, "UdQmQWC3");
         if (typeof MDXLayout === 'function'){

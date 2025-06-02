@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { runCreateCli } from './src/run-create-cli';
 import { runCreateInteractiveCli } from './src/run-create-interactive-cli';
 import { panic, printHeader } from '../qwik/src/cli/utils/utils';

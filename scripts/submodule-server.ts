@@ -27,6 +27,8 @@ export async function submoduleServer(config: BuildConfig) {
     external: [
       /* no Node.js built-in externals allowed! */ '@builder.io/qwik-dom',
       '@builder.io/qwik/build',
+      '@builder.io/qwik/preloader',
+      '@qwik-client-manifest',
     ],
   };
 
@@ -69,6 +71,11 @@ export async function submoduleServer(config: BuildConfig) {
       'globalThis.IS_ESM': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+      // We need to get rid of the import.meta.env values
+      // Vite's base url
+      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      // Vite's devserver mode
+      'import.meta.env.DEV': 'false',
     },
   });
 
@@ -128,6 +135,9 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
         throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikBuild;
+    }
+    if (path === '@qwik-client-manifest') {
+      return {};
     }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };

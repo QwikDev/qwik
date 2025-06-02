@@ -1,4 +1,4 @@
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -10,14 +10,15 @@ import {
 } from '../../middleware/request-handler/resolve-request-handlers';
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
 import {
-  getRouteMatchPathname,
   QDATA_JSON,
+  getRouteMatchPathname,
   runQwikCity,
 } from '../../middleware/request-handler/user-response';
 import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
+  RebuildRouteInfoInternal,
   ContentMenu,
   LoadedRoute,
   LoaderInternal,
@@ -223,24 +224,31 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
-          const manifest: QwikManifest = {
-            manifestHash: '',
-            symbols: {},
-            mapping: {},
-            bundles: {},
-            injections: [],
-            version: '1',
-          };
-
           const { _deserializeData, _serializeData, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
+          const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+            const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
+            const requestHandlers = resolveRequestHandlers(
+              serverPlugins,
+              loadedRoute,
+              req.method ?? 'GET',
+              false,
+              renderFn
+            );
+
+            return {
+              loadedRoute,
+              requestHandlers,
+            };
+          };
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
-            manifest,
+            rebuildRouteInfo,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-city",
   "description": "The meta-framework for Qwik.",
-  "version": "1.12.1",
+  "version": "1.14.1",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@azure/functions": "3.5.1",
     "@builder.io/qwik": "workspace:^",
-    "@microsoft/api-extractor": "7.43.1",
+    "@microsoft/api-extractor": "7.52.4",
     "@netlify/edge-functions": "2.10.0",
     "@types/mdast": "4.0.4",
     "@types/node": "20.14.11",
@@ -155,7 +155,7 @@
       "require": "./lib/vite/index.cjs"
     },
     "./service-worker": {
-      "types": "./lib/service-worker.d.ts",
+      "types": "./service-worker.d.ts",
       "import": "./lib/service-worker.mjs",
       "require": "./lib/service-worker.cjs"
     }

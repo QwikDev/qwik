@@ -98,7 +98,6 @@ export const WrapJsxInContext = component$<{
   contexts: Array<ContextPair<any>>;
 }>(({ jsx, contexts }) => {
   contexts.forEach(({ id, value }) => {
-    // eslint-disable-next-line
     useContextProvider(id, value);
   });
   return (

@@ -1,5 +1,5 @@
 import { App } from "./components/app/app";
-import { partytownSnippet } from "@builder.io/partytown/integration";
+import { partytownSnippet } from "@qwik.dev/partytown/integration";
 
 import "./global.css";
 

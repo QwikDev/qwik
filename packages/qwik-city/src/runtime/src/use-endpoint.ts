@@ -28,7 +28,7 @@ export const loadClientData = async (
   let resolveFn: () => void | undefined;
 
   if (!qData) {
-    const fetchOptions = getFetchOptions(opts?.action);
+    const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache);
     if (opts?.action) {
       opts.action.data = undefined;
     }
@@ -88,16 +88,22 @@ export const loadClientData = async (
   });
 };
 
-const getFetchOptions = (action: RouteActionValue | undefined): RequestInit => {
+const getFetchOptions = (
+  action: RouteActionValue | undefined,
+  noCache: boolean | undefined
+): RequestInit | undefined => {
   const actionData = action?.data;
   if (!actionData) {
-    return {
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-      },
-    };
+    if (noCache) {
+      return {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      };
+    }
+    return undefined;
   }
   if (actionData instanceof FormData) {
     return {

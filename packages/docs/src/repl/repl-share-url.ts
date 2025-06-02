@@ -7,6 +7,7 @@ const dataDefaults: PlaygroundShareUrl = {
   buildMode: 'development',
   entryStrategy: 'segment',
   files: [],
+  preloader: false,
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {
   if (typeof shareable === 'string' && shareable.length > 0) {
@@ -26,6 +27,10 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const entryStrategy = params.get('entryStrategy')!;
       if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
         data.entryStrategy = entryStrategy;
+      }
+      const preloader = params.get('preloader')!;
+      if (preloader !== null) {
+        data.preloader = true;
       }
 
       if (params.has('files')) {
@@ -129,6 +134,13 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   if (data.entryStrategy !== dataDefaults.entryStrategy) {
     params.set('entryStrategy', data.entryStrategy);
   }
+  if (data.preloader !== dataDefaults.preloader) {
+    if (data.preloader) {
+      params.set('preloader', '');
+    } else {
+      params.delete('preloader');
+    }
+  }
 
   params.set('f', compressFiles(data.files));
 
@@ -184,4 +196,5 @@ interface PlaygroundShareUrl {
   buildMode: any;
   entryStrategy: any;
   files: any[];
+  preloader?: boolean;
 }

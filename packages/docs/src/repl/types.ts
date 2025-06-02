@@ -13,6 +13,7 @@ export interface ReplAppInput {
   buildMode: 'development' | 'production';
   entryStrategy: string;
   debug?: boolean;
+  preloader?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
@@ -23,6 +24,7 @@ export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'
   buildMode: 'development' | 'production';
   serverUrl: string | undefined;
   deps: PkgUrls;
+  preloader: boolean;
 }
 
 export interface ReplStore {

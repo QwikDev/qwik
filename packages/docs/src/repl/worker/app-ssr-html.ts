@@ -71,6 +71,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
     base: baseUrl,
     manifest: result.manifest,
     prefetchStrategy: null as any,
+    preloader: options.preloader ? { debug: true } : false,
   }).catch((e) => {
     console.error('SSR failed', e);
     return {

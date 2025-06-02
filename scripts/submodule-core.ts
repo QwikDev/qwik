@@ -246,7 +246,7 @@ async function submoduleCoreDev(config: BuildConfig) {
       ...opts.define,
       // We need to get rid of the import.meta.env values
       // Vite's base url
-      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      'import.meta.env.BASE_URL': 'globalThis.BASE_URL',
       // Vite's devserver mode
       'import.meta.env.DEV': 'false',
     },

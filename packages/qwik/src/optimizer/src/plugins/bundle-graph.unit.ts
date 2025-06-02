@@ -162,7 +162,8 @@ describe('convertManifestToBundleGraph', () => {
       [],
       outputBundles.bundles as any,
       { rootDir: '/', outDir: '/' } as any,
-      console.error
+      console.error,
+      (p) => path.relative('build', p)
     );
 
     // Interactivity scores

@@ -108,6 +108,7 @@ export const Repl = component$((props: ReplProps) => {
     track(() => input.files);
     track(() => input.version);
     track(() => input.debug);
+    track(() => input.preloader);
     track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
@@ -210,6 +211,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         version: input.version,
         serverUrl: store.serverUrl,
         deps: getDependencies(input),
+        preloader: !!input.preloader,
       },
     };
 

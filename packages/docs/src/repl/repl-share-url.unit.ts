@@ -24,6 +24,7 @@ const data = {
       code: 'console.log("bar");',
     },
   ],
+  preloader: false,
 };
 test('filesToStr', () => {
   assert.equal(

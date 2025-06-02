@@ -1,7 +1,9 @@
+import { isDev, isBrowser } from '@qwik.dev/core/build';
+import { assertDefined } from '../error/assert';
+import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../utils/serialize-utils';
 // ^ keep these above to prevent circular dep issues
-import { isBrowser, isDev } from '@qwik.dev/core/build';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import {
@@ -12,8 +14,6 @@ import {
   type InvokeContext,
   type InvokeTuple,
 } from '../../use/use-core';
-import { assertDefined } from '../error/assert';
-import { QError, qError } from '../error/error';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
@@ -74,7 +74,6 @@ export const createQRL = <TYPE>(
   }
 
   let _containerEl: Element | undefined;
-
   const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
     const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
     const result = await boundedFn(...args);

@@ -26,7 +26,7 @@ if (process.env.CI) {
 }
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ ignoreConfigErrors: true, root: '../../' })],
+  plugins: [tsconfigPaths({ root: '../../' })],
   test: {
     include: ['./tests/*.spec.?(c|m)[jt]s?(x)'],
     setupFiles: ['./utils/setup.ts'],

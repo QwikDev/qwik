@@ -121,9 +121,6 @@ export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
       manifest: {
         manifestHash: 'dev',
         mapping: {},
-        bundles: {},
-        symbols: {},
-        version: 'dev-mode',
       },
     },
     renderOptions: opts.renderOptions,

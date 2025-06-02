@@ -17,6 +17,8 @@ import qCoreInternalDts from '../../node_modules/@qwik.dev/core/dist/core-intern
 import qCoreMinMjs from '../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
 import qPreloaderMjs from '../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
 import qHandlersMjs from '../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
+// we use the debug version for the repl so it's understandable
+import qQwikLoaderJs from '../../node_modules/@builder.io/qwik/dist/qwikloader.debug.js?raw-source';
 import qCoreMjs from '../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
 import qOptimizerCjs from '../../node_modules/@qwik.dev/core/dist/optimizer.cjs?raw-source';
 import qServerCjs from '../../node_modules/@qwik.dev/core/dist/server.cjs?raw-source';
@@ -66,6 +68,7 @@ export const bundled: PkgUrls = {
     '/dist/server.cjs': qServerCjs,
     '/dist/server.d.ts': qServerDts,
     '/dist/preloader.mjs': qPreloaderMjs,
+    '/dist/qwikloader.js': qQwikLoaderJs,
     '/handlers.mjs': qHandlersMjs,
     '/bindings/qwik.wasm.cjs': qWasmCjs,
     '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,

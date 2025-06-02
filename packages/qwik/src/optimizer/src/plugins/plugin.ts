@@ -415,6 +415,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
     npmChunks.clear();
+
+    if (opts.target === 'client') {
+      const ql = await _ctx.resolve('@builder.io/qwik/qwikloader.js', undefined, {
+        skipSelf: true,
+      });
+      if (ql) {
+        _ctx.emitFile({
+          id: ql.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
+    }
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -925,12 +938,13 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        injections: manifest.injections,
-        bundleGraph: manifest.bundleGraph,
-        mapping: manifest.mapping,
-        preloader: manifest.preloader,
         core: manifest.core,
+        preloader: manifest.preloader,
+        qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
+        injections: manifest.injections,
+        mapping: manifest.mapping,
+        bundleGraph: manifest.bundleGraph,
       };
     }
     return `// @qwik-client-manifest
@@ -981,6 +995,8 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
         /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
       ) {
         return 'qwik-core';
+      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
+        return 'qwik-loader';
       }
     }
 

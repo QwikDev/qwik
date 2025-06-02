@@ -376,7 +376,7 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
-      it('should render at bottom by default', async () => {
+      it('should render at bottom as fallback', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
@@ -386,57 +386,11 @@ describe('render api', () => {
           ?.previousSibling as HTMLElement;
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
-      });
-      it('should render at bottom', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          qwikLoader: {
-            position: 'bottom',
-          },
-        });
-        const document = createDocument({ html: result.html });
-        // qwik loader is one before last
-        const qwikLoaderScriptElement = document.body.firstChild?.lastChild
-          ?.previousSibling as HTMLElement;
-        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
-        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
-        // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
-      });
-      it('should render at top', async () => {
-        const result = await renderToStringAndSetPlatform(
-          [
-            <head>
-              <script></script>
-            </head>,
-            <body>
-              <ManyEventsComponent />
-            </body>,
-          ],
-          {
-            containerTagName: 'html',
-            qwikLoader: {
-              position: 'top',
-            },
-          }
-        );
-        const document = createDocument({ html: result.html });
-        // should render in head
-        const head = document.head as HTMLButtonElement;
-        // qwik events should be the last script
-        const firstQwikEventsScriptElement = head.lastChild as HTMLElement;
-        // qwik loader should be one before qwik events script
-        const qwikLoaderScriptElement = firstQwikEventsScriptElement.previousSibling as HTMLElement;
         // qwik events should be the last script of body
-        const secondQwikEventsScriptElement = document.body.lastChild as HTMLElement;
-
-        expect(firstQwikEventsScriptElement.textContent).toContain(
-          'window.qwikevents.push("click", "input")'
+        const eventsScriptElement = document.body.lastChild as HTMLElement;
+        expect(eventsScriptElement.textContent).toContain(
+          '(window.qwikevents||(window.qwikevents=[]))'
         );
-        expect(secondQwikEventsScriptElement.textContent).toContain('window.qwikevents.push');
-
-        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
-        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
       it('should always render', async () => {
         const result = await renderToStringAndSetPlatform(<div>static</div>, {
@@ -447,7 +401,7 @@ describe('render api', () => {
         });
         const document = createDocument({ html: result.html });
         // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
       });
       it('should not render for static content and auto include', async () => {
@@ -485,7 +439,7 @@ describe('render api', () => {
         const eventScript = document.querySelector('script[id=qwikloader]')
           ?.nextSibling as HTMLElement;
         expect(eventScript.textContent).toContain(
-          'window.qwikevents.push("focus", "click", "dblclick", "blur")'
+          '(window.qwikevents||(window.qwikevents=[])).push("focus", "click", "dblclick", "blur")'
         );
       });
     });
@@ -713,7 +667,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: true,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">debug</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader" async>debug</script>');
       });
 
       it('should emit qwik loader without debug mode', async () => {
@@ -721,7 +675,7 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: false,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">min</script>');
+        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader" async>min</script>');
       });
     });
     describe('snapshotResult', () => {
@@ -974,7 +928,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(6);
+        expect(stream.write).toHaveBeenCalledTimes(7);
       });
     });
   });

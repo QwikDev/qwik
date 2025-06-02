@@ -103,20 +103,7 @@ export async function renderToStream(
   if (containerTagName === 'html') {
     stream.write(DOCTYPE);
   } else {
-    // The container is not `<html>` so we don't include the qwikloader by default
     stream.write('<!--cq-->');
-    if (opts.qwikLoader) {
-      if (opts.qwikLoader.include === undefined) {
-        opts.qwikLoader.include = 'never';
-      }
-      if (opts.qwikLoader.position === undefined) {
-        opts.qwikLoader.position = 'bottom';
-      }
-    } else {
-      opts.qwikLoader = {
-        include: 'never',
-      };
-    }
   }
 
   if (!resolvedManifest && !isDev) {
@@ -132,25 +119,18 @@ export async function renderToStream(
     : [];
 
   const includeMode = opts.qwikLoader?.include ?? 'auto';
-  const positionMode = opts.qwikLoader?.position ?? 'bottom';
+  const qwikLoaderChunk = resolvedManifest?.manifest.qwikLoader;
   let didAddQwikLoader = false;
-  if (positionMode === 'top' && includeMode !== 'never') {
+  if (includeMode !== 'never' && qwikLoaderChunk) {
+    beforeContent.unshift(
+      jsx('link', { rel: 'modulepreload', href: `${buildBase}${qwikLoaderChunk}` }),
+      jsx('script', {
+        type: 'module',
+        async: true,
+        src: `${buildBase}${qwikLoaderChunk}`,
+      })
+    );
     didAddQwikLoader = true;
-    const qwikLoaderScript = getQwikLoaderScript({
-      debug: opts.debug,
-    });
-    beforeContent.push(
-      jsx('script', {
-        id: 'qwikloader',
-        dangerouslySetInnerHTML: qwikLoaderScript,
-      })
-    );
-    // Assume there will be at least click and input handlers
-    beforeContent.push(
-      jsx('script', {
-        dangerouslySetInnerHTML: `window.qwikevents.push('click','input')`,
-      })
-    );
   }
   preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, opts.serverData?.nonce);
 
@@ -195,15 +175,17 @@ export async function renderToStream(
         );
       }
 
-      const needLoader = !didAddQwikLoader && (!snapshotResult || snapshotResult.mode !== 'static');
+      const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-      if (includeLoader) {
+      if (!didAddQwikLoader && includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
           debug: opts.debug,
         });
         children.push(
           jsx('script', {
             id: 'qwikloader',
+            // execute even before DOM order
+            async: true,
             dangerouslySetInnerHTML: qwikLoaderScript,
             nonce: opts.serverData?.nonce,
           })
@@ -213,9 +195,7 @@ export async function renderToStream(
       // We emit the events separately so other qwikloaders can see them
       const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
-        const content =
-          (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
-          `.push(${extraListeners.join(', ')})`;
+        const content = `(window.qwikevents||(window.qwikevents=[])).push(${extraListeners.join(',')})`;
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,

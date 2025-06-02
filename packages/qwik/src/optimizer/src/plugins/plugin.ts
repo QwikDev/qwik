@@ -885,7 +885,7 @@ export const isDev = ${JSON.stringify(isDev)};
         mapping: manifest.mapping,
         preloader: manifest.preloader,
         core: manifest.core,
-        bundleGraphPath: manifest.bundleGraphPath,
+        bundleGraphAsset: manifest.bundleGraphAsset,
       };
     }
     return `// @qwik-client-manifest
@@ -968,10 +968,10 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       name: 'bundle-graph.json',
       source: JSON.stringify(bundleGraph),
     });
-    manifest.bundleGraphPath = outputAnalyzer.canonPath(ctx.getFileName(bgAsset));
-    manifest.bundleGraph = bundleGraph;
+    const bgPath = ctx.getFileName(bgAsset);
+    manifest.bundleGraphAsset = bgPath;
     // we already generated the assets list so we need to update it
-    manifest.assets![manifest.bundleGraphPath] = {
+    manifest.assets![bgPath] = {
       name: 'bundle-graph.json',
       size: bundleGraph.length,
     };

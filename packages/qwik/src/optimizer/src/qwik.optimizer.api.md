@@ -192,7 +192,7 @@ export interface QwikManifest {
         [fileName: string]: QwikAsset;
     };
     bundleGraph?: QwikBundleGraph;
-    bundleGraphPath?: string;
+    bundleGraphAsset?: string;
     bundles: {
         [fileName: string]: QwikBundle;
     };
@@ -316,7 +316,7 @@ export interface ResolvedManifest {
     // (undocumented)
     injections: GlobalInjections[];
     // (undocumented)
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
     // (undocumented)
     mapper: SymbolMapper;
 }
@@ -360,6 +360,9 @@ interface SegmentEntryStrategy {
 }
 export { SegmentEntryStrategy as HookEntryStrategy }
 export { SegmentEntryStrategy }
+
+// @public
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

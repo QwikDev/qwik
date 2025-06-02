@@ -832,7 +832,7 @@ boolean
 
 </td><td>
 
-QwikManifest
+ServerQwikManifest
 
 </td><td>
 
@@ -1312,7 +1312,7 @@ Auto: Prefetch all possible QRLs used by the document. Default
 ```typescript
 export type SymbolsToPrefetch =
   | "auto"
-  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 ```
 
 **References:** [PrefetchResource](#prefetchresource)

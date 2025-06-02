@@ -29,7 +29,8 @@ export const preloaderPre = (
   nonce?: string
 ) => {
   const preloaderPath = simplifyPath(base, resolvedManifest?.manifest?.preloader);
-  const bundleGraphPath = simplifyPath(base, resolvedManifest?.manifest.bundleGraphPath);
+  const bundleGraphPath =
+    (import.meta.env.BASE_URL || '/') + resolvedManifest?.manifest.bundleGraphAsset;
   if (preloaderPath && bundleGraphPath && options !== false) {
     // Initialize the SSR preloader
     const preloaderOpts: Parameters<typeof initPreloader>[1] =

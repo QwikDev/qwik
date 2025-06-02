@@ -15,6 +15,7 @@ import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
+import type { ServerQwikManifest } from '@builder.io/qwik/optimizer';
 import type { ServerRenderOptions } from '@builder.io/qwik-city/middleware/request-handler';
 import { ServerResponse } from 'http';
 import type { SnapshotResult } from '@builder.io/qwik';

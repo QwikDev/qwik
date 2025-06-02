@@ -19,6 +19,7 @@ export type {
   QwikBundle,
   QwikBundleGraph,
   QwikManifest,
+  ServerQwikManifest,
   QwikSymbol,
   ResolvedManifest,
   SegmentAnalysis,

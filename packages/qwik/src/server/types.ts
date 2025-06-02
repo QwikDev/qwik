@@ -124,7 +124,15 @@ export interface RenderResult {
 
 /** @public */
 export interface QwikLoaderOptions {
+  /**
+   * Whether to include the qwikloader script in the document. Normally you don't need to worry
+   * about this, but in case of multi-container apps using different Qwik versions, you might want
+   * to only enable it on one of the containers.
+   *
+   * Defaults to `'auto'`.
+   */
   include?: 'always' | 'never' | 'auto';
+  /** @deprecated No longer used, the qwikloader is always loaded as soon as possible */
   position?: 'top' | 'bottom';
 }
 

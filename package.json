@@ -104,7 +104,7 @@
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.1.0",
     "@clack/prompts": "0.7.0",
-    "@eslint/js": "9.27.0",
+    "@eslint/js": "9.28.0",
     "@mdx-js/mdx": "3.1.0",
     "@microsoft/api-documenter": "7.26.27",
     "@microsoft/api-extractor": "7.52.8",
@@ -133,7 +133,7 @@
     "csstype": "3.1.3",
     "dotenv": "16.5.0",
     "esbuild": "0.25.4",
-    "eslint": "9.27.0",
+    "eslint": "9.28.0",
     "eslint-plugin-no-only-tests": "3.3.0",
     "eslint-plugin-qwik": "workspace:^",
     "execa": "8.0.1",
@@ -147,7 +147,7 @@
     "prettier": "3.5.3",
     "prettier-plugin-jsdoc": "1.3.2",
     "prettier-plugin-tailwindcss": "0.6.11",
-    "pretty-quick": "4.1.1",
+    "pretty-quick": "4.2.2",
     "prompts": "2.4.2",
     "rollup": ">= 4.39.0",
     "semver": "7.7.2",
@@ -171,7 +171,7 @@
     "vitest": "2.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
-    "zod": "3.25.34"
+    "zod": "3.25.48"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11",

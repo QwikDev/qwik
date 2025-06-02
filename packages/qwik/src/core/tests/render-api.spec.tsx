@@ -70,6 +70,13 @@ const defaultManifest: QwikManifest = {
   version: '1',
   preloader: 'preloader.js',
 };
+const manifestWithHelpers = {
+  ...defaultManifest,
+  core: 'core.js',
+  preloader: 'preloader.js',
+  qwikLoader: 'qwik-loader.js',
+  bundleGraphAsset: 'assets/bundle-graph.json',
+};
 
 const ManyEventsComponent = component$(() => {
   useOn(
@@ -488,6 +495,31 @@ describe('render api', () => {
         });
         const document = createDocument({ html: result.html });
         expect(document.body.firstChild?.nodeName.toLowerCase()).toEqual(testTag);
+      });
+      it('should render qwik loader and preloader for custom tag name', async () => {
+        const testTag = 'test-tag';
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: testTag,
+          manifest: manifestWithHelpers,
+        });
+        const document = createDocument({ html: result.html });
+        const containerElement = document.body.firstChild;
+        expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
+        expect(containerElement?.lastChild?.textContent ?? '').toContain('window.qwikevents');
+        const scripts = document.querySelectorAll('script');
+        expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
+        expect(scripts[1]?.innerHTML).toContain('/build/preloader.js');
+        expect(scripts[4]?.innerHTML).toContain('/build/preloader.js');
+        const links = document.querySelectorAll('link');
+        expect(links[0]?.getAttribute('href')).toEqual('/build/qwik-loader.js');
+        expect(links[0]?.getAttribute('rel')).toEqual('modulepreload');
+        expect(links[1]?.getAttribute('href')).toEqual('/build/preloader.js');
+        expect(links[1]?.getAttribute('rel')).toEqual('modulepreload');
+        expect(links[2]?.getAttribute('href')).toEqual('/assets/bundle-graph.json');
+        expect(links[2]?.getAttribute('rel')).toEqual('preload');
+        expect(links[2]?.getAttribute('as')).toEqual('fetch');
+        expect(links[3]?.getAttribute('href')).toEqual('/build/core.js');
+        expect(links[3]?.getAttribute('rel')).toEqual('modulepreload');
       });
       it('should render custom container attributes', async () => {
         const testAttrName = 'test-attr';

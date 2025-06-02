@@ -185,12 +185,16 @@ function processJSXNode(
 
         enqueue(ssr.closeElement);
 
-        enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         if (type === 'head') {
-          enqueue(ssr.emitPreloaderPre);
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
           enqueue(ssr.additionalHeadNodes);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
+        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
+          (ssr as any)._didAddQwikLoader = true;
         }
 
         const children = jsx.children as JSXOutput;

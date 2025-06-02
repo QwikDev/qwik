@@ -98,8 +98,11 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         }
       }
       // this id is unchanged because it's an entry point
-      if (id === '@builder.io/qwik/qwikloader.js') {
-        const rsp = await depResponse('@builder.io/qwik', '/qwikloader.js');
+      if (id === '@qwik.dev/core/qwikloader.js') {
+        const rsp = await depResponse(
+          '@qwik.dev/core',
+          `/qwikloader${options.debug ? '.debug' : ''}.js`
+        );
         if (rsp) {
           return rsp.text();
         }

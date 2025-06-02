@@ -1,4 +1,4 @@
-import { isDev, isServer, isBrowser } from '@qwik.dev/core/build';
+import { isDev, isBrowser } from '@qwik.dev/core/build';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getPlatform, isServerPlatform } from '../platform/platform';
@@ -75,18 +75,9 @@ export const createQRL = <TYPE>(
 
   let _containerEl: Element | undefined;
   const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    try {
-      const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
-      const result = await boundedFn(...args);
-      return result;
-    } catch (e) {
-      if (isDev && isServer && e instanceof ReferenceError) {
-        if (e.message.includes('window')) {
-          e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
-        }
-        throw e;
-      }
-    }
+    const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
+    const result = await boundedFn(...args);
+    return result;
   } as QRLInternal<TYPE>;
 
   const setContainer = (el: Element | undefined) => {

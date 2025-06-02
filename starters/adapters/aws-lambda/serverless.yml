@@ -18,6 +18,21 @@ functions:
 custom:
   serverless-offline:
     httpPort: 4000
+  serverless-http:
+    # Make sure serverless-http serves files correctly
+    binary:
+      contentTypes:
+        - "application/javascript"
+        - "text/javascript"
+        - "application/json"
+        - "text/html"
+        - "text/css"
+        - "image/*"
+        - "font/*"
+    # the js files under build have hash names and are immutable
+    cacheControl:
+      - pattern: "build/**/*.js"
+        value: "public, max-age=31536000, immutable"
 
 package:
   excludeDevDependencies: true

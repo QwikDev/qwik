@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .header-container {
   height: var(--header-height);
   background: var(--bg-color);

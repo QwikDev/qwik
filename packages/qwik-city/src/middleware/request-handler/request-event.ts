@@ -1,32 +1,32 @@
-import type {
-  RequestEvent,
-  RequestEventLoader,
-  ServerRequestEvent,
-  ServerRequestMode,
-  RequestHandler,
-  RequestEventCommon,
-  ResolveValue,
-  QwikSerializer,
-  CacheControlTarget,
-  CacheControl,
-} from './types';
+import type { ValueOrPromise } from '@builder.io/qwik';
+import { QDATA_KEY } from '../../runtime/src/constants';
 import type {
   ActionInternal,
+  FailReturn,
   JSONValue,
   LoadedRoute,
   LoaderInternal,
-  FailReturn,
 } from '../../runtime/src/types';
-import { Cookie } from './cookie';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { encoder } from './resolve-request-handlers';
-import { createCacheControl } from './cache-control';
-import type { ValueOrPromise } from '@builder.io/qwik';
-import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 import { isPromise } from './../../runtime/src/utils';
-import { QDATA_KEY } from '../../runtime/src/constants';
+import { createCacheControl } from './cache-control';
+import { Cookie } from './cookie';
 import { ServerError } from './error-handler';
+import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { RewriteMessage } from './rewrite-handler';
+import { encoder } from './resolve-request-handlers';
+import type {
+  CacheControl,
+  CacheControlTarget,
+  QwikSerializer,
+  RequestEvent,
+  RequestEventCommon,
+  RequestEventLoader,
+  RequestHandler,
+  ResolveValue,
+  ServerRequestEvent,
+  ServerRequestMode,
+} from './types';
+import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -37,12 +37,12 @@ export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
+export const RequestEvIsRewrite = '@rewrite';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
   trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
@@ -61,7 +61,6 @@ export function createRequestEvent(
     }
     sharedMap.set(IsQData, true);
   }
-  sharedMap.set('@manifest', manifest);
 
   let routeModuleIndex = -1;
   let writableStream: WritableStream<Uint8Array> | null = null;
@@ -83,6 +82,18 @@ export function createRequestEvent(
       }
       routeModuleIndex++;
     }
+  };
+
+  const resetRoute = (
+    _loadedRoute: LoadedRoute | null,
+    _requestHandlers: RequestHandler<any>[],
+    _url = url
+  ) => {
+    loadedRoute = _loadedRoute;
+    requestHandlers = _requestHandlers;
+    url.pathname = _url.pathname;
+    url.search = _url.search;
+    routeModuleIndex = -1;
   };
 
   const check = () => {
@@ -120,11 +131,7 @@ export function createRequestEvent(
         const writableStream = requestEv.getWritableStream();
         statusOrResponse.body.pipeTo(writableStream);
       } else {
-        if (status >= 300 && status < 400) {
-          return new RedirectMessage();
-        } else {
-          requestEv.getWritableStream().getWriter().close();
-        }
+        requestEv.getWritableStream().getWriter().close();
       }
     }
     return exit();
@@ -140,17 +147,26 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvRoute]: loadedRoute,
+    get [RequestEvRoute]() {
+      return loadedRoute;
+    },
     [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[1] ?? {},
-    pathname: url.pathname,
+    originalUrl: new URL(url),
+    get params() {
+      return loadedRoute?.[1] ?? {};
+    },
+    get pathname() {
+      return url.pathname;
+    },
     platform,
-    query: url.searchParams,
+    get query() {
+      return url.searchParams;
+    },
     request,
     url,
     basePathname,
@@ -166,6 +182,8 @@ export function createRequestEvent(
     },
 
     next,
+
+    resetRoute,
 
     exit,
 
@@ -225,6 +243,15 @@ export function createRequestEvent(
       }
       exit();
       return new RedirectMessage();
+    },
+
+    rewrite: (pathname: string) => {
+      check();
+      if (pathname.startsWith('http')) {
+        throw new Error('Rewrite does not support absolute urls');
+      }
+      sharedMap.set(RequestEvIsRewrite, true);
+      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
     },
 
     defer: (returnData) => {
@@ -303,6 +330,19 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
    * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
+
+  /**
+   * Reset the request event to the given route data.
+   *
+   * @param loadedRoute - The new loaded route.
+   * @param requestHandlers - The new request handlers.
+   * @param url - The new URL of the route.
+   */
+  resetRoute(
+    loadedRoute: LoadedRoute | null,
+    requestHandlers: RequestHandler<any>[],
+    url: URL
+  ): void;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

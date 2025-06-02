@@ -12,7 +12,6 @@ import {
   type PlatformNode,
 } from "@builder.io/qwik-city/middleware/node";
 import qwikCityPlan from "@qwik-city-plan";
-import { manifest } from "@qwik-client-manifest";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 
@@ -53,9 +52,8 @@ const DEFAULT_HEADERS = {
 const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
-  manifest,
   static: {
-    cacheControl: "public, max-age=31557600",
+    cacheControl: "public, max-age=31536000, immutable",
   },
   getOrigin(req) {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

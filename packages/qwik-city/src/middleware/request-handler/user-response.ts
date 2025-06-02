@@ -1,16 +1,16 @@
-import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
 import type { RequestEvent, RequestHandler } from '@builder.io/qwik-city';
+import type { RebuildRouteInfoInternal, LoadedRoute } from '../../runtime/src/types';
+import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
+import { AbortMessage, RedirectMessage } from './redirect-handler';
 import {
   RequestEvQwikSerializer,
   createRequestEvent,
   getRequestMode,
   type RequestEventInternal,
 } from './request-event';
-import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
-import type { LoadedRoute } from '../../runtime/src/types';
 import { encoder } from './resolve-request-handlers';
-import type { QwikManifest, ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import { RewriteMessage } from './rewrite-handler';
 
 export interface QwikCityRun<T> {
   response: Promise<T | null>;
@@ -36,7 +36,7 @@ export function runQwikCity<T>(
   serverRequestEv: ServerRequestEvent<T>,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  manifest: QwikManifest | ResolvedManifest | undefined,
+  rebuildRouteInfo: RebuildRouteInfoInternal,
   trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
@@ -47,68 +47,93 @@ export function runQwikCity<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
-    manifest,
     trailingSlash,
     basePathname,
     qwikSerializer,
     resolve!
   );
+
   return {
     response: responsePromise,
     requestEv,
     completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, resolve!)
-      : runNext(requestEv, resolve!),
+      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+      : runNext(requestEv, rebuildRouteInfo, resolve!),
   };
 }
 
-async function runNext(requestEv: RequestEventInternal, resolve: (value: any) => void) {
-  try {
-    // Run all middlewares
-    await requestEv.next();
-  } catch (e) {
-    if (e instanceof RedirectMessage) {
-      const stream = requestEv.getWritableStream();
-      await stream.close();
-    } else if (e instanceof ServerError) {
-      if (!requestEv.headersSent) {
-        const status = e.status as StatusCodes;
-        const accept = requestEv.request.headers.get('Accept');
-        if (accept && !accept.includes('text/html')) {
-          const qwikSerializer = requestEv[RequestEvQwikSerializer];
-          requestEv.headers.set('Content-Type', 'application/qwik-json');
-          requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
-        } else {
-          const html = getErrorHtml(e.status, e.data);
-          requestEv.html(status, html);
+async function runNext(
+  requestEv: RequestEventInternal,
+  rebuildRouteInfo: RebuildRouteInfoInternal,
+  resolve: (value: any) => void
+) {
+  let rewriteAttempt = 1;
+
+  async function _runNext() {
+    try {
+      // Run all middlewares
+      await requestEv.next();
+    } catch (e) {
+      if (e instanceof RedirectMessage) {
+        const stream = requestEv.getWritableStream();
+        await stream.close();
+      } else if (e instanceof RewriteMessage) {
+        if (rewriteAttempt > 50) {
+          throw new Error(`Infinite rewrite loop`);
         }
-      }
-    } else if (!(e instanceof AbortMessage)) {
-      if (getRequestMode(requestEv) !== 'dev') {
-        try {
-          if (!requestEv.headersSent) {
-            requestEv.headers.set('content-type', 'text/html; charset=utf-8');
-            requestEv.cacheControl({ noCache: true });
-            requestEv.status(500);
+
+        rewriteAttempt += 1;
+        const url = new URL(requestEv.url);
+        url.pathname = e.pathname;
+        const { loadedRoute, requestHandlers } = await rebuildRouteInfo(url);
+        requestEv.resetRoute(loadedRoute, requestHandlers, url);
+        return await _runNext();
+      } else if (e instanceof ServerError) {
+        if (!requestEv.headersSent) {
+          const status = e.status as StatusCodes;
+          const accept = requestEv.request.headers.get('Accept');
+          if (accept && !accept.includes('text/html')) {
+            const qwikSerializer = requestEv[RequestEvQwikSerializer];
+            requestEv.headers.set('Content-Type', 'application/qwik-json');
+            requestEv.send(status, await qwikSerializer._serializeData(e.data, true));
+          } else {
+            const html = getErrorHtml(e.status, e.data);
+            requestEv.html(status, html);
           }
-          const stream = requestEv.getWritableStream();
-          if (!stream.locked) {
-            const writer = stream.getWriter();
-            await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
-            await writer.close();
-          }
-        } catch {
-          console.error('Unable to render error page');
         }
+      } else if (!(e instanceof AbortMessage)) {
+        if (getRequestMode(requestEv) !== 'dev') {
+          try {
+            if (!requestEv.headersSent) {
+              requestEv.headers.set('content-type', 'text/html; charset=utf-8');
+              requestEv.cacheControl({ noCache: true });
+              requestEv.status(500);
+            }
+            const stream = requestEv.getWritableStream();
+            if (!stream.locked) {
+              const writer = stream.getWriter();
+              await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+              await writer.close();
+            }
+          } catch {
+            console.error('Unable to render error page');
+          }
+        }
+
+        return e;
       }
-      return e;
     }
+
+    return undefined;
+  }
+
+  try {
+    return await _runNext();
   } finally {
     if (!requestEv.isDirty()) {
       resolve(null);
     }
   }
-  return undefined;
 }
 
 /**

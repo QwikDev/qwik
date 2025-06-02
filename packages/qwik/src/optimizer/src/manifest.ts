@@ -1,6 +1,6 @@
 import type { OutputBundle } from 'rollup';
-import { type NormalizedQwikPluginOptions } from './plugins/plugin';
-import type { GlobalInjections, SegmentAnalysis, Path, QwikBundle, QwikManifest } from './types';
+import { QWIK_PRELOADER_REAL_ID, type NormalizedQwikPluginOptions } from './plugins/plugin';
+import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
@@ -15,15 +15,15 @@ function prioritizeSymbolNames(manifest: QwikManifest) {
     const b = symbols[symbolNameB];
 
     // events should sort highest
-    if (a.ctxKind === 'event' && b.ctxKind !== 'event') {
+    if (a.ctxKind === 'eventHandler' && b.ctxKind !== 'eventHandler') {
       return -1;
     }
-    if (a.ctxKind !== 'event' && b.ctxKind === 'event') {
+    if (a.ctxKind !== 'eventHandler' && b.ctxKind === 'eventHandler') {
       return 1;
     }
 
-    if (a.ctxKind === 'event' && b.ctxKind === 'event') {
-      // both are an event
+    if (a.ctxKind === 'eventHandler' && b.ctxKind === 'eventHandler') {
+      // both are an event handler
       const aIndex = EVENT_PRIORITY.indexOf(a.ctxName.toLowerCase());
       const bIndex = EVENT_PRIORITY.indexOf(b.ctxName.toLowerCase());
 
@@ -236,6 +236,158 @@ export function getValidManifest(manifest: QwikManifest | undefined | null) {
   return undefined;
 }
 
+const getBundleInteractivity = (bundle: QwikBundle, manifest: QwikManifest) => {
+  let maxScore = 0;
+  if (bundle.symbols) {
+    for (const symbolName of bundle.symbols) {
+      let score = 1;
+      const symbol = manifest.symbols[symbolName];
+      if (symbol) {
+        if (symbol.ctxKind === 'function') {
+          if (/(component|useStyles|useStylesScoped)/i.test(symbol.ctxName)) {
+            score += 1;
+          } else if (/(useComputed|useTask|useVisibleTask|useOn)/i.test(symbol.ctxName)) {
+            score += 2;
+          }
+        } else {
+          score += 1;
+          if (/(click|mouse|pointer|touch|key|scroll|gesture|wheel)/i.test(symbol.ctxName)) {
+            score += 3;
+          }
+        }
+      }
+      maxScore = Math.max(maxScore, score);
+    }
+  }
+  return maxScore;
+};
+
+/**
+ * Computes the total size of each bundle based on its dependencies. Written by ChatGPT ;) - it's
+ * harder than you think to total nodes in a directed cyclic graph
+ */
+export function computeTotals(graph: QwikManifest['bundles']): void {
+  // 1) Prepare Tarjan's structures
+  let index = 0;
+  const stack: string[] = [];
+  const sccList: string[][] = [];
+
+  // Maps for Tarjan
+  const idx = new Map<string, number>(); // node -> index
+  const low = new Map<string, number>(); // node -> low-link
+  const onStack = new Set<string>();
+
+  function strongConnect(v: string) {
+    idx.set(v, index);
+    low.set(v, index);
+    index++;
+    stack.push(v);
+    onStack.add(v);
+
+    // Explore children
+    const children = graph[v].imports || [];
+    for (const w of children) {
+      if (!idx.has(w)) {
+        strongConnect(w);
+        low.set(v, Math.min(low.get(v)!, low.get(w)!));
+      } else if (onStack.has(w)) {
+        low.set(v, Math.min(low.get(v)!, idx.get(w)!));
+      }
+    }
+
+    // If v is a root node, pop stack to form an SCC
+    if (low.get(v) === idx.get(v)) {
+      const comp: string[] = [];
+      let x: string;
+      do {
+        x = stack.pop()!;
+        onStack.delete(x);
+        comp.push(x);
+      } while (x !== v);
+      sccList.push(comp);
+    }
+  }
+
+  // Run Tarjan over all nodes
+  for (const v of Object.keys(graph)) {
+    if (!idx.has(v)) {
+      strongConnect(v);
+    }
+  }
+
+  // 2) Build DAG of SCCs
+  // sccIndex: which SCC a node belongs to
+  const sccIndex = new Map<string, number>();
+  sccList.forEach((comp, i) => {
+    for (const v of comp) {
+      sccIndex.set(v, i);
+    }
+  });
+
+  // Create adjacency for the SCC graph
+  const sccDAG: Set<number>[] = Array.from({ length: sccList.length }, () => new Set());
+  for (const v of Object.keys(graph)) {
+    const i = sccIndex.get(v)!;
+    for (const w of graph[v].imports || []) {
+      const j = sccIndex.get(w)!;
+      if (i !== j) {
+        sccDAG[i].add(j);
+      }
+    }
+  }
+
+  // 3) Topological sort the SCC DAG
+  const visited = new Set<number>();
+  const order: number[] = [];
+
+  function dfsSCC(u: number) {
+    visited.add(u);
+    for (const v of sccDAG[u]) {
+      if (!visited.has(v)) {
+        dfsSCC(v);
+      }
+    }
+    order.push(u);
+  }
+
+  for (let i = 0; i < sccList.length; i++) {
+    if (!visited.has(i)) {
+      dfsSCC(i);
+    }
+  }
+  order.reverse(); // Now it's a topological order
+
+  // 4) Compute totals from bottom to top
+  const sccTotals = new Array<number>(sccList.length).fill(0);
+
+  // First compute the sum of 'size' in each SCC
+  for (let i = 0; i < sccList.length; i++) {
+    let sumSize = 0;
+    for (const nodeId of sccList[i]) {
+      sumSize += graph[nodeId].size;
+    }
+    sccTotals[i] = sumSize;
+  }
+
+  // Then add child totals in topological order (reversed)
+  for (let k = order.length - 1; k >= 0; k--) {
+    const sccId = order[k];
+    let total = sccTotals[sccId];
+    for (const child of sccDAG[sccId]) {
+      total += sccTotals[child];
+    }
+    sccTotals[sccId] = total;
+  }
+
+  // 5) Assign computed totals back to each node in the original graph
+  for (let i = 0; i < sccList.length; i++) {
+    const total = sccTotals[i];
+    for (const nodeId of sccList[i]) {
+      graph[nodeId].total = total;
+    }
+  }
+}
+
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
@@ -254,7 +406,8 @@ export function generateManifestFromBundles(
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
-      entryStrategy: opts.entryStrategy,
+      // don't copy the insights stuff
+      entryStrategy: opts.entryStrategy && { type: opts.entryStrategy.type },
     },
   };
 
@@ -269,35 +422,29 @@ export function generateManifestFromBundles(
     }
     return canonPath(bundle.fileName);
   };
+
   // We need to find our QRL exports
-  const qrlNames = new Set([...segments.map((h) => h.name)]);
+  const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type !== 'chunk') {
       continue;
     }
     const bundleFileName = canonPath(outputBundle.fileName);
 
+    const size = outputBundle.code.length;
     const bundle: QwikBundle = {
-      size: outputBundle.code.length,
+      size,
+      total: -1,
     };
 
-    let hasSymbols = false;
-    let hasHW = false;
     for (const symbol of outputBundle.exports) {
       if (qrlNames.has(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {
-          hasSymbols = true;
           manifest.mapping[symbol] = bundleFileName;
         }
       }
-      if (symbol === '_hW') {
-        hasHW = true;
-      }
-    }
-    if (hasSymbols && hasHW) {
-      bundle.isTask = true;
     }
 
     const bundleImports = outputBundle.imports
@@ -324,6 +471,11 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
+      if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
+        manifest.preloader = bundleFileName;
+      } else if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
+        manifest.core = bundleFileName;
+      }
     }
 
     manifest.bundles[bundleFileName] = bundle;
@@ -349,28 +501,49 @@ export function generateManifestFromBundles(
       loc: segment.loc,
     };
   }
+
+  for (const bundle of Object.values(manifest.bundles)) {
+    const interactivityScore = getBundleInteractivity(bundle, manifest);
+    bundle.interactivity = interactivityScore;
+  }
+
+  computeTotals(manifest.bundles);
+
   // To inspect the bundles, uncomment the following lines
-  // and temporarily add the writeFileSync import from fs
-  // writeFileSync(
-  //   'output-bundles.json',
-  //   JSON.stringify(
-  //     Object.entries(outputBundles).map(([n, b]) => [
-  //       n,
+  // import('node:fs').then((fs) =>
+  //   fs.writeFileSync(
+  //     'output-bundles.json',
+  //     JSON.stringify(
   //       {
-  //         ...b,
-  //         code: '<removed>',
-  //         map: '<removed>',
-  //         source: '<removed>',
-  //         modules:
-  //           'modules' in b
-  //             ? Object.fromEntries(
-  //                 Object.entries(b.modules).map(([k, v]) => [k, { ...v, code: '<removed>' }])
-  //               )
-  //             : undefined,
+  //         segments,
+  //         bundles: Object.fromEntries(
+  //           Object.entries(outputBundles).map(([n, b]) => [
+  //             n,
+  //             {
+  //               ...b,
+  //               code: 'code' in b ? b.code.slice(0, 5000) : undefined,
+  //               map: 'map' in b ? `<removed>` : undefined,
+  //               source: 'source' in b ? `<removed ${b.source.length} bytes>` : undefined,
+  //               modules:
+  //                 'modules' in b
+  //                   ? Object.fromEntries(
+  //                       Object.entries(b.modules).map(([k, v]) => [
+  //                         k,
+  //                         {
+  //                           ...v,
+  //                           code:
+  //                             'code' in v ? `<removed ${v.code?.length || 0} bytes>` : undefined,
+  //                         },
+  //                       ])
+  //                     )
+  //                   : undefined,
+  //             },
+  //           ])
+  //         ),
   //       },
-  //     ]),
-  //     null,
-  //     '\t'
+  //       null,
+  //       '\t'
+  //     ).replaceAll(process.cwd(), '')
   //   )
   // );
 

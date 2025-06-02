@@ -10,7 +10,6 @@
 import { createQwikCity } from "@builder.io/qwik-city/middleware/node";
 import qwikCityPlan from "@qwik-city-plan";
 import render from "./entry.ssr";
-import { manifest } from "@qwik-client-manifest";
 import { createServer } from "node:http";
 
 // Allow for dynamic port
@@ -20,7 +19,9 @@ const PORT = process.env.PORT ?? 3004;
 const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
-  manifest,
+  static: {
+    cacheControl: "public, max-age=31536000, immutable",
+  },
 });
 
 const server = createServer();

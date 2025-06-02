@@ -1,5 +1,108 @@
 # @builder.io/qwik
 
+## 1.14.1
+
+## 1.14.0
+
+### Minor Changes
+
+- ✨ Major improvements to prefetching with automatic bundle preloading (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
+
+  - This removes the need for service workers, and instead utilize `modulepreload` link tags for better browser integration.
+  - Improves initial load performance by including dynamic imports in the prefetch
+  - Reduces complexity while maintaining similar (and even better) functionality
+  - Enables some preloading capabilities in dev mode (SSR result only)
+  - Includes path-to-bundle mapping in bundle graph (this improves the experience using the `<Link>` component, AKA "single page app" mode)
+  - Server now has built-in manifest support (so no need to pass `manifest` around)
+  - Moves insights-related build code to insights plugin
+
+  ***
+
+  ⚠️ **ATTENTION:**
+
+  - **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+  - **Configure** your server to provide long caching headers.
+
+  **Service Worker:**
+
+  This new implementation will use it to uninstall the current service worker to reduce the unnecessary duplication.
+
+  The builtin service workers components are deprecated but still exist for backwards compatibility.
+
+  ⚠️ **IMPORTANT: Caching Headers:**
+
+  The files under build/ and assets/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/*` and `assets/*` with `Cache-Control: public, max-age=31536000, immutable`.
+
+  However, if you changed the rollup configuration for output filenames, you will have to adjust the caching configuration accordingly.
+
+  ***
+
+  You can configure the preload behavior in your SSR configuration:
+
+  ```ts
+  // entry.ssr.ts
+  export default function (opts: RenderToStreamOptions) {
+    return renderToStream(<Root />, {
+      preload: {
+        // Enable debug logging for preload operations
+        debug: true,
+        // Maximum simultaneous preload links
+        maxIdlePreloads: 5,
+        // Minimum probability threshold for preloading
+        preloadProbability: 0.25
+        // ...and more, see the type JSDoc on hover
+      },
+      ...opts,
+    });
+  }
+  ```
+
+  #### Optional for legacy apps:
+
+  For legacy apps that still need service worker functionality, you can add it back using:
+
+  ```bash
+  npm run qwik add service-worker
+  ```
+
+  This will add a basic service worker setup that you can customize for specific caching strategies, offline support, or other PWA features beyond just prefetching.
+
+### Patch Changes
+
+- 🐞🩹 linting errors which were previously being ignored across the monorepo. (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
+
+- 🐞🩹 now qwikloader is loaded only once in all cases (by [@wmertens](https://github.com/wmertens) in [#7506](https://github.com/QwikDev/qwik/pull/7506))
+
+## 1.13.0
+
+### Minor Changes
+
+- The `useTask# @builder.io/qwik function's `eagerness` option is deprecated and will be removed in version 2. (by [@sreeisalso](https://github.com/sreeisalso) in [#7345](https://github.com/QwikDev/qwik/pull/7345))
+
+### Patch Changes
+
+- 🐞🩹 Error boundary `ErrorBoundary` and fix `useErrorBoundary` (by [@damianpumar](https://github.com/damianpumar) in [#7342](https://github.com/QwikDev/qwik/pull/7342))
+
+- 🐞 🩹 The qwik-city ServiceWorkerRegister and qwik PrefetchServiceWorker now prefetch all their qrls to prevent under-prefetching (by [@maiieul](https://github.com/maiieul) in [#7417](https://github.com/QwikDev/qwik/pull/7417))
+
+- 🐞🩹 When csr is true, it causes a crash because resolve cannot be null as the second parameter (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7420](https://github.com/QwikDev/qwik/pull/7420))
+
+- updated drizzle to latest version (by [@sreeisalso](https://github.com/sreeisalso) in [#7288](https://github.com/QwikDev/qwik/pull/7288))
+
+- 🐞 fix(rollup): improve manualChunks logic to minimize over-prefetching (by [@maiieul](https://github.com/maiieul) in [#7362](https://github.com/QwikDev/qwik/pull/7362))
+
+- ✨ Add the ability to see chunks names in preview/production environments to facilitate debugging of production-only bugs (by [@maiieul](https://github.com/maiieul) in [#7293](https://github.com/QwikDev/qwik/pull/7293))
+
+- Emit an CustomEvent `qviewTransition` when view transition starts. (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7237](https://github.com/QwikDev/qwik/pull/7237))
+
+- ✨ Ability to keep using tailwind v3 through the cli (by [@maiieul](https://github.com/maiieul) in [#7403](https://github.com/QwikDev/qwik/pull/7403))
+
+- dev server now correctly handles css and js importers, also hmr persistence (by [@thejackshelton](https://github.com/thejackshelton) in [#7389](https://github.com/QwikDev/qwik/pull/7389))
+
+- 🐞🩹 set default value of lint to false to improve the execution performance (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7425](https://github.com/QwikDev/qwik/pull/7425))
+
+- 🐞🩹 manual QRL grouping now works again. This is needed for Insights to work. (by [@wmertens](https://github.com/wmertens) in [#7444](https://github.com/QwikDev/qwik/pull/7444))
+
 ## 1.12.1
 
 ### Patch Changes

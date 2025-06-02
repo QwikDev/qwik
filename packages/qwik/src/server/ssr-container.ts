@@ -166,6 +166,7 @@ export type CleanupQueue = any[][];
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
+  public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
   public resolvedManifest: ResolvedManifest;
@@ -234,6 +235,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
+    this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
     this.timing = opts.timing;
     this.$buildBase$ = opts.buildBase;
@@ -802,7 +804,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (qwikLoaderBundle) {
         // always emit the preload+import. It will probably be used at some point on the site
         qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
-        this.openElement('link', ['rel', 'preload', 'href', qwikLoaderBundle]);
+        this.openElement('link', ['rel', 'modulepreload', 'href', qwikLoaderBundle]);
         this.closeElement();
         this.openElement('script', ['type', 'module', 'async', true, 'src', qwikLoaderBundle]);
         this.closeElement();

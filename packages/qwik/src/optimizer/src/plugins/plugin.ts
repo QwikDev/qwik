@@ -94,8 +94,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
 
-  const npmChunks = new Map<string, number>();
-
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
   let diagnosticsCallback: (
@@ -414,10 +412,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
-    npmChunks.clear();
 
     if (opts.target === 'client') {
-      const ql = await _ctx.resolve('@builder.io/qwik/qwikloader.js', undefined, {
+      const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
       if (ql) {
@@ -1097,7 +1094,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
     if (isWin(sys.os)) {
       // MIT https://github.com/sindresorhus/slash/blob/main/license
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-      const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+      const isExtendedLengthPath = id.startsWith('\\\\?\\');
       if (!isExtendedLengthPath) {
         const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
         if (!hasNonAscii) {

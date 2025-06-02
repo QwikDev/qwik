@@ -185,10 +185,10 @@ function processJSXNode(
 
         enqueue(ssr.closeElement);
 
+        enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         if (type === 'head') {
-          ssr.emitPreloaderPre();
+          enqueue(ssr.emitPreloaderPre);
           enqueue(ssr.additionalHeadNodes);
-          enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
         }

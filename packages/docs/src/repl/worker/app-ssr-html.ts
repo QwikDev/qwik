@@ -65,11 +65,13 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   };
 
   const appUrl = `/repl/` + result.clientId + `/`;
+  (globalThis as any).BASE_URL = appUrl;
   const baseUrl = appUrl + `build/`;
   const ssrResult = await render({
     base: baseUrl,
     manifest: result.manifest,
     prefetchStrategy: null as any,
+    preloader: options.preloader ? { debug: true } : false,
   }).catch((e) => {
     console.error('SSR failed', e);
     return {

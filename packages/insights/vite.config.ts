@@ -13,7 +13,7 @@ export default defineConfig({
     qwikVite({
       experimental: ['insights'],
     }),
-    tsconfigPaths({ projects: ['.'] }),
+    tsconfigPaths({ root: '.' }),
     qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
     tailwindcss(),
   ],

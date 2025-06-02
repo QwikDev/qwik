@@ -194,12 +194,22 @@ export function normalizeRollupOutputOptionsObject(
         return `build/${sanitized}.js`;
       };
     }
-    // client production output
+    // client development/debug output
+    const getFilePath = (fileNamePattern: string | ((info: Rollup.PreRenderedChunk) => string)) =>
+      typeof fileNamePattern === 'string'
+        ? useAssetsDir
+          ? `${opts.assetsDir}/${fileNamePattern}`
+          : fileNamePattern
+        : useAssetsDir
+          ? (chunkInfo: Rollup.PreRenderedChunk) =>
+              `${opts.assetsDir}/${fileNamePattern(chunkInfo)}`
+          : (chunkInfo: Rollup.PreRenderedChunk) => fileNamePattern(chunkInfo);
+
     if (!outputOpts.entryFileNames) {
-      outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      outputOpts.entryFileNames = getFilePath(fileName);
     }
     if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      outputOpts.chunkFileNames = getFilePath(fileName);
     }
   } else if (opts.buildMode === 'production') {
     // server production output

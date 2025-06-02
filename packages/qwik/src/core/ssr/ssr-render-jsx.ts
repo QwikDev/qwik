@@ -28,7 +28,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -47,9 +47,17 @@ class ParentComponentData {
     public $componentFrame$: ISsrComponentFrame | null
   ) {}
 }
+class MaybeAsyncSignal {}
+
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
-  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | ParentComponentData | AsyncGenerator
+  | JSXOutput
+  | StackFn
+  | Promise<JSXOutput>
+  | typeof Promise
+  | ParentComponentData
+  | AsyncGenerator
+  | typeof MaybeAsyncSignal
 >;
 
 /** @internal */
@@ -69,6 +77,14 @@ export async function _walkJSX(
       if (value instanceof ParentComponentData) {
         options.currentStyleScoped = value.$scopedStyle$;
         options.parentComponentFrame = value.$componentFrame$;
+        continue;
+      } else if (value === MaybeAsyncSignal) {
+        // It could be an async signal, but it is not resolved yet, we need to wait for it.
+        // We could do that in the processJSXNode,
+        // but it will mean that we need to await it there, and it will return a promise.
+        // We probably want to avoid creating a promise for all jsx nodes.
+        const trackFn = stack.pop() as () => StackValue;
+        await retryOnPromise(() => stack.push(trackFn()));
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
@@ -114,7 +130,8 @@ function processJSXNode(
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getOrCreateLastNode();
       enqueue(ssr.closeFragment);
-      enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(() => trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(MaybeAsyncSignal);
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);

@@ -6,6 +6,7 @@ import { getStoreTarget } from './impl/store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 import { SignalFlags, WrappedSignalFlags } from './types';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
+import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;
@@ -33,7 +34,9 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
     return obj[prop];
   }
   if (isSignal(obj)) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    if (!(obj instanceof AsyncComputedSignalImpl)) {
+      assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    }
     if (obj instanceof WrappedSignalImpl && obj.flags & WrappedSignalFlags.UNWRAP) {
       return obj;
     }

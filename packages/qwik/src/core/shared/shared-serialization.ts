@@ -7,7 +7,7 @@ import { type DomContainer } from '../client/dom-container';
 import type { VNode } from '../client/types';
 import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
 import { isSerializerObj } from '../reactive-primitives/utils';
-import type { SerializerArg } from '../reactive-primitives/types';
+import type { AsyncComputeQRL, SerializerArg } from '../reactive-primitives/types';
 import {
   getOrCreateStore,
   getStoreHandler,
@@ -56,6 +56,7 @@ import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -288,6 +289,31 @@ const inflate = (
       signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
       break;
     }
+    case TypeIds.AsyncComputedSignal: {
+      const asyncComputed = target as AsyncComputedSignalImpl<unknown>;
+      const d = data as [
+        AsyncComputeQRL<unknown>,
+        Array<EffectSubscription> | null,
+        Array<EffectSubscription> | null,
+        Array<EffectSubscription> | null,
+        boolean,
+        Error,
+        unknown?,
+      ];
+      asyncComputed.$computeQrl$ = d[0];
+      asyncComputed.$effects$ = new Set(d[1]);
+      asyncComputed.$loadingEffects$ = new Set(d[2]);
+      asyncComputed.$errorEffects$ = new Set(d[3]);
+      asyncComputed.$untrackedLoading$ = d[4];
+      asyncComputed.$untrackedError$ = d[5];
+      const hasValue = d.length > 6;
+      if (hasValue) {
+        asyncComputed.$untrackedValue$ = d[6];
+      } else {
+        asyncComputed.$flags$ |= SignalFlags.INVALID;
+      }
+      break;
+    }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
@@ -498,6 +524,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new WrappedSignalImpl(container as any, null!, null!, null!);
     case TypeIds.ComputedSignal:
       return new ComputedSignalImpl(container as any, null!);
+    case TypeIds.AsyncComputedSignal:
+      return new AsyncComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store:
@@ -1158,6 +1186,28 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           value.$hostElement$,
           ...(value.$effects$ || []),
         ]);
+      } else if (value instanceof AsyncComputedSignalImpl) {
+        addPreloadQrl(value.$computeQrl$);
+        const out: [
+          QRLInternal,
+          Set<EffectSubscription> | null,
+          Set<EffectSubscription> | null,
+          Set<EffectSubscription> | null,
+          boolean,
+          Error | null,
+          unknown?,
+        ] = [
+          value.$computeQrl$,
+          value.$effects$,
+          value.$loadingEffects$,
+          value.$errorEffects$,
+          value.$untrackedLoading$,
+          value.$untrackedError$,
+        ];
+        if (v !== NEEDS_COMPUTATION) {
+          out.push(v);
+        }
+        output(TypeIds.AsyncComputedSignal, out);
       } else if (value instanceof ComputedSignalImpl) {
         addPreloadQrl(value.$computeQrl$);
         const out: [QRLInternal, Set<EffectSubscription> | null, unknown?] = [
@@ -1838,6 +1888,7 @@ export const enum TypeIds {
   Signal,
   WrappedSignal,
   ComputedSignal,
+  AsyncComputedSignal,
   SerializerSignal,
   Store,
   StoreArray,
@@ -1875,6 +1926,7 @@ export const _typeIdNames = [
   'Signal',
   'WrappedSignal',
   'ComputedSignal',
+  'AsyncComputedSignal',
   'SerializerSignal',
   'Store',
   'StoreArray',

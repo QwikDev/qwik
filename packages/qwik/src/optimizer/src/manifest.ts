@@ -495,6 +495,13 @@ export function generateManifestFromBundles(
       ) {
         manifest.core = bundleFileName;
       }
+      if (
+        modulePaths.some((m) =>
+          /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/.test(m)
+        )
+      ) {
+        manifest.qwikLoader = bundleFileName;
+      }
       if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
         qwikHandlersName = bundleFileName;
       }

@@ -226,6 +226,8 @@ export interface QwikManifest {
   preloader?: string;
   /** The Qwik core bundle fileName */
   core?: string;
+  /** The Qwik loader bundle fileName */
+  qwikLoader?: string;
   /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
   /** The version of the manifest */
@@ -253,6 +255,7 @@ export type ServerQwikManifest = Pick<
   | 'mapping'
   | 'preloader'
   | 'core'
+  | 'qwikLoader'
 >;
 
 /**

@@ -56,6 +56,7 @@ export type SymbolToChunkResolver = (symbol: string) => string;
 
 export interface SSRContainer extends Container {
   readonly tag: string;
+  readonly isHtml: boolean;
   readonly writer: StreamWriter;
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;

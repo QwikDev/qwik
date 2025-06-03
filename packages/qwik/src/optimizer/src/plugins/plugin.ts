@@ -94,8 +94,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
 
-  const npmChunks = new Map<string, number>();
-
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
   let diagnosticsCallback: (
@@ -414,7 +412,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
-    npmChunks.clear();
+
+    if (opts.target === 'client') {
+      const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
+        skipSelf: true,
+      });
+      if (ql) {
+        _ctx.emitFile({
+          id: ql.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
+    }
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -925,12 +935,13 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        injections: manifest.injections,
-        bundleGraph: manifest.bundleGraph,
-        mapping: manifest.mapping,
-        preloader: manifest.preloader,
         core: manifest.core,
+        preloader: manifest.preloader,
+        qwikLoader: manifest.qwikLoader,
         bundleGraphAsset: manifest.bundleGraphAsset,
+        injections: manifest.injections,
+        mapping: manifest.mapping,
+        bundleGraph: manifest.bundleGraph,
       };
     }
     return `// @qwik-client-manifest
@@ -981,6 +992,8 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
         /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
       ) {
         return 'qwik-core';
+      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
+        return 'qwik-loader';
       }
     }
 
@@ -1081,7 +1094,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
     if (isWin(sys.os)) {
       // MIT https://github.com/sindresorhus/slash/blob/main/license
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-      const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+      const isExtendedLengthPath = id.startsWith('\\\\?\\');
       if (!isExtendedLengthPath) {
         const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
         if (!hasNonAscii) {

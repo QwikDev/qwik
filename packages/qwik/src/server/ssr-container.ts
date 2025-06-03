@@ -166,6 +166,7 @@ export type CleanupQueue = any[][];
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
+  public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
   public resolvedManifest: ResolvedManifest;
@@ -234,6 +235,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
+    this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
     this.timing = opts.timing;
     this.$buildBase$ = opts.buildBase;
@@ -790,81 +792,60 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$eventQrls$.size === 0;
   }
 
-  private getQwikLoaderPositionMode() {
-    return this.renderOptions.qwikLoader?.position ?? 'bottom';
-  }
-
   private getQwikLoaderIncludeMode() {
     return this.renderOptions.qwikLoader?.include ?? 'auto';
   }
 
   emitQwikLoaderAtTopIfNeeded() {
-    const positionMode = this.getQwikLoaderPositionMode();
-    if (positionMode === 'top') {
-      const includeMode = this.getQwikLoaderIncludeMode();
-      const includeLoader = includeMode !== 'never';
-      if (includeLoader) {
-        this.emitQwikLoader();
-
-        // Assume there will be at least click and input handlers
-        // Maybe we should allow configuring this
-        this.emitQwikEvents(['"click"', '"input"'], {
-          includeLoader: true,
-          includeNonce: false,
-        });
+    const includeMode = this.getQwikLoaderIncludeMode();
+    const includeLoader = includeMode !== 'never';
+    if (includeLoader) {
+      let qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
+      if (qwikLoaderBundle) {
+        // always emit the preload+import. It will probably be used at some point on the site
+        qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
+        this.openElement('link', ['rel', 'modulepreload', 'href', qwikLoaderBundle]);
+        this.closeElement();
+        this.openElement('script', ['type', 'module', 'async', true, 'src', qwikLoaderBundle]);
+        this.closeElement();
       }
     }
   }
 
   private emitQwikLoaderAtBottomIfNeeded() {
-    const positionMode = this.getQwikLoaderPositionMode();
-    let includeLoader = true;
-
-    if (positionMode === 'bottom') {
-      // TODO check if the container element is `html`, if not, don't emit unless requested
+    const qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
+    if (!qwikLoaderBundle) {
+      /** We didn't emit the preload+import, so we need to emit the script in the html as a fallback */
       const needLoader = !this.isStatic();
       const includeMode = this.getQwikLoaderIncludeMode();
-      includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
+      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
-        this.emitQwikLoader();
+        const qwikLoaderScript = getQwikLoaderScript({
+          debug: this.renderOptions.debug,
+        });
+        // async allows executing while the DOM is being handled
+        const scriptAttrs = ['id', 'qwikloader', 'async', true];
+        const nonce = this.renderOptions.serverData?.nonce;
+        if (nonce) {
+          scriptAttrs.push('nonce', nonce);
+        }
+        this.openElement('script', scriptAttrs);
+        this.write(qwikLoaderScript);
+        this.closeElement();
       }
     }
 
-    // always emit qwik events regardless of position
-    this.emitQwikEvents(
-      Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)),
-      {
-        includeLoader,
-        includeNonce: true,
-      }
-    );
+    // emit the used events so the loader can subscribe to them
+    this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
   }
 
-  private emitQwikLoader() {
-    const qwikLoaderScript = getQwikLoaderScript({
-      debug: this.renderOptions.debug,
-    });
-    const scriptAttrs = ['id', 'qwikloader'];
-    if (this.renderOptions.serverData?.nonce) {
-      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-    }
-    this.openElement('script', scriptAttrs);
-    this.write(qwikLoaderScript);
-    this.closeElement();
-  }
-
-  private emitQwikEvents(
-    eventNames: string[],
-    opts: { includeNonce: boolean; includeLoader: boolean }
-  ) {
+  private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs: SsrAttrs = [];
-      if (this.renderOptions.serverData?.nonce && opts.includeNonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-      }
+      const scriptAttrs = this.renderOptions.serverData?.nonce
+        ? ['nonce', this.renderOptions.serverData.nonce]
+        : null;
       this.openElement('script', scriptAttrs);
-      this.write(opts.includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
-      this.write('.push(');
+      this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();

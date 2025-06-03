@@ -1,4 +1,4 @@
-import { isDev, isServer } from '@qwik.dev/core';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 

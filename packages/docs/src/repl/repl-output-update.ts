@@ -30,25 +30,18 @@ const matchByPath = (a: any, b: any) => a.path === b.path;
 
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
   deepUpdate(store.diagnostics, result.diagnostics);
-  if (store.htmlResult.rawHtml !== result.htmlResult.rawHtml) {
-    store.htmlResult.rawHtml = result.htmlResult.rawHtml;
-    store.htmlResult.prettyHtml = result.htmlResult.prettyHtml;
+  deepUpdate(store.htmlResult, result.htmlResult);
+  deepUpdate(store.transformedModules, result.transformedModules, matchByPath);
+  deepUpdate(store.clientBundles, result.clientBundles, matchByPath);
+  deepUpdate(store.ssrModules, result.ssrModules, matchByPath);
+  if (
+    result.events.length !== store.events.length ||
+    result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
+  ) {
+    store.events = result.events;
   }
 
-  if (result.diagnostics.length === 0) {
-    deepUpdate(store.htmlResult, result.htmlResult);
-    deepUpdate(store.transformedModules, result.transformedModules, matchByPath);
-    deepUpdate(store.clientBundles, result.clientBundles, matchByPath);
-    deepUpdate(store.ssrModules, result.ssrModules, matchByPath);
-    if (
-      result.events.length !== store.events.length ||
-      result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
-    ) {
-      store.events = result.events;
-    }
-
-    if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
-      store.selectedOutputPanel = 'app';
-    }
+  if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
+    store.selectedOutputPanel = 'app';
   }
 };

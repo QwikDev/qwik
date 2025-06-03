@@ -649,8 +649,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
 
       if (!qwikViteOpts.csr) {
-        const opts = qwikPlugin.getOptions();
         const plugin = async () => {
+          const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
           const path = qwikPlugin.getPath();
           await configureDevServer(
@@ -668,6 +668,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const isNEW =
           (globalThis as any).__qwikRouterNew === true ||
           (globalThis as any).__qwikCityNew === true ||
+          // related to this issue https://github.com/QwikDev/qwik/issues/7600
+          // FIX: the @qwik-handlers aren't properly handled in dev mode for library projects
           server.config.build.lib;
 
         if (isNEW) {

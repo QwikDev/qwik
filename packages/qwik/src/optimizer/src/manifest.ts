@@ -413,6 +413,7 @@ export function generateManifestFromBundles(
     },
     core: undefined,
     preloader: undefined,
+    qwikLoader: undefined,
     bundleGraphAsset: undefined,
     injections,
     mapping: {},

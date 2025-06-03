@@ -186,11 +186,15 @@ function processJSXNode(
         enqueue(ssr.closeElement);
 
         if (type === 'head') {
+          ssr.emitQwikLoaderAtTopIfNeeded();
           ssr.emitPreloaderPre();
           enqueue(ssr.additionalHeadNodes);
-          enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
+        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
+          (ssr as any)._didAddQwikLoader = true;
         }
 
         const children = jsx.children as JSXOutput;

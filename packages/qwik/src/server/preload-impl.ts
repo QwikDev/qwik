@@ -19,19 +19,29 @@ const simplifyPath = (base: string, path: string | null | undefined) => {
   return simplified.join('/');
 };
 
+const getBase = (container: SSRContainer) => {
+  let base = container.$buildBase$!;
+  if (import.meta.env.DEV && !import.meta.env.TEST) {
+    // Vite dev server active
+    // in dev, all bundles are absolute paths from the base url, not /build
+    base = import.meta.env.BASE_URL;
+  }
+  return base;
+};
+
 export const preloaderPre = (
   container: SSRContainer,
   options: RenderToStreamOptions['preloader'],
   nonce?: string
 ) => {
   const { resolvedManifest } = container;
-  const base = container.$buildBase$!;
-  const preloaderPath = simplifyPath(base, resolvedManifest?.manifest?.preloader);
+  const base = getBase(container);
+  const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest?.preloader);
   let bundleGraphPath = resolvedManifest?.manifest.bundleGraphAsset;
   if (bundleGraphPath) {
     bundleGraphPath = (import.meta.env.BASE_URL || '/') + bundleGraphPath;
   }
-  if (preloaderPath && bundleGraphPath && options !== false) {
+  if (preloaderBundle && bundleGraphPath && options !== false) {
     const preloaderOpts: Parameters<typeof initPreloader>[1] =
       typeof options === 'object'
         ? {
@@ -61,7 +71,7 @@ export const preloaderPre = (
      * We add modulepreloads even when the script is at the top because they already fire during
      * html download
      */
-    container.openElement('link', null, ['rel', 'modulepreload', 'href', preloaderPath]);
+    container.openElement('link', null, ['rel', 'modulepreload', 'href', preloaderBundle]);
     container.closeElement();
     container.openElement('link', null, [
       'rel',
@@ -77,7 +87,7 @@ export const preloaderPre = (
 
     const script =
       `let b=fetch("${bundleGraphPath}");` +
-      `import("${preloaderPath}").then(({l})=>` +
+      `import("${preloaderBundle}").then(({l})=>` +
       `l(${JSON.stringify(base)},b${optsStr})` +
       `);`;
     const scriptAttrs = ['type', 'module', 'async', true];
@@ -110,20 +120,11 @@ export const includePreloader = (
   );
   let allowed = ssrPreloads;
 
-  let base = container.$buildBase$!;
-  if (import.meta.env.DEV) {
-    // Vite dev server active
-    // in dev, all bundles are absolute paths from the base url, not /build
-    base = import.meta.env.BASE_URL;
-    if (base.endsWith('/')) {
-      base = base.slice(0, -1);
-    }
-  }
+  const base = getBase(container);
 
   const links = [];
 
   const { resolvedManifest } = container;
-  const manifestHash = resolvedManifest?.manifest.manifestHash;
   if (allowed) {
     const preloaderBundle = resolvedManifest?.manifest.preloader;
     const coreBundle = resolvedManifest?.manifest.core;
@@ -150,7 +151,7 @@ export const includePreloader = (
     }
   }
 
-  const preloaderPath = simplifyPath(base, manifestHash && resolvedManifest?.manifest.preloader);
+  const preloaderBundle = simplifyPath(base, resolvedManifest?.manifest.preloader);
   const insertLinks = links.length
     ? /**
        * We only use modulepreload links because they behave best. Older browsers can rely on the
@@ -166,11 +167,11 @@ export const includePreloader = (
     : '';
   // We are super careful not to interfere with the page loading.
   let script = insertLinks;
-  if (preloaderPath) {
+  if (preloaderBundle) {
     // First we wait for the onload event
     script +=
       `window.addEventListener('load',f=>{` +
-      `f=_=>import("${preloaderPath}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
+      `f=_=>import("${preloaderBundle}").then(({p})=>p(${JSON.stringify(referencedBundles)}));` +
       // then we ask for idle callback
       `try{requestIdleCallback(f,{timeout:2000})}` +
       // some browsers don't support requestIdleCallback

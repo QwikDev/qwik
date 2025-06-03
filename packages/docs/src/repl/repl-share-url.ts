@@ -7,6 +7,7 @@ const dataDefaults: PlaygroundShareUrl = {
   buildMode: 'development',
   entryStrategy: 'segment',
   files: [],
+  preloader: false,
 };
 export const parsePlaygroundShareUrl = (shareable: string) => {
   if (typeof shareable === 'string' && shareable.length > 0) {
@@ -26,6 +27,10 @@ export const parsePlaygroundShareUrl = (shareable: string) => {
       const entryStrategy = params.get('entryStrategy')!;
       if (ENTRY_STRATEGY_OPTIONS.includes(entryStrategy)) {
         data.entryStrategy = entryStrategy;
+      }
+      const preloader = params.get('preloader')!;
+      if (preloader !== null) {
+        data.preloader = true;
       }
 
       if (params.has('files')) {
@@ -86,6 +91,10 @@ export const strToFiles = (str: string) => {
 export const dictionary = strToU8(
   filesToStr([
     {
+      path: '/app.tsx',
+      code: `import { component$ } from '@qwik.dev/core';\n\nexport default component$(() => {\n  return (\n    <div>\n      <h1>Hello from Qwik!</h1>\n    </div>\n  );\n`,
+    },
+    {
       path: '',
       // Extra words to help with compression
       // generated with
@@ -98,7 +107,7 @@ export const dictionary = strToU8(
       // You need to add a new section like this before this section instead
       code: `<div>  </div>  </button> props: class return ( story component$( store string state export const span type href={ page strong count useSignal< useStore< qwik import { } from searchInput console.log( searchResults builder useTask$( stories style={ news export default data </article> track onClick$= new nav map link debounced controller user useStyles$( useStylesScoped$( url title timeoutId time_ago second response Date.now() minute main item interface hour disabled aria any State update transform the target suggestion setTimeout selectedValue rotate render people number list label https:// header deg debouncedGetPeople debounce component comments_count comments clock background await new Promise args SuggestionsListComponent IStory IState IComment GrandChild Clock Child AutoComplete 360 yellow with view useVisibleTask$( true tmrId timer then swapi styles signal section search results resolve rel prev points parsedResponse null noreferrer name more length json job items isServer index github getPeople function fetch example domain dev delay css container com click clearTimeout async api _blank Star Wars API This The StoryPreview Stories ReturnType Qwik App Page Nav HackerNewsCSS AbortController server$( routeAction$( routeLoader$( useContent( useDocumentHead( useLocation( useNavigate( validator$( zod$( noSerialize(  </Slot> useComputed$( useOnDocument( useOnWindow( useResource$( useContext( useContextProvider( createContextId<`,
     },
-    // The default hello world app + supporting files
+    // The old default hello world app + supporting files
     {
       path: '/app.tsx',
       code: `import { component$ } from '@builder.io/qwik';\n\nexport default component$(() => {\n  return <p>Hello Qwik</p>;\n});\n`,
@@ -124,6 +133,13 @@ export const createPlaygroundShareUrl = (data: PlaygroundShareUrl, pathname = '/
   }
   if (data.entryStrategy !== dataDefaults.entryStrategy) {
     params.set('entryStrategy', data.entryStrategy);
+  }
+  if (data.preloader !== dataDefaults.preloader) {
+    if (data.preloader) {
+      params.set('preloader', '');
+    } else {
+      params.delete('preloader');
+    }
   }
 
   params.set('f', compressFiles(data.files));
@@ -180,4 +196,5 @@ interface PlaygroundShareUrl {
   buildMode: any;
   entryStrategy: any;
   files: any[];
+  preloader?: boolean;
 }

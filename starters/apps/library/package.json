@@ -33,7 +33,7 @@
     "release": "np"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
+    "@qwik.dev/core": "latest",
     "@eslint/js": "latest",
     "@types/node": "latest",
     "typescript-eslint": "latest",
@@ -43,7 +43,6 @@
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
-    "undici": "latest",
     "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },

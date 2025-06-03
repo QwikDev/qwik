@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "../../api-extractor.json",
+  "mainEntryPointFilePath": "<projectFolder>/../../dist-dev/dts-out/packages/qwik-router/src/runtime/src/index.d.ts",
+  "newlineKind": "lf",
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "qwik-router.runtime",
+    "reportFolder": "<projectFolder>/src/runtime/src/",
+    "reportTempFolder": "<projectFolder>/../../dist-dev/api-extractor/qwik-router/src/runtime"
+  },
+  "dtsRollup": {
+    "enabled": true,
+    "betaTrimmedFilePath": "<projectFolder>/lib/index.d.ts"
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/../../dist-dev/api/qwik-router/core/docs.api.json"
+  }
+}

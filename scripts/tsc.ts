@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import { type BuildConfig, panic } from './util';
 import { join } from 'path';
+import { type BuildConfig, panic } from './util';
 
 // TODO DRY
 export async function tscQwik(config: BuildConfig) {
@@ -13,9 +13,9 @@ export async function tscQwik(config: BuildConfig) {
   }
 }
 
-export async function tscQwikCity(config: BuildConfig) {
-  console.log('tsc qwik-city');
-  const result = await execa('tsc', ['-p', join(config.srcQwikCityDir, '..', 'tsconfig.json')], {
+export async function tscQwikRouter(config: BuildConfig) {
+  console.log('tsc qwik-router');
+  const result = await execa('tsc', ['-p', join(config.srcQwikRouterDir, '..', 'tsconfig.json')], {
     stdout: 'inherit',
   });
   if (result.failed) {

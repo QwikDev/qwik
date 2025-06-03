@@ -16,6 +16,7 @@ import {
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
+  QWIK_CORE_INTERNAL_ID,
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
@@ -282,12 +283,30 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: [QWIK_CORE_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID, ...vendorIds],
+          noExternal: [
+            QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
+            QWIK_CORE_SERVER,
+            QWIK_BUILD_ID,
+            ...vendorIds,
+          ],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
           dedupe: [...DEDUPE, ...vendorIds],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
+          alias: {
+            '@builder.io/qwik': '@qwik.dev/core',
+            '@builder.io/qwik/build': '@qwik.dev/core/build',
+            '@builder.io/qwik/server': '@qwik.dev/core/server',
+            '@builder.io/qwik/preloader': '@qwik.dev/core/preloader',
+            '@builder.io/qwik/jsx-runtime': '@qwik.dev/core/jsx-runtime',
+            '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
+            '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
+            '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/cli': '@qwik.dev/core/cli',
+            '@builder.io/qwik/testing': '@qwik.dev/core/testing',
+          },
         },
         esbuild:
           viteCommand === 'serve'
@@ -298,17 +317,20 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               },
         optimizeDeps: {
           exclude: [
-            '@vite/client',
-            '@vite/env',
-            'node-fetch',
-            'undici',
+            // using optimized deps for qwik libraries will lead to duplicate imports
+            // this breaks Qwik because it relies a lot on module scoped symbols
             QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
+            // Sadly we can't specify **/*.qwik.*, so we need to specify each one
             ...vendorIds,
+            // v1 imports, they are removed during transform but vite doesn't know that
+            '@builder.io/qwik',
+            '@builder.io/qwik-city',
           ],
         },
         build: {
@@ -381,6 +403,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           updatedViteConfig.build!.minify = false;
           updatedViteConfig.build!.rollupOptions.external = [
             QWIK_CORE_ID,
+            QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
             QWIK_JSX_RUNTIME_ID,
             QWIK_JSX_DEV_RUNTIME_ID,
@@ -642,7 +665,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             devSsrServer
           );
         };
-        const isNEW = (globalThis as any).__qwikCityNew === true;
+        // TODO: Removed the "__qwikCityNew" condition in V3
+        const isNEW =
+          (globalThis as any).__qwikRouterNew === true ||
+          (globalThis as any).__qwikCityNew === true;
         if (isNEW) {
           return plugin;
         } else {
@@ -732,7 +758,7 @@ function getViteDevModule(opts: NormalizedQwikPluginOptions) {
   );
 
   return `// Qwik Vite Dev Module
-import { render as qwikRender } from '@builder.io/qwik';
+import { render as qwikRender } from '@qwik.dev/core';
 
 export async function render(document, rootNode, opts) {
 
@@ -842,7 +868,7 @@ export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
 
-const VITE_CLIENT_MODULE = `@builder.io/qwik/vite-client`;
+const VITE_CLIENT_MODULE = `@qwik.dev/core/vite-client`;
 const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {

@@ -22,9 +22,9 @@ self.oninstall = (ev) => {
 self.onactivate = () => self.clients.claim();
 
 export interface ReplGlobalApi {
-  qwikCore?: typeof import('@builder.io/qwik');
-  qwikOptimizer?: typeof import('@builder.io/qwik/optimizer');
-  qwikServer?: typeof import('@builder.io/qwik/server');
+  qwikCore?: typeof import('@qwik.dev/core');
+  qwikOptimizer?: typeof import('@qwik.dev/core/optimizer');
+  qwikServer?: typeof import('@qwik.dev/core/server');
   prettier?: typeof import('prettier');
   prettierPlugins?: any;
   rollup?: typeof import('rollup');

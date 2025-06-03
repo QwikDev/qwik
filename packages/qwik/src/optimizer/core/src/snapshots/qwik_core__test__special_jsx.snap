@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2169
+assertion_line: 2280
 expression: output
 snapshot_kind: text
 ---
@@ -8,7 +8,7 @@ snapshot_kind: text
 
 
 // don't transpile jsx with non-plain-object props
-import { jsx } from '@builder.io/qwik';
+import { jsx } from '@qwik.dev/core';
 
 export const App = () => {
     const props = {}
@@ -18,14 +18,14 @@ export const App = () => {
 ============================= test.tsx ==
 
 // don't transpile jsx with non-plain-object props
-import { jsx } from '@builder.io/qwik';
+import { jsx } from '@qwik.dev/core';
 export const App = ()=>{
     const props = {};
     return jsx('div', props, 'Hello Qwik');
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,mBAAmB;AAEvC,OAAO,MAAM,MAAM;IACf,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,kDAAkD;AAClD,SAAS,GAAG,QAAQ,iBAAiB;AAErC,OAAO,MAAM,MAAM;IACf,MAAM,QAAQ,CAAC;IACf,OAAO,IAAI,OAAO,OAAO;AAC7B,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,29 +1,28 @@
-/* eslint-disable no-console */
-import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
-import { hashCode } from '../../../core/util/hash_code';
+import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
+import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { BundleGraphAdder } from '..';
+import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SegmentAnalysis,
+  ServerQwikManifest,
+  SmartEntryStrategy,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
-  SmartEntryStrategy,
-  ServerQwikManifest,
 } from '../types';
-import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
-import { isWin, parseId } from './vite-utils';
-import type { BundleGraphAdder } from '..';
 import { convertManifestToBundleGraph } from './bundle-graph';
+import { createLinter, type QwikLinter } from './eslint-plugin';
+import { isWin, parseId } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
 
@@ -64,17 +63,21 @@ const CLIENT_STRIP_CTX_NAME = [
  *
  * Add experimental features to this enum definition.
  *
- * @alpha
+ * @public
  */
 export enum ExperimentalFeatures {
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
-  /** Disable SPA navigation handler in Qwik City */
+  /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
   /** Enable request.rewrite() */
   enableRequestRewrite = 'enableRequestRewrite',
+  /** Enable worker$ */
+  webWorker = 'webWorker',
+  /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
+  insights = 'insights',
 }
 
 export interface QwikPackages {
@@ -379,9 +382,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   let optimizer: Optimizer;
+  let shouldAddHandlers = false;
   const buildStart = async (_ctx: Rollup.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
+    shouldAddHandlers = !devServer;
     if (optimizer.sys.env === 'node' && opts.target === 'ssr' && opts.lint) {
       try {
         linter = await createLinter(optimizer.sys, opts.rootDir, opts.tsconfigFileNames);
@@ -409,7 +414,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     serverTransformedOutputs.clear();
 
     if (opts.target === 'client') {
-      const ql = await _ctx.resolve('@builder.io/qwik/qwikloader.js', undefined, {
+      const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
       if (ql) {
@@ -516,7 +521,29 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         });
         return preloader;
       }
+    } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {
+      debug(`resolveId(${count})`, 'Resolved', QWIK_HANDLERS_ID);
+      result = {
+        id: QWIK_HANDLERS_ID,
+        moduleSideEffects: false,
+      };
     } else {
+      // If qwik core is loaded, also add the handlers
+      if (!isServer && shouldAddHandlers && id.endsWith('@qwik.dev/core')) {
+        shouldAddHandlers = false;
+        const key = await ctx.resolve('@qwik.dev/core/handlers.mjs', importerId, {
+          skipSelf: true,
+        });
+        if (!key) {
+          throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
+        }
+        ctx.emitFile({
+          id: key.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
+
       const qrlMatch = /^(?<parent>.*\.[mc]?[jt]sx?)_(?<name>[^/]+)\.js(?<query>$|\?.*$)/.exec(id)
         ?.groups as { parent: string; name: string; query: string } | undefined;
 
@@ -596,6 +623,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return {
         moduleSideEffects: false,
         code: await getQwikServerManifestModule(isServer),
+      };
+    }
+    /**
+     * In dev mode, we need a path to core for qrls. However, we don't know what that is. By
+     * re-exporting the core symbols, we let Vite provide the correct path to core and we prevent
+     * duplicate Qwik instances.
+     */
+    if (id === QWIK_HANDLERS_ID) {
+      debug(`load(${count})`, QWIK_HANDLERS_ID, opts.buildMode);
+      return {
+        moduleSideEffects: false,
+        code: `export * from '@qwik.dev/core';`,
       };
     }
 
@@ -722,8 +761,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         }
       }
 
-      // TODO use a worker pool or make this async
-      const newOutput = optimizer.transformModulesSync(transformOpts);
+      const now = Date.now();
+      const newOutput = await optimizer.transformModules(transformOpts);
+      debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       const module = newOutput.modules.find((mod) => !isAdditionalFile(mod))!;
 
       // uncomment to show transform results
@@ -864,11 +904,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const debug = (...str: any[]) => {
     if (opts.debug) {
+      // eslint-disable-next-line no-console
       console.debug(`[QWIK PLUGIN: ${id}]`, ...str);
     }
   };
 
   const log = (...str: any[]) => {
+    // eslint-disable-next-line no-console
     console.log(`[QWIK PLUGIN: ${id}]`, ...str);
   };
 
@@ -880,7 +922,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   function getQwikBuildModule(isServer: boolean, _target: QwikBuildTarget) {
     const isDev = opts.buildMode === 'development';
-    return `// @builder.io/qwik/build
+    return `// @qwik.dev/core/build
 export const isServer = ${JSON.stringify(isServer)};
 export const isBrowser = ${JSON.stringify(!isServer)};
 export const isDev = ${JSON.stringify(isDev)};
@@ -936,12 +978,21 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk if it's a client build
-    // the vite preload helper must be included or to prevent breaking circular dependencies
     if (opts.target === 'client') {
-      if (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js') {
+      if (
+        // The preloader has to stay in a separate chunk if it's a client build
+        // the vite preload helper must be included or to prevent breaking circular dependencies
+        id.endsWith('@qwik.dev/core/build') ||
+        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
+        id === '\0vite/preload-helper.js'
+      ) {
         return 'qwik-preloader';
-      } else if (/qwik[\\/]dist[\\/]qwikloader\.js$/.test(id)) {
+      } else if (
+        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
+        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
+      ) {
+        return 'qwik-core';
+      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
         return 'qwik-loader';
       }
     }
@@ -1043,7 +1094,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
     if (isWin(sys.os)) {
       // MIT https://github.com/sindresorhus/slash/blob/main/license
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-      const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+      const isExtendedLengthPath = id.startsWith('\\\\?\\');
       if (!isExtendedLengthPath) {
         const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
         if (!hasNonAscii) {
@@ -1077,20 +1128,23 @@ const TRANSFORM_EXTS = {
  */
 export const TRANSFORM_REGEX = /\.qwik\.[mc]?js$/;
 
-export const QWIK_CORE_ID = '@builder.io/qwik';
+export const QWIK_CORE_ID = '@qwik.dev/core';
 
-export const QWIK_BUILD_ID = '@builder.io/qwik/build';
+export const QWIK_CORE_INTERNAL_ID = '@qwik.dev/core/internal';
 
-export const QWIK_JSX_RUNTIME_ID = '@builder.io/qwik/jsx-runtime';
+export const QWIK_BUILD_ID = '@qwik.dev/core/build';
 
-export const QWIK_JSX_DEV_RUNTIME_ID = '@builder.io/qwik/jsx-dev-runtime';
+export const QWIK_JSX_RUNTIME_ID = '@qwik.dev/core/jsx-runtime';
 
-export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
+export const QWIK_JSX_DEV_RUNTIME_ID = '@qwik.dev/core/jsx-dev-runtime';
+
+export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
-export const QWIK_PRELOADER_ID = '@builder.io/qwik/preloader';
-export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
+export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
+
+export const QWIK_HANDLERS_ID = '@qwik-handlers';
 
 export const SRC_DIR_DEFAULT = 'src';
 

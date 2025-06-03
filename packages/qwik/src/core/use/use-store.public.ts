@@ -1,8 +1,10 @@
-import { QObjectRecursive } from '../state/constants';
-import { getOrCreateProxy } from '../state/store';
-import { isFunction } from '../util/types';
+import { isFunction } from '../shared/utils/types';
+import { getOrCreateStore } from '../reactive-primitives/impl/store';
+import { StoreFlags } from '../reactive-primitives/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+
+export { unwrapStore } from '../reactive-primitives/impl/store';
 
 /** @public */
 export interface UseStoreOptions {
@@ -15,7 +17,7 @@ export interface UseStoreOptions {
 
 // <docs markdown="../readme.md#useStore">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-// (edit ../readme.md#useStore instead)
+// (edit ../readme.md#useStore instead and run `pnpm docs.sync`)
 /**
  * Creates an object that Qwik can track across serializations.
  *
@@ -89,10 +91,10 @@ export const useStore = <STATE extends object>(
     set(value);
     return value;
   } else {
-    const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+    const containerState = iCtx.$container$;
     const recursive = opts?.deep ?? true;
-    const flags = recursive ? QObjectRecursive : 0;
-    const newStore = getOrCreateProxy(value, containerState, flags);
+    const flags = recursive ? StoreFlags.RECURSIVE : StoreFlags.NONE;
+    const newStore = getOrCreateStore(value, flags, containerState);
     set(newStore);
     return newStore;
   }

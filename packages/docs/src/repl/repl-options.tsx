@@ -22,6 +22,7 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
       />
 
       <StoreBoolean label="Debug" inputProp="debug" input={input} />
+      <StoreBoolean label="Preloader" inputProp="preloader" input={input} />
     </div>
   );
 };

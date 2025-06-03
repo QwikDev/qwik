@@ -72,6 +72,8 @@ export enum ExperimentalFeatures {
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
+  /** Enable request.rewrite() */
+  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable worker$ */
   webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
@@ -817,14 +819,27 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
+  type OutputAnalyzer = {
+    addInjection: (b: GlobalInjections) => void;
+    generateManifest: (extra?: Partial<QwikManifest>) => Promise<QwikManifest>;
+    canonPath: (p: string) => string;
+  };
+
   const createOutputAnalyzer = (rollupBundle: OutputBundle) => {
     const injections: GlobalInjections[] = [];
 
-    const addInjection = (b: GlobalInjections) => injections.push(b);
+    const outputAnalyzer: OutputAnalyzer = {
+      addInjection: (b: GlobalInjections) => injections.push(b),
+    } as Partial<OutputAnalyzer> as OutputAnalyzer;
 
-    const generateManifest = async (extra?: Partial<QwikManifest>) => {
+    outputAnalyzer.generateManifest = async (extra?: Partial<QwikManifest>) => {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
+
+      const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+      const canonPath = (p: string) =>
+        path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
+      outputAnalyzer.canonPath = canonPath;
 
       const segments = Array.from(clientResults.values())
         .flatMap((r) => r.modules)
@@ -837,7 +852,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         injections,
         rollupBundle,
         opts,
-        debug
+        debug,
+        canonPath
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -865,7 +881,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return manifest;
     };
 
-    return { addInjection, generateManifest };
+    return outputAnalyzer;
   };
 
   const getOptions = () => opts;
@@ -913,6 +929,8 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
         mapping: manifest.mapping,
         preloader: manifest.preloader,
+        core: manifest.core,
+        bundleGraphAsset: manifest.bundleGraphAsset,
       };
     }
     return `// @qwik-client-manifest
@@ -997,20 +1015,19 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       manifest.platform!.node = process.versions.node;
     }
 
-    const assetsDir = opts.assetsDir;
-    const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
     const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
-    ctx.emitFile({
+    const bgAsset = ctx.emitFile({
       type: 'asset',
-      fileName: optimizer.sys.path.join(
-        useAssetsDir ? assetsDir : '',
-        'build',
-        `q-bundle-graph-${manifest.manifestHash}.json`
-      ),
+      name: 'bundle-graph.json',
       source: JSON.stringify(bundleGraph),
     });
-
-    manifest.bundleGraph = bundleGraph;
+    const bgPath = ctx.getFileName(bgAsset);
+    manifest.bundleGraphAsset = bgPath;
+    // we already generated the assets list so we need to update it
+    manifest.assets![bgPath] = {
+      name: 'bundle-graph.json',
+      size: bundleGraph.length,
+    };
 
     const manifestStr = JSON.stringify(manifest, null, '\t');
     ctx.emitFile({

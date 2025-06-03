@@ -1,6 +1,7 @@
 import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
+  ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
@@ -83,7 +84,9 @@ export interface PrefetchImplementation {
  *
  * @public
  */
-export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+export type SymbolsToPrefetch =
+  | 'auto'
+  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
 export interface PrefetchResource {
@@ -116,7 +119,7 @@ export interface RenderToStringResult extends RenderResult {
 export interface RenderResult {
   snapshotResult: SnapshotResult | undefined;
   isStatic: boolean;
-  manifest?: QwikManifest;
+  manifest?: ServerQwikManifest;
 }
 
 /** @public */
@@ -146,7 +149,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  preloader?: PreloaderOptions | boolean;
+  preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */
   prefetchStrategy?: PrefetchStrategy | null;
@@ -223,4 +226,4 @@ export const enum VNodeDataFlag {
   SERIALIZE = 16,
 }
 
-export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };
+export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

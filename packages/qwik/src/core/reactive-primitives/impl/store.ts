@@ -244,6 +244,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   (target as any)[prop] = value;
+  // TODO: trigger effects through the scheduler
   triggerEffects(
     currentStore.$container$,
     currentStore,

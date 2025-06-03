@@ -1,6 +1,8 @@
+// keep these imports above the rest to prevent circular dep issues
 import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../utils/serialize-utils';
-// ^ keep these above to prevent circular dep issues
+// ^^^ keep these imports above the rest to prevent circular dep issues
+
 import { isBrowser, isDev } from '@qwik.dev/core/build';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';

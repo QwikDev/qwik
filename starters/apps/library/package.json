@@ -39,6 +39,7 @@
     "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
+    "globals": "latest",
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",

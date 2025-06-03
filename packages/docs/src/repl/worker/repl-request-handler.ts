@@ -119,7 +119,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
   });
 
   document.addEventListener('qsymbol', (ev) => {
-    const symbolName = ev.detail;
+    const symbolName = ev.detail?.symbol;
     sendToServerWindow({
       kind: 'symbol',
       scope: 'client',

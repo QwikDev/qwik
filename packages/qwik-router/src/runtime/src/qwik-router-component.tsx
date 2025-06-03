@@ -66,6 +66,7 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { startViewTransition } from './view-transition';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -122,7 +123,18 @@ const internalState = { navCount: 0 };
 
 /** @public */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
-  useStyles$(`:root{view-transition-name:none}`);
+  useStyles$(`
+    @layer qwik {
+      @supports selector(html:active-view-transition-type(type)) {
+        html:active-view-transition-type(qwik-router-spa) {
+          :root{view-transition-name:none}
+        }
+      }
+      @supports not selector(html:active-view-transition-type(type)) {
+        :root{view-transition-name:none}
+      }
+    }
+  `);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(
@@ -133,6 +145,17 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
+  }
+
+  if (isServer) {
+    if (
+      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
+      !__EXPERIMENTAL__.enableRequestRewrite
+    ) {
+      throw new Error(
+        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+      );
+    }
   }
 
   const url = new URL(urlEnv);
@@ -381,19 +404,23 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
-          trackUrl = newURL;
+          // Change our path to the canonical path in the response unless rewrite.
+          if (!pageData.isRewrite) {
+            trackUrl = newURL;
+          }
+
           loadRoutePromise = loadRoute(
             qwikRouterConfig.routes,
             qwikRouterConfig.menus,
             qwikRouterConfig.cacheModules,
-            trackUrl.pathname
+            newURL.pathname // Load the actual required path.
           );
         }
 
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
+          console.error(e);
           window.location.href = newHref;
           return;
         }
@@ -437,11 +464,6 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
-          if (props.viewTransition !== false) {
-            // mark next DOM render to use startViewTransition API
-            (document as any).__q_view_transition__ = true;
-          }
-
           let scrollState: ScrollState | undefined;
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
@@ -638,8 +660,26 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             saveScrollHistory(scrollState);
           }
 
-          clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          _waitUntilRendered(elm as Element).then(() => {
+          const navigate = () => {
+            clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            return _waitUntilRendered(elm as Element);
+          };
+
+          const _waitNextPage = () => {
+            if (isServer || props.viewTransition === false) {
+              return navigate();
+            } else {
+              const viewTransition = startViewTransition({
+                update: navigate,
+                types: ['qwik-navigation'],
+              });
+              if (!viewTransition) {
+                return Promise.resolve();
+              }
+              return viewTransition.ready;
+            }
+          };
+          _waitNextPage().then(() => {
             const container = _getQContainerElement(elm as _ElementVNode)!;
             container.setAttribute('q:route', routeName);
             const scrollState = currentScrollState(scroller);
@@ -655,11 +695,11 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         }
       }
     }
-    const promise = run();
+
     if (isServer) {
-      return promise;
+      return run();
     } else {
-      return;
+      run();
     }
   });
 

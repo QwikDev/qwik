@@ -6,6 +6,7 @@
 
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
+import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import type { SnapshotResult } from '@qwik.dev/core';
 import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
@@ -101,7 +102,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // @deprecated (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     // (undocumented)
-    preloader?: PreloaderOptions | boolean;
+    preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     // (undocumented)
     serverData?: Record<string, any>;
@@ -113,7 +114,7 @@ export interface RenderResult {
     // (undocumented)
     isStatic: boolean;
     // (undocumented)
-    manifest?: QwikManifest;
+    manifest?: ServerQwikManifest;
     // (undocumented)
     snapshotResult: SnapshotResult | undefined;
 }
@@ -196,7 +197,7 @@ export interface StreamingOptions {
 
 // @public
 export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
 }) => PrefetchResource[]);
 
 // @public (undocumented)

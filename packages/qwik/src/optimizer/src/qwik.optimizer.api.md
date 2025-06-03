@@ -52,6 +52,7 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @public
 export enum ExperimentalFeatures {
+    enableRequestRewrite = "enableRequestRewrite",
     insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
@@ -159,6 +160,12 @@ export interface Path {
 }
 
 // @public (undocumented)
+export interface QwikAsset {
+    name: string | undefined;
+    size: number;
+}
+
+// @public (undocumented)
 export type QwikBuildMode = 'production' | 'development';
 
 // @public (undocumented)
@@ -180,10 +187,15 @@ export type QwikBundleGraph = Array<string | number>;
 
 // @public
 export interface QwikManifest {
+    assets?: {
+        [fileName: string]: QwikAsset;
+    };
     bundleGraph?: QwikBundleGraph;
+    bundleGraphAsset?: string;
     bundles: {
         [fileName: string]: QwikBundle;
     };
+    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {
@@ -305,7 +317,7 @@ export interface ResolvedManifest {
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
     // (undocumented)
     mapper: SymbolMapper;
 }
@@ -351,6 +363,9 @@ interface SegmentEntryStrategy {
 }
 export { SegmentEntryStrategy as HookEntryStrategy }
 export { SegmentEntryStrategy }
+
+// @public
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

@@ -8,6 +8,8 @@ import {
   useSignal,
   useVisibleTask$,
   type QwikIntrinsicElements,
+  type EventHandler,
+  type QwikVisibleEvent,
 } from '@qwik.dev/core';
 import { prefetchSymbols } from './client-navigate';
 import { loadClientData } from './use-endpoint';
@@ -82,6 +84,22 @@ export const Link = component$<LinkProps>((props) => {
 
   useVisibleTask$(({ track }) => {
     track(() => loc.url.pathname);
+    // We need to trigger the onQVisible$ in the visible task for it to fire on subsequent route navigations
+    const handler = linkProps.onQVisible$;
+    if (handler) {
+      const event = new CustomEvent('qvisible') as QwikVisibleEvent;
+
+      if (Array.isArray(handler)) {
+        (handler as any)
+          .flat(10)
+          .forEach((handler: EventHandler<QwikVisibleEvent, HTMLAnchorElement>) =>
+            handler?.(event, anchorRef.value!)
+          );
+      } else {
+        handler?.(event, anchorRef.value!);
+      }
+    }
+
     // Don't prefetch on visible in dev mode
     if (!isDev && anchorRef.value) {
       handlePrefetch?.(undefined, anchorRef.value!);
@@ -98,6 +116,8 @@ export const Link = component$<LinkProps>((props) => {
       data-prefetch={prefetchData}
       onMouseOver$={[linkProps.onMouseOver$, handlePrefetch]}
       onFocus$={[linkProps.onFocus$, handlePrefetch]}
+      // We need to prevent the onQVisible$ from being called twice since it is handled in the visible task
+      onQVisible$={[]}
     >
       <Slot />
     </a>

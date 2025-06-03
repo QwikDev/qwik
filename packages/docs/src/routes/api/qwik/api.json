@@ -221,6 +221,48 @@
       "mdFile": "core._.md"
     },
     {
+      "name": "AsyncComputedFn",
+      "id": "asynccomputedfn",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedFn",
+          "id": "asynccomputedfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.asynccomputedfn.md"
+    },
+    {
+      "name": "AsyncComputedReadonlySignal",
+      "id": "asynccomputedreadonlysignal",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReadonlySignal",
+          "id": "asynccomputedreadonlysignal"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "mdFile": "core.asynccomputedreadonlysignal.md"
+    },
+    {
+      "name": "AsyncComputedReturnType",
+      "id": "asynccomputedreturntype",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReturnType",
+          "id": "asynccomputedreturntype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;\n```\n**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.asynccomputedreturntype.md"
+    },
+    {
       "name": "cache",
       "id": "resourcectx-cache",
       "hierarchy": [
@@ -323,6 +365,20 @@
       "content": "```typescript\nexport type ComputedFn<T> = () => T;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.computedfn.md"
+    },
+    {
+      "name": "ComputedReturnType",
+      "id": "computedreturntype",
+      "hierarchy": [
+        {
+          "name": "ComputedReturnType",
+          "id": "computedreturntype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;\n```\n**References:** [ReadonlySignal](#readonlysignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
+      "mdFile": "core.computedreturntype.md"
     },
     {
       "name": "ComputedSignal",
@@ -1472,7 +1528,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    qBase: string;\n    qManifest: string;\n    qVersion: string;\n    href: string;\n    symbol: string;\n    element: Element;\n    reqTime: number;\n}>;\n```",
+      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    qManifest?: string;\n    qVersion?: string;\n    href?: string;\n}>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.qwiksymbolevent.md"
     },
@@ -2060,7 +2116,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup(callback)](#)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(callback: () =&gt; void) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "core.taskctx.md"
     },
@@ -2121,6 +2177,20 @@
       "mdFile": "core.unwrapstore.md"
     },
     {
+      "name": "useAsyncComputed$",
+      "id": "useasynccomputed_",
+      "hierarchy": [
+        {
+          "name": "useAsyncComputed$",
+          "id": "useasynccomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncComputedFn](#asynccomputedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.useasynccomputed_.md"
+    },
+    {
       "name": "useComputed$",
       "id": "usecomputed_",
       "hierarchy": [
@@ -2130,7 +2200,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.usecomputed_.md"
     },

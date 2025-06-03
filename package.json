@@ -75,7 +75,6 @@
     "esbuild-plugin-raw": "^0.1.8"
   },
   "devDependencies": {
-    "@builder.io/partytown": "0.10.2",
     "@changesets/cli": "2.29.3",
     "@changesets/get-github-info": "0.6.0",
     "@changesets/types": "6.1.0",
@@ -91,6 +90,7 @@
     "@playwright/test": "1.50.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/router": "workspace:*",
+    "@qwik.dev/partytown": "0.11.1",
     "@types/brotli": "1.3.4",
     "@types/bun": "1.1.6",
     "@types/cross-spawn": "6.0.6",
@@ -103,9 +103,9 @@
     "@types/tmp": "0.2.6",
     "@types/which-pm-runs": "1.0.2",
     "@vitest/coverage-v8": "3.1.1",
+    "@vitejs/plugin-basic-ssl": "2.0.0",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
-    "concurrently": "8.2.2",
     "create-qwik": "workspace:*",
     "cross-spawn": "7.0.3",
     "csstype": "3.1.3",
@@ -160,8 +160,7 @@
   "pnpm": {
     "overrides": {
       "typescript": "5.8.2",
-      "vfile": "6.0.2",
-      "@supabase/realtime-js": "2.8.4"
+      "vfile": "6.0.2"
     },
     "patchedDependencies": {
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch",
@@ -220,7 +219,7 @@
     "release.prepare": "pnpm build --prepare-release",
     "serve": "tsx --require ./scripts/runBefore.ts --inspect --conditions=development starters/dev-server.ts 3300",
     "serve.debug": "tsx --require ./scripts/runBefore.ts --inspect-brk --conditions=development starters/dev-server.ts 3300",
-    "start": "concurrently \"npm:build.watch\"  \"npm:tsc.watch\" -n build,tsc -c green,cyan",
+    "start": "pnpm run --stream \"/.*\\.watch/\"",
     "test": "pnpm build.full && pnpm test.unit && pnpm test.e2e",
     "test.e2e": "pnpm test.e2e.chromium && pnpm test.e2e.webkit && test.e2e.integrations",
     "test.e2e.chromium": "playwright test starters --browser=chromium --config starters/playwright.config.ts",

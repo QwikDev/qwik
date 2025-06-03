@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.9",
+  "version": "2.0.0-alpha.10",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -104,12 +104,12 @@
       "require": "./dist/loader/index.cjs"
     },
     "./insights": {
-      "types": "./dist/insights/index.d.ts",
+      "types": "./dist/insights.d.ts",
       "import": "./dist/insights/index.qwik.mjs",
       "require": "./dist/insights/index.qwik.cjs"
     },
     "./insights/vite": {
-      "types": "./dist/insights/vite/index.d.ts",
+      "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs",
       "require": "./dist/insights/vite/index.cjs"
     },

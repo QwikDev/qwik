@@ -1,4 +1,8 @@
-import type { QwikSymbolEvent, QwikVisibleEvent } from './core/shared/jsx/types/jsx-qwik-events';
+import type {
+  QwikErrorEvent,
+  QwikSymbolEvent,
+  QwikVisibleEvent,
+} from './core/shared/jsx/types/jsx-qwik-events';
 import type {
   QContainerElement,
   QElement,
@@ -123,7 +127,15 @@ import type {
         let importError: undefined | 'sync' | 'async' | 'no-symbol';
         let error: undefined | Error;
         const isSync = qrl.startsWith('#');
-        const eventData = { qBase, qManifest, qVersion, href, symbol, element, reqTime };
+        const eventData: QwikSymbolEvent['detail'] = {
+          qBase,
+          qManifest,
+          qVersion,
+          href,
+          symbol,
+          element,
+          reqTime,
+        };
         if (isSync) {
           const hash = container.getAttribute('q:instance')!;
           handler = ((doc as any)['qFuncs_' + hash] || [])[Number.parseInt(symbol)];
@@ -132,6 +144,7 @@ import type {
             error = new Error('sym:' + symbol);
           }
         } else {
+          emitEvent<QwikSymbolEvent>('qsymbol', eventData);
           const uri = url.href.split('#')[0];
           try {
             const module = import(/* @vite-ignore */ uri);
@@ -147,7 +160,11 @@ import type {
           }
         }
         if (!handler) {
-          emitEvent('qerror', { importError, error, ...eventData });
+          emitEvent<QwikErrorEvent>('qerror', {
+            importError,
+            error,
+            ...eventData,
+          });
           console.error(error);
           // break out of the loop if handler is not found
           break;
@@ -156,14 +173,13 @@ import type {
         if (element.isConnected) {
           try {
             doc.__q_context__ = [element, ev, url];
-            isSync || emitEvent<QwikSymbolEvent>('qsymbol', { ...eventData });
             const results = handler(ev, element);
             // only await if there is a promise returned
             if (isPromise(results)) {
               await results;
             }
           } catch (error) {
-            emitEvent('qerror', { error, ...eventData });
+            emitEvent<QwikErrorEvent>('qerror', { error, ...eventData });
           } finally {
             doc.__q_context__ = previousCtx;
           }

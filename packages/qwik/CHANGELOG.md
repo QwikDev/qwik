@@ -1,5 +1,29 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.1
+
+### Minor Changes
+
+- ✨ new hook - useAsyncComputed$ in replacement of useComputed$ with async operations (by [@Varixo](https://github.com/Varixo) in [#7589](https://github.com/QwikDev/qwik/pull/7589))
+
+### Patch Changes
+
+- 🐞🩹 proper empty props diffing (by [@Varixo](https://github.com/Varixo) in [#7633](https://github.com/QwikDev/qwik/pull/7633))
+
+- 🐞🩹 serialize less vnode data (by [@Varixo](https://github.com/Varixo) in [#7636](https://github.com/QwikDev/qwik/pull/7636))
+
+- 🐞🩹 don't wrap static objects with signal (by [@Varixo](https://github.com/Varixo) in [#7637](https://github.com/QwikDev/qwik/pull/7637))
+
+- 🐞🩹 ensure components are only rendered when necessary (by [@Varixo](https://github.com/Varixo) in [#7631](https://github.com/QwikDev/qwik/pull/7631))
+
+- 🐞🩹 skip serialize functions wrapped with the `noSerialize` (by [@Varixo](https://github.com/Varixo) in [#7621](https://github.com/QwikDev/qwik/pull/7621))
+
+- 🐞🩹 reactivity for type-asserted variables in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
+- 🐞🩹 reactivity for logical expressions in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
+- ✨ When an error occurs during SSR due to using the browser APIs, show an explanation. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7571](https://github.com/QwikDev/qwik/pull/7571))
+
 ## 2.0.0-alpha.10
 
 ### Patch Changes

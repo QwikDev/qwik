@@ -59,11 +59,15 @@ export function createPlatform(
       return Promise.resolve();
     },
     nextTick: (fn) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         // Do not use process.nextTick, as this will execute at same priority as promises.
         // We need to execute after promises.
         setTimeout(() => {
-          resolve(fn());
+          try {
+            resolve(fn());
+          } catch (err) {
+            reject(err);
+          }
         });
       });
     },

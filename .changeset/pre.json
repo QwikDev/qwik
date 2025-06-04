@@ -1,6 +1,6 @@
 {
   "mode": "pre",
-  "tag": "alpha",
+  "tag": "beta",
   "initialVersions": {
     "create-qwik": "2.0.0-0",
     "qwik-docs": "0.0.1",

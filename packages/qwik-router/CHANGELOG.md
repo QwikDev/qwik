@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.1
+
+### Patch Changes
+
+- Implement View Transition on SPA navigation (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7391](https://github.com/QwikDev/qwik/pull/7391))
+
 ## 2.0.0-alpha.10
 
 ## 2.0.0-alpha.9

@@ -12,10 +12,10 @@
     "np": "10.2.0",
     "prettier": "3.5.3",
     "typescript": "5.4.5",
-    "typescript-eslint": "8.33.1",
+    "typescript-eslint": "8.33.0",
     "undici": "*",
     "vite": "5.3.5",
-    "zod": "3.25.50"
+    "zod": "3.25.48"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -39,7 +39,7 @@
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
     "vite": "^5",
-    "zod": "3.25.50"
+    "zod": "3.25.48"
   },
   "private": true,
   "qwik": "./lib/index.qwik.mjs",

@@ -13,13 +13,13 @@
     "vfile": "6.0.3",
     "vite": "^5",
     "vite-imagetools": "^7.1.0",
-    "zod": "3.25.48"
+    "zod": "3.25.50"
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",
     "@builder.io/qwik": "workspace:^",
     "@microsoft/api-extractor": "7.52.8",
-    "@netlify/edge-functions": "2.12.0",
+    "@netlify/edge-functions": "2.14.1",
     "@types/mdast": "4.0.4",
     "@types/node": "20.14.11",
     "@types/refractor": "3.4.1",

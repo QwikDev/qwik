@@ -161,7 +161,7 @@
     "tree-kill": "1.2.2",
     "tsx": "4.19.4",
     "typescript": "5.4.5",
-    "typescript-eslint": "8.33.0",
+    "typescript-eslint": "8.33.1",
     "undici": "*",
     "vfile": "6.0.3",
     "vite": "5.3.5",
@@ -171,7 +171,7 @@
     "vitest": "2.0.5",
     "watchlist": "0.3.1",
     "which-pm-runs": "1.1.0",
-    "zod": "3.25.48"
+    "zod": "3.25.50"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11",

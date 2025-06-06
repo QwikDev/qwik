@@ -15,7 +15,10 @@ export const appUpdate = async (
     type: 'result',
     clientId,
     buildId: options.buildId,
-    html: '',
+    htmlResult: {
+      rawHtml: '',
+      prettyHtml: '',
+    },
     transformedModules: [],
     clientBundles: [],
     manifest: undefined,

@@ -1,5 +1,9 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.1
+
+## 2.0.0-alpha.10
+
 ## 2.0.0-alpha.9
 
 ## 2.0.0-alpha.8
@@ -19,6 +23,18 @@
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
+
+## 1.14.1
+
+## 1.14.0
+
+### Minor Changes
+
+- ✨ our eslint plugin now supports eslint 9 (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
+
+### Patch Changes
+
+- ✨ Improve types and README documentation with clear configuration examples for ESLint 9+ (flat config). Added `globalIgnores` for more clarity and `tseslint.config` for better type inference inside the `parserOptions` option. (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
 
 ## 1.13.0
 

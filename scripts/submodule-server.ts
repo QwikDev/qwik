@@ -107,7 +107,7 @@ export async function submoduleServer(config: BuildConfig) {
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
       // We need to get rid of the import.meta.env values
       // Vite's base url
-      'import.meta.env.BASE_URL': '"globalThis.BASE_URL||\'/\'"',
+      'import.meta.env.BASE_URL': 'globalThis.BASE_URL',
       // Vite's devserver mode
       'import.meta.env.DEV': 'false',
     },

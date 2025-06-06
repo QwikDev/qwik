@@ -52,6 +52,7 @@ export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEnt
 
 // @public
 export enum ExperimentalFeatures {
+    enableRequestRewrite = "enableRequestRewrite",
     insights = "insights",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
@@ -159,6 +160,12 @@ export interface Path {
 }
 
 // @public (undocumented)
+export interface QwikAsset {
+    name: string | undefined;
+    size: number;
+}
+
+// @public (undocumented)
 export type QwikBuildMode = 'production' | 'development';
 
 // @public (undocumented)
@@ -180,10 +187,15 @@ export type QwikBundleGraph = Array<string | number>;
 
 // @public
 export interface QwikManifest {
+    assets?: {
+        [fileName: string]: QwikAsset;
+    };
     bundleGraph?: QwikBundleGraph;
+    bundleGraphAsset?: string;
     bundles: {
         [fileName: string]: QwikBundle;
     };
+    core?: string;
     injections?: GlobalInjections[];
     manifestHash: string;
     mapping: {
@@ -200,6 +212,7 @@ export interface QwikManifest {
         [name: string]: string;
     };
     preloader?: string;
+    qwikLoader?: string;
     symbols: {
         [symbolName: string]: QwikSymbol;
     };
@@ -233,7 +246,7 @@ export interface QwikRollupPluginOptions {
 export interface QwikSymbol {
     // (undocumented)
     canonicalFilename: string;
-    // (undocumented)
+    captureNames?: string[];
     captures: boolean;
     // (undocumented)
     ctxKind: 'function' | 'eventHandler';
@@ -247,6 +260,7 @@ export interface QwikSymbol {
     loc: [number, number];
     // (undocumented)
     origin: string;
+    paramNames?: string[];
     // (undocumented)
     parent: string | null;
 }
@@ -304,7 +318,7 @@ export interface ResolvedManifest {
     // (undocumented)
     injections?: GlobalInjections[];
     // (undocumented)
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
     // (undocumented)
     mapper: SymbolMapper;
 }
@@ -313,6 +327,7 @@ export interface ResolvedManifest {
 interface SegmentAnalysis {
     // (undocumented)
     canonicalFilename: string;
+    captureNames?: string[];
     // (undocumented)
     captures: boolean;
     // (undocumented)
@@ -333,6 +348,7 @@ interface SegmentAnalysis {
     name: string;
     // (undocumented)
     origin: string;
+    paramNames?: string[];
     // (undocumented)
     parent: string | null;
 }
@@ -348,6 +364,9 @@ interface SegmentEntryStrategy {
 }
 export { SegmentEntryStrategy as HookEntryStrategy }
 export { SegmentEntryStrategy }
+
+// @public
+export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;
 
 // @public (undocumented)
 export interface SingleEntryStrategy {

@@ -16,6 +16,18 @@ import { ValueOrPromise as ValueOrPromise_2 } from '..';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "AsyncComputedCtx" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
+
+// @public (undocumented)
+export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+}
+
+// @public (undocumented)
+export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
+
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
@@ -75,7 +87,7 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
-export type ComputedReturnType<T> = T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;
 
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
@@ -245,6 +257,9 @@ class DomContainer extends _SharedContainer implements ClientContainer {
 // Warning: (ae-internal-missing-underscore) The name "DomContainer" should be prefixed with an underscore because the declaration is marked as @internal
 export { DomContainer }
 export { DomContainer as _DomContainer }
+
+// @internal (undocumented)
+export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, limit?: number | null) => string;
 
 // @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
@@ -551,6 +566,11 @@ export const PrefetchServiceWorker: (opts: {
     nonce?: string;
 }) => JSXOutput;
 
+// Warning: (ae-forgotten-export) The symbol "DeserializeContainer" needs to be exported by the entry point index.d.ts
+//
+// @internal
+export function _preprocessState(data: unknown[], container: DeserializeContainer): void;
+
 // @public
 export type PropFunction<T> = QRL<T>;
 
@@ -695,13 +715,13 @@ export type QwikSVGElements = {
 
 // @public
 export type QwikSymbolEvent = CustomEvent<{
-    qBase: string;
-    qManifest: string;
-    qVersion: string;
-    href: string;
     symbol: string;
     element: Element;
     reqTime: number;
+    qBase?: string;
+    qManifest?: string;
+    qVersion?: string;
+    href?: string;
 }>;
 
 // @public @deprecated (undocumented)
@@ -887,14 +907,13 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     serializationCtxFactory(NodeConstructor: {
         new (...rest: any[]): {
-            nodeType: number;
-            id: string;
+            __brand__: 'SsrNode';
         };
     } | null, DomRefConstructor: {
         new (...rest: any[]): {
-            $ssrNode$: ISsrNode;
+            __brand__: 'DomRef';
         };
-    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter, prepVNodeData?: (vNode: any) => void): SerializationContext;
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
     // (undocumented)
     abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -1578,7 +1597,7 @@ export const _task: (_event: Event, element: Element) => void;
 // @public (undocumented)
 export interface TaskCtx {
     // (undocumented)
-    cleanup(callback: () => void): void;
+    cleanup: (callback: () => void) => void;
     // (undocumented)
     track: Tracker;
 }
@@ -1614,6 +1633,14 @@ export const untrack: <T>(fn: () => T) => T;
 
 // @public
 export const unwrapStore: <T>(value: T) => T;
+
+// @public
+export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+
+// Warning: (ae-internal-missing-underscore) The name "useAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>) => AsyncComputedReturnType<T>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
@@ -1773,6 +1800,9 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+
+// @internal (undocumented)
+export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean): string;
 
 // @internal
 export const enum _VNodeFlags {

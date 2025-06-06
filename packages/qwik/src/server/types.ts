@@ -1,6 +1,7 @@
 import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
+  ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
@@ -55,7 +56,7 @@ export interface PreloaderOptions {
    *
    * Defaults to `25`
    */
-  maxBufferedPreloads?: number;
+  maxIdlePreloads?: number;
   /**
    * The minimum probability for a bundle to be added to the preload queue.
    *
@@ -83,7 +84,9 @@ export interface PrefetchImplementation {
  *
  * @public
  */
-export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+export type SymbolsToPrefetch =
+  | 'auto'
+  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
 export interface PrefetchResource {
@@ -116,12 +119,20 @@ export interface RenderToStringResult extends RenderResult {
 export interface RenderResult {
   snapshotResult: SnapshotResult | undefined;
   isStatic: boolean;
-  manifest?: QwikManifest;
+  manifest?: ServerQwikManifest;
 }
 
 /** @public */
 export interface QwikLoaderOptions {
+  /**
+   * Whether to include the qwikloader script in the document. Normally you don't need to worry
+   * about this, but in case of multi-container apps using different Qwik versions, you might want
+   * to only enable it on one of the containers.
+   *
+   * Defaults to `'auto'`.
+   */
   include?: 'always' | 'never' | 'auto';
+  /** @deprecated No longer used, the qwikloader is always loaded as soon as possible */
   position?: 'top' | 'bottom';
 }
 
@@ -146,7 +157,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   qwikLoader?: QwikLoaderOptions;
 
-  preloader?: PreloaderOptions | boolean;
+  preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */
   prefetchStrategy?: PrefetchStrategy | null;
@@ -223,4 +234,4 @@ export const enum VNodeDataFlag {
   SERIALIZE = 16,
 }
 
-export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };
+export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

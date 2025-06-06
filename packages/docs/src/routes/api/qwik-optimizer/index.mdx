@@ -325,6 +325,8 @@ string
 
 string
 
+## enableRequestRewrite
+
 ## EntryStrategy
 
 ```typescript
@@ -366,6 +368,19 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+enableRequestRewrite
+
+</td><td>
+
+`"enableRequestRewrite"`
+
+</td><td>
+
+Enable request.rewrite()
+
+</td></tr>
+<tr><td>
 
 insights
 
@@ -1215,6 +1230,63 @@ Description
 
 ## preventNavigate
 
+## QwikAsset
+
+```typescript
+export interface QwikAsset
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+Name of the asset
+
+</td></tr>
+<tr><td>
+
+[size](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Size of the asset
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
 ## QwikBuildMode
 
 ```typescript
@@ -1402,6 +1474,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[assets?](#)
+
+</td><td>
+
+</td><td>
+
+\{ [fileName: string]: [QwikAsset](#qwikasset); }
+
+</td><td>
+
+_(Optional)_ All assets. The key is the fileName relative to the rootDir
+
+</td></tr>
+<tr><td>
+
 [bundleGraph?](#)
 
 </td><td>
@@ -1417,6 +1504,21 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 </td></tr>
 <tr><td>
 
+[bundleGraphAsset?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The bundle graph fileName
+
+</td></tr>
+<tr><td>
+
 [bundles](#)
 
 </td><td>
@@ -1427,7 +1529,22 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 
 </td><td>
 
-All code bundles, used to know the import graph
+All code bundles, used to know the import graph. The key is the bundle fileName relative to "build/"
+
+</td></tr>
+<tr><td>
+
+[core?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The Qwik core bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1472,7 +1589,7 @@ Content hash of the manifest, if this changes, the code changed
 
 </td><td>
 
-Where QRLs are located
+Where QRLs are located. The key is the symbol name, the value is the bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1518,6 +1635,21 @@ string
 </td><td>
 
 _(Optional)_ The preloader bundle fileName
+
+</td></tr>
+<tr><td>
+
+[qwikLoader?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The Qwik loader bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1888,6 +2020,21 @@ string
 </td></tr>
 <tr><td>
 
+[captureNames?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The transformed names of scoped variables, if any
+
+</td></tr>
+<tr><td>
+
 [captures](#)
 
 </td><td>
@@ -1897,6 +2044,8 @@ string
 boolean
 
 </td><td>
+
+Whether the symbol captures a variable
 
 </td></tr>
 <tr><td>
@@ -1975,6 +2124,21 @@ string
 string
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+[paramNames?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The parameter names if it's a function with parameters
 
 </td></tr>
 <tr><td>
@@ -2389,7 +2553,7 @@ _(Optional)_
 
 </td><td>
 
-[QwikManifest](#qwikmanifest)
+[ServerQwikManifest](#serverqwikmanifest)
 
 </td><td>
 
@@ -2445,6 +2609,21 @@ Description
 string
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+[captureNames?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The transformed names of scoped variables, if any
 
 </td></tr>
 <tr><td>
@@ -2579,6 +2758,21 @@ string
 </td></tr>
 <tr><td>
 
+[paramNames?](#)
+
+</td><td>
+
+</td><td>
+
+string[]
+
+</td><td>
+
+_(Optional)_ The parameter names if it's a function with parameters
+
+</td></tr>
+<tr><td>
+
 [parent](#)
 
 </td><td>
@@ -2646,6 +2840,28 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## ServerQwikManifest
+
+The manifest values that are needed for SSR.
+
+```typescript
+export type ServerQwikManifest = Pick<
+  QwikManifest,
+  | "manifestHash"
+  | "injections"
+  | "bundleGraph"
+  | "bundleGraphAsset"
+  | "mapping"
+  | "preloader"
+  | "core"
+  | "qwikLoader"
+>;
+```
+
+**References:** [QwikManifest](#qwikmanifest)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 

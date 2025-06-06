@@ -1,4 +1,4 @@
-import { component$, isDev, isDev } from "@qwik.dev/core";
+import { component$, isDev } from "@qwik.dev/core";
 import { QwikRouterProvider, RouterOutlet } from "@qwik.dev/router";
 import { RouterHead } from "./components/router-head/router-head";
 

@@ -36,19 +36,7 @@ export const renderToString = async (
     },
   };
 
-  const result = await renderToStream(jsx, {
-    base: opts.base,
-    containerAttributes: opts.containerAttributes,
-    containerTagName: opts.containerTagName,
-    locale: opts.locale,
-    manifest: opts.manifest,
-    symbolMapper: opts.symbolMapper,
-    qwikLoader: opts.qwikLoader,
-    serverData: opts.serverData,
-    prefetchStrategy: opts.prefetchStrategy,
-    debug: opts.debug,
-    stream,
-  });
+  const result = await renderToStream(jsx, { ...opts, stream });
   return {
     isStatic: result.isStatic,
     timing: result.timing,

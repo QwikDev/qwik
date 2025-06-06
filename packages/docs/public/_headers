@@ -1,14 +1,18 @@
+/*
+  Cache-Control: public, max-age=3600, s-maxage=3600;
+
 /assets/*
-  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable;
 
 /build/*
-  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, s-maxage=31536000, immutable;
 
 /*.svg
-  Cache-Control: public, max-age=86400, s-maxage=86400
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, s-maxage=86400;
 
 /favicon.ico
-  Cache-Control: public, max-age=604800, s-maxage=604800
-
-/*
-  Cache-Control: public, max-age=3600, s-maxage=3600
+  ! Cache-Control
+  Cache-Control: public, max-age=604800, s-maxage=604800;

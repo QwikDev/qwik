@@ -72,6 +72,8 @@ export enum ExperimentalFeatures {
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */
   noSPA = 'noSPA',
+  /** Enable request.rewrite() */
+  enableRequestRewrite = 'enableRequestRewrite',
   /** Enable worker$ */
   webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
@@ -91,8 +93,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
   const parentIds = new Map<string, string>();
-
-  const npmChunks = new Map<string, number>();
 
   let internalOptimizer: Optimizer | null = null;
   let linter: QwikLinter | undefined = undefined;
@@ -412,7 +412,19 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     debug(`transformedOutputs.clear()`);
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
-    npmChunks.clear();
+
+    if (opts.target === 'client') {
+      const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
+        skipSelf: true,
+      });
+      if (ql) {
+        _ctx.emitFile({
+          id: ql.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
+    }
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }) => {
@@ -817,14 +829,27 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
+  type OutputAnalyzer = {
+    addInjection: (b: GlobalInjections) => void;
+    generateManifest: (extra?: Partial<QwikManifest>) => Promise<QwikManifest>;
+    canonPath: (p: string) => string;
+  };
+
   const createOutputAnalyzer = (rollupBundle: OutputBundle) => {
     const injections: GlobalInjections[] = [];
 
-    const addInjection = (b: GlobalInjections) => injections.push(b);
+    const outputAnalyzer: OutputAnalyzer = {
+      addInjection: (b: GlobalInjections) => injections.push(b),
+    } as Partial<OutputAnalyzer> as OutputAnalyzer;
 
-    const generateManifest = async (extra?: Partial<QwikManifest>) => {
+    outputAnalyzer.generateManifest = async (extra?: Partial<QwikManifest>) => {
       const optimizer = getOptimizer();
       const path = optimizer.sys.path;
+
+      const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
+      const canonPath = (p: string) =>
+        path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
+      outputAnalyzer.canonPath = canonPath;
 
       const segments = Array.from(clientResults.values())
         .flatMap((r) => r.modules)
@@ -837,7 +862,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         injections,
         rollupBundle,
         opts,
-        debug
+        debug,
+        canonPath
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -865,7 +891,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return manifest;
     };
 
-    return { addInjection, generateManifest };
+    return outputAnalyzer;
   };
 
   const getOptions = () => opts;
@@ -909,10 +935,13 @@ export const isDev = ${JSON.stringify(isDev)};
     if (manifest?.manifestHash) {
       serverManifest = {
         manifestHash: manifest.manifestHash,
-        injections: manifest.injections,
-        bundleGraph: manifest.bundleGraph,
-        mapping: manifest.mapping,
+        core: manifest.core,
         preloader: manifest.preloader,
+        qwikLoader: manifest.qwikLoader,
+        bundleGraphAsset: manifest.bundleGraphAsset,
+        injections: manifest.injections,
+        mapping: manifest.mapping,
+        bundleGraph: manifest.bundleGraph,
       };
     }
     return `// @qwik-client-manifest
@@ -953,16 +982,18 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       if (
         // The preloader has to stay in a separate chunk if it's a client build
         // the vite preload helper must be included or to prevent breaking circular dependencies
+        id.endsWith('@qwik.dev/core/build') ||
         /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
         id === '\0vite/preload-helper.js'
       ) {
         return 'qwik-preloader';
       } else if (
         // likewise, core and handlers have to be in the same chunk so there's no import waterfall
-        id.endsWith('@qwik.dev/core/build') ||
         /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
       ) {
         return 'qwik-core';
+      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
+        return 'qwik-loader';
       }
     }
 
@@ -997,20 +1028,19 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       manifest.platform!.node = process.versions.node;
     }
 
-    const assetsDir = opts.assetsDir;
-    const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
     const bundleGraph = convertManifestToBundleGraph(manifest, bundleGraphAdders);
-    ctx.emitFile({
+    const bgAsset = ctx.emitFile({
       type: 'asset',
-      fileName: optimizer.sys.path.join(
-        useAssetsDir ? assetsDir : '',
-        'build',
-        `q-bundle-graph-${manifest.manifestHash}.json`
-      ),
+      name: 'bundle-graph.json',
       source: JSON.stringify(bundleGraph),
     });
-
-    manifest.bundleGraph = bundleGraph;
+    const bgPath = ctx.getFileName(bgAsset);
+    manifest.bundleGraphAsset = bgPath;
+    // we already generated the assets list so we need to update it
+    manifest.assets![bgPath] = {
+      name: 'bundle-graph.json',
+      size: bundleGraph.length,
+    };
 
     const manifestStr = JSON.stringify(manifest, null, '\t');
     ctx.emitFile({
@@ -1064,7 +1094,7 @@ export const makeNormalizePath = (sys: OptimizerSystem) => (id: string) => {
     if (isWin(sys.os)) {
       // MIT https://github.com/sindresorhus/slash/blob/main/license
       // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-      const isExtendedLengthPath = /^\\\\\?\\/.test(id);
+      const isExtendedLengthPath = id.startsWith('\\\\?\\');
       if (!isExtendedLengthPath) {
         const hasNonAscii = /[^\u0000-\u0080]+/.test(id); // eslint-disable-line no-control-regex
         if (!hasNonAscii) {

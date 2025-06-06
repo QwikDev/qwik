@@ -119,6 +119,37 @@ Expression which should be lazy loaded
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 
+## AsyncComputedFn
+
+```typescript
+export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+
+## AsyncComputedReadonlySignal
+
+```typescript
+export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T>
+```
+
+**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
+
+## AsyncComputedReturnType
+
+```typescript
+export type AsyncComputedReturnType<T> =
+  T extends Promise<infer T>
+    ? AsyncComputedReadonlySignal<T>
+    : AsyncComputedReadonlySignal<T>;
+```
+
+**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
+
 ## cache
 
 ```typescript
@@ -357,7 +388,7 @@ export type ComputedFn<T> = () => T;
 
 ```typescript
 export type ComputedReturnType<T> =
-  T extends Promise<infer T> ? ReadonlySignal<T> : ReadonlySignal<T>;
+  T extends Promise<any> ? never : ReadonlySignal<T>;
 ```
 
 **References:** [ReadonlySignal](#readonlysignal)
@@ -2805,13 +2836,13 @@ Emitted by qwik-loader when a module was lazily loaded
 
 ```typescript
 export type QwikSymbolEvent = CustomEvent<{
-  qBase: string;
-  qManifest: string;
-  qVersion: string;
-  href: string;
   symbol: string;
   element: Element;
   reqTime: number;
+  qBase?: string;
+  qManifest?: string;
+  qVersion?: string;
+  href?: string;
 }>;
 ```
 
@@ -8278,6 +8309,19 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[cleanup](#)
+
+</td><td>
+
+</td><td>
+
+(callback: () =&gt; void) =&gt; void
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
 [track](#)
 
 </td><td>
@@ -8285,24 +8329,6 @@ Description
 </td><td>
 
 [Tracker](#tracker)
-
-</td><td>
-
-</td></tr>
-</tbody></table>
-
-<table><thead><tr><th>
-
-Method
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[cleanup(callback)](#)
 
 </td><td>
 
@@ -8443,6 +8469,47 @@ T
 T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
+
+## useAsyncComputed$
+
+Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
+
+The function must be synchronous and must not have any side effects.
+
+```typescript
+useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+[AsyncComputedFn](#asynccomputedfn)&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts)
 
 ## useComputed$
 

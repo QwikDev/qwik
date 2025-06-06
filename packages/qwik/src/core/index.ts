@@ -133,10 +133,13 @@ export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
+export type { AsyncComputedFn, AsyncComputedReturnType } from './use/use-async-computed';
+export { useAsyncComputedQrl, useAsyncComputed$ } from './use/use-async-computed';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
+  type AsyncComputedReadonlySignal,
   type Signal,
   type ComputedSignal,
 } from './reactive-primitives/signal.public';

@@ -140,6 +140,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     1693,
     1755
+  ],
+  "captureNames": [
+    "cart",
+    "i",
+    "results"
   ]
 }
 */
@@ -170,6 +175,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     319,
     371
+  ],
+  "captureNames": [
+    "cart",
+    "item"
   ]
 }
 */
@@ -200,6 +209,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     1319,
     1383
+  ],
+  "captureNames": [
+    "cart",
+    "key",
+    "results"
   ]
 }
 */
@@ -230,6 +244,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     980,
     1036
+  ],
+  "captureNames": [
+    "cart",
+    "item"
   ]
 }
 */
@@ -260,6 +278,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     2026,
     2082
+  ],
+  "captureNames": [
+    "cart",
+    "item"
   ]
 }
 */
@@ -405,6 +427,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     628,
     690
+  ],
+  "captureNames": [
+    "cart",
+    "i",
+    "results"
   ]
 }
 */

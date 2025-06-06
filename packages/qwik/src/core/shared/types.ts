@@ -45,10 +45,10 @@ export interface Container {
   ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
     NodeConstructor: {
-      new (...rest: any[]): { nodeType: number; id: string };
+      new (...rest: any[]): { __brand__: 'SsrNode' };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { $ssrNode$: ISsrNode };
+      new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
@@ -91,17 +91,14 @@ export const enum VirtualType {
   Projection = 'P',
 }
 
-const START = '\x1b[34m';
-const END = '\x1b[0m';
-
 export const VirtualTypeName: Record<string, string> = {
-  [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
-  [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
-  [VirtualType.WrappedSignal]: /* *** */ START + 'Signal' + END, //
-  [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
-  [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
-  [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //
-  [VirtualType.Projection]: /* ****** */ START + 'Projection' + END, //
+  [VirtualType.Virtual]: /* ********* */ 'Virtual', //
+  [VirtualType.Fragment]: /* ******** */ 'Fragment', //
+  [VirtualType.WrappedSignal]: /* *** */ 'Signal', //
+  [VirtualType.Awaited]: /* ********* */ 'Awaited', //
+  [VirtualType.Component]: /* ******* */ 'Component', //
+  [VirtualType.InlineComponent]: /* * */ 'InlineComponent', //
+  [VirtualType.Projection]: /* ****** */ 'Projection', //
 };
 
 export const enum QContainerValue {

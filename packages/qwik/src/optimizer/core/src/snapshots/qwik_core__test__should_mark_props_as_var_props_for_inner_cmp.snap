@@ -92,6 +92,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     343,
     780
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
@@ -124,6 +127,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     386,
     488
+  ],
+  "paramNames": [
+    "props"
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */
@@ -156,6 +165,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     212,
     292
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

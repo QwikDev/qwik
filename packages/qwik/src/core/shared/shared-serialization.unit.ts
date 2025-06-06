@@ -26,6 +26,9 @@ import { isQrl } from './qrl/qrl-utils';
 import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { StoreFlags } from '../reactive-primitives/types';
+import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
+import { retryOnPromise } from './utils/promises';
+import { QError } from './error/error';
 
 const DEBUG = false;
 
@@ -414,7 +417,8 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
-      const propSignal = _wrapProp({ foo: 3 }, 'foo');
+      const foo = createSignal(3);
+      const propSignal = _wrapProp(foo, 'value');
       if (propSignal.value) {
         Math.random();
       }
@@ -436,18 +440,16 @@ describe('shared-serialization', () => {
         1 WrappedSignal [
           Number 1
           Array [
-            Object [
-              String "foo"
+            Signal [
               Number 3
             ]
-            RootRef 2
+            String "value"
           ]
           Constant null
           Number 3
           Constant null
         ]
-        2 RootRef "1 1 0 0"
-        (88 chars)"
+        (74 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -506,6 +508,55 @@ describe('shared-serialization', () => {
         2
       ]
       (72 chars)"
+      `);
+    });
+    it(title(TypeIds.AsyncComputedSignal), async () => {
+      const foo = createSignal(1);
+      const dirty = createAsyncComputedSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'dirty',
+          [foo]
+        )
+      );
+      const clean = createAsyncComputedSignal(
+        inlinedQrl(
+          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
+          'clean',
+          [foo]
+        )
+      );
+      await retryOnPromise(() => {
+        // note that this won't subscribe because we're not setting up the context
+        expect(clean.value).toBe(2);
+      });
+
+      const objs = await serialize(dirty, clean);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 AsyncComputedSignal [
+          RootRef 2
+          Constant null
+          Constant null
+          Constant null
+          Constant false
+          Constant null
+        ]
+        1 AsyncComputedSignal [
+          RootRef 3
+          Constant null
+          Constant null
+          Constant null
+          Constant false
+          Constant null
+          Number 2
+        ]
+        2 PreloadQRL "mock-chunk#dirty[4]"
+        3 PreloadQRL "mock-chunk#clean[4]"
+        4 Signal [
+          Number 1
+        ]
+        (122 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -942,6 +993,32 @@ describe('shared-serialization', () => {
         (5 chars)"
       `);
     });
+    it('should ignore functions in noSerialize set', async () => {
+      const obj = { hi: true, ignore: noSerialize(() => console.warn()) };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          Constant true
+        ]
+        (17 chars)"
+      `);
+    });
+    it('should ignore functions with NoSerializeSymbol', async () => {
+      const ignore = () => console.warn();
+      (ignore as any)[NoSerializeSymbol] = true;
+      const obj = { hi: true, ignore };
+      const state = await serialize(obj);
+      expect(dumpState(state)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          String "hi"
+          Constant true
+        ]
+        (17 chars)"
+      `);
+    });
     it('should ignore NoSerializeSymbol', async () => {
       const obj = { hi: true, [NoSerializeSymbol]: true };
       const state = await serialize(obj);
@@ -1047,7 +1124,9 @@ describe('shared-serialization', () => {
         throw 'oh no';
       }
     }
-    await expect(serialize(new Foo())).rejects.toThrow('Q50');
+    await expect(serialize(new Foo())).rejects.toThrow(
+      'Q' + QError.serializerSymbolRejectedPromise
+    );
     expect(consoleSpy).toHaveBeenCalledWith('oh no');
     consoleSpy.mockRestore();
   });

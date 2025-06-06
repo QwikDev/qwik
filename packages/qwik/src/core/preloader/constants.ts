@@ -5,7 +5,7 @@ export const doc = isBrowser ? document : undefined!;
 
 export const config = {
   $DEBUG$: false,
-  $maxBufferedPreloads$: 25,
+  $maxIdlePreloads$: 25,
   $invPreloadProbability$: 0.65,
 };
 
@@ -17,3 +17,5 @@ export const rel =
 
 // Global state
 export const loadStart = Date.now();
+
+export const isJSRegex = /\.[mc]?js$/;

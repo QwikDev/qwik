@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.9",
+  "version": "2.0.0-beta.1",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -104,12 +104,12 @@
       "require": "./dist/loader/index.cjs"
     },
     "./insights": {
-      "types": "./dist/insights/index.d.ts",
+      "types": "./dist/insights.d.ts",
       "import": "./dist/insights/index.qwik.mjs",
       "require": "./dist/insights/index.qwik.cjs"
     },
     "./insights/vite": {
-      "types": "./dist/insights/vite/index.d.ts",
+      "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs",
       "require": "./dist/insights/vite/index.cjs"
     },
@@ -160,22 +160,22 @@
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
+    "Automatic Optimization",
     "framework",
     "generator",
+    "javascript streaming",
+    "lazy execution",
+    "performance",
     "prerender",
+    "resumability",
+    "resumable",
     "server-side-render",
     "ssg",
     "ssr",
     "static-site",
     "static-site-generator",
     "webapp",
-    "website",
-    "javascript streaming",
-    "lazy execution",
-    "resumability",
-    "resumable",
-    "performance",
-    "Automatic Optimization"
+    "website"
   ],
   "license": "MIT",
   "main": "./src/index.ts",

@@ -95,6 +95,9 @@ Some("{\"version\":3,\"sources\":[\"/src/project/project/index.tsx\"],\"names\":
   "loc": [
     88,
     283
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

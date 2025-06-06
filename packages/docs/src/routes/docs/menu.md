@@ -111,6 +111,7 @@
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikrouter)/guides/env-variables/index.mdx>)
+- [Rewrites](<docs/(qwikrouter)/guides/rewrites/index.mdx>)
 
 ## Concepts
 

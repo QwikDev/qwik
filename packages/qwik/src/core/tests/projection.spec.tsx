@@ -2,7 +2,7 @@ import {
   Fragment as Component,
   component$,
   createContextId,
-  Fragment as DerivedSignal,
+  Fragment as WrappedSignal,
   Fragment,
   Fragment as InlineComponent,
   jsx,
@@ -474,7 +474,7 @@ describe.each([
         <span>
           <Projection />
           {'('}
-          <DerivedSignal>render-content</DerivedSignal>
+          render-content
           {')'}
         </span>
       </InlineComponent>
@@ -491,7 +491,7 @@ describe.each([
           <span>
             <Projection>{'parent-content'}</Projection>
             {'('}
-            <DerivedSignal>child-content</DerivedSignal>
+            child-content
             {')'}
           </span>
         </InlineComponent>
@@ -831,7 +831,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -842,14 +842,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -896,7 +896,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -907,14 +907,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -1344,7 +1344,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1359,7 +1359,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1378,7 +1378,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1439,7 +1439,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1462,7 +1462,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1480,7 +1480,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1495,7 +1495,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{'child-content'}</DerivedSignal>
+                  <WrappedSignal>{'child-content'}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1525,7 +1525,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -2505,7 +2505,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="a">
-                        Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
+                        Alpha <WrappedSignal ssr-required>{'123'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2533,7 +2533,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="b">
-                        Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
+                        Bravo <WrappedSignal ssr-required>{'124'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2593,7 +2593,7 @@ describe.each([
                   <Projection ssr-required>
                     <div q:slot="b">
                       {'Bravo '}
-                      <DerivedSignal ssr-required>1</DerivedSignal>
+                      <WrappedSignal ssr-required>1</WrappedSignal>
                     </div>
                   </Projection>
                 </Component>

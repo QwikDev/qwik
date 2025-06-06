@@ -53,6 +53,19 @@ export async function apiExtractorQwik(config: BuildConfig) {
     join(config.distQwikPkgDir, 'build', 'index.d.ts'),
     '..'
   );
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'insights'),
+    join(config.distQwikPkgDir, 'insights', 'index.d.ts'),
+    '..'
+  );
+  createTypesApi(
+    config,
+    join(config.srcQwikDir, 'insights', 'vite'),
+    join(config.distQwikPkgDir, 'insights', 'vite', 'index.d.ts'),
+    '..'
+  );
+
   generateServerReferenceModules(config);
 
   const apiJsonInputDir = join(config.rootDir, 'dist-dev', 'api');

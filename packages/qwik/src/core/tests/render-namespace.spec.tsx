@@ -5,7 +5,6 @@ import {
   useSignal,
   Fragment as Component,
   Fragment,
-  Fragment as Signal,
   type JSXOutput,
 } from '@qwik.dev/core';
 import { HTML_NS, MATH_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
@@ -206,9 +205,7 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal ssr-required>
-                  <Fragment ssr-required></Fragment>
-                </Signal>
+                <Fragment ssr-required></Fragment>
               </svg>
             </Component>
           </button>
@@ -227,9 +224,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
-                </Signal>
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
               </svg>
             </Component>
           </button>
@@ -254,9 +249,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <Fragment></Fragment>
-                </Signal>
+                <Fragment></Fragment>
               </svg>
             </Component>
           </button>

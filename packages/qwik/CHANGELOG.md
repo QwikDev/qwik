@@ -1,5 +1,43 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.1
+
+### Minor Changes
+
+- ✨ new hook - useAsyncComputed$ in replacement of useComputed$ with async operations (by [@Varixo](https://github.com/Varixo) in [#7589](https://github.com/QwikDev/qwik/pull/7589))
+
+### Patch Changes
+
+- 🐞🩹 proper empty props diffing (by [@Varixo](https://github.com/Varixo) in [#7633](https://github.com/QwikDev/qwik/pull/7633))
+
+- 🐞🩹 serialize less vnode data (by [@Varixo](https://github.com/Varixo) in [#7636](https://github.com/QwikDev/qwik/pull/7636))
+
+- 🐞🩹 don't wrap static objects with signal (by [@Varixo](https://github.com/Varixo) in [#7637](https://github.com/QwikDev/qwik/pull/7637))
+
+- 🐞🩹 ensure components are only rendered when necessary (by [@Varixo](https://github.com/Varixo) in [#7631](https://github.com/QwikDev/qwik/pull/7631))
+
+- 🐞🩹 skip serialize functions wrapped with the `noSerialize` (by [@Varixo](https://github.com/Varixo) in [#7621](https://github.com/QwikDev/qwik/pull/7621))
+
+- 🐞🩹 reactivity for type-asserted variables in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
+- 🐞🩹 reactivity for logical expressions in templates (by [@Varixo](https://github.com/Varixo) in [#7619](https://github.com/QwikDev/qwik/pull/7619))
+
+- ✨ When an error occurs during SSR due to using the browser APIs, show an explanation. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7571](https://github.com/QwikDev/qwik/pull/7571))
+
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- 🐞🩹 infinity loop while tracking element ref (by [@Varixo](https://github.com/Varixo) in [#7574](https://github.com/QwikDev/qwik/pull/7574))
+
+- 🐞🩹 add HTMLElementAttrs and SVGProps types to exports (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7510](https://github.com/QwikDev/qwik/pull/7510))
+
+- 🐞🩹 Introduce retry logic for QRL resolution to handle potential promise retries, ensuring robustness in asynchronous operations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7470](https://github.com/QwikDev/qwik/pull/7470))
+
+- 🐞🩹 signal wrapper should not rerender causing missing child error (by [@Varixo](https://github.com/Varixo) in [#7550](https://github.com/QwikDev/qwik/pull/7550))
+
+- 🐞🩹 inflating text nodes from single shared text node (by [@Varixo](https://github.com/Varixo) in [#7538](https://github.com/QwikDev/qwik/pull/7538))
+
 ## 2.0.0-alpha.9
 
 ### Minor Changes
@@ -252,43 +290,78 @@
 
 - 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
 
-## 1.9.1
+## 1.14.1
 
-### Patch Changes
-
-- ✨ showing qrl parent names. (by [@wmertens](https://github.com/wmertens) in [#6881](https://github.com/QwikDev/qwik/pull/6881))
-  in dev mode, qrl segments now start with their parent filename so it's easy to see where they came from. Furthermore, in production builds these filenames are also used so that origins in `q-manifest.json` are easy to understand.
-
-- 🐞🩹 Optimizer now ignores unknown deps in graph that caused crashes during build (by [@wmertens](https://github.com/wmertens) in [#6888](https://github.com/QwikDev/qwik/pull/6888))
-
-- 🐞🩹 Do not allow object methods to be serialized with style prop (by [@jakovljevic-mladen](https://github.com/jakovljevic-mladen) in [#6932](https://github.com/QwikDev/qwik/pull/6932))
-
-- 🐞🩹 In dev mode, changes to QRLs now explicitly invalidate the segment so that the browser will reload it (by [@wmertens](https://github.com/wmertens) in [#6938](https://github.com/QwikDev/qwik/pull/6938))
-
-## 1.11.0
+## 1.14.0
 
 ### Minor Changes
 
-- CHORE: Prepare backwards compatibility for V1 libraries in V2. (by [@wmertens](https://github.com/wmertens) in [#7044](https://github.com/QwikDev/qwik/pull/7044))
+- ✨ Major improvements to prefetching with automatic bundle preloading (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
 
-  We move internal fields `immutableProps` and `flags` out of JSXNode as they are not meant for public use.
+  - This removes the need for service workers, and instead utilize `modulepreload` link tags for better browser integration.
+  - Improves initial load performance by including dynamic imports in the prefetch
+  - Reduces complexity while maintaining similar (and even better) functionality
+  - Enables some preloading capabilities in dev mode (SSR result only)
+  - Includes path-to-bundle mapping in bundle graph (this improves the experience using the `<Link>` component, AKA "single page app" mode)
+  - Server now has built-in manifest support (so no need to pass `manifest` around)
+  - Moves insights-related build code to insights plugin
 
-  This will allow projects using older V1 libraries to continue to work with the Qwik V2 by adding the following `package.json` changes:
+  ***
 
-  ```json
-  {
-    "dependencies": {
-      "@builder.io/qwik": "^1.11.0",
-      "@qwik.dev/core": "^2.0.0"
-    }
+  ⚠️ **ATTENTION:**
+
+  - **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+  - **Configure** your server to provide long caching headers.
+
+  **Service Worker:**
+
+  This new implementation will use it to uninstall the current service worker to reduce the unnecessary duplication.
+
+  The builtin service workers components are deprecated but still exist for backwards compatibility.
+
+  ⚠️ **IMPORTANT: Caching Headers:**
+
+  The files under build/ and assets/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/*` and `assets/*` with `Cache-Control: public, max-age=31536000, immutable`.
+
+  However, if you changed the rollup configuration for output filenames, you will have to adjust the caching configuration accordingly.
+
+  ***
+
+  You can configure the preload behavior in your SSR configuration:
+
+  ```ts
+  // entry.ssr.ts
+  export default function (opts: RenderToStreamOptions) {
+    return renderToStream(<Root />, {
+      preload: {
+        // Enable debug logging for preload operations
+        debug: true,
+        // Maximum simultaneous preload links
+        maxIdlePreloads: 5,
+        // Minimum probability threshold for preloading
+        preloadProbability: 0.25
+        // ...and more, see the type JSDoc on hover
+      },
+      ...opts,
+    });
   }
   ```
 
-  And will prevent typescript errors when using libraries which haven't upgraded to V2 yet.
+  #### Optional for legacy apps:
 
-- ✨ add monorepo support to the `qwik add` command by adding a `projectDir` param (by [@shairez](https://github.com/shairez) in [#7059](https://github.com/QwikDev/qwik/pull/7059))
+  For legacy apps that still need service worker functionality, you can add it back using:
 
-  That way you can run `qwik add --projectDir=packages/my-package` and it will add the feature to the specified project/package (sub) folder, instead of the root folder.
+  ```bash
+  npm run qwik add service-worker
+  ```
+
+  This will add a basic service worker setup that you can customize for specific caching strategies, offline support, or other PWA features beyond just prefetching.
+
+### Patch Changes
+
+- 🐞🩹 linting errors which were previously being ignored across the monorepo. (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
+
+- 🐞🩹 now qwikloader is loaded only once in all cases (by [@wmertens](https://github.com/wmertens) in [#7506](https://github.com/QwikDev/qwik/pull/7506))
 
 ## 1.13.0
 

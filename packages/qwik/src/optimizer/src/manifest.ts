@@ -398,26 +398,31 @@ export function generateManifestFromBundles(
   injections: GlobalInjections[],
   outputBundles: OutputBundle,
   opts: NormalizedQwikPluginOptions,
-  debug: (...args: any[]) => void
+  debug: (...args: any[]) => void,
+  canonPath: (p: string) => string
 ) {
+  // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
-    manifestHash: '',
-    symbols: {},
-    mapping: {},
-    bundles: {},
-    injections,
     version: '1',
+    manifestHash: '',
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
       // don't copy the insights stuff
       entryStrategy: opts.entryStrategy && { type: opts.entryStrategy.type },
     },
+    core: undefined,
+    preloader: undefined,
+    qwikLoader: undefined,
+    bundleGraphAsset: undefined,
+    injections,
+    mapping: {},
+    bundles: {},
+    assets: {},
+    symbols: {},
+    bundleGraph: undefined,
   };
 
-  const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
-  const canonPath = (p: string) =>
-    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
   const getBundleName = (name: string) => {
     const bundle = outputBundles[name];
     if (!bundle) {
@@ -431,7 +436,14 @@ export function generateManifestFromBundles(
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
-    if (outputBundle.type !== 'chunk') {
+    if (outputBundle.type === 'asset') {
+      // we don't record map files as assets
+      if (!outputBundle.fileName.endsWith('js.map')) {
+        manifest.assets![outputBundle.fileName] = {
+          name: outputBundle.names[0],
+          size: outputBundle.source.length,
+        };
+      }
       continue;
     }
     const bundleFileName = canonPath(outputBundle.fileName);
@@ -475,9 +487,23 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
+      // keep these if statements separate so that weird bundling still works
       if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
         manifest.preloader = bundleFileName;
-      } else if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
+      }
+      if (
+        modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(.min|.prod)?\.[cm]js$/.test(m))
+      ) {
+        manifest.core = bundleFileName;
+      }
+      if (
+        modulePaths.some((m) =>
+          /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/.test(m)
+        )
+      ) {
+        manifest.qwikLoader = bundleFileName;
+      }
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
         qwikHandlersName = bundleFileName;
       }
     }
@@ -494,15 +520,17 @@ export function generateManifestFromBundles(
     }
     (manifest.bundles[bundle].symbols ||= []).push(symbol);
     manifest.symbols[symbol] = {
-      origin: segment.origin,
       displayName: segment.displayName,
-      canonicalFilename: segment.canonicalFilename,
       hash: segment.hash,
       ctxKind: segment.ctxKind,
       ctxName: segment.ctxName,
       captures: segment.captures,
+      canonicalFilename: segment.canonicalFilename,
       parent: segment.parent,
+      origin: segment.origin,
       loc: segment.loc,
+      paramNames: segment.paramNames,
+      captureNames: segment.captureNames,
     };
   }
   if (qwikHandlersName) {
@@ -521,7 +549,7 @@ export function generateManifestFromBundles(
       manifest.mapping[symbol] = qwikHandlersName;
     }
   } else {
-    console.error('Qwik bundle not found, is Qwik actually used in this project?');
+    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

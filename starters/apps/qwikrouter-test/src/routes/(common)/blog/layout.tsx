@@ -11,6 +11,7 @@ export default component$(() => {
         <ul>
           <li>
             <Link
+              // note missing / at the end of the href
               href="/qwikrouter-test/blog/what-is-resumability"
               data-test-link="blog-resumability"
             >
@@ -19,7 +20,7 @@ export default component$(() => {
           </li>
           <li>
             <Link
-              href="/qwikrouter-test/blog/serializing-props"
+              href="/qwikrouter-test/blog/serializing-props/"
               data-test-link="blog-serializing-props"
             >
               Serializing Props

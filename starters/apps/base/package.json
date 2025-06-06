@@ -23,8 +23,10 @@
     "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
+    "globals": "latest",
     "prettier": "latest",
     "typescript": "latest",
+    "typescript-plugin-css-modules": "latest",
     "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },

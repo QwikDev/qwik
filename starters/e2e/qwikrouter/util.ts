@@ -23,6 +23,16 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
     expect(canonicalUrl.pathname).toBe(test.pathname);
   }
 
+  if (test.searchParams) {
+    if (test.searchParams === "empty") {
+      expect(pageUrl.searchParams.size).toBe(0);
+    } else {
+      for (const [key, value] of Object.entries(test.searchParams)) {
+        expect(pageUrl.searchParams.get(key)).toBe(value);
+      }
+    }
+  }
+
   if (test.title) {
     const title = head.locator("title");
     expect(await title.innerText()).toBe(test.title);
@@ -76,6 +86,7 @@ export async function assertPage(ctx: TestContext, test: AssertPage) {
 
 interface AssertPage {
   pathname?: string;
+  searchParams?: Record<string, string> | "empty";
   title?: string;
   h1?: string;
   layoutHierarchy?: string[];
@@ -94,24 +105,32 @@ export async function linkNavigate(
     expect(true, `Link selector ${linkSelector} not found`).toBe(false);
   }
 
-  const href = await link.getAttribute("href")!;
-  console.log(`       ${href}`);
+  const href = (await link.getAttribute("href"))!;
+  console.log(`   nav>    ${href}`);
 
   if (ctx.javaScriptEnabled) {
-    // SPA
+    const promise =
+      href &&
+      page.waitForURL(href.endsWith("/") ? href : href + "/", {
+        timeout: 5000,
+        waitUntil: "networkidle",
+      });
     await link.click();
-    await page.waitForTimeout(500);
+    // give time for the head to update
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await promise;
   } else {
-    // MPA
-    const [rsp] = await Promise.all([page.waitForNavigation(), link.click()]);
-
-    const rspStatus = rsp!.status();
-    if (rspStatus !== responseStatus) {
-      const content = await rsp?.text();
-      expect(rspStatus, `${href} (${rspStatus})\n${content}`).toBe(
-        responseStatus,
-      );
-    }
+    // if we didn't get a href, just wait for the next request
+    const requestPromise = page.waitForRequest(href ? href : () => true, {
+      timeout: 5000,
+    });
+    await link.click();
+    const request = (await requestPromise)!;
+    const response = await request.response();
+    expect(
+      response?.status(),
+      `Expected status ${responseStatus} for ${href}`,
+    ).toBe(responseStatus);
   }
 }
 
@@ -164,6 +183,16 @@ export function locator(ctx: TestContext, selector: string) {
 
 export function getPage(ctx: TestContext) {
   return ctx.browserContext.pages()[0]!;
+}
+
+export async function setPage(ctx: TestContext, pathname: string) {
+  const page = getPage(ctx);
+  const response = (await page.goto(pathname))!;
+  const status = response.status();
+  if (status !== 200) {
+    const text = await response.text();
+    expect(status, `${pathname} (${status})\n${text}`).toBe(200);
+  }
 }
 
 export async function load(

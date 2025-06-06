@@ -1,7 +1,7 @@
 import type { ReplResult, ReplStore } from './types';
 
 // TODO fix useStore to recursively notify subscribers
-const deepUpdate = (prev: any, next: any) => {
+const deepUpdate = (prev: any, next: any, matcher?: (a: any, b: any) => boolean) => {
   for (const key in next) {
     if (prev[key] && typeof next[key] === 'object' && typeof prev[key] === 'object') {
       deepUpdate(prev[key], next[key]);
@@ -13,13 +13,7 @@ const deepUpdate = (prev: any, next: any) => {
   }
   if (Array.isArray(prev)) {
     for (const item of prev) {
-      // can't use Object as a matcher
-      // because it will be a different object
-      // so we need to use the path or code
-
-      if (
-        next.some((nextItem: any) => (nextItem.path || nextItem.code) === (item.path || item.code))
-      ) {
+      if (!next.some((nextItem: any) => (matcher ? matcher(nextItem, item) : nextItem === item))) {
         prev.splice(prev.indexOf(item), 1);
       }
     }
@@ -32,26 +26,22 @@ const deepUpdate = (prev: any, next: any) => {
   }
 };
 
+const matchByPath = (a: any, b: any) => a.path === b.path;
+
 export const updateReplOutput = async (store: ReplStore, result: ReplResult) => {
   deepUpdate(store.diagnostics, result.diagnostics);
+  deepUpdate(store.htmlResult, result.htmlResult);
+  deepUpdate(store.transformedModules, result.transformedModules, matchByPath);
+  deepUpdate(store.clientBundles, result.clientBundles, matchByPath);
+  deepUpdate(store.ssrModules, result.ssrModules, matchByPath);
+  if (
+    result.events.length !== store.events.length ||
+    result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
+  ) {
+    store.events = result.events;
+  }
 
-  if (result.diagnostics.length === 0) {
-    if (store.html !== result.html) {
-      store.html = result.html;
-    }
-
-    deepUpdate(store.transformedModules, result.transformedModules);
-    deepUpdate(store.clientBundles, result.clientBundles);
-    deepUpdate(store.ssrModules, result.ssrModules);
-    if (
-      result.events.length !== store.events.length ||
-      result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
-    ) {
-      store.events = result.events;
-    }
-
-    if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
-      store.selectedOutputPanel = 'app';
-    }
+  if (store.selectedOutputPanel === 'diagnostics' && store.monacoDiagnostics.length === 0) {
+    store.selectedOutputPanel = 'app';
   }
 };

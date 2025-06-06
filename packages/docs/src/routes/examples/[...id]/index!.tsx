@@ -77,6 +77,7 @@ export default component$(() => {
     track(() => store.entryStrategy);
     track(() => store.files);
     track(() => store.version);
+    track(() => store.preloader);
 
     if (isBrowser) {
       if (store.version) {

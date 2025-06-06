@@ -59,6 +59,7 @@ pub struct Segment {
 	pub data: SegmentData,
 	pub hash: u64,
 	pub span: Span,
+	pub param_names: Option<Vec<JsWord>>,
 }
 
 #[derive(Debug, Clone)]
@@ -584,11 +585,18 @@ impl<'a> QwikTransform<'a> {
 
 		// Handle `obj.prop` case
 		if let ast::Expr::Member(member) = folded.clone() {
-			if let ast::Expr::Ident(_) = *member.obj {
+			let obj_expr = if let ast::Expr::Paren(paren_expr) = (*member.obj).clone() {
+				// for example (obj as any).prop
+				paren_expr.expr
+			} else {
+				member.obj
+			};
+
+			if let ast::Expr::Ident(_) = *obj_expr {
 				let prop_sym = prop_to_string(&member.prop);
 				if let Some(prop_sym) = prop_sym {
 					let id = self.ensure_core_import(&_WRAP_PROP);
-					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
+					return (Some(make_wrap(&id, obj_expr, prop_sym)), is_const);
 				}
 			}
 		}
@@ -768,6 +776,7 @@ impl<'a> QwikTransform<'a> {
 		segment_hash: u64,
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
+		let param_names = Self::extract_param_names(&expr);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
 		let entry = self
@@ -789,6 +798,7 @@ impl<'a> QwikTransform<'a> {
 			data: segment_data,
 			expr: Box::new(expr),
 			hash: segment_hash,
+			param_names,
 		});
 		import_expr
 	}
@@ -1006,6 +1016,7 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
 			|| matches!(expr, ast::Expr::Ident(_));
+		let param_names = Self::extract_param_names(&expr);
 		let inlined_expr = if should_inline {
 			expr
 		} else {
@@ -1021,6 +1032,7 @@ impl<'a> QwikTransform<'a> {
 				data: segment_data.clone(),
 				expr: Box::new(expr),
 				hash: new_ident.ctxt.as_u32() as u64,
+				param_names,
 			});
 			ast::Expr::Ident(new_ident)
 		};
@@ -1708,6 +1720,96 @@ impl<'a> QwikTransform<'a> {
 			}))
 		}
 		self.create_internal_call(fn_name, args, true)
+	}
+
+	fn extract_param_names(expr: &ast::Expr) -> Option<Vec<JsWord>> {
+		fn pat_to_string(pat: &ast::Pat) -> Option<JsWord> {
+			match pat {
+				ast::Pat::Ident(ident) => Some(ident.id.sym.clone()),
+				ast::Pat::Rest(rest) => {
+					pat_to_string(&rest.arg).map(|name| JsWord::from(format!("...{}", name)))
+				}
+				ast::Pat::Array(array) => {
+					let mut parts = Vec::new();
+					for elem in &array.elems {
+						match elem {
+							Some(pat) => {
+								if let Some(name) = pat_to_string(pat) {
+									parts.push(name.to_string());
+								}
+							}
+							None => parts.push("".to_string()),
+						}
+					}
+					if parts.is_empty() {
+						None
+					} else {
+						Some(JsWord::from(format!("[{}]", parts.join(", "))))
+					}
+				}
+				ast::Pat::Object(obj) => {
+					let mut parts = Vec::new();
+					for prop in &obj.props {
+						match prop {
+							ast::ObjectPatProp::KeyValue(kv) => {
+								let key = match &kv.key {
+									ast::PropName::Ident(ident) => ident.sym.to_string(),
+									ast::PropName::Str(str) => str.value.to_string(),
+									ast::PropName::Num(num) => num.value.to_string(),
+									ast::PropName::BigInt(bigint) => bigint.value.to_string(),
+									ast::PropName::Computed(_) => continue,
+								};
+								if let Some(value) = pat_to_string(&kv.value) {
+									parts.push(format!("{}: {}", key, value));
+								}
+							}
+							ast::ObjectPatProp::Assign(assign) => {
+								parts.push(assign.key.sym.to_string());
+							}
+							ast::ObjectPatProp::Rest(_) => {
+								// Skip rest properties in object patterns
+							}
+						}
+					}
+					if parts.is_empty() {
+						None
+					} else {
+						Some(JsWord::from(format!("{{{}}}", parts.join(", "))))
+					}
+				}
+				_ => None,
+			}
+		}
+
+		match expr {
+			ast::Expr::Arrow(arrow) => {
+				let mut names = Vec::with_capacity(arrow.params.len());
+				for param in &arrow.params {
+					if let Some(name) = pat_to_string(param) {
+						names.push(name);
+					}
+				}
+				if names.is_empty() {
+					None
+				} else {
+					Some(names)
+				}
+			}
+			ast::Expr::Fn(fn_expr) => {
+				let mut names = Vec::with_capacity(fn_expr.function.params.len());
+				for param in &fn_expr.function.params {
+					if let Some(name) = pat_to_string(&param.pat) {
+						names.push(name);
+					}
+				}
+				if names.is_empty() {
+					None
+				} else {
+					Some(names)
+				}
+			}
+			_ => None,
+		}
 	}
 }
 

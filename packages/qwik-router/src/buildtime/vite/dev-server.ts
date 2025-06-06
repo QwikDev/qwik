@@ -19,6 +19,7 @@ import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
+  RebuildRouteInfoInternal,
   ContentMenu,
   LoadedRoute,
   LoaderInternal,
@@ -228,10 +229,27 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
 
+          const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+            const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
+            const requestHandlers = resolveRequestHandlers(
+              serverPlugins,
+              loadedRoute,
+              req.method ?? 'GET',
+              false,
+              renderFn
+            );
+
+            return {
+              loadedRoute,
+              requestHandlers,
+            };
+          };
+
           const { completion, requestEv } = runQwikRouter(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
+            rebuildRouteInfo,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

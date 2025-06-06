@@ -1,6 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
-import { QwikRouterProvider, RouterOutlet, ServiceWorkerRegister, z } from '@qwik.dev/router';
+import { QwikRouterProvider, RouterOutlet, z } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
 import './global.css';
 
@@ -41,14 +41,10 @@ export default component$(() => {
         <meta charset="utf-8" />
         <link rel="manifest" href="/manifest.json" />
         <RouterHead />
-        <Insights
-          publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY}
-          postUrl="/api/v1/${publicApiKey}/post/"
-        />
+        <Insights />
       </head>
       <body lang="en">
         <RouterOutlet />
-        <ServiceWorkerRegister />
       </body>
     </QwikRouterProvider>
   );

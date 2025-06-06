@@ -31,6 +31,9 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "loc": [
     570,
     651
+  ],
+  "captureNames": [
+    "store"
   ]
 }
 */

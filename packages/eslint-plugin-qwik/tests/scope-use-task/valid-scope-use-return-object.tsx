@@ -2,7 +2,6 @@ import { component$, useTask$, isBrowser, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const state = useSignal(true);
-  process.env;
   useTask$(({ track }) => {
     if (isBrowser) {
       track(() => {

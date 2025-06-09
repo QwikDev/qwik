@@ -27,7 +27,7 @@
     "prettier": "latest",
     "typescript": "latest",
     "typescript-plugin-css-modules": "latest",
-    "vite": "^6.2.6",
+    "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {

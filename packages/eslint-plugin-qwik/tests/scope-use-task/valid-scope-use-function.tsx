@@ -5,6 +5,7 @@ export default component$(() => {
     function foo() {
       if (isServer) {
         process.env;
+        const m = process;
       }
     }
     foo();

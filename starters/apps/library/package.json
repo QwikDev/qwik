@@ -43,7 +43,7 @@
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
-    "vite": "6.2.6",
+    "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "__qwik__": {

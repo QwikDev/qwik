@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.2
+
+### Patch Changes
+
+- 🐞🩹 correctly serialize vnode props in production mode (by [@Varixo](https://github.com/Varixo) in [#7666](https://github.com/QwikDev/qwik/pull/7666))
+
 ## 2.0.0-beta.1
 
 ### Minor Changes

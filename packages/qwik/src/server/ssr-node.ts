@@ -39,6 +39,7 @@ export class SsrNode implements ISsrNode {
 
   public parentSsrNode: ISsrNode | null;
   public children: ISsrNode[] | null = null;
+  private attrs: SsrAttrs;
 
   /** Local props which don't serialize; */
   private localProps: SsrAttrs | null = null;
@@ -50,13 +51,15 @@ export class SsrNode implements ISsrNode {
   constructor(
     parentSsrNode: ISsrNode | null,
     id: string,
-    private attrs: SsrAttrs,
+    private attributesIndex: number,
     private cleanupQueue: CleanupQueue,
     public vnodeData: VNodeData
   ) {
     this.parentSsrNode = parentSsrNode;
     this.parentSsrNode?.addChild(this);
     this.id = id;
+    this.attrs =
+      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as SsrAttrs) : _EMPTY_ARRAY;
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
     }
@@ -64,7 +67,7 @@ export class SsrNode implements ISsrNode {
 
   setProp(name: string, value: any): void {
     if (this.attrs === _EMPTY_ARRAY) {
-      this.attrs = [];
+      this.setEmptyArrayAsVNodeDataAttributes();
     }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
       mapArray_set(this.localProps || (this.localProps = []), name, value, 0);
@@ -75,6 +78,20 @@ export class SsrNode implements ISsrNode {
       // Sequential Arrays contain Tasks. And Tasks contain cleanup functions.
       // We need to collect these cleanup functions and run them when the rendering is done.
       this.cleanupQueue.push(value);
+    }
+  }
+
+  private setEmptyArrayAsVNodeDataAttributes() {
+    if (this.attributesIndex >= 0) {
+      this.vnodeData[this.attributesIndex] = [];
+      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
+    } else {
+      // we need to insert a new empty array at index 1
+      // this can be inefficient, but it is only done once per node and probably not often
+      const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
+      this.vnodeData.splice(newAttributesIndex, 0, []);
+      this.attributesIndex = newAttributesIndex;
+      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
     }
   }
 

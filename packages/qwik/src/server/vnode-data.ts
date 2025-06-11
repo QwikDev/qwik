@@ -87,13 +87,13 @@ export function vNodeData_createSsrNodeReference(
   cleanupQueue: CleanupQueue
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
-  let fragmentAttrs: SsrAttrs = _EMPTY_ARRAY;
   const stack: number[] = [-1];
   // We are referring to a virtual node. We need to descend into the tree to find the path to the node.
+  let attributesIndex = -1;
   for (let i = 1; i < vNodeData.length; i++) {
     const value = vNodeData[i];
     if (Array.isArray(value)) {
-      fragmentAttrs = value as SsrAttrs;
+      attributesIndex = i;
       i++; // skip the `OPEN_FRAGMENT` or `WRITE_ELEMENT_ATTRS` value
       if (vNodeData[i] !== WRITE_ELEMENT_ATTRS) {
         // ignore pushing to the stack for WRITE_ELEMENT_ATTRS, because we don't want to create more depth. It is the same element
@@ -102,7 +102,6 @@ export function vNodeData_createSsrNodeReference(
       }
     } else if (value === CLOSE_FRAGMENT) {
       stack.pop(); // pop count
-      fragmentAttrs = _EMPTY_ARRAY;
     } else if (value < 0) {
       // Negative numbers are element counts.
       const numberOfElements = 0 - value;
@@ -124,7 +123,7 @@ export function vNodeData_createSsrNodeReference(
       }
     }
   }
-  return new SsrNode(currentComponentNode, refId, fragmentAttrs, cleanupQueue, vNodeData);
+  return new SsrNode(currentComponentNode, refId, attributesIndex, cleanupQueue, vNodeData);
 }
 
 /**

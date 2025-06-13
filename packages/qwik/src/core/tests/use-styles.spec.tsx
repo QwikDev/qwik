@@ -1,6 +1,7 @@
 import {
   Fragment as Component,
   component$,
+  Fragment,
   inlinedQrl,
   Fragment as Signal,
   Slot,
@@ -188,6 +189,35 @@ describe.each([
     );
     const qStyles = container.document.querySelectorAll(QStyleSelector);
     expect(qStyles).toHaveLength(2);
+  });
+  it('should skip style node in front of text node', async () => {
+    const InnerCmp = component$(() => {
+      return <div>Hello world</div>;
+    });
+
+    const STYLE = `.container{color: blue;}`;
+    const Cmp = component$(() => {
+      useStylesQrl(inlinedQrl(STYLE, 's_styles1'));
+      const groupSig = useSignal('1');
+      return (
+        <>
+          Some text:{'  '}
+          <button onClick$={() => (groupSig.value = '2')}>click</button>
+          {/* Enforce Cmp component materialization, because of dynamic content */}
+          {groupSig.value === '2' && <InnerCmp />}
+        </>
+      );
+    });
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          {'Some text:'}
+          {'  '}
+          <button>click</button>
+        </Fragment>
+      </Component>
+    );
   });
 });
 

@@ -5,12 +5,12 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "react": "^18",
+    "react-dom": "^18",
     "typescript": "5.4.5",
-    "vite": "5.3.5"
+    "vite": "^5"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"

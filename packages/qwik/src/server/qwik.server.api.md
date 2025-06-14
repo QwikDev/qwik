@@ -6,6 +6,7 @@
 
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { ServerQwikManifest } from '@builder.io/qwik/optimizer';
 import type { SnapshotResult } from '@builder.io/qwik';
 import type { StreamWriter } from '@builder.io/qwik';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
@@ -82,9 +83,8 @@ export interface PreloaderOptions {
 
 // @public (undocumented)
 export interface QwikLoaderOptions {
-    // (undocumented)
     include?: 'always' | 'never' | 'auto';
-    // (undocumented)
+    // @deprecated (undocumented)
     position?: 'top' | 'bottom';
 }
 
@@ -117,7 +117,7 @@ export interface RenderResult {
     // (undocumented)
     isStatic: boolean;
     // (undocumented)
-    manifest?: QwikManifest;
+    manifest?: ServerQwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
@@ -199,7 +199,7 @@ export interface StreamingOptions {
 
 // @public
 export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
 }) => PrefetchResource[]);
 
 // @public (undocumented)

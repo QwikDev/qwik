@@ -1064,8 +1064,21 @@ export const vnode_diff = (
 
       if (host) {
         const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        const propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
+        shouldRender = shouldRender || propsAreDifferent;
         if (shouldRender) {
+          if (propsAreDifferent) {
+            if (vNodeProps) {
+              // Reuse the same props instance, qrls can use the current props instance
+              // as a capture ref, so we can't change it.
+              Object.assign(vNodeProps, jsxProps);
+            } else if (jsxProps) {
+              // if there is no props instance, create a new one.
+              // We can do this because we are not using the props instance for anything else.
+              container.setHostProp(host, ELEMENT_PROPS, jsxProps);
+            }
+          }
+
           /**
            * Mark host as not deleted. The host could have been marked as deleted if it there was a
            * cleanup run. Now we found it and want to reuse it, so we need to mark it as not

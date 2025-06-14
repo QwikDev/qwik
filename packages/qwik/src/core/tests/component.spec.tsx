@@ -2305,6 +2305,32 @@ describe.each([
     (globalThis as any).logs = undefined;
   });
 
+  it('should change component props to new one for the same component with the same key', async () => {
+    (globalThis as any).logs = [];
+    const FirstCmp = component$((props: { foo?: string; bar?: string }) => {
+      (globalThis as any).logs.push('foo' in props, 'bar' in props);
+      return <div>{props.foo}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? <FirstCmp key="1" foo="foo" /> : <FirstCmp key="1" bar="bar" />}
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    expect((globalThis as any).logs).toEqual([true, false]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true, true, false]);
+    (globalThis as any).logs = undefined;
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

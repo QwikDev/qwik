@@ -9,6 +9,7 @@ import {
   directGetPropsProxyProp,
   isJSXNode,
   type Props,
+  type PropsProxy,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -103,6 +104,7 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { EffectProperty } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -1063,7 +1065,7 @@ export const vnode_diff = (
       }
 
       if (host) {
-        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        let vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
         const propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
         shouldRender = shouldRender || propsAreDifferent;
         if (shouldRender) {
@@ -1071,13 +1073,20 @@ export const vnode_diff = (
             if (vNodeProps) {
               // Reuse the same props instance, qrls can use the current props instance
               // as a capture ref, so we can't change it.
-              Object.assign(vNodeProps, jsxProps);
+              // We need to do this directly, because normally we would subscribe to the signals
+              // if any signal is there.
+              vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
+              vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
             } else if (jsxProps) {
-              // if there is no props instance, create a new one.
+              // If there is no props instance, create a new one.
               // We can do this because we are not using the props instance for anything else.
-              container.setHostProp(host, ELEMENT_PROPS, jsxProps);
+              vnode_setProp(host, ELEMENT_PROPS, jsxProps);
+              vNodeProps = jsxProps;
             }
           }
+          // Assign the new QRL instance to the host.
+          // Unfortunately it is created every time, something to fix in the optimizer.
+          vnode_setProp(host, OnRenderProp, componentQRL);
 
           /**
            * Mark host as not deleted. The host could have been marked as deleted if it there was a
@@ -1085,7 +1094,7 @@ export const vnode_diff = (
            * deleted.
            */
           host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
         }
       }
       descendContentToProject(jsxNode.children, host);

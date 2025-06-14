@@ -12,7 +12,7 @@ test.describe("render", () => {
     });
   });
 
-  function tests() {
+  function tests(isClient: boolean) {
     test("should load", async ({ page }) => {
       const button = page.locator("button#increment");
       const text = page.locator("#rerenders");
@@ -486,9 +486,36 @@ test.describe("render", () => {
       await button.click();
       await expect(tag).toHaveAttribute("data-v", "bar");
     });
+
+    test("should rerender child once", async ({ page }) => {
+      const button = page.locator("#rerender-once-button");
+      expect(await page.locator("#rerender-once-child").innerHTML()).toEqual(
+        '["render Cmp","foo",0]',
+      );
+      await button.click();
+      if (isClient) {
+        await expect(page.locator("#rerender-once-child")).toHaveText(
+          '["render Cmp","foo",0,"render Cmp","bar",1]',
+        );
+      } else {
+        await expect(page.locator("#rerender-once-child")).toHaveText(
+          '["render Cmp","bar",1]',
+        );
+      }
+      await button.click();
+      if (isClient) {
+        await expect(page.locator("#rerender-once-child")).toHaveText(
+          '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
+        );
+      } else {
+        await expect(page.locator("#rerender-once-child")).toHaveText(
+          '["render Cmp","bar",1,"render Cmp","foo",0]',
+        );
+      }
+    });
   }
 
-  tests();
+  tests(false);
 
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
@@ -499,7 +526,7 @@ test.describe("render", () => {
         `Render ${Number(v) + 1}`,
       );
     });
-    tests();
+    tests(true);
   });
 
   test("pr3475", async ({ page }) => {

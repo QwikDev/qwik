@@ -1838,17 +1838,17 @@ function materializeFromVNodeData(
   processVNodeData(vData, (peek, consumeValue, consume, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
-      while (!isElement(child)) {
+      while (
+        !isElement(child) ||
+        // We pretend that style element's don't exist as they can get moved out.
+        // skip over style elements, as those need to be moved to the head
+        // and are not included in the counts.
+        isQStyleElement(child)
+      ) {
         child = fastNextSibling(child);
         if (!child) {
           throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
         }
-      }
-      // We pretend that style element's don't exist as they can get moved out.
-      while (isQStyleElement(child)) {
-        // skip over style elements, as those need to be moved to the head
-        // and are not included in the counts.
-        child = fastNextSibling(child);
       }
       combinedText = null;
       previousTextNode = null;
@@ -1912,6 +1912,10 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SLOT) {
       vnode_setAttr(null, vParent, QSlot, consumeValue());
     } else {
+      // skip over style elements in front of text nodes, where text node is the first child (except the style node)
+      while (isQStyleElement(child)) {
+        child = fastNextSibling(child);
+      }
       const textNode =
         child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
       // must be alphanumeric

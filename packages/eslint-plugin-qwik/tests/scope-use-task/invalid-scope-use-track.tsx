@@ -1,5 +1,5 @@
 // Expect error: { "messageId": "unsafeApiUsage" }
-
+// Expect error: { "messageId": "unsafeApiUsage" }
 import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
@@ -7,6 +7,7 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => {
       process.env;
+      const m = process;
       return s.value;
     });
   });

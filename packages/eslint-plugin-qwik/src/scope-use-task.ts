@@ -1,6 +1,7 @@
 import { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 import * as eslint from 'eslint'; // For Scope types
+import type { Identifier } from 'estree';
 const ISSERVER = 'isServer';
 // Helper function: checks if a node is a descendant of another node
 function isNodeDescendantOf(descendantNode, ancestorNode): boolean {
@@ -93,7 +94,6 @@ export const scopeUseTask: Rule.RuleModule = {
      */
     function isApiUsageGuarded(apiOrCallNode, functionContextNode): boolean {
       let currentParentNode: TSESTree.Node | undefined = apiOrCallNode.parent;
-
       while (
         currentParentNode &&
         currentParentNode !== functionContextNode.body &&
@@ -322,7 +322,15 @@ export const scopeUseTask: Rule.RuleModule = {
         }
 
         if (forbiddenApis.has(node.name)) {
-          if (isIdentifierShadowedByDeclaration(node)) {
+          const isDirectIdentifier =
+            node.parent.type === 'VariableDeclarator' &&
+            (node?.parent?.init as Identifier)?.name === node.name;
+          // node'api usually be invoked as a member expression (e.g., process.env)
+          // or as a direct identifier (e.g., process).
+          if (
+            isIdentifierShadowedByDeclaration(node) ||
+            (node.parent.type !== 'MemberExpression' && node.parent.type !== 'VariableDeclarator')
+          ) {
             return;
           }
           if (!isApiUsageGuarded(node, currentUseTaskFunction)) {

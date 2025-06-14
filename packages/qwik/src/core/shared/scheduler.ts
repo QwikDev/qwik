@@ -587,7 +587,7 @@ export const createScheduler = (
     }
 
     // If the host is the same (or missing), and the type is the same,  we need to compare the target.
-    if (a.$target$ !== b.$target$ || a.$payload$ !== b.$payload$) {
+    if (a.$target$ !== b.$target$) {
       // 1 means that we are going to process chores as FIFO
       return 1;
     }
@@ -643,7 +643,7 @@ export const createScheduler = (
      * multiple times during component execution. For this reason it is necessary for us to update
      * the chore with the latest result of the signal.
      */
-    if (existing.$type$ === ChoreType.NODE_DIFF) {
+    if (existing.$payload$ !== value.$payload$) {
       existing.$payload$ = value.$payload$;
     }
     if (existing.$executed$) {

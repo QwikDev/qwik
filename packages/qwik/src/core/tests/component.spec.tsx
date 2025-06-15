@@ -39,6 +39,8 @@ function Hola(props: any) {
   return <div {...props}></div>;
 }
 
+const globalObj = ['foo', 'bar'];
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -1922,14 +1924,14 @@ describe.each([
     });
 
     const Cmp = component$(() => {
-      const $toggled = useSignal<boolean>(false);
+      const toggled = useSignal<boolean>(false);
 
       return (
         <TestB
-          aria-label={$toggled.value ? 'a' : 'a1'}
-          title={$toggled.value ? 'a' : 'a1'}
+          aria-label={toggled.value ? 'a' : 'a1'}
+          title={toggled.value ? 'a' : 'a1'}
           onClick$={() => {
-            $toggled.value = !$toggled.value;
+            toggled.value = !toggled.value;
           }}
         >
           <span>Hello, World!</span>
@@ -2253,6 +2255,80 @@ describe.each([
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
     expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+  });
+
+  it('should reuse the same props instance when props are changing', async () => {
+    (globalThis as any).logs = [];
+    type ChildProps = {
+      obj: string;
+      foo: SignalType<number>;
+    };
+    const Child = component$<ChildProps>(({ obj, foo }) => {
+      (globalThis as any).logs.push('child render ' + obj);
+      useTask$(({ track }) => {
+        foo && track(foo);
+        (globalThis as any).logs.push(obj);
+      });
+      return <></>;
+    });
+
+    const Cmp = component$(() => {
+      const foo = useSignal(0);
+      (globalThis as any).logs.push('parent render');
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+            }}
+          >
+            click
+          </button>
+          <Child obj={globalObj[foo.value]} foo={foo} />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+
+    expect((globalThis as any).logs).toEqual([
+      'parent render',
+      'child render foo',
+      'foo',
+      'parent render',
+      'bar',
+      'child render bar',
+    ]);
+
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should change component props to new one for the same component with the same key', async () => {
+    (globalThis as any).logs = [];
+    const FirstCmp = component$((props: { foo?: string; bar?: string }) => {
+      (globalThis as any).logs.push('foo' in props, 'bar' in props);
+      return <div>{props.foo}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? <FirstCmp key="1" foo="foo" /> : <FirstCmp key="1" bar="bar" />}
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    expect((globalThis as any).logs).toEqual([true, false]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true, true, false]);
+    (globalThis as any).logs = undefined;
   });
 
   describe('regression', () => {

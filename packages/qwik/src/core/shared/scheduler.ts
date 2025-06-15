@@ -129,6 +129,7 @@ import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { StoreHandler } from '../reactive-primitives/impl/store';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { isQrl } from './qrl/qrl-utils';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -587,7 +588,10 @@ export const createScheduler = (
     }
 
     // If the host is the same (or missing), and the type is the same,  we need to compare the target.
-    if (a.$target$ !== b.$target$ || a.$payload$ !== b.$payload$) {
+    if (a.$target$ !== b.$target$) {
+      if (isQrl(a.$target$) && isQrl(b.$target$) && a.$target$.$hash$ === b.$target$.$hash$) {
+        return 0;
+      }
       // 1 means that we are going to process chores as FIFO
       return 1;
     }
@@ -643,7 +647,7 @@ export const createScheduler = (
      * multiple times during component execution. For this reason it is necessary for us to update
      * the chore with the latest result of the signal.
      */
-    if (existing.$type$ === ChoreType.NODE_DIFF) {
+    if (existing.$payload$ !== value.$payload$) {
       existing.$payload$ = value.$payload$;
     }
     if (existing.$executed$) {

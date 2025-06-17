@@ -1,9 +1,9 @@
 ---
-title: Vercel Edge Adapter and Middleware | Deployments
+title: Azion Web Platform | Deployments
 contributors:
   - egermano
-updated_at: '2025-04-22T11:37:18Z'
-created_at: '2025-04-22T11:37:18Z'
+updated_at: '2025-06-17T11:37:18Z'
+created_at: '2025-06-17T11:37:18Z'
 ---
 
 import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
@@ -14,7 +14,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 ## Installation
 
-Curerntly Azion only supports SSG Qwick applications. To deploy your Qwik application to Azion, you need to use the `static-site` adapter.
+Currently, Azion only supports SSG Qwik applications. To deploy your Qwik application to Azion, you need to use the `static-site` adapter.
 
 To integrate the `static-site` adapter, use the `add` command:
 
@@ -71,33 +71,34 @@ Now, you can generate static site while using `Qwik`'s rich ecosystem, file base
 
 ## Deploy to Azion
 
-To deploy your Qwik application to Azion, you need to install the Azion CLI. You can install it following this [guide](https://www.azion.com/en/documentation/products/azion-cli/overview/#installing-azion-clil).
+To deploy your Qwik application to Azion, you need to install the Azion CLI. You can install it by following this [guide](https://www.azion.com/en/documentation/products/azion-cli/overview/#installing-azion-clil).
 
-Once you have the Azion CLI installed, you can deploy your application following these steps:
+Once you have the Azion CLI installed, you can deploy your application by following these steps:
 
 1. Link your application. This will create a new project in Azion and link it to your local application.
 
 ```shell
 azion link
+```
 
 Confirm the linking of the project to Azion:
 
 ```shell
-? Do you want to link /cli-examples/effervescent_moon to Azion? (y/N)
+? Do you want to link /[your-application-folder] to Azion? (y/N)
 ```
 
-Enter the desired name for your edge application:
+Enter the desired name for your **application**:
 
 ```shell
 ? (Hit enter to accept the suggested name in parenthesis) Your application's name:  (nimble-tyrion)
-````
+```
 
-Choose a *preset*:
+Choose a **preset**, `Qwick` is the option you are looking for:
 
 ```shell
 ? Choose a preset:  [Use arrows to move, type to filter]
   ...
-> Qwick
+> Qwik
   ...
 ```
 
@@ -111,9 +112,9 @@ azion deploy
 
 3. Wait while the project is built and deployed to the Azion Web Platform.
 
-> Once the deployment is triggered, Azion will open the browser and take the user to a page on Azion Console where the deployment logs and process can be monitored. If it doesn't open automatically, just click on the provided link.
-After the deployment is complete, you'll receive a domain to access your Hugo project on the Azion Platform.
+> Once the deployment is triggered, Azion will open the browser and take you to a page on the Azion Console where the deployment logs and process can be monitored. If it doesn't open automatically, just click on the provided link.
+After the deployment is complete, you'll receive a domain to access your Qwik project on the Azion Platform.
 
-Wait a few minutes so the propagation takes place, and then access your application using the provided domain, which should be similar to `https://xxxxxxx.map.azionedge.net`.
+Wait a few minutes for propagation to take place, and then access your application using the provided domain, which should be similar to `https://xxxxxxx.map.azionedge.net`.
 
-For more information about Azion Platform, check the [Azion documentation](https://www.azion.com/en/documentation/).
+For more information about the Azion Platform, check the [Azion documentation](https://www.azion.com/en/documentation/).

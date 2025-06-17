@@ -56,8 +56,9 @@ export function convertManifestToBundleGraph(
   }
   // Routes etc
   if (bundleGraphAdders) {
+    const combined = { ...manifest, bundles: graph };
     for (const adder of bundleGraphAdders) {
-      const result = adder(manifest);
+      const result = adder(combined);
       if (result) {
         Object.assign(graph, result);
       }
@@ -68,7 +69,17 @@ export function convertManifestToBundleGraph(
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const dynamicImports = bundle.dynamicImports?.filter((dep) => graph[dep]?.symbols) || [];
+    const dynamicImports =
+      bundle.dynamicImports?.filter(
+        // we only want to include dynamic imports that belong to the app
+        // e.g. not all languages supported by shiki
+        (dep) =>
+          graph[dep] &&
+          // either there are qrls
+          (graph[dep].symbols ||
+            // or it's a dynamic import from the app source
+            graph[dep].origins?.some((o) => !o.includes('node_modules')))
+      ) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

@@ -2,8 +2,7 @@ import { assert, test } from 'vitest';
 import {
   getClientDataPath,
   getClientNavPath,
-  shouldPrefetchData,
-  shouldPrefetchSymbols,
+  shouldPreload,
   isSameOrigin,
   isSameOriginDifferentPathname,
   isSamePath,
@@ -189,94 +188,45 @@ test(`isSameOrigin`, () => {
   });
 });
 
-test('missing clientNavPath', () => {
-  const clientNavPath = null;
-  const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), false);
-});
-
-test('path and current path the same, has different querystring and hash', () => {
-  const clientNavPath = '/about?qs#hash';
-  const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), true);
-});
-
-test('path and current path the same, querystring the same', () => {
-  const clientNavPath = '/about?qs';
-  const currentLoc = new URL('https://qwik.dev/about?qs');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), false);
-});
-
-test('path and current path the same', () => {
-  const clientNavPath = '/about';
-  const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), false);
-});
-
-test('path and current path the same, different trailing slash', () => {
-  const clientNavPath = '/about/';
-  const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), false);
-});
-
-test('valid prefetchUrl, has querystring and hash', () => {
-  const clientNavPath = '/about?qs#hash';
-  const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), true);
-});
-
-test('valid prefetchUrl, trailing slash', () => {
-  const clientNavPath = '/about/';
-  const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), true);
-});
-
-test('valid prefetchUrl', () => {
-  const clientNavPath = '/about';
-  const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchData(clientNavPath, { url: currentLoc }), true);
-});
-
-// shouldPrefetchSymbols.
 // ======================
 test('missing clientNavPath', () => {
   const clientNavPath = null;
   const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), false);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), false);
 });
 
 test('path and current path the same, has different querystring and hash', () => {
   const clientNavPath = '/about?qs#hash';
   const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), false);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), false);
 });
 
 test('path and current path the same, different trailing slash', () => {
   const clientNavPath = '/about/';
   const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), false);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), false);
 });
 
 test('path and current path the same', () => {
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.dev/about');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), false);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), false);
 });
 
 test('valid prefetchUrl, has querystring and hash', () => {
   const clientNavPath = '/about?qs#hash';
   const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), true);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), true);
 });
 
 test('valid prefetchUrl, trailing slash', () => {
   const clientNavPath = '/about/';
   const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), true);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), true);
 });
 
 test('valid prefetchUrl', () => {
   const clientNavPath = '/about';
   const currentLoc = new URL('https://qwik.dev/contact');
-  assert.equal(shouldPrefetchSymbols(clientNavPath, { url: currentLoc }), true);
+  assert.equal(shouldPreload(clientNavPath, { url: currentLoc }), true);
 });

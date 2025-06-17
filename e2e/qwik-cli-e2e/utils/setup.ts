@@ -28,11 +28,12 @@ function packPackages() {
   const tarballPaths: { name: string; absolutePath: string }[] = [];
   const tarballOutDir = join(workspaceRoot, 'temp', 'tarballs');
   for (const [name, cfg] of Object.entries(packageCfg)) {
-    const out = execSync(`pnpm pack --pack-destination=${tarballOutDir}`, {
+    const out = execSync(`pnpm pack --json --pack-destination=${tarballOutDir}`, {
       cwd: join(workspaceRoot, cfg.packagePath),
       encoding: 'utf-8',
     });
-    tarballPaths.push({ name, absolutePath: out.replace(/(\r\n|\n|\r)/gm, '') });
+    const json = JSON.parse(out);
+    tarballPaths.push({ name, absolutePath: json.filename });
   }
   writeFileSync(join(tarballOutDir, 'paths.json'), JSON.stringify(tarballPaths));
 }

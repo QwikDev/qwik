@@ -8,6 +8,7 @@ import {
   BundleImportState_Preload,
   BundleImportState_Queued,
 } from './types';
+import type { QwikSymbolEvent } from '../render/jsx/types/jsx-qwik-events';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
@@ -78,11 +79,11 @@ export const trigger = () => {
     const probability = 1 - inverseProbability;
     const allowedPreloads = graph
       ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config.$maxBufferedPreloads$ * probability)
+        Math.max(1, config.$maxIdlePreloads$ * probability)
       : // While the graph is not available, we limit to 2 preloads
         2;
-    // When we're 100% sure, everything needs to be queued
-    if (probability === 1 || preloadCount < allowedPreloads) {
+    // When we're 99% sure, everything needs to be queued
+    if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
       preloadOne(bundle);
     } else {
@@ -120,7 +121,8 @@ const preloadOne = (bundle: BundleImport) => {
     );
 
   const link = doc.createElement('link');
-  link.href = bundle.$url$!;
+  // Only bundles with state none are js bundles
+  link.href = new URL(`${base}${bundle.$name$}`, doc.baseURI).toString();
   link.rel = rel;
   // Needed when rel is 'preload'
   link.as = 'script';
@@ -140,9 +142,18 @@ const preloadOne = (bundle: BundleImport) => {
   doc.head.appendChild(link);
 };
 
+/**
+ * Adjust the probability of a bundle based on the probability of its dependent bundles, and queue
+ * it if it's likely enough to be preloaded.
+ *
+ * Note that if the probability is 100%, we treat the dynamic imports as 99% sure, and both will be
+ * preloaded without limit.
+ *
+ * We also limit "organic" probability to 98% so they don't get unlimited preloads.
+ */
 export const adjustProbabilities = (
   bundle: BundleImport,
-  adjustFactor: number,
+  newInverseProbability: number,
   seen?: Set<BundleImport>
 ) => {
   if (seen?.has(bundle)) {
@@ -150,12 +161,15 @@ export const adjustProbabilities = (
   }
 
   const previousInverseProbability = bundle.$inverseProbability$;
-  bundle.$inverseProbability$ *= adjustFactor;
+  bundle.$inverseProbability$ = newInverseProbability;
+  // Don't propagate tiny changes
   if (previousInverseProbability - bundle.$inverseProbability$ < 0.01) {
     return;
   }
 
   if (
+    // don't queue until we have initialized the preloader
+    base != null &&
     bundle.$state$ < BundleImportState_Preload &&
     bundle.$inverseProbability$ < config.$invPreloadProbability$
   ) {
@@ -176,21 +190,39 @@ export const adjustProbabilities = (
     const probability = 1 - bundle.$inverseProbability$;
     for (const dep of bundle.$deps$) {
       const depBundle = getBundle(dep.$name$)!;
-      const prevAdjust = dep.$factor$;
+      if (depBundle.$inverseProbability$ === 0) {
+        // it's already at max probability
+        continue;
+      }
       /**
        * The chance that a dep won't be loaded is 1-(the chance that the dep will be loaded)*(the
-       * chance that the current bundle will be loaded)
+       * chance that the current bundle will be loaded).
        *
        * We can multiply this chance together with all other bundle adjustments to get the chance
-       * that a dep will be loaded given all the chances of the other bundles
+       * that a dep will be loaded given all the chances of the other bundles.
+       *
+       * But when we're very likely to load the current bundle, make the dynamic imports very likely
+       * too.
        */
-      const newInverseProbability = 1 - dep.$probability$ * probability;
+      let newInverseProbability: number;
+      if (
+        dep.$importProbability$ > 0.5 &&
+        (probability === 1 || (probability >= 0.99 && depsCount < 100))
+      ) {
+        depsCount++;
+        // we're loaded at max probability, so elevate dynamic imports to 99% sure
+        newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+      } else {
+        const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
+        /** We need to undo the previous adjustment */
+        const prevAdjust = dep.$factor$;
+        const factor = newInverseImportProbability / prevAdjust;
+        // limit organic probability to 98%
+        newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
+        dep.$factor$ = factor;
+      }
 
-      /** We need to undo the previous adjustment */
-      const factor = newInverseProbability / prevAdjust;
-      dep.$factor$ = factor;
-
-      adjustProbabilities(depBundle, factor, seen);
+      adjustProbabilities(depBundle, newInverseProbability, seen);
     }
   }
 };
@@ -198,14 +230,17 @@ export const adjustProbabilities = (
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
-    adjustProbabilities(bundle, inverseProbability / bundle.$inverseProbability$);
+    adjustProbabilities(bundle, inverseProbability);
   }
 };
 
+let depsCount: number;
+
 export const preload = (name: string | (number | string)[], probability?: number) => {
-  if (base == null || !name.length) {
+  if (!name?.length) {
     return;
   }
+  depsCount = 0;
 
   let inverseProbability = probability ? 1 - probability : 0.4;
   if (Array.isArray(name)) {
@@ -216,7 +251,6 @@ export const preload = (name: string | (number | string)[], probability?: number
         inverseProbability = 1 - item / 10;
       } else {
         handleBundle(item, inverseProbability);
-        inverseProbability *= 1.005;
       }
     }
   } else {
@@ -226,3 +260,15 @@ export const preload = (name: string | (number | string)[], probability?: number
     trigger();
   }
 };
+
+if (isBrowser) {
+  // Get early hints from qwikloader
+  document.addEventListener('qsymbol', (ev) => {
+    const { symbol, href } = (ev as QwikSymbolEvent).detail;
+    // the qrl class doesn't emit href, we don't need to preload
+    if (href) {
+      const hash = symbol.slice(symbol.lastIndexOf('_') + 1);
+      preload(hash, 1);
+    }
+  });
+}

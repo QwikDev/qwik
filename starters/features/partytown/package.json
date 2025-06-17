@@ -9,7 +9,7 @@
           "namedImports": [
             "partytownVite"
           ],
-          "importPath": "@builder.io/partytown/utils"
+          "importPath": "@qwik.dev/partytown/utils"
         },
         {
           "namedImports": [
@@ -23,7 +23,7 @@
       ]
     },
     "docs": [
-      "https://partytown.builder.io/",
+      "https://partytown.qwik.dev/",
       "https://qwik.dev/integrations/partytown/"
     ],
     "nextSteps": {
@@ -31,11 +31,11 @@
         " Please add the <QwikPartytown/> component",
         " to your root.tsx file.",
         " Have a look at the docs for more info: ",
-        " https://partytown.builder.io/configuration"
+        " https://partytown.qwik.dev/configuration"
       ]
     }
   },
   "devDependencies": {
-    "@builder.io/partytown": "^0.8.1"
+    "@qwik.dev/partytown": "^0.11.1"
   }
 }

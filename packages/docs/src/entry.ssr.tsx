@@ -6,7 +6,7 @@ import Root from './root';
 const preloaderSettings = [
   'ssrPreloads',
   'ssrPreloadProbability',
-  'maxBufferedPreloads',
+  'maxIdlePreloads',
   'preloadProbability',
 ] as const;
 
@@ -34,10 +34,6 @@ export default function (opts: RenderToStreamOptions) {
     }
   }
   return renderToStream(<Root />, {
-    qwikLoader: {
-      // The docs can be long so make sure to intercept events before the end of the document.
-      position: 'top',
-    },
     ...opts,
     containerAttributes: {
       lang: 'en',

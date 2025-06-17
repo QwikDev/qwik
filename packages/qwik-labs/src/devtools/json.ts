@@ -251,7 +251,9 @@ export function qwikJsonDebug(
       }
       idx = num;
     }
-    while (objs.length < idx) objs.push(null);
+    while (objs.length < idx) {
+      objs.push(null);
+    }
     let obj: undefined | Base = objs[idx];
     if (!obj) {
       const rawValue = qwikJson.objs[idx];
@@ -399,7 +401,9 @@ export function qwikJsonDebug(
   }
 
   function splitParse(text: string | null, sep: string, fn: (part: string) => any): any[] {
-    if (!text) return [];
+    if (!text) {
+      return [];
+    }
     return text.split(sep).map(fn);
   }
 

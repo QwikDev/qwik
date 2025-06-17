@@ -45,6 +45,6 @@ export const prefetchSymbols = (path: string) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
     path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    preload(path);
+    preload(path, 0.8);
   }
 };

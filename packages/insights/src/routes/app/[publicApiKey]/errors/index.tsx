@@ -1,9 +1,9 @@
-import { type ReadonlySignal, component$ } from '@builder.io/qwik';
+import { component$, type ReadonlySignal } from '@builder.io/qwik';
 import { routeLoader$ } from '@builder.io/qwik-city';
-import { getDB, errorTable, type ErrorRow } from '~/db';
 import { eq, sql } from 'drizzle-orm';
 import { ErrorIcon } from '~/components/icons/error';
-import { type PopupEvent } from '~/components/popup-manager';
+import { TooltipWrapper } from '~/components/tooltip';
+import { errorTable, getDB, type ErrorRow } from '~/db';
 
 export const useErrors = routeLoader$(async ({ params }) => {
   const db = getDB();
@@ -41,23 +41,21 @@ export default component$(() => {
         </thead>
         <tbody>
           {errors.value.map((error) => (
-            <tr
-              key={error.id}
-              onPopup$={(e: PopupEvent) => e.detail.show(Popup, error)}
-              class="border-b border-slate-200 text-xs"
-            >
-              <td scope="col" class="px-6 py-3 bg-slate-50 whitespace-nowrap">
-                {new Date(error.timestamp).toLocaleString()}
-              </td>
-              <td scope="col" class="px-6 py-3 max-w-lg break-words">
-                <a href={error.url} target="_blank">
-                  {error.url}
-                </a>
-              </td>
-              <td scope="col" class="px-6 py-3 bg-slate-50">
-                {error.message}
-              </td>
-            </tr>
+            <TooltipWrapper key={error.id} content={Popup} contentProps={error} placement="left">
+              <tr class="border-b border-slate-200 text-xs hover:bg-slate-50 cursor-pointer">
+                <td scope="col" class="px-6 py-3 bg-slate-50 whitespace-nowrap">
+                  {new Date(error.timestamp).toLocaleString()}
+                </td>
+                <td scope="col" class="px-6 py-3 max-w-lg break-words">
+                  <a href={error.url} target="_blank">
+                    {error.url}
+                  </a>
+                </td>
+                <td scope="col" class="px-6 py-3 bg-slate-50">
+                  {error.message}
+                </td>
+              </tr>
+            </TooltipWrapper>
           ))}
         </tbody>
       </table>

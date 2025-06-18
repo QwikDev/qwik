@@ -3,7 +3,7 @@ import { server$, useLocation } from '@builder.io/qwik-city';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
 import { SymbolIcon } from '../icons/symbol';
-import { type PopupEvent } from '../popup-manager';
+import { TooltipWrapper } from '../tooltip';
 
 export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => (
   <div class="min-w-[500px] max-w-[75vw]">
@@ -89,10 +89,12 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
 
 export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
   return (
-    <code onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}>
-      <SymbolIcon />
-      <span class="ml-1">{symbol}</span>
-    </code>
+    <TooltipWrapper content={SymbolPopup} contentProps={{ symbolHash: symbol }} placement="right">
+      <code>
+        <SymbolIcon />
+        <span class="ml-1">{symbol}</span>
+      </code>
+    </TooltipWrapper>
   );
 });
 

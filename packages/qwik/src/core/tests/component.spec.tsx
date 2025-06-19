@@ -2802,5 +2802,34 @@ describe.each([
         </Component>
       );
     });
+
+    it('#7531 - should correctly materialize vnodes with keys including special characters', async () => {
+      const ChildComp = component$(() => {
+        return <></>;
+      });
+
+      const Cmp = component$(() => {
+        const toggle = useSignal(true);
+
+        const places = ['Beaupré, Canada'];
+        return (
+          <div>
+            <button
+              onClick$={() => {
+                toggle.value = !toggle.value;
+              }}
+            >
+              click
+            </button>
+            {toggle.value &&
+              places.map((place) => <ChildComp key={`trip-teaser-${place}`}></ChildComp>)}
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      await trigger(document.body, 'button', 'click');
+    });
   });
 });

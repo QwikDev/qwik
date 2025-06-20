@@ -2811,7 +2811,13 @@ describe.each([
       const Cmp = component$(() => {
         const toggle = useSignal(true);
 
-        const places = ['Beaupré, Canada'];
+        const places = [
+          'Beaupré, Canada',
+          'Łódź, Poland',
+          '北京, China',
+          '|, Separator',
+          '||, Double Separator',
+        ];
         return (
           <div>
             <button

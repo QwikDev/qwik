@@ -14,7 +14,7 @@
     "@mui/material": "5.16.4",
     "@mui/system": "5.16.4",
     "@mui/x-data-grid": "6.20.4",
-    "@qwik-ui/headless": "0.6.3",
+    "@qwik-ui/headless": "0.6.7",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/partytown": "0.11.1",
     "@qwik.dev/react": "workspace:*",

@@ -16,8 +16,8 @@
     "qwik": "qwik"
   },
   "devDependencies": {
-    "@builder.io/qwik": "latest",
-    "@builder.io/qwik-city": "latest",
+    "@qwik.dev/core": "latest",
+    "@qwik.dev/router": "latest",
     "@eslint/js": "latest",
     "@types/node": "latest",
     "typescript-eslint": "latest",
@@ -27,7 +27,6 @@
     "prettier": "latest",
     "typescript": "latest",
     "typescript-plugin-css-modules": "latest",
-    "undici": "latest",
     "vite": "^4.5.2",
     "vite-tsconfig-paths": "^4.2.1"
   },

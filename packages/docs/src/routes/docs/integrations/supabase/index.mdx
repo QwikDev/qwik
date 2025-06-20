@@ -61,7 +61,7 @@ You should be able to get these values from the Supabase dashboard, create a new
 The Supabase client can now be used server-side - in `routeLoader`s and `routeAction`s - by calling the `createServerClient` function.
 
 ```tsx
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
 import { createServerClient } from 'supabase-auth-helpers-qwik';
 
 export const useDBTest = routeLoader$(async (requestEv) => {

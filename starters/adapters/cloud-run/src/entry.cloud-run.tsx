@@ -7,16 +7,16 @@
  * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
+import qwikRouterConfig from "@qwik-router-config";
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformNode,
-} from "@builder.io/qwik-city/middleware/node";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  interface QwikRouterPlatform extends PlatformNode {}
 }
 
 /** The default headers used by helmet */
@@ -48,10 +48,9 @@ const DEFAULT_HEADERS = {
   "X-XSS-Protection": "0",
 };
 
-// Create the Qwik City router
-const { router, notFound, staticFile } = createQwikCity({
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
+  qwikRouterConfig,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

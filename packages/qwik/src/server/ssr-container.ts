@@ -702,6 +702,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < fragmentAttrs.length; ) {
         const key = fragmentAttrs[i++] as string;
         let value = fragmentAttrs[i++] as string;
+        let encodeValue = false;
         // if (key !== DEBUG_TYPE) continue;
         if (typeof value !== 'string') {
           const rootId = addRoot(value);
@@ -725,6 +726,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             write(VNodeDataChar.PROPS_CHAR);
             break;
           case ELEMENT_KEY:
+            encodeValue = true;
             write(VNodeDataChar.KEY_CHAR);
             break;
           case ELEMENT_SEQ:
@@ -751,7 +753,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             write(key);
             write(VNodeDataChar.SEPARATOR_CHAR);
         }
-        write(value);
+        const encodedValue = encodeValue ? encodeURI(value) : value;
+        const isEncoded = encodeValue ? encodedValue !== value : false;
+        if (isEncoded) {
+          // add separator only before and after the encoded value
+          write(VNodeDataChar.SEPARATOR_CHAR);
+          write(encodedValue);
+          write(VNodeDataChar.SEPARATOR_CHAR);
+        } else {
+          write(value);
+        }
       }
     }
 

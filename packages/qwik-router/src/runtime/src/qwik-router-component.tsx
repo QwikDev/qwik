@@ -15,17 +15,19 @@ import {
   useStyles$,
   useTask$,
   type QRL,
+  type Signal,
 } from '@qwik.dev/core';
 import {
   _getContextElement,
+  _getContextContainer,
   _getQContainerElement,
   _UNINITIALIZED,
   _waitUntilRendered,
-  SerializerSymbol,
-  _serializationWeakRef,
   type _ElementVNode,
-  createSignal,
-  type Signal,
+  _useInvokeContext,
+  _getDomContainer,
+  type _DomContainer,
+  SerializerSymbol,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, Q_ROUTE } from './constants';
@@ -69,7 +71,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 
 /**
@@ -173,20 +175,27 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     { deep: false }
   );
   const navResolver: { r?: () => void } = {};
+  const container = _getContextContainer();
+  const spaLoaderState: Record<string, unknown> = Object.fromEntries(
+    Object.entries(env.response.loaders).map(([k, v]) => {
+      return [k, v];
+    })
+  );
+  (spaLoaderState as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => {
+        return [k, _UNINITIALIZED];
+      })
+    );
+  };
   const loaderState = Object.fromEntries(
     Object.entries(env.response.loaders).map(([k, v]) => {
-      const value = createSignal(v);
+      // const isEager = (v as any)[QLOADER_EAGER];
+      // const value = isEager ? createSignal(v) : createLoaderSignal(spaLoaderState, k, v, url);
+      const value = createLoaderSignal(spaLoaderState, k, url, container);
       return [k, value];
     })
   );
-
-  (loaderState as any)[SerializerSymbol] = async (o: Record<string, unknown>) => {
-    const resultPs = Object.entries(o).map(async ([k, val]) => {
-      const v = await val;
-      return [k, _serializationWeakRef(v)];
-    });
-    return Object.fromEntries(await Promise.all(resultPs));
-  };
 
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
@@ -502,10 +511,15 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
           const loaders = clientPageData?.loaders;
           if (loaders) {
+            const container = _getContextContainer();
             for (const [key, value] of Object.entries(loaders)) {
-              const signal = loaderState[key] as Signal<unknown> | typeof _UNINITIALIZED;
-              if (signal && signal !== _UNINITIALIZED) {
-                signal.value = value;
+              const signal = loaderState[key] as Signal<unknown>;
+              const awaitedValue = await value;
+              spaLoaderState[key] = awaitedValue;
+              if (!signal) {
+                loaderState[key] = createLoaderSignal(spaLoaderState, key, trackUrl, container);
+              } else {
+                (signal as any).force();
               }
             }
           }

@@ -19,6 +19,7 @@ export interface Container {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
+  readonly $ignoredComputedValues$: Set<unknown>;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -117,3 +118,9 @@ export interface QContainerElement extends Element {
   qFuncs?: Function[];
   _qwikjson_?: any;
 }
+
+/** @public */
+export type SerializationStrategy =
+  // TODO: implement this in the future
+  // 'auto' |
+  'never' | 'always';

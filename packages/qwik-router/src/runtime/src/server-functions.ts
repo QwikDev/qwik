@@ -31,6 +31,7 @@ import type {
   ActionStore,
   CommonLoaderActionOptions,
   DataValidator,
+  EagerLoaderOptions,
   Editable,
   JSONObject,
   LoaderConstructor,
@@ -192,9 +193,9 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
 /** @internal */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
-  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+  ...rest: (EagerLoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { id, validators } = getValidators(rest, loaderQrl);
+  const { id, validators, eager } = getValidators(rest, loaderQrl);
   function loader() {
     const iCtx = _useInvokeContext();
     const state = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteStateContext)!;
@@ -224,6 +225,7 @@ export const routeLoaderQrl = ((
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
   loader.__id = id;
+  loader.__eager = eager;
   Object.freeze(loader);
 
   return loader;
@@ -513,8 +515,9 @@ export const serverQrl = <T extends ServerFunction>(
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
-const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl: QRL) => {
+const getValidators = (rest: (EagerLoaderOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
+  let eager = false;
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
     const options = rest[0];
@@ -523,6 +526,7 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
         validators.push(options);
       } else {
         id = options.id;
+        eager = options.eager || false;
         if (options.validation) {
           validators.push(...options.validation);
         }
@@ -545,6 +549,7 @@ const getValidators = (rest: (CommonLoaderActionOptions | DataValidator)[], qrl:
   return {
     validators: validators.reverse(),
     id,
+    eager,
   };
 };
 

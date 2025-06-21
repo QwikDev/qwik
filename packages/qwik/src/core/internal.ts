@@ -48,6 +48,7 @@ export { _walkJSX } from './ssr/ssr-render-jsx';
 export {
   _getContextElement,
   _getContextEvent,
+  _getContextContainer,
   _jsxBranch,
   useInvokeContext as _useInvokeContext,
   _waitUntilRendered,

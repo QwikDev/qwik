@@ -31,7 +31,6 @@ import { StoreFlags, type CustomSerializable } from '../reactive-primitives/type
 import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
 import { retryOnPromise } from './utils/promises';
 import { QError } from './error/error';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 const DEBUG = false;
 

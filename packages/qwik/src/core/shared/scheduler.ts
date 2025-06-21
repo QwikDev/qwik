@@ -492,7 +492,7 @@ export const createScheduler = (
             if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
               const forceRunEffects = target.$forceRunEffects$;
               target.$forceRunEffects$ = false;
-              if (!effects?.size) {
+              if (!effects?.size && !forceRunEffects) {
                 break;
               }
               // needed for computed signals and throwing QRLs

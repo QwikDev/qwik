@@ -96,7 +96,7 @@ export const delay = (timeout: number) => {
   });
 };
 
-// Retries a function that throws a promise.
+/** Retries a function that throws a promise. */
 export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,
   retryCount: number = 0

@@ -403,10 +403,13 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   GetValidatorOutputType<VALIDATOR>;
 
 /** @public */
-export interface CommonLoaderActionOptions {
+export type CommonLoaderActionOptions = {
   readonly id?: string;
   readonly validation?: DataValidator[];
-  readonly persist?: boolean;
+};
+
+export interface EagerLoaderOptions extends CommonLoaderActionOptions {
+  readonly eager?: boolean;
 }
 
 /** @public */
@@ -649,6 +652,7 @@ export type ActionConstructorQRL = {
 /** @public */
 export type LoaderOptions = {
   id?: string;
+  eager?: boolean;
 };
 
 /** @public */
@@ -792,6 +796,7 @@ export interface LoaderInternal extends Loader<any> {
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>;
   __id: string;
   __validators: DataValidator[] | undefined;
+  __eager: boolean;
   (): LoaderSignal<unknown>;
 }
 

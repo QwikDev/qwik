@@ -10,7 +10,7 @@ import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ContainerElement } from '../client/types';
+import { type ClientContainer, type ContainerElement } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
 import type { Signal } from '../reactive-primitives/signal.public';
@@ -258,6 +258,14 @@ export const _getContextEvent = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
     return iCtx.$event$;
+  }
+};
+
+/** @internal */
+export const _getContextContainer = (): ClientContainer | undefined => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$container$ as ClientContainer;
   }
 };
 

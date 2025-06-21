@@ -15,7 +15,7 @@ import { assertDefined } from '../shared/error/assert';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { ChoreType } from '../shared/util-chore-type';
 import { ResourceEvent } from '../shared/utils/markers';
-import { delay, isPromise, safeCall } from '../shared/utils/promises';
+import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
 import { isObject } from '../shared/utils/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupFn, trackFn } from './utils/tracker';
@@ -220,15 +220,11 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       useBindInvokeContext(props.onRejected)
     );
   } else if (isSignal(resource)) {
-    return Promise.resolve(resource.value).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = retryOnPromise(() => resource.value);
+    const promise = isPromise(value) ? value : Promise.resolve(value);
+    return promise.then(useBindInvokeContext(props.onResolved));
   } else {
-    return Promise.resolve(resource as T).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    return Promise.resolve(resource as T).then(useBindInvokeContext(props.onResolved));
   }
 }
 

@@ -43,6 +43,7 @@ import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import {
   _EFFECT_BACK_REF,
+  ComputedSignalFlags,
   EffectSubscriptionProp,
   NEEDS_COMPUTATION,
   SignalFlags,
@@ -310,9 +311,9 @@ const inflate = (
       const hasValue = d.length > 6;
       if (hasValue) {
         asyncComputed.$untrackedValue$ = d[6];
-      } else {
-        asyncComputed.$flags$ |= SignalFlags.INVALID;
       }
+      asyncComputed.$flags$ |= SignalFlags.INVALID;
+
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
@@ -706,6 +707,7 @@ export interface SerializationContext {
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
+  $ignoredComputedValues$: Set<unknown>;
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -729,6 +731,7 @@ export const createSerializationContext = (
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
+  ignoredComputedValues: Set<unknown>,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -866,6 +869,7 @@ export const createSerializationContext = (
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
     $storeProxyMap$: storeProxyMap,
+    $ignoredComputedValues$: ignoredComputedValues,
     $getProp$: getProp,
     $setProp$: setProp,
   };
@@ -900,7 +904,8 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
         const keyValue = value[i - 1];
         const attrValue = value[i];
         if (
-          attrValue == null || typeof attrValue === 'string'||
+          attrValue == null ||
+          typeof attrValue === 'string' ||
           // skip empty props
           (keyValue === ELEMENT_PROPS &&
             Object.keys(attrValue as Record<string, unknown>).length === 0)
@@ -1134,8 +1139,9 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     }
     // handle custom serializers
     // add to the seen map
-
-    if (isPropsProxy(value)) {
+    if (serializationContext.$ignoredComputedValues$.has(value)) {
+      output(TypeIds.Constant, Constants.UNINITIALIZED);
+    } else if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];
       const out = constProps
@@ -1183,7 +1189,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
       }
     } else if (isSerializerObj(value)) {
-      let result = value[SerializerSymbol](value);
+      const result = value[SerializerSymbol](value);
       if (isPromise(result)) {
         const forwardRef = $resolvePromise$(result, $addRoot$, (resolved, resolvedValue) => {
           return new PromiseResult(TypeIds.SerializerSignal, resolved, resolvedValue, null, null);
@@ -1232,15 +1238,6 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(TypeIds.ForwardRef, forwardRefId);
         return;
       }
-      /**
-       * Special case: when a Signal value is an SSRNode, it always needs to be a DOM ref instead.
-       * It can never be meant to become a vNode, because vNodes are internal only.
-       */
-      const v: unknown =
-        value instanceof ComputedSignalImpl &&
-        (value.$flags$ & SignalFlags.INVALID || fastSkipSerialize(value.$untrackedValue$))
-          ? NEEDS_COMPUTATION
-          : value.$untrackedValue$;
 
       if (value instanceof WrappedSignalImpl) {
         output(TypeIds.WrappedSignal, [
@@ -1250,41 +1247,41 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
           value.$hostElement$,
           ...(value.$effects$ || []),
         ]);
-      } else if (value instanceof AsyncComputedSignalImpl) {
-        addPreloadQrl(value.$computeQrl$);
-        const out: [
-          QRLInternal,
-          Set<EffectSubscription> | null,
-          Set<EffectSubscription> | null,
-          Set<EffectSubscription> | null,
-          boolean,
-          Error | null,
-          unknown?,
-        ] = [
-          value.$computeQrl$,
-          value.$effects$,
-          value.$loadingEffects$,
-          value.$errorEffects$,
-          value.$untrackedLoading$,
-          value.$untrackedError$,
-        ];
-        if (v !== NEEDS_COMPUTATION) {
-          out.push(v);
-        }
-        output(TypeIds.AsyncComputedSignal, out);
       } else if (value instanceof ComputedSignalImpl) {
+        let v = value.$untrackedValue$;
+        const shouldAlwaysSerialize =
+          value.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+        const shouldNeverSerialize =
+          value.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+        const isInvalid = value.$flags$ & SignalFlags.INVALID;
+        const isSkippable = fastSkipSerialize(value.$untrackedValue$);
+
+        if (shouldAlwaysSerialize) {
+          v = value.$untrackedValue$;
+        } else if (shouldNeverSerialize) {
+          v = NEEDS_COMPUTATION;
+        } else if (isInvalid || isSkippable) {
+          v = NEEDS_COMPUTATION;
+        }
         addPreloadQrl(value.$computeQrl$);
-        const out: [QRLInternal, Set<EffectSubscription> | null, unknown?] = [
-          value.$computeQrl$,
-          // TODO check if we can use domVRef for effects
-          value.$effects$,
-        ];
+
+        const out: unknown[] = [value.$computeQrl$, value.$effects$];
+        const isAsync = value instanceof AsyncComputedSignalImpl;
+        if (isAsync) {
+          out.push(
+            value.$loadingEffects$,
+            value.$errorEffects$,
+            value.$untrackedLoading$,
+            value.$untrackedError$
+          );
+        }
+
         if (v !== NEEDS_COMPUTATION) {
           out.push(v);
         }
-        output(TypeIds.ComputedSignal, out);
+        output(isAsync ? TypeIds.AsyncComputedSignal : TypeIds.ComputedSignal, out);
       } else {
-        output(TypeIds.Signal, [v, ...(value.$effects$ || [])]);
+        output(TypeIds.Signal, [value.$untrackedValue$, ...(value.$effects$ || [])]);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
@@ -1600,7 +1597,8 @@ export async function _serialize(data: unknown[]): Promise<string> {
     () => '',
     () => '',
     () => {},
-    new WeakMap<any, any>()
+    new WeakMap<any, any>(),
+    new Set<unknown>()
   );
 
   for (const root of data) {
@@ -1916,6 +1914,8 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
     if (isQrl(value) || isQwikComponent(value)) {
       return true;
     }
+  } else if (value === _UNINITIALIZED) {
+    return true;
   }
   return false;
 };

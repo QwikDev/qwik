@@ -5,7 +5,7 @@ import { assertDefined } from '../shared/error/assert';
 import type { Props } from '../shared/jsx/jsx-runtime';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { Container, HostElement } from '../shared/types';
+import type { Container, HostElement, SerializationStrategy } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/utils/serialize-utils';
@@ -18,8 +18,10 @@ import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
 import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
+  ComputedSignalFlags,
   EffectProperty,
   EffectSubscriptionProp,
+  SignalFlags,
   type CustomSerializable,
   type EffectSubscription,
   type StoreTarget,
@@ -149,4 +151,23 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
   obj: unknown
 ): obj is CustomSerializable<T, S> => {
   return isObject(obj) && typeof (obj as any)[SerializerSymbol] === 'function';
+};
+
+export const getComputedSignalFlags = (
+  serializationStrategy: SerializationStrategy
+): ComputedSignalFlags | SignalFlags => {
+  let flags = SignalFlags.INVALID;
+  switch (serializationStrategy) {
+    // TODO: implement this in the future
+    // case 'auto':
+    //   flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_AUTO;
+    //   break;
+    case 'never':
+      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+      break;
+    case 'always':
+      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+      break;
+  }
+  return flags;
 };

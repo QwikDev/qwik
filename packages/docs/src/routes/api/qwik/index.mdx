@@ -384,14 +384,71 @@ export type ComputedFn<T> = () => T;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
+## ComputedOptions
+
+```typescript
+export interface ComputedOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[container?](#)
+
+</td><td>
+
+</td><td>
+
+Container
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[serializationStrategy?](#)
+
+</td><td>
+
+</td><td>
+
+[SerializationStrategy](#serializationstrategy)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts)
+
 ## ComputedReturnType
 
 ```typescript
 export type ComputedReturnType<T> =
-  T extends Promise<any> ? never : ReadonlySignal<T>;
+  T extends Promise<any> ? never : ComputedSignal<T>;
 ```
 
-**References:** [ReadonlySignal](#readonlysignal)
+**References:** [ComputedSignal](#computedsignal)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
@@ -707,16 +764,72 @@ Description
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
 
+## createAsyncComputed$
+
+Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.
+
+The QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.
+
+```typescript
+createAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) =>
+  AsyncComputedReturnType<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qrl
+
+</td><td>
+
+() =&gt; Promise&lt;T&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+[AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
+
 ## createComputed$
 
 Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.
 
 The QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.
 
-If you need the function to be async, use `useSignal` and `useTask$` instead.
+If you need the function to be async, use `useAsyncComputed$` instead.
 
 ```typescript
-createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>
+createComputed$: <T>(qrl: () => T, options?: ComputedOptions) =>
+  ComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -743,10 +856,23 @@ qrl
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 **Returns:**
 
-T extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)&lt;T&gt;
+[ComputedReturnType](#computedreturntype)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -3691,6 +3817,14 @@ export type ResourceReturn<T> =
 **References:** [ResourcePending](#resourcepending), [ResourceResolved](#resourceresolved), [ResourceRejected](#resourcerejected)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-resource.ts)
+
+## SerializationStrategy
+
+```typescript
+export type SerializationStrategy = "never" | "always";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts)
 
 ## SerializerSymbol
 
@@ -8455,7 +8589,10 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+useAsyncComputed$: <T>(
+  qrl: AsyncComputedFn<T>,
+  options?: ComputedOptions | undefined,
+) => AsyncComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -8482,6 +8619,19 @@ qrl
 </td><td>
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions) \| undefined
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 **Returns:**
 
@@ -8496,7 +8646,8 @@ Creates a computed signal which is calculated from the given function. A compute
 The function must be synchronous and must not have any side effects.
 
 ```typescript
-useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
+useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) =>
+  ComputedReturnType<T>;
 ```
 
 <table><thead><tr><th>
@@ -8521,6 +8672,19 @@ qrl
 [ComputedFn](#computedfn)&lt;T&gt;
 
 </td><td>
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+[ComputedOptions](#computedoptions) \| undefined
+
+</td><td>
+
+_(Optional)_
 
 </td></tr>
 </tbody></table>

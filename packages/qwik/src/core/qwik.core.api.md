@@ -4,12 +4,12 @@
 
 ```ts
 
+import { ComputedSignal as ComputedSignal_2 } from '..';
 import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { QRL as QRL_2 } from './qrl.public';
-import { ReadonlySignal as ReadonlySignal_2 } from '..';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '..';
 
@@ -87,7 +87,15 @@ export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<On
 export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
-export type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;
+export interface ComputedOptions {
+    // (undocumented)
+    container?: Container;
+    // (undocumented)
+    serializationStrategy?: SerializationStrategy;
+}
+
+// @public (undocumented)
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
 
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
@@ -129,13 +137,22 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public
-export const createComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>;
+export const createAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncComputedReturnType<T>;
+
+// Warning: (ae-forgotten-export) The symbol "AsyncComputedSignalImpl" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "createAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const createAsyncComputedQrl: <T>(qrl: QRL<(ctx: AsyncComputedCtx) => Promise<T>>, options?: ComputedOptions) => AsyncComputedSignalImpl<T>;
+
+// @public
+export const createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;
 
 // Warning: (ae-forgotten-export) The symbol "ComputedSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createComputedQrl: <T>(qrl: QRL<() => T>) => ComputedSignalImpl<T>;
+export const createComputedQrl: <T>(qrl: QRL<() => T>, options?: ComputedOptions) => ComputedSignalImpl<T>;
 
 // @public
 export const createContextId: <STATE = unknown>(name: string) => ContextId<STATE>;
@@ -322,6 +339,9 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// @internal (undocumented)
+export const _getContextContainer: () => ClientContainer | undefined;
 
 // @internal (undocumented)
 export const _getContextElement: () => unknown;
@@ -853,6 +873,9 @@ export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => 
 // @internal
 export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
 
+// @public (undocumented)
+export type SerializationStrategy = 'never' | 'always';
+
 // Warning: (ae-forgotten-export) The symbol "SerializationWeakRef" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -877,6 +900,8 @@ export abstract class _SharedContainer implements Container {
     $currentUniqueId$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    readonly $ignoredComputedValues$: Set<unknown>;
     // (undocumented)
     $instanceHash$: string | null;
     // (undocumented)
@@ -1635,20 +1660,20 @@ export const untrack: <T>(fn: () => T) => T;
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => AsyncComputedReturnType<T>;
+export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>) => AsyncComputedReturnType<T>;
+export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>, options?: ComputedOptions) => AsyncComputedReturnType<T>;
 
 // @public
-export const useComputed$: <T>(qrl: ComputedFn<T>) => ComputedReturnType<T>;
+export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>) => ComputedReturnType<T>;
+export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions) => ComputedReturnType<T>;
 
 // @public
 export const useConstant: <T>(value: (() => T) | T) => T;
@@ -1702,7 +1727,7 @@ export const useSerializer$: typeof createSerializer$;
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ReadonlySignal_2<unknown>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ComputedSignal_2<unknown>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;

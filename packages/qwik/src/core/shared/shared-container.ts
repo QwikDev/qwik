@@ -14,6 +14,7 @@ export abstract class _SharedContainer implements Container {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
+  readonly $ignoredComputedValues$: Set<unknown>;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.
@@ -33,6 +34,7 @@ export abstract class _SharedContainer implements Container {
     this.$locale$ = locale;
     this.$version$ = version;
     this.$storeProxyMap$ = new WeakMap();
+    this.$ignoredComputedValues$ = new Set();
     this.$getObjectById$ = (_id: number | string) => {
       throw Error('Not implemented');
     };
@@ -66,6 +68,7 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
+      this.$ignoredComputedValues$,
       writer
     );
   }

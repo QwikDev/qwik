@@ -4,8 +4,8 @@ import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
-import type { AsyncComputeQRL, EffectSubscription } from '../types';
-import { _EFFECT_BACK_REF, EffectProperty, SignalFlags } from '../types';
+import { AsyncComputeQRL, ComputedSignalFlags, EffectSubscription } from '../types';
+import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
@@ -33,11 +33,15 @@ export class AsyncComputedSignalImpl<T>
   $loadingEffects$: null | Set<EffectSubscription> = null;
   $errorEffects$: null | Set<EffectSubscription> = null;
   $destroy$: NoSerialize<() => void> | null;
-  private $promiseValue$: T | null = null;
+  private $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
-  constructor(container: Container | null, fn: AsyncComputeQRL<T>, flags = SignalFlags.INVALID) {
+  constructor(
+    container: Container | null,
+    fn: AsyncComputeQRL<T>,
+    flags: SignalFlags | ComputedSignalFlags = SignalFlags.INVALID
+  ) {
     super(container, fn, flags);
   }
 
@@ -94,6 +98,11 @@ export class AsyncComputedSignalImpl<T>
     return this.$untrackedError$;
   }
 
+  override $invalidate$() {
+    super.$invalidate$();
+    this.$promiseValue$ = NEEDS_COMPUTATION;
+  }
+
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
       return false;
@@ -103,11 +112,12 @@ export class AsyncComputedSignalImpl<T>
 
     const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
     const untrackedValue =
-      this.$promiseValue$ ??
-      (computeQrl.getFn()({
-        track: trackFn(this, this.$container$),
-        cleanup,
-      }) as T);
+      this.$promiseValue$ === NEEDS_COMPUTATION
+        ? (computeQrl.getFn()({
+            track: trackFn(this, this.$container$),
+            cleanup,
+          }) as T)
+        : this.$promiseValue$;
     if (isPromise(untrackedValue)) {
       this.untrackedLoading = true;
       this.untrackedError = null;
@@ -118,11 +128,12 @@ export class AsyncComputedSignalImpl<T>
           this.untrackedError = null;
         })
         .catch((err) => {
+          this.$promiseValue$ = err;
           this.untrackedLoading = false;
           this.untrackedError = err;
         });
     }
-    this.$promiseValue$ = null;
+    this.$promiseValue$ = NEEDS_COMPUTATION;
     DEBUG && log('Signal.$asyncCompute$', untrackedValue);
 
     this.$flags$ &= ~SignalFlags.INVALID;
@@ -130,6 +141,12 @@ export class AsyncComputedSignalImpl<T>
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
       this.$untrackedValue$ = untrackedValue;
+      // if (
+      //   this.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER &&
+      //   isObject(untrackedValue)
+      // ) {
+      //   this.$container$?.$ignoredComputedValues$.add(untrackedValue);
+      // }
     }
     return didChange;
   }

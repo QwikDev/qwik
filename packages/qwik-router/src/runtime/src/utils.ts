@@ -1,6 +1,15 @@
 import type { SimpleURL } from './types';
 
 import { QACTION_KEY, QLOADER_KEY } from './constants';
+import {
+  _UNINITIALIZED,
+  _getContextElement,
+  _getDomContainer,
+  _useInvokeContext,
+  type ClientContainer,
+} from '@qwik.dev/core/internal';
+import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
+import { loadClientData } from './use-endpoint';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -93,4 +102,28 @@ export const deepFreeze = (obj: any) => {
     }
   });
   return Object.freeze(obj);
+};
+
+export const createLoaderSignal = (
+  spaLoaderState: Record<string, unknown>,
+  loaderId: string,
+  url: URL,
+  container?: ClientContainer
+) => {
+  // container?.$ignoredComputedValues$.add(value);
+  return createAsyncComputed$(
+    async () => {
+      if (isBrowser && spaLoaderState[loaderId] === _UNINITIALIZED) {
+        const data = await loadClientData(url, undefined, {
+          loaderIds: [loaderId],
+        });
+        spaLoaderState[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
+      }
+      return spaLoaderState[loaderId];
+    },
+    {
+      container: container as ClientContainer,
+      serializationStrategy: 'never',
+    }
+  );
 };

@@ -1,16 +1,17 @@
-import type { QRL } from '@qwik.dev/core';
+import { type QRL } from '@qwik.dev/core';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
-import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  ClientPageData,
-  DataValidator,
-  JSONObject,
-  LoadedRoute,
-  LoaderInternal,
-  PageModule,
-  RouteModule,
-  ValidatorReturn,
+import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
+import {
+  type ActionInternal,
+  type ClientPageData,
+  type DataValidator,
+  type JSONObject,
+  type LoadedRoute,
+  LoadedRouteProp,
+  type LoaderInternal,
+  type PageModule,
+  type RouteModule,
+  type ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import { RedirectMessage } from './redirect-handler';
@@ -23,6 +24,8 @@ import {
   getRequestMode,
   getRequestTrailingSlash,
   type RequestEventInternal,
+  RequestEvShareServerTiming,
+  RequestEvShareQData,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type {
@@ -47,8 +50,7 @@ export const resolveRequestHandlers = (
 
   const requestHandlers: RequestHandler[] = [];
 
-  const isPageRoute = !!(route && isLastModulePageRoute(route[2]));
-
+  const isPageRoute = !!(route && isLastModulePageRoute(route[LoadedRouteProp.Mods]));
   if (serverPlugins) {
     _resolveRequestHandlers(
       routeLoaders,
@@ -61,7 +63,7 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
-    const routeName = route[0];
+    const routeName = route[LoadedRouteProp.RouteName];
     if (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
@@ -77,7 +79,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    const routeModules = route[2];
+    const routeModules = route[LoadedRouteProp.Mods];
     requestHandlers.push(handleRedirect);
     _resolveRequestHandlers(
       routeLoaders,
@@ -92,7 +94,8 @@ export const resolveRequestHandlers = (
         // Set the current route name
         ev.sharedMap.set(RequestRouteName, routeName);
       });
-      requestHandlers.push(actionsMiddleware(routeActions, routeLoaders) as any);
+      requestHandlers.push(actionsMiddleware(routeActions));
+      requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);
     }
   }
@@ -171,8 +174,9 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: LoaderInternal[]) {
-  return async (requestEv: RequestEventInternal) => {
+export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandler {
+  return async (requestEvent: RequestEvent) => {
+    const requestEv = requestEvent as RequestEventInternal;
     if (requestEv.headersSent) {
       requestEv.exit();
       return;
@@ -222,49 +226,89 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
         }
       }
     }
+  };
+}
 
+export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandler {
+  return async (requestEvent: RequestEvent) => {
+    const requestEv = requestEvent as RequestEventInternal;
+    if (requestEv.headersSent) {
+      requestEv.exit();
+      return;
+    }
+    const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
+    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (routeLoaders.length > 0) {
-      const resolvedLoadersPromises = routeLoaders.map((loader) => {
-        const loaderId = loader.__id;
-        loaders[loaderId] = runValidators(
-          requestEv,
-          loader.__validators,
-          undefined, // data
-          isDev
-        )
-          .then((res) => {
-            if (res.success) {
-              if (isDev) {
-                return measure<Promise<unknown>>(
-                  requestEv,
-                  loader.__qrl.getSymbol().split('_', 1)[0],
-                  () => loader.__qrl.call(requestEv, requestEv)
-                );
-              } else {
-                return loader.__qrl.call(requestEv, requestEv);
-              }
-            } else {
-              return requestEv.fail(res.status ?? 500, res.error);
-            }
-          })
-          .then((resolvedLoader) => {
-            if (typeof resolvedLoader === 'function') {
-              loaders[loaderId] = resolvedLoader();
-            } else {
-              if (isDev) {
-                verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
-              }
-              loaders[loaderId] = resolvedLoader;
-            }
-            return resolvedLoader;
-          });
+      let currentLoaders: LoaderInternal[] = [];
+      if (requestEv.query.has(QLOADER_KEY)) {
+        const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
+        const skippedLoaders: LoaderInternal[] = [];
+        for (const loader of routeLoaders) {
+          if (selectedLoaderIds.includes(loader.__id)) {
+            currentLoaders.push(loader);
+          } else {
+            skippedLoaders.push(loader);
+          }
+        }
 
-        return loaders[loaderId];
-      });
-
+        // mark skipped loaders as null
+        for (const skippedLoader of skippedLoaders) {
+          loaders[skippedLoader.__id] = null;
+        }
+      } else {
+        currentLoaders = routeLoaders;
+      }
+      const resolvedLoadersPromises = currentLoaders.map((loader) =>
+        getRouteLoaderPromise(loader, loaders, requestEv, isDev, qwikSerializer)
+      );
       await Promise.all(resolvedLoadersPromises);
     }
   };
+}
+
+async function getRouteLoaderPromise(
+  loader: LoaderInternal,
+  loaders: Record<string, unknown>,
+  requestEv: RequestEventInternal,
+  isDev: boolean,
+  qwikSerializer: QwikSerializer
+) {
+  const loaderId = loader.__id;
+  loaders[loaderId] = runValidators(
+    requestEv,
+    loader.__validators,
+    undefined, // data
+    isDev
+  )
+    .then((res) => {
+      if (res.success) {
+        if (isDev) {
+          return measure<Promise<unknown>>(
+            requestEv,
+            loader.__qrl.getSymbol().split('_', 1)[0],
+            () => loader.__qrl.call(requestEv, requestEv)
+          );
+        } else {
+          return loader.__qrl.call(requestEv, requestEv);
+        }
+      } else {
+        return requestEv.fail(res.status ?? 500, res.error);
+      }
+    })
+    .then((resolvedLoader) => {
+      if (typeof resolvedLoader === 'function') {
+        loaders[loaderId] = resolvedLoader();
+      } else {
+        if (isDev) {
+          verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+        }
+        loaders[loaderId] = resolvedLoader;
+      }
+      return resolvedLoader;
+    });
+
+  return loaders[loaderId];
 }
 
 async function runValidators(
@@ -418,7 +462,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
     }
   }
   // strip internal search params
-  const search = url.search.slice(1).replaceAll(/&?q(action|data|func)=[^&]+/g, '');
+  const search = url.search.slice(1).replaceAll(/&?q(action|data|func|loader)=[^&]+/g, '');
   return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
 }
 
@@ -490,7 +534,7 @@ export function renderQwikMiddleware(render: Render) {
         // write the already completed html to the stream
         await stream.write((result as any as RenderToStringResult).html);
       }
-      requestEv.sharedMap.set('qData', qData);
+      requestEv.sharedMap.set(RequestEvShareQData, qData);
     } finally {
       await stream.ready;
       await stream.close();
@@ -554,8 +598,17 @@ export async function renderQData(requestEv: RequestEvent) {
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
+  const allLoaders = getRequestLoaders(requestEv);
+  const loaders: Record<string, unknown> = {};
+  for (const loaderId in allLoaders) {
+    const loader = allLoaders[loaderId];
+    if (loader !== null) {
+      loaders[loaderId] = loader;
+    }
+  }
+
   const qData: ClientPageData = {
-    loaders: getRequestLoaders(requestEv),
+    loaders,
     action: requestEv.sharedMap.get(RequestEvSharedActionId),
     status: status !== 200 ? status : 200,
     href: getPathname(requestEv.url, trailingSlash),
@@ -567,7 +620,7 @@ export async function renderQData(requestEv: RequestEvent) {
   // write just the page json data to the response body
   const data = await qwikSerializer._serialize([qData]);
   writer.write(encoder.encode(data));
-  requestEv.sharedMap.set('qData', qData);
+  requestEv.sharedMap.set(RequestEvShareQData, qData);
 
   writer.close();
 }
@@ -598,9 +651,9 @@ export async function measure<T>(
     return await fn();
   } finally {
     const duration = now() - start;
-    let measurements = requestEv.sharedMap.get('@serverTiming');
+    let measurements = requestEv.sharedMap.get(RequestEvShareServerTiming);
     if (!measurements) {
-      requestEv.sharedMap.set('@serverTiming', (measurements = []));
+      requestEv.sharedMap.set(RequestEvShareServerTiming, (measurements = []));
     }
     measurements.push([name, duration]);
   }

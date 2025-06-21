@@ -34,6 +34,7 @@ import { getExtension, normalizePath } from '../../utils/fs';
 import { updateBuildContext } from '../build';
 import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
+import { RequestEvShareServerTiming } from '../../middleware/request-handler/request-event';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -189,7 +190,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
-            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+            const serverTiming = requestEv.sharedMap.get(RequestEvShareServerTiming) as
               | [string, number][]
               | undefined;
             if (serverTiming) {

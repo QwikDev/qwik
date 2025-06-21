@@ -8,6 +8,7 @@ import {
   RequestRouteName,
 } from './request-event';
 import type { RequestEvent } from './types';
+import { Q_ROUTE } from '../../runtime/src/constants';
 
 export function getQwikRouterServerData(requestEv: RequestEvent) {
   const { params, request, status, locale, originalUrl } = requestEv;
@@ -30,13 +31,15 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
     reconstructedUrl.protocol = protocol;
   }
 
+  const loaders = getRequestLoaders(requestEv);
+
   return {
     url: reconstructedUrl.href,
     requestHeaders,
     locale: locale(),
     nonce,
     containerAttributes: {
-      'q:route': routeName,
+      [Q_ROUTE]: routeName,
     },
     qwikrouter: {
       routeName,
@@ -45,7 +48,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
-        loaders: getRequestLoaders(requestEv),
+        loaders,
         action,
         formData,
       },

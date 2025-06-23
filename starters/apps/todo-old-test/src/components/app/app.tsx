@@ -1,8 +1,8 @@
-import { component$, useStyles$, useStore } from "@builder.io/qwik";
+import { component$, useStore, useStyles$ } from "@qwik.dev/core";
+import type { Todos } from "../../state/state";
+import { Body } from "../body/body";
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
-import { Body } from "../body/body";
-import type { Todos } from "../../state/state";
 import styles from "./index.css?inline";
 
 /**

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1323
+assertion_line: 1433
 expression: output
 snapshot_kind: text
 ---
@@ -12,25 +12,26 @@ snapshot_kind: text
 import { qwikify$ } from './qwikfy';
 
 export const App = () => (
-    <div onClick$={()=>console.log('App')}></div>
+	<div onClick$={()=>console.log('App')}></div>
 );
 
 export const App2 = qwikify$(() => (
-    <div onClick$={()=>console.log('App2')}></div>
+	<div onClick$={()=>console.log('App2')}></div>
 ));
 
 ============================= test.js ==
 
 /* @jsxImportSource react */ import { qwikifyQrl } from "./qwikfy";
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_RKJW7oCMdS4 = ()=>import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js");
 import { jsx as _jsx } from "react/jsx-runtime";
 export const App = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App')
     });
-export const App2 = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js"), "App2_qwikify_RKJW7oCMdS4"));
+export const App2 = qwikifyQrl(/*#__PURE__*/ qrl(i_RKJW7oCMdS4, "App2_qwikify_RKJW7oCMdS4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;AAI1B,OAAO,MAAM,MAAM,kBACf,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OACjC;AAEF,OAAO,MAAM,OAAO,gHAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;;AAI1B,OAAO,MAAM,MAAM,kBAClB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OAC9B;AAEF,OAAO,MAAM,OAAO,yEAEjB\"}")
 ============================= test.tsx_App2_qwikify_RKJW7oCMdS4.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "react/jsx-runtime";
@@ -39,7 +40,7 @@ export const App2_qwikify_RKJW7oCMdS4 = ()=>/*#__PURE__*/ _jsx("div", {
     });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBACzB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAS6B,kBAC5B,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -55,8 +56,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "qwikify$",
   "captures": false,
   "loc": [
-    180,
-    240
+    177,
+    234
   ]
 }
 */

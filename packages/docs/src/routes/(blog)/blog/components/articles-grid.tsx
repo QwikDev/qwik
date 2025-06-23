@@ -1,7 +1,7 @@
 import { Image } from 'qwik-image';
 import { blogArticles } from '../../data';
 import { ClockIcon } from '../icons/clock-icon';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ArticlesGrid = component$(() => {
   return (

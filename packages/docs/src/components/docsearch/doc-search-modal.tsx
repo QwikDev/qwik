@@ -5,7 +5,7 @@ import {
   useContextProvider,
   useTask$,
   type Signal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';
@@ -19,7 +19,7 @@ import type { DocSearchHit } from './types';
 import { identity } from './utils';
 import { clearStalled, setStalled } from './utils/stalledControl';
 import { AIButton } from './result';
-import { isBrowser } from '@builder.io/qwik';
+import { isBrowser } from '@qwik.dev/core';
 
 export type ModalTranslations = Partial<{
   searchBox: SearchBoxTranslations;

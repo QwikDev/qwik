@@ -13,14 +13,12 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
+use crate::rename_imports::RenameTransform;
 use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "fs")]
-use std::fs;
 
 use anyhow::{Context, Error};
 
@@ -53,6 +51,10 @@ pub struct SegmentAnalysis {
 	pub ctx_name: JsWord,
 	pub captures: bool,
 	pub loc: (u32, u32),
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub param_names: Option<Vec<JsWord>>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub capture_names: Option<Vec<JsWord>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -164,28 +166,6 @@ impl TransformOutput {
 		}
 		manifest
 	}
-
-	#[cfg(feature = "fs")]
-	pub fn write_to_fs(
-		&self,
-		destination: &Path,
-		manifest: Option<String>,
-	) -> Result<usize, Error> {
-		for module in &self.modules {
-			let write_path = destination.join(&module.path);
-			fs::create_dir_all(write_path.parent().with_context(|| {
-				format!("Computing path parent of {}", write_path.to_string_lossy())
-			})?)?;
-			fs::write(write_path, &module.code)?;
-		}
-		if let Some(manifest) = manifest {
-			let write_path = destination.join(manifest);
-			let manifest = self.get_manifest();
-			let json = serde_json::to_string(&manifest)?;
-			fs::write(write_path, json)?;
-		}
-		Ok(self.modules.len())
-	}
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -273,7 +253,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							react_options.next = Some(true);
 							react_options.throw_if_namespace = Some(false);
 							react_options.runtime = Some(react::Runtime::Automatic);
-							react_options.import_source = Some("@builder.io/qwik".to_string());
+							react_options.import_source = Some("@qwik.dev/core".to_string());
 						};
 						program.mutate(&mut react::react(
 							Lrc::clone(&source_map),
@@ -283,6 +263,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							unresolved_mark,
 						));
 					}
+
+					// rename old imports to new imports
+					program.visit_mut_with(&mut RenameTransform);
 
 					// Resolve with mark
 					program.visit_mut_with(&mut resolver(
@@ -335,6 +318,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							is_server: config.is_server,
 							cm: Lrc::clone(&source_map),
 						});
+
+						// print before transform, for debugging
+						// println!(
+						// 	"{}",
+						// 	emit_source_code(
+						// 		Lrc::clone(&source_map.clone()),
+						// 		None,
+						// 		&main_module.clone(),
+						// 		config.root_dir,
+						// 		false,
+						// 	)
+						// 	.unwrap()
+						// 	.0
+						// );
 						program = program.fold_with(&mut qwik_transform);
 
 						let mut treeshaker = Treeshaker::new();
@@ -406,8 +403,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								[&h.canonical_filename, ".", &h.data.extension].concat(),
 							]
 							.concat();
-							let need_handle_watch =
-								might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
 								expr: h.expr,
@@ -419,9 +414,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								explicit_extensions: q.options.explicit_extensions,
 								global: &q.options.global_collect,
 								core_module: &q.options.core_module,
-								need_handle_watch,
 								leading_comments: comments_maps.0.clone(),
 								trailing_comments: comments_maps.1.clone(),
+								extra_top_items: &q.extra_top_items,
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {
@@ -471,6 +466,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 									display_name: h.data.display_name,
 									hash: h.data.hash,
 									loc: (h.span.lo.0, h.span.hi.0),
+									param_names: h.param_names,
+									capture_names: if h.data.scoped_idents.is_empty() {
+										None
+									} else {
+										Some(
+											h.data
+												.scoped_idents
+												.iter()
+												.map(|id| id.0.clone())
+												.collect(),
+										)
+									},
 								}),
 							});
 						}
@@ -766,14 +773,4 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 		normalized.push("");
 	}
 	normalized
-}
-
-pub fn might_need_handle_watch(ctx_kind: &SegmentKind, ctx_name: &str) -> bool {
-	if !matches!(ctx_kind, SegmentKind::Function) {
-		return false;
-	}
-	matches!(
-		ctx_name,
-		"useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
-	)
 }

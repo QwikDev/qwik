@@ -1,5 +1,5 @@
-import { component$, Slot } from '@builder.io/qwik';
-import { useDocumentHead, useLocation } from '@builder.io/qwik-city';
+import { component$, Slot } from '@qwik.dev/core';
+import { useDocumentHead, useLocation } from '@qwik.dev/router';
 import { authors, blogArticles } from '~/routes/(blog)/data';
 import { ArticleHero } from './article-hero';
 

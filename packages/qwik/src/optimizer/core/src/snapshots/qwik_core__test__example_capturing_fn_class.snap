@@ -1,47 +1,49 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 935
+assertion_line: 1045
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 
 export const App = component$(() => {
-    function hola() {
-      console.log('hola');
-    }
-    class Thing {}
-    class Other {}
+	function hola() {
+		console.log('hola');
+	}
+	class Thing {}
+	class Other {}
 
-    return $(() => {
-      hola();
-      new Thing();
-      return (
-          <div></div>
-      )
-    });
+	return $(() => {
+		hola();
+		new Thing();
+		return (
+			<div></div>
+		)
+	});
 })
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAcjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAcjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU");
+    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAO1B;AAOJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAO7B;AAOD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -57,23 +59,22 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    293
+    81,
+    246
   ]
 }
 */
 ============================= test.tsx_App_component_1_w0t0o3QMovU.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_1_w0t0o3QMovU = ()=>{
     hola();
     new Thing();
-    return /*#__PURE__*/ _jsxQ("div", null, null, null, 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "u6_0");
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAUa;IACP;IACA,IAAI;IACJ,qBACI,MAAC;AAEP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";2CAUU;IACR;IACA,IAAI;IACJ,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -89,8 +90,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    198,
-    289
+    177,
+    242
   ]
 }
 */

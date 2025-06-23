@@ -7,28 +7,28 @@ snapshot_kind: text
 ==INPUT==
 
 
-import { $, component, onRender } from '@builder.io/qwik';
+import { $, component, onRender } from '@qwik.dev/core';
 
 export const renderHeader = $(() => {
-    return (
-        <div onClick={$((ctx) => console.log(ctx))}/>
-    );
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
 });
 const renderHeader = component($(() => {
-  console.log("mount");
-  return render;
+	console.log("mount");
+	return render;
 }));
 
 ============================= test.tsx_renderHeader_zBbHWn4e8Cg.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+const i_fV2uzAL99u4 = ()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4");
 export const renderHeader_zBbHWn4e8Cg = ()=>{
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(i_fV2uzAL99u4, "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC1B,QACK,IAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wCAG8B;IAC7B,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -44,8 +44,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    92,
-    175
+    90,
+    161
   ]
 }
 */
@@ -55,10 +55,9 @@ export const renderHeader_component_U6Kkv07sbpQ = ()=>{
     console.log("mount");
     return render;
 };
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAC/B,QAAQ,GAAG,CAAC;IACZ,OAAO;AACT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"kDAQiC;IAChC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,27 +73,28 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    211,
-    261
+    197,
+    245
   ]
 }
 */
 ============================= test.tsx ==
 
-import { qrl } from "@builder.io/qwik";
-import { component } from '@builder.io/qwik';
-export const renderHeader = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ"));
+import { qrl } from "@qwik.dev/core";
+const i_U6Kkv07sbpQ = ()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ");
+const i_zBbHWn4e8Cg = ()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg");
+import { component } from '@qwik.dev/core';
+export const renderHeader = /*#__PURE__*/ qrl(i_zBbHWn4e8Cg, "renderHeader_zBbHWn4e8Cg");
+const renderHeader = component(/*#__PURE__*/ qrl(i_U6Kkv07sbpQ, "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,mBAAmB;AAE1D,OAAO,MAAM,gHAIV;AACH,MAAM,eAAe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,4EAIV;AACH,MAAM,eAAe\"}")
 ============================= test.tsx_renderHeader_div_onClick_fV2uzAL99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
-export { _hW } from "@builder.io/qwik";
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKwB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"oDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -110,8 +110,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "$",
   "captures": false,
   "loc": [
-    137,
-    162
+    126,
+    151
+  ],
+  "paramNames": [
+    "ctx"
   ]
 }
 */

@@ -1,29 +1,29 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1683
+assertion_line: 1793
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useResource$ } from '@builder.io/qwik';
+import { component$, useResource$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
-    const data = mongodb.collection.whatever;
-    return {
-        body: {
-        data
-        }
-    }
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
 };
 
 export default component$(()=> {
-    useResource$(() => {
-        return onGet();
-    })
-    return <div>cmp</div>
+	useResource$(() => {
+		return onGet();
+	})
+	return <div>cmp</div>
 });
 
 ============================= test.tsx_test_component_useResource_4a8wVY7wh38.tsx (ENTRY POINT)==
@@ -34,7 +34,7 @@ export const test_component_useResource_4a8wVY7wh38 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAciB;IACT,OAAO;AACX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAcc;IACZ,OAAO;AACR\"}")
 /*
 {
   "origin": "test.tsx",
@@ -50,33 +50,35 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "useResource$",
   "captures": false,
   "loc": [
-    282,
-    319
+    250,
+    278
   ]
 }
 */
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;aAIa;;;AASb,6BAAe,6EAKZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
-import { qrl } from "@builder.io/qwik";
-import { useResourceQrl } from "@builder.io/qwik";
+import { qrl } from "@qwik.dev/core";
+import { useResourceQrl } from "@qwik.dev/core";
+const i_4a8wVY7wh38 = ()=>import("./test.tsx_test_component_useResource_4a8wVY7wh38");
 export const test_component_LUXeXe0DQrg = ()=>{
-    useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_useResource_4a8wVY7wh38"), "test_component_useResource_4a8wVY7wh38"));
+    useResourceQrl(/*#__PURE__*/ qrl(i_4a8wVY7wh38, "test_component_useResource_4a8wVY7wh38"));
     return <div>cmp</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAa0B;IACtB;IAGA,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAa0B;IACzB;IAGA,QAAQ,IAAI,GAAG,EAAE;AAClB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,8 +94,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    258,
-    348
+    229,
+    304
   ]
 }
 */

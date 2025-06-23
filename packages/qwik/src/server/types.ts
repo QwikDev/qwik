@@ -1,11 +1,11 @@
-import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
+import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
 import type {
   QwikManifest,
   ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
-} from '@builder.io/qwik/optimizer';
+} from '@qwik.dev/core/optimizer';
 
 /** @public */
 export interface SerializeDocumentOptions {
@@ -109,6 +109,7 @@ export interface RenderToStreamResult extends RenderResult {
 export interface RenderToStringResult extends RenderResult {
   html: string;
   timing: {
+    firstFlush: number;
     render: number;
     snapshot: number;
   };
@@ -116,7 +117,6 @@ export interface RenderToStringResult extends RenderResult {
 
 /** @public */
 export interface RenderResult {
-  prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | undefined;
   isStatic: boolean;
   manifest?: ServerQwikManifest;
@@ -133,17 +133,6 @@ export interface QwikLoaderOptions {
    */
   include?: 'always' | 'never' | 'auto';
   /** @deprecated No longer used, the qwikloader is always loaded as soon as possible */
-  position?: 'top' | 'bottom';
-}
-
-/**
- * @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts.
- * @public
- */
-export interface QwikPrefetchServiceWorkerOptions {
-  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
-  include?: boolean;
-  /** @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts. */
   position?: 'top' | 'bottom';
 }
 
@@ -171,9 +160,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
   preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */
-  qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
-
-  /** @deprecated Use `preloader` instead */
   prefetchStrategy?: PrefetchStrategy | null;
 
   /**
@@ -191,8 +177,8 @@ export interface RenderToStringOptions extends RenderOptions {}
 /** @public */
 export interface InOrderAuto {
   strategy: 'auto';
-  maximunInitialChunk?: number;
-  maximunChunk?: number;
+  maximumInitialChunk?: number;
+  maximumChunk?: number;
 }
 
 /** @public */
@@ -227,5 +213,25 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 
 /** @public */
 export type Render = RenderToString | RenderToStream;
+
+/**
+ * Flags for VNodeData (Flags con be bitwise combined)
+ *
+ * @internal
+ */
+export const enum VNodeDataFlag {
+  /// Initial state.
+  NONE = 0,
+  /// Indicates that multiple Text nodes are present and can't be derived from HTML.
+  TEXT_DATA = 1,
+  /// Indicates that the virtual nodes are present and can't be derived from HTML.
+  VIRTUAL_NODE = 2,
+  /// Indicates that the element nodes are present and some data can't be derived from HTML.
+  ELEMENT_NODE = 4,
+  /// Indicates that serialized data is referencing this node and so we need to retrieve a reference to it.
+  REFERENCE = 8,
+  /// Should be output during serialization.
+  SERIALIZE = 16,
+}
 
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

@@ -1,9 +1,18 @@
+import type { QwikRollupPluginOptions } from '@qwik.dev/core/optimizer';
 import type { Plugin } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { QwikWorkerGlobal } from './repl-service-worker';
 import type { MinifyOptions } from 'terser';
 import type { ReplInputOptions } from '../types';
 import { depResponse } from './repl-dependencies';
+import type { QwikWorkerGlobal } from './repl-service-worker';
+
+/**
+ * Use paths that look like the paths ones from node modules. The plugin uses the paths to recognize
+ * the Qwik packages.
+ */
+const corePath = '/@qwik.dev/core/dist/core.mjs';
+const handlersPath = '/@qwik.dev/core/handlers.mjs';
+const serverPath = '/@qwik.dev/core/dist/server.mjs';
+const preloaderPath = '/@qwik.dev/core/dist/preloader.mjs';
 
 export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
   const srcInputs = options.srcInputs;
@@ -19,18 +28,22 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (!importer) {
         return id;
       }
-      if (
-        id === '@builder.io/qwik' ||
-        id === '@builder.io/qwik/jsx-runtime' ||
-        id === '@builder.io/qwik/jsx-dev-runtime'
-      ) {
-        return '\0qwikCore';
-      }
-      if (id === '@builder.io/qwik/server') {
-        return '\0qwikServer';
-      }
-      if (id === '@builder.io/qwik/preloader') {
-        return '\0qwikPreloader';
+      const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
+      if (match) {
+        const pkgPath = match[2];
+        if (pkgPath === '/server') {
+          return serverPath;
+        }
+        if (pkgPath === '/preloader') {
+          return preloaderPath;
+        }
+        if (pkgPath === '/handlers.mjs') {
+          return handlersPath;
+        }
+        if (/^(|\/jsx(-dev)?-runtime|\/internal)$/.test(pkgPath)) {
+          return corePath;
+        }
+        console.error(`Unknown package ${id}`, match);
       }
       // Simple relative file resolution
       if (id.startsWith('./')) {
@@ -51,36 +64,45 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         return input.code;
       }
       if (buildMode === 'ssr') {
-        if (id === '\0qwikCore') {
+        if (id === corePath || id === handlersPath) {
           return getRuntimeBundle('qwikCore');
         }
-        if (id === '\0qwikServer') {
+        if (id === serverPath) {
           return getRuntimeBundle('qwikServer');
         }
       }
-      if (id === '\0qwikCore') {
+      if (id === corePath) {
         if (options.buildMode === 'production') {
-          const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
+          const rsp = await depResponse('@qwik.dev/core', '/core.min.mjs');
           if (rsp) {
             return rsp.text();
           }
         }
 
-        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
+        const rsp = await depResponse('@qwik.dev/core', '/core.mjs');
         if (rsp) {
           return rsp.text();
         }
         throw new Error(`Unable to load Qwik core`);
       }
-      if (id === '\0qwikPreloader') {
-        const rsp = await depResponse('@builder.io/qwik', '/preloader.mjs');
+      if (id === preloaderPath) {
+        const rsp = await depResponse('@qwik.dev/core', '/preloader.mjs');
+        if (rsp) {
+          return rsp.text();
+        }
+      }
+      if (id === handlersPath) {
+        const rsp = await depResponse('@qwik.dev/core', '/handlers.mjs');
         if (rsp) {
           return rsp.text();
         }
       }
       // this id is unchanged because it's an entry point
-      if (id === '@builder.io/qwik/qwikloader.js') {
-        const rsp = await depResponse('@builder.io/qwik', '/qwikloader.js');
+      if (id === '@qwik.dev/core/qwikloader.js') {
+        const rsp = await depResponse(
+          '@qwik.dev/core',
+          `/qwikloader${options.debug ? '.debug' : ''}.js`
+        );
         if (rsp) {
           return rsp.text();
         }

@@ -1,21 +1,21 @@
 import {
+  $,
   component$,
+  isServer,
   noSerialize,
-  useStyles$,
   useStore,
+  useStyles$,
   useTask$,
   useVisibleTask$,
-  $,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, bundled, getNpmCdnUrl } from './bundled';
+import { ReplDetailPanel } from './repl-detail-panel';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
-import styles from './repl.css?inline';
-import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './types';
-import { ReplDetailPanel } from './repl-detail-panel';
-import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
-import { isServer } from '@builder.io/qwik';
+import { getReplVersion } from './repl-version';
+import styles from './repl.css?inline';
+import type { ReplAppInput, ReplMessage, ReplStore, ReplUpdateMessage } from './types';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -27,7 +27,10 @@ export const Repl = component$((props: ReplProps) => {
       clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
         .toString(36)
         .toLowerCase(),
-      html: '',
+      htmlResult: {
+        rawHtml: '',
+        prettyHtml: '',
+      },
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],
@@ -79,10 +82,6 @@ export const Repl = component$((props: ReplProps) => {
 
   useVisibleTask$(
     async () => {
-      if (isServer) {
-        return;
-      }
-      // only run on the client
       // Get the version asap, most likely it will be cached.
       const v = await getReplVersion(input.version, true);
       store.versions = v.versions;
@@ -109,6 +108,7 @@ export const Repl = component$((props: ReplProps) => {
     track(() => input.files);
     track(() => input.version);
     track(() => input.debug);
+    track(() => input.preloader);
     track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
@@ -169,9 +169,14 @@ const getDependencies = (input: ReplAppInput) => {
   if (input.version !== 'bundled') {
     const [M, m, p] = input.version.split('-')[0].split('.').map(Number);
     const prefix = M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2))) ? '/dist/' : '/';
-    out[QWIK_PKG_NAME] = {
-      version: input.version,
-    };
+    // we must always provide the qwik.dev package so the worker can find the version
+    out[QWIK_PKG_NAME] = { version: input.version };
+    let bundles;
+    if (M < 2) {
+      bundles = out[QWIK_PKG_NAME_V1] = { version: input.version };
+    } else {
+      bundles = out[QWIK_PKG_NAME];
+    }
     for (const p of [
       `${prefix}core.cjs`,
       `${prefix}core.mjs`,
@@ -181,7 +186,7 @@ const getDependencies = (input: ReplAppInput) => {
       `/bindings/qwik.wasm.cjs`,
       `/bindings/qwik_wasm_bg.wasm`,
     ]) {
-      out[QWIK_PKG_NAME][p] = getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, p);
+      bundles[p] = getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, p);
     }
   }
   return out;
@@ -206,6 +211,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         version: input.version,
         serverUrl: store.serverUrl,
         deps: getDependencies(input),
+        preloader: !!input.preloader,
       },
     };
 

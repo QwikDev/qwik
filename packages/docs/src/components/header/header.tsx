@@ -1,28 +1,28 @@
-import { useLocation } from '@builder.io/qwik-city';
 import {
   component$,
-  useStyles$,
   useContext,
+  useSignal,
+  useStyles$,
   useVisibleTask$,
   type PropsOf,
-  useSignal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
+import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
+import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import styles from './header.css?inline';
-import { GlobalStore } from '../../context';
 import {
   colorSchemeChangeListener,
   getColorPreference,
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
-import { SearchIcon } from '../docsearch/icons/SearchIcon';
+import styles from './header.css?inline';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (

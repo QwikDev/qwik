@@ -1,4 +1,4 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
+import { component$, useStyles$ } from '@qwik.dev/core';
 import { Header } from '../components/header/header';
 import catVideo from '../media/images/404-cat.mp4?url';
 

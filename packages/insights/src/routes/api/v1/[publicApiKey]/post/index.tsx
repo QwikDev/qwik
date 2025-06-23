@@ -1,8 +1,8 @@
-import { type RequestHandler } from '@builder.io/qwik-city';
-import { InsightsPayload } from '@builder.io/qwik-labs';
+import { type RequestHandler } from '@qwik.dev/router';
 import { getDB } from '~/db';
 import { getAppInfo, updateEdge, updateRoutes } from '~/db/query';
 import { dbGetManifestInfo } from '~/db/sql-manifest';
+import { InsightsPayload } from '~/root';
 import { toBucket, toBucketTimeline } from '~/stats/vector';
 
 export const onPost: RequestHandler = async ({ exit, json, request, params }) => {

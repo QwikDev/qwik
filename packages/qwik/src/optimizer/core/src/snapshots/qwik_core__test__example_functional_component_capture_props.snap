@@ -27,10 +27,11 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAYjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAYjB\"}")
 ============================= test.tsx_App_component_div_onClick_1CGetmFZx0g.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -69,12 +70,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
+const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
 export const App_component_ckEPmXZlub0 = ({ count, rest: [I2, { I3, v1: [I4], I5 = v2, ...I6 }, I7 = v3, ...I8] })=>{
     const state = useStore({
         count: 0
     });
     const { rest: [C2, { C3, v1: [C4], C5 = v2, ...C6 }, C7 = v3, ...C8] } = foo();
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_1_w0t0o3QMovU"), "App_component_1_w0t0o3QMovU", [
+    return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU", [
         C2,
         C3,
         C4,
@@ -95,7 +97,7 @@ export const App_component_ckEPmXZlub0 = ({ count, rest: [I2, { I3, v1: [I4], I5
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC,EAAC,KAAK,EAAE,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC;IAC7F,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG8B,CAAC,EAAC,KAAK,EAAE,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC;IAC7F,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM,EAAC,MAAM,CAAC,IAAI,EAAC,EAAE,EAAE,IAAI,CAAC,GAAG,EAAE,KAAG,EAAE,EAAE,GAAG,IAAG,EAAE,KAAG,EAAE,EAAE,GAAG,GAAG,EAAC,GAAG;IACjE;;;;;;;;;;;;;;;;;;AASD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -124,10 +126,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_1CGetmFZx0g = ()=>import("./test.tsx_App_component_div_onClick_1CGetmFZx0g");
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_onClick_1CGetmFZx0g"), "App_component_div_onClick_1CGetmFZx0g", [
+        onClick$: /*#__PURE__*/ qrl(i_1CGetmFZx0g, "App_component_div_onClick_1CGetmFZx0g", [
             count,
             state
         ])
@@ -153,7 +156,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
 /*
 {
   "origin": "test.tsx",

@@ -86,11 +86,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_0TaiDayHrlo"), "Parent_component_0TaiDayHrlo"));
-export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_9GyF01GDKqw"), "Child_component_9GyF01GDKqw"));
+const i_0TaiDayHrlo = ()=>import("./test.tsx_Parent_component_0TaiDayHrlo");
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0TaiDayHrlo, "Parent_component_0TaiDayHrlo"));
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,uBAAS,uHAgBnB;AAEH,OAAO,MAAM,sBAAQ,qHAelB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,uBAAS,+EAgBnB;AAEH,OAAO,MAAM,sBAAQ,8EAelB\"}")
 ============================= test.tsx_Child_component_useTask_Oh4n7ZeqJkU.js ==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -132,21 +134,23 @@ import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
+const i_C5XE49Nqd3A = ()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A");
+const i_gDH1EtUWqBU = ()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU");
 export const Parent_component_0TaiDayHrlo = ()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_useTask_gDH1EtUWqBU"), "Parent_component_useTask_gDH1EtUWqBU", [
+    useTaskQrl(/*#__PURE__*/ qrl(i_gDH1EtUWqBU, "Parent_component_useTask_gDH1EtUWqBU", [
         state
     ]));
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_onClick_C5XE49Nqd3A"), "Parent_component_div_onClick_C5XE49Nqd3A")
+        onClick$: /*#__PURE__*/ qrl(i_C5XE49Nqd3A, "Parent_component_div_onClick_C5XE49Nqd3A")
     }, _wrapProp(state, "text"), 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAKiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;4CAKiC;IAChC,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAKA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -200,21 +204,23 @@ import { _wrapProp } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
+const i_Oh4n7ZeqJkU = ()=>import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU");
+const i_elliVSnAiOQ = ()=>import("./test.tsx_Child_component_div_onClick_elliVSnAiOQ");
 export const Child_component_9GyF01GDKqw = ()=>{
     const state = useStore({
         text: ''
     });
     // Double count watch
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_useTask_Oh4n7ZeqJkU"), "Child_component_useTask_Oh4n7ZeqJkU", [
+    useTaskQrl(/*#__PURE__*/ qrl(i_Oh4n7ZeqJkU, "Child_component_useTask_Oh4n7ZeqJkU", [
         state
     ]));
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Child_component_div_onClick_elliVSnAiOQ"), "Child_component_div_onClick_elliVSnAiOQ")
+        onClick$: /*#__PURE__*/ qrl(i_elliVSnAiOQ, "Child_component_div_onClick_elliVSnAiOQ")
     }, _wrapProp(state, "text"), 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAuBgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;2CAuBgC;IAC/B,MAAM,QAAQ,SAAS;QACtB,MAAM;IACP;IAEA,qBAAqB;IACrB;;;IAIA,qBACC,WAAC;QAAI,QAAQ;iBACX;AAGJ\"}")
 /*
 {
   "origin": "test.tsx",

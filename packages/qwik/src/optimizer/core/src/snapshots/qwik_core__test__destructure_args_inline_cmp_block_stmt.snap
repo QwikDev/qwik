@@ -23,19 +23,20 @@ snapshot_kind: text
 import { _fnSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+const i_GbMO6TGQv9M = ()=>import("./test.tsx_test_div_onClick_GbMO6TGQv9M");
 export default ((props)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
         "data-is-active": _fnSignal((p0)=>p0.data.selectedOutputDetail === 'options', [
             props
         ], 'p0.data.selectedOutputDetail==="options"'),
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_div_onClick_GbMO6TGQv9M"), "test_div_onClick_GbMO6TGQv9M", [
+        onClick$: /*#__PURE__*/ qrl(i_GbMO6TGQv9M, "test_div_onClick_GbMO6TGQv9M", [
             props
         ])
     }, null, null, 2, "u6_0");
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACE,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc,kBAAE,GAHV,KAGe,oBAAoB,KAAK;;;QAC9C,QAAQ;;;;AAKpB,CAAA,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACE,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc,kBAAE,GAHV,KAGe,oBAAoB,KAAK;;;QAC9C,QAAQ;;;;AAKpB,CAAA,EAAE\"}")
 ============================= test.tsx_test_div_onClick_GbMO6TGQv9M.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";

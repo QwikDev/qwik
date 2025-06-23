@@ -92,7 +92,7 @@ pub struct QwikTransform<'a> {
 	pub options: QwikTransformOptions<'a>,
 
 	segment_names: HashMap<String, u32>,
-	// extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+	pub extra_top_items: BTreeMap<Id, ast::ModuleItem>,
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
@@ -221,7 +221,7 @@ impl<'a> QwikTransform<'a> {
 			decl_stack: Vec::with_capacity(32),
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
-			// extra_top_items: BTreeMap::new(),
+			extra_top_items: BTreeMap::new(),
 			extra_bottom_items: BTreeMap::new(),
 
 			segment_names: HashMap::new(),
@@ -944,28 +944,46 @@ impl<'a> QwikTransform<'a> {
 		segment_data: &SegmentData,
 		span: &Span,
 	) -> ast::CallExpr {
-		let mut args = vec![
-			ast::Expr::Arrow(ast::ArrowExpr {
-				body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
-					ast::CallExpr {
-						callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-							js_word!("import"),
-							DUMMY_SP,
-							Default::default(),
-						)))),
-						args: vec![ast::ExprOrSpread {
-							spread: None,
-							expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-								span: DUMMY_SP,
-								value: path,
-								raw: None,
-							}))),
-						}],
-						..Default::default()
-					},
-				)))),
+		// Put the QRL import function in module scope
+		let import_fn_name = private_ident!(format!("i_{}", segment_data.hash));
+		let import_fn = ast::Expr::Arrow(ast::ArrowExpr {
+			body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
+				ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+						js_word!("import"),
+						DUMMY_SP,
+						Default::default(),
+					)))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+							span: DUMMY_SP,
+							value: path,
+							raw: None,
+						}))),
+					}],
+					..Default::default()
+				},
+			)))),
+			..Default::default()
+		});
+		self.extra_top_items.insert(
+			id!(import_fn_name),
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+				kind: ast::VarDeclKind::Const,
+				decls: vec![ast::VarDeclarator {
+					name: ast::Pat::Ident(ast::BindingIdent::from(import_fn_name.clone())),
+					init: Some(Box::new(import_fn)),
+					definite: false,
+					span: DUMMY_SP,
+				}],
 				..Default::default()
-			}),
+			})))),
+		);
+
+		// Create the qrl arguments
+		let mut args = vec![
+			ast::Expr::Ident(import_fn_name),
 			ast::Expr::Lit(ast::Lit::Str(ast::Str {
 				span: DUMMY_SP,
 				value: symbol.into(),
@@ -1865,7 +1883,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					create_synthetic_named_import(new_local, &import.source)
 				}),
 		);
-		// body.extend(self.extra_top_items.values().cloned());
+		body.extend(self.extra_top_items.values().cloned());
 		body.append(&mut module_body);
 		body.extend(self.extra_bottom_items.values().cloned());
 

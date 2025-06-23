@@ -59,13 +59,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_RGgm7Ks9QWI = ()=>import("./test.tsx_Header_component_RGgm7Ks9QWI");
 export function foo() {
     return import("../foo/state2");
 }
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_RGgm7Ks9QWI"), "Header_component_RGgm7Ks9QWI"));
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_RGgm7Ks9QWI, "Header_component_RGgm7Ks9QWI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,uHAOnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/folder/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,SAAS;IACf,OAAO,MAAM,CAAC;AACf;AAEA,OAAO,MAAM,uBAAS,+EAOnB\"}")
 == DIAGNOSTICS ==
 
 []

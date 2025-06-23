@@ -57,7 +57,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WjUaUQN7Oxg"), "Header_WjUaUQN7Oxg");
+const i_WjUaUQN7Oxg = ()=>import("./test.tsx_Header_WjUaUQN7Oxg");
+/*#__PURE__*/ qrl(i_WjUaUQN7Oxg, "Header_WjUaUQN7Oxg");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

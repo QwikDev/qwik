@@ -58,11 +58,13 @@ snapshot_kind: text
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_9metqqaxlN8"), "Input_component_9metqqaxlN8"));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+const i_9metqqaxlN8 = ()=>import("./test.tsx_Input_component_9metqqaxlN8");
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export const Input = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9metqqaxlN8, "Input_component_9metqqaxlN8"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIE,OAAO,MAAM,sBAAQ,qHAanB;AAEF,6BAAe,mHA2BZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAIE,OAAO,MAAM,sBAAQ,8EAanB;AAEF,6BAAe,6EA2BZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { Input } from "./test";
@@ -72,6 +74,7 @@ import { qrl } from "@qwik.dev/core";
 import { useForm } from "./some-file.ts";
 import { useForm2 } from "./some-file.ts";
 import { useStore } from "@qwik.dev/core";
+const i_TfpwI5Xb2NU = ()=>import("./test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU");
 export const test_component_LUXeXe0DQrg = ()=>{
     const [store, math] = [
         useStore({
@@ -102,7 +105,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     const form2 = useForm2();
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU"), "test_component_div_button_onClick_TfpwI5Xb2NU", [
+            onClick$: /*#__PURE__*/ qrl(i_TfpwI5Xb2NU, "test_component_div_button_onClick_TfpwI5Xb2NU", [
                 store
             ])
         }, "click", 3, null),
@@ -132,7 +135,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;0CAmB4B;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,QAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK,kBAAE,GAAM,MAAM,CAAC,IAAI;;;YACxB,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAZJ,OAYW,MAAM,CAAC,IAAI;;;;;AAQ9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;0CAmB4B;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,QAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK,kBAAE,GAAM,MAAM,CAAC,IAAI;;;YACxB,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAAO,MAAM,CAAC,IAAI;;;YAC1B,MAAM,kBAAE,GAZJ,OAYW,MAAM,CAAC,IAAI;;;;;AAQ9B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -230,15 +233,16 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
+const i_Sbgs9Wtfkt0 = ()=>import("./test.tsx_Input_component_useTask_Sbgs9Wtfkt0");
 export const Input_component_9metqqaxlN8 = (props)=>{
-    useTaskQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Input_component_useTask_Sbgs9Wtfkt0"), "Input_component_useTask_Sbgs9Wtfkt0", [
+    useTaskQrl(/*#__PURE__*/ qrl(i_Sbgs9Wtfkt0, "Input_component_useTask_Sbgs9Wtfkt0", [
         props
     ]));
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAKG,CAAC;IACA;;;IAMA,qBACC;AAGF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAKG,CAAC;IACA;;;IAMA,qBACC;AAGF\"}")
 /*
 {
   "origin": "test.tsx",

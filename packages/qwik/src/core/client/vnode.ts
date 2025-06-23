@@ -1556,9 +1556,7 @@ const processVNodeData = (
   let nextToConsumeIdx = 0;
   let ch = 0;
   let peekCh = 0;
-  const getChar = (idx: number) => {
-    return idx < vData.length ? vData.charCodeAt(idx) : 0;
-  };
+  const getChar = (idx: number) => vData.charCodeAt(idx);
   const peek = () => {
     if (peekCh !== 0) {
       return peekCh;

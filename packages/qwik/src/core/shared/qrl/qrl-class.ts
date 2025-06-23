@@ -41,7 +41,7 @@ export type QRLInternalMethods<TYPE> = {
 
   resolved: undefined | TYPE;
 
-  resolve(): Promise<TYPE>;
+  resolve(containerEl?: Element): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
   getCaptured(): unknown[] | null;
@@ -54,7 +54,6 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
-  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 };
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
@@ -127,10 +126,6 @@ export const createQRL = <TYPE>(
     };
     return bound;
   }
-
-  const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
-    return symbolRef !== null ? symbolRef : resolve(containerEl);
-  };
 
   // Wrap functions to provide their lexical scope
   const wrapFn = (fn: TYPE): TYPE => {
@@ -205,7 +200,7 @@ export const createQRL = <TYPE>(
           const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
           symbolRef = maybeThen(imported, (ref) => (qrl.resolved = wrapFn((symbolRef = ref))));
         }
-        if (typeof symbolRef === 'object' && isPromise(symbolRef)) {
+        if (isPromise(symbolRef)) {
           symbolRef.then(
             () => emitUsedSymbol(symbol, ctx?.$element$, start),
             (err) => {
@@ -235,7 +230,6 @@ export const createQRL = <TYPE>(
     getHash: () => hash,
     getCaptured: () => captureRef,
     resolve,
-    $resolveLazy$: resolveLazy,
     $setContainer$: setContainer,
     $chunk$: chunk,
     $symbol$: symbol,

@@ -11,8 +11,7 @@
     "undici": "*",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.2",
-    "vite": ">=5 <7",
-    "vite-imagetools": "^7.0.5",
+    "vite-imagetools": "^7.1.0",
     "zod": "3.22.4"
   },
   "devDependencies": {
@@ -21,7 +20,7 @@
     "@netlify/edge-functions": "2.10.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "20.14.11",
+    "@types/node": "24.0.4",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
     "estree-util-value-to-estree": "3.1.2",
@@ -37,7 +36,7 @@
     "remark-gfm": "4.0.0",
     "set-cookie-parser": "2.6.0",
     "tsm": "2.3.0",
-    "typescript": "5.8.2",
+    "typescript": "5.8.3",
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
@@ -176,7 +175,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": ">=5 <7"
+    "vite": ">=5 <8"
   },
   "publishConfig": {
     "access": "public"

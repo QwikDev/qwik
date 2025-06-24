@@ -1549,17 +1549,21 @@ const processVNodeData = (
     peek: () => number,
     consumeValue: () => string,
     consume: () => number,
+    getChar: (idx: number) => number,
     nextToConsumeIdx: number
   ) => void
 ) => {
   let nextToConsumeIdx = 0;
   let ch = 0;
   let peekCh = 0;
+  const getChar = (idx: number) => {
+    return idx < vData.length ? vData.charCodeAt(idx) : 0;
+  };
   const peek = () => {
     if (peekCh !== 0) {
       return peekCh;
     } else {
-      return (peekCh = nextToConsumeIdx < vData.length ? vData.charCodeAt(nextToConsumeIdx) : 0);
+      return (peekCh = getChar(nextToConsumeIdx));
     }
   };
   const consume = () => {
@@ -1584,7 +1588,7 @@ const processVNodeData = (
   };
 
   while (peek() !== 0) {
-    callback(peek, consumeValue, consume, nextToConsumeIdx);
+    callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
   }
 };
 
@@ -1835,7 +1839,7 @@ function materializeFromVNodeData(
   let combinedText: string | null = null;
   let container: ClientContainer | null = null;
 
-  processVNodeData(vData, (peek, consumeValue, consume, nextToConsumeIdx) => {
+  processVNodeData(vData, (peek, consumeValue, consume, getChar, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
       while (
@@ -1876,7 +1880,16 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
-      vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
+      const isEscapedValue = getChar(nextToConsumeIdx + 1) === VNodeDataChar.SEPARATOR;
+      let value;
+      if (isEscapedValue) {
+        consume();
+        value = decodeURI(consumeValue());
+        consume();
+      } else {
+        value = consumeValue();
+      }
+      vnode_setAttr(null, vParent, ELEMENT_KEY, value);
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {

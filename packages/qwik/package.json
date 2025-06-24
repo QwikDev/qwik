@@ -9,7 +9,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "csstype": "^3.1",
-    "rollup": ">= 4.39.0"
+    "rollup": "^4.44.0"
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -17,9 +17,9 @@
     "ignore": "5.3.1",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
-    "prettier": "3.4.2",
+    "prettier": "3.6.0",
     "ts-morph": "23.0.0",
-    "vitest": "3.1.1"
+    "vitest": "3.2.4"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -181,7 +181,7 @@
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "*",
-    "vite": ">=5 <7",
+    "vite": ">=5 <8",
     "vitest": ">=2 <3"
   },
   "peerDependenciesMeta": {

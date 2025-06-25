@@ -15,7 +15,6 @@ import {
   useStyles$,
   useTask$,
   type QRL,
-  type Signal,
 } from '@qwik.dev/core';
 import {
   _getContextElement,
@@ -28,6 +27,7 @@ import {
   _getDomContainer,
   type _DomContainer,
   SerializerSymbol,
+  type AsyncComputedReadonlySignal,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, Q_ROUTE } from './constants';
@@ -181,7 +181,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   };
 
   const loadersObject: Record<string, unknown> = {};
-  const loaderState: Record<string, Signal<unknown>> = {};
+  const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;
     loaderState[key] = createLoaderSignal(
@@ -516,7 +516,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           if (loaders) {
             const container = _getContextContainer();
             for (const [key, value] of Object.entries(loaders)) {
-              const signal = loaderState[key] as Signal<unknown>;
+              const signal = loaderState[key];
               const awaitedValue = await value;
               loadersObject[key] = awaitedValue;
               if (!signal) {
@@ -528,7 +528,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
                   container
                 );
               } else {
-                (signal as any).force();
+                signal.invalidate();
               }
             }
           }

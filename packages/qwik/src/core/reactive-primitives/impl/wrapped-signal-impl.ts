@@ -3,7 +3,6 @@ import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { trackSignal } from '../../use/use-core';
-import { triggerEffects } from '../utils';
 import type { BackRef } from '../cleanup';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import {
@@ -41,7 +40,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     this.$flags$ = flags;
   }
 
-  $invalidate$() {
+  invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     this.$container$?.$scheduler$(
@@ -57,9 +56,13 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    * remained the same object.
    */
   force() {
-    this.$flags$ |= SignalFlags.INVALID;
-    this.$forceRunEffects$ = false;
-    triggerEffects(this.$container$, this, this.$effects$);
+    this.$forceRunEffects$ = true;
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      this.$hostElement$,
+      this,
+      this.$effects$
+    );
   }
 
   get untrackedValue() {

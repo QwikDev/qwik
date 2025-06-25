@@ -648,13 +648,8 @@ type DomRef = {
 };
 
 type SeenRef = {
-  // Parent used for RootRef path calculation (null for roots)
-  $refParent$: unknown | null;
-  // The actual parent in the object graph, roots can also have a structural parent
-  $structuralParents$: (unknown | null)[];
-  // Index within $structuralParent$
+  $parent$: unknown | null;
   $index$: number;
-  // Index in the roots array (-1 if not a root)
   $rootIndex$: number;
 };
 
@@ -689,11 +684,20 @@ export interface SerializationContext {
    */
   $addRoot$: (obj: unknown, parent?: unknown) => number;
 
+  /**
+   * Get root path of the object without creating a new root.
+   *
+   * This is used during serialization, as new roots can't be created during serialization.
+   *
+   * The function throws if the root was not found.
+   */
+  $addRootPath$: (obj: any) => string | number;
+
   $seen$: (obj: unknown, parent: unknown | null, index: number) => void;
 
   $roots$: unknown[];
   $objectPathStringCache$: Map<unknown, string | number>;
-  $outputRootRefs$: boolean;
+
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
   $isSsrNode$: (obj: unknown) => obj is SsrNode;
@@ -747,34 +751,10 @@ export const createSerializationContext = (
 
   const $wasSeen$ = (obj: unknown) => seenObjsMap.get(obj);
   const $seen$ = (obj: unknown, parent: unknown | null, index: number) => {
-    return seenObjsMap.set(obj, {
-      $refParent$: parent,
-      $structuralParents$: parent ? [parent] : [], // Initialize as array
-      $index$: index,
-      $rootIndex$: -1,
-    });
+    return seenObjsMap.set(obj, { $parent$: parent, $index$: index, $rootIndex$: -1 });
   };
 
-  const $getObjectIndexPath$ = (
-    seen: SeenRef,
-    getParent: (seen: SeenRef) => unknown | null
-  ): number[] => {
-    const path = [];
-    let current: typeof seen | undefined = seen;
-
-    // Traverse up through parent references to build a path
-    while (current && current.$index$ >= 0) {
-      path.unshift(current.$index$);
-      const parent = getParent(current);
-      if (typeof parent !== 'object' || parent === null) {
-        break;
-      }
-      current = seenObjsMap.get(parent);
-    }
-    return path;
-  };
-
-  const $getObjectPathString$ = (obj: unknown) => {
+  const $addRootPath$ = (obj: unknown) => {
     const rootPath = objectPathStringCache.get(obj);
     if (rootPath) {
       return rootPath;
@@ -783,7 +763,17 @@ export const createSerializationContext = (
     if (!seen) {
       throw qError(QError.serializeErrorMissingRootId, [obj]);
     }
-    const path = $getObjectIndexPath$(seen, (seen) => seen.$refParent$);
+    const path = [];
+    let current: typeof seen | undefined = seen;
+
+    // Traverse up through parent references to build a path
+    while (current && current.$index$ >= 0) {
+      path.unshift(current.$index$);
+      if (typeof current.$parent$ !== 'object' || current.$parent$ === null) {
+        break;
+      }
+      current = seenObjsMap.get(current.$parent$);
+    }
 
     const pathStr = path.length > 1 ? path.join(' ') : path.length ? path[0] : seen.$index$;
     objectPathStringCache.set(obj, pathStr);
@@ -794,23 +784,14 @@ export const createSerializationContext = (
     let seen = seenObjsMap.get(obj);
     if (!seen) {
       const rootIndex = roots.length;
-      seen = {
-        $refParent$: parent,
-        $structuralParents$: parent ? [parent] : [],
-        $index$: rootIndex,
-        $rootIndex$: rootIndex,
-      };
+      seen = { $parent$: parent, $index$: rootIndex, $rootIndex$: rootIndex };
       seenObjsMap.set(obj, seen);
       roots.push(obj);
     } else if (seen.$rootIndex$ === -1) {
       seen.$rootIndex$ = roots.length;
       roots.push(obj);
     }
-    // If a parent is provided and not already in the list, add it.
-    if (parent !== null && !seen.$structuralParents$.includes(parent)) {
-      seen.$structuralParents$.push(parent);
-    }
-    $getObjectPathString$(obj);
+    $addRootPath$(obj);
     return seen.$rootIndex$;
   };
 
@@ -831,14 +812,13 @@ export const createSerializationContext = (
     $symbolToChunkResolver$: symbolToChunkResolver,
     $wasSeen$,
     $roots$: roots,
-    $objectPathStringCache$: objectPathStringCache,
-    $outputRootRefs$: true,
     $seen$,
     $hasRootId$: (obj: any) => {
       const id = seenObjsMap.get(obj);
-      return id?.$refParent$ === null ? id.$index$ : undefined;
+      return id?.$parent$ === null ? id.$index$ : undefined;
     },
     $addRoot$,
+    $addRootPath$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
@@ -869,6 +849,7 @@ export const createSerializationContext = (
     $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
+    $objectPathStringCache$: objectPathStringCache,
   };
 };
 
@@ -1017,7 +998,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     // (NOTE: For root objects we need to serialize them regardless if we have seen
     //        them before, otherwise the root object reference will point to itself.)
     // Also note that depth will be 1 for objects in root
-    if (rootDepth === depth && seen && seen.$refParent$ !== null && rootRefPath) {
+    if (rootDepth === depth && seen && seen.$parent$ !== null && rootRefPath) {
       output(TypeIds.RootRef, rootRefPath);
       return true;
     } else if (depth > rootDepth && seen && seen.$rootIndex$ !== -1) {

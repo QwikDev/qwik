@@ -22,7 +22,7 @@ export const $: <T>(expression: T) => QRL<T>;
 export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
-export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
 }
 
 // @public (undocumented)
@@ -100,6 +100,7 @@ export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSig
 // @public
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
     force(): void;
+    invalidate(): void;
 }
 
 // @internal (undocumented)

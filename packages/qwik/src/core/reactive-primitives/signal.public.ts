@@ -17,7 +17,7 @@ export interface ReadonlySignal<T = unknown> {
 }
 
 /** @public */
-export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T> {
+export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
   // TODO: enable later this, after the scheduler changes for "streaming" signals values
   // loading: boolean;
   // error: Error | null;
@@ -48,10 +48,16 @@ export interface Signal<T = any> extends ReadonlySignal<T> {
  */
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
   /**
-   * Use this to force recalculation and running subscribers, for example when the calculated value
-   * mutates but remains the same object. Useful for third-party libraries.
+   * Use this to force running subscribers, for example when the calculated value mutates but
+   * remains the same object.
    */
   force(): void;
+
+  /**
+   * Use this to force recalculation and running subscribers, for example when the calculated value
+   * mutates but remains the same object.
+   */
+  invalidate(): void;
 }
 
 /**

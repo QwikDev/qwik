@@ -1,3 +1,4 @@
+import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
@@ -9,7 +10,6 @@ import {
   RequestRouteName,
 } from './request-event';
 import type { RequestEvent } from './types';
-import { Q_ROUTE } from '../../runtime/src/constants';
 
 export function getQwikRouterServerData(requestEv: RequestEvent) {
   const { params, request, status, locale, originalUrl } = requestEv;

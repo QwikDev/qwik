@@ -17,16 +17,13 @@ import {
   type QRL,
 } from '@qwik.dev/core';
 import {
-  _getContextElement,
   _getContextContainer,
+  _getContextElement,
   _getQContainerElement,
   _UNINITIALIZED,
   _waitUntilRendered,
-  type _ElementVNode,
-  _useInvokeContext,
-  _getDomContainer,
-  type _DomContainer,
   SerializerSymbol,
+  type _ElementVNode,
   type AsyncComputedReadonlySignal,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';

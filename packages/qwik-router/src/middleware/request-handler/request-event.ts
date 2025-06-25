@@ -14,8 +14,8 @@ import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { RewriteMessage } from './rewrite-handler';
 import { encoder } from './resolve-request-handlers';
+import { RewriteMessage } from './rewrite-handler';
 import type {
   CacheControl,
   CacheControlTarget,

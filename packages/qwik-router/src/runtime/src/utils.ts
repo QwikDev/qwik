@@ -7,6 +7,7 @@ import {
   _getDomContainer,
   _useInvokeContext,
   type ClientContainer,
+  type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
 import { loadClientData } from './use-endpoint';
@@ -105,25 +106,25 @@ export const deepFreeze = (obj: any) => {
 };
 
 export const createLoaderSignal = (
-  spaLoaderState: Record<string, unknown>,
+  loadersObject: Record<string, unknown>,
   loaderId: string,
   url: URL,
+  serializationStrategy: SerializationStrategy,
   container?: ClientContainer
 ) => {
-  // container?.$ignoredComputedValues$.add(value);
   return createAsyncComputed$(
     async () => {
-      if (isBrowser && spaLoaderState[loaderId] === _UNINITIALIZED) {
+      if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
         const data = await loadClientData(url, undefined, {
           loaderIds: [loaderId],
         });
-        spaLoaderState[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
+        loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
       }
-      return spaLoaderState[loaderId];
+      return loadersObject[loaderId];
     },
     {
       container: container as ClientContainer,
-      serializationStrategy: 'never',
+      serializationStrategy,
     }
   );
 };

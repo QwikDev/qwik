@@ -1,6 +1,6 @@
 import { type QRL } from '@qwik.dev/core';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
-import { QACTION_KEY, QFN_KEY, QLOADER_EAGER, QLOADER_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
   type ActionInternal,
   type ClientPageData,
@@ -26,6 +26,7 @@ import {
   type RequestEventInternal,
   RequestEvShareServerTiming,
   RequestEvShareQData,
+  getRequestLoadersSerializationStrategy,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type {
@@ -307,7 +308,8 @@ async function getRouteLoaderPromise(
       }
       return resolvedLoader;
     });
-  (loaders[loaderId] as any)[QLOADER_EAGER] = loader.__eager;
+  const loadersSerializationStrategy = getRequestLoadersSerializationStrategy(requestEv);
+  loadersSerializationStrategy.set(loaderId, loader.__serializationStrategy);
   return loaders[loaderId];
 }
 

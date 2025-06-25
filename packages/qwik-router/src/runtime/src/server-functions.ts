@@ -17,6 +17,7 @@ import {
   _serialize,
   _useInvokeContext,
   _UNINITIALIZED,
+  type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 
 import * as v from 'valibot';
@@ -29,9 +30,8 @@ import type {
   ActionConstructorQRL,
   ActionInternal,
   ActionStore,
-  CommonLoaderActionOptions,
+  ActionOptions,
   DataValidator,
-  EagerLoaderOptions,
   Editable,
   JSONObject,
   LoaderConstructor,
@@ -54,6 +54,7 @@ import type {
   ZodConstructor,
   ZodConstructorQRL,
   ZodDataValidator,
+  LoaderOptions,
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
@@ -64,7 +65,7 @@ import { loadClientData } from './use-endpoint';
 /** @internal */
 export const routeActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
-  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+  ...rest: (ActionOptions | DataValidator)[]
 ) => {
   const { id, validators } = getValidators(rest, actionQrl);
   function action() {
@@ -168,7 +169,7 @@ Action.run() can only be called on the browser, for example when a user clicks a
 /** @internal */
 export const globalActionQrl = ((
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
-  ...rest: (CommonLoaderActionOptions | DataValidator)[]
+  ...rest: (ActionOptions | DataValidator)[]
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
@@ -193,9 +194,9 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
 /** @internal */
 export const routeLoaderQrl = ((
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
-  ...rest: (EagerLoaderOptions | DataValidator)[]
+  ...rest: (LoaderOptions | DataValidator)[]
 ): LoaderInternal => {
-  const { id, validators, eager } = getValidators(rest, loaderQrl);
+  const { id, validators, serializationStrategy } = getValidators(rest, loaderQrl);
   function loader() {
     const iCtx = _useInvokeContext();
     const state = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteStateContext)!;
@@ -210,7 +211,7 @@ export const routeLoaderQrl = ((
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
     }
     const loaderData = untrack(() => state[id].value);
-    if (loaderData === _UNINITIALIZED && isBrowser) {
+    if (isBrowser && loaderData === _UNINITIALIZED) {
       // Request the loader data from the server and throw the Promise
       // so the client can load it synchronously.
       throw loadClientData(location.url, iCtx.$hostElement$, {
@@ -225,7 +226,7 @@ export const routeLoaderQrl = ((
   loader.__qrl = loaderQrl;
   loader.__validators = validators;
   loader.__id = id;
-  loader.__eager = eager;
+  loader.__serializationStrategy = serializationStrategy;
   Object.freeze(loader);
 
   return loader;
@@ -515,9 +516,9 @@ export const serverQrl = <T extends ServerFunction>(
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
-const getValidators = (rest: (EagerLoaderOptions | DataValidator)[], qrl: QRL) => {
+const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
-  let eager = false;
+  let serializationStrategy: SerializationStrategy = 'never';
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
     const options = rest[0];
@@ -526,7 +527,7 @@ const getValidators = (rest: (EagerLoaderOptions | DataValidator)[], qrl: QRL) =
         validators.push(options);
       } else {
         id = options.id;
-        eager = options.eager || false;
+        serializationStrategy = options.serializationStrategy || 'never';
         if (options.validation) {
           validators.push(...options.validation);
         }
@@ -549,7 +550,7 @@ const getValidators = (rest: (EagerLoaderOptions | DataValidator)[], qrl: QRL) =
   return {
     validators: validators.reverse(),
     id,
-    eager,
+    serializationStrategy,
   };
 };
 

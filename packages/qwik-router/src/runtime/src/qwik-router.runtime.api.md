@@ -23,6 +23,7 @@ import { RequestEventCommon } from '@qwik.dev/router/middleware/request-handler'
 import { RequestEventLoader } from '@qwik.dev/router/middleware/request-handler';
 import { RequestHandler } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handler';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type * as v from 'valibot';
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { z } from 'zod';

@@ -18,11 +18,11 @@ export default component$(() => {
   return (
     <>
       {testSignal.value.test}
-      <button onClick$={() => (toggle.value = !toggle.value)}>
+      <button id="toggle-child" onClick$={() => (toggle.value = !toggle.value)}>
         toggle child
       </button>
       {toggle.value && <Child />}
-      <ChildEager />
+      {toggle.value && <ChildEager />}
     </>
   );
 });
@@ -41,8 +41,8 @@ export const ChildEager = component$(() => {
   const testSignal = useTestLoaderEager();
   return (
     <>
-      <div id="prop1">{testSignal.value.foo}</div>
-      <div id="prop2">{testSignal.value.bar}</div>
+      <div id="prop3">{testSignal.value.foo}</div>
+      <div id="prop4">{testSignal.value.bar}</div>
     </>
   );
 });

@@ -151,5 +151,34 @@ test.describe("loaders", () => {
       const body = page.locator("body");
       await expect(body).toContainText("server-error-data");
     });
+
+    test("should not serialize loaders by default and serialize with serializationStrategy: always", async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      await page.goto("/qwikrouter-test/loaders-serialization/");
+      const stateData = page.locator('script[type="qwik/state"]');
+
+      expect(await stateData.textContent()).not.toContain("some test value");
+      expect(await stateData.textContent()).not.toContain(
+        "should not serialize this",
+      );
+      expect(await stateData.textContent()).toContain("some eager test value");
+      expect(await stateData.textContent()).toContain("should serialize this");
+
+      if (javaScriptEnabled) {
+        await page.locator("#toggle-child").click();
+        await expect(page.locator("#prop1")).toHaveText("some test value");
+        await expect(page.locator("#prop2")).toHaveText(
+          "should not serialize this",
+        );
+        await expect(page.locator("#prop3")).toHaveText(
+          "some eager test value",
+        );
+        await expect(page.locator("#prop4")).toHaveText(
+          "should serialize this",
+        );
+      }
+    });
   }
 });

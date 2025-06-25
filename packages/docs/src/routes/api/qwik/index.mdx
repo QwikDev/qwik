@@ -130,10 +130,10 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 ## AsyncComputedReadonlySignal
 
 ```typescript
-export interface AsyncComputedReadonlySignal<T = unknown> extends ReadonlySignal<T>
+export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T>
 ```
 
-**Extends:** [ReadonlySignal](#readonlysignal)&lt;T&gt;
+**Extends:** [ComputedSignal](#computedsignal)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -477,7 +477,16 @@ Description
 
 </td><td>
 
-Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+Use this to force running subscribers, for example when the calculated value mutates but remains the same object.
+
+</td></tr>
+<tr><td>
+
+[invalidate()](#computedsignal-invalidate)
+
+</td><td>
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.
 
 </td></tr>
 </tbody></table>
@@ -1291,7 +1300,7 @@ export type EventHandler<EV = Event, EL = Element> = {
 
 ## force
 
-Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.
+Use this to force running subscribers, for example when the calculated value mutates but remains the same object.
 
 ```typescript
 force(): void;
@@ -1588,6 +1597,18 @@ interface IntrinsicElements extends LenientQwikElements
 ```
 
 **Extends:** LenientQwikElements
+
+## invalidate
+
+Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.
+
+```typescript
+invalidate(): void;
+```
+
+**Returns:**
+
+void
 
 ## isSignal
 

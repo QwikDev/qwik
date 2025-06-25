@@ -1,4 +1,5 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
@@ -33,6 +34,9 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
+export const RequestEvLoadersSerializationStrategy = Symbol(
+  'RequestEvLoadersSerializationStrategy'
+);
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
@@ -149,6 +153,7 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
+    [RequestEvLoadersSerializationStrategy]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
     get [RequestEvRoute]() {
@@ -328,6 +333,7 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
+  [RequestEvLoadersSerializationStrategy]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;
@@ -356,6 +362,10 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestLoadersSerializationStrategy(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvLoadersSerializationStrategy];
 }
 
 export function getRequestTrailingSlash(requestEv: RequestEventCommon) {

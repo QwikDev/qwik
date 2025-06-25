@@ -13,5 +13,3 @@ export const QFN_KEY = 'qfunc';
 export const QDATA_KEY = 'qdata';
 
 export const Q_ROUTE = 'q:route';
-
-export const QLOADER_EAGER = Symbol('qloader_eager');

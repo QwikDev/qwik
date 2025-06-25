@@ -901,8 +901,6 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
-    readonly $ignoredComputedValues$: Set<unknown>;
-    // (undocumented)
     $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;

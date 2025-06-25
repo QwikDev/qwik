@@ -106,7 +106,7 @@ export interface QwikRouterProps {
    *
    * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
    * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
-   * @see https://caniuse.com/mdn-api_viewtransition
+   * @see https://caniuse.com/mdn_api_viewtransition
    */
   viewTransition?: boolean;
 }
@@ -176,26 +176,29 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   );
   const navResolver: { r?: () => void } = {};
   const container = _getContextContainer();
-  const spaLoaderState: Record<string, unknown> = Object.fromEntries(
-    Object.entries(env.response.loaders).map(([k, v]) => {
-      return [k, v];
-    })
-  );
-  (spaLoaderState as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
-    return Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => {
-        return [k, _UNINITIALIZED];
-      })
-    );
+  const getSerializationStrategy = (loaderId: string) => {
+    return env.response.loadersSerializationStrategy.get(loaderId) || 'never';
   };
-  const loaderState = Object.fromEntries(
-    Object.entries(env.response.loaders).map(([k, v]) => {
-      // const isEager = (v as any)[QLOADER_EAGER];
-      // const value = isEager ? createSignal(v) : createLoaderSignal(spaLoaderState, k, v, url);
-      const value = createLoaderSignal(spaLoaderState, k, url, container);
-      return [k, value];
-    })
-  );
+
+  const loadersObject: Record<string, unknown> = {};
+  const loaderState: Record<string, Signal<unknown>> = {};
+  for (const [key, value] of Object.entries(env.response.loaders)) {
+    loadersObject[key] = value;
+    loaderState[key] = createLoaderSignal(
+      loadersObject,
+      key,
+      url,
+      getSerializationStrategy(key),
+      container
+    );
+  }
+  (loadersObject as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
+    const loadersSerializationObject: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      loadersSerializationObject[k] = getSerializationStrategy(k) === 'always' ? v : _UNINITIALIZED;
+    }
+    return loadersSerializationObject;
+  };
 
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
@@ -515,9 +518,15 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             for (const [key, value] of Object.entries(loaders)) {
               const signal = loaderState[key] as Signal<unknown>;
               const awaitedValue = await value;
-              spaLoaderState[key] = awaitedValue;
+              loadersObject[key] = awaitedValue;
               if (!signal) {
-                loaderState[key] = createLoaderSignal(spaLoaderState, key, trackUrl, container);
+                loaderState[key] = createLoaderSignal(
+                  loadersObject,
+                  key,
+                  trackUrl,
+                  'never',
+                  container
+                );
               } else {
                 (signal as any).force();
               }

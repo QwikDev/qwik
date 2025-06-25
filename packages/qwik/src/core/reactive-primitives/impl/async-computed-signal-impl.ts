@@ -141,12 +141,6 @@ export class AsyncComputedSignalImpl<T>
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
       this.$untrackedValue$ = untrackedValue;
-      // if (
-      //   this.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER &&
-      //   isObject(untrackedValue)
-      // ) {
-      //   this.$container$?.$ignoredComputedValues$.add(untrackedValue);
-      // }
     }
     return didChange;
   }

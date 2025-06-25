@@ -105,8 +105,7 @@ describe('serialization', () => {
       () => '',
       () => '',
       () => {},
-      new WeakMap<any, any>(),
-      new Set<unknown>()
+      new WeakMap<any, any>()
     );
     assert.equal(
       qrlToString(serializationContext, createQRL('./chunk', '', null, null, null, null)),

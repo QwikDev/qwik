@@ -1,6 +1,7 @@
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
+  getRequestLoadersSerializationStrategy,
   getRequestRoute,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -32,6 +33,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
   }
 
   const loaders = getRequestLoaders(requestEv);
+  const loadersSerializationStrategy = getRequestLoadersSerializationStrategy(requestEv);
 
   return {
     url: reconstructedUrl.href,
@@ -49,6 +51,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       response: {
         status: status(),
         loaders,
+        loadersSerializationStrategy,
         action,
         formData,
       },

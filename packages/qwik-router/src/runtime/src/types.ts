@@ -6,6 +6,7 @@ import type {
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -319,11 +320,13 @@ export const enum LoadedRouteProp {
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, unknown>;
+  loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;
   action?: string;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
+export interface ClientPageData
+  extends Omit<EndpointResponse, 'status' | 'loadersSerializationStrategy'> {
   status: number;
   href: string;
   redirect?: string;
@@ -403,14 +406,10 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   GetValidatorOutputType<VALIDATOR>;
 
 /** @public */
-export type CommonLoaderActionOptions = {
+export type ActionOptions = {
   readonly id?: string;
   readonly validation?: DataValidator[];
 };
-
-export interface EagerLoaderOptions extends CommonLoaderActionOptions {
-  readonly eager?: boolean;
-}
 
 /** @public */
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
@@ -651,8 +650,9 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  id?: string;
-  eager?: boolean;
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+  readonly serializationStrategy?: SerializationStrategy;
 };
 
 /** @public */
@@ -796,7 +796,7 @@ export interface LoaderInternal extends Loader<any> {
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>;
   __id: string;
   __validators: DataValidator[] | undefined;
-  __eager: boolean;
+  __serializationStrategy: SerializationStrategy;
   (): LoaderSignal<unknown>;
 }
 

@@ -19,7 +19,6 @@ export interface Container {
   readonly $version$: string;
   readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
-  readonly $ignoredComputedValues$: Set<unknown>;
   /// Current language locale
   readonly $locale$: string;
   /// Retrieve Object from paused serialized state.

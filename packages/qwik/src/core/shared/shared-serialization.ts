@@ -707,7 +707,6 @@ export interface SerializationContext {
   $resources$: Set<ResourceReturnInternal<unknown>>;
   $renderSymbols$: Set<string>;
   $storeProxyMap$: ObjToProxyMap;
-  $ignoredComputedValues$: Set<unknown>;
 
   $getProp$: (obj: any, prop: string) => any;
   $setProp$: (obj: any, prop: string, value: any) => void;
@@ -731,7 +730,6 @@ export const createSerializationContext = (
   getProp: (obj: any, prop: string) => any,
   setProp: (obj: any, prop: string, value: any) => void,
   storeProxyMap: ObjToProxyMap,
-  ignoredComputedValues: Set<unknown>,
   writer?: StreamWriter
 ): SerializationContext => {
   if (!writer) {
@@ -869,7 +867,6 @@ export const createSerializationContext = (
     $resources$: new Set<ResourceReturnInternal<unknown>>(),
     $renderSymbols$: new Set<string>(),
     $storeProxyMap$: storeProxyMap,
-    $ignoredComputedValues$: ignoredComputedValues,
     $getProp$: getProp,
     $setProp$: setProp,
   };
@@ -1139,9 +1136,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
     }
     // handle custom serializers
     // add to the seen map
-    if (serializationContext.$ignoredComputedValues$.has(value)) {
-      output(TypeIds.Constant, Constants.UNINITIALIZED);
-    } else if (isPropsProxy(value)) {
+    if (isPropsProxy(value)) {
       const varProps = value[_VAR_PROPS];
       const constProps = value[_CONST_PROPS];
       const out = constProps
@@ -1597,8 +1592,7 @@ export async function _serialize(data: unknown[]): Promise<string> {
     () => '',
     () => '',
     () => {},
-    new WeakMap<any, any>(),
-    new Set<unknown>()
+    new WeakMap<any, any>()
   );
 
   for (const root of data) {

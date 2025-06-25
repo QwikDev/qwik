@@ -5,12 +5,12 @@ export const useTestLoader = routeLoader$(() => {
   return { test: "some test value", abcd: "should not serialize this" };
 });
 
-// export const useTestLoaderEager = routeLoader$(
-//   () => {
-//     return { test: "some eager test value", abcd: "should serialize this" };
-//   },
-//   { eager: true },
-// );
+export const useTestLoaderEager = routeLoader$(
+  () => {
+    return { foo: "some eager test value", bar: "should serialize this" };
+  },
+  { serializationStrategy: "always" },
+);
 
 export default component$(() => {
   const testSignal = useTestLoader();
@@ -22,6 +22,7 @@ export default component$(() => {
         toggle child
       </button>
       {toggle.value && <Child />}
+      <ChildEager />
     </>
   );
 });
@@ -32,6 +33,16 @@ export const Child = component$(() => {
     <>
       <div id="prop1">{testSignal.value.test}</div>
       <div id="prop2">{testSignal.value.abcd}</div>
+    </>
+  );
+});
+
+export const ChildEager = component$(() => {
+  const testSignal = useTestLoaderEager();
+  return (
+    <>
+      <div id="prop1">{testSignal.value.foo}</div>
+      <div id="prop2">{testSignal.value.bar}</div>
     </>
   );
 });

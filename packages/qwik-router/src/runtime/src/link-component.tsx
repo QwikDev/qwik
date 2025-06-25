@@ -7,8 +7,8 @@ import {
   untrack,
   useSignal,
   useVisibleTask$,
-  type QwikIntrinsicElements,
   type EventHandler,
+  type QwikIntrinsicElements,
   type QwikVisibleEvent,
 } from '@qwik.dev/core';
 import { prefetchSymbols } from './client-navigate';

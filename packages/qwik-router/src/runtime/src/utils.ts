@@ -1,15 +1,12 @@
 import type { SimpleURL } from './types';
 
-import { QACTION_KEY, QLOADER_KEY } from './constants';
+import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
 import {
   _UNINITIALIZED,
-  _getContextElement,
-  _getDomContainer,
-  _useInvokeContext,
   type ClientContainer,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
-import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
+import { QACTION_KEY, QLOADER_KEY } from './constants';
 import { loadClientData } from './use-endpoint';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */

@@ -98,8 +98,8 @@ export class AsyncComputedSignalImpl<T>
     return this.$untrackedError$;
   }
 
-  override $invalidate$() {
-    super.$invalidate$();
+  override invalidate() {
+    super.invalidate();
     this.$promiseValue$ = NEEDS_COMPUTATION;
   }
 

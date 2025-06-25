@@ -113,7 +113,7 @@ export const triggerEffects = (
           }
         }
 
-        (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).$invalidate$();
+        (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = consumer as any;
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);

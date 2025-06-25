@@ -30,8 +30,8 @@
               bashInteractive
               gitMinimal
 
-              nodejs_20
-              corepack_20
+              nodejs_22
+              corepack_22
 
               # Playwright for the end-to-end tests
               playwright-driver.browsers

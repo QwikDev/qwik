@@ -20510,8 +20510,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         --color-select-menu-backdrop-border: rgba(0, 0, 0, 0);
         --color-select-menu-tap-highlight: rgba(175, 184, 193, 0.5);
         --color-select-menu-tap-focus-bg: #b6e3ff;
-        --color-overlay-shadow: 0 1px 3px rgba(27, 31, 36, 0.12),
-          0 8px 24px rgba(66, 74, 83, 0.12);
+        --color-overlay-shadow:
+          0 1px 3px rgba(27, 31, 36, 0.12), 0 8px 24px rgba(66, 74, 83, 0.12);
         --color-header-text: rgba(255, 255, 255, 0.7);
         --color-header-bg: #24292f;
         --color-header-logo: #ffffff;
@@ -20947,8 +20947,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           --color-select-menu-backdrop-border: #484f58;
           --color-select-menu-tap-highlight: rgba(48, 54, 61, 0.5);
           --color-select-menu-tap-focus-bg: #0c2d6b;
-          --color-overlay-shadow: 0 0 0 1px #30363d,
-            0 16px 32px rgba(1, 4, 9, 0.85);
+          --color-overlay-shadow:
+            0 0 0 1px #30363d, 0 16px 32px rgba(1, 4, 9, 0.85);
           --color-header-text: rgba(240, 246, 252, 0.7);
           --color-header-bg: #161b22;
           --color-header-logo: #f0f6fc;
@@ -21196,11 +21196,13 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         }
       }
       :root {
-        --box-shadow: rgba(0, 0, 0, 0.133) 0px 1.6px 3.6px 0px,
+        --box-shadow:
+          rgba(0, 0, 0, 0.133) 0px 1.6px 3.6px 0px,
           rgba(0, 0, 0, 0.11) 0px 0.3px 0.9px 0px;
-        --box-shadow-thick: rgb(0 0 0 / 10%) 0px 1.8px 1.9px,
-          rgb(0 0 0 / 15%) 0px 6.1px 6.3px, rgb(0 0 0 / 10%) 0px -2px 4px,
-          rgb(0 0 0 / 15%) 0px -6.1px 12px, rgb(0 0 0 / 25%) 0px 6px 12px;
+        --box-shadow-thick:
+          rgb(0 0 0 / 10%) 0px 1.8px 1.9px, rgb(0 0 0 / 15%) 0px 6.1px 6.3px,
+          rgb(0 0 0 / 10%) 0px -2px 4px, rgb(0 0 0 / 15%) 0px -6.1px 12px,
+          rgb(0 0 0 / 25%) 0px 6px 12px;
       }
       * {
         box-sizing: border-box;

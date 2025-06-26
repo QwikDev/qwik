@@ -416,6 +416,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								core_module: &q.options.core_module,
 								leading_comments: comments_maps.0.clone(),
 								trailing_comments: comments_maps.1.clone(),
+								extra_top_items: &q.extra_top_items,
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {

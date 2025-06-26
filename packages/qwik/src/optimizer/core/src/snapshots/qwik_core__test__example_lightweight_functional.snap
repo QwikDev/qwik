@@ -139,23 +139,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+const i_9npo43fIGik = ()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik");
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+const i_NsM0JYV00Jw = ()=>import("./test.tsx_Button_button_onClick_NsM0JYV00Jw");
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 export function Button({ text, color }) {
-    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_Button_button_onClick_NsM0JYV00Jw"), "Button_button_onClick_NsM0JYV00Jw", [
+    return <button onColor$={color} onClick$={/*#__PURE__*/ qrl(i_NsM0JYV00Jw, "Button_button_onClick_NsM0JYV00Jw", [
         color,
         text
     ])}>{text}</button>;
 }
 export const ButtonArrow = (props)=>{
-    return <button onColor$={props.color} onClick$={/*#__PURE__*/ qrl(()=>import("./test.tsx_ButtonArrow_button_onClick_9npo43fIGik"), "ButtonArrow_button_onClick_9npo43fIGik", [
+    return <button onColor$={props.color} onClick$={/*#__PURE__*/ qrl(i_9npo43fIGik, "ButtonArrow_button_onClick_9npo43fIGik", [
         props
     ])}>{props.text}</button>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,4EAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

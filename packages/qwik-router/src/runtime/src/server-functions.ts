@@ -1,7 +1,6 @@
 import {
   $,
   implicit$FirstArg,
-  isBrowser,
   isDev,
   isServer,
   noSerialize,
@@ -24,7 +23,7 @@ import * as v from 'valibot';
 import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
-import { RouteLocationContext, RouteStateContext } from './contexts';
+import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -59,7 +58,6 @@ import type {
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
 import type { FormSubmitCompletedDetail } from './form-component';
-import { loadClientData } from './use-endpoint';
 import { deepFreeze } from './utils';
 
 /** @internal */
@@ -200,7 +198,6 @@ export const routeLoaderQrl = ((
   function loader() {
     const iCtx = _useInvokeContext();
     const state = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteStateContext)!;
-    const location = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteLocationContext)!;
 
     if (!(id in state)) {
       throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.
@@ -210,16 +207,14 @@ export const routeLoaderQrl = ((
     If your are managing reusable logic or a library it is essential that this function is re-exported from within 'layout.tsx' or 'index.tsx file of the existing route otherwise it will not run or throw exception.
     For more information check: https://qwik.dev/docs/re-exporting-loaders/`);
     }
-    const loaderData = untrack(() => state[id].value);
-    if (isBrowser && loaderData === _UNINITIALIZED) {
-      // Request the loader data from the server and throw the Promise
-      // so the client can load it synchronously.
-      throw loadClientData(location.url, iCtx.$hostElement$, {
-        loaderIds: [id],
-      }).then((clientData) => {
-        state[id].value = clientData?.loaders[id];
-      });
-    }
+    // Force the signal to be initialized.
+    // It is an async computed signal.
+    // We have two options:
+    // - we already have data from signal or from previous fetch
+    // - we don't have data yet, so we need to fetch it from the server
+    // Calling it will trigger fetch the data from the server.
+    // Under the hood, it will throw a promise and await for it, so the client will load the data synchronously.
+    untrack(() => state[id].value);
     return state[id];
   }
   loader.__brand = 'server_loader' as const;

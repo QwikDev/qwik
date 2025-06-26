@@ -30,6 +30,9 @@
     "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },
+  "peerDependencies": {
+    "vite": ">=5 <8"
+  },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": ">=10.0.0",

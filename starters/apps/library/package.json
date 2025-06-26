@@ -32,6 +32,9 @@
     "qwik": "qwik",
     "release": "np"
   },
+  "peerDependencies": {
+    "vite": ">=5 <8"
+  },
   "devDependencies": {
     "@qwik.dev/core": "latest",
     "@eslint/js": "latest",

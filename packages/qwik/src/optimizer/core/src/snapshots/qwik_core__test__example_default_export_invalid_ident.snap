@@ -21,20 +21,22 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_zRvoWc98eqo"), "_404_component_zRvoWc98eqo"));
+const i_zRvoWc98eqo = ()=>import("./404.tsx__404_component_zRvoWc98eqo");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_zRvoWc98eqo, "_404_component_zRvoWc98eqo"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,kHAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,6BAAe,6EAKZ\"}")
 ============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+const i_OiMo9dvEW9Q = ()=>import("./404.tsx__404_component_div_onClick_OiMo9dvEW9Q");
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div onClick$={/*#__PURE__*/ qrl(()=>import("./404.tsx__404_component_div_onClick_OiMo9dvEW9Q"), "_404_component_div_onClick_OiMo9dvEW9Q")}>
+    return <div onClick$={/*#__PURE__*/ qrl(i_OiMo9dvEW9Q, "_404_component_div_onClick_OiMo9dvEW9Q")}>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";0CAG0B;IACzB,QACE,IAAI,uIAAsC;EAC3C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;0CAG0B;IACzB,QACE,IAAI,sFAAsC;EAC3C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",

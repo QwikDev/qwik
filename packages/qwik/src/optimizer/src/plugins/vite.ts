@@ -191,7 +191,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             pluginOpts.input = viteConfig.build?.lib.entry;
           }
         }
-        if (sys.env === 'node') {
+        if (sys.env === 'node' || sys.env === 'bun') {
           const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
           try {
@@ -575,7 +575,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           );
 
           const sys = qwikPlugin.getSys();
-          if (tmpClientManifestPath && sys.env === 'node') {
+          if (tmpClientManifestPath && (sys.env === 'node' || sys.env === 'bun')) {
             // Client build should write the manifest to a tmp dir
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
             await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
@@ -590,7 +590,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // ssr build
 
         const sys = qwikPlugin.getSys();
-        if (sys.env === 'node') {
+        if (sys.env === 'node' || sys.env === 'bun') {
           const outputs = Object.keys(rollupBundle);
 
           // In order to simplify executing the server script with a common script
@@ -668,7 +668,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // TODO: Removed the "__qwikCityNew" condition in V3
         const isNEW =
           (globalThis as any).__qwikRouterNew === true ||
-          (globalThis as any).__qwikCityNew === true;
+          (globalThis as any).__qwikCityNew === true ||
+          // related to this issue https://github.com/QwikDev/qwik/issues/7600
+          // FIX: the @qwik-handlers aren't properly handled in dev mode for library projects
+          server.config.build.lib;
+
         if (isNEW) {
           return plugin;
         } else {
@@ -807,7 +811,7 @@ const findQwikRoots = async (
   packageJsonDir: string
 ): Promise<QwikPackages[]> => {
   const paths = new Map<string, string>();
-  if (sys.env === 'node') {
+  if (sys.env === 'node' || sys.env === 'bun') {
     const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
     let prevPackageJsonDir: string | undefined;
     do {

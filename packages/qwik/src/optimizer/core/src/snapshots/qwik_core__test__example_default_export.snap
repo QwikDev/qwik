@@ -22,10 +22,11 @@ export default component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js"), "slug_component_0AM8HPnkNs4"));
+const i_0AM8HPnkNs4 = ()=>import("./[[...slug]].tsx_slug_component_0AM8HPnkNs4.js");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0AM8HPnkNs4, "slug_component_0AM8HPnkNs4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;AAIA,6BAAe,6HAKZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;AAIA,6BAAe,6EAKZ\"}")
 ============================= src/routes/_repl/[id]/[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js (ENTRY POINT)==
 
 import { sibling } from "./sibling";
@@ -57,14 +58,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...sl
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_xevvy0Qc7pA = ()=>import("./[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js");
 export const slug_component_0AM8HPnkNs4 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./[[...slug]].tsx_slug_component_div_onClick_xevvy0Qc7pA.js"), "slug_component_div_onClick_xevvy0Qc7pA")
+        onClick$: /*#__PURE__*/ qrl(i_xevvy0Qc7pA, "slug_component_div_onClick_xevvy0Qc7pA")
     }, null, 3, "W4_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;0CAI0B;IACzB,qBACC,WAAC;QAAI,QAAQ;;AAGf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/routes/_repl/[id]/[[...slug]].tsx\"],\"names\":[],\"mappings\":\";;;0CAI0B;IACzB,qBACC,WAAC;QAAI,QAAQ;;AAGf\"}")
 /*
 {
   "origin": "src/routes/_repl/[id]/[[...slug]].tsx",

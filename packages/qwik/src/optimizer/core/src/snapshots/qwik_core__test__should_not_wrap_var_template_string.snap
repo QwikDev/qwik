@@ -28,10 +28,11 @@ snapshot_kind: text
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIE,6BAAe,mHAYZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIE,6BAAe,6EAYZ\"}")
 ============================= test.tsx_test_component_productTitle_useComputed_ZVQVUkxqtiQ.js (ENTRY POINT)==
 
 export const test_component_productTitle_useComputed_ZVQVUkxqtiQ = ()=>{
@@ -66,9 +67,10 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { inlineTranslate } from "translate-lib";
 import { qrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
+const i_ZVQVUkxqtiQ = ()=>import("./test.tsx_test_component_productTitle_useComputed_ZVQVUkxqtiQ");
 export const test_component_LUXeXe0DQrg = ()=>{
     const t = inlineTranslate();
-    const productTitle = useComputedQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_productTitle_useComputed_ZVQVUkxqtiQ"), "test_component_productTitle_useComputed_ZVQVUkxqtiQ"));
+    const productTitle = useComputedQrl(/*#__PURE__*/ qrl(i_ZVQVUkxqtiQ, "test_component_productTitle_useComputed_ZVQVUkxqtiQ"));
     return /*#__PURE__*/ _jsxSorted("img", {
         alt: `${t('home.imageAlt.founded-product:')} ${productTitle.value}`,
         attr: t('home.imageAlt.founded-product:')
@@ -76,7 +78,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAI4B;IACzB,MAAM,IAAI;IAEV,MAAM,eAAe;IAIrB,qBACC,WAAC;QAEA,KAAK,GAAG,EAAE,kCAAkC,CAAC,EAAE,aAAa,KAAK,EAAE;QADnE,MAAM,EAAE;;AAGX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAI4B;IACzB,MAAM,IAAI;IAEV,MAAM,eAAe;IAIrB,qBACC,WAAC;QAEA,KAAK,GAAG,EAAE,kCAAkC,CAAC,EAAE,aAAa,KAAK,EAAE;QADnE,MAAM,EAAE;;AAGX\"}")
 /*
 {
   "origin": "test.tsx",

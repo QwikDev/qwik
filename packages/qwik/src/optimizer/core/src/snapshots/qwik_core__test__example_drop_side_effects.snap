@@ -42,6 +42,7 @@ import { serverQrl } from "@qwik.dev/router";
 import { _noopQrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 import { sideEffect } from './secret';
 (function() {
     console.log('run');
@@ -56,7 +57,7 @@ export const api = serverQrl(/*#__PURE__*/ _noopQrlDEV("api_server_JonPp043gH0",
     hi: 0,
     displayName: "test.tsx_api_server"
 }));
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg", {
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg", {
     file: "/user/qwik/src/test.tsx",
     lo: 503,
     hi: 575,
@@ -64,7 +65,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(()=>import("./tes
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIX\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIX\"}")
 ============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
 
 import { api } from "./test";
@@ -96,9 +97,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
+const i_DGk9xLyRokA = ()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA");
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
-        onClick$: /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA"), "test_component_button_onClick_DGk9xLyRokA", {
+        onClick$: /*#__PURE__*/ qrlDEV(i_DGk9xLyRokA, "test_component_button_onClick_DGk9xLyRokA", {
             file: "/user/qwik/src/test.tsx",
             lo: 541,
             hi: 558,
@@ -112,7 +114,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAwB0B;IACzB,qBACC,WAAC;QAAO,QAAQ;;;;;;;;;;;AAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAwB0B;IACzB,qBACC,WAAC;QAAO,QAAQ;;;;;;;;;;;AAEjB\"}")
 /*
 {
   "origin": "test.tsx",

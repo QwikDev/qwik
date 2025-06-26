@@ -41,7 +41,7 @@ export type QRLInternalMethods<TYPE> = {
 
   resolved: undefined | TYPE;
 
-  resolve(): Promise<TYPE>;
+  resolve(containerEl?: Element): Promise<TYPE>;
   getSymbol(): string;
   getHash(): string;
   getCaptured(): unknown[] | null;
@@ -54,10 +54,11 @@ export type QRLInternalMethods<TYPE> = {
       unknown;
 
   $setContainer$(containerEl: Element | undefined): Element | undefined;
-  $resolveLazy$(containerEl?: Element): ValueOrPromise<TYPE>;
 };
 
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
+
+const resolvedSymbol = Symbol('resolved');
 
 export const createQRL = <TYPE>(
   chunk: string | null,
@@ -126,10 +127,6 @@ export const createQRL = <TYPE>(
     return bound;
   }
 
-  const resolveLazy = (containerEl?: Element): ValueOrPromise<TYPE> => {
-    return symbolRef !== null ? symbolRef : resolve(containerEl);
-  };
-
   // Wrap functions to provide their lexical scope
   const wrapFn = (fn: TYPE): TYPE => {
     if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
@@ -158,51 +155,63 @@ export const createQRL = <TYPE>(
     } as TYPE;
   };
 
-  const resolve = async (containerEl?: Element): Promise<TYPE> => {
-    if (symbolRef !== null) {
-      // Resolving (Promise) or already resolved (value)
-      return symbolRef;
-    }
-    if (containerEl) {
-      setContainer(containerEl);
-    }
-    if (chunk === '') {
-      // Sync QRL
-      assertDefined(_containerEl, 'Sync QRL must have container element');
-      const hash = _containerEl.getAttribute(QInstanceAttr)!;
-      const doc = _containerEl.ownerDocument!;
-      const qFuncs = getQFuncs(doc, hash);
-      // No need to wrap, syncQRLs can't have captured scope
-      return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
-    }
+  // Retrieve memoized result from symbolFn
+  if (symbolFn && resolvedSymbol in symbolFn) {
+    symbolRef = symbolFn[resolvedSymbol] as TYPE;
+  }
 
-    if (isBrowser && chunk) {
-      /** We run the QRL, so now the probability of the chunk is 100% */
-      preload(chunk, 1);
-    }
-
-    const start = now();
-    const ctx = tryGetInvokeContext();
-    if (symbolFn !== null) {
-      symbolRef = symbolFn().then(
-        (module) => (qrl.resolved = wrapFn((symbolRef = module[symbol])))
-      );
-    } else {
-      const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
-      symbolRef = maybeThen(imported, (ref) => (qrl.resolved = wrapFn((symbolRef = ref))));
-    }
-    if (typeof symbolRef === 'object' && isPromise(symbolRef)) {
-      symbolRef.then(
-        () => emitUsedSymbol(symbol, ctx?.$element$, start),
-        (err) => {
-          console.error(`qrl ${symbol} failed to load`, err);
-          // We shouldn't cache rejections, we can try again later
-          symbolRef = null;
+  const resolve = symbolRef
+    ? async () => symbolRef as TYPE
+    : async (containerEl?: Element): Promise<TYPE> => {
+        if (symbolRef !== null) {
+          // Resolving (Promise) or already resolved (value)
+          return symbolRef;
         }
-      );
-    }
-    return symbolRef;
-  };
+        if (containerEl) {
+          setContainer(containerEl);
+        }
+        if (chunk === '') {
+          // Sync QRL
+          assertDefined(_containerEl, 'Sync QRL must have container element');
+          const hash = _containerEl.getAttribute(QInstanceAttr)!;
+          const doc = _containerEl.ownerDocument!;
+          const qFuncs = getQFuncs(doc, hash);
+          // No need to wrap, syncQRLs can't have captured scope
+          return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
+        }
+
+        if (isBrowser && chunk) {
+          /** We run the QRL, so now the probability of the chunk is 100% */
+          preload(chunk, 1);
+        }
+
+        const start = now();
+        const ctx = tryGetInvokeContext();
+        if (symbolFn !== null) {
+          symbolRef = symbolFn().then((module) => {
+            const resolved = wrapFn((symbolRef = module[symbol]));
+            // We memoize the result on the symbolFn
+            (symbolFn as any)[resolvedSymbol] = resolved;
+            qrl.resolved = resolved;
+            return resolved;
+          });
+        } else {
+          // TODO cache the imported symbol but watch out for dev mode
+          const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
+          symbolRef = maybeThen(imported, (ref) => (qrl.resolved = wrapFn((symbolRef = ref))));
+        }
+        if (isPromise(symbolRef)) {
+          symbolRef.then(
+            () => emitUsedSymbol(symbol, ctx?.$element$, start),
+            (err) => {
+              console.error(`qrl ${symbol} failed to load`, err);
+              // We shouldn't cache rejections, we can try again later
+              symbolRef = null;
+            }
+          );
+        }
+        return symbolRef;
+      };
 
   const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
     if (invoke == null) {
@@ -221,7 +230,6 @@ export const createQRL = <TYPE>(
     getHash: () => hash,
     getCaptured: () => captureRef,
     resolve,
-    $resolveLazy$: resolveLazy,
     $setContainer$: setContainer,
     $chunk$: chunk,
     $symbol$: symbol,
@@ -233,6 +241,7 @@ export const createQRL = <TYPE>(
     dev: null,
     resolved: undefined,
   });
+
   if (symbolRef) {
     // Unwrap any promises
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = wrapFn((symbolRef = resolved))));

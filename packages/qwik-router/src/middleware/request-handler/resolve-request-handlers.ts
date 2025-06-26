@@ -464,7 +464,7 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
     }
   }
   // strip internal search params
-  const search = url.search.slice(1).replaceAll(/&?q(action|data|func|loader)=[^&]+/g, '');
+  const search = url.search.slice(1).replaceAll(/&?q(action|data|func|loaders)=[^&]+/g, '');
   return `${url.pathname}${search ? `?${search}` : ''}${url.hash}`;
 }
 

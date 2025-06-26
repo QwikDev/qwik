@@ -177,8 +177,16 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     return env.response.loadersSerializationStrategy.get(loaderId) || 'never';
   };
 
+  // On server this object contains the all the loaders data
+  // On client after resuming this object contains only keys and _UNINITIALIZED as values
+  // Thanks to this we can use this object as a capture ref and not to serialize unneeded data
+  // While resolving the loaders we will override the _UNINITIALIZED with the actual data
   const loadersObject: Record<string, unknown> = {};
+
+  // This object contains the signals for the loaders
+  // It is used for the loaders context RouteStateContext
   const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
+
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;
     loaderState[key] = createLoaderSignal(
@@ -189,6 +197,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
       container
     );
   }
+  // Serialize it as keys and _UNINITIALIZED as values
   (loadersObject as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
     const loadersSerializationObject: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {

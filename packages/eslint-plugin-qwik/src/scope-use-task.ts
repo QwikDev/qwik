@@ -2,7 +2,8 @@ import { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 import * as eslint from 'eslint'; // For Scope types
 const ISSERVER = 'isServer';
-const GLOBALAPIS = new Set(['process', '__dirname', '__filename', 'module']);
+const GLOBALAPIS = ['process', '__dirname', '__filename', 'module'];
+const PRESETNODEAPIS = ['fs', 'os', 'path', 'child_process', 'http', 'https', 'Buffer'];
 // Helper function: checks if a node is a descendant of another node
 function isNodeDescendantOf(descendantNode, ancestorNode): boolean {
   if (!ancestorNode) {
@@ -36,18 +37,7 @@ export const scopeUseTask: Rule.RuleModule = {
           forbiddenApis: {
             type: 'array',
             items: { type: 'string' },
-            default: [
-              'process',
-              'fs',
-              'os',
-              'path',
-              'child_process',
-              'http',
-              'https',
-              'Buffer',
-              '__dirname',
-              '__filename',
-            ],
+            default: PRESETNODEAPIS,
           },
         },
         additionalProperties: false,
@@ -63,18 +53,7 @@ export const scopeUseTask: Rule.RuleModule = {
   create(context: Rule.RuleContext): Rule.RuleListener {
     const options = context.options[0] || {};
     const forbiddenApis = new Set<string>(
-      options.forbiddenApis || [
-        'process',
-        'fs',
-        'os',
-        'path',
-        'child_process',
-        'http',
-        'https',
-        'Buffer',
-        '__dirname',
-        '__filename',
-      ]
+      options.forbiddenApis || PRESETNODEAPIS.concat(GLOBALAPIS)
     );
     const serverGuardIdentifier: string = ISSERVER;
     const sourceCode = context.sourceCode;
@@ -178,7 +157,7 @@ export const scopeUseTask: Rule.RuleModule = {
         currentScopeForSearch = currentScopeForSearch.upper;
       }
 
-      if (!GLOBALAPIS.has(identifierNode.name)) {
+      if (!GLOBALAPIS.includes(identifierNode.name)) {
         // Cannot find variable, assume it's not a shadowed global for safety,
         // though this state implies an undeclared variable (another ESLint rule should catch this).
         return true;
@@ -200,7 +179,7 @@ export const scopeUseTask: Rule.RuleModule = {
           def.type === 'ClassName' ||
           def.type === 'ImportBinding'
         );
-      });
+      }) as boolean;
     }
 
     /**

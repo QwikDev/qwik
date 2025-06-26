@@ -8,12 +8,7 @@ export default component$(() => {
         if (state.value) {
           const values = [
             {
-              relativePath: '',
-              name: 'index',
-              type: '',
-              path: '',
-              isSymbolicLink: false,
-              children: undefined,
+              path: '1',
             },
           ];
         }

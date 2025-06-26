@@ -4,8 +4,8 @@
 // Expect error: { "messageId": "unsafeApiUsageInCalledFunction" }
 
 import { component$, useTask$ } from '@qwik.dev/core';
-
 export default component$(() => {
+  function child_process() {}
   useTask$(() => {
     function foo() {
       process.env;
@@ -13,6 +13,7 @@ export default component$(() => {
     const foo2 = () => {
       process.env;
     };
+    child_process();
     foo();
     foo2();
   });

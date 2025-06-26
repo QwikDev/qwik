@@ -1,8 +1,8 @@
 import { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 import * as eslint from 'eslint'; // For Scope types
-import type { Identifier } from 'estree';
 const ISSERVER = 'isServer';
+const GLOBALAPIS = new Set(['process', '__dirname', '__filename', 'module']);
 // Helper function: checks if a node is a descendant of another node
 function isNodeDescendantOf(descendantNode, ancestorNode): boolean {
   if (!ancestorNode) {
@@ -178,13 +178,13 @@ export const scopeUseTask: Rule.RuleModule = {
         currentScopeForSearch = currentScopeForSearch.upper;
       }
 
-      if (!variable) {
+      if (!GLOBALAPIS.has(identifierNode.name)) {
         // Cannot find variable, assume it's not a shadowed global for safety,
         // though this state implies an undeclared variable (another ESLint rule should catch this).
-        return false;
+        return true;
       }
 
-      if (variable.defs.length === 0) {
+      if (variable?.defs.length === 0) {
         // No definitions usually means it's an implicit global (e.g., 'process' in Node.js environment).
         // Such a variable is NOT considered "shadowed by a user declaration".
         return false;
@@ -192,7 +192,7 @@ export const scopeUseTask: Rule.RuleModule = {
 
       // If there are definitions, check if any of them are standard declaration types.
       // This means the identifier refers to a user-declared variable, parameter, function, class, or an import.
-      return variable.defs.some((def) => {
+      return variable?.defs.some((def) => {
         return (
           def.type === 'Variable' ||
           def.type === 'Parameter' ||
@@ -322,15 +322,7 @@ export const scopeUseTask: Rule.RuleModule = {
         }
 
         if (forbiddenApis.has(node.name)) {
-          const isDirectIdentifier =
-            node.parent.type === 'VariableDeclarator' &&
-            (node?.parent?.init as Identifier)?.name === node.name;
-          // node'api usually be invoked as a member expression (e.g., process.env)
-          // or as a direct identifier (e.g., process).
-          if (
-            isIdentifierShadowedByDeclaration(node) ||
-            (node.parent.type !== 'MemberExpression' && node.parent.type !== 'VariableDeclarator')
-          ) {
+          if (isIdentifierShadowedByDeclaration(node)) {
             return;
           }
           if (!isApiUsageGuarded(node, currentUseTaskFunction)) {
@@ -426,7 +418,6 @@ export const scopeUseTask: Rule.RuleModule = {
                 targetFunctionNode.body.type === AST_NODE_TYPES.BlockStatement
                   ? targetFunctionNode.body
                   : targetFunctionNode.body;
-
               analyzeNodeContent(nodeToAnalyze, targetFunctionNode, callNode);
             }
           }

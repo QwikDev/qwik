@@ -14,6 +14,7 @@ contributors:
   - mjschwanitz
   - adamdbradley
   - gioboa
+  - Varixo
 updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -123,6 +124,74 @@ export default component$(() => {
 ```
 
 The above example shows two `routeLoader$`s being used in the same file. A generic `useLoginStatus` loader is used to check if the user is logged in, and a more specific `useCurrentUser` loader is used to retrieve the user data.
+
+## Loaders data serialization
+
+By default, route loader data is not serialized and sent to the client. Instead, it is discarded after server-side rendering (SSR). If a component on the client requires the data, it will be refetched (lazy-loaded).
+
+You can customize this behavior using the `serializationStrategy` option in the `routeLoader$()`. This option accepts one of three values:
+- `never` (Default): The data is never serialized. It is discarded after SSR and refetched on the client when needed.
+- `always`: The data is always serialized and included in the initial HTML response. It is immediately available on the client without needing to be refetched.
+- `auto`: Qwik automatically decides whether to serialize the data based on its size. If the data is small, it will be serialized. If it exceeds a certain threshold, it will be discarded and lazy-loaded on the client as needed.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(
+    `https://.../products/${requestEvent.params.productId}`
+  );
+  const product = await res.json();
+  return product;
+}, {
+  serializationStrategy: 'always', // 'never' | 'always' | 'auto'
+});
+```
+
+### Handling loading state for lazy loaded route loader data
+
+When using lazy-loaded data, you can handle the loading state in your Qwik Components by checking if the data is available. If not, you can render a loading indicator or placeholder content.
+
+```tsx title="src/routes/product/[user]/index.tsx"
+import { component$, useSignal } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+export const useProductDetails = routeLoader$(async (requestEvent) => {
+  const res = await fetch(
+    `https://.../products/${requestEvent.params.productId}`
+  );
+  const product = await res.json();
+  return product;
+});
+
+export default component$(() => {
+  const data = useProductDetails();
+  const condition = useSignal(false);
+  return (
+    <>
+      Product name: {data.value.product.name}
+      <button onClick$={() => (condition.value = !condition.value)}>
+        Toggle
+      </button>
+      {condition.value ? <Child /> : <div />}
+    </>
+  );
+});
+
+// Will use lazy loaded data
+export const Child = component$(() => {
+  const data = useProductDetails();
+  return (
+    <div>
+      {data.loading ? (
+        <p>Loading product details...</p>
+      ) : (
+        <p>Product description: {data.value.product.description}</p>
+      )}
+    </div>
+  );
+});
+```
 
 ## RequestEvent
 

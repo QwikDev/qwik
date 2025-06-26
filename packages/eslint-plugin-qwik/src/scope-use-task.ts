@@ -157,9 +157,8 @@ export const scopeUseTask: Rule.RuleModule = {
         currentScopeForSearch = currentScopeForSearch.upper;
       }
 
+      // If we didn't find a variable, it might be a global API or an undeclared variable.
       if (!GLOBALAPIS.includes(identifierNode.name)) {
-        // Cannot find variable, assume it's not a shadowed global for safety,
-        // though this state implies an undeclared variable (another ESLint rule should catch this).
         return true;
       }
 

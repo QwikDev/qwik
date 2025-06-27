@@ -1,4 +1,4 @@
-import type { ClientPageData, SimpleURL } from './types';
+import type { SimpleURL } from './types';
 
 import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
 import {
@@ -112,16 +112,9 @@ export const createLoaderSignal = (
   return createAsyncComputed$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        let data: ClientPageData | undefined;
-        try {
-          // Try to load only the current loader data from the server
-          data = await loadClientData(url, undefined, {
-            loaderIds: [loaderId],
-          });
-        } catch (_) {
-          // If request fails, we try to load all the loaders data from the server
-          data = await loadClientData(url, undefined);
-        }
+        const data = await loadClientData(url, undefined, {
+          loaderIds: [loaderId],
+        });
         loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
       }
       return loadersObject[loaderId];

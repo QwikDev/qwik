@@ -181,7 +181,7 @@ test.describe("loaders", () => {
       }
     });
 
-    test.only("should retry with all loaders if one fails", async ({
+    test("should retry with all loaders if one fails", async ({
       page,
       javaScriptEnabled,
     }) => {
@@ -197,9 +197,9 @@ test.describe("loaders", () => {
       });
 
       await page.route(
-        "*/**/qwikrouter-test/loaders-serialization/q-data.json?qloaders=HEA0jeovonw",
+        "*/**/qwikrouter-test/loaders-serialization/q-data.json?qloaders=*",
         async (route) => {
-          await route.abort();
+          await route.fulfill({ status: 404 });
         },
       );
       await page.goto("/qwikrouter-test/loaders-serialization/");

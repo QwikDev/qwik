@@ -4,6 +4,8 @@ import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { prefetchSymbols } from './client-navigate';
 
+const MAX_Q_DATA_RETRY_COUNT = 3;
+
 export const loadClientData = async (
   url: URL,
   element: unknown,
@@ -13,8 +15,9 @@ export const loadClientData = async (
     clearCache?: boolean;
     prefetchSymbols?: boolean;
     isPrefetch?: boolean;
-  }
-) => {
+  },
+  retryCount: number = 0
+): Promise<ClientPageData | undefined> => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
   const clientDataPath = getClientDataPath(pagePathname, pageSearch, {
@@ -37,6 +40,12 @@ export const loadClientData = async (
       opts.action.data = undefined;
     }
     qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
+      if (rsp.status === 404 && opts?.loaderIds && retryCount < MAX_Q_DATA_RETRY_COUNT) {
+        // retry if the q-data.json is not found with all options
+        // we want to retry with all the loaders
+        opts.loaderIds = undefined;
+        return loadClientData(url, element, opts, retryCount + 1);
+      }
       if (rsp.redirected) {
         const redirectedURL = new URL(rsp.url);
         const isQData = redirectedURL.pathname.endsWith('/q-data.json');

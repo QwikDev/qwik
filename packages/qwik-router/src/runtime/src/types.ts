@@ -325,12 +325,14 @@ export interface EndpointResponse {
   action?: string;
 }
 
-export interface ClientPageData
-  extends Omit<EndpointResponse, 'status' | 'loadersSerializationStrategy'> {
-  status: number;
+export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
   href: string;
   redirect?: string;
   isRewrite?: boolean;
+}
+
+export interface LoaderData {
+  loaders: Record<string, unknown>;
 }
 
 /** @public */

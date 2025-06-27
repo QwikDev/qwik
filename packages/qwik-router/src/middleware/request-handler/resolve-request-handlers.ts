@@ -38,6 +38,7 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
+import { _UNINITIALIZED } from 'packages/qwik/core-internal';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -244,18 +245,10 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
       let currentLoaders: LoaderInternal[] = [];
       if (requestEv.query.has(QLOADER_KEY)) {
         const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
-        const skippedLoaders: LoaderInternal[] = [];
         for (const loader of routeLoaders) {
           if (selectedLoaderIds.includes(loader.__id)) {
             currentLoaders.push(loader);
-          } else {
-            skippedLoaders.push(loader);
           }
-        }
-
-        // mark skipped loaders as null
-        for (const skippedLoader of skippedLoaders) {
-          loaders[skippedLoader.__id] = null;
         }
       } else {
         currentLoaders = routeLoaders;
@@ -600,13 +593,16 @@ export async function renderQData(requestEv: RequestEvent) {
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
-  const allLoaders = getRequestLoaders(requestEv);
-  const loaders: Record<string, unknown> = {};
-  for (const loaderId in allLoaders) {
-    const loader = allLoaders[loaderId];
-    if (loader !== null) {
-      loaders[loaderId] = loader;
+  let loaders = getRequestLoaders(requestEv);
+  const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
+
+  if (selectedLoaderIds.length > 0) {
+    const selectedLoaders: Record<string, unknown> = {};
+    for (const loaderId of selectedLoaderIds) {
+      const loader = loaders[loaderId];
+      selectedLoaders[loaderId] = loader;
     }
+    loaders = selectedLoaders;
   }
 
   const qData: ClientPageData = {

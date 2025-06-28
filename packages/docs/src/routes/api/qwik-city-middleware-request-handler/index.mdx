@@ -1694,13 +1694,13 @@ Description
 
 </td><td>
 
-boolean
+boolean \| 'lax-proto'
 
 </td><td>
 
 _(Optional)_ Protection against cross-site request forgery (CSRF) attacks.
 
-When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.
+When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
 
 Be careful when disabling this option as it may lead to CSRF attacks.
 

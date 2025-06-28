@@ -193,6 +193,28 @@ export const Child = component$(() => {
 });
 ```
 
+### Global default serialization strategy
+It is possible to set a global default serialization strategy for all `routeLoader$`s in your application. This can be done by configuring the `qwikRouter` Vite plugin.
+Default value is `never`.
+
+```ts title="vite.config.ts"
+import { qwikRouter } from '@qwik.dev/vite-plugin-qwik-router';
+
+export default () => {
+  return {
+    //...
+    plugins: [
+      //...
+      qwikRouter({
+        // Set the default serialization strategy for all route loaders
+        defaultSerializationStrategy: 'always', // 'never' | 'always' | 'auto'
+      }),
+      //...
+    ],
+  }
+};
+```
+
 ## RequestEvent
 
 Just like [middleware](/docs/middleware/) or [endpoint](/docs/endpoints/) `onRequest` and `onGet`, `routeLoader$`s have access to the [`RequestEvent`](/docs/middleware#requestevent) API which includes information about the current HTTP request.

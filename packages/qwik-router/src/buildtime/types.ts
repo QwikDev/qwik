@@ -1,3 +1,5 @@
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
+
 export interface BuildContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
@@ -133,6 +135,8 @@ export interface PluginOptions {
   platform?: Record<string, unknown>;
   /** Configuration to rewrite url paths */
   rewriteRoutes?: RewriteRouteOption[];
+  /** The serialization strategy for route loaders. Defaults to `never`. */
+  defaultLoadersSerializationStrategy?: SerializationStrategy;
 }
 
 export interface MdxPlugins {

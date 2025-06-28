@@ -24,7 +24,7 @@ import {
   RequestEvSharedActionId,
   RequestRouteName,
   getRequestLoaders,
-  getRequestLoadersSerializationStrategy,
+  getRequestLoaderSerializationStrategyMap,
   getRequestMode,
   getRequestTrailingSlash,
   type RequestEventInternal,
@@ -301,7 +301,7 @@ async function getRouteLoaderPromise(
       }
       return resolvedLoader;
     });
-  const loadersSerializationStrategy = getRequestLoadersSerializationStrategy(requestEv);
+  const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
   loadersSerializationStrategy.set(loaderId, loader.__serializationStrategy);
   return loaders[loaderId];
 }

@@ -80,6 +80,7 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
     assert.equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
   });

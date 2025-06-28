@@ -1,4 +1,5 @@
 import type { ClientPageData } from './types';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 
 export const MODULE_CACHE = /*#__PURE__*/ new WeakMap<any, any>();
 
@@ -13,3 +14,6 @@ export const QFN_KEY = 'qfunc';
 export const QDATA_KEY = 'qdata';
 
 export const Q_ROUTE = 'q:route';
+
+export const DEFAULT_LOADERS_SERIALIZATION_STRATEGY: SerializationStrategy =
+  globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__ || 'never';

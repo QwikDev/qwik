@@ -34,8 +34,8 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
-export const RequestEvLoadersSerializationStrategy = Symbol(
-  'RequestEvLoadersSerializationStrategy'
+export const RequestEvLoaderSerializationStrategyMap = Symbol(
+  'RequestEvLoaderSerializationStrategyMap'
 );
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestRouteName = '@routeName';
@@ -153,7 +153,7 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
-    [RequestEvLoadersSerializationStrategy]: new Map(),
+    [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
     get [RequestEvRoute]() {
@@ -333,7 +333,7 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
-  [RequestEvLoadersSerializationStrategy]: Map<string, SerializationStrategy>;
+  [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;
@@ -364,8 +364,8 @@ export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
 }
 
-export function getRequestLoadersSerializationStrategy(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvLoadersSerializationStrategy];
+export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvLoaderSerializationStrategyMap];
 }
 
 export function getRequestTrailingSlash(requestEv: RequestEventCommon) {

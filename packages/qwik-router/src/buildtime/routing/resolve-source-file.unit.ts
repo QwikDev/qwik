@@ -49,6 +49,7 @@ test('resolveLayout', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

@@ -78,6 +78,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
     async config() {
       const updatedViteConfig: UserConfig = {
+        define: {
+          'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(
+            userOpts?.defaultLoadersSerializationStrategy || 'never'
+          ),
+        },
         appType: 'custom',
         resolve: {
           alias: [

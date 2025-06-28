@@ -216,7 +216,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             const actionResolved = isDev
-              ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
+              ? await measure(requestEv, action.__qrl.getHash(), () =>
                   action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
                 )
               : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
@@ -278,10 +278,8 @@ async function getRouteLoaderPromise(
     .then((res) => {
       if (res.success) {
         if (isDev) {
-          return measure<Promise<unknown>>(
-            requestEv,
-            loader.__qrl.getSymbol().split('_', 1)[0],
-            () => loader.__qrl.call(requestEv, requestEv)
+          return measure<Promise<unknown>>(requestEv, loader.__qrl.getHash(), () =>
+            loader.__qrl.call(requestEv, requestEv)
           );
         } else {
           return loader.__qrl.call(requestEv, requestEv);

@@ -25,9 +25,10 @@ import {
   SerializerSymbol,
   type _ElementVNode,
   type AsyncComputedReadonlySignal,
+  type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE, Q_ROUTE } from './constants';
+import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -173,8 +174,11 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   );
   const navResolver: { r?: () => void } = {};
   const container = _getContextContainer();
-  const getSerializationStrategy = (loaderId: string) => {
-    return env.response.loadersSerializationStrategy.get(loaderId) || 'never';
+  const getSerializationStrategy = (loaderId: string): SerializationStrategy => {
+    return (
+      env.response.loadersSerializationStrategy.get(loaderId) ||
+      DEFAULT_LOADERS_SERIALIZATION_STRATEGY
+    );
   };
 
   // On server this object contains the all the loaders data
@@ -530,7 +534,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
                   loadersObject,
                   key,
                   trackUrl,
-                  'never',
+                  DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
                   container
                 );
               } else {

@@ -2,7 +2,7 @@ import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
-  getRequestLoadersSerializationStrategy,
+  getRequestLoaderSerializationStrategyMap,
   getRequestRoute,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -33,7 +33,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
   }
 
   const loaders = getRequestLoaders(requestEv);
-  const loadersSerializationStrategy = getRequestLoadersSerializationStrategy(requestEv);
+  const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
 
   return {
     url: reconstructedUrl.href,

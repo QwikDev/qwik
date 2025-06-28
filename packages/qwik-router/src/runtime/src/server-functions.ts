@@ -22,7 +22,12 @@ import {
 import * as v from 'valibot';
 import { z } from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
-import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
+import {
+  DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
+  QACTION_KEY,
+  QDATA_KEY,
+  QFN_KEY,
+} from './constants';
 import { RouteStateContext } from './contexts';
 import type {
   ActionConstructor,
@@ -513,7 +518,7 @@ export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
 const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
   let id: string | undefined;
-  let serializationStrategy: SerializationStrategy = 'never';
+  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
   const validators: DataValidator[] = [];
   if (rest.length === 1) {
     const options = rest[0];
@@ -522,7 +527,9 @@ const getValidators = (rest: (LoaderOptions | DataValidator)[], qrl: QRL) => {
         validators.push(options);
       } else {
         id = options.id;
-        serializationStrategy = options.serializationStrategy || 'never';
+        if (options.serializationStrategy) {
+          serializationStrategy = options.serializationStrategy;
+        }
         if (options.validation) {
           validators.push(...options.validation);
         }

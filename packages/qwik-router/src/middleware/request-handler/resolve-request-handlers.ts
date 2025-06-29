@@ -594,7 +594,9 @@ export async function renderQData(requestEv: RequestEvent) {
   let loaders = getRequestLoaders(requestEv);
   const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
 
-  if (selectedLoaderIds.length > 0) {
+  const hasCustomLoaders = selectedLoaderIds.length > 0;
+
+  if (hasCustomLoaders) {
     const selectedLoaders: Record<string, unknown> = {};
     for (const loaderId of selectedLoaderIds) {
       const loader = loaders[loaderId];
@@ -603,14 +605,21 @@ export async function renderQData(requestEv: RequestEvent) {
     loaders = selectedLoaders;
   }
 
-  const qData: ClientPageData = {
-    loaders,
-    action: requestEv.sharedMap.get(RequestEvSharedActionId),
-    status: status !== 200 ? status : 200,
-    href: getPathname(requestEv.url, trailingSlash),
-    redirect: redirectLocation ?? undefined,
-    isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
-  };
+  const qData: ClientPageData = hasCustomLoaders
+    ? {
+        // send minimal data to the client
+        loaders,
+        status: status !== 200 ? status : 200,
+        href: getPathname(requestEv.url, trailingSlash),
+      }
+    : {
+        loaders,
+        action: requestEv.sharedMap.get(RequestEvSharedActionId),
+        status: status !== 200 ? status : 200,
+        href: getPathname(requestEv.url, trailingSlash),
+        redirect: redirectLocation ?? undefined,
+        isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
+      };
   const writer = requestEv.getWritableStream().getWriter();
   const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];
   // write just the page json data to the response body

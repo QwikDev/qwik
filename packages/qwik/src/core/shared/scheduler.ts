@@ -489,7 +489,7 @@ export const createScheduler = (
             if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
               const forceRunEffects = target.$forceRunEffects$;
               target.$forceRunEffects$ = false;
-              if (!target.$effects$?.size) {
+              if (!target.$effects$?.size && !forceRunEffects) {
                 break;
               }
               returnValue = retryOnPromise(() => {

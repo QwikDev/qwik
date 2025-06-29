@@ -8,7 +8,7 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { throwIfQRLNotResolved } from '../utils';
 import type { BackRef } from '../cleanup';
 import { getSubscriber } from '../subscriber';
-import type { ComputeQRL, EffectSubscription } from '../types';
+import { ComputedSignalFlags, ComputeQRL, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
@@ -33,7 +33,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
   $computeQrl$: S;
-  $flags$: SignalFlags;
+  $flags$: SignalFlags | ComputedSignalFlags;
   $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
@@ -42,7 +42,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     fn: S,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags = SignalFlags.INVALID
+    flags: SignalFlags | ComputedSignalFlags = SignalFlags.INVALID |
+      ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
   ) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
@@ -51,7 +52,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.$flags$ = flags;
   }
 
-  $invalidate$() {
+  invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
     this.$container$?.$scheduler$(

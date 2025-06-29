@@ -6,6 +6,7 @@ export {
   ComputedSignal,
   ContextId,
   createComputed$,
+  createAsyncComputed$,
   createSerializer$,
   createContextId,
   createSignal,

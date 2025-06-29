@@ -1,7 +1,7 @@
 import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { isSerializableObject } from '../../shared/utils/types';
+import { isObject, isSerializableObject } from '../../shared/utils/types';
 import type { Container } from '../../shared/types';
 import {
   addQrlToSerializationCtx,
@@ -124,8 +124,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     const flags = this.$flags$;
     if (
       flags & StoreFlags.RECURSIVE &&
-      typeof value === 'object' &&
-      value !== null &&
+      isObject(value) &&
       !Object.isFrozen(value) &&
       !isStore(value) &&
       !Object.isFrozen(target)

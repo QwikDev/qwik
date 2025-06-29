@@ -151,5 +151,75 @@ test.describe("loaders", () => {
       const body = page.locator("body");
       await expect(body).toContainText("server-error-data");
     });
+
+    test("should not serialize loaders by default and serialize with serializationStrategy: always", async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      await page.goto("/qwikrouter-test/loaders-serialization/");
+      const stateData = page.locator('script[type="qwik/state"]');
+
+      expect(await stateData.textContent()).not.toContain("some test value");
+      expect(await stateData.textContent()).not.toContain(
+        "should not serialize this",
+      );
+      expect(await stateData.textContent()).toContain("some eager test value");
+      expect(await stateData.textContent()).toContain("should serialize this");
+
+      if (javaScriptEnabled) {
+        await page.locator("#toggle-child").click();
+        await expect(page.locator("#prop1")).toHaveText("some test value");
+        await expect(page.locator("#prop2")).toHaveText(
+          "should not serialize this",
+        );
+        await expect(page.locator("#prop3")).toHaveText(
+          "some eager test value",
+        );
+        await expect(page.locator("#prop4")).toHaveText(
+          "should serialize this",
+        );
+      }
+    });
+
+    test("should retry with all loaders if one fails", async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      let loadersRequestCount = 0;
+      let allLoadersRequestCount = 0;
+      page.on("request", (request) => {
+        if (request.url().includes("q-data.json?qloaders")) {
+          loadersRequestCount++;
+        }
+        if (request.url().endsWith("q-data.json")) {
+          allLoadersRequestCount++;
+        }
+      });
+
+      await page.route(
+        "*/**/qwikrouter-test/loaders-serialization/q-data.json?qloaders=*",
+        async (route) => {
+          await route.fulfill({ status: 404 });
+        },
+      );
+      await page.goto("/qwikrouter-test/loaders-serialization/");
+
+      if (javaScriptEnabled) {
+        await page.locator("#toggle-child").click();
+        await page.waitForLoadState("networkidle");
+        expect(loadersRequestCount).toBe(1);
+        expect(allLoadersRequestCount).toBe(1);
+        await expect(page.locator("#prop1")).toHaveText("some test value");
+        await expect(page.locator("#prop2")).toHaveText(
+          "should not serialize this",
+        );
+        await expect(page.locator("#prop3")).toHaveText(
+          "some eager test value",
+        );
+        await expect(page.locator("#prop4")).toHaveText(
+          "should serialize this",
+        );
+      }
+    });
   }
 });

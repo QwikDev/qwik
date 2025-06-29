@@ -10,7 +10,7 @@ import {
   scrollTo,
 } from "./util.js";
 
-test.describe("actions", () => {
+test.describe("nav", () => {
   test.describe("mpa", () => {
     test.use({ javaScriptEnabled: false });
     tests();

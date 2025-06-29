@@ -1,19 +1,21 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
-import type {
-  ActionInternal,
-  FailReturn,
-  JSONValue,
-  LoadedRoute,
-  LoaderInternal,
+import {
+  LoadedRouteProp,
+  type ActionInternal,
+  type FailReturn,
+  type JSONValue,
+  type LoadedRoute,
+  type LoaderInternal,
 } from '../../runtime/src/types';
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { RewriteMessage } from './rewrite-handler';
 import { encoder } from './resolve-request-handlers';
+import { RewriteMessage } from './rewrite-handler';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -32,12 +34,18 @@ const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
+export const RequestEvLoaderSerializationStrategyMap = Symbol(
+  'RequestEvLoaderSerializationStrategyMap'
+);
 export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
+export const RequestEvShareServerTiming = '@serverTiming';
+/** @internal */
+export const RequestEvShareQData = 'qData';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -145,6 +153,7 @@ export function createRequestEvent(
   const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
+    [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
     get [RequestEvRoute]() {
@@ -158,7 +167,7 @@ export function createRequestEvent(
     signal: request.signal,
     originalUrl: new URL(url),
     get params() {
-      return loadedRoute?.[1] ?? {};
+      return loadedRoute?.[LoadedRouteProp.Params] ?? {};
     },
     get pathname() {
       return url.pathname;
@@ -298,9 +307,14 @@ export function createRequestEvent(
     getWritableStream: () => {
       if (writableStream === null) {
         if (serverRequestEv.mode === 'dev') {
-          const serverTiming = sharedMap.get('@serverTiming') as [string, number][] | undefined;
+          const serverTiming = sharedMap.get(RequestEvShareServerTiming) as
+            | [string, number][]
+            | undefined;
           if (serverTiming) {
-            headers.set('Server-Timing', serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(','));
+            headers.set(
+              'Server-Timing',
+              serverTiming.map(([name, duration]) => `${name};dur=${duration}`).join(',')
+            );
           }
         }
         writableStream = serverRequestEv.getWritableStream(
@@ -319,6 +333,7 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
+  [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;
@@ -347,6 +362,10 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvLoaderSerializationStrategyMap];
 }
 
 export function getRequestTrailingSlash(requestEv: RequestEventCommon) {

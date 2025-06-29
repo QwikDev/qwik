@@ -196,7 +196,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             if (serverTiming) {
               res.setHeader(
                 'Server-Timing',
-                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+                serverTiming.map(([name, duration]) => `${name};dur=${duration}`).join(',')
               );
             }
             (res as QwikViteDevResponse)._qwikEnvData = {

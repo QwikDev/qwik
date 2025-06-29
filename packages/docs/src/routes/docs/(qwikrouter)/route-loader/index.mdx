@@ -198,7 +198,7 @@ It is possible to set a global default serialization strategy for all `routeLoad
 Default value is `never`.
 
 ```ts title="vite.config.ts"
-import { qwikRouter } from '@qwik.dev/vite-plugin-qwik-router';
+import { qwikRouter } from '@qwik.dev/router/vite';
 
 export default () => {
   return {
@@ -207,7 +207,7 @@ export default () => {
       //...
       qwikRouter({
         // Set the default serialization strategy for all route loaders
-        defaultSerializationStrategy: 'always', // 'never' | 'always' | 'auto'
+        defaultLoadersSerializationStrategy: 'always', // 'never' | 'always' | 'auto'
       }),
       //...
     ],

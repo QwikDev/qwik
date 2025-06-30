@@ -42,8 +42,8 @@ export const render = async (
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
-  container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
-  await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  container.$scheduler$.schedule(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
+  await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   return {
     cleanup: () => {
       cleanup(container, container.rootVNode);

@@ -10,7 +10,7 @@ import { getDomContainer } from './dom-container';
  *
  * @internal
  */
-export const queueQRL = (...args: unknown[]) => {
+export const _run = (...args: unknown[]): void => {
   // This will already check container
   const [runQrl] = useLexicalScope<[QRLInternal<(...args: unknown[]) => unknown>]>();
   const context = getInvokeContext();
@@ -28,5 +28,6 @@ export const queueQRL = (...args: unknown[]) => {
     throw qError(QError.schedulerNotFound);
   }
 
-  return scheduler(ChoreType.RUN_QRL, hostElement, runQrl, args);
+  // We don't return anything, the scheduler is in charge now
+  scheduler.schedule(ChoreType.RUN_QRL, hostElement, runQrl, args);
 };

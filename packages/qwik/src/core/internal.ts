@@ -5,7 +5,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
-export { queueQRL as _run } from './client/queue-qrl';
+export { _run } from './client/queue-qrl';
 export type {
   ContainerElement as _ContainerElement,
   ElementVNode as _ElementVNode,

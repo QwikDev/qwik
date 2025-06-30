@@ -346,7 +346,7 @@ const inflate = (
          */
         // try to download qrl in this tick
         computed.$computeQrl$.resolve();
-        (container as DomContainer).$scheduler$?.(
+        (container as DomContainer).$scheduler$?.schedule(
           ChoreType.QRL_RESOLVE,
           null,
           computed.$computeQrl$

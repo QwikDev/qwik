@@ -10,7 +10,6 @@ import {
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
-  ChoreType,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -211,18 +210,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
-    super(
-      () => {
-        try {
-          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        } catch (e) {
-          this.handleError(e, null!);
-        }
-      },
-      () => null,
-      opts.renderOptions.serverData ?? EMPTY_OBJ,
-      opts.locale
-    );
+    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
@@ -248,7 +236,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: HostElement): void {
+  handleError(err: any, _$host$: null): void {
     throw err;
   }
 

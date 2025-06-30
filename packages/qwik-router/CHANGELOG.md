@@ -1,5 +1,7 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.3
+
 ## 2.0.0-beta.2
 
 ## 2.0.0-beta.1

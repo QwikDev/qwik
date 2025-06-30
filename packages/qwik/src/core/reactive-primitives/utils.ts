@@ -3,6 +3,7 @@ import { pad, qwikDebugToString } from '../debug';
 import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined } from '../shared/error/assert';
 import type { Props } from '../shared/jsx/jsx-runtime';
+import { isServerPlatform } from '../shared/platform/platform';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, HostElement, SerializationStrategy } from '../shared/types';
@@ -88,7 +89,7 @@ export const triggerEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null
 ) => {
-  const isBrowser = isDomContainer(container);
+  const isBrowser = !isServerPlatform();
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
@@ -101,7 +102,7 @@ export const triggerEffects = (
         if (consumer.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
         }
-        container.$scheduler$(choreType, consumer);
+        container.$scheduler$.schedule(choreType, consumer);
       } else if (consumer instanceof SignalImpl) {
         // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
         // and schedule the signals effects (recursively)
@@ -109,7 +110,7 @@ export const triggerEffects = (
           // Ensure that the computed signal's QRL is resolved.
           // If not resolved schedule it to be resolved.
           if (!consumer.$computeQrl$.resolved) {
-            container.$scheduler$(ChoreType.QRL_RESOLVE, null, consumer.$computeQrl$);
+            container.$scheduler$.schedule(ChoreType.QRL_RESOLVE, null, consumer.$computeQrl$);
           }
         }
 
@@ -119,11 +120,11 @@ export const triggerEffects = (
         const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+        container.$scheduler$.schedule(ChoreType.COMPONENT, host, qrl, props);
       } else if (isBrowser) {
         if (property === EffectProperty.VNODE) {
           const host: HostElement = consumer;
-          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
+          container.$scheduler$.schedule(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
         } else {
           const host: HostElement = consumer;
           const effectData = effectSubscription[EffectSubscriptionProp.DATA];
@@ -133,7 +134,7 @@ export const triggerEffects = (
               ...data,
               $value$: signal as SignalImpl,
             };
-            container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+            container.$scheduler$.schedule(ChoreType.NODE_PROP, host, property, payload);
           }
         }
       }

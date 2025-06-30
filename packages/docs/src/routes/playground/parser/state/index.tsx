@@ -1,6 +1,6 @@
 import { component$, useSignal, useComputed$, useStyles$ } from '@qwik.dev/core';
 import { _dumpState, _preprocessState } from '@qwik.dev/core/internal';
-import { CodeBlock } from '../../../../components/code-block/code-block';
+import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   useStyles$(`
@@ -185,11 +185,21 @@ export default component$(() => {
           </div>
         </div>
         <div class="p-6 flex-1 code-output-container">
-          <div class="rounded-xl border border-gray-200 dark:border-gray-600 text-sm shadow-inner bg-gray-900">
-            <CodeBlock code={parsedState.value} language="clike" />
+          <div class="rounded-xl border border-gray-200 dark:border-gray-600 text-sm shadow-inner bg-gray-900 p-4">
+            <pre>{parsedState.value}</pre>
           </div>
         </div>
       </div>
     </div>
   );
 });
+
+export const head: DocumentHead = {
+  title: 'State Parser',
+  meta: [
+    {
+      name: 'description',
+      content: 'Parse Qwik state data',
+    },
+  ],
+};

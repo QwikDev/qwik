@@ -279,7 +279,7 @@ export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
   const host = getHostVNode(vElement) as HostElement;
   const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
   const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-  container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+  container.$scheduler$.schedule(ChoreType.COMPONENT, host, qrl, props);
   if (flush) {
     // Note that this can deadlock
     await getTestPlatform().flush();

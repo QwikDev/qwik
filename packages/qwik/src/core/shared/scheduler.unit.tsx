@@ -1,7 +1,7 @@
-import { $, type OnRenderFn, type QRL } from '@qwik.dev/core';
+import { $, _jsxSorted, type JSXOutput, type OnRenderFn, type QRL } from '@qwik.dev/core';
 
-import { createDocument } from '@qwik.dev/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
 import {
@@ -19,10 +19,17 @@ import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { QContainerAttr } from './utils/markers';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
+import { MAX_RETRY_ON_PROMISE_COUNT } from './utils/promises';
 
 declare global {
   let testLog: string[];
 }
+
+vi.mock('../client/vnode-diff', () => ({
+  vnode_diff: vi.fn().mockImplementation(() => {
+    testLog.push('vnode-diff');
+  }),
+}));
 
 describe('scheduler', () => {
   let scheduler: ReturnType<typeof createScheduler> = null!;
@@ -33,16 +40,22 @@ describe('scheduler', () => {
   let vB: ElementVNode = null!;
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
+  let handleError: (err: any, host: HostElement | null) => void;
+
+  async function waitForDrain() {
+    const chore = scheduler.schedule(ChoreType.WAIT_FOR_QUEUE);
+    getTestPlatform().flush();
+    await chore.$returnValue$;
+  }
+
   beforeEach(() => {
+    vi.clearAllMocks();
     (globalThis as any as { testLog: string[] }).testLog = [];
     document = createDocument();
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
-    scheduler = createScheduler(
-      container,
-      () => null,
-      () => testLog.push('journalFlush')
-    );
+    handleError = container.handleError = vi.fn();
+    scheduler = createScheduler(container, () => testLog.push('journalFlush'));
     document.body.innerHTML = '<a></a><b></b>';
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
@@ -59,10 +72,13 @@ describe('scheduler', () => {
   });
 
   it('should execute sort tasks', async () => {
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
-    scheduler(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
-    await scheduler(ChoreType.WAIT_FOR_ALL);
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) })
+    );
+    scheduler.schedule(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await waitForDrain();
     expect(testLog).toEqual([
       'a1', // DepthFirst a host component is before b host component.
       'b1.0', // Same component but smaller index.
@@ -71,12 +87,15 @@ describe('scheduler', () => {
     ]);
   });
   it('should execute visible tasks after journal flush', async () => {
-    scheduler(
+    scheduler.schedule(
       ChoreType.TASK,
       mockTask(vBHost2, { index: 2, qrl: $(() => testLog.push('b2.2: Task')) })
     );
-    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
-    scheduler(
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) })
+    );
+    scheduler.schedule(
       ChoreType.VISIBLE,
       mockTask(vBHost2, {
         index: 2,
@@ -84,7 +103,7 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler(
+    scheduler.schedule(
       ChoreType.VISIBLE,
       mockTask(vBHost1, {
         qrl: $(() => {
@@ -93,21 +112,131 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler(
+    scheduler.schedule(
       ChoreType.COMPONENT,
       vBHost1 as HostElement,
       $(() => testLog.push('b1: Render')) as unknown as QRLInternal<OnRenderFn<unknown>>,
       {} as Props
     );
-    await scheduler(ChoreType.WAIT_FOR_ALL);
+    await waitForDrain();
+    // TODO: is it right?
     expect(testLog).toEqual([
       'b1.0: Task',
       'b1: Render',
+      'vnode-diff',
       'b2.2: Task',
-      'journalFlush',
       'b1.0: VisibleTask',
       'b2.2: VisibleTask',
+      'journalFlush',
     ]);
+  });
+
+  it('should execute chore', async () => {
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await waitForDrain();
+    expect(testLog).toEqual(['b1.0', 'journalFlush']);
+  });
+
+  it('should execute chore with promise', async () => {
+    vi.useFakeTimers();
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, {
+        qrl: $(
+          () =>
+            new Promise<void>((resolve) =>
+              setTimeout(() => {
+                testLog.push('b1.0');
+                resolve();
+              }, 100)
+            )
+        ),
+      })
+    );
+    vi.advanceTimersByTimeAsync(100);
+    await waitForDrain();
+    expect(testLog).toEqual(['b1.0', 'journalFlush']);
+    vi.useRealTimers();
+  });
+
+  it('should execute multiple chores', async () => {
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    scheduler.schedule(
+      ChoreType.TASK,
+      mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')), index: 1 })
+    );
+    await waitForDrain();
+    expect(testLog).toEqual(['b1.0', 'b1.1', 'journalFlush']);
+  });
+
+  it('should execute chore with promise and schedule blocked vnode-diff chores', async () => {
+    scheduler.schedule(
+      ChoreType.COMPONENT,
+      vBHost1 as HostElement,
+      $(() => testLog.push('component')) as unknown as QRLInternal<OnRenderFn<unknown>>,
+      {}
+    );
+    scheduler.schedule(
+      ChoreType.NODE_DIFF,
+      vBHost1 as HostElement,
+      vBHost1 as HostElement,
+      _jsxSorted('div', null, null, null, 0, null) as JSXOutput
+    );
+    await waitForDrain();
+    expect(testLog).toEqual([
+      // component + component vnode-diff
+      'component',
+      // vnode-diff chore
+      'vnode-diff',
+      'journalFlush',
+    ]);
+  });
+
+  it('should execute chores in two ticks', async () => {
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    await waitForDrain();
+    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')) }));
+    await waitForDrain();
+    expect(testLog).toEqual(['b1.0', 'journalFlush', 'b1.1', 'journalFlush']);
+  });
+
+  it('should not go into infinity loop on thrown promise', async () => {
+    (globalThis as any).executionCounter = vi.fn();
+
+    scheduler.schedule(
+      ChoreType.COMPONENT,
+      vBHost1 as HostElement,
+      $(() => {
+        (globalThis as any).executionCounter();
+        throw Promise.resolve(null);
+      }) as unknown as QRLInternal<OnRenderFn<unknown>>,
+      {}
+    );
+    await waitForDrain();
+    expect((globalThis as any).executionCounter).toHaveBeenCalledTimes(
+      MAX_RETRY_ON_PROMISE_COUNT + 1
+    );
+    expect(handleError).toHaveBeenCalledTimes(1);
+    (globalThis as any).executionCounter = undefined;
+  });
+
+  it('should not go into infinity loop on thrown promise', async () => {
+    (globalThis as any).counter = 0;
+    scheduler.schedule(
+      ChoreType.COMPONENT,
+      vBHost1 as HostElement,
+      $(() => {
+        testLog.push('component');
+        (globalThis as any).counter++;
+        if ((globalThis as any).counter === 1) {
+          throw Promise.resolve(null);
+        }
+      }) as unknown as QRLInternal<OnRenderFn<unknown>>,
+      {}
+    );
+    await waitForDrain();
+    expect(testLog).toEqual(['component', 'component', 'vnode-diff', 'journalFlush']);
+    (globalThis as any).counter = undefined;
   });
 });
 
@@ -120,5 +249,5 @@ function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: bool
     $state$: null!,
     $destroy$: null!,
     [_EFFECT_BACK_REF]: null,
-  };
+  } as Task;
 }

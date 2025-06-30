@@ -13,7 +13,6 @@ import { StoreFlags } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { assertDefined } from '../shared/error/assert';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { ChoreType } from '../shared/util-chore-type';
 import { ResourceEvent } from '../shared/utils/markers';
 import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
 import { isObject } from '../shared/utils/types';
@@ -106,8 +105,8 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  container.$scheduler$(ChoreType.TASK, task);
   set(resource);
+  runResource(task, container, el);
 
   return resource;
 };
@@ -232,7 +231,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     value: undefined as never,
-    loading: isServerPlatform() ? false : true,
+    loading: !isServerPlatform(),
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',

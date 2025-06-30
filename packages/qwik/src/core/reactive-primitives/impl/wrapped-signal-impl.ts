@@ -43,7 +43,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
-    this.$container$?.$scheduler$(
+    this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
       this,
@@ -56,8 +56,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    * remained the same object.
    */
   force() {
-    this.$forceRunEffects$ = true;
-    this.$container$?.$scheduler$(
+    this.$forceRunEffects$ = false;
+    this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
       this,

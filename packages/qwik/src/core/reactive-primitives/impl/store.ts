@@ -7,7 +7,6 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
-  triggerEffects,
 } from '../utils';
 import {
   STORE_ALL_PROPS,
@@ -17,6 +16,7 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from '../types';
+import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 
@@ -160,7 +160,12 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
-    triggerEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
+    this.$container$?.$scheduler$.schedule(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      getEffects(target, prop, this.$effects$)
+    );
     return true;
   }
 
@@ -244,9 +249,9 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   (target as any)[prop] = value;
-  // TODO: trigger effects through the scheduler
-  triggerEffects(
-    currentStore.$container$,
+  currentStore.$container$?.$scheduler$?.schedule(
+    ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+    null,
     currentStore,
     getEffects(target, prop, currentStore.$effects$)
   );

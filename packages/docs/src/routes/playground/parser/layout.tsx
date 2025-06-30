@@ -31,47 +31,49 @@ export default component$(() => {
         </div>
 
         {/* Navigation Links */}
-        <div class="flex space-x-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-1 shadow-lg border border-white/20 dark:border-gray-700 mb-8">
-          <a
-            href="/playground/parser/state"
-            class={`flex-1 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-              selectedTab.value === 'state'
-                ? 'bg-blue-500 text-gray-900 shadow-md'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              State Parser
-            </span>
-          </a>
-          <a
-            href="/playground/parser/html"
-            class={`flex-1 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-              selectedTab.value === 'html'
-                ? 'bg-green-500 text-gray-900 shadow-md'
-                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-              HTML Parser
-            </span>
-          </a>
+        <div class="flex justify-center mb-8">
+          <div class="gap-1 inline-flex space-x-0.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-0.5 shadow-lg border border-white/20 dark:border-gray-700">
+            <a
+              href="/playground/parser/state"
+              class={`px-2 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                selectedTab.value === 'state'
+                  ? 'bg-blue-500 text-gray-900 shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                State Parser
+              </span>
+            </a>
+            <a
+              href="/playground/parser/html"
+              class={`px-2 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                selectedTab.value === 'html'
+                  ? 'bg-green-500 text-gray-900 shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span class="flex items-center gap-1.5">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  />
+                </svg>
+                HTML Parser
+              </span>
+            </a>
+          </div>
         </div>
 
         {/* Content Area */}

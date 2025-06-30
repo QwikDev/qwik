@@ -1,7 +1,7 @@
 import { component$, useSignal, useComputed$, useStyles$ } from '@qwik.dev/core';
-import { CodeBlock } from '../../../../components/code-block/code-block';
 import { _getDomContainer } from '@qwik.dev/core/internal';
 import { _dumpState, _preprocessState, _vnode_toString } from '@qwik.dev/core/internal';
+import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {
   useStyles$(`
@@ -141,7 +141,7 @@ export default component$(() => {
               <div>
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white">VNode Tree</h2>
                 <p class="text-sm text-gray-600 dark:text-gray-300">
-                  Qwik container structure and parsed state
+                  Qwik container VNode tree structure
                 </p>
               </div>
             </div>
@@ -170,11 +170,21 @@ export default component$(() => {
           </div>
         </div>
         <div class="p-6 flex-1 code-output-container">
-          <div class="rounded-xl border border-gray-200 dark:border-gray-600 text-sm shadow-inner bg-gray-900">
-            <CodeBlock code={parsedHtml.value} language="markup" />
+          <div class="rounded-xl border border-gray-200 dark:border-gray-600 text-sm shadow-inner bg-gray-900 p-4">
+            <pre>{parsedHtml.value}</pre>
           </div>
         </div>
       </div>
     </div>
   );
 });
+
+export const head: DocumentHead = {
+  title: 'HTML Parser',
+  meta: [
+    {
+      name: 'description',
+      content: 'Parse HTML to Qwik VNode tree',
+    },
+  ],
+};

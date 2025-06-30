@@ -1,5 +1,21 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.3
+
+### Patch Changes
+
+- 🐞🩹 resuming a component using styles and a text node (by [@Varixo](https://github.com/Varixo) in [#7668](https://github.com/QwikDev/qwik/pull/7668))
+
+- 🐞🩹 reuse the same props instance when props are changing (by [@Varixo](https://github.com/Varixo) in [#7672](https://github.com/QwikDev/qwik/pull/7672))
+
+- 🐞🩹 the @qwik-handlers aren't properly handled in dev mode for library projects (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7608](https://github.com/QwikDev/qwik/pull/7608))
+
+- 🐞🩹 subscribe to signals on computed signal recomputation (by [@Varixo](https://github.com/Varixo) in [#7700](https://github.com/QwikDev/qwik/pull/7700))
+
+- :zap: QRL segments now memoize imports, removing some Promises during render (by [@wmertens](https://github.com/wmertens) in [#7686](https://github.com/QwikDev/qwik/pull/7686))
+
+- 🐞🩹 allow special characters in key attribute (by [@Varixo](https://github.com/Varixo) in [#7677](https://github.com/QwikDev/qwik/pull/7677))
+
 ## 2.0.0-beta.2
 
 ### Patch Changes

@@ -44,8 +44,6 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $invalidate$() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
-    // We should only call subscribers if the calculation actually changed.
-    // Therefore, we need to calculate the value now.
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,

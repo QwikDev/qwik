@@ -1,4 +1,4 @@
-import { getDomContainer } from '@qwik.dev/core';
+import { getDomContainer, type ClientContainer } from '@qwik.dev/core';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { QElement, QwikLoaderEventScope } from '../core/shared/types';
@@ -9,6 +9,7 @@ import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
+import { ChoreType } from '../core/shared/util-chore-type';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -89,9 +90,13 @@ export async function trigger(
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
+  let container: ClientContainer | null = null;
   for (const element of elements) {
     if (!element) {
       continue;
+    }
+    if (!container) {
+      container = getDomContainer(element as HTMLElement);
     }
 
     let scope: QwikLoaderEventScope = '';
@@ -112,7 +117,11 @@ export async function trigger(
     const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }
+  const waitForQueueChore = container?.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
   await getTestPlatform().flush();
+  if (waitForQueueChore) {
+    await waitForQueueChore.$returnValue$;
+  }
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';

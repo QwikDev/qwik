@@ -3,7 +3,6 @@
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import { getPlatform } from '../shared/platform/platform';
 import { emitEvent, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
@@ -38,7 +37,6 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
 import {
@@ -127,12 +125,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
-    super(
-      () => this.scheduleRender(),
-      () => vnode_applyJournal(this.$journal$),
-      {},
-      element.getAttribute(QLocaleAttr)!
-    );
+    super(() => vnode_applyJournal(this.$journal$), {}, element.getAttribute(QLocaleAttr)!);
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw qError(QError.elementWithoutContainer);
@@ -181,7 +174,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
-  handleError(err: any, host: HostElement): void {
+  handleError(err: any, host: HostElement | null): void {
     if (qDev && host) {
       // Clean vdom
       if (typeof document !== 'undefined') {
@@ -279,31 +272,20 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return vnode_getProp(vNode, name, getObjectById);
   }
 
+  // TODO: call this in _wait
   scheduleRender() {
-    this.$renderCount$++;
-    this.renderDone ||= getPlatform().nextTick(() => this.processChores());
-    return this.renderDone.finally(() =>
-      emitEvent('qrender', { instanceHash: this.$instanceHash$, renderCount: this.$renderCount$ })
-    );
-  }
-
-  private processChores() {
-    let renderCount = this.$renderCount$;
-    const result = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-    if (isPromise(result)) {
-      return result.then(async () => {
-        while (renderCount !== this.$renderCount$) {
-          renderCount = this.$renderCount$;
-          await this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        }
+    if (!this.renderDone) {
+      const chore = this.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
+      this.renderDone = chore.$returnValue$!.finally(() => {
+        this.$renderCount$++;
         this.renderDone = null;
+        emitEvent('qrender', {
+          instanceHash: this.$instanceHash$,
+          renderCount: this.$renderCount$,
+        });
       });
     }
-    if (renderCount !== this.$renderCount$) {
-      this.processChores();
-      return;
-    }
-    this.renderDone = null;
+    return this.renderDone;
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
@@ -392,7 +374,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $scheduleInitialQRLs$(): void {
     if (this.$initialQRLsIndexes$) {
       for (const index of this.$initialQRLsIndexes$) {
-        this.$scheduler$(
+        this.$scheduler$.schedule(
           ChoreType.QRL_RESOLVE,
           null,
           this.$getObjectById$(index) as QRLInternal<(...args: unknown[]) => unknown>

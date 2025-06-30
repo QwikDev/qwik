@@ -29,7 +29,7 @@ describe.each([
     const Child = component$(() => {
       const signal = useSignal(0);
       if (signal.value === 0) {
-        throw new Promise((r) => r(signal.value++));
+        throw Promise.resolve(signal.value++);
       }
       return 'child';
     });

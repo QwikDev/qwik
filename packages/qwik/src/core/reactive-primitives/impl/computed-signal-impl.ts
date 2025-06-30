@@ -55,7 +55,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
-    this.$container$?.$scheduler$(
+    this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       null,
       this,
@@ -69,7 +69,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    */
   force() {
     this.$forceRunEffects$ = true;
-    this.$container$?.$scheduler$(
+    this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       null,
       this,

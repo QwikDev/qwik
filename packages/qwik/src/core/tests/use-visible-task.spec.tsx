@@ -213,8 +213,8 @@ describe.each([
       'Counter',
       'render',
       '1:task',
-      '1:resolved',
       '2:task',
+      '1:resolved',
       '2:resolved',
     ]);
     expect(vNode).toMatchVDOM(

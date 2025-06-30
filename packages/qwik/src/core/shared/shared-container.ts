@@ -4,8 +4,7 @@ import { version } from '../version';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { Scheduler } from './scheduler';
-import { createScheduler } from './scheduler';
+import { createScheduler, Scheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container, HostElement, ObjToProxyMap } from './types';
 
@@ -23,12 +22,7 @@ export abstract class _SharedContainer implements Container {
   $instanceHash$: string | null = null;
   $buildBase$: string | null = null;
 
-  constructor(
-    scheduleDrain: () => void,
-    journalFlush: () => void,
-    serverData: Record<string, any>,
-    locale: string
-  ) {
+  constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
@@ -37,7 +31,7 @@ export abstract class _SharedContainer implements Container {
       throw Error('Not implemented');
     };
 
-    this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
+    this.$scheduler$ = createScheduler(this, journalFlush);
   }
 
   trackSignalValue<T>(
@@ -71,7 +65,7 @@ export abstract class _SharedContainer implements Container {
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;
-  abstract handleError(err: any, $host$: HostElement): void;
+  abstract handleError(err: any, $host$: HostElement | null): void;
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

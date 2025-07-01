@@ -7,8 +7,8 @@ import {
   untrack,
   useSignal,
   useVisibleTask$,
-  type QwikIntrinsicElements,
   type EventHandler,
+  type QwikIntrinsicElements,
   type QwikVisibleEvent,
 } from '@qwik.dev/core';
 import { prefetchSymbols } from './client-navigate';
@@ -63,7 +63,7 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
+    ? sync$((event: MouseEvent) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
           event.preventDefault();
         }

@@ -85,13 +85,12 @@ export type {
   QwikHTMLElements,
   QwikSVGElements,
   SVGAttributes,
-  HTMLElementAttrs,
-  SVGProps,
 } from './shared/jsx/types/jsx-generated';
 export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';
 export type { StreamWriter, RenderSSROptions } from './ssr/ssr-types';
 export type { RenderOptions, RenderResult } from './client/types';
+export type { SerializationStrategy } from './shared/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -150,7 +149,10 @@ export {
   createComputed$,
   createSerializerQrl,
   createSerializer$,
+  createAsyncComputedQrl,
+  createAsyncComputed$,
 } from './reactive-primitives/signal.public';
+export type { ComputedOptions } from './reactive-primitives/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

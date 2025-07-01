@@ -1,4 +1,4 @@
-import { Fragment as Signal, component$, useSignal } from '@qwik.dev/core';
+import { Fragment as Signal, component$, useSignal, useTask$ } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { useAsyncComputed$ } from '../use/use-async-computed';
@@ -88,6 +88,42 @@ describe.each([
       <>
         <button>
           <Signal ssr-required>{'4'}</Signal>
+        </button>
+      </>
+    );
+  });
+
+  it('should handle error if promise is rejected', async () => {
+    (globalThis as any).log = [];
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useAsyncComputed$(() => Promise.reject(new Error('test')));
+
+      useTask$(({ track }) => {
+        track(doubleCount);
+
+        (globalThis as any).log.push((doubleCount as any).untrackedError.message);
+      });
+
+      return <button onClick$={() => count.value++}>{(doubleCount as any).value}</button>;
+    });
+    await render(<Counter />, { debug });
+    expect((globalThis as any).log).toEqual(['test']);
+  });
+
+  it('should handle undefined as promise result', async () => {
+    (globalThis as any).log = [];
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useAsyncComputed$(() => Promise.resolve(undefined));
+
+      return <button onClick$={() => count.value++}>{doubleCount.value}</button>;
+    });
+    const { vNode } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal>{''}</Signal>
         </button>
       </>
     );

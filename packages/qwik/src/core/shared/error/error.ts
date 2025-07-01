@@ -1,5 +1,6 @@
 import { logErrorAndStop } from '../utils/log';
 import { qDev } from '../utils/qdev';
+import { isObject } from '../utils/types';
 
 export const codeToText = (code: number, ...parts: any[]): string => {
   if (qDev) {
@@ -45,7 +46,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
     if (parts.length) {
       text = text.replaceAll(/{{(\d+)}}/g, (_, index) => {
         let v = parts[index];
-        if (v && typeof v === 'object' && v.constructor === Object) {
+        if (v && isObject(v) && v.constructor === Object) {
           v = JSON.stringify(v).slice(0, 50);
         }
         return v;

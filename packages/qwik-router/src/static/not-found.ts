@@ -1,6 +1,7 @@
 import type { RouteData } from '@qwik.dev/router';
 import { getErrorHtml } from '@qwik.dev/router/middleware/request-handler';
 import type { StaticGenerateOptions, System } from './types';
+import { RouteDataProp } from '../runtime/src/types';
 
 export async function generateNotFoundPages(
   sys: System,
@@ -11,7 +12,9 @@ export async function generateNotFoundPages(
     const basePathname = opts.basePathname || '/';
     const rootNotFoundPathname = basePathname + '404.html';
 
-    const hasRootNotFound = routes.some((r) => r[2] === rootNotFoundPathname);
+    const hasRootNotFound = routes.some(
+      (r) => r[RouteDataProp.OriginalPathname] === rootNotFoundPathname
+    );
     if (!hasRootNotFound) {
       const filePath = sys.getRouteFilePath(rootNotFoundPathname, true);
 

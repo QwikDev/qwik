@@ -102,7 +102,7 @@ import { vnode_diff } from '../client/vnode-diff';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import type { StoreHandler } from '../reactive-primitives/impl/store';
+import { StoreHandler } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
@@ -742,6 +742,17 @@ export const createScheduler = (container: Container, journalFlush: () => void) 
         return 0;
       }
       // 1 means that we are going to process chores as FIFO
+      return 1;
+    }
+
+    // TODO: this is a hack to ensure that the effect chores are scheduled for the same target
+    if (
+      a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
+      b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
+      a.$target$ instanceof StoreHandler &&
+      b.$target$ instanceof StoreHandler &&
+      a.$payload$ !== b.$payload$
+    ) {
       return 1;
     }
 

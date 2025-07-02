@@ -1,5 +1,25 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.4
+
+### Minor Changes
+
+- ✨ implement new SerializationWeakRef class for values that can be not serialized (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+- ✨ expose option to never or always serialize computed-like signal value (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+### Patch Changes
+
+- 🐞🩹 async computed signal promise rejection (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+- ✨ expose invalidate method for computed-like signals (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+- 🐞🩹 maximum component rerender retries (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+- 🐞🩹 serializer symbol value recalculate without update function (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+- 🐞🩹 async computed correctly handle returning falsy value (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
 ## 2.0.0-beta.3
 
 ### Patch Changes

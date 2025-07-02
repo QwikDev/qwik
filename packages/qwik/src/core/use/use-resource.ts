@@ -185,10 +185,10 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   if (isResourceReturn(resource)) {
+    // create a subscription for the resource._state changes
+    const state = resource._state;
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      // create a subscription for the resource._state changes
-      const state = resource._state;
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
@@ -203,16 +203,10 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    const value = resource.value;
-    if (value) {
-      return value.then(
-        useBindInvokeContext(props.onResolved),
-        useBindInvokeContext(props.onRejected)
-      );
-    } else {
-      // this is temporary value until the `runResource` is executed and promise is assigned to the value
-      return Promise.resolve(undefined);
-    }
+    return untrack(() => resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),
@@ -350,7 +344,7 @@ export const runResource = <T>(
   });
 
   const promise: ValueOrPromise<void> = safeCall(
-    () => Promise.resolve(taskFn(opts)),
+    () => taskFn(opts),
     (value) => {
       setState(true, value);
     },

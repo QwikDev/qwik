@@ -150,7 +150,6 @@ enum ChoreState {
   RUNNING = 1,
   FAILED = 2,
   DONE = 3,
-  BLOCKED = 4,
 }
 
 type ChoreReturnValue<T extends ChoreType = ChoreType> = T extends
@@ -194,6 +193,7 @@ export const getChorePromise = <T extends ChoreType>(chore: Chore<T>) =>
 
 export const createScheduler = (container: Container, journalFlush: () => void) => {
   const choreQueue: Chore[] = [];
+  const blockedChores = new Set<Chore>();
 
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
   let drainScheduled = false;
@@ -315,6 +315,7 @@ export const createScheduler = (container: Container, journalFlush: () => void) 
     }
 
     let blocked = false;
+    // TODO: find chores in blockedChores
     if (
       chore.$type$ === ChoreType.RUN_QRL ||
       chore.$type$ === ChoreType.TASK ||
@@ -372,7 +373,10 @@ export const createScheduler = (container: Container, journalFlush: () => void) 
         }
       }
     }
-    chore.$state$ = blocked ? ChoreState.BLOCKED : ChoreState.NONE;
+    if (blocked) {
+      blockedChores.add(chore);
+      return chore;
+    }
     chore = sortedInsert(
       choreQueue,
       chore,
@@ -431,7 +435,8 @@ export const createScheduler = (container: Container, journalFlush: () => void) 
     const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
       if (chore.$blockedChores$) {
         for (const blockedChore of chore.$blockedChores$) {
-          blockedChore.$state$ = ChoreState.NONE;
+          blockedChores.delete(blockedChore);
+          sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
         }
         chore.$blockedChores$ = null;
       }

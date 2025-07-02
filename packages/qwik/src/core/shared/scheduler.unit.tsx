@@ -186,6 +186,7 @@ describe('scheduler', () => {
     expect(testLog).toEqual([
       // component + component vnode-diff
       'component',
+      'vnode-diff',
       // vnode-diff chore
       'vnode-diff',
       'journalFlush',

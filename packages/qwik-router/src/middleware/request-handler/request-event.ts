@@ -1,5 +1,5 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
@@ -14,7 +14,7 @@ import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
 import { ServerError } from './error-handler';
 import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { encoder } from './resolve-request-handlers';
+import { encoder, getRouteLoaderPromise } from './resolve-request-handlers';
 import { RewriteMessage } from './rewrite-handler';
 import type {
   CacheControl,
@@ -150,7 +150,7 @@ export function createRequestEvent(
     return new AbortMessage();
   };
 
-  const loaders: Record<string, Promise<any>> = {};
+  const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
     [RequestEvLoaderSerializationStrategyMap]: new Map(),
@@ -209,6 +209,10 @@ export function createRequestEvent(
           throw new Error(
             'You can not get the returned data of a loader that has not been executed for this request.'
           );
+        }
+        if (loaders[id] === _UNINITIALIZED) {
+          const isDev = getRequestMode(requestEv) === 'dev';
+          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev, qwikSerializer);
         }
       }
 

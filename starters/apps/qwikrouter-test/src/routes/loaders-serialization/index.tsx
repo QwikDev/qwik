@@ -12,6 +12,11 @@ export const useTestLoaderEager = routeLoader$(
   { serializationStrategy: "always" },
 );
 
+export const useNestedLoader = routeLoader$(async (requestEv) => {
+  const testData = await requestEv.resolveValue(useTestLoader);
+  return { test: testData.test + " nested", abcd: testData.abcd + " nested" };
+});
+
 export default component$(() => {
   const testSignal = useTestLoader();
   const toggle = useSignal(false);
@@ -23,6 +28,7 @@ export default component$(() => {
       </button>
       {toggle.value && <Child />}
       {toggle.value && <ChildEager />}
+      {toggle.value && <NestedChild />}
     </>
   );
 });
@@ -43,6 +49,16 @@ export const ChildEager = component$(() => {
     <>
       <div id="prop3">{testSignal.value.foo}</div>
       <div id="prop4">{testSignal.value.bar}</div>
+    </>
+  );
+});
+
+export const NestedChild = component$(() => {
+  const testSignal = useNestedLoader();
+  return (
+    <>
+      <div id="prop5">{testSignal.value.test}</div>
+      <div id="prop6">{testSignal.value.abcd}</div>
     </>
   );
 });

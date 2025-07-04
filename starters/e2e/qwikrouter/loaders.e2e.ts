@@ -178,6 +178,12 @@ test.describe("loaders", () => {
         await expect(page.locator("#prop4")).toHaveText(
           "should serialize this",
         );
+        await expect(page.locator("#prop5")).toHaveText(
+          "some test value nested",
+        );
+        await expect(page.locator("#prop6")).toHaveText(
+          "should not serialize this nested",
+        );
       }
     });
 
@@ -207,7 +213,7 @@ test.describe("loaders", () => {
       if (javaScriptEnabled) {
         await page.locator("#toggle-child").click();
         await page.waitForLoadState("networkidle");
-        expect(loadersRequestCount).toBe(1);
+        expect(loadersRequestCount).toBe(2);
         expect(allLoadersRequestCount).toBe(1);
         await expect(page.locator("#prop1")).toHaveText("some test value");
         await expect(page.locator("#prop2")).toHaveText(
@@ -218,6 +224,12 @@ test.describe("loaders", () => {
         );
         await expect(page.locator("#prop4")).toHaveText(
           "should serialize this",
+        );
+        await expect(page.locator("#prop5")).toHaveText(
+          "some test value nested",
+        );
+        await expect(page.locator("#prop6")).toHaveText(
+          "should not serialize this nested",
         );
       }
     });

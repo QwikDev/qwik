@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.5
+
+### Patch Changes
+
+- 🐞🩹 don't wrap function calls in signal (by [@Varixo](https://github.com/Varixo) in [#7707](https://github.com/QwikDev/qwik/pull/7707))
+
 ## 2.0.0-beta.4
 
 ### Minor Changes

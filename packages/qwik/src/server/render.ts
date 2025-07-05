@@ -186,6 +186,7 @@ export async function renderToStream(
             id: 'qwikloader',
             // execute even before DOM order
             async: true,
+            type: 'module',
             dangerouslySetInnerHTML: qwikLoaderScript,
             nonce: opts.serverData?.nonce,
           })

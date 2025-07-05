@@ -29,7 +29,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.49.4"
+    "@supabase/supabase-js": "2.49.4"
   },
   "publishConfig": {
     "access": "public"

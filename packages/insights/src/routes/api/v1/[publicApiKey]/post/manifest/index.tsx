@@ -10,6 +10,11 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
   try {
     const qManifest = QManifest.parse(await request.json());
     const manifestHash = qManifest.manifestHash;
+
+    console.log(
+      `Processing manifest ${manifestHash} for API key ${publicApiKey} with ${Object.keys(qManifest.symbols).length} symbols`
+    );
+
     exit();
     const db = getDB();
     await dbGetManifestInfo(db, publicApiKey, manifestHash);
@@ -24,9 +29,16 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
       )
       .limit(1000)
       .all();
+
+    console.log(`Found ${existing.length} existing symbols for manifest ${manifestHash}`);
+
     const existingMap = new Map<string, (typeof existing)[0]>();
     existing.forEach((row) => existingMap.set(row.hash, row));
     const promises: Promise<any>[] = [];
+
+    let insertCount = 0;
+    let updateCount = 0;
+
     for (const symbol of Object.values(qManifest.symbols)) {
       const existing = existingMap.get(symbol.hash);
       const lo = symbol.loc[0];
@@ -38,6 +50,7 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
           existing.lo !== lo ||
           existing.hi !== hi
         ) {
+          updateCount++;
           promises.push(
             db
               .update(symbolDetailTable)
@@ -49,9 +62,14 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
               })
               .where(eq(symbolDetailTable.id, existing.id))
               .run()
+              .catch((error) => {
+                console.error(`Failed to update symbol ${symbol.hash}:`, error);
+                throw error;
+              })
           );
         }
       } else {
+        insertCount++;
         promises.push(
           db
             .insert(symbolDetailTable)
@@ -65,6 +83,20 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
               hi,
             })
             .run()
+            .catch((error) => {
+              console.error(
+                `Failed to insert symbol ${symbol.hash} for manifest ${manifestHash}:`,
+                {
+                  error: error.message,
+                  symbol: {
+                    hash: symbol.hash,
+                    displayName: symbol.displayName,
+                    origin: symbol.origin,
+                  },
+                }
+              );
+              throw error;
+            })
         );
       }
       if (promises.length > 10) {
@@ -73,9 +105,17 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
       }
     }
     await Promise.all(promises);
+
+    console.log(
+      `Successfully processed manifest ${manifestHash}: ${insertCount} inserts, ${updateCount} updates`
+    );
     json(200, { code: 200, message: 'OK' });
   } catch (e) {
-    console.error(JSON.stringify(e));
+    console.error(`Error processing manifest for API key ${publicApiKey}:`, {
+      error: e instanceof Error ? e.message : String(e),
+      stack: e instanceof Error ? e.stack : undefined,
+      publicApiKey,
+    });
     json(500, { code: 500, message: 'Internal Server Error', error: e });
   }
 };

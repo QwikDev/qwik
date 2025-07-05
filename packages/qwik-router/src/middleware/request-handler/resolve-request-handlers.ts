@@ -1,4 +1,5 @@
 import { type QRL } from '@qwik.dev/core';
+import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -23,8 +24,8 @@ import {
   RequestEvShareServerTiming,
   RequestEvSharedActionId,
   RequestRouteName,
-  getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
+  getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
   type RequestEventInternal,
@@ -38,7 +39,6 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
-import { _UNINITIALIZED } from 'packages/qwik/core-internal';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -248,6 +248,8 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
         for (const loader of routeLoaders) {
           if (selectedLoaderIds.includes(loader.__id)) {
             currentLoaders.push(loader);
+          } else {
+            loaders[loader.__id] = _UNINITIALIZED;
           }
         }
       } else {
@@ -261,7 +263,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
   };
 }
 
-async function getRouteLoaderPromise(
+export async function getRouteLoaderPromise(
   loader: LoaderInternal,
   loaders: Record<string, unknown>,
   requestEv: RequestEventInternal,

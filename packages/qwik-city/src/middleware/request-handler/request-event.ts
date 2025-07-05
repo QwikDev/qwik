@@ -141,7 +141,6 @@ export function createRequestEvent(
     routeModuleIndex = ABORT_INDEX;
     return new AbortMessage();
   };
-
   const loaders: Record<string, Promise<any>> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,

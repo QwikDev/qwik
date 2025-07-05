@@ -91,7 +91,7 @@ import {
 } from './vnode';
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
-import { getNewElementNamespaceData } from './vnode-namespace';
+import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { isSignal } from '../reactive-primitives/utils';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
@@ -673,6 +673,14 @@ export const vnode_diff = (
 
         value = serializeAttribute(key, value, scopedStyleIdPrefix);
         if (value != null) {
+          if (vNewNode![VNodeProps.flags] & VNodeFlags.NS_svg) {
+            // only svg elements can have namespace attributes
+            const namespace = getAttributeNamespace(key);
+            if (namespace) {
+              element.setAttributeNS(namespace, key, String(value));
+              continue;
+            }
+          }
           element.setAttribute(key, String(value));
         }
       }

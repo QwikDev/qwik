@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.6
+
+### Patch Changes
+
+- 🐞🩹 render SVG attributes with correct namespace (by [@Varixo](https://github.com/Varixo) in [#7705](https://github.com/QwikDev/qwik/pull/7705))
+
 ## 2.0.0-beta.5
 
 ### Patch Changes

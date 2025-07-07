@@ -187,7 +187,7 @@ export interface QwikBundle {
 // @public
 export type QwikBundleGraph = Array<string | number>;
 
-// @public (undocumented)
+// @public
 export function qwikEsbuild(qwikEsbuildOpts?: QwikEsbuildPluginOptions): Plugin_2;
 
 // @public (undocumented)

@@ -14,7 +14,15 @@ import {
   type QwikPluginOptions,
 } from './plugin';
 
-/** @public */
+/**
+ * Creates a Qwik esbuild plugin that transforms Qwik components and optimizes the build.
+ *
+ * This plugin supports both real files (on disk) and virtual files (provided by bundlers like
+ * mdx-bundler). For virtual files that don't exist on the filesystem, the plugin will return
+ * undefined to let esbuild handle them through its virtual file system.
+ *
+ * @public
+ */
 export function qwikEsbuild(qwikEsbuildOpts: QwikEsbuildPluginOptions = {}): Plugin {
   const qwikPlugin = createQwikPlugin(qwikEsbuildOpts.optimizerOptions);
 
@@ -146,15 +154,25 @@ export function qwikEsbuild(qwikEsbuildOpts: QwikEsbuildPluginOptions = {}): Plu
         }
 
         try {
-          // Read the file content
+          // Try to get file content from filesystem first, then fall back to virtual files
           let code: string | undefined;
+
           if (sys.env === 'node') {
             const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-            code = await fs.promises.readFile(args.path, 'utf-8');
+
+            // Check if file exists on disk first
+            try {
+              await fs.promises.access(args.path);
+              // File exists on disk, read it normally
+              code = await fs.promises.readFile(args.path, 'utf-8');
+            } catch (accessError) {
+              // File doesn't exist on disk, it's likely virtual
+              // Let esbuild handle it by returning undefined
+              // This allows esbuild to provide the content through its virtual file system
+              return undefined;
+            }
           } else {
-            // For non-Node environments, we can't read files from the filesystem
-            // This should be handled differently in a real implementation
-            console.warn(`[Qwik] Cannot read file ${args.path} in ${sys.env} environment`);
+            // For non-Node environments, always return undefined to let esbuild handle it
             return undefined;
           }
 

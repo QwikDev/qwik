@@ -1450,6 +1450,10 @@ export type QwikBundleGraph = Array<string | number>;
 
 ## qwikEsbuild
 
+Creates a Qwik esbuild plugin that transforms Qwik components and optimizes the build.
+
+This plugin supports both real files (on disk) and virtual files (provided by bundlers like mdx-bundler). For virtual files that don't exist on the filesystem, the plugin will return undefined to let esbuild handle them through its virtual file system.
+
 ```typescript
 export declare function qwikEsbuild(
   qwikEsbuildOpts?: QwikEsbuildPluginOptions,

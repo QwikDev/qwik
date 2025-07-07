@@ -360,4 +360,6 @@ export interface QwikEsbuildPluginOptions {
 }
 
 export { ExperimentalFeatures } from './plugin';
+
+/** @public */
 export type QwikEsbuildPlugin = Plugin & { api: QwikEsbuildPluginApi };

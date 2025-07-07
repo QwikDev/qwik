@@ -4,7 +4,8 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'vite';
+import type { Plugin as Plugin_2 } from 'esbuild';
+import type { Plugin as Plugin_3 } from 'vite';
 
 // @public
 export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
@@ -185,6 +186,41 @@ export interface QwikBundle {
 
 // @public
 export type QwikBundleGraph = Array<string | number>;
+
+// @public (undocumented)
+export function qwikEsbuild(qwikEsbuildOpts?: QwikEsbuildPluginOptions): Plugin_2;
+
+// @public (undocumented)
+export type QwikEsbuildPlugin = Plugin_2 & {
+    api: QwikEsbuildPluginApi;
+};
+
+// @public (undocumented)
+export interface QwikEsbuildPluginOptions {
+    assetsDir?: string;
+    buildMode?: QwikBuildMode;
+    // (undocumented)
+    csr?: boolean;
+    debug?: boolean;
+    entryStrategy?: EntryStrategy;
+    // Warning: (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "ExperimentalFeatures" which is marked as @alpha
+    experimental?: (keyof typeof ExperimentalFeatures)[];
+    input?: string[] | string | {
+        [entry: string]: string;
+    };
+    lint?: boolean;
+    manifestInput?: QwikManifest;
+    manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+    // (undocumented)
+    optimizerOptions?: OptimizerOptions;
+    outDir?: string;
+    rootDir?: string;
+    sourcemap?: boolean;
+    srcDir?: string;
+    srcInputs?: TransformModuleInput[] | null;
+    target?: QwikBuildTarget;
+    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+}
 
 // @public
 export interface QwikManifest {
@@ -509,6 +545,10 @@ export type TranspileOption = boolean | undefined | null;
 export const versions: {
     qwik: string;
 };
+
+// Warnings were encountered during analysis:
+//
+// /Users/jackshelton/dev/open-source/qwik/dist-dev/dts-out/packages/qwik/src/optimizer/src/plugins/esbuild.d.ts:102:5 - (ae-forgotten-export) The symbol "QwikEsbuildPluginApi" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

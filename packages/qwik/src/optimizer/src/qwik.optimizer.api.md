@@ -196,6 +196,12 @@ export type QwikEsbuildPlugin = Plugin_2 & {
 };
 
 // @public (undocumented)
+export type QwikEsbuildPluginApi = {
+    getOptimizer: () => Optimizer;
+    getOptions: () => NormalizedQwikPluginOptions;
+};
+
+// @public (undocumented)
 export interface QwikEsbuildPluginOptions {
     assetsDir?: string;
     buildMode?: QwikBuildMode;
@@ -332,8 +338,6 @@ export interface QwikVitePluginApi {
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
-    // Warning: (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
@@ -548,7 +552,7 @@ export const versions: {
 
 // Warnings were encountered during analysis:
 //
-// /Users/jackshelton/dev/open-source/qwik/dist-dev/dts-out/packages/qwik/src/optimizer/src/plugins/esbuild.d.ts:102:5 - (ae-forgotten-export) The symbol "QwikEsbuildPluginApi" needs to be exported by the entry point index.d.ts
+// /Users/jackshelton/dev/open-source/qwik/dist-dev/dts-out/packages/qwik/src/optimizer/src/plugins/esbuild.d.ts:7:5 - (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

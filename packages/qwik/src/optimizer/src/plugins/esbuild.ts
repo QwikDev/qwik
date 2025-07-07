@@ -16,7 +16,8 @@ import {
   type QwikPluginOptions,
 } from './plugin';
 
-type QwikEsbuildPluginApi = {
+/** @public */
+export type QwikEsbuildPluginApi = {
   getOptimizer: () => Optimizer;
   getOptions: () => NormalizedQwikPluginOptions;
 };

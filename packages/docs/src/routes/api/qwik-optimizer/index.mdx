@@ -1497,6 +1497,21 @@ export type QwikEsbuildPlugin = Plugin & {
 };
 ```
 
+**References:** [QwikEsbuildPluginApi](#qwikesbuildpluginapi)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts)
+
+## QwikEsbuildPluginApi
+
+```typescript
+export type QwikEsbuildPluginApi = {
+  getOptimizer: () => Optimizer;
+  getOptions: () => NormalizedQwikPluginOptions;
+};
+```
+
+**References:** [Optimizer](#optimizer)
+
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts)
 
 ## QwikEsbuildPluginOptions

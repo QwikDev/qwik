@@ -145,8 +145,9 @@ async function runNext(
  * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
-  if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+  const frameworkSpecificFileLength = getFrameworkSpecificFileLength(pathname);
+  if (frameworkSpecificFileLength) {
+    const trimEnd = pathname.length - frameworkSpecificFileLength + (trailingSlash ? 1 : 0);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';
@@ -155,6 +156,29 @@ export function getRouteMatchPathname(pathname: string, trailingSlash: boolean |
   return pathname;
 }
 
+function getFrameworkSpecificFileLength(pathname: string): number {
+  // Check for exact endings first (most common cases)
+  if (pathname.endsWith(QDATA_JSON)) {
+    return QDATA_JSON_LEN;
+  } else if (pathname.endsWith(Q_LOADER_DATA_JSON)) {
+    return Q_LOADER_DATA_JSON_LEN;
+  }
+
+  // For regex pattern, use match directly
+  const match = pathname.match(SINGLE_LOADER_REGEX);
+  if (match) {
+    return match[0].length;
+  }
+
+  return 0;
+}
+
 export const IsQData = '@isQData';
+export const IsQLoader = '@isQLoader';
+export const QLoaderId = '@qLoaderId';
+export const IsQLoaderData = '@isQLoaderData';
 export const QDATA_JSON = '/q-data.json';
 export const QDATA_JSON_LEN = QDATA_JSON.length;
+export const Q_LOADER_DATA_JSON = '/q-loader-data.json';
+export const Q_LOADER_DATA_JSON_LEN = Q_LOADER_DATA_JSON.length;
+export const SINGLE_LOADER_REGEX = /\/q-loader-([^.]+)\.json$/;

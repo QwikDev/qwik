@@ -369,7 +369,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      loadClientData(dest);
       loadRoute(
         qwikRouterConfig.routes,
         qwikRouterConfig.menus,
@@ -432,7 +432,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
+        const pageData = (clientPageData = await loadClientData(trackUrl, {
           action,
           clearCache: true,
         }));

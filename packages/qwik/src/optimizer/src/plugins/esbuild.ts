@@ -1,7 +1,6 @@
 import type { Plugin, PluginBuild } from 'esbuild';
 import type {
   EntryStrategy,
-  Optimizer,
   OptimizerOptions,
   QwikManifest,
   TransformModule,
@@ -10,17 +9,10 @@ import type {
 import {
   createQwikPlugin,
   type ExperimentalFeatures,
-  type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
   type QwikPluginOptions,
 } from './plugin';
-
-/** @public */
-export type QwikEsbuildPluginApi = {
-  getOptimizer: () => Optimizer;
-  getOptions: () => NormalizedQwikPluginOptions;
-};
 
 /** @public */
 export function qwikEsbuild(qwikEsbuildOpts: QwikEsbuildPluginOptions = {}): Plugin {
@@ -205,12 +197,6 @@ export function qwikEsbuild(qwikEsbuildOpts: QwikEsbuildPluginOptions = {}): Plu
     },
   };
 
-  // Add API methods to the plugin
-  (esbuildPlugin as any).api = {
-    getOptimizer: () => qwikPlugin.getOptimizer(),
-    getOptions: () => qwikPlugin.getOptions(),
-  };
-
   return esbuildPlugin;
 }
 
@@ -363,4 +349,4 @@ export interface QwikEsbuildPluginOptions {
 export { ExperimentalFeatures } from './plugin';
 
 /** @public */
-export type QwikEsbuildPlugin = Plugin & { api: QwikEsbuildPluginApi };
+export type QwikEsbuildPlugin = Plugin;

@@ -191,15 +191,7 @@ export type QwikBundleGraph = Array<string | number>;
 export function qwikEsbuild(qwikEsbuildOpts?: QwikEsbuildPluginOptions): Plugin_2;
 
 // @public (undocumented)
-export type QwikEsbuildPlugin = Plugin_2 & {
-    api: QwikEsbuildPluginApi;
-};
-
-// @public (undocumented)
-export type QwikEsbuildPluginApi = {
-    getOptimizer: () => Optimizer;
-    getOptions: () => NormalizedQwikPluginOptions;
-};
+export type QwikEsbuildPlugin = Plugin_2;
 
 // @public (undocumented)
 export interface QwikEsbuildPluginOptions {
@@ -338,6 +330,8 @@ export interface QwikVitePluginApi {
     getManifest: () => QwikManifest | null;
     // (undocumented)
     getOptimizer: () => Optimizer | null;
+    // Warning: (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
@@ -549,10 +543,6 @@ export type TranspileOption = boolean | undefined | null;
 export const versions: {
     qwik: string;
 };
-
-// Warnings were encountered during analysis:
-//
-// /Users/jackshelton/dev/open-source/qwik/dist-dev/dts-out/packages/qwik/src/optimizer/src/plugins/esbuild.d.ts:7:5 - (ae-forgotten-export) The symbol "NormalizedQwikPluginOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -42,11 +42,7 @@ export type {
 
 export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
-export type {
-  QwikEsbuildPluginOptions,
-  QwikEsbuildPlugin,
-  QwikEsbuildPluginApi,
-} from './plugins/esbuild';
+export type { QwikEsbuildPluginOptions, QwikEsbuildPlugin } from './plugins/esbuild';
 export type {
   QwikViteDevResponse,
   QwikVitePlugin,

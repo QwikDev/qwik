@@ -27,18 +27,6 @@ test('esbuild plugin creation', async () => {
 
   assert.equal(plugin.name, 'esbuild-plugin-qwik');
   assert.equal(typeof plugin.setup, 'function');
-  assert.equal(typeof (plugin as any).api, 'object');
-});
-
-test('esbuild plugin api methods', async () => {
-  const initOpts: QwikEsbuildPluginOptions = {
-    optimizerOptions: mockOptimizerOptions(),
-  };
-  const plugin = qwikEsbuild(initOpts);
-  const api = (plugin as any).api;
-
-  assert.equal(typeof api.getOptimizer, 'function');
-  assert.equal(typeof api.getOptions, 'function');
 });
 
 test('esbuild default options, client', async () => {
@@ -46,18 +34,10 @@ test('esbuild default options, client', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = qwikEsbuild(initOpts);
-  const api = (plugin as any).api;
 
-  // The plugin needs to be initialized to get options
-  // In a real scenario, this would happen during the setup phase
-  try {
-    const options = api.getOptions();
-    // Options won't be available until the plugin is initialized
-    assert.equal(options.target, 'client');
-  } catch (error) {
-    // Expected since plugin isn't initialized yet
-    assert.equal((error as Error).message, 'Qwik plugin has not been initialized');
-  }
+  // Plugin should be created successfully with default options
+  assert.equal(plugin.name, 'esbuild-plugin-qwik');
+  assert.equal(typeof plugin.setup, 'function');
 });
 
 test('esbuild options, ssr target', async () => {
@@ -212,8 +192,6 @@ describe('esbuild plugin integration', () => {
     assert.equal(plugin.name, 'esbuild-plugin-qwik');
 
     // The plugin should be created successfully with all options
-    const api = (plugin as any).api;
-    assert.equal(typeof api.getOptimizer, 'function');
-    assert.equal(typeof api.getOptions, 'function');
+    assert.equal(typeof plugin.setup, 'function');
   });
 });

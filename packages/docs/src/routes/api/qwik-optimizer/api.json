@@ -479,23 +479,9 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type QwikEsbuildPlugin = Plugin & {\n    api: QwikEsbuildPluginApi;\n};\n```\n**References:** [QwikEsbuildPluginApi](#qwikesbuildpluginapi)",
+      "content": "```typescript\nexport type QwikEsbuildPlugin = Plugin;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts",
       "mdFile": "qwik.qwikesbuildplugin.md"
-    },
-    {
-      "name": "QwikEsbuildPluginApi",
-      "id": "qwikesbuildpluginapi",
-      "hierarchy": [
-        {
-          "name": "QwikEsbuildPluginApi",
-          "id": "qwikesbuildpluginapi"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type QwikEsbuildPluginApi = {\n    getOptimizer: () => Optimizer;\n    getOptions: () => NormalizedQwikPluginOptions;\n};\n```\n**References:** [Optimizer](#optimizer)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts",
-      "mdFile": "qwik.qwikesbuildpluginapi.md"
     },
     {
       "name": "QwikEsbuildPluginOptions",

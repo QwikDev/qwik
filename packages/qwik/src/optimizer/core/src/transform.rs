@@ -1696,6 +1696,7 @@ impl<'a> QwikTransform<'a> {
 		true
 	}
 
+	// TODO export segment data for the noop qrl
 	fn create_noop_qrl(
 		&mut self,
 		symbol_name: &swc_atoms::JsWord,

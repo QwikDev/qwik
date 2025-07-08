@@ -227,6 +227,7 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id;
   loader.__serializationStrategy = serializationStrategy;
+  loader.__expires = -1; // -1 means no expiration
   Object.freeze(loader);
 
   return loader;

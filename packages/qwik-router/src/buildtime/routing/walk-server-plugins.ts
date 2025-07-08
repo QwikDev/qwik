@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join } from 'node:path';
-import type { BuildServerPlugin, NormalizedPluginOptions } from '../types';
+import type { BuiltServerPlugin, NormalizedPluginOptions } from '../types';
 import {
   createFileId,
   getExtension,
@@ -14,7 +14,7 @@ import {
 export async function walkServerPlugins(opts: NormalizedPluginOptions) {
   const dirPath = opts.serverPluginsDir;
   const dirItemNames = await fs.promises.readdir(dirPath);
-  const sourceFiles: BuildServerPlugin[] = [];
+  const sourceFiles: BuiltServerPlugin[] = [];
   await Promise.all(
     dirItemNames.map(async (itemName) => {
       const itemPath = normalizePath(join(dirPath, itemName));

@@ -12,14 +12,14 @@ import {
 } from '../../adapters/shared/vite';
 import { postBuild } from '../../adapters/shared/vite/post-build';
 import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
-import { build } from '../build';
+import { parseRoutesDir } from '../build';
 import { createBuildContext, resetBuildContext } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
@@ -50,7 +50,7 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
 }
 
 function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
-  let ctx: BuildContext | null = null;
+  let ctx: RoutingContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
@@ -212,7 +212,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         }
         if (isRouterConfig || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
-            await build(ctx);
+            await parseRoutesDir(ctx);
 
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {

@@ -392,6 +392,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
+// TODO handle noop segments, only add them to symbols, not mapping or bundles
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],

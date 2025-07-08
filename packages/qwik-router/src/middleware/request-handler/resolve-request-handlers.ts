@@ -1,7 +1,7 @@
 import { type QRL } from '@qwik.dev/core';
 import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
-import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
   type ActionInternal,
@@ -68,6 +68,15 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    const routeModules = route[LoadedRouteProp.Mods];
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      routeModules,
+      isPageRoute,
+      method
+    );
     const routeName = route[LoadedRouteProp.RouteName];
     if (
       checkOrigin &&
@@ -86,16 +95,8 @@ export const resolveRequestHandlers = (
       requestHandlers.push(singleLoaderHandler(routeLoaders));
       requestHandlers.push(qDataHandler);
     }
-    const routeModules = route[LoadedRouteProp.Mods];
     requestHandlers.push(handleRedirect);
-    _resolveRequestHandlers(
-      routeLoaders,
-      routeActions,
-      requestHandlers,
-      routeModules,
-      isPageRoute,
-      method
-    );
+
     if (isPageRoute) {
       requestHandlers.push((ev) => {
         // Set the current route name
@@ -247,20 +248,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
     const isDev = getRequestMode(requestEv) === 'dev';
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (routeLoaders.length > 0) {
-      let currentLoaders: LoaderInternal[] = [];
-      if (requestEv.query.has(QLOADER_KEY)) {
-        const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
-        for (const loader of routeLoaders) {
-          if (selectedLoaderIds.includes(loader.__id)) {
-            currentLoaders.push(loader);
-          } else {
-            loaders[loader.__id] = _UNINITIALIZED;
-          }
-        }
-      } else {
-        currentLoaders = routeLoaders;
-      }
-      const resolvedLoadersPromises = currentLoaders.map((loader) =>
+      const resolvedLoadersPromises = routeLoaders.map((loader) =>
         executeLoader(loader, loaders, requestEv, isDev, qwikSerializer)
       );
       await Promise.all(resolvedLoadersPromises);

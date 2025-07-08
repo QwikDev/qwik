@@ -31,12 +31,12 @@ import type {
   RouteModule,
 } from '../../runtime/src/types';
 import { getExtension, normalizePath } from '../../utils/fs';
-import { updateBuildContext } from '../build';
-import type { BuildContext, BuildRoute } from '../types';
+import { updateRoutingContext } from '../build';
+import type { RoutingContext, BuiltRoute } from '../types';
 import { formatError } from './format-error';
 import { RequestEvShareServerTiming } from '../../middleware/request-handler/request-event';
 
-export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
+export function ssrDevMiddleware(ctx: RoutingContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
     for (const route of ctx.routes) {
       let params = matchRoute(route.pathname, pathname);
@@ -60,7 +60,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     routeModulePaths: WeakMap<RouteModule<unknown>, string>,
     matchPathname: string
   ) => {
-    await updateBuildContext(ctx);
+    await updateRoutingContext(ctx);
     for (const d of ctx.diagnostics) {
       if (d.type === 'error') {
         console.error(d.message);
@@ -345,7 +345,7 @@ const checkUniqueLoader = (
   loaderMap.set(loader.__id, filePath);
 };
 
-export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
+export function getUnmatchedRouteHtml(url: URL, ctx: RoutingContext): string {
   const blue = '#006ce9';
   const routesAndDistance = sortRoutesByDistance(ctx.routes, url);
   return `
@@ -387,7 +387,7 @@ export function getUnmatchedRouteHtml(url: URL, ctx: BuildContext): string {
   </html>`;
 }
 
-const sortRoutesByDistance = (routes: BuildRoute[], url: URL) => {
+const sortRoutesByDistance = (routes: BuiltRoute[], url: URL) => {
   const pathname = url.pathname;
   const routesWithDistance = routes.map(
     (route) => [route, levenshteinDistance(pathname, route.pathname)] as const

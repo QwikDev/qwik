@@ -7,7 +7,7 @@ import { headingRank } from 'hast-util-heading-rank';
 import { toString } from 'hast-util-to-string';
 import { visit } from 'unist-util-visit';
 import type { ContentHeading } from '../../runtime/src';
-import type { BuildContext, NormalizedPluginOptions } from '../types';
+import type { RoutingContext, NormalizedPluginOptions } from '../types';
 import { getExtension, isMarkdownExt, normalizePath } from '../../utils/fs';
 import { frontmatterAttrsToDocumentHead } from './frontmatter';
 import { isSameOriginUrl } from '../../utils/pathname';
@@ -31,7 +31,7 @@ export function rehypeSlug(): Transformer {
   };
 }
 
-export function rehypePage(ctx: BuildContext): Transformer {
+export function rehypePage(ctx: RoutingContext): Transformer {
   return (ast, vfile) => {
     const mdast = ast as Root;
     const sourcePath = normalizePath(vfile.path);
@@ -96,12 +96,12 @@ function updateContentLinks(mdast: Root, opts: NormalizedPluginOptions, sourcePa
   });
 }
 
-function exportFrontmatter(ctx: BuildContext, mdast: Root, sourcePath: string) {
+function exportFrontmatter(ctx: RoutingContext, mdast: Root, sourcePath: string) {
   const attrs = ctx.frontmatter.get(sourcePath);
   createExport(mdast, 'frontmatter', attrs);
 }
 
-function exportContentHead(ctx: BuildContext, mdast: Root, sourcePath: string) {
+function exportContentHead(ctx: RoutingContext, mdast: Root, sourcePath: string) {
   const attrs = ctx.frontmatter.get(sourcePath);
   const head = frontmatterAttrsToDocumentHead(attrs);
   if (head) {

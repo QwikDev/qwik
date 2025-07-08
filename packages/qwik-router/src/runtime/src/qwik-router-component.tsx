@@ -130,7 +130,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   useStyles$(`
     @layer qwik {
       @supports selector(html:active-view-transition-type(type)) {
-        html:active-view-transition-type(qwik-router-spa) {
+        html:active-view-transition-type(qwik-navigation) {
           :root{view-transition-name:none}
         }
       }

@@ -1,6 +1,6 @@
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 
-export function createEntries(ctx: BuildContext, c: string[]) {
+export function createEntries(ctx: RoutingContext, c: string[]) {
   const isClient = ctx.target === 'client';
 
   const entries = [...ctx.entries, ...ctx.serviceWorkers];
@@ -14,7 +14,7 @@ export function createEntries(ctx: BuildContext, c: string[]) {
   }
 }
 
-export function generateQwikRouterEntries(ctx: BuildContext) {
+export function generateQwikRouterEntries(ctx: RoutingContext) {
   // generate @qwik-router-entries
   const c: string[] = [];
 

@@ -3,7 +3,7 @@ import type { Config as SVGOConfig } from 'svgo';
 import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
 import type { Plugin as VitePlugin } from 'vite';
 import type { MdxTransform } from '../markdown/mdx';
-import type { BuildContext, BuildEntry, BuildRoute, MdxPlugins, PluginOptions } from '../types';
+import type { RoutingContext, BuiltEntry, BuiltRoute, MdxPlugins, PluginOptions } from '../types';
 
 /** @public */
 export interface ImageOptimizationOptions {
@@ -52,7 +52,7 @@ export type MdxOptions = CompileOptions;
 
 /** @deprecated Not being used anywhere. Will be removed in V3. */
 export interface PluginContext {
-  buildCtx: BuildContext | null;
+  buildCtx: RoutingContext | null;
   rootDir: string;
   cityPlanCode: string | null;
   mdxTransform: MdxTransform | null;
@@ -74,8 +74,8 @@ export type QwikCityPlugin = QwikRouterPlugin;
 /** @public */
 export interface QwikRouterPluginApi {
   getBasePathname: () => string;
-  getRoutes: () => BuildRoute[];
-  getServiceWorkers: () => BuildEntry[];
+  getRoutes: () => BuiltRoute[];
+  getServiceWorkers: () => BuiltEntry[];
 }
 
 /**

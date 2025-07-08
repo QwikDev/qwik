@@ -1,5 +1,5 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createMenus } from './generate-menus';
 import { createRoutes } from './generate-routes';
@@ -7,7 +7,7 @@ import { createServerPlugins } from './generate-server-plugins';
 
 /** Generates the Qwik Router Config runtime code */
 export function generateQwikRouterConfig(
-  ctx: BuildContext,
+  ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
   isSSR: boolean
 ) {

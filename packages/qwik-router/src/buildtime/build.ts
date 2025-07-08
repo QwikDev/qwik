@@ -2,11 +2,11 @@ import { addError, addWarning } from '../utils/format';
 import { resolveSourceFiles } from './routing/resolve-source-file';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { walkServerPlugins } from './routing/walk-server-plugins';
-import type { BuildContext, BuildRoute, RewriteRouteOption } from './types';
+import type { RoutingContext, BuiltRoute, RewriteRouteOption } from './types';
 
-export async function build(ctx: BuildContext) {
+export async function parseRoutesDir(ctx: RoutingContext) {
   try {
-    await updateBuildContext(ctx);
+    await updateRoutingContext(ctx);
     validateBuild(ctx);
   } catch (e) {
     addError(ctx, e);
@@ -21,7 +21,7 @@ export async function build(ctx: BuildContext) {
   }
 }
 
-export async function updateBuildContext(ctx: BuildContext) {
+export async function updateRoutingContext(ctx: RoutingContext) {
   if (!ctx.activeBuild) {
     ctx.activeBuild = new Promise<void>((resolve, reject) => {
       walkServerPlugins(ctx.opts)
@@ -47,12 +47,12 @@ export async function updateBuildContext(ctx: BuildContext) {
   return ctx.activeBuild;
 }
 
-function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resolveSourceFiles>) {
+function rewriteRoutes(ctx: RoutingContext, resolvedFiles: ReturnType<typeof resolveSourceFiles>) {
   if (!ctx.opts.rewriteRoutes || !resolvedFiles.routes) {
     return;
   }
 
-  const translatedRoutes: BuildRoute[] = [];
+  const translatedRoutes: BuiltRoute[] = [];
 
   let segmentsToTranslate = ctx.opts.rewriteRoutes.flatMap((rewriteConfig) => {
     return Object.keys(rewriteConfig.paths || {});
@@ -95,10 +95,10 @@ function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resol
 }
 
 function translateRoute(
-  route: BuildRoute,
+  route: BuiltRoute,
   config: RewriteRouteOption,
   configIndex: number
-): BuildRoute {
+): BuiltRoute {
   const replacePath = (part: string) => (config.paths || {})[part] ?? part;
 
   const pathnamePrefix = config.prefix ? '/' + config.prefix : '';
@@ -156,7 +156,7 @@ function translateRoute(
   return routeToPush;
 }
 
-function validateBuild(ctx: BuildContext) {
+function validateBuild(ctx: RoutingContext) {
   const pathnames = Array.from(new Set(ctx.routes.map((r) => r.pathname))).sort();
 
   for (const pathname of pathnames) {

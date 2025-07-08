@@ -57,6 +57,15 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    const routeModules = route[LoadedRouteProp.Mods];
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      routeModules,
+      isPageRoute,
+      method
+    );
     const routeName = route[LoadedRouteProp.RouteName];
     if (
       checkOrigin &&
@@ -77,16 +86,8 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(renderQData);
     }
-    const routeModules = route[LoadedRouteProp.Mods];
     requestHandlers.push(handleRedirect);
-    _resolveRequestHandlers(
-      routeLoaders,
-      routeActions,
-      requestHandlers,
-      routeModules,
-      isPageRoute,
-      method
-    );
+
     if (isPageRoute) {
       requestHandlers.push((ev) => {
         // Set the current route name
@@ -236,20 +237,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
     if (routeLoaders.length > 0) {
-      let currentLoaders: LoaderInternal[] = [];
-      if (requestEv.query.has(QLOADER_KEY)) {
-        const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
-        for (const loader of routeLoaders) {
-          if (selectedLoaderIds.includes(loader.__id)) {
-            currentLoaders.push(loader);
-          } else {
-            loaders[loader.__id] = _UNINITIALIZED;
-          }
-        }
-      } else {
-        currentLoaders = routeLoaders;
-      }
-      const resolvedLoadersPromises = currentLoaders.map((loader) =>
+      const resolvedLoadersPromises = routeLoaders.map((loader) =>
         getRouteLoaderPromise(loader, loaders, requestEv, isDev)
       );
       await Promise.all(resolvedLoadersPromises);

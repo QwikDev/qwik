@@ -128,7 +128,7 @@ export type {
 } from './use/use-resource';
 export { useResourceQrl, Resource } from './use/use-resource';
 export { useResource$ } from './use/use-resource-dollar';
-export { useTaskQrl } from './use/use-task';
+export { useTaskQrl, isTask } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
@@ -151,6 +151,7 @@ export {
   createSerializer$,
   createAsyncComputedQrl,
   createAsyncComputed$,
+  isStore,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
 

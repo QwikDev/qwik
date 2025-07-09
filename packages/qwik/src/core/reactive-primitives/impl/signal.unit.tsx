@@ -1,4 +1,4 @@
-import { $, isBrowser, type ValueOrPromise } from '@qwik.dev/core';
+import { $, isBrowser } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
@@ -8,7 +8,7 @@ import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
 import { ChoreType } from '../../shared/util-chore-type';
 import type { Container, HostElement } from '../../shared/types';
-import { isPromise } from '../../shared/utils/promises';
+import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task } from '../../use/use-task';
 import {
@@ -157,7 +157,7 @@ describe('signal', () => {
       await withContainer(async () => {
         const a = createSignal(2) as InternalSignal<number>;
         const b = createSignal(10) as InternalSignal<number>;
-        await retry(() => {
+        await retryOnPromise(() => {
           let signal!: InternalReadonlySignal<number>;
           effect$(() => {
             signal =
@@ -184,10 +184,39 @@ describe('signal', () => {
         expect(log).toEqual([12, 23]);
       });
     });
+
+    it('should track when recomputing computed signal', async () => {
+      await withContainer(async () => {
+        const a = createSignal(true) as InternalSignal<boolean>;
+        const b = createSignal(true) as InternalSignal<boolean>;
+        await retryOnPromise(async () => {
+          let signal!: InternalReadonlySignal<boolean>;
+          effect$(() => {
+            signal =
+              signal ||
+              createComputedQrl(
+                delayQrl(
+                  $(() => {
+                    return a.value || b.value;
+                  })
+                )
+              );
+            log.push(signal.value); // causes subscription
+          });
+          expect(log).toEqual([true]);
+          a.value = !a.untrackedValue;
+          await flushSignals();
+          b.value = !b.untrackedValue;
+        });
+        await flushSignals();
+        expect(log).toEqual([true, false]);
+      });
+    });
+
     it('force', () =>
       withContainer(async () => {
         const obj = { count: 0 };
-        const computed = await retry(() => {
+        const computed = await retryOnPromise(() => {
           return createComputedQrl(
             delayQrl(
               $(() => {
@@ -259,15 +288,4 @@ describe('signal', () => {
   }
 
   const effect$ = /*#__PURE__*/ implicit$FirstArg(effectQrl);
-
-  function retry<T>(fn: () => T): ValueOrPromise<T> {
-    try {
-      return fn();
-    } catch (e) {
-      if (isPromise(e)) {
-        return e.then(retry.bind(null, fn)) as ValueOrPromise<T>;
-      }
-      throw e;
-    }
-  }
 });

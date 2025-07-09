@@ -1,5 +1,21 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.5
+
+### Patch Changes
+
+- 🐞🩹 adding popstate and scroll event for SPA navigation (by [@Varixo](https://github.com/Varixo) in [#7706](https://github.com/QwikDev/qwik/pull/7706))
+
+- 🐞🩹 nested not serialized loaders (by [@Varixo](https://github.com/Varixo) in [#7704](https://github.com/QwikDev/qwik/pull/7704))
+
+## 2.0.0-beta.4
+
+### Minor Changes
+
+- ✨ implement route loaders serialization RFC with the correct "data shaken" (by [@Varixo](https://github.com/Varixo) in [#7466](https://github.com/QwikDev/qwik/pull/7466))
+
+## 2.0.0-beta.3
+
 ## 2.0.0-beta.2
 
 ## 2.0.0-beta.1

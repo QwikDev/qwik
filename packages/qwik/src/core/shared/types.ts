@@ -117,3 +117,9 @@ export interface QContainerElement extends Element {
   qFuncs?: Function[];
   _qwikjson_?: any;
 }
+
+/** @public */
+export type SerializationStrategy =
+  // TODO: implement this in the future
+  // 'auto' |
+  'never' | 'always';

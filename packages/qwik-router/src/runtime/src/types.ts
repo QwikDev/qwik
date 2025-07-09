@@ -6,6 +6,7 @@ import type {
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -262,8 +263,20 @@ export type RouteData =
       routeBundleNames: string[],
     ];
 
+export const enum RouteDataProp {
+  RouteName,
+  Loaders,
+  OriginalPathname,
+  RouteBundleNames,
+}
+
 /** @public */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+export const enum MenuDataProp {
+  Pathname,
+  MenuLoader,
+}
 
 /**
  * @deprecated Use `QwikRouterConfig` instead. Will be removed in V3.
@@ -296,28 +309,30 @@ export type LoadedRoute = [
   routeBundleNames: string[] | undefined,
 ];
 
-export interface LoadedContent extends LoadedRoute {
-  pageModule: PageModule;
+export const enum LoadedRouteProp {
+  RouteName,
+  Params,
+  Mods,
+  Menu,
+  RouteBundleNames,
 }
-
-export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
-
-export type RequestHandlerBodyFunction<BODY> = () =>
-  | RequestHandlerBody<BODY>
-  | Promise<RequestHandlerBody<BODY>>;
 
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, unknown>;
+  loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;
   action?: string;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
-  status: number;
+export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
   href: string;
   redirect?: string;
   isRewrite?: boolean;
+}
+
+export interface LoaderData {
+  loaders: Record<string, unknown>;
 }
 
 /** @public */
@@ -393,10 +408,10 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   GetValidatorOutputType<VALIDATOR>;
 
 /** @public */
-export interface CommonLoaderActionOptions {
+export type ActionOptions = {
   readonly id?: string;
   readonly validation?: DataValidator[];
-}
+};
 
 /** @public */
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
@@ -637,7 +652,9 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  id?: string;
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+  readonly serializationStrategy?: SerializationStrategy;
 };
 
 /** @public */
@@ -669,8 +686,6 @@ export type LoaderConstructorQRL = {
     ...rest: REST
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 };
-
-export type LoaderStateHolder = Record<string, Signal<unknown>>;
 
 /** @public */
 export type ActionReturn<RETURN> = {
@@ -783,6 +798,7 @@ export interface LoaderInternal extends Loader<any> {
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>;
   __id: string;
   __validators: DataValidator[] | undefined;
+  __serializationStrategy: SerializationStrategy;
   (): LoaderSignal<unknown>;
 }
 

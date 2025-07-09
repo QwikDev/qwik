@@ -1,6 +1,6 @@
 import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
-import type { RebuildRouteInfoInternal, QwikRouterConfig } from '../../runtime/src/types';
+import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user-response';

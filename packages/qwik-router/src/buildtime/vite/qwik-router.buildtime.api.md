@@ -10,6 +10,7 @@ import type { Config } from 'svgo';
 import { ConfigEnv } from 'vite';
 import type { Plugin as Plugin_2 } from 'vite';
 import type { PluginOption } from 'vite';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import { UserConfigExport } from 'vite';
 
 // @public (undocumented)

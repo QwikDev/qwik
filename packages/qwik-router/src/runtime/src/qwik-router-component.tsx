@@ -68,7 +68,7 @@ import type {
   ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
-import { useQwikRouterEnv } from './use-functions';
+import { useInstanceHash, useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 
@@ -150,6 +150,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
+  const instanceHash = useInstanceHash();
 
   if (isServer) {
     if (
@@ -198,6 +199,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
       key,
       url,
       getSerializationStrategy(key),
+      instanceHash!,
       container
     );
   }
@@ -369,7 +371,9 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      loadClientData(dest);
+      if (instanceHash) {
+        loadClientData(dest, instanceHash);
+      }
       loadRoute(
         qwikRouterConfig.routes,
         qwikRouterConfig.menus,
@@ -432,10 +436,12 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, {
-          action,
-          clearCache: true,
-        }));
+        const pageData =
+          instanceHash &&
+          (clientPageData = await loadClientData(trackUrl, instanceHash, {
+            action,
+            clearCache: true,
+          }));
         if (!pageData) {
           // Reset the path to the current path
           (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
@@ -535,6 +541,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
                   key,
                   trackUrl,
                   DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
+                  instanceHash!,
                   container
                 );
               } else {

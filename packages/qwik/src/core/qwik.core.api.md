@@ -427,18 +427,13 @@ export interface ISsrComponentFrame {
     scopedStyleIds: Set<string>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const isStore: (value: StoreTarget) => boolean;
-
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
 
 // Warning: (ae-forgotten-export) The symbol "Task" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export const isTask: (value: any) => value is Task;
+export const _isTask: (value: any) => value is Task;
 
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
@@ -1666,7 +1661,9 @@ export const _UNINITIALIZED: unique symbol;
 export const untrack: <T>(fn: () => T) => T;
 
 // @public
-export const unwrapStore: <T>(value: T) => T;
+const unwrapStore: <T>(value: T) => T;
+export { unwrapStore as _unwrapStore }
+export { unwrapStore }
 
 // @public
 export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>;

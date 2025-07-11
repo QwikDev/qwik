@@ -53,4 +53,5 @@ export {
   useInvokeContext as _useInvokeContext,
   _waitUntilRendered,
 } from './use/use-core';
-export { scheduleTask as _task } from './use/use-task';
+export { scheduleTask as _task, isTask as _isTask } from './use/use-task';
+export { unwrapStore as _unwrapStore } from './use/use-store.public';

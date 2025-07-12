@@ -6,14 +6,13 @@ import {
   getRequestTrailingSlash,
   RequestEvIsRewrite,
   RequestEvQwikSerializer,
-  RequestEvSharedActionId,
+  type RequestEventInternal,
 } from './request-event';
 import { getPathname } from './resolve-request-handlers';
 
 export interface QData {
   status: number;
   href: string;
-  action?: string;
   redirect?: string;
   isRewrite?: boolean;
 }
@@ -37,7 +36,6 @@ export async function qDataHandler(requestEv: RequestEvent) {
   const qData: QData = {
     status,
     href: getPathname(requestEv.url, trailingSlash),
-    action: requestEv.sharedMap.get(RequestEvSharedActionId),
     redirect: redirectLocation ?? undefined,
     isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };

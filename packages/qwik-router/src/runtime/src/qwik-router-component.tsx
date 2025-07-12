@@ -227,9 +227,9 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
   const contentInternal = useSignal<ContentStateInternal>();
 
-  const currentActionId = env.response.action;
-  const currentAction = currentActionId ? env.response.loaders[currentActionId] : undefined;
-  const actionState = useSignal<RouteActionValue>(
+  const currentActionId = env.response.action?.id;
+  const currentAction = currentActionId ? env.response.action?.data : undefined;
+  const actionState = useSignal<RouteActionValue | undefined>(
     currentAction
       ? {
           id: currentActionId!,
@@ -823,7 +823,7 @@ export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) =>
 
   const contentInternal = useSignal<ContentStateInternal>();
 
-  const actionState = useSignal<RouteActionValue>();
+  const actionState = useSignal<RouteActionValue | undefined>();
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);

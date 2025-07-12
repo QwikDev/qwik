@@ -19,8 +19,8 @@ import {
   RequestEvQwikSerializer,
   RequestEvShareQData,
   RequestEvShareServerTiming,
-  RequestEvSharedActionId,
   RequestRouteName,
+  getRequestActions,
   getRequestLoaders,
   getRequestMode,
   getRequestTrailingSlash,
@@ -35,14 +35,10 @@ import type {
   RequestEventBase,
   RequestHandler,
 } from './types';
-import { IsQData, IsQLoader, IsQLoaderData, OriginalQDataName } from './user-response';
-import {
-  executeLoader,
-  singleLoaderHandler,
-  runValidators,
-  loaderDataHandler,
-} from './loader-endpoints';
+import { IsQData, IsQLoader, IsQLoaderData, OriginalQDataName, QActionId } from './user-response';
+import { executeLoader, loaderHandler, runValidators, loaderDataHandler } from './loader-endpoints';
 import { qDataHandler } from './qdata-endpoints';
+import { actionHandler } from './action-endpoints';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -98,9 +94,10 @@ export const resolveRequestHandlers = (
       });
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(loaderDataHandler(routeLoaders));
-      requestHandlers.push(singleLoaderHandler(routeLoaders));
+      requestHandlers.push(loaderHandler(routeLoaders));
+      requestHandlers.push(actionHandler(routeActions));
       requestHandlers.push(qDataHandler);
-      requestHandlers.push(actionsMiddleware(routeActions));
+      // requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);
     }
@@ -181,14 +178,14 @@ export const checkBrand = (obj: any, brand: string) => {
 };
 
 export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandler {
-  return async (requestEvent: RequestEvent) => {
+  return async (requestEvent: RequestEvent): Promise<void> => {
     const requestEv = requestEvent as RequestEventInternal;
     if (requestEv.headersSent) {
       requestEv.exit();
       return;
     }
     const { method } = requestEv;
-    const loaders = getRequestLoaders(requestEv);
+    const actions = getRequestActions(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
     const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (isDev && method === 'GET') {
@@ -208,7 +205,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
           routeActions.find((action) => action.__id === selectedActionId) ??
           serverActionsMap?.get(selectedActionId);
         if (action) {
-          requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
+          requestEv.sharedMap.set(QActionId, selectedActionId);
           const data = await requestEv.parseBody();
           if (!data || typeof data !== 'object') {
             throw new Error(
@@ -217,7 +214,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
           }
           const result = await runValidators(requestEv, action.__validators, data, isDev);
           if (!result.success) {
-            loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
+            actions[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             const actionResolved = isDev
               ? await measure(requestEv, action.__qrl.getHash(), () =>
@@ -227,7 +224,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
-            loaders[selectedActionId] = actionResolved;
+            actions[selectedActionId] = actionResolved;
           }
         }
       }
@@ -319,8 +316,7 @@ function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
-  const isQData =
-    sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
+  const isQData = isQDataRequestBasedOnSharedMap(sharedMap);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {
@@ -340,6 +336,10 @@ function fixTrailingSlash(ev: RequestEvent) {
       }
     }
   }
+}
+
+export function isQDataRequestBasedOnSharedMap(sharedMap: Map<string, unknown>) {
+  return sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
 }
 
 export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
@@ -412,10 +412,7 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq =
-      requestEv.sharedMap.has(IsQData) ||
-      requestEv.sharedMap.has(IsQLoaderData) ||
-      requestEv.sharedMap.has(IsQLoader);
+    const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
     if (isPageDataReq) {
       return;
     }
@@ -445,9 +442,15 @@ export function renderQwikMiddleware(render: Render) {
           ...serverData.containerAttributes,
         },
       });
+      const actionId = requestEv.sharedMap.get(QActionId) as string | undefined;
       const qData: ClientPageData = {
         loaders: getRequestLoaders(requestEv),
-        action: requestEv.sharedMap.get(RequestEvSharedActionId),
+        action: actionId
+          ? {
+              id: actionId,
+              data: getRequestActions(requestEv)[actionId],
+            }
+          : undefined,
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url, trailingSlash),
       };
@@ -468,10 +471,7 @@ export function renderQwikMiddleware(render: Render) {
 }
 
 export async function handleRedirect(requestEv: RequestEvent) {
-  const isPageDataReq =
-    requestEv.sharedMap.has(IsQData) ||
-    requestEv.sharedMap.has(IsQLoaderData) ||
-    requestEv.sharedMap.has(IsQLoader);
+  const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
   if (!isPageDataReq) {
     return;
   }

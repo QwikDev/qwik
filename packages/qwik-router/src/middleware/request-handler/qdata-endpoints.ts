@@ -13,7 +13,6 @@ import { getPathname } from './resolve-request-handlers';
 export interface QData {
   status: number;
   href: string;
-  redirect?: string;
   isRewrite?: boolean;
 }
 
@@ -28,7 +27,6 @@ export async function qDataHandler(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const redirectLocation = requestEv.headers.get('Location');
   const trailingSlash = getRequestTrailingSlash(requestEv);
 
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
@@ -36,7 +34,6 @@ export async function qDataHandler(requestEv: RequestEvent) {
   const qData: QData = {
     status,
     href: getPathname(requestEv.url, trailingSlash),
-    redirect: redirectLocation ?? undefined,
     isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };
   const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];

@@ -85,10 +85,6 @@ export const loadClientData = async (
           location.href = url.href;
           return;
         }
-        if (clientData.redirect) {
-          // server function asked for redirect
-          location.href = clientData.redirect;
-        }
         return clientData;
       });
     } else {
@@ -111,8 +107,7 @@ export const loadClientData = async (
         : undefined,
       href: v?.href ?? pagePathname,
       status: v?.status ?? 200,
-      redirect: v?.redirect,
-      isRewrite: v?.isRewrite,
+      isRewrite: v?.isRewrite ?? false,
     } satisfies ClientPageData;
   });
 };

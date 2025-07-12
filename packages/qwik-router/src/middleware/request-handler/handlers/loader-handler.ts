@@ -1,22 +1,41 @@
-import { _deserialize, _UNINITIALIZED } from '@qwik.dev/core/internal';
-import type { QwikSerializer, RequestEvent } from './types';
+import { _UNINITIALIZED } from '@qwik.dev/core/internal';
+import type { QwikSerializer, RequestEvent } from '../types';
 import type {
   DataValidator,
   LoaderInternal,
   RequestHandler,
   ValidatorReturn,
-} from '../../runtime/src/types';
+} from '../../../runtime/src/types';
 import {
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
   getRequestMode,
   RequestEvQwikSerializer,
   RequestEventInternal,
-} from './request-event';
-import { measure, verifySerializable } from './resolve-request-handlers';
-import { IsQLoader, IsQLoaderData, QLoaderId } from './user-response';
+} from '../request-event';
+import { measure, verifySerializable } from '../resolve-request-handlers';
+import { IsQLoader, IsQLoaderData, QLoaderId } from '../user-response';
 import qwikRouterConfig from '@qwik-router-config';
-import { getPathnameForDynamicRoute } from '../../utils/pathname';
+import { getPathnameForDynamicRoute } from '../../../utils/pathname';
+
+export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandler {
+  return async (requestEvent: RequestEvent) => {
+    const requestEv = requestEvent as RequestEventInternal;
+    if (requestEv.headersSent) {
+      requestEv.exit();
+      return;
+    }
+    const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
+    const qwikSerializer = requestEv[RequestEvQwikSerializer];
+    if (routeLoaders.length > 0) {
+      const resolvedLoadersPromises = routeLoaders.map((loader) =>
+        executeLoader(loader, loaders, requestEv, isDev, qwikSerializer)
+      );
+      await Promise.all(resolvedLoadersPromises);
+    }
+  };
+}
 
 export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {

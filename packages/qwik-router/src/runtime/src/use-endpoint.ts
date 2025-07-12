@@ -1,7 +1,7 @@
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
 import { prefetchSymbols } from './client-navigate';
-import type { QData } from '../../middleware/request-handler/qdata-endpoints';
+import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 import { QACTION_KEY } from './constants';
 
 interface LoaderDataResponse {

@@ -41,7 +41,7 @@ import {
   QActionId,
   IsQAction,
 } from './user-response';
-import { executeLoader } from './loader-endpoints';
+import { executeLoader } from './handlers/loader-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvActions = Symbol('RequestEvActions');

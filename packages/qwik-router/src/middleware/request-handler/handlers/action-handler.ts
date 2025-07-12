@@ -3,17 +3,17 @@ import type {
   JSONObject,
   RequestEvent,
   RequestHandler,
-} from '../../runtime/src/types';
-import { runValidators } from './loader-endpoints';
+} from '../../../runtime/src/types';
+import { runValidators } from './loader-handler';
 import {
   getRequestActions,
   getRequestMode,
   RequestEvQwikSerializer,
   type RequestEventInternal,
-} from './request-event';
-import { measure, verifySerializable } from './resolve-request-handlers';
-import type { QwikSerializer } from './types';
-import { IsQAction, QActionId } from './user-response';
+} from '../request-event';
+import { measure, verifySerializable } from '../resolve-request-handlers';
+import type { QwikSerializer } from '../types';
+import { IsQAction, QActionId } from '../user-response';
 import { _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
 
 export function actionHandler(routeActions: ActionInternal[]): RequestHandler {

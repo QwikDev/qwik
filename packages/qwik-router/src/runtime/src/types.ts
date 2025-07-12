@@ -18,7 +18,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
-import type { QData } from '../../middleware/request-handler/qdata-endpoints';
+import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 
 export type {
   Cookie,

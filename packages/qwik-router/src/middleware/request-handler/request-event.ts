@@ -32,6 +32,7 @@ import {
   IsQData,
   IsQLoader,
   IsQLoaderData,
+  OriginalQDataName,
   Q_LOADER_DATA_REGEX,
   QDATA_JSON,
   QDATA_JSON_LEN,
@@ -83,6 +84,7 @@ export function createRequestEvent(
   const requestRecognized = recognizeRequest(url.pathname);
   if (requestRecognized) {
     sharedMap.set(requestRecognized.type, true);
+    sharedMap.set(OriginalQDataName, requestRecognized.originalQDataName);
     if (requestRecognized.type === IsQLoader && requestRecognized.data) {
       sharedMap.set(QLoaderId, requestRecognized.data.loaderId);
     }
@@ -477,6 +479,7 @@ export function recognizeRequest(pathname: string) {
     return {
       type: IsQData,
       trimLength: QDATA_JSON_LEN,
+      originalQDataName: QDATA_JSON,
       data: null,
     };
   }
@@ -487,6 +490,7 @@ export function recognizeRequest(pathname: string) {
     return {
       type: IsQLoaderData,
       trimLength: loaderDataMatch[0].length,
+      originalQDataName: loaderDataMatch[1],
       data: null,
     };
   }
@@ -496,7 +500,8 @@ export function recognizeRequest(pathname: string) {
     return {
       type: IsQLoader,
       trimLength: loaderMatch[0].length,
-      data: { loaderId: loaderMatch[1] },
+      originalQDataName: loaderMatch[1],
+      data: { loaderId: loaderMatch[2] },
     };
   }
 

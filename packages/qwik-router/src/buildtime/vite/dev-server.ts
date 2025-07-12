@@ -11,7 +11,6 @@ import {
 import { getQwikRouterServerData } from '../../middleware/request-handler/response-page';
 import type { QwikSerializer } from '../../middleware/request-handler/types';
 import {
-  QDATA_JSON,
   getRouteMatchPathname,
   runQwikRouter,
 } from '../../middleware/request-handler/user-response';
@@ -34,7 +33,10 @@ import { getExtension, normalizePath } from '../../utils/fs';
 import { updateRoutingContext } from '../build';
 import type { RoutingContext, BuiltRoute } from '../types';
 import { formatError } from './format-error';
-import { RequestEvShareServerTiming } from '../../middleware/request-handler/request-event';
+import {
+  recognizeRequest,
+  RequestEvShareServerTiming,
+} from '../../middleware/request-handler/request-event';
 
 export function ssrDevMiddleware(ctx: RoutingContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -176,7 +178,7 @@ export function ssrDevMiddleware(ctx: RoutingContext, server: ViteDevServer) {
 
         const renderFn = async (requestEv: RequestEvent) => {
           // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
-          const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
+          const isPageDataReq = recognizeRequest(requestEv.pathname);
           if (!isPageDataReq) {
             const serverData = getQwikRouterServerData(requestEv);
 

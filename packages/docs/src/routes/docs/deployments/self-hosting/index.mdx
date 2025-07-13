@@ -263,7 +263,13 @@ rsync -avz dist/ user@your-server:/path/to/webroot/
 
 ## Web Server Configuration
 
-### Nginx Configuration for Node.js Adapters
+### Nginx Configuration
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+  <TabItem value="nginx-node" label="Nginx (Node.js)" default>
 
 For Node.js deployments using Express or Fastify, use Nginx as a reverse proxy:
 
@@ -318,60 +324,41 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
-}
 
-# Static asset handling with caching
+    # Static asset handling with caching
     root /path/to/your/app/dist;
     expires 1y;
     add_header Cache-Control "public, no-transform";
     try_files $uri =404;
     gzip_static on;
     brotli_static on;
-}
 
-location /assets/ {
-    root /path/to/your/app/dist;
-    expires 1y;
-    add_header Cache-Control "public, no-transform";
-    try_files $uri =404;
-    gzip_static on;
-    brotli_static on;
-}
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+        access_log off;
+        try_files $uri =404;
+        gzip_static on;
+        brotli_static on;
+    }
 
-# Asset caching for immutable, versioned files (e.g., /build/ and /assets/)
-location /build/ {
-    root /path/to/your/app/dist;
-    expires 1y;
-    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
-    access_log off;
-    try_files $uri =404;
-    gzip_static on;
-    brotli_static on;
-}
-
-location /assets/ {
-    root /path/to/your/app/dist;
-    expires 1y;
-    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
-    access_log off;
-    try_files $uri =404;
-    gzip_static on;
-    brotli_static on;
-}
-
-# Route loader data caching
-location ~ /[^/]+/q-data\.json$ {
-    expires 30s;
-    add_header Cache-Control "public, must-revalidate";
-    try_files $uri =404;
+    # Route loader data caching
+    location ~ /[^/]+/q-data\.json$ {
+        expires 30s;
+        add_header Cache-Control "public, must-revalidate";
+        try_files $uri =404;
+    }
 }
 ```
 
-### Nginx Configuration for Static Sites
+  </TabItem>
+
+  <TabItem value="nginx-static" label="Nginx (Static)">
 
 For static site deployments, use this Nginx configuration:
 
 ```nginx
+# HTTP server - redirect to HTTPS
 server {
     listen 80;
     server_name your-domain.com;
@@ -382,6 +369,7 @@ server {
     }
 }
 
+# HTTPS server
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
@@ -398,30 +386,72 @@ server {
     root /path/to/your/app/dist;
     index index.html;
     
-    # Serve static files
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Main location block for the application
     location / {
         try_files $uri $uri/ /index.html;
     }
     
-    # Cache settings for immutable assets
+    # Cache settings for build assets
     location /build/ {
         expires 1y;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
     }
     
-    # Security headers
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    # Cache settings for assets
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+        access_log off;
+        try_files $uri =404;
+        gzip_static on;
+        brotli_static on;
+    }
+    
+    # Route loader data caching
+    location ~ /[^/]+/q-data\.json$ {
+        expires 30s;
+        add_header Cache-Control "public, must-revalidate";
+        try_files $uri =404;
+    }
+    
+    # Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Disable access to .git directory
+    location ^~ /.git/ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
 }
 ```
 
-### Apache Configuration
+  </TabItem>
+
+  <TabItem value="apache" label="Apache">
 
 For Apache with mod_proxy enabled:
 
 ```apache
+<VirtualHost *:80>
+    ServerName your-domain.com
+    
+    # Redirect HTTP to HTTPS
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
 <VirtualHost *:443>
     ServerName your-domain.com
     
@@ -455,40 +485,37 @@ For Apache with mod_proxy enabled:
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
+    
+    # For single-page applications
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteBase /
+        RewriteRule ^index\.html$ - [L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule . /index.html [L]
+    </IfModule>
 </VirtualHost>
 ```
 
-## Important Security Considerations
+  </TabItem>
+</Tabs>
+
+## Security Best Practices
 
 ### CSRF Protection
 
+Qwik City applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
 
-Qwik City applications are protected against CSRF attacks by default for all POST, PATCH, and DELETE form submissions. The `ORIGIN` environment variable is crucial for this protection.
+#### How It Works
 
-**`checkOrigin` API:**
+1. **Default Protection**: Enabled by default for all non-idempotent requests
+2. **Origin Checking**: Validates the `Origin` and `Referer` headers against the `ORIGIN` environment variable
+3. **Configuration**: Controlled via the `checkOrigin` option in `createQwikCity`
 
-```ts
-checkOrigin: boolean | 'lax-proto'
-```
+#### Configuration Options
 
-Set to `true` (default) for strict origin checking, `false` to disable (not recommended), or `'lax-proto'` for SSL offload proxy compatibility.
-
-#### Basic Configuration
-
-```tsx
-// src/entry.express.tsx or src/entry.fastify.tsx
-const { router, notFound } = createQwikCity({
-  render,
-  qwikCityPlan,
-  manifest
-  // Uses ORIGIN environment variable by default for CSRF protection
-});
-```
-
-
-#### SSL Offload Proxy Setup
-
-If you're running behind an SSL offload proxy (like Nginx, CloudFront, etc.), set `checkOrigin: 'lax-proto'` to properly handle the `X-Forwarded-Proto` header:
+##### 1. Basic Configuration (Recommended)
 
 ```tsx
 // src/entry.express.tsx or src/entry.fastify.tsx
@@ -496,64 +523,221 @@ const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
   manifest,
-  checkOrigin: 'lax-proto' // boolean | 'lax-proto'
+  // CSRF protection is enabled by default when ORIGIN is set
+  checkOrigin: true
 });
 ```
 
+##### 2. SSL Offload Proxy Setup
 
-#### Disabling CSRF (Not Recommended)
-
-If you need to disable CSRF protection (not recommended for production), set `checkOrigin: false`:
+When behind a reverse proxy (Nginx, CloudFront, etc.), use `'lax-proto'` to handle `X-Forwarded-Proto` headers:
 
 ```tsx
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
   manifest,
-  checkOrigin: false // boolean | 'lax-proto' (not recommended)
+  checkOrigin: 'lax-proto' // Required for proper proxy support
 });
 ```
 
-### Other Security Best Practices
+##### 3. Disabling CSRF (Not Recommended)
 
-1. Always run your Node.js application as a non-root user
-2. Set up proper firewall rules to only expose necessary ports
-3. Use HTTPS with proper certificates (Let's Encrypt works well)
-4. Implement rate limiting for API endpoints
-5. Keep all dependencies updated regularly
-6. Configure Content-Security-Policy headers appropriate for your application
-7. Consider using a Web Application Firewall (WAF) for additional protection
+```tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: false // Disables CSRF protection (not recommended for production)
+});
+```
 
-## Monitoring and Logs
+### Essential Security Headers
 
-1. If using PM2:
-   - Monitor application: `pm2 monit`
-   - Check logs: `pm2 logs qwik-app`
-   - Set up PM2 dashboard: `pm2 plus`
+Configure these security headers in your web server:
 
-2. Logging options:
-   - Configure Nginx logs in `/var/log/nginx/`
-   - Use logging services like Winston or Pino for structured logs
+```nginx
+# Nginx example
+add_header X-Content-Type-Options    "nosniff" always;
+add_header X-Frame-Options          "SAMEORIGIN" always;
+add_header X-XSS-Protection         "1; mode=block" always;
+add_header Referrer-Policy          "strict-origin-when-cross-origin" always;
+add_header Content-Security-Policy  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" always;
+```
 
-3. Consider adding application monitoring with:
-   - Prometheus + Grafana for self-hosted monitoring
-   - New Relic, Datadog, or Sentry for managed monitoring
-   - Lightweight monitoring with Netdata
-     ```shell
-     # Install Netdata
-     bash <(curl -Ss https://get.netdata.cloud/kickstart.sh)
-     ```
-     Access metrics dashboard at `http://localhost:19999`
+### Additional Security Measures
 
-## Optimizing Performance
+1. **User Privileges**
+   - Run Node.js as a non-root user
+   - Use process managers like PM2 with `--user` flag
 
-Qwik's resumable architecture already provides excellent performance, but you can further optimize:
+2. **Network Security**
+   - Configure firewalls to expose only necessary ports (typically 80, 443)
+   - Use fail2ban to protect against brute force attacks
+   - Implement rate limiting for API endpoints
 
-1. Enable HTTP/2 or HTTP/3 in your web server
-2. Use a CDN for global edge caching
-3. Enable Brotli compression for smaller payload sizes
-4. Configure proper cache headers for Qwik's immutable assets
-5. Use CloudFlare or similar services for additional edge caching
+3. **Dependencies**
+   - Regularly update all dependencies
+   - Use `npm audit` or `yarn audit` to identify vulnerabilities
+   - Consider using Dependabot or similar tools
+
+4. **HTTPS**
+   - Enforce HTTPS with HSTS header
+   - Use modern TLS configurations (TLS 1.2/1.3)
+   - Implement certificate auto-renewal (e.g., Certbot for Let's Encrypt)
+
+5. **Application Hardening**
+   - Set appropriate file permissions
+   - Disable directory listing
+   - Protect sensitive files (e.g., `.env`, `.git`)
+   - Implement proper CORS policies
+
+6. **Monitoring & Logging**
+   - Monitor for suspicious activities
+   - Implement centralized logging
+   - Set up alerts for security events
+
+## Monitoring and Logging
+
+### Application Monitoring
+
+#### 1. Process Management with PM2
+
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Start application
+pm2 start dist/server/entry.express.js --name qwik-app
+
+# Monitor application
+pm2 monit
+
+# View logs
+pm2 logs qwik-app
+
+# Set up PM2 to start on system boot
+pm2 startup
+pm2 save
+
+# Set up PM2 dashboard (optional)
+npm install -g pm2-web
+pm2-web --config pm2-webrc.json
+```
+
+#### 2. Web Server Logs
+
+**Nginx**
+```bash
+# Access logs
+/var/log/nginx/access.log
+/var/log/nginx/error.log
+
+# Enable JSON logging format in nginx.conf
+log_format json_combined escape=json
+  '{"timestamp":"$time_iso8601",'
+  '"remote_addr":"$remote_addr",'
+  '"remote_user":"$remote_user",'
+  '"request":"$request",'
+  '"status":"$status",'
+  '"body_bytes_sent":"$body_bytes_sent",'
+  '"http_referer":"$http_referer",'
+  '"http_user_agent":"$http_user_agent"}';
+```
+
+### Performance Monitoring
+
+#### 1. System-Level Monitoring
+
+```bash
+# Basic system monitoring
+top
+htop
+nmon
+
+# Network monitoring
+iftop
+iotop
+
+# Disk I/O
+iostat -x 1
+```
+
+#### 2. Application Performance Monitoring (APM)
+
+**Using Prometheus + Grafana**
+
+1. Set up Prometheus to collect metrics
+2. Configure Grafana for visualization
+3. Monitor key metrics:
+   - Request rates
+   - Error rates
+   - Response times
+   - Resource utilization
+
+**Alternative APM Solutions**
+- [New Relic](https://newrelic.com/)
+- [Datadog](https://www.datadoghq.com/)
+- [Sentry](https://sentry.io/)
+- [Elastic APM](https://www.elastic.co/observability/application-performance-monitoring)
+
+## Performance Optimization
+
+### Network Optimization
+
+1. **HTTP/2 and HTTP/3**
+   - Enable HTTP/2 in Nginx/Apache
+   - Consider HTTP/3 for modern browsers
+   - Configure proper keep-alive settings
+
+2. **CDN Integration**
+   - Use Cloudflare, CloudFront, or similar
+   - Configure edge caching rules
+   - Enable automatic image optimization
+
+3. **Compression**
+   - Enable Brotli compression
+   - Pre-compress static assets
+   - Configure proper cache headers
+
+### Asset Optimization
+
+1. **Caching Strategy**
+   ```nginx
+   # Immutable assets (hashed filenames)
+   location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$ {
+       expires 1y;
+       add_header Cache-Control "public, max-age=31536000, immutable";
+       access_log off;
+   }
+   ```
+
+2. **Lazy Loading**
+   - Use Qwik's built-in lazy loading
+   - Split large components
+   - Implement route-based code splitting
+
+3. **Image Optimization**
+   - Use modern formats (WebP/AVIF)
+   - Implement responsive images
+   - Lazy load below-the-fold images
+
+### Server-Side Optimization
+
+1. **Node.js Tuning**
+   - Set appropriate `NODE_ENV=production`
+   - Tune V8 garbage collection
+   - Use worker threads for CPU-intensive tasks
+
+2. **Database Optimization**
+   - Implement connection pooling
+   - Add appropriate indexes
+   - Use query optimization techniques
+
+3. **Caching Layer**
+   - Implement Redis/Memcached
+   - Cache API responses
+   - Use stale-while-revalidate patterns
 
 ### Asset Compression
 

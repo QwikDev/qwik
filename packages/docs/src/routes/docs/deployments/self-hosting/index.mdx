@@ -49,7 +49,7 @@ staticAdapter({
 
 ## Building for Production
 
-After adding the appropriate adapter, build your application:
+After adding the appropriate adapter, build your application. This will create a `dist/` directory with all the necessary files for deployment:
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
@@ -75,9 +75,16 @@ bun run build
 </PackageManagerTabs>
 
 The build process will generate:
-- `dist/` directory containing client-side assets
-  - `dist/build/` (JavaScript, CSS chunks)
-  - `dist/assets/` (images, fonts, other static files)
+- `dist/` directory containing:
+  - **Vite-generated files**:
+    - `dist/build/` - Compiled JavaScript and CSS chunks (created by Vite)
+    - `dist/assets/` - Processed assets like images and fonts
+  - **Non-Vite files (copied as-is)**:
+    - All files from your `public/` directory (copied to the root of `dist/`)
+    - Static site generation (SSG) results (if applicable)
+  - **Manifest files**:
+    - `manifest.json` - Web app manifest (required for PWA support)
+    - `q-manifest.json` - Development-only manifest (safe to exclude from production)
 - `server/` directory containing server-side code (for Node.js adapters)
 
 ## Deployment Methods

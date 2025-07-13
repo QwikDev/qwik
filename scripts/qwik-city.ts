@@ -82,6 +82,7 @@ async function buildVite(config: BuildConfig) {
     'typescript',
     'vite-imagetools',
     'svgo',
+    '@builder.io/qwik-city/middleware/request-handler',
   ];
 
   const swRegisterPath = join(config.srcQwikCityDir, 'runtime', 'src', 'sw-register.ts');

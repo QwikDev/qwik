@@ -263,30 +263,21 @@ rsync -avz dist/ user@your-server:/path/to/webroot/
 
 ## Web Server Configuration
 
-### Nginx Configuration
+## Web Server Configurations
 
-<div class="tabs">
-  <div class="tabs-header">
-    <button class="tab-button active" data-tab="nginx-node">Nginx (Node.js)</button>
-    <button class="tab-button" data-tab="nginx-static">Nginx (Static)</button>
-    <button class="tab-button" data-tab="apache">Apache</button>
-  </div>
-  
-  <div class="tab-content active" id="nginx-node">
+### 1. Nginx for Node.js Applications
 
-For Node.js deployments using Express or Fastify, use Nginx as a reverse proxy:
+For Node.js deployments using Express or Fastify, use this Nginx configuration as a reverse proxy:
 
 ```nginx
+# HTTP to HTTPS redirect
 server {
     listen 80;
     server_name your-domain.com;
-    
-    # Redirect HTTP to HTTPS
-    location / {
-        return 301 https://$host$request_uri;
-    }
+    return 301 https://$host$request_uri;
 }
 
+# Main server block
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
@@ -294,8 +285,6 @@ server {
     # SSL configuration
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
-    
-    # SSL settings (recommended)
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
@@ -315,7 +304,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Serve static assets directly for better performance
+    # Static assets handling
     location /build/ {
         alias /path/to/your/app/dist/build/;
         expires 1y;
@@ -327,52 +316,22 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
-
-    # Static asset handling with caching
-    root /path/to/your/app/dist;
-    expires 1y;
-    add_header Cache-Control "public, no-transform";
-    try_files $uri =404;
-    gzip_static on;
-    brotli_static on;
-
-    location /assets/ {
-        expires 1y;
-        add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
-        access_log off;
-        try_files $uri =404;
-        gzip_static on;
-        brotli_static on;
-    }
-
-    # Route loader data caching
-    location ~ /[^/]+/q-data\.json$ {
-        expires 30s;
-        add_header Cache-Control "public, must-revalidate";
-        try_files $uri =404;
-    }
 }
 ```
 
-  </div>
-
-  <div class="tab-content" id="nginx-static">
+### 2. Nginx for Static Sites
 
 For static site deployments, use this Nginx configuration:
 
 ```nginx
-# HTTP server - redirect to HTTPS
+# HTTP to HTTPS redirect
 server {
     listen 80;
     server_name your-domain.com;
-    
-    # Redirect HTTP to HTTPS
-    location / {
-        return 301 https://$host$request_uri;
-    }
+    return 301 https://$host$request_uri;
 }
 
-# HTTPS server
+# Main server block
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
@@ -380,12 +339,10 @@ server {
     # SSL configuration
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
-    
-    # SSL settings (recommended)
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
     
-    # Root directory for your static files
+    # Document root
     root /path/to/your/app/dist;
     index index.html;
     
@@ -394,7 +351,7 @@ server {
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     
-    # Main location block for the application
+    # Main location block
     location / {
         try_files $uri $uri/ /index.html;
     }
@@ -423,14 +380,14 @@ server {
         try_files $uri =404;
     }
     
-    # Deny access to hidden files
+    # Security: Deny access to hidden files
     location ~ /\. {
         deny all;
         access_log off;
         log_not_found off;
     }
     
-    # Disable access to .git directory
+    # Security: Deny access to .git directory
     location ^~ /.git/ {
         deny all;
         access_log off;
@@ -439,22 +396,20 @@ server {
 }
 ```
 
-  </div>
+### 3. Apache Configuration
 
-  <div class="tab-content" id="apache">
-
-For Apache with mod_proxy enabled:
+For Apache with mod_proxy enabled, use this configuration:
 
 ```apache
+# HTTP to HTTPS redirect
 <VirtualHost *:80>
     ServerName your-domain.com
-    
-    # Redirect HTTP to HTTPS
     RewriteEngine On
     RewriteCond %{HTTPS} off
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </VirtualHost>
 
+# Main server block
 <VirtualHost *:443>
     ServerName your-domain.com
     
@@ -463,7 +418,7 @@ For Apache with mod_proxy enabled:
     SSLCertificateFile /path/to/cert.pem
     SSLCertificateKeyFile /path/to/key.pem
     
-    # Proxy to Node.js server (for Express/Fastify adapters)
+    # Proxy to Node.js server
     ProxyPreserveHost On
     ProxyPass / http://localhost:3000/
     ProxyPassReverse / http://localhost:3000/
@@ -474,7 +429,6 @@ For Apache with mod_proxy enabled:
         AllowOverride All
         Require all granted
         
-        # Cache settings
         <IfModule mod_expires.c>
             ExpiresActive On
             ExpiresDefault "access plus 1 year"
@@ -489,7 +443,7 @@ For Apache with mod_proxy enabled:
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-XSS-Protection "1; mode=block"
     
-    # For single-page applications
+    # SPA fallback
     <IfModule mod_rewrite.c>
         RewriteEngine On
         RewriteBase /
@@ -500,86 +454,6 @@ For Apache with mod_proxy enabled:
     </IfModule>
 </VirtualHost>
 ```
-
-  </div>
-</div>
-
-<style>
-.tabs {
-  margin: 1.5rem 0;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.tabs-header {
-  display: flex;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.tab-button {
-  padding: 0.75rem 1.25rem;
-  background: none;
-  border: none;
-  border-right: 1px solid #e0e0e0;
-  cursor: pointer;
-  font-weight: 500;
-  color: #555;
-  transition: all 0.2s;
-}
-
-.tab-button:last-child {
-  border-right: none;
-}
-
-.tab-button:hover {
-  background: #e9e9e9;
-}
-
-.tab-button.active {
-  background: #fff;
-  color: #1a73e8;
-  border-bottom: 2px solid #1a73e8;
-  margin-bottom: -1px;
-}
-
-.tab-content {
-  display: none;
-  padding: 1.25rem;
-  background: #fff;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-/* Make code blocks in tabs look good */
-.tab-content pre {
-  margin: 0;
-  border-radius: 4px;
-}
-</style>
-
-<script>
-// Simple tab switching functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const tabButtons = document.querySelectorAll('.tab-button');
-  
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      // Remove active class from all buttons and content
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      // Add active class to clicked button and corresponding content
-      button.classList.add('active');
-      const tabId = button.getAttribute('data-tab');
-      document.getElementById(tabId).classList.add('active');
-    });
-  });
-});
-</script>
 
 ## Security Best Practices
 

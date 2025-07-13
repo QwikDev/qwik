@@ -23,14 +23,6 @@ This guide provides comprehensive instructions for self-hosting your Qwik applic
 
 Qwik provides several adapters suited for self-hosting scenarios. Choose the one that best fits your infrastructure:
 
-### Express (Node.js)
-
-The Express adapter is ideal for self-hosting on VPS or bare metal servers, offering full server-side functionality.
-
-```shell
-npx qwik add express
-```
-
 ### Fastify (Node.js)
 
 Fastify offers better performance than Express and is another good option for self-hosting:
@@ -450,7 +442,21 @@ For Apache with mod_proxy enabled:
 
 Qwik City applications are protected against CSRF attacks by default for all POST, PATCH, and DELETE form submissions. The `ORIGIN` environment variable is crucial for this protection.
 
-If you need to disable CSRF protection (not recommended for production), you can set `checkOrigin: false` in the adapter configuration:
+#### Basic Configuration
+
+```tsx
+// src/entry.express.tsx or src/entry.fastify.tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest
+  // Uses ORIGIN environment variable by default for CSRF protection
+});
+```
+
+#### SSL Offload Proxy Setup
+
+If you're running behind an SSL offload proxy (like Nginx, CloudFront, etc.), you should use the `lax-proto` setting to properly handle the `X-Forwarded-Proto` header:
 
 ```tsx
 // src/entry.express.tsx or src/entry.fastify.tsx
@@ -458,7 +464,24 @@ const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
   manifest,
-  checkOrigin: false, // Disable CSRF protection (not recommended)
+  checkOrigin: {
+    strict: false,
+    strictHost: false,
+    https: 'lax-proto' // Important for SSL offload proxies
+  }
+});
+```
+
+#### Disabling CSRF (Not Recommended)
+
+If you need to disable CSRF protection (not recommended for production), you can set `checkOrigin: false`:
+
+```tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: false // Disable CSRF protection (not recommended)
 });
 ```
 
@@ -512,9 +535,9 @@ Enable efficient compression for static assets:
 # Install compression tools
 npm install -g brotli-cli gzip-cli
 
-# Compress build assets in parallel
-find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 gzip -k &
-find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 brotli -k &
+# Compress build assets in parallel with maximum compression
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 gzip -9 -k &
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 brotli -15 -k &
 wait
 ```
 
@@ -558,6 +581,19 @@ For high-traffic applications:
 1. **404 Not Found**: 
    - Check your Nginx/Apache configuration paths
    - Verify that URL rewriting is properly configured
+   - **Check file permissions**: Ensure the web server user has read access to all files and execute permission on all parent directories
+     ```shell
+     # Check permissions for a specific file
+     sudo -u nginx ls -ld /path/to/static/file
+     
+     # Check directory permissions (go up the path to find where access is denied)
+     sudo -u nginx ls -ld /path/to/static/
+     sudo -u nginx ls -ld /path/to/
+     sudo -u nginx ls -ld /path/
+     
+     # NixOS-specific: Web server users typically don't have access to /home by default
+     # You may need to adjust the permissions or move the files to /var/www or similar
+     ```
 
 2. **503 Service Unavailable**: 
    - Verify the Node process is running (`pm2 list` or `ps aux | grep node`)

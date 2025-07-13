@@ -11,7 +11,7 @@ import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user
  */
 let qwikRouterConfigActual: QwikRouterConfig;
 /**
- * The request handler for QwikRouter. Called by every integration.
+ * The request handler for QwikRouter. Called by every adapter.
  *
  * @public
  */

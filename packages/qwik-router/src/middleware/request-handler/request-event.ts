@@ -141,9 +141,11 @@ export function createRequestEvent(
     return exit();
   };
 
-  const exit = () => {
+  const exit = <T extends AbortMessage | RedirectMessage | RewriteMessage>(
+    message: T = new AbortMessage() as T
+  ) => {
     routeModuleIndex = ABORT_INDEX;
-    return new AbortMessage();
+    return message;
   };
 
   const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
@@ -250,9 +252,7 @@ export function createRequestEvent(
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
-
-      routeModuleIndex = ABORT_INDEX;
-      return new RedirectMessage();
+      return exit(new RedirectMessage());
     },
 
     rewrite: (pathname: string) => {
@@ -261,7 +261,7 @@ export function createRequestEvent(
         throw new Error('Rewrite does not support absolute urls');
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
+      return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));
     },
 
     defer: (returnData) => {

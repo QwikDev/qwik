@@ -76,6 +76,8 @@ bun run build
 
 The build process will generate:
 - `dist/` directory containing client-side assets
+  - `dist/build/` (JavaScript, CSS chunks)
+  - `dist/assets/` (images, fonts, other static files)
 - `server/` directory containing server-side code (for Node.js adapters)
 
 ## Deployment Methods
@@ -319,7 +321,6 @@ server {
 }
 
 # Static asset handling with caching
-location /build/ {
     root /path/to/your/app/dist;
     expires 1y;
     add_header Cache-Control "public, no-transform";
@@ -332,6 +333,27 @@ location /assets/ {
     root /path/to/your/app/dist;
     expires 1y;
     add_header Cache-Control "public, no-transform";
+    try_files $uri =404;
+    gzip_static on;
+    brotli_static on;
+}
+
+# Asset caching for immutable, versioned files (e.g., /build/ and /assets/)
+location /build/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+    access_log off;
+    try_files $uri =404;
+    gzip_static on;
+    brotli_static on;
+}
+
+location /assets/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+    access_log off;
     try_files $uri =404;
     gzip_static on;
     brotli_static on;
@@ -440,7 +462,16 @@ For Apache with mod_proxy enabled:
 
 ### CSRF Protection
 
+
 Qwik City applications are protected against CSRF attacks by default for all POST, PATCH, and DELETE form submissions. The `ORIGIN` environment variable is crucial for this protection.
+
+**`checkOrigin` API:**
+
+```ts
+checkOrigin: boolean | 'lax-proto'
+```
+
+Set to `true` (default) for strict origin checking, `false` to disable (not recommended), or `'lax-proto'` for SSL offload proxy compatibility.
 
 #### Basic Configuration
 
@@ -454,9 +485,10 @@ const { router, notFound } = createQwikCity({
 });
 ```
 
+
 #### SSL Offload Proxy Setup
 
-If you're running behind an SSL offload proxy (like Nginx, CloudFront, etc.), you should use the `lax-proto` setting to properly handle the `X-Forwarded-Proto` header:
+If you're running behind an SSL offload proxy (like Nginx, CloudFront, etc.), set `checkOrigin: 'lax-proto'` to properly handle the `X-Forwarded-Proto` header:
 
 ```tsx
 // src/entry.express.tsx or src/entry.fastify.tsx
@@ -464,24 +496,21 @@ const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
   manifest,
-  checkOrigin: {
-    strict: false,
-    strictHost: false,
-    https: 'lax-proto' // Important for SSL offload proxies
-  }
+  checkOrigin: 'lax-proto' // boolean | 'lax-proto'
 });
 ```
 
+
 #### Disabling CSRF (Not Recommended)
 
-If you need to disable CSRF protection (not recommended for production), you can set `checkOrigin: false`:
+If you need to disable CSRF protection (not recommended for production), set `checkOrigin: false`:
 
 ```tsx
 const { router, notFound } = createQwikCity({
   render,
   qwikCityPlan,
   manifest,
-  checkOrigin: false // Disable CSRF protection (not recommended)
+  checkOrigin: false // boolean | 'lax-proto' (not recommended)
 });
 ```
 
@@ -543,11 +572,10 @@ wait
 
 2. Configure Nginx to serve pre-compressed files:
 ```nginx
-location /build/ {
     root /path/to/your/app/dist;
     expires 1y;
-    add_header Cache-Control "public, immutable";
-    
+    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+    access_log off;
     # Enable pre-compressed file serving
     gzip_static on;
     brotli_static on;
@@ -557,8 +585,8 @@ location /build/ {
 location /assets/ {
     root /path/to/your/app/dist;
     expires 1y;
-    add_header Cache-Control "public, immutable";
-    
+    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+    access_log off;
     # Enable pre-compressed file serving
     gzip_static on;
     brotli_static on;
@@ -610,4 +638,4 @@ For high-traffic applications:
 
 5. **Missing Assets**:
    - Ensure your build process is complete
-   - Check that the `/build/` directory is correctly exposed
+   - Check that the `/build/` and `/assets/` directories are correctly exposed

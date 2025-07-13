@@ -13,6 +13,7 @@ import {
   _weakSerialize,
   useStyles$,
   _waitUntilRendered,
+  untrack,
   type QRL,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik';
@@ -291,7 +292,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     }
 
     actionState.value = undefined;
-    routeLocation.isNavigating = true;
+    untrack(() => {
+      routeLocation.isNavigating = true;
+    });
 
     return new Promise<void>((resolve) => {
       navResolver.r = resolve;
@@ -390,11 +393,17 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
 
         // Update route location
         if (!isSamePath(trackUrl, prevUrl)) {
-          routeLocation.prevUrl = prevUrl;
+          untrack(() => {
+            routeLocation.prevUrl = prevUrl;
+          });
         }
 
-        routeLocation.url = trackUrl;
-        routeLocation.params = { ...params };
+        untrack(() => {
+          routeLocation.url = trackUrl;
+        });
+        untrack(() => {
+          routeLocation.params = { ...params };
+        });
 
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
@@ -402,17 +411,21 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
         // Update content
-        content.headings = pageModule.headings;
-        content.menu = menu;
-        contentInternal.value = noSerialize(contentModules);
+        untrack(() => {
+          content.headings = pageModule.headings;
+          content.menu = menu;
+          contentInternal.value = noSerialize(contentModules);
+        });
 
         // Update document head
-        documentHead.links = resolvedHead.links;
-        documentHead.meta = resolvedHead.meta;
-        documentHead.styles = resolvedHead.styles;
-        documentHead.scripts = resolvedHead.scripts;
-        documentHead.title = resolvedHead.title;
-        documentHead.frontmatter = resolvedHead.frontmatter;
+        untrack(() => {
+          documentHead.links = resolvedHead.links;
+          documentHead.meta = resolvedHead.meta;
+          documentHead.styles = resolvedHead.styles;
+          documentHead.scripts = resolvedHead.scripts;
+          documentHead.title = resolvedHead.title;
+          documentHead.frontmatter = resolvedHead.frontmatter;
+        });
 
         if (isBrowser) {
           if (props.viewTransition !== false) {
@@ -617,7 +630,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             saveScrollHistory(scrollState);
             win._qCityScrollEnabled = true;
 
-            routeLocation.isNavigating = false;
+            untrack(() => {
+              routeLocation.isNavigating = false;
+            });
             navResolver.r?.();
           });
         }

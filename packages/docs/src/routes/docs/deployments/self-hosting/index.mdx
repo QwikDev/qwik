@@ -75,17 +75,22 @@ bun run build
 </PackageManagerTabs>
 
 The build process will generate:
+
 - `dist/` directory containing:
   - **Vite-generated files**:
-    - `dist/build/` - Compiled JavaScript and CSS chunks (created by Vite)
-    - `dist/assets/` - Processed assets like images and fonts
+    - `dist/build/` – JavaScript and CSS bundles (code-split and optimized)
+    - `dist/assets/` – Fonts, images, and static assets processed by Vite
   - **Non-Vite files (copied as-is)**:
-    - All files from your `public/` directory (copied to the root of `dist/`)
-    - Static site generation (SSG) results (if applicable)
+    - Everything from the `public/` folder (e.g., favicon, robots.txt, etc.)
+  - **Static site generation output** (if SSG is used):
+    - Pre-rendered `.html` pages
+    - Route-specific `q-data.json` files
   - **Manifest files**:
-    - `manifest.json` - Web app manifest (required for PWA support)
-    - `q-manifest.json` - Development-only manifest (safe to exclude from production)
-- `server/` directory containing server-side code (for Node.js adapters)
+    - `manifest.json` – For PWA support
+    - `q-manifest.json` – Used during development, **can be omitted from production**
+
+- `server/` directory:
+  - Contains server entrypoints like `entry.fastify.js` or `entry.express.js` depending on the adapter used.
 
 ## Deployment Methods
 

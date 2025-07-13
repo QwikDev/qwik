@@ -7,7 +7,7 @@ export function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
-  const isQData = isQDataRequestBasedOnSharedMap(sharedMap);
+  const isQData = isQDataRequestBasedOnSharedMap(sharedMap, ev.request.headers);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (trailingSlash) {

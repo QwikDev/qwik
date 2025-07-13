@@ -15,6 +15,16 @@ export function csrfCheckMiddleware(requestEv: RequestEvent) {
   if (isForm) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
+
+    // Reject requests with missing origin headers for form submissions
+    if (!inputOrigin) {
+      throw requestEv.error(
+        403,
+        `CSRF check failed. Cross-site ${requestEv.method} form submissions are forbidden.
+The request is missing the origin header.`
+      );
+    }
+
     const forbidden = inputOrigin !== origin;
     if (forbidden) {
       throw requestEv.error(

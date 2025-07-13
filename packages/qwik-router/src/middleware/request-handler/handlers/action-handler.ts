@@ -4,7 +4,6 @@ import type {
   RequestEvent,
   RequestHandler,
 } from '../../../runtime/src/types';
-import { runValidators } from './loader-handler';
 import {
   getRequestActions,
   getRequestMode,
@@ -15,6 +14,7 @@ import { measure, verifySerializable } from '../resolve-request-handlers';
 import type { QwikSerializer } from '../types';
 import { IsQAction, QActionId } from '../user-response';
 import { _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
+import { runValidators } from './validator-utils';
 
 export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {

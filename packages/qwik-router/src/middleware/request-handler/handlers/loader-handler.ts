@@ -1,11 +1,6 @@
 import { _UNINITIALIZED } from '@qwik.dev/core/internal';
 import type { QwikSerializer, RequestEvent } from '../types';
-import type {
-  DataValidator,
-  LoaderInternal,
-  RequestHandler,
-  ValidatorReturn,
-} from '../../../runtime/src/types';
+import type { LoaderInternal, RequestHandler } from '../../../runtime/src/types';
 import {
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
@@ -17,6 +12,7 @@ import { measure, verifySerializable } from '../resolve-request-handlers';
 import { IsQLoader, IsQLoaderData, QLoaderId } from '../user-response';
 import qwikRouterConfig from '@qwik-router-config';
 import { getPathnameForDynamicRoute } from '../../../utils/pathname';
+import { runValidators } from './validator-utils';
 
 export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
@@ -136,6 +132,7 @@ export async function executeLoader(
   qwikSerializer: QwikSerializer
 ) {
   const loaderId = loader.__id;
+
   loaders[loaderId] = runValidators(
     requestEv,
     loader.__validators,
@@ -169,33 +166,4 @@ export async function executeLoader(
   const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
   loadersSerializationStrategy.set(loaderId, loader.__serializationStrategy);
   return loaders[loaderId];
-}
-
-export async function runValidators(
-  requestEv: RequestEvent,
-  validators: DataValidator[] | undefined,
-  data: unknown,
-  isDev: boolean
-) {
-  let lastResult: ValidatorReturn = {
-    success: true,
-    data,
-  };
-  if (validators) {
-    for (const validator of validators) {
-      if (isDev) {
-        lastResult = await measure(requestEv, `validator$`, () =>
-          validator.validate(requestEv, data)
-        );
-      } else {
-        lastResult = await validator.validate(requestEv, data);
-      }
-      if (!lastResult.success) {
-        return lastResult;
-      } else {
-        data = lastResult.data;
-      }
-    }
-  }
-  return lastResult;
 }

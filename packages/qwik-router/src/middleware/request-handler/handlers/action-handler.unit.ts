@@ -4,11 +4,13 @@ import type { ActionInternal, ActionStore } from '../../../runtime/src/types';
 import type { RequestEventInternal } from '../request-event';
 import type { QwikSerializer } from '../types';
 import { IsQAction, QActionId } from '../user-response';
-import { RequestEvQwikSerializer } from '../request-event';
+import { getRequestActions, getRequestMode, RequestEvQwikSerializer } from '../request-event';
 import type { QRL } from 'packages/qwik/public';
+import { runValidators } from './validator-utils';
+import { measure, verifySerializable } from '../resolve-request-handlers';
 
 // Mock dependencies
-vi.mock('./loader-handler', () => ({
+vi.mock('./validator-utils', () => ({
   runValidators: vi.fn(),
 }));
 
@@ -23,9 +25,28 @@ vi.mock('../request-event', () => ({
   RequestEvQwikSerializer: Symbol('RequestEvQwikSerializer'),
 }));
 
-const { runValidators } = await import('./loader-handler');
-const { measure, verifySerializable } = await import('../resolve-request-handlers');
-const { getRequestActions, getRequestMode } = await import('../request-event');
+function createMockAction(id: string, hash: string): Mocked<ActionInternal> {
+  const mockActionFunction = (): Mocked<ActionStore<unknown, unknown>> => ({
+    actionPath: `?action=${id}`,
+    isRunning: false,
+    status: undefined,
+    value: undefined,
+    formData: undefined,
+    submit: vi.fn() as any,
+    submitted: false,
+  });
+
+  return {
+    __brand: 'server_action' as const,
+    __id: id,
+    __qrl: {
+      call: vi.fn(),
+      getHash: vi.fn().mockReturnValue(hash),
+    } as unknown as Mocked<QRL<(form: any, event: any) => any>>,
+    __validators: [],
+    ...mockActionFunction,
+  } as unknown as Mocked<ActionInternal>;
+}
 
 describe('actionHandler', () => {
   let mockRequestEvent: Mocked<RequestEventInternal>;
@@ -41,42 +62,16 @@ describe('actionHandler', () => {
     // Reset all mocks
     vi.clearAllMocks();
 
-    // Mock console.warn
     consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Create mock action
-    const mockActionFunction = (): Mocked<ActionStore<unknown, unknown>> => ({
-      actionPath: `?action=${mockActionId}`,
-      isRunning: false,
-      status: undefined,
-      value: undefined,
-      formData: undefined,
-      submit: vi.fn() as any,
-      submitted: false,
-    });
+    mockAction = createMockAction(mockActionId, mockActionHash);
 
-    mockAction = {
-      __brand: 'server_action' as const,
-      __id: mockActionId,
-      __qrl: {
-        call: vi.fn(),
-        getHash: vi.fn().mockReturnValue(mockActionHash),
-      } as unknown as Mocked<QRL<(form: any, event: any) => any>>,
-      __validators: [],
-      ...mockActionFunction,
-    } as unknown as Mocked<ActionInternal>;
-
-    // Create mock serializer
     mockQwikSerializer = {
       _serialize: vi.fn(),
       _deserialize: vi.fn(),
       _verifySerializable: vi.fn(),
     } as Mocked<QwikSerializer>;
-
-    // Create mock actions record
     mockActions = {};
-
-    // Create mock request event
     mockRequestEvent = {
       sharedMap: new Map(),
       headersSent: false,
@@ -123,8 +118,8 @@ describe('actionHandler', () => {
     } as unknown as Mocked<RequestEventInternal>;
 
     // Set up default mocks
-    (getRequestActions as Mock).mockReturnValue(mockActions);
-    (getRequestMode as Mock).mockReturnValue('dev');
+    vi.mocked(getRequestActions).mockReturnValue(mockActions);
+    vi.mocked(getRequestMode).mockReturnValue('dev');
     mockRequestEvent[RequestEvQwikSerializer] = mockQwikSerializer;
   });
 
@@ -241,7 +236,7 @@ describe('actionHandler', () => {
 
       const data = { test: 'data' };
 
-      (mockRequestEvent.parseBody as Mock).mockResolvedValue(data);
+      vi.mocked(mockRequestEvent.parseBody).mockResolvedValue(data);
       (runValidators as Mock).mockResolvedValue({
         success: true,
         data,
@@ -261,13 +256,13 @@ describe('actionHandler', () => {
     beforeEach(() => {
       mockRequestEvent.sharedMap.set(IsQAction, true);
       mockRequestEvent.sharedMap.set(QActionId, mockActionId);
-      (mockRequestEvent.parseBody as Mock).mockResolvedValue({ test: 'data' });
-      (runValidators as Mock).mockResolvedValue({
+      vi.mocked(mockRequestEvent.parseBody).mockResolvedValue({ test: 'data' });
+      vi.mocked(runValidators).mockResolvedValue({
         success: true,
         data: { test: 'data' },
       });
-      (mockAction.__qrl.call as Mock).mockResolvedValue({ result: 'success' });
-      (mockQwikSerializer._serialize as Mock).mockResolvedValue('serialized-data');
+      vi.mocked(mockAction.__qrl.call).mockResolvedValue({ result: 'success' });
+      vi.mocked(mockQwikSerializer._serialize).mockResolvedValue('serialized-data');
     });
 
     it('should execute action and return serialized data', async () => {
@@ -295,6 +290,8 @@ describe('actionHandler', () => {
     });
 
     it('should measure execution time in dev mode', async () => {
+      vi.mocked(getRequestMode).mockReturnValue('dev');
+
       const handler = actionHandler([mockAction]);
 
       await handler(mockRequestEvent);
@@ -308,7 +305,7 @@ describe('actionHandler', () => {
     });
 
     it('should not measure execution time in production mode', async () => {
-      (getRequestMode as Mock).mockReturnValue('prod');
+      vi.mocked(getRequestMode).mockReturnValue('server');
 
       const handler = actionHandler([mockAction]);
 

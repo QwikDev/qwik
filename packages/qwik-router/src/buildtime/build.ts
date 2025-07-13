@@ -1,5 +1,6 @@
 import { addError, addWarning } from '../utils/format';
 import { resolveSourceFiles } from './routing/resolve-source-file';
+import { routeSortCompare } from './routing/sort-routes';
 import { walkRoutes } from './routing/walk-routes-dir';
 import { walkServerPlugins } from './routing/walk-server-plugins';
 import type { RoutingContext, BuiltRoute, RewriteRouteOption } from './types';
@@ -21,35 +22,29 @@ export async function parseRoutesDir(ctx: RoutingContext) {
   }
 }
 
-export async function updateRoutingContext(ctx: RoutingContext) {
-  if (!ctx.activeBuild) {
-    ctx.activeBuild = new Promise<void>((resolve, reject) => {
-      walkServerPlugins(ctx.opts)
-        .then((serverPlugins) => {
-          ctx.serverPlugins = serverPlugins;
-          return walkRoutes(ctx.opts.routesDir);
-        })
-        .then((sourceFiles) => {
-          const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
-          rewriteRoutes(ctx, resolved);
-          ctx.layouts = resolved.layouts;
-          ctx.routes = resolved.routes;
-          ctx.entries = resolved.entries;
-          ctx.serviceWorkers = resolved.serviceWorkers;
-          ctx.menus = resolved.menus;
-          resolve();
-        }, reject)
-        .finally(() => {
-          ctx.activeBuild = null;
-        });
-    });
-  }
+export function updateRoutingContext(ctx: RoutingContext) {
+  ctx.activeBuild ||= _updateRoutingContext(ctx).finally(() => {
+    ctx.activeBuild = null;
+  });
   return ctx.activeBuild;
 }
 
-function rewriteRoutes(ctx: RoutingContext, resolvedFiles: ReturnType<typeof resolveSourceFiles>) {
-  if (!ctx.opts.rewriteRoutes || !resolvedFiles.routes) {
-    return;
+async function _updateRoutingContext(ctx: RoutingContext) {
+  const serverPlugins = await walkServerPlugins(ctx.opts);
+  const sourceFiles = await walkRoutes(ctx.opts.routesDir);
+  const resolved = resolveSourceFiles(ctx.opts, sourceFiles);
+  resolved.routes = rewriteRoutes(ctx, resolved.routes);
+  ctx.serverPlugins = serverPlugins;
+  ctx.layouts = resolved.layouts;
+  ctx.routes = resolved.routes;
+  ctx.entries = resolved.entries;
+  ctx.serviceWorkers = resolved.serviceWorkers;
+  ctx.menus = resolved.menus;
+}
+
+function rewriteRoutes(ctx: RoutingContext, routes: BuiltRoute[]) {
+  if (!ctx.opts.rewriteRoutes) {
+    return routes;
   }
 
   const translatedRoutes: BuiltRoute[] = [];
@@ -60,7 +55,7 @@ function rewriteRoutes(ctx: RoutingContext, resolvedFiles: ReturnType<typeof res
 
   segmentsToTranslate = Array.from(new Set(segmentsToTranslate));
 
-  resolvedFiles.routes.forEach((route) => {
+  routes.forEach((route) => {
     // always push the original route
     translatedRoutes.push(route);
 
@@ -91,7 +86,7 @@ function rewriteRoutes(ctx: RoutingContext, resolvedFiles: ReturnType<typeof res
     }
   });
 
-  resolvedFiles.routes = translatedRoutes;
+  return translatedRoutes.sort(routeSortCompare);
 }
 
 function translateRoute(

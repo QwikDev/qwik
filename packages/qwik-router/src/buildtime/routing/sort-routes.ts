@@ -1,5 +1,6 @@
 import type { BuiltRoute } from '../types';
 
+/** Sort routes by pathname, then by extension. Longer routes are sorted first. */
 export function routeSortCompare(a: BuiltRoute, b: BuiltRoute) {
   const maxSegments = Math.max(a.segments.length, b.segments.length);
 

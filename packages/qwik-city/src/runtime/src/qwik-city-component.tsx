@@ -392,33 +392,22 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         }
 
         // Update route location
-        if (!isSamePath(trackUrl, prevUrl)) {
-          untrack(() => {
+        untrack(() => {
+          if (!isSamePath(trackUrl, prevUrl)) {
             routeLocation.prevUrl = prevUrl;
-          });
-        }
-
-        untrack(() => {
+          }
           routeLocation.url = trackUrl;
-        });
-        untrack(() => {
           routeLocation.params = { ...params };
-        });
 
-        (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
+          // Needs to be done after routeLocation is updated
+          const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
-        // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
-
-        // Update content
-        untrack(() => {
+          // Update content
           content.headings = pageModule.headings;
           content.menu = menu;
           contentInternal.value = noSerialize(contentModules);
-        });
 
-        // Update document head
-        untrack(() => {
+          // Update document head
           documentHead.links = resolvedHead.links;
           documentHead.meta = resolvedHead.meta;
           documentHead.styles = resolvedHead.styles;
@@ -426,6 +415,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
           documentHead.title = resolvedHead.title;
           documentHead.frontmatter = resolvedHead.frontmatter;
         });
+
+        (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
+
+        // Needs to be done after routeLocation is updated
+        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
 
         if (isBrowser) {
           if (props.viewTransition !== false) {

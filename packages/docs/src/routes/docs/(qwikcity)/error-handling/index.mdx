@@ -66,7 +66,7 @@ Intercepting errors with middleware has a few usecases: you might want to hide e
 ```tsx
 // src/routes/plugin@errors.ts
 import { type RequestHandler } from '@builder.io/qwik-city'
-import { RedirectMessage } from '@builder.io/qwik-city/middleware/request-handler'
+import { RedirectMessage, ServerError } from '@builder.io/qwik-city/middleware/request-handler'
 import { isDev } from '@builder.io/qwik/build'
 
 export const onRequest: RequestHandler = async ({ next }) => {
@@ -74,12 +74,12 @@ export const onRequest: RequestHandler = async ({ next }) => {
     return await next();
   } catch (err) {
     // Pass through 3xx redirects
-    if (isRedirectMessage(err)) {
+    if (err instanceof RedirectMessage) {
       throw err
     }
 
     // Pass through ServerErrors
-    if (isServerError(err)) {
+    if (err instanceof ServerError) {
       throw err
     }
 
@@ -94,19 +94,6 @@ export const onRequest: RequestHandler = async ({ next }) => {
   }
 };
 
-function isServerError(err: unknown): err is ServerError {
-  return (
-    err instanceof ServerError ||
-    // This is required for dev environments due to an issue with vite: https://github.com/vitejs/vite/issues/3910
-    (isDev && err instanceof Error && err.constructor.name === "ServerError")
-  );
-}
 
-function isRedirectMessage(err: unknown): err is RedirectMessage {
-  return (
-    err instanceof RedirectMessage ||
-    // This is required for dev environments due to an issue with vite: https://github.com/vitejs/vite/issues/3910
-    (isDev && err instanceof Error && err.constructor.name === "RedirectMessage")
-  );
-}
+
 ```

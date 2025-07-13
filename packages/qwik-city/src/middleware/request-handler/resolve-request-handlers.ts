@@ -13,7 +13,6 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
-import { RedirectMessage } from './redirect-handler';
 import {
   RequestEvQwikSerializer,
   RequestEvIsRewrite,
@@ -33,7 +32,8 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
-import { ServerError } from './error-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import { RedirectMessage, ServerError } from '@builder.io/qwik-city/middleware/request-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,

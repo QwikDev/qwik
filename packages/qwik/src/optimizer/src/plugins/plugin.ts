@@ -936,10 +936,14 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
   }
 
   function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk if it's a client build
-    // the vite preload helper must be included or to prevent breaking circular dependencies
     if (opts.target === 'client') {
-      if (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js') {
+      if (
+        // The preloader has to stay in a separate chunk if it's a client build
+        // the vite preload helper must be included to prevent breaking circular dependencies
+        id.endsWith('@builder.io/qwik/build') ||
+        /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
+        id === '\0vite/preload-helper.js'
+      ) {
         return 'qwik-preloader';
       } else if (/qwik[\\/]dist[\\/]qwikloader\.js$/.test(id)) {
         return 'qwik-loader';
@@ -1090,7 +1094,6 @@ export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@builder.io/qwik/preloader';
-export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
 
 export const SRC_DIR_DEFAULT = 'src';
 

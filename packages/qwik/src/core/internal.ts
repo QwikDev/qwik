@@ -55,3 +55,4 @@ export {
 } from './use/use-core';
 export { scheduleTask as _task, isTask as _isTask } from './use/use-task';
 export { unwrapStore as _unwrapStore } from './use/use-store.public';
+export { isStore as _isStore } from './reactive-primitives/signal.public';

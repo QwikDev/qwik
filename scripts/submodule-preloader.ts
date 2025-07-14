@@ -55,8 +55,8 @@ export async function submodulePreloader(config: BuildConfig) {
       copyPublicDir: false,
       lib: {
         entry: join(config.srcQwikDir, 'core/preloader'),
-        formats: ['es'],
-        fileName: () => 'preloader.mjs',
+        formats: ['es', 'cjs'],
+        fileName: (format) => (format === 'es' ? 'preloader.mjs' : 'preloader.cjs'),
       },
       rollupOptions: {
         external: ['@builder.io/qwik/build'],

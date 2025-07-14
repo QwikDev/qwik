@@ -746,20 +746,12 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
           if (opts.target === 'client') {
-            if (devServer) {
-              // invalidate the segment so that the client will pick it up
-              const rollupModule = devServer.moduleGraph.getModuleById(key);
-              if (rollupModule) {
-                devServer.moduleGraph.invalidateModule(rollupModule);
-              }
-            } else {
-              // rollup must be told about all entry points
-              ctx.emitFile({
-                id: key,
-                type: 'chunk',
-                preserveSignature: 'allow-extension',
-              });
-            }
+            // rollup must be told about all entry points
+            ctx.emitFile({
+              id: key,
+              type: 'chunk',
+              preserveSignature: 'allow-extension',
+            });
           }
         }
       }

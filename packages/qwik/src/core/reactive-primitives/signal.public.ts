@@ -8,7 +8,6 @@ import {
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
 import type { AsyncComputedReturnType } from '../use/use-async-computed';
-export { isStore } from './impl/store';
 export { isSignal } from './utils';
 
 /** @public */

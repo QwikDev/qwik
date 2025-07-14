@@ -220,7 +220,7 @@ export class Task<T = unknown, B = T>
     super();
   }
 }
-/** @public */
+/** @internal */
 export const isTask = (value: any): value is Task => {
   return value instanceof Task;
 };

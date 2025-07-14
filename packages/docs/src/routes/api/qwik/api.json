@@ -3,34 +3,6 @@
   "package": "@qwik.dev/qwik",
   "members": [
     {
-      "name": "_isStore",
-      "id": "_isstore",
-      "hierarchy": [
-        {
-          "name": "_isStore",
-          "id": "_isstore"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nisStore: (value: StoreTarget) => boolean\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nStoreTarget\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nboolean",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts",
-      "mdFile": "core._isstore.md"
-    },
-    {
-      "name": "_isTask",
-      "id": "_istask",
-      "hierarchy": [
-        {
-          "name": "_isTask",
-          "id": "_istask"
-        }
-      ],
-      "kind": "Function",
-      "content": "```typescript\nisTask: (value: any) => value is Task\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nvalue\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvalue is Task",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
-      "mdFile": "core._istask.md"
-    },
-    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [

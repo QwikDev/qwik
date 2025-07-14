@@ -41,7 +41,7 @@ export const unwrapStore = <T>(value: T): T => {
   return getStoreTarget<any>(value) || value;
 };
 
-/** @public */
+/** @internal */
 export const isStore = (value: StoreTarget): boolean => {
   return STORE_TARGET in value;
 };

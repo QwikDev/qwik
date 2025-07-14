@@ -745,7 +745,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          if (opts.target === 'client') {
+          if (opts.target === 'client' && !devServer) {
             // rollup must be told about all entry points
             ctx.emitFile({
               id: key,

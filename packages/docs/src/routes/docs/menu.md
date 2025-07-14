@@ -100,6 +100,7 @@
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
+- [Azion](deployments/azion/index.mdx)
 
 ## Guides
 

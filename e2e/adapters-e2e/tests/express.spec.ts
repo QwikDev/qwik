@@ -25,4 +25,15 @@ test.describe('Verifying Express Adapter', () => {
 
     await expect(page.getByRole('heading', { name: 'Profile page' })).toBeVisible();
   });
+
+  test('should load loaders context in minified prod mode', async ({ page }) => {
+    page.goto('/loaders');
+    const subpageLink = page.locator('#subpage-link');
+    await expect(subpageLink).toBeVisible();
+
+    await subpageLink.click();
+
+    await expect(page.getByRole('heading', { name: 'Sub page' })).toBeVisible();
+    await expect(page.locator('#subpage-loader-value')).toHaveText('42');
+  });
 });

@@ -3,7 +3,7 @@ import { QError, qError } from '../shared/error/error';
 import { verifySerializable } from '../shared/utils/serialize-utils';
 import { qDev, qSerialize } from '../shared/utils/qdev';
 import { isObject } from '../shared/utils/types';
-import { invoke } from './use-core';
+import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { fromCamelToKebabCase } from '../shared/utils/event-names';
 
@@ -283,4 +283,14 @@ export const validateContext = (context: ContextId<any>) => {
   if (!isObject(context) || typeof context.id !== 'string' || context.id.length === 0) {
     throw qError(QError.invalidContext, [context]);
   }
+};
+
+/** @internal */
+export const _resolveContextWithoutSequentialScope = <STATE>(context: ContextId<STATE>) => {
+  const iCtx = getInvokeContext();
+  const hostElement = iCtx.$hostElement$;
+  if (!hostElement) {
+    return undefined;
+  }
+  return iCtx.$container$?.resolveContext(hostElement, context);
 };

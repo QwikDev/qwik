@@ -1,24 +1,33 @@
 import { component$ } from '@qwik.dev/core';
-import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
-import { RouterHead } from './components/router-head/router-head';
+import { RouterOutlet, useDocumentHead, useLocation, useQwikRouter } from '@qwik.dev/router';
 
 export default component$(() => {
-  /**
-   * The root of a QwikCity site always start with the <QwikCityProvider> component, immediately
-   * followed by the document's <head> and <body>.
-   *
-   * Don't remove the `<head>` and `<body>` elements.
-   */
+  useQwikRouter();
+
+  const head = useDocumentHead();
+  const loc = useLocation();
 
   return (
-    <QwikRouterProvider>
+    <>
       <head>
         <meta charset="utf-8" />
-        <RouterHead />
+        <title>{head.title}</title>
+
+        <link rel="canonical" href={loc.url.href} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        {head.meta.map((m) => (
+          <meta key={m.key} {...m} />
+        ))}
+
+        {head.links.map((l) => (
+          <link key={l.key} {...l} />
+        ))}
+        {/* we don't use styles or scripts here */}
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });

@@ -4,14 +4,15 @@
   "version": "1.0.0",
   "author": "",
   "devDependencies": {
-    "@playwright/test": "^1.54.1",
+    "@playwright/test": "^1.50.1",
     "@types/node": "^24.0.13"
   },
   "keywords": [],
   "license": "ISC",
   "main": "index.js",
   "scripts": {
-    "test": "npx playwright test --config=playwright.config.ts --project=chromium"
+    "test": "pnpm exec playwright test --config=playwright.config.ts --project=chromium",
+    "test-ui": "pnpm exec playwright test --config=playwright.config.ts --project=chromium --ui"
   },
   "type": "commonjs"
 }

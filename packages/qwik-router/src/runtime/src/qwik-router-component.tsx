@@ -24,7 +24,6 @@ import {
   _waitUntilRendered,
   SerializerSymbol,
   type _ElementVNode,
-  type AsyncComputedReadonlySignal,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
@@ -58,6 +57,7 @@ import type {
   Editable,
   EndpointResponse,
   LoadedRoute,
+  LoaderSignal,
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
@@ -190,7 +190,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
   // This object contains the signals for the loaders
   // It is used for the loaders context RouteStateContext
-  const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
+  const loaderState: Record<string, LoaderSignal<unknown>> = {};
 
   for (const [key, value] of Object.entries(env.response.loaders)) {
     loadersObject[key] = value;

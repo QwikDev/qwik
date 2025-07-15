@@ -54,9 +54,13 @@ vi.mock('./validator-utils', () => ({
 }));
 
 function createMockLoader(id: string, hash: string, result: unknown): Mocked<LoaderInternal> {
-  const mockLoaderFunction = (): Mocked<LoaderSignal<unknown>> => ({
-    value: Promise.resolve(result),
-  });
+  const mockLoaderFunction = (): Mocked<LoaderSignal<unknown>> =>
+    ({
+      value: Promise.resolve(result),
+      force: vi.fn(),
+      invalidate: vi.fn(),
+      refetch: vi.fn(),
+    }) as unknown as Mocked<LoaderSignal<unknown>>;
 
   return {
     __brand: 'server_loader' as const,

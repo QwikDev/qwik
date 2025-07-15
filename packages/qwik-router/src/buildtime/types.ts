@@ -145,7 +145,7 @@ export interface MdxPlugins {
   rehypeAutolinkHeadings: boolean;
 }
 
-export interface NormalizedPluginOptions extends Required<PluginOptions> {
+export interface NormalizedPluginOptions extends Omit<Required<PluginOptions>, 'trailingSlash'> {
   assetsDir?: string;
 }
 

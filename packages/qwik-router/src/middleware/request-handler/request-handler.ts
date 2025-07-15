@@ -33,7 +33,7 @@ export async function requestHandler<T = unknown>(
   }
 
   const pathname = serverRequestEv.url.pathname;
-  const matchPathname = getRouteMatchPathname(pathname, qwikRouterConfig.trailingSlash);
+  const matchPathname = getRouteMatchPathname(pathname);
   const routeAndHandlers = await loadRequestHandlers(
     qwikRouterConfig,
     matchPathname,
@@ -46,7 +46,7 @@ export async function requestHandler<T = unknown>(
     const [route, requestHandlers] = routeAndHandlers;
 
     const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-      const matchPathname = getRouteMatchPathname(url.pathname, qwikRouterConfig.trailingSlash);
+      const matchPathname = getRouteMatchPathname(url.pathname);
       const routeAndHandlers = await loadRequestHandlers(
         qwikRouterConfig,
         matchPathname,
@@ -68,7 +68,6 @@ export async function requestHandler<T = unknown>(
       route,
       requestHandlers,
       rebuildRouteInfo,
-      qwikRouterConfig.trailingSlash,
       qwikRouterConfig.basePathname,
       qwikSerializer
     );

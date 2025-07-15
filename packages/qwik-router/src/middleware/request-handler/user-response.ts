@@ -41,7 +41,6 @@ export function runQwikRouter<T>(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikRouterRun<T> {
@@ -51,7 +50,6 @@ export function runQwikRouter<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
-    trailingSlash,
     basePathname,
     qwikSerializer,
     resolve!
@@ -144,9 +142,9 @@ async function runNext(
  * The pathname used to match in the route regex array. A pathname ending with /q-data.json should
  * be treated as a pathname without it.
  */
-export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
+export function getRouteMatchPathname(pathname: string) {
   if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+    const trimEnd = pathname.length - QDATA_JSON_LEN + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';

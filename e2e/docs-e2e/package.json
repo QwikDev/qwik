@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "author": "",
   "devDependencies": {
-    "@playwright/test": "^1.50.1",
-    "@types/node": "^24.0.13"
+    "@playwright/test": "1.50.1",
+    "@types/node": "20.14.11"
   },
   "keywords": [],
   "license": "ISC",

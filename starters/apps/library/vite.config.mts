@@ -12,8 +12,9 @@ export default defineConfig(() => {
     build: {
       target: "es2020",
       lib: {
-        entry: "./src/index.ts",
-        formats: ["es", "cjs"],
+        entry: "./src/index",
+        formats: ["es", "cjs"] as const,
+        // This adds .qwik so all files are processed by the optimizer
         fileName: (format, entryName) =>
           `${entryName}.qwik.${format === "es" ? "mjs" : "cjs"}`,
       },

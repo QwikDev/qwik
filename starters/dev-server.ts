@@ -143,11 +143,9 @@ async function buildApp(
       load(id) {
         if (id.endsWith(qwikRouterVirtualEntry)) {
           return `import { createQwikRouter } from '@qwik.dev/router/middleware/node';
-import qwikRouterConfig from '@qwik-router-config';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikRouter({
   render,
-  qwikRouterConfig,
   base: '${basePath}build/',
 });
 export {

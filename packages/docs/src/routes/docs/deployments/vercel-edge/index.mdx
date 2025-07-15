@@ -136,10 +136,9 @@ When the `vercel-edge` adapter is added, a new entry file will be created at `sr
 
 ```tsx title="src/entry.vercel-edge.tsx"
 import { createQwikRouter } from '@qwik.dev/router/middleware/vercel-edge';
-import qwikRouterConfig from '@qwik-router-config';
 import render from './entry.ssr';
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });
 ```
 
 The compiled middleware will be built in the `.vercel/output` directory.

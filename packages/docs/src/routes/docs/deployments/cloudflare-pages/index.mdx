@@ -152,7 +152,11 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.cloudflare-pages.tsx', '@qwik-router-config'],
+        input: [
+          'src/entry.cloudflare-pages.tsx',
+          // This ensures that the SSG can read the routes from the config
+          '@qwik-router-config',
+        ],
       }
     },
     plugins: [
@@ -204,10 +208,9 @@ import {
   createQwikRouter,
   type PlatformCloudflarePages,
 } from '@qwik.dev/router/middleware/cloudflare-pages';
-import qwikRouterConfig from '@qwik-router-config';
 import render from './entry.ssr';
 
-const fetch = createQwikRouter({ render, qwikRouterConfig });
+const fetch = createQwikRouter({ render });
 
 export { fetch };
 ```

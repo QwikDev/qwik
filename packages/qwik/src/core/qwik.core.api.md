@@ -804,6 +804,9 @@ export interface RenderSSROptions {
     stream: StreamWriter;
 }
 
+// @internal (undocumented)
+export const _resolveContextWithoutSequentialScope: <STATE>(context: ContextId<STATE>) => STATE | undefined;
+
 // @public
 export const Resource: <T>(props: ResourceProps<T>) => JSXOutput;
 
@@ -1690,11 +1693,6 @@ export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @public (undocumented)
 export const useId: () => string;
-
-// Warning: (ae-forgotten-export) The symbol "RenderInvokeContext" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export const _useInvokeContext: () => RenderInvokeContext;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //

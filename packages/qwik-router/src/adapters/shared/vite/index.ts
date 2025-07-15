@@ -70,7 +70,22 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         }
       }
     },
-
+    buildStart() {
+      if (isSsrBuild && opts.ssg !== null) {
+        const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
+        // TODO don't rely on entry points for SSG, somehow
+        this.emitFile({
+          id: '@qwik-router-config',
+          type: 'chunk',
+          fileName: '@qwik-router-config.js',
+        });
+        this.emitFile({
+          id: `${srcDir}/entry.ssr`,
+          type: 'chunk',
+          fileName: 'entry.ssr.js',
+        });
+      }
+    },
     generateBundle(_, bundles) {
       if (isSsrBuild) {
         outputEntries.length = 0;
@@ -86,18 +101,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               qwikRouterConfigModulePath = join(serverOutDir!, fileName);
             }
           }
-        }
-
-        if (!renderModulePath) {
-          throw new Error(
-            'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
-        }
-
-        if (!qwikRouterConfigModulePath) {
-          throw new Error(
-            'Unable to find "@qwik-router-config" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
         }
       }
     },
@@ -139,7 +142,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
             try {
               ssgOrigin = new URL(ssgOrigin).origin;
-            } catch (e) {
+            } catch {
               this.warn(
                 `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
               );

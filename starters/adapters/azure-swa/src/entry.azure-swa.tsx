@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/azure-swa/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformAzure,
@@ -18,4 +17,4 @@ declare global {
   interface QwikRouterPlatform extends PlatformAzure {}
 }
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });

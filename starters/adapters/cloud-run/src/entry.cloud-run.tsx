@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/gcp-cloud-run/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformNode,
@@ -50,7 +49,6 @@ const DEFAULT_HEADERS = {
 
 const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikRouterConfig,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

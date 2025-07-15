@@ -17,10 +17,8 @@ declare const Deno: any;
 /** @public */
 export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   const qwikSerializer: QwikSerializer = {
     _deserialize,

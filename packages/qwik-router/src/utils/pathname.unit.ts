@@ -115,7 +115,9 @@ test('normalizePathname', () => {
   ];
 
   tests.forEach((t) => {
-    const pathname = normalizePathname(t.pathname, t.basePathname, t.trailingSlash);
+    globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
+    const pathname = normalizePathname(t.pathname, t.basePathname);
+
     assert.equal(pathname, t.expect);
   });
 });
@@ -179,5 +181,5 @@ test('dynamic pathname', () => {
 function getPathname(t: { originalPathname: string; basePathname: string; params?: PathParams }) {
   const p = parseRoutePathname(t.basePathname, t.originalPathname);
   const d = getPathnameForDynamicRoute(t.originalPathname, p.paramNames, t.params);
-  return normalizePathname(d, '/', false);
+  return normalizePathname(d, '/');
 }

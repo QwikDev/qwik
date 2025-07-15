@@ -419,10 +419,10 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
         // ensure correct trailing slash
         if (trackUrl.pathname.endsWith('/')) {
-          if (!qwikRouterConfig.trailingSlash) {
+          if (globalThis.__NO_TRAILING_SLASH__) {
             trackUrl.pathname = trackUrl.pathname.slice(0, -1);
           }
-        } else if (qwikRouterConfig.trailingSlash) {
+        } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname += '/';
         }
         let loadRoutePromise = loadRoute(

@@ -24,7 +24,7 @@ export function generateQwikRouterConfig(
 
   createEntries(ctx, c);
 
-  c.push(`export const trailingSlash = ${JSON.stringify(!!ctx.opts.trailingSlash)};`);
+  c.push(`export const trailingSlash = ${JSON.stringify(!globalThis.__NO_TRAILING_SLASH__)};`);
 
   c.push(`export const basePathname = ${JSON.stringify(ctx.opts.basePathname)};`);
 

@@ -44,7 +44,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return { route, params };
       }
 
-      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+      if (!globalThis.__NO_TRAILING_SLASH__ && !pathname.endsWith('/')) {
         params = matchRoute(route.pathname, pathname + '/');
         if (params) {
           return { route, params };
@@ -129,7 +129,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     return { serverPlugins, loadedRoute };
   };
   const resolveRoute = (routeModulePaths: WeakMap<RouteModule<unknown>, string>, url: URL) => {
-    const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+    const matchPathname = getRouteMatchPathname(url.pathname);
     routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).finally(() => {
       delete routePs[matchPathname];
     });
@@ -251,7 +251,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             loadedRoute,
             requestHandlers,
             rebuildRouteInfo,
-            ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer
           );

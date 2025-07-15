@@ -37,7 +37,6 @@ export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvLoaderSerializationStrategyMap = Symbol(
   'RequestEvLoaderSerializationStrategyMap'
 );
-export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
@@ -51,7 +50,6 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
@@ -64,7 +62,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
   if (url.pathname.endsWith(QDATA_JSON)) {
     url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (trailingSlash && !url.pathname.endsWith('/')) {
+    if (!globalThis.__NO_TRAILING_SLASH__ && !url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
     sharedMap.set(IsQData, true);
@@ -155,7 +153,6 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
-    [RequestEvTrailingSlash]: trailingSlash,
     get [RequestEvRoute]() {
       return loadedRoute;
     },
@@ -339,7 +336,6 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;
   [RequestEvQwikSerializer]: QwikSerializer;
 
@@ -370,10 +366,6 @@ export function getRequestLoaders(requestEv: RequestEventCommon) {
 
 export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaderSerializationStrategyMap];
-}
-
-export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
 }
 
 export function getRequestRoute(requestEv: RequestEventCommon) {

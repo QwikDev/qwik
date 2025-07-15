@@ -1,17 +1,17 @@
 {
   "name": "docs-e2e",
-  "version": "1.0.0",
   "description": "",
+  "version": "1.0.0",
+  "author": "",
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.0.13"
+  },
+  "keywords": [],
+  "license": "ISC",
   "main": "index.js",
   "scripts": {
     "test": "npx playwright test --config=playwright.config.ts --project=chromium"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "devDependencies": {
-    "@playwright/test": "^1.54.1",
-    "@types/node": "^24.0.13"
-  }
+  "type": "commonjs"
 }

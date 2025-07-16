@@ -459,16 +459,19 @@ test.describe("actions", () => {
       );
     });
     // TODO: Fix this test (currently not working because the action redirect adds a `/q-data.json` at the end of the path)
-    // test("action with redirect without query params in a route with query param should redirect to route without query params", async ({
-    //   page,
-    // }) => {
-    //   await page.goto("/qwikcity-test/action-redirect-without-search-params/?test=test");
-    //   const button = page.locator("button");
-    //   await button.click();
-    //   await page.waitForURL(
-    //     "/qwikcity-test/action-redirect-without-search-params-target/",
-    //   );
-    // });
+    test.fixme(
+      "action with redirect without query params in a route with query param should redirect to route without query params",
+      async ({ page }) => {
+        await page.goto(
+          "/qwikcity-test/action-redirect-without-search-params/?test=test",
+        );
+        const button = page.locator("button");
+        await button.click();
+        await page.waitForURL(
+          "/qwikcity-test/action-redirect-without-search-params-target/",
+        );
+      },
+    );
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikcity-test/");
 

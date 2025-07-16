@@ -270,7 +270,7 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
   return qrl;
 };
 
-/** @public */
+/** @public @deprecated It will be removed in v2. Instead, use `$()`, and inside the function add `if (isServer) { return; }` */
 export const event$ = implicit$FirstArg(eventQrl);
 
 /** @alpha */

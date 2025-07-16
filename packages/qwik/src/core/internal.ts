@@ -50,8 +50,8 @@ export {
   _getContextEvent,
   _getContextContainer,
   _jsxBranch,
-  useInvokeContext as _useInvokeContext,
   _waitUntilRendered,
 } from './use/use-core';
 export { scheduleTask as _task, isTask as _isTask } from './use/use-task';
 export { isStore as _isStore } from './reactive-primitives/impl/store';
+export { _resolveContextWithoutSequentialScope } from './use/use-context';

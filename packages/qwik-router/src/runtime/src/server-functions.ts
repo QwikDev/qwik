@@ -15,7 +15,7 @@ import {
   _getContextEvent,
   _serialize,
   _UNINITIALIZED,
-  _useInvokeContext,
+  _resolveContextWithoutSequentialScope,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 
@@ -201,8 +201,7 @@ export const routeLoaderQrl = ((
 ): LoaderInternal => {
   const { id, validators, serializationStrategy } = getValidators(rest, loaderQrl);
   function loader() {
-    const iCtx = _useInvokeContext();
-    const state = iCtx.$container$.resolveContext(iCtx.$hostElement$, RouteStateContext)!;
+    const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
 
     if (!(id in state)) {
       throw new Error(`routeLoader$ "${loaderQrl.getSymbol()}" was invoked in a route where it was not declared.

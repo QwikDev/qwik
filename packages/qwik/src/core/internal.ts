@@ -54,3 +54,4 @@ export {
   _waitUntilRendered,
 } from './use/use-core';
 export { scheduleTask as _task } from './use/use-task';
+export { retryOnPromise as _retryOnPromise } from './shared/utils/promises';

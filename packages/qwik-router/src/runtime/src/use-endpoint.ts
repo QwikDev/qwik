@@ -1,5 +1,5 @@
 import type { ClientPageData, RouteActionValue } from './types';
-import { _deserialize, _getDomContainer, isDev } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer, _UNINITIALIZED, isDev } from '@qwik.dev/core/internal';
 import { prefetchSymbols } from './client-navigate';
 import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 import { QACTION_KEY } from './constants';

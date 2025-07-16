@@ -448,7 +448,7 @@ test.describe("actions", () => {
         await expect(result).toHaveText("3");
       }
     });
-    test("issue7732 link/useNavigate should not override loader/middleware redirect", async ({
+    test("issue7732 link/useNavigate with query params should not override loader/middleware redirect with query params", async ({
       page,
     }) => {
       await page.goto("/qwikcity-test/issue7732/a/");

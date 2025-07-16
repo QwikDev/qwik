@@ -1448,6 +1448,374 @@ export type QwikBundleGraph = Array<string | number>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
+## qwikEsbuild
+
+Creates a Qwik esbuild plugin that transforms Qwik components and optimizes the build.
+
+This plugin supports both real files (on disk) and virtual files (provided by bundlers like mdx-bundler). For virtual files that don't exist on the filesystem, the plugin will return undefined to let esbuild handle them through its virtual file system.
+
+```typescript
+export declare function qwikEsbuild(
+  qwikEsbuildOpts?: QwikEsbuildPluginOptions,
+): Plugin;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+qwikEsbuildOpts
+
+</td><td>
+
+[QwikEsbuildPluginOptions](#qwikesbuildpluginoptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+Plugin
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts)
+
+## QwikEsbuildPlugin
+
+```typescript
+export type QwikEsbuildPlugin = Plugin;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts)
+
+## QwikEsbuildPluginOptions
+
+```typescript
+export interface QwikEsbuildPluginOptions
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[assetsDir?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Assets directory
+
+</td></tr>
+<tr><td>
+
+[buildMode?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikBuildMode](#qwikbuildmode)
+
+</td><td>
+
+_(Optional)_ Build `production` or `development`.
+
+Default `development`
+
+</td></tr>
+<tr><td>
+
+[csr?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[debug?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Prints verbose Qwik plugin debug logs.
+
+Default `false`
+
+</td></tr>
+<tr><td>
+
+[entryStrategy?](#)
+
+</td><td>
+
+</td><td>
+
+[EntryStrategy](#entrystrategy)
+
+</td><td>
+
+_(Optional)_ The Qwik entry strategy to use while building for production. During development the type is always `segment`.
+
+Default `{ type: "smart" }`)
+
+</td></tr>
+<tr><td>
+
+[experimental?](#)
+
+</td><td>
+
+</td><td>
+
+(keyof typeof [ExperimentalFeatures](#experimentalfeatures))[]
+
+</td><td>
+
+_(Optional)_ Experimental features. These can come and go in patch releases, and their API is not guaranteed to be stable between releases.
+
+</td></tr>
+<tr><td>
+
+[input?](#)
+
+</td><td>
+
+</td><td>
+
+string[] \| string \| \{ [entry: string]: string; }
+
+</td><td>
+
+_(Optional)_ Input files or entry points
+
+</td></tr>
+<tr><td>
+
+[lint?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Run eslint on the source files for the ssr build or dev server. This can slow down startup on large projects. Defaults to `true`
+
+</td></tr>
+<tr><td>
+
+[manifestInput?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikManifest](#qwikmanifest)
+
+</td><td>
+
+_(Optional)_ The SSR build requires the manifest generated during the client build. The `manifestInput` option can be used to manually provide a manifest.
+
+Default `undefined`
+
+</td></tr>
+<tr><td>
+
+[manifestOutput?](#)
+
+</td><td>
+
+</td><td>
+
+(manifest: [QwikManifest](#qwikmanifest)) =&gt; Promise&lt;void&gt; \| void
+
+</td><td>
+
+_(Optional)_ The client build will create a manifest and this hook is called with the generated build data.
+
+Default `undefined`
+
+</td></tr>
+<tr><td>
+
+[optimizerOptions?](#)
+
+</td><td>
+
+</td><td>
+
+[OptimizerOptions](#optimizeroptions)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[outDir?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Output directory
+
+</td></tr>
+<tr><td>
+
+[rootDir?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The root of the application, which is commonly the same directory as `package.json` and `esbuild.config.js`.
+
+Default `process.cwd()`
+
+</td></tr>
+<tr><td>
+
+[sourcemap?](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_ Enable sourcemaps
+
+</td></tr>
+<tr><td>
+
+[srcDir?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The source directory to find all the Qwik components. Since Qwik does not have a single input, the `srcDir` is used to recursively find Qwik files.
+
+Default `src`
+
+</td></tr>
+<tr><td>
+
+[srcInputs?](#)
+
+</td><td>
+
+</td><td>
+
+[TransformModuleInput](#transformmoduleinput)[] \| null
+
+</td><td>
+
+_(Optional)_ Alternative to `srcDir`, where `srcInputs` is able to provide the files manually. This option is useful for an environment without a file system, such as a webworker.
+
+Default: `null`
+
+</td></tr>
+<tr><td>
+
+[target?](#)
+
+</td><td>
+
+</td><td>
+
+[QwikBuildTarget](#qwikbuildtarget)
+
+</td><td>
+
+_(Optional)_ Target `client` or `ssr`.
+
+Default `client`
+
+</td></tr>
+<tr><td>
+
+[transformedModuleOutput?](#)
+
+</td><td>
+
+</td><td>
+
+((transformedModules: [TransformModule](#transformmodule)[]) =&gt; Promise&lt;void&gt; \| void) \| null
+
+</td><td>
+
+_(Optional)_ Hook that's called after the build and provides all of the transformed modules that were used before bundling.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/esbuild.ts)
+
 ## QwikManifest
 
 The metadata of the build. One of its uses is storing where QRL symbols are located.

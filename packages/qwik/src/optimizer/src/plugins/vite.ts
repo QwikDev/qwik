@@ -639,7 +639,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);
-      const devSsrServer = 'devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true;
+      const devSsrServer =
+        !qwikViteOpts.csr && ('devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true);
       const imageDevTools =
         qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
           ? qwikViteOpts.devTools.imageDevTools
@@ -649,7 +650,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       }
 
-      if (!qwikViteOpts.csr) {
+      if (devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -661,11 +662,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             sys,
             path,
             isClientDevOnly,
-            clientDevInput,
-            devSsrServer
+            clientDevInput
           );
         };
-        // TODO: Removed the "__qwikCityNew" condition in V3
+        // TODO: Remove the "__qwikCityNew" condition in V3
         const isNEW =
           (globalThis as any).__qwikRouterNew === true ||
           (globalThis as any).__qwikCityNew === true ||

@@ -754,8 +754,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/index.ts",
       "mdFile": "core.symbolmapper.md"
     },
     {
@@ -768,7 +768,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.symbolmapper.md"
     },

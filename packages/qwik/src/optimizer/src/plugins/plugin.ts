@@ -220,69 +220,32 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof updatedOpts.srcDir === 'string') {
       opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));
       srcDir = opts.srcDir;
-      opts.srcInputs = null;
-    } else if (Array.isArray(updatedOpts.srcInputs)) {
-      opts.srcInputs = [...updatedOpts.srcInputs];
-      opts.srcDir = null;
     } else {
       opts.srcDir ||= srcDir;
     }
+    opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
 
     if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
       opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
     }
 
-    if (Array.isArray(opts.srcInputs)) {
-      opts.srcInputs.forEach((i) => {
-        i.path = normalizePath(path.resolve(opts.rootDir, i.path));
-      });
-    } else if (typeof opts.srcDir === 'string') {
-      opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
-    }
-
     if (!updatedOpts.csr) {
-      if (Array.isArray(updatedOpts.input)) {
-        opts.input = [...updatedOpts.input];
-      } else if (typeof updatedOpts.input === 'string') {
-        opts.input = [updatedOpts.input];
-      } else {
+      if (!updatedOpts.input) {
         if (opts.target === 'ssr') {
-          // ssr input default
-          opts.input ||= [path.resolve(srcDir, 'entry.ssr')];
+          // ssr input default - should actually never be used
+          const ssrInput = path.resolve(srcDir, 'entry.ssr');
+          opts.input = [ssrInput];
         } else if (opts.target === 'client') {
           // client input default
-          opts.input ||= [path.resolve(srcDir, 'root')];
+          const clientInput = path.resolve(srcDir, 'root');
+          opts.input = [clientInput];
         } else if (opts.target === 'lib') {
-          if (typeof updatedOpts.input === 'object') {
-            for (const key in updatedOpts.input) {
-              const resolvedPaths: { [key: string]: string } = {};
-              if (Object.hasOwnProperty.call(updatedOpts.input, key)) {
-                const relativePath = updatedOpts.input[key];
-                const absolutePath = path.resolve(opts.rootDir, relativePath);
-                resolvedPaths[key] = absolutePath;
-              }
-
-              opts.input = { ...opts.input, ...resolvedPaths };
-            }
-          } else {
-            // lib input default
-            opts.input ||= [path.resolve(srcDir, 'index.ts')];
-          }
+          // lib input default
+          const libInput = path.resolve(srcDir, 'index.ts');
+          opts.input = [libInput];
         } else {
-          opts.input ||= [];
+          opts.input = undefined!;
         }
-      }
-      if (Array.isArray(opts.input)) {
-        opts.input = opts.input.reduce((inputs, i) => {
-          let input = i;
-          if (!i.startsWith('@') && !i.startsWith('~') && !i.startsWith('#')) {
-            input = normalizePath(path.resolve(opts.rootDir, i));
-          }
-          if (!inputs.includes(input)) {
-            inputs.push(input);
-          }
-          return inputs;
-        }, [] as string[]);
       }
 
       if (typeof updatedOpts.outDir === 'string') {
@@ -393,20 +356,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       } catch {
         // Nothing
       }
-    }
-
-    const path = getPath();
-
-    if (Array.isArray(opts.srcInputs)) {
-      optimizer.sys.getInputFiles = async (rootDir) =>
-        opts.srcInputs!.map((i) => {
-          const relInput: TransformModuleInput = {
-            path: normalizePath(path.relative(rootDir, i.path)),
-            code: i.code,
-          };
-          return relInput;
-        });
-      debug(`buildStart() opts.srcInputs (${opts.srcInputs.length} files)`);
     }
 
     debug(`transformedOutputs.clear()`);
@@ -1177,6 +1126,7 @@ export interface QwikPluginOptions {
   assetsDir?: string;
   srcDir?: string | null;
   scope?: string | null;
+  /** @deprecated Not used */
   srcInputs?: TransformModuleInput[] | null;
   sourcemap?: boolean;
   resolveQwikBuild?: boolean;

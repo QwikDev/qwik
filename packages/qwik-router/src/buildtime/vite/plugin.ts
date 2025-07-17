@@ -151,6 +151,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     configureServer(server) {
+      // this callback is run after the vite middlewares are registered
       return () => {
         if (!ctx) {
           throw new Error('configureServer: Missing ctx from configResolved');

@@ -1,6 +1,6 @@
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import { requestHandler, RequestEvShareQData } from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import type { QwikSerializer } from '../middleware/request-handler/types';
@@ -178,7 +178,7 @@ async function workerRender(
 
             try {
               if (writeQDataEnabled) {
-                const qData: ClientPageData = requestEv.sharedMap.get('qData');
+                const qData: ClientPageData = requestEv.sharedMap.get(RequestEvShareQData);
                 if (qData && !is404ErrorPage) {
                   // write q-data.json file when enabled and qData is set
                   const qDataFilePath = sys.getDataFilePath(url.pathname);

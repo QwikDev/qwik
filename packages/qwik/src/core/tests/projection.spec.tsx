@@ -89,7 +89,9 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">parent-contentrender-content</q:template>
+        <q:template hidden aria-hidden="true">
+          parent-contentrender-content
+        </q:template>
       );
     }
   });
@@ -1589,7 +1591,7 @@ describe.each([
       const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );
@@ -1679,7 +1681,7 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );
@@ -1689,7 +1691,7 @@ describe.each([
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none"></q:template>
+          <q:template key={undefined} hidden aria-hidden="true"></q:template>
         );
       }
     });
@@ -1737,7 +1739,7 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );

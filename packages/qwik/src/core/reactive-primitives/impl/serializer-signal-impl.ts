@@ -4,7 +4,13 @@ import type { Container } from '../../shared/types';
 import { trackSignal } from '../../use/use-core';
 import { throwIfQRLNotResolved } from '../utils';
 import type { SerializerArg } from '../types';
-import { EffectProperty, NEEDS_COMPUTATION, SignalFlags, type ComputeQRL } from '../types';
+import {
+  ComputedSignalFlags,
+  EffectProperty,
+  NEEDS_COMPUTATION,
+  SignalFlags,
+  type ComputeQRL,
+} from '../types';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
 const DEBUG = false;
@@ -19,7 +25,11 @@ const log = (...args: any[]) => console.log('SERIALIZER SIGNAL', ...args.map(qwi
  */
 export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
   constructor(container: Container | null, argQrl: QRLInternal<SerializerArg<T, S>>) {
-    super(container, argQrl as unknown as ComputeQRL<T>);
+    super(
+      container,
+      argQrl as unknown as ComputeQRL<T>,
+      SignalFlags.INVALID | ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
+    );
   }
   $didInitialize$: boolean = false;
 
@@ -39,7 +49,7 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     const untrackedValue = trackSignal(
       () =>
         this.$didInitialize$
-          ? update?.(currentValue as T)
+          ? update?.(currentValue as T) || currentValue
           : deserialize(currentValue as Awaited<S>),
       this,
       EffectProperty.VNODE,

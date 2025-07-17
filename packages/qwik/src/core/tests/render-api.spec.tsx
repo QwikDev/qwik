@@ -699,7 +699,9 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: true,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader" async>debug</script>');
+        expect(cleanupAttrs(result.html)).toContain(
+          '<script id="qwikloader" async type="module">debug</script>'
+        );
       });
 
       it('should emit qwik loader without debug mode', async () => {
@@ -707,7 +709,9 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: false,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader" async>min</script>');
+        expect(cleanupAttrs(result.html)).toContain(
+          '<script id="qwikloader" async type="module">min</script>'
+        );
       });
     });
     describe('snapshotResult', () => {

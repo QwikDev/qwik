@@ -1,5 +1,12 @@
 import { isDev } from '@qwik.dev/core/build';
-import { HTML_NS, MATH_NS, Q_PROPS_SEPARATOR, SVG_NS } from '../shared/utils/markers';
+import {
+  HTML_NS,
+  MATH_NS,
+  Q_PROPS_SEPARATOR,
+  SVG_NS,
+  XLINK_NS,
+  XML_NS,
+} from '../shared/utils/markers';
 import { getDomContainerFromQContainerElement } from './dom-container';
 import {
   ElementVNodeProps,
@@ -292,4 +299,23 @@ export function getNewElementNamespaceData(
 interface NewElementNamespaceData {
   elementNamespace: string;
   elementNamespaceFlag: number;
+}
+
+export function getAttributeNamespace(attributeName: string): string | null {
+  switch (attributeName) {
+    case 'xlink:href':
+    case 'xlink:actuate':
+    case 'xlink:arcrole':
+    case 'xlink:role':
+    case 'xlink:show':
+    case 'xlink:title':
+    case 'xlink:type':
+      return XLINK_NS;
+    case 'xml:base':
+    case 'xml:lang':
+    case 'xml:space':
+      return XML_NS;
+    default:
+      return null;
+  }
 }

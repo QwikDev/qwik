@@ -82,6 +82,7 @@ async function buildVite(config: BuildConfig) {
     'typescript',
     'vite-imagetools',
     'svgo',
+    '@qwik.dev/core',
   ];
 
   const swRegisterPath = join(config.srcQwikRouterDir, 'runtime', 'src', 'sw-register.ts');
@@ -102,7 +103,6 @@ async function buildVite(config: BuildConfig) {
     format: 'esm',
     external,
     alias: {
-      '@qwik.dev/core': 'noop',
       '@qwik.dev/core/optimizer': 'noop',
     },
     plugins: [serviceWorkerRegisterBuild(swRegisterCode)],

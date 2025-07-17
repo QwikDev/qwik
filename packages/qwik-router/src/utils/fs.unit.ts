@@ -265,6 +265,7 @@ test('createFileId, Menu', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
     assert.equal(pathname, t.expect, t.dirPath);
@@ -366,6 +367,7 @@ test('parseRouteIndexName', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
     const pathname = getMenuPathname(opts, t.filePath);
     assert.equal(pathname, t.expect);

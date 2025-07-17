@@ -10,7 +10,8 @@ import type {
   RouteStateInternal,
 } from './types';
 
-export const RouteStateContext = /*#__PURE__*/ createContextId<Record<string, any>>('qc-s');
+export const RouteStateContext =
+  /*#__PURE__*/ createContextId<Record<string, Signal<unknown>>>('qc-s');
 
 export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qc-c');
 export const ContentInternalContext =

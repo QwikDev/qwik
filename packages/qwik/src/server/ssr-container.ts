@@ -835,7 +835,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           debug: this.renderOptions.debug,
         });
         // async allows executing while the DOM is being handled
-        const scriptAttrs = ['id', 'qwikloader', 'async', true];
+        const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
         const nonce = this.renderOptions.serverData?.nonce;
         if (nonce) {
           scriptAttrs.push('nonce', nonce);
@@ -868,7 +868,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {
-        this.openElement(QTemplate, ['style', 'display:none'], null);
+        this.openElement(QTemplate, ['hidden', true, 'aria-hidden', 'true'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
         let ssrComponentFrame: ISsrComponentFrame | null = null;

@@ -1,7 +1,6 @@
-import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
-import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
+import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
 import { type AsyncComputedReadonlySignal } from '../reactive-primitives/signal.public';
-import type { AsyncComputedCtx } from '../reactive-primitives/types';
+import type { AsyncComputedCtx, ComputedOptions } from '../reactive-primitives/types';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { useComputedCommon } from './use-computed';
@@ -14,9 +13,10 @@ export type AsyncComputedReturnType<T> =
 
 /** @internal */
 export const useAsyncComputedQrl = <T>(
-  qrl: QRL<AsyncComputedFn<T>>
+  qrl: QRL<AsyncComputedFn<T>>,
+  options?: ComputedOptions
 ): AsyncComputedReturnType<T> => {
-  return useComputedCommon(qrl, AsyncComputedSignalImpl as typeof ComputedSignalImpl);
+  return useComputedCommon(qrl, createAsyncComputedSignal, options);
 };
 
 /**

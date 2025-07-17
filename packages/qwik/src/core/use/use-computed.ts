@@ -3,28 +3,37 @@ import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { throwIfQRLNotResolved } from '../reactive-primitives/utils';
-import type { ReadonlySignal, Signal } from '../reactive-primitives/signal.public';
+import type { ComputedSignal, Signal } from '../reactive-primitives/signal.public';
 import { useSequentialScope } from './use-sequential-scope';
+import { createComputedSignal } from '../reactive-primitives/signal-api';
+import type { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import type { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
+import type { ComputedOptions } from '../reactive-primitives/types';
 
 /** @public */
 export type ComputedFn<T> = () => T;
 /** @public */
-export type ComputedReturnType<T> = T extends Promise<any> ? never : ReadonlySignal<T>;
+export type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;
 
 export const useComputedCommon = <
   T,
+  S,
   FUNC extends Function = ComputedFn<T>,
   RETURN = ComputedReturnType<T>,
 >(
   qrl: QRL<FUNC>,
-  Class: typeof ComputedSignalImpl
+  createFn: (
+    qrl: QRL<any>,
+    options?: ComputedOptions
+  ) => ComputedSignalImpl<T> | AsyncComputedSignalImpl<T> | SerializerSignalImpl<T, S>,
+  options?: ComputedOptions
 ): RETURN => {
   const { val, set } = useSequentialScope<Signal<T>>();
   if (val) {
     return val as any;
   }
   assertQrl(qrl);
-  const signal = new Class(null, qrl);
+  const signal = createFn(qrl, options);
   set(signal);
 
   // Note that we first save the signal
@@ -35,8 +44,11 @@ export const useComputedCommon = <
 };
 
 /** @internal */
-export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): ComputedReturnType<T> => {
-  return useComputedCommon(qrl, ComputedSignalImpl);
+export const useComputedQrl = <T>(
+  qrl: QRL<ComputedFn<T>>,
+  options?: ComputedOptions
+): ComputedReturnType<T> => {
+  return useComputedCommon(qrl, createComputedSignal, options);
 };
 
 /**

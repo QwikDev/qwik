@@ -47,7 +47,11 @@ pub fn convert_inlined_fn(
 		return (None, is_const);
 	}
 
-	if !is_used_as_object(&expr, &scoped_idents) {
+	let (used_as_object, used_as_call) = is_used_as_object_or_call(&expr, &scoped_idents);
+	if used_as_call {
+		return (None, false);
+	}
+	if !used_as_object {
 		return (None, is_const);
 	}
 
@@ -211,6 +215,7 @@ pub fn render_expr(expr: &ast::Expr) -> String {
 struct ObjectUsageChecker<'a> {
 	identifiers: &'a Vec<Id>,
 	used_as_object: bool,
+	used_as_call: bool,
 }
 
 impl<'a> ObjectUsageChecker<'a> {
@@ -252,6 +257,12 @@ impl<'a> ObjectUsageChecker<'a> {
 }
 
 impl<'a> Visit for ObjectUsageChecker<'a> {
+	fn visit_call_expr(&mut self, _: &ast::CallExpr) {
+		// If we're in a call expression, we can't wrap it in a signal
+		// because it's a function call, and later we need to serialize it
+		self.used_as_call = true;
+	}
+
 	fn visit_member_expr(&mut self, node: &ast::MemberExpr) {
 		if self.used_as_object {
 			return;
@@ -266,13 +277,14 @@ impl<'a> Visit for ObjectUsageChecker<'a> {
 	}
 }
 
-fn is_used_as_object(expr: &ast::Expr, identifiers: &Vec<Id>) -> bool {
+fn is_used_as_object_or_call(expr: &ast::Expr, identifiers: &Vec<Id>) -> (bool, bool) {
 	let mut checker = ObjectUsageChecker {
 		identifiers,
 		used_as_object: false,
+		used_as_call: false,
 	};
 
 	expr.visit_with(&mut checker);
 
-	checker.used_as_object
+	(checker.used_as_object, checker.used_as_call)
 }

@@ -4400,6 +4400,35 @@ fn should_wrap_logical_expression_in_template() {
 	});
 }
 
+#[test]
+fn should_not_wrap_ternary_function_operator_with_fn() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+
+		export default component$(() => {
+		const toggle = useSignal(true);
+		const t = (key: string) => key;
+		return (
+			<button
+				type="button"
+				title={
+				toggle.value !== ''
+					? t('app.message.exists@@there is a message for you')
+					: t('app.message.not_exists@@click to get a message!')
+				}
+			></button>
+		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

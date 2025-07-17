@@ -145,6 +145,49 @@ describe.each([
     );
   });
 
+  it('should recalculate value without update function', async () => {
+    const Counter = component$(() => {
+      const count = useSerializer$({
+        deserialize: (data: number) => new WithSerialize(data),
+      });
+      return (
+        <button
+          onClick$={() => {
+            count.value.inc();
+            count.invalidate();
+          }}
+        >
+          {count.value.count}
+        </button>
+      );
+    });
+
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'0'}</Signal>
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'1'}</Signal>
+        </button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'2'}</Signal>
+        </button>
+      </>
+    );
+  });
+
   it('should not crash when used many times', async () => {
     // We don't have the Signal type here
     const MyComponent = component$(({ foo }: { foo: { value: number } }) => {

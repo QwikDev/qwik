@@ -1,6 +1,8 @@
+import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
+  getRequestLoaderSerializationStrategyMap,
   getRequestRoute,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -30,13 +32,16 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
     reconstructedUrl.protocol = protocol;
   }
 
+  const loaders = getRequestLoaders(requestEv);
+  const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
+
   return {
     url: reconstructedUrl.href,
     requestHeaders,
     locale: locale(),
     nonce,
     containerAttributes: {
-      'q:route': routeName,
+      [Q_ROUTE]: routeName,
     },
     qwikrouter: {
       routeName,
@@ -45,7 +50,8 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
-        loaders: getRequestLoaders(requestEv),
+        loaders,
+        loadersSerializationStrategy,
         action,
         formData,
       },

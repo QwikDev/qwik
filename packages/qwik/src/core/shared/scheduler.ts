@@ -120,7 +120,7 @@ import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-doc
 import type { Container, HostElement } from './types';
 import { logWarn } from './utils/log';
 import { QScopedStyle } from './utils/markers';
-import { isPromise, retryOnPromise, safeCall } from './utils/promises';
+import { isPromise, maybeThen, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import type { ValueOrPromise } from './utils/types';
@@ -130,6 +130,7 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import type { StoreHandler } from '../reactive-primitives/impl/store';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isQrl } from './qrl/qrl-utils';
+import { invoke, newInvokeContext } from '../use/use-core';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -486,21 +487,25 @@ export const createScheduler = (
 
             const effects = chore.$payload$ as Set<EffectSubscription>;
 
+            const ctx = newInvokeContext();
+            ctx.$container$ = container;
             if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
               const forceRunEffects = target.$forceRunEffects$;
               target.$forceRunEffects$ = false;
-              if (!target.$effects$?.size) {
+              if (!effects?.size && !forceRunEffects) {
                 break;
               }
-              returnValue = retryOnPromise(() => {
-                if (target.$computeIfNeeded$() || forceRunEffects) {
-                  triggerEffects(container, target, effects);
+              // needed for computed signals and throwing QRLs
+              returnValue = maybeThen(
+                retryOnPromise(() => invoke.call(target, ctx, target.$computeIfNeeded$)),
+                (didChange) => {
+                  if (didChange || forceRunEffects) {
+                    return retryOnPromise(() => triggerEffects(container, target, effects));
+                  }
                 }
-              });
+              );
             } else {
-              returnValue = retryOnPromise(() => {
-                triggerEffects(container, target, effects);
-              });
+              returnValue = retryOnPromise(() => triggerEffects(container, target, effects));
             }
           }
           break;

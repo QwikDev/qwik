@@ -27,7 +27,6 @@ test('defaults', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('defaults (buildMode: production)', async () => {
@@ -45,7 +44,6 @@ test('defaults (buildMode: production)', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
   assert.deepEqual(opts.entryStrategy, { type: 'smart' });
 });
 
@@ -64,7 +62,6 @@ test('defaults (target: ssr)', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('defaults (buildMode: production, target: ssr)', async () => {
@@ -82,7 +79,6 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('debug true', async () => {
@@ -124,7 +120,6 @@ test('entryStrategy, segment and srcInputs', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({
     entryStrategy: { type: 'segment' },
-    srcInputs: [],
   });
   assert.deepEqual(opts.entryStrategy.type, 'segment');
 });

@@ -1,10 +1,40 @@
-import type { SerializeDocumentOptions } from './types';
 import { setPlatform } from '@qwik.dev/core';
-import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import type { CorePlatformServer } from './qwik-types';
+import { isDev } from '@qwik.dev/core/build';
+import type { ResolvedManifest, SymbolMapperFn } from '@qwik.dev/core/optimizer';
 import { SYNC_QRL } from './qwik-copy';
+import type { CorePlatformServer, SymbolMapper } from './qwik-types';
+import type { SerializeDocumentOptions } from './types';
 
 declare const require: (module: string) => Record<string, any>;
+
+/**
+ * In dev mode, we create predicatable QRL segment filenames so we can recover the parent path in
+ * the vite plugin, because we don't have a manifest
+ */
+const getDevSegmentPath = (
+  mapper: SymbolMapper | undefined,
+  symbolName: string,
+  parent?: string
+): ReturnType<SymbolMapperFn> => {
+  if (mapper) {
+    return mapper[symbolName];
+  }
+  if (symbolName === SYNC_QRL) {
+    return [symbolName, ''];
+  }
+  if (!parent) {
+    // Core symbols
+    if (symbolName.startsWith('_')) {
+      return [symbolName, `${import.meta.env.BASE_URL}@qwik-handlers`];
+    }
+    console.error('qwik symbolMapper: unknown qrl requested without parent:', symbolName);
+    return [symbolName, `${import.meta.env.BASE_URL}${symbolName}.js`];
+  }
+  // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
+  // It is always absolute but when on Windows that's without a /
+  const qrlFile = `${import.meta.env.BASE_URL}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+  return [symbolName, qrlFile];
+};
 
 export function createPlatform(
   opts: SerializeDocumentOptions,
@@ -14,9 +44,9 @@ export function createPlatform(
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
     : (symbolName: string, _chunk: any, parent?: string): readonly [string, string] | undefined => {
-        if (mapper) {
+        if (mapper || isDev) {
           const hash = getSymbolHash(symbolName);
-          const result = mapper[hash];
+          const result = !isDev ? mapper![hash] : getDevSegmentPath(mapper, symbolName, parent);
           if (!result) {
             if (hash === SYNC_QRL) {
               return [hash, ''] as const;
@@ -24,10 +54,6 @@ export function createPlatform(
             const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
             if (isRegistered) {
               return [symbolName, '_'] as const;
-            }
-            if (parent) {
-              // In dev mode, SSR may need to refer to a symbol that wasn't built yet on the client
-              return [symbolName, `${parent}?qrl=${symbolName}`] as const;
             }
             console.error('Cannot resolve symbol', symbolName, 'in', mapper, parent);
           }

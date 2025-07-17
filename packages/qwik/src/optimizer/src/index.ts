@@ -52,4 +52,5 @@ export type { BundleGraphAdder } from './plugins/bundle-graph';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
-export { symbolMapper } from './plugins/vite-dev-server';
+/** @alpha @deprecated No longer needed, it is automatic now */
+export const symbolMapper = undefined;

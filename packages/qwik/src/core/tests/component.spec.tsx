@@ -2331,6 +2331,40 @@ describe.each([
     (globalThis as any).logs = undefined;
   });
 
+  it('should early materialize element with ref property', async () => {
+    const Cmp = component$(() => {
+      const element = useSignal<HTMLDivElement>();
+      const listToForceReRender = useSignal([]);
+
+      useVisibleTask$(() => {
+        element.value!.innerHTML = 'I am the innerHTML content!';
+      });
+
+      return (
+        <div>
+          <div ref={element} />
+          <button
+            onClick$={() => {
+              listToForceReRender.value = [];
+            }}
+          >
+            Render
+          </button>
+          {listToForceReRender.value.map(() => (
+            <div />
+          ))}
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    await trigger(document.body, 'button', 'click');
+    expect(document.body.innerHTML).toContain('I am the innerHTML content!');
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

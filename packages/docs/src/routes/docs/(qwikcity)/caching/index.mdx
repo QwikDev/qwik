@@ -47,6 +47,10 @@ export default component$(() => {
 
 With the above setup, you will not only have better performance (pages are always served instantly from cache), but you can also have significantly decreased hosting costs, as our server or edge functions only need to run at most once every 5 seconds per page.
 
+## `cacheControl`
+
+Any method that takes a [request event](https://qwik.dev/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response:
+
 ```tsx title="src/routes/layout.tsx"
 import type { RequestHandler } from "@builder.io/qwik-city";
 
@@ -79,9 +83,7 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 
 You can see the full [API reference](https://qwik.dev/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
 
-## `cacheControl` Order
-
-Any method that takes a [request event](https://qwik.dev/docs/advanced/request-handling/#request-event) can call `request.cacheControl` to set the cache control headers for the response.
+### `cacheControl` Order
 
 Qwik City executes request handlers in a specific order. This is important because if multiple handlers set the cache control policy, **the last one to execute wins**.
 

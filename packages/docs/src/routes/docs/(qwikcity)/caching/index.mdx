@@ -83,6 +83,20 @@ export const onGet: RequestHandler = async ({ cacheControl }) => {
 
 You can see the full [API reference](https://qwik.dev/api/qwik-city-middleware-request-handler/) of options you can pass to `request.cacheControl`.
 
+### `cacheControl` Order
+
+Qwik City executes request handlers in a specific order. This is important because if multiple handlers set the cache control policy, **the last one to execute wins**.
+
+The execution order is as follows:
+
+1.  **Middleware (`src/middleware/index.ts`)**
+2.  **Layouts (from the root layout downwards)**
+3.  **Page endpoints (`src/routes/..../index.tsx`)**
+
+This means that the cache control set in a page's `onGet` handler will override any cache control set in a layout or middleware. For example, you can set a default cache policy in a root layout, and then override it in a specific page.
+
+When using `redirect()`, there is a special case for caching. See [redirects and caching](/docs/(qwikcity)/guides/redirects/#caching) for more information.
+
 ## When not to cache
 
 Caching is generally beneficial, but not right for every page all the time. If your site has URLs that will show different content to different people — for example, pages exclusive to logged-in users or pages that show content based on a user's location — you should avoid using cache-control headers to cache these pages. Instead, render the content of these pages on the server side on a per-visitor basis.

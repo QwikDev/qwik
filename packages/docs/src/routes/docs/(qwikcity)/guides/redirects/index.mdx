@@ -53,6 +53,23 @@ If you do not provide a status code, Qwik City will default to a `302` Found sta
 
 Read more about redirect status codes [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages).
 
+## Caching
+
+When you issue a redirect using the `redirect()` method from the `RequestEvent`, Qwik City applies a default cache control policy if one hasn't been explicitly set. This includes `Cache-Control` headers set in a higher-level layout or middleware. For more details on the order of execution, see the [caching documentation](/docs/caching/).
+
+If the redirect's status code is greater than `301` (e.g., `302`, `307`), and you haven't called `cacheControl()` for that request, the `Cache-Control` header will automatically be set to `'no-store'`. This prevents the redirect from being cached by the browser or intermediate caches.
+
+```typescript
+export const onGet: RequestHandler = ({ redirect, cacheControl }) => {
+  // This will result in a `Cache-Control: no-store` header except if cacheControl was called in a middleware or layout above.
+  throw redirect(302, '/new-location');
+
+  // To override the default, set it explicitly
+  cacheControl('day');
+  throw redirect(302, '/new-location');
+};
+```
+
 ## Managing multiple redirects
 
 In some cases, you may need to manage multiple redirects based on different conditions. For example, you might want to redirect users from old URLs to new URLs after a site restructure. Additionally, you may want editors in a CMS to manage these redirects as well. Here's one of the ways you can handle multiple redirects in Qwik:

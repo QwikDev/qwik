@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.6
+
+### Patch Changes
+
+- 🐞🩹 getting invoke context for loaders in production (by [@Varixo](https://github.com/Varixo) in [#7730](https://github.com/QwikDev/qwik/pull/7730))
+
 ## 2.0.0-beta.5
 
 ### Patch Changes

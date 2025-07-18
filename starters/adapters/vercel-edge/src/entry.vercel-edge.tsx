@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/vercel-edge/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformVercel,
@@ -18,4 +17,4 @@ declare global {
   interface QwikRouterPlatform extends PlatformVercel {}
 }
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });

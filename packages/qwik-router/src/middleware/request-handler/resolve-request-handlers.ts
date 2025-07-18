@@ -27,7 +27,6 @@ import {
   getRequestLoaderSerializationStrategyMap,
   getRequestLoaders,
   getRequestMode,
-  getRequestTrailingSlash,
   type RequestEventInternal,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
@@ -397,13 +396,12 @@ async function pureServerFunction(ev: RequestEvent) {
 }
 
 function fixTrailingSlash(ev: RequestEvent) {
-  const trailingSlash = getRequestTrailingSlash(ev);
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
   const isQData = sharedMap.has(IsQData);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
-    if (trailingSlash) {
+    if (!globalThis.__NO_TRAILING_SLASH__) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
@@ -442,12 +440,12 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
 
-export function getPathname(url: URL, trailingSlash: boolean | undefined) {
+export function getPathname(url: URL) {
   url = new URL(url);
   if (url.pathname.endsWith(QDATA_JSON)) {
     url.pathname = url.pathname.slice(0, -QDATA_JSON.length);
   }
-  if (trailingSlash) {
+  if (!globalThis.__NO_TRAILING_SLASH__) {
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
@@ -500,7 +498,6 @@ export function renderQwikMiddleware(render: Render) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
-    const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
     const pipe = readable.pipeTo(writableStream, { preventClose: true });
@@ -522,7 +519,7 @@ export function renderQwikMiddleware(render: Render) {
         loaders: getRequestLoaders(requestEv),
         action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
       };
       if (typeof (result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -587,7 +584,6 @@ export async function renderQData(requestEv: RequestEvent) {
 
   const status = requestEv.status();
   const redirectLocation = requestEv.headers.get('Location');
-  const trailingSlash = getRequestTrailingSlash(requestEv);
 
   const requestHeaders: Record<string, string> = {};
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
@@ -612,13 +608,13 @@ export async function renderQData(requestEv: RequestEvent) {
         // send minimal data to the client
         loaders,
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
       }
     : {
         loaders,
         action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
         redirect: redirectLocation ?? undefined,
         isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
       };

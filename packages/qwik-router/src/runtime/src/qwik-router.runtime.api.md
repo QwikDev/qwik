@@ -386,7 +386,7 @@ export interface QwikRouterProps {
     viewTransition?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export const QwikRouterProvider: Component<QwikRouterProps>;
 
 export { RequestEvent }
@@ -526,6 +526,9 @@ export const usePreventNavigate$: (qrl: PreventNavigateCallback) => void;
 //
 // @internal
 export const usePreventNavigateQrl: (fn: QRL<PreventNavigateCallback>) => void;
+
+// @public
+export const useQwikRouter: (props?: QwikRouterProps) => void;
 
 // Warning: (ae-forgotten-export) The symbol "ValibotConstructor" needs to be exported by the entry point index.d.ts
 //

@@ -1,7 +1,6 @@
 import { component$ } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
-import { QwikRouterProvider, RouterOutlet, z } from '@qwik.dev/router';
-import { RouterHead } from './components/router-head/router-head';
+import { RouterOutlet, useDocumentHead, useLocation, useQwikRouter, z } from '@qwik.dev/router';
 import './global.css';
 
 export const InsightsError = /* @__PURE__ */ z.object({
@@ -35,17 +34,38 @@ export const InsightsPayload = /* @__PURE__ */ z.object({
 });
 
 export default component$(() => {
+  useQwikRouter();
+  const head = useDocumentHead();
+  const loc = useLocation();
+
   return (
-    <QwikRouterProvider>
+    <>
       <head>
         <meta charset="utf-8" />
         <link rel="manifest" href="/manifest.json" />
-        <RouterHead />
+        <title>{head.title}</title>
+
+        <link rel="canonical" href={loc.url.href} />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        {head.meta.map((m) => (
+          <meta key={m.key} {...m} />
+        ))}
+
+        {head.links.map((l) => (
+          <link key={l.key} {...l} />
+        ))}
+
+        {head.styles.map((s) => (
+          <style key={s.key} {...(s.props as any)} dangerouslySetInnerHTML={s.style} />
+        ))}
+
         <Insights />
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });

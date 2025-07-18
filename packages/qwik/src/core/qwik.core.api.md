@@ -427,8 +427,18 @@ export interface ISsrComponentFrame {
     scopedStyleIds: Set<string>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _isStore: (value: StoreTarget) => boolean;
+
 // @internal (undocumented)
 export function _isStringifiable(value: unknown): value is _Stringifiable;
+
+// Warning: (ae-forgotten-export) The symbol "Task" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _isTask: (value: any) => value is Task;
 
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //

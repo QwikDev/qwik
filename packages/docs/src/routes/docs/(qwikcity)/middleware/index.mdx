@@ -460,6 +460,8 @@ export const onGet: RequestHandler = async ({ status, getWritableStream }) => {
 
 Redirect to a new URL. Notice the importance of throwing to prevent other middleware functions from running. The `redirect()` method will automatically set the `Location` header to the redirect URL.
 
+> **Note**: When using `redirect()`, Qwik City applies a default `Cache-Control` header of `no-store` for redirects with a status code greater than 301. You can learn more about this behavior in the [redirects guide](/docs/guides/redirects/#caching).
+
 <CodeSandbox src="/src/routes/demo/qwikcity/middleware/redirect/index.tsx">
 ```tsx
 import { type RequestHandler } from '@builder.io/qwik-city';

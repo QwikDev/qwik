@@ -4,8 +4,14 @@ import type { StreamWriter } from '../../server/types';
 import { VNodeDataFlag } from '../../server/types';
 import type { VNodeData } from '../../server/vnode-data';
 import { type DomContainer } from '../client/dom-container';
-import type { VNode } from '../client/types';
-import { vnode_getNode, vnode_isVNode, vnode_locate, vnode_toString } from '../client/vnode';
+import type { ElementVNode, VNode } from '../client/types';
+import {
+  ensureMaterialized,
+  vnode_getNode,
+  vnode_isVNode,
+  vnode_locate,
+  vnode_toString,
+} from '../client/vnode';
 import { isSerializerObj } from '../reactive-primitives/utils';
 import type { AsyncComputeQRL, SerializerArg } from '../reactive-primitives/types';
 import {
@@ -579,6 +585,32 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.RefVNode:
       const vNode = retrieveVNodeOrDocument(container, value);
       if (vnode_isVNode(vNode)) {
+        /**
+         * If we have a ref, we need to ensure the element is materialized.
+         *
+         * Example:
+         *
+         * ```
+         * const Cmp = component$(() => {
+         *       const element = useSignal<HTMLDivElement>();
+         *
+         *       useVisibleTask$(() => {
+         *         element.value!.innerHTML = 'I am the innerHTML content!';
+         *       });
+         *
+         *       return (
+         *          <div ref={element} />
+         *       );
+         * });
+         * ```
+         *
+         * If we don't materialize early element with ref property, and change element innerHTML it
+         * will be applied to a vnode tree during the lazy materialization, and it is wrong.
+         *
+         * Next if we rerender component it will remove applied innerHTML, because the system thinks
+         * it is a part of the vnode tree.
+         */
+        ensureMaterialized(vNode as ElementVNode);
         return vnode_getNode(vNode);
       } else {
         throw qError(QError.serializeErrorExpectedVNode, [typeof vNode]);

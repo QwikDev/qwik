@@ -23,7 +23,9 @@ interface RedirectContext {
 export const loadClientLoaderData = async (url: URL, loaderId: string, manifestHash: string) => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
   const abortController = new AbortController();
-  return fetchLoader(loaderId, pagePathname, manifestHash, abortController, { promise: undefined });
+  return fetchLoader(loaderId, pagePathname, manifestHash, true, abortController, {
+    promise: undefined,
+  });
 };
 
 export const loadClientData = async (
@@ -67,49 +69,55 @@ export const loadClientData = async (
         throw e;
       }
     }
+  }
+  let loaderData: LoaderDataResponse[] = [];
+  if (opts && opts.loaderIds) {
+    loaderData = opts.loaderIds.map((loaderId) => {
+      return {
+        id: loaderId,
+        route: pagePathname,
+      };
+    });
+  } else if (opts?.redirectData?.data) {
+    loaderData = opts.redirectData.data;
   } else {
-    let loaderData: LoaderDataResponse[] = [];
-    if (opts && opts.loaderIds) {
-      loaderData = opts.loaderIds.map((loaderId) => {
-        return {
-          id: loaderId,
-          route: pagePathname,
+    // we need to load all the loaders
+    // first we need to get the loader urls
+    loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
+  }
+  if (loaderData.length > 0) {
+    // load specific loaders
+    const abortController = new AbortController();
+    const redirectContext: RedirectContext = { promise: undefined };
+    try {
+      const loaderPromises = loaderData.map((loader) =>
+        fetchLoader(
+          loader.id,
+          loader.route,
+          manifestHash,
+          !opts?.action,
+          abortController,
+          redirectContext
+        )
+      );
+      const loaderResults = await Promise.all(loaderPromises);
+      for (let i = 0; i < loaderData.length; i++) {
+        loaders[loaderData[i].id] = loaderResults[i];
+      }
+    } catch (e) {
+      if (e instanceof ShouldRedirect) {
+        const newUrl = new URL(e.location, url);
+        const newOpts = {
+          ...opts,
+          action: undefined,
+          loaderIds: undefined,
+          redirectData: e,
         };
-      });
-    } else if (opts?.redirectData?.data) {
-      loaderData = opts.redirectData.data;
-    } else {
-      // we need to load all the loaders
-      // first we need to get the loader urls
-      loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
-    }
-    if (loaderData.length > 0) {
-      // load specific loaders
-      const abortController = new AbortController();
-      const redirectContext: RedirectContext = { promise: undefined };
-      try {
-        const loaderPromises = loaderData.map((loader) =>
-          fetchLoader(loader.id, loader.route, manifestHash, abortController, redirectContext)
-        );
-        const loaderResults = await Promise.all(loaderPromises);
-        for (let i = 0; i < loaderData.length; i++) {
-          loaders[loaderData[i].id] = loaderResults[i];
-        }
-      } catch (e) {
-        if (e instanceof ShouldRedirect) {
-          const newUrl = new URL(e.location, url);
-          const newOpts = {
-            ...opts,
-            action: undefined,
-            loaderIds: undefined,
-            redirectData: e,
-          };
-          return loadClientData(newUrl, manifestHash, newOpts);
-        } else if (e instanceof Error && e.name === 'AbortError') {
-          // Expected, do nothing
-        } else {
-          throw e;
-        }
+        return loadClientData(newUrl, manifestHash, newOpts);
+      } else if (e instanceof Error && e.name === 'AbortError') {
+        // Expected, do nothing
+      } else {
+        throw e;
       }
     }
   }
@@ -125,6 +133,7 @@ export const loadClientData = async (
         return;
       }
     }
+    // TODO: why we need it?
     if ((rsp.headers.get('content-type') || '').includes('json')) {
       // we are safe we are reading a q-data.json
       return rsp.text().then((text) => {
@@ -181,6 +190,7 @@ export async function fetchLoader(
   loaderId: string,
   routePath: string,
   manifestHash: string,
+  useCache: boolean,
   abortController: AbortController,
   redirectContext: RedirectContext
 ): Promise<unknown> {
@@ -188,6 +198,7 @@ export async function fetchLoader(
 
   const response = await fetch(url, {
     signal: abortController.signal,
+    cache: useCache ? 'default' : 'no-cache',
   });
 
   if (response.redirected) {

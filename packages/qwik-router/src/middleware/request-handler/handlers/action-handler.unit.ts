@@ -129,7 +129,7 @@ describe('actionHandler', () => {
 
   describe('when not a QAction request', () => {
     it('should return early without processing', async () => {
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -147,7 +147,7 @@ describe('actionHandler', () => {
       };
       mockEvent.sharedMap.set(IsQAction, true);
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockEvent);
 
@@ -164,7 +164,7 @@ describe('actionHandler', () => {
       };
       mockEvent.sharedMap.set(IsQAction, true);
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockEvent);
 
@@ -182,7 +182,7 @@ describe('actionHandler', () => {
       mockEvent.sharedMap.set(IsQAction, true);
       mockEvent.sharedMap.set(QActionId, mockActionId);
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockEvent);
 
@@ -201,7 +201,7 @@ describe('actionHandler', () => {
       mockEvent.sharedMap.set(IsQAction, true);
       mockEvent.sharedMap.set(QActionId, mockActionId);
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockEvent);
 
@@ -215,7 +215,7 @@ describe('actionHandler', () => {
       mockRequestEvent.sharedMap.set(IsQAction, true);
       mockRequestEvent.sharedMap.set(QActionId, 'non-existent-action');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -244,7 +244,7 @@ describe('actionHandler', () => {
 
       (mockQwikSerializer._serialize as Mock).mockResolvedValue(data);
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -266,7 +266,7 @@ describe('actionHandler', () => {
     });
 
     it('should execute action and return serialized data', async () => {
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -292,7 +292,7 @@ describe('actionHandler', () => {
     it('should measure execution time in dev mode', async () => {
       vi.mocked(getRequestMode).mockReturnValue('dev');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -307,7 +307,7 @@ describe('actionHandler', () => {
     it('should not measure execution time in production mode', async () => {
       vi.mocked(getRequestMode).mockReturnValue('server');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -318,7 +318,7 @@ describe('actionHandler', () => {
     it('should not return serialized data when client does not accept JSON', async () => {
       mockRequestEvent.request.headers.set('accept', 'text/html');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -351,7 +351,7 @@ describe('actionHandler', () => {
     });
 
     it('should call fail method and store the result', async () => {
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -369,7 +369,7 @@ describe('actionHandler', () => {
         error: 'Validation failed',
       });
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -389,7 +389,7 @@ describe('actionHandler', () => {
     });
 
     it('should throw an error', async () => {
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await expect(handler(mockRequestEvent)).rejects.toThrow(
         `Expected request data for the action id ${mockActionId} to be an object`
@@ -402,7 +402,7 @@ describe('actionHandler', () => {
         parseBody: vi.fn().mockResolvedValue(null),
       };
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await expect(handler(mockEvent)).rejects.toThrow(
         `Expected request data for the action id ${mockActionId} to be an object`
@@ -427,7 +427,7 @@ describe('actionHandler', () => {
     });
 
     it('should propagate the error', async () => {
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await expect(handler(mockRequestEvent)).rejects.toThrow('Action execution failed');
     });
@@ -438,7 +438,7 @@ describe('actionHandler', () => {
       mockRequestEvent.sharedMap.set(IsQAction, true);
       mockRequestEvent.sharedMap.set(QActionId, mockActionId);
 
-      const handler = actionHandler([]);
+      const handler = actionHandler([], []);
 
       await handler(mockRequestEvent);
 
@@ -450,7 +450,7 @@ describe('actionHandler', () => {
       mockRequestEvent.sharedMap.set(IsQAction, true);
       mockRequestEvent.sharedMap.set(QActionId, 'non-existent-action');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockRequestEvent);
 
@@ -472,7 +472,7 @@ describe('actionHandler', () => {
       (mockAction.__qrl.call as Mock).mockResolvedValue({ result: 'success' });
       (mockQwikSerializer._serialize as Mock).mockResolvedValue('serialized-data');
 
-      const handler = actionHandler([mockAction]);
+      const handler = actionHandler([mockAction], []);
 
       await handler(mockEvent);
 

@@ -42,6 +42,7 @@ import {
   QManifestHash,
 } from './user-response';
 import { executeLoader } from './handlers/loader-handler';
+import { executeAction } from './handlers/action-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvActions = Symbol('RequestEvActions');
@@ -248,9 +249,15 @@ export function createRequestEvent(
           const isDev = getRequestMode(requestEv) === 'dev';
           await executeLoader(loaderOrAction, loaders, requestEv, isDev, qwikSerializer);
         }
+        return loaders[id];
+      } else if (loaderOrAction.__brand === 'server_action' && id in actions) {
+        if (actions[id] === _UNINITIALIZED) {
+          const isDev = getRequestMode(requestEv) === 'dev';
+          await executeAction(loaderOrAction, actions, requestEv, isDev, qwikSerializer);
+        }
+        return actions[id];
       }
-
-      return loaders[id];
+      return undefined;
     }) as ResolveValue,
 
     status: (statusCode?: number) => {

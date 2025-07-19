@@ -163,7 +163,7 @@ describe('loaderHandler', () => {
 
   describe('when not a QLoader request', () => {
     it('should return early without processing', async () => {
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -181,7 +181,7 @@ describe('loaderHandler', () => {
       };
       mockEvent.sharedMap.set(IsQLoader, true);
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockEvent);
 
@@ -198,7 +198,7 @@ describe('loaderHandler', () => {
       };
       mockEvent.sharedMap.set(IsQLoader, true);
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockEvent);
 
@@ -212,7 +212,7 @@ describe('loaderHandler', () => {
       mockRequestEvent.sharedMap.set(IsQLoader, true);
       mockRequestEvent.sharedMap.set(QLoaderId, 'non-existent-loader');
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -233,7 +233,7 @@ describe('loaderHandler', () => {
     });
 
     it('should execute loader and return serialized data', async () => {
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -253,7 +253,7 @@ describe('loaderHandler', () => {
     });
 
     it('should set cache headers for loaders', async () => {
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -262,7 +262,7 @@ describe('loaderHandler', () => {
 
     it('should measure execution time in dev mode', async () => {
       vi.mocked(getRequestMode).mockReturnValue('dev');
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -277,7 +277,7 @@ describe('loaderHandler', () => {
     it('should not measure execution time in production mode', async () => {
       vi.mocked(getRequestMode).mockReturnValue('server');
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -308,7 +308,7 @@ describe('loaderHandler', () => {
         error: 'Validation failed',
       });
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -321,7 +321,7 @@ describe('loaderHandler', () => {
         error: 'Validation failed',
       });
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 
@@ -343,7 +343,7 @@ describe('loaderHandler', () => {
     });
 
     it('should propagate the error', async () => {
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
       await expect(handler(mockRequestEvent)).rejects.toThrow('Loader execution failed');
     });
   });
@@ -360,7 +360,7 @@ describe('loaderHandler', () => {
       mockRequestEvent.sharedMap.set(IsQLoader, true);
       mockRequestEvent.sharedMap.set(QLoaderId, mockLoaderId);
 
-      const handler = loaderHandler([]);
+      const handler = loaderHandler([], []);
 
       await handler(mockRequestEvent);
 
@@ -374,7 +374,7 @@ describe('loaderHandler', () => {
       vi.mocked(mockLoader.__qrl.call).mockResolvedValue({ result: 'success' });
       vi.mocked(mockQwikSerializer._serialize).mockResolvedValue('serialized-data');
 
-      const handler = loaderHandler([mockLoader]);
+      const handler = loaderHandler([mockLoader], []);
 
       await handler(mockRequestEvent);
 

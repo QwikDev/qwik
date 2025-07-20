@@ -76,7 +76,7 @@ export enum ExperimentalFeatures {
   enableRequestRewrite = 'enableRequestRewrite',
   /** Enable worker$ */
   webWorker = 'webWorker',
-  /** Enable the ability to use the Qwik Insights vite plugin and <Insights/> component */
+  /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
 }
 

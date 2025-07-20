@@ -3,7 +3,7 @@
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import { emitEvent, type QRLInternal } from '../shared/qrl/qrl-class';
+import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
@@ -112,6 +112,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public document: QDocument;
   public $journal$: VNodeJournal;
   public renderDone: Promise<void> | null = null;
+  public resolveRenderDone: (() => void) | null = null;
   public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
@@ -122,7 +123,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
-  private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
     super(() => vnode_applyJournal(this.$journal$), {}, element.getAttribute(QLocaleAttr)!);
@@ -270,22 +270,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         break;
     }
     return vnode_getProp(vNode, name, getObjectById);
-  }
-
-  // TODO: call this in _wait
-  scheduleRender() {
-    if (!this.renderDone) {
-      const chore = this.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
-      this.renderDone = chore.$returnValue$!.finally(() => {
-        this.$renderCount$++;
-        this.renderDone = null;
-        emitEvent('qrender', {
-          instanceHash: this.$instanceHash$,
-          renderCount: this.$renderCount$,
-        });
-      });
-    }
-    return this.renderDone;
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {

@@ -20,8 +20,8 @@ import {
   _getContextContainer,
   _getContextElement,
   _getQContainerElement,
-  _UNINITIALIZED,
   _waitUntilRendered,
+  _UNINITIALIZED,
   SerializerSymbol,
   type _ElementVNode,
   type AsyncComputedReadonlySignal,
@@ -71,7 +71,7 @@ import type {
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
-import { startViewTransition } from './view-transition';
+// import { startViewTransition } from './view-transition';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -723,18 +723,18 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           };
 
           const _waitNextPage = () => {
-            if (isServer || props?.viewTransition === false) {
-              return navigate();
-            } else {
-              const viewTransition = startViewTransition({
-                update: navigate,
-                types: ['qwik-navigation'],
-              });
-              if (!viewTransition) {
-                return Promise.resolve();
-              }
-              return viewTransition.ready;
-            }
+            // if (isServer || props?.viewTransition === false) {
+            return navigate();
+            // } else {
+            //   const viewTransition = startViewTransition({
+            //     update: navigate,
+            //     types: ['qwik-navigation'],
+            //   });
+            //   if (!viewTransition) {
+            //     return Promise.resolve();
+            //   }
+            //   return viewTransition.ready;
+            // }
           };
           _waitNextPage().then(() => {
             const container = _getQContainerElement(elm as _ElementVNode)!;

@@ -6,7 +6,9 @@ import {
   sync$,
   useContext,
   useServerData,
+  useVisibleTask$,
 } from '@qwik.dev/core';
+import { _getContextElement, _getDomContainer } from '@qwik.dev/core/internal';
 
 import { ContentInternalContext } from './contexts';
 import type { ClientSPAWindow } from './qwik-router-component';
@@ -20,13 +22,22 @@ export const RouterOutlet = component$(() => {
     throw new Error('PrefetchServiceWorker component must be rendered on the server.');
   }
 
-  const { value } = useContext(ContentInternalContext);
-  if (value && value.length > 0) {
-    const contentsLen = value.length;
+  const internalContext = useContext(ContentInternalContext);
+
+  useVisibleTask$(({ track }) => {
+    track(internalContext);
+    const element = _getContextElement();
+    _getDomContainer(element as Element).resolveRenderDone?.();
+  });
+
+  const contents = internalContext.value;
+
+  if (contents && contents.length > 0) {
+    const contentsLen = contents.length;
     let cmp: JSXNode | null = null;
     for (let i = contentsLen - 1; i >= 0; i--) {
-      if (value[i].default) {
-        cmp = jsx(value[i].default as any, {
+      if (contents[i].default) {
+        cmp = jsx(contents[i].default as any, {
           children: cmp,
         });
       }

@@ -70,12 +70,12 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
   const handleClick = clientNavPath
-    ? $(async (event: Event, elm: HTMLAnchorElement) => {
+    ? $((event: Event, elm: HTMLAnchorElement) => {
         if (event.defaultPrevented) {
           // If default was prevented, than it is up to us to make client side navigation.
           if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
-            await nav(elm.href, { forceReload: reload, replaceState, scroll });
+            nav(elm.href, { forceReload: reload, replaceState, scroll });
             elm.removeAttribute('aria-pressed');
           }
         }

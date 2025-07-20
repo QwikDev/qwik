@@ -7,6 +7,7 @@ contributors:
   - mhevery
   - mrhoodz
   - hamatoyogi
+  - FHachez
 updated_at: '2023-06-25T19:43:33Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -60,10 +61,16 @@ When you issue a redirect using the `redirect()` method from the `RequestEvent`,
 If the redirect's status code is greater than `301` (e.g., `302`, `307`), and you haven't called `cacheControl()` for that request, the `Cache-Control` header will automatically be set to `'no-store'`. This prevents the redirect from being cached by the browser or intermediate caches.
 
 ```typescript
-export const onGet: RequestHandler = ({ redirect, cacheControl }) => {
-  // This will result in a `Cache-Control: no-store` header except if cacheControl was called in a middleware or layout above.
+export const onGet: RequestHandler = ({ redirect }) => {
+  // This will result in a `Cache-Control: no-store` header
   throw redirect(302, '/new-location');
+};
+```
 
+To override this default behavior and explicitly set a cache control policy for a redirect, you can call `cacheControl()` before throwing the redirect.
+
+```typescript
+export const onGet: RequestHandler = ({ redirect, cacheControl }) => {
   // To override the default, set it explicitly
   cacheControl('day');
   throw redirect(302, '/new-location');

@@ -239,6 +239,9 @@ export {
         ...plugins,
         optimizer.qwikVite({
           experimental: ["preventNavigate", "enableRequestRewrite"],
+          ssr: {
+            manifestInput: clientManifest,
+          },
         }),
       ],
       define: {

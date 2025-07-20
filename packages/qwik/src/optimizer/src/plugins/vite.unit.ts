@@ -307,7 +307,8 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, undefined);
+  assert.isFunction(outputOptions.chunkFileNames);
+  assert.deepEqual((outputOptions.chunkFileNames as any)({ name: 'hello' }), 'build/hello.js');
   assert.deepEqual(outputOptions.entryFileNames, undefined);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
@@ -365,7 +366,7 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
-  const opts = await plugin.api?.getOptions();
+  const opts = plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
 
@@ -451,10 +452,11 @@ test('command: build, --mode lib', async () => {
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, false);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
+  assert.deepEqual(rollupOptions.input, undefined);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, undefined);
+  assert.isFunction(outputOptions.chunkFileNames);
+  assert.deepEqual((outputOptions.chunkFileNames as any)({ name: 'hello' }), 'build/hello.js');
 
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
@@ -506,14 +508,15 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, false);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'index.ts'))]);
+  assert.deepEqual(rollupOptions.input, undefined);
 
   assert.ok(Array.isArray(outputOptions));
   assert.lengthOf(outputOptions, 4);
 
   outputOptions.forEach((outputOptionsObj) => {
     assert.deepEqual(outputOptionsObj.assetFileNames, 'assets/[hash]-[name].[ext]');
-    assert.deepEqual(outputOptionsObj.chunkFileNames, undefined);
+    assert.isFunction(outputOptionsObj.chunkFileNames);
+    assert.deepEqual((outputOptionsObj.chunkFileNames as any)({ name: 'hello' }), 'build/hello.js');
   });
 
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));

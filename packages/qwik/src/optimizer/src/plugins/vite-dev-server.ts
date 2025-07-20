@@ -83,6 +83,14 @@ export async function configureDevServer(
         }
 
         const firstInput = opts.input && Object.values(opts.input)[0];
+        if (!firstInput) {
+          console.error(`no entry found for dev server`);
+          res.statusCode ||= 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.writeHead(res.statusCode);
+          res.end('No entry found for dev server');
+          return;
+        }
         const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;

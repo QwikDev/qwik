@@ -60,6 +60,8 @@ export interface ClientContainer extends Container {
     // (undocumented)
     renderDone: Promise<void> | null;
     // (undocumented)
+    resolveRenderDone: (() => void) | null;
+    // (undocumented)
     rootVNode: _ElementVNode;
 }
 
@@ -260,9 +262,9 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
-    rootVNode: _ElementVNode;
+    resolveRenderDone: (() => void) | null;
     // (undocumented)
-    scheduleRender(): Promise<void>;
+    rootVNode: _ElementVNode;
     // (undocumented)
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)

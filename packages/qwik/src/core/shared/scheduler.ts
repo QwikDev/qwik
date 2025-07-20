@@ -854,10 +854,10 @@ function debugChoreToString(chore: Chore): string {
 
 function debugTrace(action: string, arg?: any | null, queue?: Chore[]) {
   const lines = ['===========================\nScheduler: ' + action];
-  if (arg && !('$type$' in arg)) {
-    lines.push('      arg: ' + String(arg).replaceAll(/\n.*/gim, ''));
-  } else if (arg && !queue?.length) {
+  if (arg && '$type$' in arg) {
     lines.push('      arg: ' + debugChoreToString(arg));
+  } else {
+    lines.push('      arg: ' + String(arg).replaceAll(/\n.*/gim, ''));
   }
   if (queue) {
     queue.forEach((chore) => {

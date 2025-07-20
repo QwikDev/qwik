@@ -24,6 +24,17 @@ export const isFunction = <T extends (...args: any) => any>(v: unknown): v is T 
   return typeof v === 'function';
 };
 
+export const isPrimitive = (v: unknown): v is string | number | boolean | null | undefined => {
+  return (
+    v === null ||
+    v === undefined ||
+    typeof v === 'string' ||
+    typeof v === 'number' ||
+    typeof v === 'boolean' ||
+    typeof v === 'symbol'
+  );
+};
+
 /**
  * Type representing a value which is either resolve or a promise.
  *

@@ -367,6 +367,44 @@ describe.each([
     });
   });
 
+  it('should add q:visible event if only script tag is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return <script />;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+
+    expect((globalThis as any).counter).toBe(1);
+
+    (globalThis as any).counter = undefined;
+  });
+
+  it('should add script tag for visible task if only primitive child is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return 123;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script[hidden]', ':document:qinit');
+    }
+
+    expect((globalThis as any).counter).toBe(1);
+
+    (globalThis as any).counter = undefined;
+  });
+
   describe(render.name + ': queue', () => {
     it('should execute dependant visible tasks', async () => {
       (globalThis as any).log = [] as string[];

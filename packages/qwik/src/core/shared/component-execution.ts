@@ -24,9 +24,10 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import type { ValueOrPromise } from './utils/types';
+import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
+import { EventNameJSXScope } from './utils/event-names';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -170,7 +171,10 @@ function addUseOnEvents(
             if (jsxElement) {
               addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
             }
-          } else if (key.startsWith('document:') || key.startsWith('window:')) {
+          } else if (
+            key.startsWith(EventNameJSXScope.document) ||
+            key.startsWith(EventNameJSXScope.window)
+          ) {
             const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(jsxResult);
             jsxResult = jsx;
             if (jsxElement) {
@@ -186,7 +190,11 @@ function addUseOnEvents(
             );
           }
         } else if (jsxElement) {
-          addUseOnEvent(jsxElement, key, useOnEvents[key]);
+          if (jsxElement.type === 'script' && key === 'onQvisible$') {
+            addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
+          } else {
+            addUseOnEvent(jsxElement, key, useOnEvents[key]);
+          }
         }
       }
     }
@@ -222,7 +230,7 @@ function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<stri
         return jsx as JSXNodeInternal<string>;
       }
       queue.push(jsx.children);
-    } else if (Array.isArray(jsx)) {
+    } else if (isArray(jsx)) {
       queue.push(...jsx);
     } else if (isPromise(jsx)) {
       return maybeThen<JSXOutput, JSXNodeInternal<string> | null>(jsx, (jsx) =>
@@ -239,33 +247,40 @@ function addScriptNodeForInvisibleComponents(
   jsx: JSXOutput
 ): [JSXNodeInternal<string> | null, JSXOutput | null] {
   if (isJSXNode(jsx)) {
-    const jsxElement = new JSXNodeImpl(
-      'script',
-      {},
-      {
-        type: 'placeholder',
-        hidden: '',
-      },
-      null,
-      3
-    );
+    const jsxElement = createScriptNode();
     if (jsx.type === Slot) {
       return [jsxElement, _jsxSorted(Fragment, null, null, [jsx, jsxElement], 0, null)];
     }
 
     if (jsx.children == null) {
       jsx.children = jsxElement;
-    } else if (Array.isArray(jsx.children)) {
+    } else if (isArray(jsx.children)) {
       jsx.children.push(jsxElement);
     } else {
       jsx.children = [jsx.children, jsxElement];
     }
     return [jsxElement, jsx];
-  } else if (Array.isArray(jsx) && jsx.length) {
+  } else if (isArray(jsx) && jsx.length) {
     // get first element
     const [jsxElement, _] = addScriptNodeForInvisibleComponents(jsx[0]);
     return [jsxElement, jsx];
+  } else if (isPrimitive(jsx)) {
+    const jsxElement = createScriptNode();
+    return [jsxElement, _jsxSorted(Fragment, null, null, [jsx, jsxElement], 0, null)];
   }
 
-  return [null, null];
+  return [null, jsx];
+}
+
+function createScriptNode(): JSXNodeInternal<string> {
+  return new JSXNodeImpl(
+    'script',
+    {},
+    {
+      type: 'placeholder',
+      hidden: '',
+    },
+    null,
+    3
+  );
 }

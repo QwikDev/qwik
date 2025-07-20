@@ -276,10 +276,16 @@ export const _jsxBranch = <T>(input?: T) => {
 
 /** @internal */
 export const _waitUntilRendered = (elm: Element) => {
-  const containerEl = _getQContainerElement(elm);
-  if (!containerEl) {
+  const container = (_getQContainerElement(elm) as ContainerElement | undefined)?.qContainer;
+  if (!container) {
     return Promise.resolve();
   }
-  const container = (containerEl as ContainerElement).qContainer;
-  return container?.renderDone ?? Promise.resolve();
+
+  if (!container.renderDone) {
+    container.renderDone = new Promise((resolve) => {
+      container.resolveRenderDone = resolve;
+    });
+  }
+
+  return container.renderDone;
 };

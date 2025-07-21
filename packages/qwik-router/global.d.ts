@@ -21,3 +21,6 @@ declare var __EXPERIMENTAL__: {
 };
 
 declare var __DEFAULT_LOADERS_SERIALIZATION_STRATEGY__: SerializationStrategy;
+
+/** Should routes not have a trailing slash? */
+declare var __NO_TRAILING_SLASH__: boolean;

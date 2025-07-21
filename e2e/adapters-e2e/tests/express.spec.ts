@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  page.on('console', (msg) => {
+    // eslint-disable-next-line no-console
+    console.log(`[browser ${msg.type()}] ${msg.text()}`);
+  });
+});
+
 test.describe('Verifying Express Adapter', () => {
   test('should ignore unknown qdata', async ({ page, request }) => {
     page.goto('/');

@@ -147,7 +147,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\nEnable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and <Insights/> component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\nEnable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and `<Insights/>` component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "core.experimentalfeatures.md"
     },
@@ -754,8 +754,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/index.ts",
       "mdFile": "core.symbolmapper.md"
     },
     {
@@ -768,7 +768,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.symbolmapper.md"
     },

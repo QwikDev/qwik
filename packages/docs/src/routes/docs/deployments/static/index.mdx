@@ -15,36 +15,36 @@ Qwik's Static Site adapter helps to generate static html files which can be easi
 
 ## Installation
 
-To integrate the `static-site` adapter, use the `add` command:
+To integrate the `ssg` adapter, use the `add` command:
 
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm run qwik add static
+pnpm run qwik add ssg
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npm run qwik add static
+npm run qwik add ssg
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn run qwik add static
+yarn run qwik add ssg
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bun run qwik add static
+bun run qwik add ssg
 ```
 </span>
 </PackageManagerTabs>
 
-Above command will create a directory at project root named `adapters/static/vite.config.mts` with the below code.
+Above command will create a directory at project root named `adapters/ssg/vite.config.mts` with the below code.
 
-```ts title="adapters/static/vite.config.mts"
-import { staticAdapter } from "@qwik.dev/router/adapters/static/vite";
+```ts title="adapters/ssg/vite.config.mts"
+import { ssgAdapter } from "@qwik.dev/router/adapters/ssg/vite";
 import { extendConfig } from '@qwik.dev/router';
 import baseConfig from '../../vite.config.mts';
 
@@ -57,7 +57,7 @@ export default extendConfig(baseConfig, () => {
       },
     },
     plugins: [
-      staticAdapter({
+      ssgAdapter({
         origin: 'https://yoursite.qwik.dev',
       }),
     ],

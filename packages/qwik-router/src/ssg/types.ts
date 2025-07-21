@@ -8,7 +8,7 @@ export interface System {
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
   ) => void;
   createLogger: () => Promise<Logger>;
-  getOptions: () => StaticGenerateOptions;
+  getOptions: () => SsgOptions;
   ensureDir: (filePath: string) => Promise<void>;
   access: (path: string) => Promise<boolean>;
   createWriteStream: (filePath: string) => StaticStreamWriter;
@@ -27,7 +27,7 @@ export interface StaticStreamWriter extends StreamWriter {
 
 export interface MainContext {
   hasAvailableWorker: () => boolean;
-  render: (staticRoute: StaticRenderInput) => Promise<StaticWorkerRenderResult>;
+  render: (staticRoute: SsgRenderInput) => Promise<SsgWorkerRenderResult>;
   close: () => Promise<void>;
 }
 
@@ -38,7 +38,7 @@ export interface Logger {
 }
 
 /** @public */
-export interface StaticGenerateRenderOptions extends RenderOptions {
+export interface SsgRenderOptions extends RenderOptions {
   /** File system directory where the static files should be written. */
   outDir: string;
   /**
@@ -99,7 +99,7 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
 }
 
 /** @public */
-export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
+export interface SsgOptions extends SsgRenderOptions {
   /**
    * Path to the SSR module exporting the default render function. In most cases it'll be
    * `./src/entry.ssr.tsx`.
@@ -115,19 +115,17 @@ export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
   rootDir?: string;
 }
 
-export interface StaticGenerateHandlerOptions
-  extends StaticGenerateRenderOptions,
-    ServerRenderOptions {}
+export interface SsgHandlerOptions extends SsgRenderOptions, ServerRenderOptions {}
 
-export type WorkerInputMessage = StaticRenderInput | WorkerCloseMessage;
+export type WorkerInputMessage = SsgRenderInput | WorkerCloseMessage;
 
-export type WorkerOutputMessage = StaticWorkerRenderResult | WorkerCloseMessage;
+export type WorkerOutputMessage = SsgWorkerRenderResult | WorkerCloseMessage;
 
-export interface StaticRenderInput extends StaticRoute {
+export interface SsgRenderInput extends SsgRoute {
   type: 'render';
 }
 
-export interface StaticRoute {
+export interface SsgRoute {
   pathname: string;
   params: Record<string, string> | undefined;
 }
@@ -136,7 +134,7 @@ export interface WorkerCloseMessage {
   type: 'close';
 }
 
-export interface StaticWorkerRenderResult {
+export interface SsgWorkerRenderResult {
   type: 'render';
   pathname: string;
   url: string;
@@ -148,7 +146,7 @@ export interface StaticWorkerRenderResult {
 }
 
 /** @public */
-export interface StaticGenerateResult {
+export interface SsgResult {
   duration: number;
   rendered: number;
   errors: number;

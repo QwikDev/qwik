@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import type { StaticGenerateOptions, System } from '../types';
+import type { SsgOptions, System } from '../types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { createNodeMainProcess } from './node-main';
@@ -7,7 +7,7 @@ import { createNodeWorkerProcess } from './node-worker';
 import { normalizePath } from '../../utils/fs';
 
 /** @public */
-export async function createSystem(opts: StaticGenerateOptions) {
+export async function createSystem(opts: SsgOptions) {
   const createWriteStream = (filePath: string) => {
     return fs.createWriteStream(filePath, {
       flags: 'w',

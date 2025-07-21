@@ -1,5 +1,5 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -149,7 +149,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               ssgOrigin = `https://yoursite.qwik.dev`;
             }
 
-            const staticGenerate = await import('../../../static');
+            const staticGenerate = await import('../../../ssg');
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
@@ -265,7 +265,7 @@ export interface ServerAdapterOptions {
 }
 
 /** @public */
-export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {
   /** Defines routes that should be static generated. Accepts wildcard behavior. */
   include: string[];
   /**

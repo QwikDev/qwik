@@ -9,7 +9,7 @@ import { getPathnameForDynamicRoute } from '../utils/pathname';
 import { extractParamNames } from './extract-params';
 import { generateNotFoundPages } from './not-found';
 import { createRouteTester } from './routes';
-import type { StaticGenerateOptions, StaticGenerateResult, StaticRoute, System } from './types';
+import type { SsgOptions, SsgResult, SsgRoute, System } from './types';
 
 export async function mainThread(sys: System) {
   const opts = sys.getOptions();
@@ -23,16 +23,16 @@ export async function mainThread(sys: System) {
     await import(pathToFileURL(opts.qwikRouterConfigModulePath).href)
   ).default;
 
-  const queue: StaticRoute[] = [];
+  const queue: SsgRoute[] = [];
   const active = new Set<string>();
   const routes = qwikRouterConfig.routes || [];
   const trailingSlash = !!qwikRouterConfig.trailingSlash;
   const includeRoute = createRouteTester(opts.basePathname || '/', opts.include, opts.exclude);
 
-  return new Promise<StaticGenerateResult>((resolve, reject) => {
+  return new Promise<SsgResult>((resolve, reject) => {
     try {
       const timer = sys.createTimer();
-      const generatorResult: StaticGenerateResult = {
+      const generatorResult: SsgResult = {
         duration: 0,
         rendered: 0,
         errors: 0,
@@ -102,7 +102,7 @@ export async function mainThread(sys: System) {
         }
       };
 
-      const render = async (staticRoute: StaticRoute) => {
+      const render = async (staticRoute: SsgRoute) => {
         try {
           active.add(staticRoute.pathname);
 
@@ -224,7 +224,7 @@ export async function mainThread(sys: System) {
   });
 }
 
-function validateOptions(opts: StaticGenerateOptions) {
+function validateOptions(opts: SsgOptions) {
   if (!opts.qwikRouterConfigModulePath) {
     if (!opts.qwikCityPlanModulePath) {
       throw new Error(`Missing "qwikRouterConfigModulePath" option`);

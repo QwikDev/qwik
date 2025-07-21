@@ -92,9 +92,14 @@
       "require": "./lib/adapters/shared/vite/index.cjs"
     },
     "./adapters/static/vite": {
-      "types": "./lib/adapters/static/vite/index.d.ts",
-      "import": "./lib/adapters/static/vite/index.mjs",
-      "require": "./lib/adapters/static/vite/index.cjs"
+      "types": "./lib/adapters/ssg/vite/index.d.ts",
+      "import": "./lib/adapters/ssg/vite/index.mjs",
+      "require": "./lib/adapters/ssg/vite/index.cjs"
+    },
+    "./adapters/ssg/vite": {
+      "types": "./lib/adapters/ssg/vite/index.d.ts",
+      "import": "./lib/adapters/ssg/vite/index.mjs",
+      "require": "./lib/adapters/ssg/vite/index.cjs"
     },
     "./adapters/vercel-edge/vite": {
       "types": "./lib/adapters/vercel-edge/vite/index.d.ts",
@@ -144,9 +149,14 @@
       "import": "./lib/middleware/vercel-edge/index.mjs"
     },
     "./static": {
-      "types": "./lib/static/index.d.ts",
-      "import": "./lib/static/index.mjs",
-      "require": "./lib/static/index.cjs"
+      "types": "./lib/ssg/index.d.ts",
+      "import": "./lib/ssg/index.mjs",
+      "require": "./lib/ssg/index.cjs"
+    },
+    "./ssg": {
+      "types": "./lib/ssg/index.d.ts",
+      "import": "./lib/ssg/index.mjs",
+      "require": "./lib/ssg/index.cjs"
     },
     "./vite": {
       "types": "./lib/vite/index.d.ts",
@@ -169,6 +179,7 @@
     "README.md",
     "service-worker.d.ts",
     "static.d.ts",
+    "ssg.d.ts",
     "vite.d.ts"
   ],
   "homepage": "https://qwik.dev/",

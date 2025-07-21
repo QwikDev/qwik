@@ -1,8 +1,8 @@
 import type {
   MainContext,
-  StaticGenerateOptions,
-  StaticRoute,
-  StaticWorkerRenderResult,
+  SsgOptions,
+  SsgRoute,
+  SsgWorkerRenderResult,
   WorkerOutputMessage,
   WorkerInputMessage,
   System,
@@ -15,8 +15,8 @@ import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 import { createSingleThreadWorker } from '../worker-thread';
 
-export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
-  const ssgWorkers: StaticGeneratorWorker[] = [];
+export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
+  const ssgWorkers: SsgWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
 
@@ -56,7 +56,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   const createWorker = (workerIndex: number) => {
     if (workerIndex === 0) {
       // same thread worker, don't start a new process
-      const ssgSameThreadWorker: StaticGeneratorWorker = {
+      const ssgSameThreadWorker: SsgWorker = {
         activeTasks: 0,
         totalTasks: 0,
 
@@ -90,7 +90,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
 
-    const ssgWorker: StaticGeneratorWorker = {
+    const ssgWorker: SsgWorker = {
       activeTasks: 0,
       totalTasks: 0,
 
@@ -161,10 +161,10 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     return ssgWorker.activeTasks < maxTasksPerWorker;
   };
 
-  const render = async (staticRoute: StaticRoute) => {
+  const render = async (ssgRoute: SsgRoute) => {
     const ssgWorker = getNextWorker();
 
-    const result = await ssgWorker.render(staticRoute);
+    const result = await ssgWorker.render(ssgRoute);
 
     if (sitemapOutFile && result.ok && result.resourceType === 'page') {
       sitemapBuffer.push(`<url><loc>${result.url}</loc></url>`);
@@ -226,7 +226,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   return mainCtx;
 }
 
-function ssgWorkerCompare(a: StaticGeneratorWorker, b: StaticGeneratorWorker) {
+function ssgWorkerCompare(a: SsgWorker, b: SsgWorker) {
   if (a.activeTasks < b.activeTasks) {
     return -1;
   }
@@ -236,11 +236,11 @@ function ssgWorkerCompare(a: StaticGeneratorWorker, b: StaticGeneratorWorker) {
   return a.totalTasks < b.totalTasks ? -1 : 1;
 }
 
-type WorkerMainTask = (result: StaticWorkerRenderResult) => void;
+type WorkerMainTask = (result: SsgWorkerRenderResult) => void;
 
-interface StaticGeneratorWorker {
+interface SsgWorker {
   activeTasks: number;
   totalTasks: number;
-  render: (staticRoute: StaticRoute) => Promise<StaticWorkerRenderResult>;
+  render: (staticRoute: SsgRoute) => Promise<SsgWorkerRenderResult>;
   terminate: () => Promise<void>;
 }

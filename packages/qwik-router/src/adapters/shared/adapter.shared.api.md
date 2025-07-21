@@ -5,11 +5,11 @@
 ```ts
 
 import type { Plugin as Plugin_2 } from 'vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import type { UserConfig } from 'vite';
 
 // @public (undocumented)
-export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {
     exclude?: string[];
     include: string[];
     origin?: string;

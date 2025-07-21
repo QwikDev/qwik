@@ -316,9 +316,9 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Static assets handling
-    location /build/ {
-        alias /path/to/your/app/dist/build/;
+    # Static assets handling (build and assets directories)
+    location ~ ^/(build|assets)/ {
+        root /path/to/your/app/dist;
         expires 1y;
         add_header Cache-Control "public, max-age=31536000, immutable";
         access_log off;
@@ -368,17 +368,10 @@ server {
         try_files $uri $uri/ /index.html;
     }
     
-    # Cache settings for build assets
-    location /build/ {
+    # Cache settings for static assets (build and assets directories)
+    location ~ ^/(build|assets)/ {
         expires 1y;
         add_header Cache-Control "public, max-age=31536000, immutable";
-        access_log off;
-    }
-    
-    # Cache settings for assets
-    location /assets/ {
-        expires 1y;
-        add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
         access_log off;
         try_files $uri =404;
         gzip_static on;
@@ -435,7 +428,7 @@ For Apache with mod_proxy enabled, use this configuration:
     ProxyPass / http://localhost:3000/
     ProxyPassReverse / http://localhost:3000/
     
-    # Serve static assets directly
+    # Serve static assets directly (build and assets directories)
     <Directory /path/to/your/app/dist/build>
         Options Indexes FollowSymLinks
         AllowOverride All
@@ -448,7 +441,8 @@ For Apache with mod_proxy enabled, use this configuration:
         </IfModule>
     </Directory>
     
-    Alias /build/ /path/to/your/app/dist/build/
+    # Alias for both build and assets directories
+    AliasMatch ^/(build|assets)/(.*)$ /path/to/your/app/dist/$1/$2
     
     # Security headers
     Header always set X-Content-Type-Options "nosniff"
@@ -722,17 +716,7 @@ wait
 
 2. Configure Nginx to serve pre-compressed files:
 ```nginx
-    root /path/to/your/app/dist;
-    expires 1y;
-    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
-    access_log off;
-    # Enable pre-compressed file serving
-    gzip_static on;
-    brotli_static on;
-    try_files $uri =404;
-}
-
-location /assets/ {
+location ~ ^/(build|assets)/ {
     root /path/to/your/app/dist;
     expires 1y;
     add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;

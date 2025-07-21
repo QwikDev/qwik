@@ -10,9 +10,13 @@ import type {
 import { isPromise } from './../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
-import { ServerError } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
-import { RewriteMessage } from './rewrite-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import {
+  AbortMessage,
+  RedirectMessage,
+  ServerError,
+  RewriteMessage,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,

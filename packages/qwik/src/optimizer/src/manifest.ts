@@ -1,5 +1,5 @@
 import type { OutputBundle } from 'rollup';
-import { QWIK_PRELOADER_REAL_ID, type NormalizedQwikPluginOptions } from './plugins/plugin';
+import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
@@ -482,11 +482,14 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
+      // keep these if statements separate so that weird bundling still works
+      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
         manifest.preloader = bundleFileName;
-      } else if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
+      }
+      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
         manifest.core = bundleFileName;
-      } else if (
+      }
+      if (
         modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/.test(m))
       ) {
         manifest.qwikLoader = bundleFileName;

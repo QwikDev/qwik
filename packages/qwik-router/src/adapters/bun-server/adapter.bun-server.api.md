@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 
 // @beta (undocumented)
 export function bunServerAdapter(opts?: bunServerAdapterOptions): any;
@@ -16,7 +16,7 @@ export interface bunServerAdapterOptions extends ServerAdapterOptions {
     name?: string;
 }
 
-export { StaticGenerateRenderOptions }
+export { SsgRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

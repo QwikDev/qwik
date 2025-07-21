@@ -1,10 +1,6 @@
-import type {
-  StaticGenerateOptions,
-  StaticGenerateRenderOptions,
-  StaticGenerateResult,
-} from './types';
+import type { SsgOptions, SsgRenderOptions, SsgResult } from './types';
 
-// @qwik.dev/router/static
+// @qwik.dev/router/ssg
 
 /**
  * Use this function when SSG should be generated from another module, such as a Vite plugin. This
@@ -12,13 +8,17 @@ import type {
  *
  * @public
  */
-export async function generate(opts: StaticGenerateOptions) {
+export async function generate(opts: SsgOptions) {
   const ssgPlatform = await getEntryModule();
-  const result: StaticGenerateResult = await ssgPlatform.generate(opts);
+  const result: SsgResult = await ssgPlatform.generate(opts);
   return result;
 }
 
-export type { StaticGenerateOptions, StaticGenerateRenderOptions, StaticGenerateResult };
+export type {
+  SsgOptions as StaticGenerateOptions,
+  SsgRenderOptions,
+  SsgResult as StaticGenerateResult,
+};
 
 function getEntryModulePath() {
   if (isDeno()) {

@@ -10,18 +10,7 @@ import type { RenderOptions } from '@qwik.dev/core/server';
 export function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;
 
 // @public (undocumented)
-export interface StaticGenerateOptions extends StaticGenerateRenderOptions {
-    basePathname?: string;
-    // @deprecated (undocumented)
-    qwikCityPlanModulePath?: string;
-    qwikRouterConfigModulePath: string;
-    renderModulePath: string;
-    // (undocumented)
-    rootDir?: string;
-}
-
-// @public (undocumented)
-export interface StaticGenerateRenderOptions extends RenderOptions {
+export interface SsgRenderOptions extends RenderOptions {
     emit404Pages?: boolean;
     emitData?: boolean;
     emitHtml?: boolean;
@@ -33,6 +22,17 @@ export interface StaticGenerateRenderOptions extends RenderOptions {
     origin: string;
     outDir: string;
     sitemapOutFile?: string | null;
+}
+
+// @public (undocumented)
+export interface StaticGenerateOptions extends SsgRenderOptions {
+    basePathname?: string;
+    // @deprecated (undocumented)
+    qwikCityPlanModulePath?: string;
+    qwikRouterConfigModulePath: string;
+    renderModulePath: string;
+    // (undocumented)
+    rootDir?: string;
 }
 
 // @public (undocumented)

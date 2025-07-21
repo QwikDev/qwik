@@ -6,10 +6,10 @@ import { pathToFileURL } from 'node:url';
 import type { QwikSerializer } from '../middleware/request-handler/types';
 import type { ClientPageData } from '../runtime/src/types';
 import type {
-  StaticGenerateHandlerOptions,
-  StaticRoute,
+  SsgHandlerOptions,
+  SsgRoute,
   StaticStreamWriter,
-  StaticWorkerRenderResult,
+  SsgWorkerRenderResult,
   System,
 } from './types';
 
@@ -17,7 +17,7 @@ export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
-  const opts: StaticGenerateHandlerOptions = {
+  const opts: SsgHandlerOptions = {
     ...ssgOpts,
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
     qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
@@ -27,7 +27,7 @@ export async function workerThread(sys: System) {
   sys.createWorkerProcess(async (msg) => {
     switch (msg.type) {
       case 'render': {
-        return new Promise<StaticWorkerRenderResult>((resolve) => {
+        return new Promise<SsgWorkerRenderResult>((resolve) => {
           workerRender(sys, opts, msg, pendingPromises, resolve);
         });
       }
@@ -45,15 +45,15 @@ export async function createSingleThreadWorker(sys: System) {
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
-  const opts: StaticGenerateHandlerOptions = {
+  const opts: SsgHandlerOptions = {
     ...ssgOpts,
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
     qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
       .default,
   };
 
-  return (staticRoute: StaticRoute) => {
-    return new Promise<StaticWorkerRenderResult>((resolve) => {
+  return (staticRoute: SsgRoute) => {
+    return new Promise<SsgWorkerRenderResult>((resolve) => {
       workerRender(sys, opts, staticRoute, pendingPromises, resolve);
     });
   };
@@ -61,10 +61,10 @@ export async function createSingleThreadWorker(sys: System) {
 
 async function workerRender(
   sys: System,
-  opts: StaticGenerateHandlerOptions,
-  staticRoute: StaticRoute,
+  opts: SsgHandlerOptions,
+  staticRoute: SsgRoute,
   pendingPromises: Set<Promise<any>>,
-  callback: (result: StaticWorkerRenderResult) => void
+  callback: (result: SsgWorkerRenderResult) => void
 ) {
   const qwikSerializer: QwikSerializer = {
     _deserialize,
@@ -74,7 +74,7 @@ async function workerRender(
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
 
-  const result: StaticWorkerRenderResult = {
+  const result: SsgWorkerRenderResult = {
     type: 'render',
     pathname: staticRoute.pathname,
     url: url.href,

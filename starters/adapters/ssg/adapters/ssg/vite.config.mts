@@ -1,4 +1,4 @@
-import { staticAdapter } from "@qwik.dev/router/adapters/static/vite";
+import { ssgAdapter } from "@qwik.dev/router/adapters/ssg/vite";
 import { extendConfig } from "@qwik.dev/router/vite";
 import baseConfig from "../../vite.config.mts";
 
@@ -11,7 +11,7 @@ export default extendConfig(baseConfig, () => {
       },
     },
     plugins: [
-      staticAdapter({
+      ssgAdapter({
         origin: "https://yoursite.qwik.dev",
       }),
     ],

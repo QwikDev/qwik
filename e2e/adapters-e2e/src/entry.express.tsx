@@ -9,7 +9,6 @@
  */
 import { createQwikRouter } from '@qwik.dev/router/middleware/node';
 import 'dotenv/config';
-import qwikRouterConfig from '@qwik-router-config';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
@@ -25,7 +24,6 @@ const PORT = process.env.PORT ?? 3000;
 // Create the Qwik City Node middleware
 const { router, notFound } = createQwikRouter({
   render,
-  qwikRouterConfig,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

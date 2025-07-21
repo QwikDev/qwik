@@ -30,10 +30,8 @@ export interface ServeHandlerInfo {
 /** @public */
 export function createQwikRouter(opts: QwikRouterDenoOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   const qwikSerializer: QwikSerializer = {
     _deserialize,
@@ -132,7 +130,7 @@ export function createQwikRouter(opts: QwikRouterDenoOptions) {
     let filePath: string;
     if (fileName.includes('.')) {
       filePath = join(staticFolder, pathname);
-    } else if (opts.qwikRouterConfig!.trailingSlash) {
+    } else if (!globalThis.__NO_TRAILING_SLASH__) {
       filePath = join(staticFolder, pathname + 'index.html');
     } else {
       filePath = join(staticFolder, pathname, 'index.html');

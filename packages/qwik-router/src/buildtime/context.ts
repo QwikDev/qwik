@@ -92,10 +92,6 @@ function normalizeOptions(
   const url = new URL(opts.basePathname, 'https://qwik.dev/');
   opts.basePathname = url.pathname;
 
-  if (typeof opts.trailingSlash !== 'boolean') {
-    opts.trailingSlash = true;
-  }
-
   opts.mdx = opts.mdx || {};
   opts.platform = opts.platform || {};
 

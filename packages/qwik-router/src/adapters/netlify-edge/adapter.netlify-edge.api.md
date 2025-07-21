@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 
 // @public (undocumented)
 export function netlifyEdgeAdapter(opts?: NetlifyEdgeAdapterOptions): any;
@@ -17,7 +17,7 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
     staticPaths?: string[];
 }
 
-export { StaticGenerateRenderOptions }
+export { SsgRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

@@ -12,7 +12,7 @@ export default extendConfig(baseConfig, () => {
       minify: false,
       ssr: true,
       rollupOptions: {
-        input: ["./src/entry-firebase.tsx", "@qwik-router-config"],
+        input: ["./src/entry-firebase.tsx"],
       },
       outDir: "./functions/server",
     },

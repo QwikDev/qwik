@@ -48,9 +48,10 @@ export type ServerResponseHandler<T = any> = (
 export interface ServerRenderOptions extends RenderOptions {
   render: Render;
 
-  /** @deprecated Use `QwikRouterConfig` instead. Will be removed in V3 */
+  /** @deprecated Not used */
   qwikCityPlan?: QwikCityPlan;
 
+  /** @deprecated Not used */
   qwikRouterConfig?: QwikRouterConfig;
   /**
    * Protection against cross-site request forgery (CSRF) attacks.

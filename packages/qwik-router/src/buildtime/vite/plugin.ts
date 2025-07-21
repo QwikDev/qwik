@@ -71,6 +71,9 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
   type P<T> = Plugin<T> & { api: T };
 
+  let didEmitStaticPaths = false;
+  let didEmitNotFoundPaths = false;
+
   const plugin: P<QwikRouterPluginApi> = {
     name: 'vite-plugin-qwik-router',
     enforce: 'pre',
@@ -82,6 +85,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(
             userOpts?.defaultLoadersSerializationStrategy || 'never'
           ),
+          'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
         },
         appType: 'custom',
         resolve: {
@@ -147,6 +151,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     configureServer(server) {
+      // this callback is run after the vite middlewares are registered
       return () => {
         if (!ctx) {
           throw new Error('configureServer: Missing ctx from configResolved');
@@ -163,6 +168,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     buildStart() {
+      didEmitStaticPaths = false;
+      didEmitNotFoundPaths = false;
       resetBuildContext(ctx);
     },
 
@@ -182,17 +189,29 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       if (id === QWIK_ROUTER_SW_REGISTER) {
         return join(rootDir!, id);
       }
-      if (id === STATIC_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_STATIC_PATHS_ID,
-          external: true,
-        };
+      if (id.endsWith(STATIC_PATHS_ID)) {
+        const resolvedId = 'virtual:' + RESOLVED_STATIC_PATHS_ID;
+        if (!didEmitStaticPaths) {
+          this.emitFile({
+            type: 'chunk',
+            fileName: RESOLVED_STATIC_PATHS_ID,
+            id,
+          });
+          didEmitStaticPaths = true;
+        }
+        return { id: resolvedId };
       }
-      if (id === NOT_FOUND_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
-          external: true,
-        };
+      if (id.endsWith(NOT_FOUND_PATHS_ID)) {
+        const resolvedId = 'virtual:' + RESOLVED_NOT_FOUND_PATHS_ID;
+        if (!didEmitNotFoundPaths) {
+          this.emitFile({
+            type: 'chunk',
+            fileName: RESOLVED_NOT_FOUND_PATHS_ID,
+            id,
+          });
+          didEmitNotFoundPaths = true;
+        }
+        return { id: resolvedId };
       }
       return null;
     },
@@ -204,12 +223,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           return generateQwikRouterEntries(ctx);
         }
         const isSerializer = id.endsWith(QWIK_SERIALIZER);
-        const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
-        const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
-
         if (isSerializer) {
           return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
+        const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
+        const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
@@ -230,6 +248,15 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             return generateServiceWorkerRegister(ctx, swRegister);
           }
         }
+      }
+      // These files are overwritten in post-build.ts
+      const isStaticPaths = id.endsWith(RESOLVED_STATIC_PATHS_ID);
+      if (isStaticPaths) {
+        return `export const isStaticPath = () => false`;
+      }
+      const isNotFoundPathsId = id.endsWith(RESOLVED_NOT_FOUND_PATHS_ID);
+      if (isNotFoundPathsId) {
+        return `export const getNotFound = () => {}`;
       }
       return null;
     },

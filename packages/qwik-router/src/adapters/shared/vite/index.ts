@@ -1,5 +1,5 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -70,7 +70,22 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         }
       }
     },
-
+    buildStart() {
+      if (isSsrBuild && opts.ssg !== null) {
+        const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
+        // TODO don't rely on entry points for SSG, somehow
+        this.emitFile({
+          id: '@qwik-router-config',
+          type: 'chunk',
+          fileName: '@qwik-router-config.js',
+        });
+        this.emitFile({
+          id: `${srcDir}/entry.ssr`,
+          type: 'chunk',
+          fileName: 'entry.ssr.js',
+        });
+      }
+    },
     generateBundle(_, bundles) {
       if (isSsrBuild) {
         outputEntries.length = 0;
@@ -86,18 +101,6 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               qwikRouterConfigModulePath = join(serverOutDir!, fileName);
             }
           }
-        }
-
-        if (!renderModulePath) {
-          throw new Error(
-            'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
-        }
-
-        if (!qwikRouterConfigModulePath) {
-          throw new Error(
-            'Unable to find "@qwik-router-config" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
         }
       }
     },
@@ -139,14 +142,14 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
             try {
               ssgOrigin = new URL(ssgOrigin).origin;
-            } catch (e) {
+            } catch {
               this.warn(
                 `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
               );
               ssgOrigin = `https://yoursite.qwik.dev`;
             }
 
-            const staticGenerate = await import('../../../static');
+            const staticGenerate = await import('../../../ssg');
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
@@ -262,7 +265,7 @@ export interface ServerAdapterOptions {
 }
 
 /** @public */
-export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {
   /** Defines routes that should be static generated. Accepts wildcard behavior. */
   include: string[];
   /**

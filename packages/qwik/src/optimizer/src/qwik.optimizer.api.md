@@ -406,10 +406,8 @@ export type SourceMapsOption = 'external' | 'inline' | undefined | null;
 // @public (undocumented)
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
 
-// Warning: (ae-forgotten-export) The symbol "createSymbolMapper" needs to be exported by the entry point index.d.ts
-//
-// @beta
-export let symbolMapper: ReturnType<typeof createSymbolMapper>;
+// @alpha @deprecated (undocumented)
+export const symbolMapper: undefined;
 
 // @public (undocumented)
 export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined, parent?: string) => readonly [symbol: string, chunk: string] | undefined;

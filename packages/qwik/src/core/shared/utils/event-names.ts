@@ -78,12 +78,12 @@ export function htmlAttributeToJsxEvent(htmlAttr: string): string | null {
     if (isCaseSensitive && eventName !== DOMContentLoadedEvent) {
       prefix += '-'; // Add hyphen at the start if case-sensitive
     }
-    return eventNameToJsxEvent(eventName, prefix, idx);
+    return eventNameToJsxEvent(eventName, prefix);
   }
   return null; // Return null if not matching expected format
 }
 
-export function eventNameToJsxEvent(eventName: string, prefix: string | null, startIdx = 0) {
+export function eventNameToJsxEvent(eventName: string, prefix: string | null) {
   eventName = eventName.charAt(0).toUpperCase() + eventName.substring(1);
   return prefix + eventName + EVENT_SUFFIX;
 }

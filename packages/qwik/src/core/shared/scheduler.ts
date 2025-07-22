@@ -135,12 +135,13 @@ import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-doc
 import type { Container, HostElement } from './types';
 import { ChoreType } from './util-chore-type';
 import { logWarn } from './utils/log';
-import { ELEMENT_SEQ, QScopedStyle } from './utils/markers';
+import { QScopedStyle } from './utils/markers';
 import { isPromise, maybeThen, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
-import { isNumber, type ValueOrPromise } from './utils/types';
+import { type ValueOrPromise } from './utils/types';
 import { invoke, newInvokeContext } from '../use/use-core';
+import { findBlockingChore } from './scheduler-rules';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -191,10 +192,12 @@ export const getChorePromise = <T extends ChoreType>(chore: Chore<T>) =>
       }))
     : chore.$returnValue$;
 
-export const createScheduler = (container: Container, journalFlush: () => void) => {
-  const choreQueue: Chore[] = [];
-  const blockedChores = new Set<Chore>();
-
+export const createScheduler = (
+  container: Container,
+  journalFlush: () => void,
+  choreQueue: Chore[] = [],
+  blockedChores: Set<Chore> = new Set()
+) => {
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
   let drainScheduled = false;
   let runningChoresCount = 0;
@@ -314,66 +317,10 @@ export const createScheduler = (container: Container, journalFlush: () => void) 
       return chore;
     }
 
-    let blocked = false;
-    // TODO: find chores in blockedChores
-    if (
-      chore.$type$ === ChoreType.RUN_QRL ||
-      chore.$type$ === ChoreType.TASK ||
-      chore.$type$ === ChoreType.VISIBLE
-    ) {
-      const component = chore.$host$;
-      // TODO optimize
-      const qrlChore = choreQueue.find(
-        (c) => c.$type$ === ChoreType.QRL_RESOLVE && c.$host$ === component
-      );
-      if (qrlChore) {
-        qrlChore.$blockedChores$ ||= [];
-        qrlChore.$blockedChores$.push(chore);
-        blocked = true;
-      }
-    }
-
-    if (chore.$type$ === ChoreType.NODE_DIFF || chore.$type$ === ChoreType.NODE_PROP) {
-      // blocked by its component chore
-      const component = chore.$host$;
-      // TODO: better way to find the component chore
-      const componentChore = choreQueue.find(
-        (c) => c.$type$ === ChoreType.COMPONENT && c.$host$ === component
-      );
-      if (componentChore) {
-        componentChore.$blockedChores$ ||= [];
-        componentChore.$blockedChores$.push(chore);
-        blocked = true;
-      }
-    } else if (chore.$type$ === ChoreType.TASK) {
-      // Tasks are blocking other tasks in the same component
-      // They should be executed in the order of declaration
-      if (isNumber(chore.$idx$) && chore.$idx$ > 0) {
-        // For tasks with index > 0, they are probably blocked by a previous task
-        const component = chore.$host$;
-        const elementSeq = container.getHostProp<unknown[] | null>(component, ELEMENT_SEQ);
-        if (elementSeq) {
-          let currentTaskFound = false;
-          for (let i = chore.$idx$; i > 0; i--) {
-            const task = elementSeq[i];
-            if (task && chore.$payload$ === task) {
-              currentTaskFound = true;
-              continue;
-            } else if (currentTaskFound && task instanceof Task && task.$flags$ & TaskFlags.TASK) {
-              // Find the chore for the task
-              const taskChore = choreQueue.find((c) => c.$payload$ === task);
-              if (taskChore) {
-                // Add the chore to the blocked chores of the previous task
-                taskChore.$blockedChores$ ||= [];
-                taskChore.$blockedChores$.push(chore);
-                blocked = true;
-              }
-            }
-          }
-        }
-      }
-    }
-    if (blocked) {
+    const blockingChore = findBlockingChore(chore, choreQueue, blockedChores, container);
+    if (blockingChore) {
+      blockingChore.$blockedChores$ ||= [];
+      blockingChore.$blockedChores$.push(chore);
       blockedChores.add(chore);
       return chore;
     }

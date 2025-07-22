@@ -10,6 +10,18 @@ export default extendConfig(baseConfig, () => {
         input: ["src/entry.cloudflare-pages.tsx"],
       },
     },
-    plugins: [cloudflarePagesAdapter()],
+    plugins: [
+      cloudflarePagesAdapter({
+        // Uncomment the below to enable SSG
+        // NOTE: be sure to edit the public/_routes.json file to include only the routes you want to SSR
+        //
+        // ssg: {
+        //   include: ["/", "/*"],
+        //   exclude: ["/always-ssr/*"],
+        //   origin:
+        //     process.env.CF_PAGES_URL ?? "https://my-app.com",
+        // },
+      }),
+    ],
   };
 });

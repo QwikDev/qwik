@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "include": ["/playground/*", "/tutorial/*", "/demo/*"],
+  "include": ["/*"],
   "exclude": [
     "/assets/*",
     "/build/*",

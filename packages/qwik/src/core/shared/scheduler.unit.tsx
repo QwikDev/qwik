@@ -11,13 +11,13 @@ import {
   vnode_newVirtual,
   vnode_setProp,
 } from '../client/vnode';
-import { TaskFlags, type Task } from '../use/use-task';
+import { Task, TaskFlags } from '../use/use-task';
 import type { Props } from './jsx/jsx-runtime';
 import type { QRLInternal } from './qrl/qrl-class';
-import { createScheduler } from './scheduler';
+import { createScheduler, type Chore } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
-import { QContainerAttr } from './utils/markers';
+import { ELEMENT_SEQ, QContainerAttr } from './utils/markers';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 import { MAX_RETRY_ON_PROMISE_COUNT } from './utils/promises';
 
@@ -41,6 +41,8 @@ describe('scheduler', () => {
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
   let handleError: (err: any, host: HostElement | null) => void;
+  let choreQueue: Chore[];
+  let blockedChores: Set<Chore>;
 
   async function waitForDrain() {
     const chore = scheduler.schedule(ChoreType.WAIT_FOR_QUEUE);
@@ -55,7 +57,14 @@ describe('scheduler', () => {
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
     handleError = container.handleError = vi.fn();
-    scheduler = createScheduler(container, () => testLog.push('journalFlush'));
+    choreQueue = [];
+    blockedChores = new Set();
+    scheduler = createScheduler(
+      container,
+      () => testLog.push('journalFlush'),
+      choreQueue,
+      blockedChores
+    );
     document.body.innerHTML = '<a></a><b></b>';
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
@@ -239,16 +248,33 @@ describe('scheduler', () => {
     expect(testLog).toEqual(['component', 'component', 'vnode-diff', 'journalFlush']);
     (globalThis as any).counter = undefined;
   });
+
+  it('should block tasks in the same component', async () => {
+    const task1 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')), index: 0 });
+    const task2 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')), index: 1 });
+    const task3 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1.2')), index: 2 });
+
+    vnode_setProp(vBHost1, ELEMENT_SEQ, [task1, task2, task3]);
+
+    scheduler.schedule(ChoreType.TASK, task1);
+    scheduler.schedule(ChoreType.TASK, task2);
+    scheduler.schedule(ChoreType.TASK, task3);
+    // schedule only first task
+    expect(choreQueue.length).toBe(1);
+    // block the rest
+    expect(blockedChores.size).toBe(2);
+    await waitForDrain();
+    expect(testLog).toEqual(['b1.0', 'b1.1', 'b1.2', 'journalFlush']);
+  });
 });
 
 function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: boolean }): Task {
-  return {
-    $flags$: opts.visible ? TaskFlags.VISIBLE_TASK : 0,
-    $index$: opts.index || 0,
-    $el$: host as any,
-    $qrl$: opts.qrl || ($(() => null) as any),
-    $state$: null!,
-    $destroy$: null!,
-    [_EFFECT_BACK_REF]: null,
-  } as Task;
+  return new Task(
+    opts.visible ? TaskFlags.VISIBLE_TASK : TaskFlags.TASK,
+    opts.index || 0,
+    host as any,
+    opts.qrl || ($(() => null) as any),
+    null!,
+    null!
+  );
 }

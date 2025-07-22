@@ -4,8 +4,7 @@ import type {
   RequestEvent,
   RequestHandler,
 } from '../../runtime/src/types';
-import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { getErrorHtml } from './error-handler';
 import {
   RequestEvQwikSerializer,
   createRequestEvent,
@@ -14,7 +13,13 @@ import {
 } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
-import { RewriteMessage } from './rewrite-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import {
+  AbortMessage,
+  RedirectMessage,
+  ServerError,
+  RewriteMessage,
+} from '@qwik.dev/router/middleware/request-handler';
 
 export interface QwikRouterRun<T> {
   response: Promise<T | null>;
@@ -114,7 +119,7 @@ async function runNext(
             const stream = requestEv.getWritableStream();
             if (!stream.locked) {
               const writer = stream.getWriter();
-              await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+              await writer.write(encoder.encode(getErrorHtml(500, 'Internal Server Error')));
               await writer.close();
             }
           } catch {

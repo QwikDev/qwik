@@ -201,7 +201,7 @@ export class ServerError<T = any> extends Error {
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
-    checkOrigin?: boolean;
+    checkOrigin?: boolean | 'lax-proto';
     // @deprecated (undocumented)
     qwikCityPlan?: QwikCityPlan;
     // @deprecated (undocumented)

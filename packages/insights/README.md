@@ -1,6 +1,10 @@
 # Qwik Insights
 
+0
+
 ## Local Development
+
+Install turso cli and sqld.
 
 Ensure you have `.env.local` set up like so:
 

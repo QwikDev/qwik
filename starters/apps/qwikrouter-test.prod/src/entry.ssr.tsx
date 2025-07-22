@@ -6,7 +6,7 @@ import Root from "./root";
 
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    base: "/qwikcity-test.prod/build/",
+    base: "/qwikrouter-test.prod/build/",
     ...opts,
   });
 }

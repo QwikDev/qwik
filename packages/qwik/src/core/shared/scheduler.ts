@@ -141,7 +141,7 @@ import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import { type ValueOrPromise } from './utils/types';
 import { invoke, newInvokeContext } from '../use/use-core';
-import { findBlockingChore } from './scheduler-rules';
+import { addBlockedChore, findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -196,11 +196,11 @@ export const createScheduler = (
   container: Container,
   journalFlush: () => void,
   choreQueue: Chore[] = [],
-  blockedChores: Set<Chore> = new Set()
+  blockedChores: Set<Chore> = new Set(),
+  runningChores: Set<Chore> = new Set()
 ) => {
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
   let drainScheduled = false;
-  let runningChoresCount = 0;
   let isDraining = false;
 
   function drainInNextTick() {
@@ -319,9 +319,7 @@ export const createScheduler = (
 
     const blockingChore = findBlockingChore(chore, choreQueue, blockedChores, container);
     if (blockingChore) {
-      blockingChore.$blockedChores$ ||= [];
-      blockingChore.$blockedChores$.push(chore);
-      blockedChores.add(chore);
+      addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
     }
     chore = sortedInsert(
@@ -363,7 +361,7 @@ export const createScheduler = (
       if (choreQueue.length) {
         return drainChoreQueue();
       }
-      if (runningChoresCount || !drainScheduled) {
+      if (!drainScheduled) {
         if (shouldApplyJournalFlush()) {
           // apply journal flush even if we are not finished draining the queue
           applyJournalFlush();
@@ -382,8 +380,18 @@ export const createScheduler = (
     const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
       if (chore.$blockedChores$) {
         for (const blockedChore of chore.$blockedChores$) {
-          blockedChores.delete(blockedChore);
-          sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
+          const blockingChore = findBlockingChore(
+            blockedChore,
+            choreQueue,
+            blockedChores,
+            container
+          );
+          if (blockingChore) {
+            addBlockedChore(blockedChore, blockingChore, blockedChores);
+          } else {
+            blockedChores.delete(blockedChore);
+            sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
+          }
         }
         chore.$blockedChores$ = null;
       }
@@ -410,12 +418,20 @@ export const createScheduler = (
           DEBUG && debugTrace('skip chore', chore, choreQueue);
           continue;
         }
-        // TODO: check if chore is blocked by another chore
+
+        if (chore.$type$ === ChoreType.VISIBLE) {
+          const blockingChore = findBlockingChoreForVisible(chore, runningChores, container);
+          if (blockingChore && blockingChore.$state$ === ChoreState.RUNNING) {
+            addBlockedChore(chore, blockingChore, blockedChores);
+            continue;
+          }
+        }
+
         // Note that this never throws
         const result = executeChore(chore, isServer);
         chore.$returnValue$ = result;
         if (isPromise(result)) {
-          runningChoresCount++;
+          runningChores.add(chore);
           chore.$state$ = ChoreState.RUNNING;
 
           result
@@ -434,11 +450,13 @@ export const createScheduler = (
               handleError(chore, e);
             })
             .finally(() => {
-              runningChoresCount--;
+              runningChores.delete(chore);
               // Note that we ignore failed chores so the app keeps working
               // TODO decide if this is ok and document it
               scheduleBlockedChoresAndDrainIfNeeded(chore);
-              maybeFinishDrain();
+              if (drainChore && !runningChores.size) {
+                maybeFinishDrain();
+              }
             });
         } else {
           DEBUG && debugTrace('execute.DONE', chore, choreQueue);

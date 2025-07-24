@@ -1,5 +1,3 @@
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
@@ -8,6 +6,8 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
+  getNotFound,
+  isStaticPath,
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';

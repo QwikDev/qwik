@@ -19,25 +19,13 @@ export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'or
 export function getParentDir(startDir: string, dirName: string): string;
 
 // @public (undocumented)
-export const NOT_FOUND_PATHS_ID = "@qwik-router-not-found-paths";
-
-// @public (undocumented)
-export const RESOLVED_NOT_FOUND_PATHS_ID = "@qwik-router-not-found-paths.js";
-
-// @public (undocumented)
-export const RESOLVED_STATIC_PATHS_ID = "@qwik-router-static-paths.js";
-
-// @public (undocumented)
 export interface ServerAdapterOptions {
     ssg?: AdapterSSGOptions | null;
 }
 
-// @public (undocumented)
-export const STATIC_PATHS_ID = "@qwik-router-static-paths";
-
 // Warning: (ae-forgotten-export) The symbol "ViteAdapterPluginOptions" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export function viteAdapter(opts: ViteAdapterPluginOptions): Plugin_2<never>;
 
 // (No @packageDocumentation comment for this package)

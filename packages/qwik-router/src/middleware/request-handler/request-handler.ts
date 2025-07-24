@@ -34,6 +34,8 @@ export async function requestHandler<T = unknown>(
 
   const pathname = serverRequestEv.url.pathname;
   const matchPathname = getRouteMatchPathname(pathname);
+  // TODO also match 404 routes with extra notFound boolean result
+  // TODO cache pages
   const routeAndHandlers = await loadRequestHandlers(
     qwikRouterConfig,
     matchPathname,

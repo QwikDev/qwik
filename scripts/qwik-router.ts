@@ -83,6 +83,7 @@ async function buildVite(config: BuildConfig) {
     'vite-imagetools',
     'svgo',
     '@qwik.dev/core',
+    '@qwik.dev/router/middleware/request-handler',
   ];
 
   const swRegisterPath = join(config.srcQwikRouterDir, 'runtime', 'src', 'sw-register.ts');

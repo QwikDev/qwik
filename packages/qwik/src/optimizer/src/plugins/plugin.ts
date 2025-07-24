@@ -802,21 +802,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          if (opts.target === 'client') {
-            if (devServer) {
-              // invalidate the segment so that the client will pick it up
-              const rollupModule = devServer.moduleGraph.getModuleById(key);
-              if (rollupModule) {
-                devServer.moduleGraph.invalidateModule(rollupModule);
-              }
-            } else {
-              // rollup must be told about all entry points
-              ctx.emitFile({
-                id: key,
-                type: 'chunk',
-                preserveSignature: 'allow-extension',
-              });
-            }
+          if (opts.target === 'client' && !devServer) {
+            // rollup must be told about all entry points
+            ctx.emitFile({
+              id: key,
+              type: 'chunk',
+              preserveSignature: 'allow-extension',
+            });
           }
         }
       }

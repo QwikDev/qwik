@@ -128,7 +128,7 @@ const getFetchOptions = (
       method: 'POST',
       body: JSON.stringify(actionData),
       headers: {
-        'Content-Type': 'application/json, charset=UTF-8',
+        'Content-Type': 'application/json; charset=UTF-8',
       },
     };
   }

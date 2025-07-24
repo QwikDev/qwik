@@ -79,7 +79,7 @@ async function loadRequestHandlers(
   qwikRouterConfig: QwikRouterConfig,
   pathname: string,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderFn: Render
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikRouterConfig;

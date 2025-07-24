@@ -1,7 +1,7 @@
 import type { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderOptions } from '@qwik.dev/core/server';
 import type { Action, FailReturn, Loader, QwikCityPlan, QwikRouterConfig } from '@qwik.dev/router';
-import type { ServerError } from './error-handler';
+import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
 import type { RewriteMessage } from './rewrite-handler';
@@ -57,13 +57,13 @@ export interface ServerRenderOptions extends RenderOptions {
    * Protection against cross-site request forgery (CSRF) attacks.
    *
    * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request
-   * origin is checked to match the server's origin.
+   * origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
    *
    * Be careful when disabling this option as it may lead to CSRF attacks.
    *
    * Defaults to `true`.
    */
-  checkOrigin?: boolean;
+  checkOrigin?: boolean | 'lax-proto';
 }
 
 /** @public */

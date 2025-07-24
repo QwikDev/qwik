@@ -121,6 +121,11 @@
       "title": "Vercel",
       "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
+    },
+    {
+      "title": "Azion",
+      "href": "/docs/deployments/azion/",
+      "imgSrc": "/ecosystem/azion.svg"
     }
   ],
   "libraries": [

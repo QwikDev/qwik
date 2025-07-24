@@ -732,6 +732,4 @@ const MIDDLEWARE_EXTERNALS = [
   '@qwik.dev/router',
   '@qwik.dev/router/ssg',
   '@qwik-router-config',
-  '@qwik-router-not-found-paths',
-  '@qwik-router-static-paths',
 ];

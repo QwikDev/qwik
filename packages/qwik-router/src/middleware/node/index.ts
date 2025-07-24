@@ -1,9 +1,11 @@
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  getNotFound,
+  isStaticPath,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Http2ServerRequest } from 'node:http2';

@@ -15,7 +15,25 @@ export type {
   VNode as _VNode,
   VNodeFlags as _VNodeFlags,
 } from './client/types';
-export { vnode_toString as _vnode_toString } from './client/vnode';
+export {
+  vnode_toString as _vnode_toString,
+  vnode_getPropStartIndex as _vnode_getPropStartIndex,
+  vnode_getProps as _vnode_getProps,
+  vnode_isTextVNode as _vnode_isTextVNode,
+  vnode_isVirtualVNode as _vnode_isVirtualVNode,
+  vnode_getFirstChild as _vnode_getFirstChild,
+  vnode_isMaterialized as _vnode_isMaterialized,
+  vnode_getNextSibling as _vnode_getNextSibling,
+  vnode_ensureElementInflated as _vnode_ensureElementInflated,
+  vnode_getAttrKeys as _vnode_getAttrKeys,
+  vnode_getAttr as _vnode_getAttr,
+} from './client/vnode';
+export {
+  mapApp_findIndx as _mapApp_findIndx,
+  mapArray_get as _mapArray_get,
+  mapArray_set as _mapArray_set,
+} from './client/util-mapArray';
+
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export { _EFFECT_BACK_REF } from './reactive-primitives/types';
@@ -52,5 +70,6 @@ export {
   _jsxBranch,
   _waitUntilRendered,
 } from './use/use-core';
-export { scheduleTask as _task } from './use/use-task';
+export { scheduleTask as _task, isTask as _isTask } from './use/use-task';
+export { isStore as _isStore } from './reactive-primitives/impl/store';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';

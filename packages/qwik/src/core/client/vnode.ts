@@ -317,6 +317,7 @@ export const vnode_isElementOrVirtualVNode = (
   return (flag & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0;
 };
 
+/** @internal */
 export const vnode_isMaterialized = (vNode: VNode): boolean => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
@@ -327,12 +328,14 @@ export const vnode_isMaterialized = (vNode: VNode): boolean => {
   );
 };
 
+/** @internal */
 export const vnode_isTextVNode = (vNode: VNode): vNode is TextVNode => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
   return (flag & VNodeFlags.Text) === VNodeFlags.Text;
 };
 
+/** @internal */
 export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
@@ -384,6 +387,7 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
   return '<unknown>';
 };
 
+/** @internal */
 export const vnode_ensureElementInflated = (vnode: VNode) => {
   const flags = vnode[VNodeProps.flags];
   if ((flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
@@ -1233,6 +1237,7 @@ export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text:
   journal.push(VNodeJournalOpCode.SetText, textNode, (textVNode[TextVNodeProps.text] = text));
 };
 
+/** @internal */
 export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   if (vnode_isTextVNode(vnode)) {
     return null;
@@ -1592,6 +1597,7 @@ const processVNodeData = (
   }
 };
 
+/** @internal */
 export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.nextSibling];
 };
@@ -1600,6 +1606,7 @@ export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.previousSibling];
 };
 
+/** @internal */
 export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
@@ -1651,6 +1658,7 @@ export const vnode_setAttr = (
   }
 };
 
+/** @internal */
 export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
@@ -1693,6 +1701,7 @@ export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, v
   }
 };
 
+/** @internal */
 export const vnode_getPropStartIndex = (vnode: VNode): number => {
   const type = vnode[VNodeProps.flags] & VNodeFlags.TYPE_MASK;
   if (type === VNodeFlags.Element) {
@@ -1703,6 +1712,7 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   throw qError(QError.invalidVNodeType, [type]);
 };
 
+/** @internal */
 export const vnode_getProps = (vnode: VNode): unknown[] => {
   return vnode[vnode_getPropStartIndex(vnode)] as unknown[];
 };

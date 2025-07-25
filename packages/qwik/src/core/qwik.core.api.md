@@ -511,6 +511,15 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 // @public
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
+// @internal (undocumented)
+export const _mapApp_findIndx: <T>(array: (T | null)[], key: string, start: number) => number;
+
+// @internal (undocumented)
+export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number) => T | null;
+
+// @internal (undocumented)
+export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number) => void;
+
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
 
@@ -1837,6 +1846,36 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+
+// @internal (undocumented)
+export const _vnode_ensureElementInflated: (vnode: _VNode) => void;
+
+// @internal (undocumented)
+export const _vnode_getAttr: (vnode: _VNode, key: string) => string | null;
+
+// @internal (undocumented)
+export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => string[];
+
+// @internal (undocumented)
+export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
+
+// @internal (undocumented)
+export const _vnode_getNextSibling: (vnode: _VNode) => _VNode | null;
+
+// @internal (undocumented)
+export const _vnode_getProps: (vnode: _VNode) => unknown[];
+
+// @internal (undocumented)
+export const _vnode_getPropStartIndex: (vnode: _VNode) => number;
+
+// @internal (undocumented)
+export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
+
+// @internal (undocumented)
+export const _vnode_isTextVNode: (vNode: _VNode) => vNode is _TextVNode;
+
+// @internal (undocumented)
+export const _vnode_isVirtualVNode: (vNode: _VNode) => vNode is _VirtualVNode;
 
 // @internal (undocumented)
 export function _vnode_toString(this: _VNode | null, depth?: number, offset?: string, materialize?: boolean, siblings?: boolean, colorize?: boolean): string;

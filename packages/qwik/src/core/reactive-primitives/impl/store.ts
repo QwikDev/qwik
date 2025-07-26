@@ -83,6 +83,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
   }
 
   get(target: StoreTarget, prop: string | symbol) {
+    // TODO(perf): handle better `slice` calls
     if (typeof prop === 'symbol') {
       if (prop === STORE_TARGET) {
         return target;
@@ -160,12 +161,16 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
-    this.$container$?.$scheduler$.schedule(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
-      this,
-      getEffects(target, prop, this.$effects$)
-    );
+    if (!Array.isArray(target)) {
+      // If the target is an array, we don't need to trigger effects.
+      // Changing the length property will trigger effects.
+      this.$container$?.$scheduler$.schedule(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        null,
+        this,
+        getEffects(target, prop, this.$effects$)
+      );
+    }
     return true;
   }
 

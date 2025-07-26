@@ -13,7 +13,7 @@
 import {
   renderToStream,
   type RenderToStreamOptions,
-} from "@builder.io/qwik/server";
+} from "@qwik.dev/core/server";
 import Root from "./root";
 import { extractBase } from "./routes/[locale]/i18n-utils";
 

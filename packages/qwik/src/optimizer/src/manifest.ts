@@ -2,6 +2,10 @@ import type { OutputBundle } from 'rollup';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
+// The handlers that are exported by the core package
+// See handlers.mjs
+const extraSymbols = new Set(['_run', '_task']);
+
 // This is just the initial prioritization of the symbols and entries
 // at build time so there's less work during each SSR. However, SSR should
 // still further optimize the priorities depending on the user/document.
@@ -409,6 +413,7 @@ export function generateManifestFromBundles(
     },
     core: undefined,
     preloader: undefined,
+    qwikLoader: undefined,
     bundleGraphAsset: undefined,
     injections,
     mapping: {},
@@ -427,6 +432,7 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
+  let qwikHandlersName: string | undefined;
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
@@ -457,7 +463,6 @@ export function generateManifestFromBundles(
         }
       }
     }
-
     const bundleImports = outputBundle.imports
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
@@ -483,16 +488,23 @@ export function generateManifestFromBundles(
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
       // keep these if statements separate so that weird bundling still works
-      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
         manifest.preloader = bundleFileName;
       }
-      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
+      if (
+        modulePaths.some((m) => /[/\\](core|qwik)[/\\]dist[/\\]core(.min|.prod)?\.[cm]js$/.test(m))
+      ) {
         manifest.core = bundleFileName;
       }
       if (
-        modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/.test(m))
+        modulePaths.some((m) =>
+          /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/.test(m)
+        )
       ) {
         manifest.qwikLoader = bundleFileName;
+      }
+      if (modulePaths.some((m) => /[/\\](core|qwik)[/\\]handlers\.[cm]js$/.test(m))) {
+        qwikHandlersName = bundleFileName;
       }
     }
 
@@ -517,7 +529,27 @@ export function generateManifestFromBundles(
       parent: segment.parent,
       origin: segment.origin,
       loc: segment.loc,
+      paramNames: segment.paramNames,
+      captureNames: segment.captureNames,
     };
+  }
+  if (qwikHandlersName) {
+    for (const symbol of extraSymbols) {
+      manifest.symbols[symbol] = {
+        origin: 'Qwik core',
+        displayName: symbol,
+        canonicalFilename: '',
+        hash: symbol,
+        ctxKind: 'function',
+        ctxName: symbol,
+        captures: false,
+        parent: null,
+        loc: [0, 0],
+      };
+      manifest.mapping[symbol] = qwikHandlersName;
+    }
+  } else {
+    console.error('Qwik core bundle not found, is Qwik actually used in this project?');
   }
 
   for (const bundle of Object.values(manifest.bundles)) {

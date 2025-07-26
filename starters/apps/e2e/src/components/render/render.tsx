@@ -1,22 +1,20 @@
 import {
   component$,
+  event$,
+  isServer,
+  jsx,
+  SkipRender,
+  Slot,
   useSignal,
   useStore,
   useStylesScoped$,
   useTask$,
-  event$,
-  h,
-  jsx,
-  SkipRender,
-  SSRRaw,
-  HTMLFragment,
-  type PropsOf,
-  Slot,
-  type QRL,
   type JSXOutput,
-} from "@builder.io/qwik";
+  type PropsOf,
+  type QRL,
+} from "@qwik.dev/core";
+import { h, SSRComment, SSRRaw, type Signal } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
-import { isServer } from "@builder.io/qwik";
 
 export const Render = component$(() => {
   const rerender = useSignal(0);
@@ -100,12 +98,12 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4346 />
       <SkipRenderTest />
       <SSRRawTest />
-      <HTMLFragmentTest />
       <Issue4292 />
       <Issue4386 />
       <Issue4455 />
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
+      <RerenderOnce />
     </>
   );
 });
@@ -457,19 +455,21 @@ const Issue2414 = component$(() => {
         <caption>Hello</caption>
         <colgroup></colgroup>
         <thead>
-          {(["size", "age", "id"] as const).map((c) => {
-            return (
-              <th
-                key={c}
-                id={`issue-2414-${c}`}
-                onClick$={() => {
-                  sort.value = c;
-                }}
-              >
-                {c}
-              </th>
-            );
-          })}
+          <tr>
+            {(["size", "age", "id"] as const).map((c) => {
+              return (
+                <th
+                  key={c}
+                  id={`issue-2414-${c}`}
+                  onClick$={() => {
+                    sort.value = c;
+                  }}
+                >
+                  {c}
+                </th>
+              );
+            })}
+          </tr>
         </thead>
         {showTable.value ? (
           <tbody>
@@ -817,18 +817,9 @@ export const SSRRawTest = component$(() => {
       id="ssr-raw-test-result"
       data-mounted={isServer ? "server" : "browser"}
     >
+      <SSRComment data="q:container=html" />
       <SSRRaw data="<b>ssr raw test</b>" />
-    </div>
-  );
-});
-
-export const HTMLFragmentTest = component$(() => {
-  return (
-    <div
-      id="html-fragment-test-result"
-      data-mounted={isServer ? "server" : "browser"}
-    >
-      <HTMLFragment dangerouslySetInnerHTML="<b>html fragment test</b>" />
+      <SSRComment data="/q:container" />
     </div>
   );
 });
@@ -869,7 +860,7 @@ export const Issue4292 = component$(() => {
           $toggled.value = !$toggled.value;
         }}
       >
-        <div>Hello, World!</div>
+        <span>Hello, World!</span>
       </TestB>
     </>
   );
@@ -970,3 +961,32 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+
+const globalObj = ["foo", "bar"];
+
+let logs: any[] = [];
+
+const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
+  ({ obj, foo }) => {
+    logs.push("render Cmp", obj, foo.value);
+    return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
+  },
+);
+
+export const RerenderOnce = component$(() => {
+  const foo = useSignal(0);
+  logs = [];
+  return (
+    <div>
+      <button
+        id="rerender-once-button"
+        onClick$={() => {
+          foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+        }}
+      >
+        click
+      </button>
+      <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});

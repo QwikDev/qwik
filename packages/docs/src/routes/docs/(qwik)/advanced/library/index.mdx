@@ -57,10 +57,10 @@ This will create a new folder called `my-library` with the following structure:
 │   ├── index.ts
 │   └── root.tsx
 ├── tsconfig.json
-└── vite.config.ts
+└── vite.config.mts
 ```
 
-The most important files of a library are a properly configured `package.json` and `vite.config.ts`.
+The most important files of a library are a properly configured `package.json` and `vite.config.mts`.
 
 ## package.json
 
@@ -91,11 +91,11 @@ Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will
 
 > The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.
 
-## vite.config.ts
+## vite.config.mts
 
 ```ts {8-12}
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 
 export default defineConfig(() => {
   return {
@@ -126,7 +126,7 @@ export { Counter } from './components/counter/counter';
 
 ## Libraries are also Apps
 
-The library starter is also a standalone Qwik app (without routing, nor Qwik City), this is the reason why you will find `entry.dev.tsx`, `entry.ssr.tsx` and `root.tsx` files.
+The library starter is also a standalone Qwik app (without routing, nor Qwik Router), this is the reason why you will find `entry.dev.tsx`, `entry.ssr.tsx` and `root.tsx` files.
 
 Do not worry about them, they won't be part of the final library, but they are useful during development and testing, so you can test your components in a real Qwik app.
 

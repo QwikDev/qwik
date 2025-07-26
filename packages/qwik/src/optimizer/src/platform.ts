@@ -202,7 +202,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
       if (!cjsCode || !wasmRsp) {
         version = versions.qwik.split('-dev')[0];
-        const cdnUrl = `https://cdn.jsdelivr.net/npm/@builder.io/qwik@${version}/bindings/`;
+        const cdnUrl = `https://cdn.jsdelivr.net/npm/@qwik.dev/core@${version}/bindings/`;
         const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
         const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
 
@@ -265,7 +265,7 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
 export interface PlatformBinding {
   transform_fs?: (opts: any) => TransformOutput;
-  transform_modules: (opts: any) => TransformOutput;
+  transform_modules: (opts: any) => Promise<TransformOutput>;
 }
 
 const getEnv = (): SystemEnvironment => {

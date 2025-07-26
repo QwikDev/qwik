@@ -117,7 +117,7 @@ Thanks to `srcset` attribute the browser will load the most suitable image for t
 #### Example
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.png?jsx';
 
 export default component$(() => {
@@ -168,7 +168,7 @@ Supported file formats to be converted are:
 In the below example, a `jpg` image is converted to a `png` format:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.jpg?format=png&jsx';
 
 export default component$(() => {
@@ -186,7 +186,7 @@ As noted above, the default quality is set to 75, but you can also specify the q
 Quality parameter is an integer between 1 and 100.
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/your_image.png?quality=100&jsx';
 
 export default component$(() => {
@@ -220,7 +220,7 @@ Below you can see a simple trick to avoid having to manually set the `height`, w
 
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import Image from '~/media/emote.png?jsx';
 
 export default component$(() => {
@@ -252,7 +252,7 @@ export default component$(() => {
 <abbr title="Scalable Vector Graphics">SVGs</abbr> can be added directly to your JSX code, but you can also use the image optimization approach to optimize them:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import SvgImage from '~/media/your_image.svg?jsx';
 
 export default component$(() => {
@@ -273,9 +273,8 @@ export default component$(() => {
 
 Unpic is a third-party image optimization library that works with existing image optimization CDNs. It provides an `Image` component that can be used to optimize images.
 
-<CodeSandbox src="/src/routes/demo/integration/img/unpic/simple/index.tsx" style={{ height: '40em' }}>
 ```tsx {6} /Slot/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { Image } from '@unpic/qwik';
 
 export default component$(() => {
@@ -290,7 +289,6 @@ export default component$(() => {
   );
 });
 ```
-</CodeSandbox>
 
 > **Note:** qwik-image and unpic are not a CDN and does not host your images. They work with existing image optimization CDNs. We suggest using some of the popular CDNs:
 > - Cloudinary
@@ -337,7 +335,7 @@ bun install qwik-image
 
 <CodeSandbox src="/src/routes/demo/integration/img/qwik-image/index.tsx" style={{ height: '40em' }}>
 ```tsx
-import { $, component$ } from '@builder.io/qwik';
+import { $, component$ } from '@qwik.dev/core';
 import {
   Image,
   type ImageTransformerProps,

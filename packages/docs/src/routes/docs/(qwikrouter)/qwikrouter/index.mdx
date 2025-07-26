@@ -1,0 +1,90 @@
+---
+title: Overview | Qwik Router
+contributors:
+  - manucorporat
+  - strogonoff
+  - youngboy
+  - farukEncoded
+  - brunocrosier
+  - forresst
+  - mhevery
+  - adamdbradley
+  - wtlin1228
+  - hamatoyogi
+  - ownchoice
+  - corydeppen
+  - mrhoodz
+  - shairez
+  - debugmodedotnet
+updated_at: '2023-09-15T18:19:48Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+import ImgRoutingFiles from '~/media/docs/qwikrouter/routing-files.png?jsx';
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Qwik Router
+
+While Qwik focuses on the Component API, Qwik Router provides APIs that support components with common server-focused features, including the following:
+- [routing](/docs/routing/): Define your application routes with directory based routing. (Supports both MPA and SPA routing models.)
+- [pages](/docs/pages): Render application pages, the main feature of an application.
+- [layouts](/docs/layout/): Define common shared page layouts to be reused across pages.
+- [loaders](/docs/route-loader/): Fetch data on the server to be used by the component.
+- [actions](/docs/action/): Provide a way for the component to request the server to perform an action.
+- [validators](/docs/validator/): Provide a way for validating actions and loaders.
+- [endpoints](/docs/endpoints/): A way to define data endpoints for your RESTful API, GraphQL API, JSON, XML or reverse proxy.
+- [middleware](/docs/middleware/): A centralized way to perform cross-cutting concerns such as authentication, security, caching, redirects, and logging.
+- [server$](/docs/server$/): A simple way to execute logic on the server.
+- [cache](/docs/caching/): Control caching of your content.
+- [env variables](/docs/guides/env-variables/): API to manage reading environment variables, commonly used for keys, in a platform independent way.
+- Supports both Server Side Rendering (SSR) for fully dynamic sites as well as Static Site Generation (SSG) to be hosted on static web servers and CDNs.
+- [`vite`](/docs/(qwik)/advanced/vite/index.mdx#qwikrouter) - entry point  & configuration for Qwik Router.
+
+> Qwik¹ Router²
+>
+> [**Qwik¹**](/docs/(qwik)/index.mdx): Core framework, stable, primitives, component model.
+>
+> [**Router²**](/docs/(qwikrouter)/routing/index.mdx): Opinionated file-based router, middleware, endpoints, and data fetching and update.
+
+**Qwik** (core) and **Qwik Router** solve problems at two layers of abstraction. **Qwik**, focuses on component and state management primitives, while **Qwik Router** brings an **opinionated and performant way to build sites at scale**. We don't want to lock the ecosystem into a single correct way of building sites; in fact, we encourage the community to build alternative solutions on top of **Qwik**.
+
+> While Qwik Router is full of useful functionality, thanks to Qwik's resumability and JavaScript streaming, there is no additional cost to the end user from Qwik Router. (zero JavaScript).
+
+Use Qwik Router to build an e-commerce website, blog site, or any other website that needs routing, layouts, or data retrieval/updates. Qwik Router is built on Qwik, and therefore Qwik Router sites are resumable and only download the minimal amount of JavaScript with fine-grained lazy loading.
+
+## Getting Started with Qwik Router
+
+Visit [Create an app using the CLI](/docs/getting-started/#create-an-app-using-the-cli) to see how to create a new Qwik Router starter project. It is as simple as:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm create qwik@latest
+```
+</span>
+<span q:slot="npm">
+```shell
+npm create qwik@latest
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn create qwik
+```
+</span>
+<span q:slot="bun">
+```shell
+bun create qwik@latest
+```
+</span>
+</PackageManagerTabs>
+
+## High Level API Overview
+
+This table shows which file (`index.tsx` vs `layout.tsx`) the respective feature should be implemented in.
+
+<ImgRoutingFiles />
+
+## Partytown
+
+Qwik Router also comes pre-integrated with [Partytown](https://partytown.qwik.dev) allowing you to execute your third-party code off the main thread.
+

@@ -1,19 +1,15 @@
 /**
  * WHAT IS THIS FILE?
  *
- * SSR entry point, in all cases the application is rendered outside the browser, this
- * entry point will be the common one.
+ * SSR renderer function, used for all build/dev targets except client-only.
  *
- * - Server (express, cloudflare...)
- * - npm run start
- * - npm run preview
- * - npm run build
- *
+ * Note that except for client-only, this is the only place the Qwik renderer is called.
+ * On the client, containers resume and do not call render.
  */
 import {
   renderToStream,
   type RenderToStreamOptions,
-} from "@builder.io/qwik/server";
+} from "@qwik.dev/core/server";
 import Root from "./root";
 
 export default function (opts: RenderToStreamOptions) {

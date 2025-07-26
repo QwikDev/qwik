@@ -1,7 +1,7 @@
-import { $, component$, Slot, useStyles$ } from '@builder.io/qwik';
+import { $, component$, Slot, useStyles$ } from '@qwik.dev/core';
 import { Header } from '../../components/header/header';
 import { Footer } from '../../components/footer/footer';
-import { type RequestHandler } from '@builder.io/qwik-city';
+import { type RequestHandler } from '@qwik.dev/router';
 import { useImageProvider, type ImageTransformerProps } from 'qwik-image';
 import docsStyles from '../docs/docs.css?inline';
 

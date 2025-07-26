@@ -1,22 +1,22 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1950
+assertion_line: 2061
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 export const Greeter = component$(() => <div/>)
 
 ============================= components/apps/apps.tsx_Greeter_component_0jjOvx068y0.ts (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
-export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxQ("div", null, null, null, 3, "KD_0");
+import { _jsxSorted } from "@qwik.dev/core";
+export const Greeter_component_0jjOvx068y0 = ()=>/*#__PURE__*/ _jsxSorted("div", null, null, null, 3, "KD_0");
 
 
-Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";6CAEkC,kBAAM,MAAC\"}")
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";6CAEkC,kBAAM,WAAC\"}")
 /*
 {
   "origin": "components/apps/apps.tsx",
@@ -32,19 +32,20 @@ Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    83,
-    95
+    81,
+    93
   ]
 }
 */
 ============================= components/apps/apps.ts ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./apps.tsx_Greeter_component_0jjOvx068y0"), "Greeter_component_0jjOvx068y0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_0jjOvx068y0 = ()=>import("./apps.tsx_Greeter_component_0jjOvx068y0");
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0jjOvx068y0, "Greeter_component_0jjOvx068y0"));
 
 
-Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,yHAAwB\"}")
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,wBAAU,gFAAwB\"}")
 == DIAGNOSTICS ==
 
 []

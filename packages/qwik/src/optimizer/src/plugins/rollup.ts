@@ -66,11 +66,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         experimental: qwikRollupOpts.experimental,
       };
 
-      const opts = await qwikPlugin.normalizeOptions(pluginOpts);
-
-      if (opts.input) {
-        inputOpts.input = opts.input;
-      }
+      await qwikPlugin.normalizeOptions(pluginOpts);
+      // Override the input with the normalized input
+      const { input } = qwikPlugin.getOptions();
+      inputOpts.input = input;
 
       return inputOpts;
     },

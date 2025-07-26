@@ -1,6 +1,6 @@
 import path, { resolve } from 'node:path';
 import type { Rollup } from 'vite';
-import { assert, test } from 'vitest';
+import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
 import type { OptimizerOptions } from '../types';
 import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
@@ -522,4 +522,36 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
+});
+
+describe('input config', () => {
+  const initOpts = {
+    optimizerOptions: mockOptimizerOptions(),
+    client: {
+      input: './src/widget/counter.tsx',
+      outDir: './dist/client',
+    },
+    ssr: {
+      input: './src/widget/ssr.tsx',
+      outDir: './dist/server',
+    },
+  } as QwikVitePluginOptions;
+  test('should handle client target', async () => {
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'build', mode: 'development' }
+    ))!;
+    assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/counter.tsx']);
+  });
+  test('should handle ssr target', async () => {
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'build', mode: 'ssr' }
+    ))!;
+    assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
+  });
 });

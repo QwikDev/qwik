@@ -1,5 +1,21 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.6
+
+### Minor Changes
+
+- ✨ qwikRouter middleware no longer needs qwikRouterConfig, it handles it internally (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+- 🐞🩹 the SSR internal build imports `@qwik-router-not-found-paths` and `@qwik-router-static-paths` are no longer used. Instead, the data is embedded directly. This might be a breaking change for some users that forked an adapter, in that case just remove the imports. (by [@wmertens](https://github.com/wmertens) in [#7755](https://github.com/QwikDev/qwik/pull/7755))
+
+### Patch Changes
+
+- Bugfix - rename the view transition type in CSS to prevent default view transition on SPA navigation (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7713](https://github.com/QwikDev/qwik/pull/7713))
+
+- 🐞🩹 getting invoke context for loaders in production (by [@Varixo](https://github.com/Varixo) in [#7730](https://github.com/QwikDev/qwik/pull/7730))
+
+- ✨ Server output chunk files are now under their own build/ subdir, like the client build. This makes it easier to override the chunk filenames. This is possible because the Router metadata files are now an earlier part of the build process. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
 ## 2.0.0-beta.5
 
 ### Patch Changes

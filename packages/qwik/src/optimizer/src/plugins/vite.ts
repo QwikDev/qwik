@@ -144,6 +144,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             ? viteConfig.build.ssr
             : qwikViteOpts.ssr?.input
           : undefined;
+      const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
+      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      if (input && typeof input === 'string') {
+        input = [input];
+      }
       const shouldFindVendors =
         !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
       viteAssetsDir = viteConfig.build?.assetsDir;
@@ -170,16 +175,13 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
         experimental: qwikViteOpts.experimental,
-        input: viteConfig.build?.rollupOptions?.input || ssrInput,
+        input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
       };
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
-      if (ssrInput) {
-        // make sure vite uses the ssr input
-        opts.input ||= [ssrInput];
-      }
+      input ||= opts.input;
 
       manifestInput = opts.manifestInput;
       srcDir = opts.srcDir;
@@ -282,7 +284,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
              */
             maxParallelFileOps: 1,
             // This will amend the existing input
-            input: opts.input,
+            input,
             output: {
               manualChunks: qwikPlugin.manualChunks,
             },

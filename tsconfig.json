@@ -22,13 +22,7 @@
       "@qwik-router-sw-register-build": [
         "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"],
-      "@qwik-router-not-found-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/not-found-paths.ts"
-      ],
-      "@qwik-router-static-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/static-paths.ts"
-      ]
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
     },
     "types": ["node", "vite/client"],
     "esModuleInterop": true,

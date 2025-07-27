@@ -384,7 +384,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
     }
 
-    return { ...opts };
+    const out = { ...opts };
+    // Make sure to know what the actual input is
+    opts.input ||= updatedOpts.input as string[];
+    if (opts.input && typeof opts.input === 'string') {
+      opts.input = [opts.input];
+    }
+    return out;
   };
 
   let hasValidatedSource = false;

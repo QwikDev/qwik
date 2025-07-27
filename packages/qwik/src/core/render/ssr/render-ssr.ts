@@ -243,7 +243,7 @@ const renderGenerator = async (
   let value: AsyncGenerator;
   if (isFunction(generator)) {
     const v = generator({
-      write(chunk) {
+      async write(chunk) {
         stream.write(chunk);
         stream.write(FLUSH_COMMENT);
       },

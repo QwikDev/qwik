@@ -904,7 +904,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => void;
+export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';

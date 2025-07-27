@@ -791,6 +791,26 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
   return length;
 };
 
+export const vnode_createErrorDiv = (
+  document: Document,
+  host: VNode,
+  err: Error,
+  journal: VNodeJournal
+) => {
+  const errorDiv = document.createElement('errored-host');
+  if (err && err instanceof Error) {
+    (errorDiv as any).props = { error: err };
+  }
+  errorDiv.setAttribute('q:key', '_error_');
+
+  const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
+
+  vnode_getDOMChildNodes(journal, host, true).forEach((child) => {
+    vnode_insertBefore(journal, vErrorDiv, child, null);
+  });
+  return vErrorDiv;
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_journalToString = (journal: VNodeJournal): string => {

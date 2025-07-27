@@ -1,5 +1,25 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.6
+
+### Minor Changes
+
+- ✨ the QRL segment mapping during Vite dev mode now happens in core and does not require providing a separate `symbolMapper` function any more. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+- ✨ Server output chunk files are now under their own build/ subdir, like the client build. This makes it easier to override the chunk filenames. This is possible because the Router metadata files are now an earlier part of the build process. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+- 🐞🩹 `qwikVite` has better vite config handling around input files, and no longer writes the q-manifest file to a temp dir. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+### Patch Changes
+
+- 🐞🩹 the `srcInput` option to `qwikVite` is deprecated because it's unused. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+- 🐞🩹 preserve innerHTML after component rerender (by [@Varixo](https://github.com/Varixo) in [#7740](https://github.com/QwikDev/qwik/pull/7740))
+
+- 🐞🩹 render SVG attributes with correct namespace (by [@Varixo](https://github.com/Varixo) in [#7705](https://github.com/QwikDev/qwik/pull/7705))
+
+- 🐞🩹 using useOn and useVisibleTask$ in component with primitive value only (by [@Varixo](https://github.com/Varixo) in [#7746](https://github.com/QwikDev/qwik/pull/7746))
+
 ## 2.0.0-beta.5
 
 ### Patch Changes

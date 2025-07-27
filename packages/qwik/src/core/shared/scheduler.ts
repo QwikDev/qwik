@@ -329,7 +329,9 @@ export const createScheduler = (
     ) as Chore<T>;
     DEBUG && debugTrace('schedule', chore, choreQueue);
 
-    if (isServer && type === ChoreType.COMPONENT && !isDraining) {
+    const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
+
+    if (runImmediately && !isDraining) {
       immediateDrain();
     } else {
       drainInNextTick();

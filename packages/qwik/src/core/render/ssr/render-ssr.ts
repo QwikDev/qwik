@@ -57,7 +57,7 @@ const FLUSH_COMMENT = '<!--qkssr-f-->';
 
 /** @public */
 export type StreamWriter = {
-  write: (chunk: string) => void;
+  write: (chunk: string) => Promise<void>;
 };
 
 /** @public */

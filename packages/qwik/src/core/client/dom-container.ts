@@ -58,15 +58,16 @@ import {
 import {
   VNodeJournalOpCode,
   vnode_applyJournal,
-  vnode_getDOMChildNodes,
+  vnode_createErrorDiv,
   vnode_getDomParent,
+  vnode_getNextSibling,
   vnode_getParent,
   vnode_getProp,
   vnode_getProps,
   vnode_insertBefore,
+  vnode_isElementVNode,
   vnode_isVirtualVNode,
   vnode_locate,
-  vnode_newElement,
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
@@ -176,22 +177,17 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   handleError(err: any, host: HostElement | null): void {
     if (qDev && host) {
-      // Clean vdom
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
-        const errorDiv = document.createElement('errored-host');
-        if (err && err instanceof Error) {
-          (errorDiv as any).props = { error: err };
-        }
-        errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
-
-        const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
-
-        vnode_getDOMChildNodes(journal, vHost, true).forEach((child) => {
-          vnode_insertBefore(journal, vErrorDiv, child, null);
-        });
-        vnode_insertBefore(journal, vHost, vErrorDiv, null);
+        const vHostParent = vnode_getParent(vHost) as VirtualVNode | ElementVNode | undefined;
+        const vHostNextSibling = vnode_getNextSibling(vHost);
+        const vErrorDiv = vnode_createErrorDiv(document, vHost, err, journal);
+        // If the host is an element node, we need to insert the error div into its parent.
+        const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+        // If the host is different then we need to insert errored-host in the same position as the host.
+        const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+        vnode_insertBefore(journal, insertHost, vErrorDiv, insertBefore);
         vnode_applyJournal(journal);
       }
 

@@ -202,6 +202,7 @@ export const createScheduler = (
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
   let drainScheduled = false;
   let isDraining = false;
+  let isJournalFlushRunning = false;
 
   function drainInNextTick() {
     if (!drainScheduled) {
@@ -355,8 +356,13 @@ export const createScheduler = (
     };
 
     const applyJournalFlush = () => {
-      journalFlush();
-      DEBUG && debugTrace('journalFlush.DONE', null, choreQueue);
+      if (!isJournalFlushRunning) {
+        // prevent multiple journal flushes from running at the same time
+        isJournalFlushRunning = true;
+        journalFlush();
+        isJournalFlushRunning = false;
+        DEBUG && debugTrace('journalFlush.DONE', null, choreQueue);
+      }
     };
 
     const maybeFinishDrain = () => {

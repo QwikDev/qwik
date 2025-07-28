@@ -410,11 +410,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     resolveId(id, importer, resolveIdOpts) {
       const shouldResolveFile = fileFilter(id, 'resolveId');
+      const isDevClientModule = isClientDevOnly && id === VITE_CLIENT_MODULE;
 
       if (isVirtualId(id) || !shouldResolveFile) {
         return null;
       }
-      if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
+      if (isDevClientModule) {
         return id;
       }
       return qwikPlugin.resolveId(this, id, importer, resolveIdOpts);
@@ -422,15 +423,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     load(id, loadOpts) {
       const shouldLoadFile = fileFilter(id, 'load');
+      const isDevClientModule = isClientDevOnly && id === VITE_CLIENT_MODULE;
 
       if (isVirtualId(id) || !shouldLoadFile) {
         return null;
       }
 
       id = qwikPlugin.normalizePath(id);
-      const opts = qwikPlugin.getOptions();
 
-      if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
+      if (isDevClientModule) {
+        const opts = qwikPlugin.getOptions();
         return getViteDevModule(opts);
       }
       if (viteCommand === 'serve' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {

@@ -18,6 +18,7 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
+import { isVirtualId } from './vite-utils';
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -94,21 +95,21 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
     },
 
     resolveId(id, importer) {
-      if (id.startsWith('\0')) {
+      if (isVirtualId(id)) {
         return null;
       }
       return qwikPlugin.resolveId(this, id, importer);
     },
 
     load(id) {
-      if (id.startsWith('\0')) {
+      if (isVirtualId(id)) {
         return null;
       }
       return qwikPlugin.load(this, id);
     },
 
     transform(code, id) {
-      if (id.startsWith('\0')) {
+      if (isVirtualId(id)) {
         return null;
       }
       return qwikPlugin.transform(this, code, id);

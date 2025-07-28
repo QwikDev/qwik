@@ -77,6 +77,8 @@ export const findLocation = (e: Error): Loc | undefined => {
   return undefined;
 };
 
+export const isVirtualId = (id: string) => id.startsWith('\0');
+
 const safeParseInt = (nu: string) => {
   try {
     return parseInt(nu, 10);

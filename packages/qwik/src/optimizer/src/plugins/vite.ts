@@ -30,7 +30,7 @@ import {
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
-import { parseId } from './vite-utils';
+import { isVirtualId, parseId } from './vite-utils';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -409,7 +409,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
+      const shouldResolveFile = fileFilter(id, 'resolveId');
+
+      if (isVirtualId(id) || !shouldResolveFile) {
         return null;
       }
       if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
@@ -419,7 +421,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
+      const shouldLoadFile = fileFilter(id, 'load');
+
+      if (isVirtualId(id) || !shouldLoadFile) {
         return null;
       }
 
@@ -438,7 +442,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'transform') || id.includes('?raw')) {
+      const shouldTransformFile = fileFilter(id, 'transform');
+      const isStringImportId = id.includes('?raw');
+
+      if (isVirtualId(id) || !shouldTransformFile || isStringImportId) {
         return null;
       }
 
@@ -880,7 +887,7 @@ interface QwikVitePluginCommonOptions {
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
    * transform
    */
-  fileFilter?: (id: string, hook: string) => boolean;
+  fileFilter?: (id: string, hook: keyof VitePlugin) => boolean;
   /**
    * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
    * large projects. Defaults to `true`

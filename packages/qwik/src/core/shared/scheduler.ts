@@ -768,6 +768,16 @@ export const createScheduler = (
     /// 1. Find a place where to insert into.
     const idx = sortedFindIndex(sortedArray, value, rootVNode);
 
+    if (idx < 0 && runningChores.size) {
+      // 1.1. Check if the chore is already running.
+      for (const chore of runningChores) {
+        const comp = choreComparator(value, chore, rootVNode);
+        if (comp === 0) {
+          return chore;
+        }
+      }
+    }
+
     if (idx < 0) {
       /// 2. Insert the chore into the queue.
       sortedArray.splice(~idx, 0, value);

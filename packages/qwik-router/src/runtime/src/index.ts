@@ -55,6 +55,7 @@ export {
   QwikCityProvider,
   QwikRouterMockProvider,
   QwikRouterProvider,
+  useQwikRouter,
   type QwikCityMockProps,
   type QwikCityProps,
   type QwikRouterMockProps,

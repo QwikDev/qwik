@@ -115,7 +115,7 @@ const count = useSignal(0);
 <Counter count={count} />; // signal instance is constant, but value changes
 
 // varProp example with store
-const store = useStore({ text: "hello" });
+const store = useStore({ text: 'hello' });
 <Button text={store.text} />; // store property reference can change
 ```
 

@@ -140,6 +140,11 @@ export const scopeUseTask: Rule.RuleModule = {
 
       // Try to find the variable starting from the current scope and going upwards
       let currentScopeForSearch: eslint.Scope.Scope | null = scope;
+
+      if (!GLOBALAPIS.includes(identifierNode.name)) {
+        return true;
+      }
+
       while (currentScopeForSearch) {
         const foundVar = currentScopeForSearch.variables.find(
           (v) => v.name === identifierNode.name
@@ -158,11 +163,8 @@ export const scopeUseTask: Rule.RuleModule = {
       }
 
       // If we didn't find a variable, it might be a global API or an undeclared variable.
-      if (!GLOBALAPIS.includes(identifierNode.name)) {
-        return true;
-      }
 
-      if (variable?.defs.length === 0) {
+      if (!variable || variable.defs.length === 0) {
         // No definitions usually means it's an implicit global (e.g., 'process' in Node.js environment).
         // Such a variable is NOT considered "shadowed by a user declaration".
         return false;

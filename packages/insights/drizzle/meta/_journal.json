@@ -141,6 +141,13 @@
       "when": 1733272274985,
       "tag": "0019_known_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1748218969969,
+      "tag": "0020_chemical_lyja",
+      "breakpoints": true
     }
   ]
 }

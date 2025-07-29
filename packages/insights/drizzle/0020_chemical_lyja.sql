@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS `idx_symbolDetail_apiKey_manifestHash`;--> statement-breakpoint
+CREATE UNIQUE INDEX `idx_symbolDetail_apiKey_manifestHash_hash` ON `symbolDetail` (`public_api_key`,`manifest_hash`,`hash`);

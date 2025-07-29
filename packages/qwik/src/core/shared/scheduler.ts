@@ -369,7 +369,7 @@ export const createScheduler = (
       if (choreQueue.length) {
         return drainChoreQueue();
       }
-      if (!drainScheduled) {
+      if (!drainScheduled || (drainChore && runningChores.size)) {
         if (shouldApplyJournalFlush()) {
           // apply journal flush even if we are not finished draining the queue
           applyJournalFlush();

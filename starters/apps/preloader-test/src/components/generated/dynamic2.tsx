@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwik.dev/core";
 import Dynamic3 from "./dynamic3";
 
 export default component$(() => {

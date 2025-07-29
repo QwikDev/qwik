@@ -297,6 +297,7 @@ enum ExprOrSkip {
 	Skip,
 }
 
+/// Collects all identifiers while visiting the AST.
 #[derive(Debug)]
 pub struct IdentCollector {
 	pub local_idents: HashSet<Id>,
@@ -369,6 +370,10 @@ impl Visit for IdentCollector {
 	fn visit_ident(&mut self, node: &ast::Ident) {
 		if matches!(self.expr_ctxt.last(), Some(ExprOrSkip::Expr))
 			&& node.ctxt != SyntaxContext::empty()
+			&& (node.sym != *"undefined"
+				&& node.sym != *"NaN"
+				&& node.sym != *"Infinity"
+				&& node.sym != *"null")
 		{
 			self.local_idents.insert(id!(node));
 		}
@@ -377,6 +382,13 @@ impl Visit for IdentCollector {
 	fn visit_key_value_prop(&mut self, node: &ast::KeyValueProp) {
 		self.expr_ctxt.push(ExprOrSkip::Skip);
 		node.visit_children_with(self);
+		self.expr_ctxt.pop();
+	}
+
+	// props.foo
+	fn visit_member_expr(&mut self, member: &ast::MemberExpr) {
+		self.expr_ctxt.push(ExprOrSkip::Skip);
+		member.visit_children_with(self);
 		self.expr_ctxt.pop();
 	}
 }

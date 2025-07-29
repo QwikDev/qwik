@@ -8,14 +8,13 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformAzure,
-} from "@builder.io/qwik-city/middleware/azure-swa";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/azure-swa";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformAzure {}
+  interface QwikRouterPlatform extends PlatformAzure {}
 }
 
-export default createQwikCity({ render, qwikCityPlan });
+export default createQwikRouter({ render });

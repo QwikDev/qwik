@@ -1,10 +1,5 @@
-import {
-  component$,
-  Resource,
-  SSRStream,
-  useResource$,
-  useStyles$,
-} from "@builder.io/qwik";
+import { component$, Resource, useResource$, useStyles$ } from "@qwik.dev/core";
+import { SSRStream } from "@qwik.dev/core/internal";
 
 export function delay(time: number) {
   return new Promise<void>((resolve) => {

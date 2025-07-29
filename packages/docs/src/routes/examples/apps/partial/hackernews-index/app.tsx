@@ -1,5 +1,4 @@
-import { component$, useTask$, useStore, useStyles$ } from '@builder.io/qwik';
-import { isServer } from '@builder.io/qwik';
+import { component$, isServer, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {

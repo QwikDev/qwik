@@ -1,10 +1,10 @@
-import type { NoSerialize, Signal } from '@builder.io/qwik';
+import type { NoSerialize, Signal } from '@qwik.dev/core';
 import type {
   Diagnostic,
   QwikManifest,
   QwikRollupPluginOptions,
   TransformModule,
-} from '@builder.io/qwik/optimizer';
+} from '@qwik.dev/core/optimizer';
 
 export interface ReplAppInput {
   buildId: number;
@@ -13,6 +13,7 @@ export interface ReplAppInput {
   buildMode: 'development' | 'production';
   entryStrategy: string;
   debug?: boolean;
+  preloader?: boolean;
 }
 
 export type PkgUrls = { [pkgName: string]: { [path: string]: string; version: string } };
@@ -23,11 +24,12 @@ export interface ReplInputOptions extends Omit<QwikRollupPluginOptions, 'srcDir'
   buildMode: 'development' | 'production';
   serverUrl: string | undefined;
   deps: PkgUrls;
+  preloader: boolean;
 }
 
 export interface ReplStore {
   clientId: string;
-  html: string;
+  htmlResult: ReplHTMLResult;
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
@@ -112,7 +114,7 @@ export interface ReplEvent {
 export interface ReplResult extends ReplMessageBase {
   type: 'result';
   buildId: number;
-  html: string;
+  htmlResult: ReplHTMLResult;
   transformedModules: TransformModule[];
   clientBundles: ReplModuleOutput[];
   ssrModules: ReplModuleOutput[];
@@ -121,12 +123,22 @@ export interface ReplResult extends ReplMessageBase {
   events: ReplEvent[];
 }
 
+export interface ReplHTMLResult {
+  rawHtml: string;
+  prettyHtml: string;
+}
+
 export type OutputPanel =
   | 'app'
   | 'html'
-  | 'symbols'
+  | 'state'
+  | 'segments'
   | 'clientBundles'
   | 'serverModules'
   | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';
+
+export interface PathInView {
+  selectedPath: string;
+}

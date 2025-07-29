@@ -1,5 +1,7 @@
 import { join } from 'node:path';
+import { minify } from 'terser';
 import { build } from 'vite';
+import { writePackageJson } from './package-json';
 import {
   type BuildConfig,
   ensureDir,
@@ -8,12 +10,10 @@ import {
   readFile,
   writeFile,
 } from './util';
-import { minify } from 'terser';
-import { writePackageJson } from './package-json';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
- * provided in the package so CDNs could point to them. The @builder.io/optimizer submodule also
+ * provided in the package so CDNs could point to them. The @qwik.dev/core/optimizer submodule also
  * provides a utility function.
  */
 export async function submoduleQwikLoader(config: BuildConfig) {
@@ -121,7 +121,7 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {
-    name: `@builder.io/qwik/loader`,
+    name: `@qwik.dev/core/loader`,
     version: config.distVersion,
     main: `index.mjs`,
     types: `index.d.ts`,

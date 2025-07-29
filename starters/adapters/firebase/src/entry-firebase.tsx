@@ -8,14 +8,13 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformFirebase,
-} from "@builder.io/qwik-city/middleware/firebase";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/firebase";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformFirebase {}
+  interface QwikRouterPlatform extends PlatformFirebase {}
 }
 
-export default createQwikCity({ render, qwikCityPlan });
+export default createQwikRouter({ render });

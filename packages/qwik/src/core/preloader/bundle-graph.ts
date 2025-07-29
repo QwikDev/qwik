@@ -1,4 +1,4 @@
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@qwik.dev/core/build';
 import { config, isJSRegex } from './constants';
 import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';

@@ -1,25 +1,25 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2298
+assertion_line: 2409
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 const App = component$(() => {
-    return (
-        <div>hola</div>
-    );
+	return (
+		<div>hola</div>
+	);
 });
 
 
 export const Root = component$((props: Stuff) => {
-    return (
-        <App/>
-    );
+	return (
+		<App/>
+	);
 });
 
 const Other = 12;
@@ -29,27 +29,29 @@ export default App;
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+const i_royhjYaCbYE = ()=>import("./test.tsx_Root_component_royhjYaCbYE");
+const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_royhjYaCbYE, "Root_component_royhjYaCbYE"));
 const Other = 12;
 export { Other as App };
 export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,6EAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
 ============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";
-import { _jsxC } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const Root_component_royhjYaCbYE = (props)=>{
-    return /*#__PURE__*/ _jsxC(App, null, 3, "u6_1");
+    return /*#__PURE__*/ _jsxSorted(App, null, null, null, 3, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC5B,qBACI,MAAC;AAET\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAU+B,CAAC;IAC/B,qBACC,WAAC;AAEH\"}")
 /*
 {
   "origin": "test.tsx",
@@ -65,20 +67,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    162,
-    218
+    148,
+    192
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { _jsxQ } from "@builder.io/qwik";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = ()=>{
-    return /*#__PURE__*/ _jsxQ("div", null, null, "hola", 3, "u6_0");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, "hola", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB;IACnB,qBACI,MAAC,mBAAI;AAEb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAGuB;IACtB,qBACC,WAAC,mBAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -94,8 +99,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    73,
-    126
+    71,
+    112
   ]
 }
 */

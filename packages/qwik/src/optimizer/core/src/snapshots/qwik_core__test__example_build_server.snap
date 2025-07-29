@@ -1,14 +1,14 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2620
+assertion_line: 2731
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
-import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@qwik.dev/core';
+import { isServer, isBrowser as isb } from '@qwik.dev/core/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
@@ -23,31 +23,32 @@ export const functionThatNeedsWindow = () => {
 };
 
 export const App = component$(() => {
-    useMount$(() => {
-        if (isServer) {
-            console.log('server', mongodb());
-        }
-        if (isb) {
-            console.log('browser', new threejs());
-        }
-    });
-    return (
-        <Cmp>
-            {isServer2 && <p>server</p>}
-            {isb && <p>server</p>}
-        </Cmp>
-    );
+	useMount$(() => {
+		if (isServer) {
+			console.log('server', mongodb());
+		}
+		if (isb) {
+			console.log('browser', new threejs());
+		}
+	});
+	return (
+		<Cmp>
+			{isServer2 && <p>server</p>}
+			{isb && <p>server</p>}
+		</Cmp>
+	);
 });
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
 export const functionThatNeedsWindow = ()=>{};
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "s_ckEPmXZlub0"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "s_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAQA,OAAO,MAAM,0BAA0B,KAMvC,EAAE;AAEF,OAAO,MAAM,oBAAM,qGAehB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAQA,OAAO,MAAM,0BAA0B,KAMvC,EAAE;AAEF,OAAO,MAAM,oBAAM,gEAehB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.tsx (ENTRY POINT)==
 
 import { mongodb } from "mondodb";
@@ -56,13 +57,13 @@ export const s_ckEPmXZlub0 = ()=>{
         console.log('server', mongodb());
     });
     return <Cmp>
-            {<p>server</p>}
-            {false}
-        </Cmp>;
+			{<p>server</p>}
+			{false}
+		</Cmp>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;YACD,EAAe,EAAE,MAAM,EAAE,GAAG;YAC5B,OAAsB;QAC1B,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC7B,UAAU;QAER,QAAQ,GAAG,CAAC,UAAU;IAKxB;IACA,QACE,IAAI;GACJ,EAAe,EAAE,MAAM,EAAE,GAAG;GAC5B,OAAsB;EACvB,EAAE;AAEJ\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,8 +79,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    427,
-    751
+    423,
+    663
   ]
 }
 */

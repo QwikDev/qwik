@@ -1,0 +1,134 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 3948
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { $, component$ } from "@builder.io/qwik";
+		import { isDev } from "@builder.io/qwik/build";
+		import { stuff } from "@builder.io/qwik-city";
+		import { moreStuff } from "@builder.io/qwik-city/more/here";
+		import { qwikify$ } from "@builder.io/qwik-react";
+		import sdk from "@builder.io/sdk";
+
+		export const Foo = qwikify$(MyReactComponent);
+
+		export const Bar = $("a thing");
+
+		export const App = component$(() => {
+			sdk.hello();
+			if (isDev) {
+				stuff()
+			} else {
+				moreStuff()
+			}
+			return "hi";
+		});
+		
+============================= test.tsx_Bar_GXXnVUtURSw.ts (ENTRY POINT)==
+
+export const Bar_GXXnVUtURSw = "a thing";
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"+BAUuB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Bar_GXXnVUtURSw",
+  "entry": null,
+  "displayName": "test.tsx_Bar",
+  "hash": "GXXnVUtURSw",
+  "canonicalFilename": "test.tsx_Bar_GXXnVUtURSw",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    380,
+    389
+  ]
+}
+*/
+============================= test.tsx_Foo_qwikify_0Yoy9qA0SC0.ts (ENTRY POINT)==
+
+export const Foo_qwikify_0Yoy9qA0SC0 = MyReactComponent;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"uCAQ8B\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Foo_qwikify_0Yoy9qA0SC0",
+  "entry": null,
+  "displayName": "test.tsx_Foo_qwikify",
+  "hash": "0Yoy9qA0SC0",
+  "canonicalFilename": "test.tsx_Foo_qwikify_0Yoy9qA0SC0",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qwikify$",
+  "captures": false,
+  "loc": [
+    337,
+    353
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.ts (ENTRY POINT)==
+
+import { isDev } from "@qwik.dev/core/build";
+import { moreStuff } from "@qwik.dev/router/more/here";
+import sdk from "@builder.io/sdk";
+import { stuff } from "@qwik.dev/router";
+export const App_component_ckEPmXZlub0 = ()=>{
+    sdk.hello();
+    if (isDev) stuff();
+    else moreStuff();
+    return "hi";
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAYgC;IAC7B,IAAI,KAAK;IACT,IAAI,OACH;SAEA;IAED,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "ts",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    425,
+    529
+  ]
+}
+*/
+============================= test.ts ==
+
+import { qwikifyQrl } from "@qwik.dev/react";
+import { qrl } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+const i_0Yoy9qA0SC0 = ()=>import("./test.tsx_Foo_qwikify_0Yoy9qA0SC0");
+const i_GXXnVUtURSw = ()=>import("./test.tsx_Bar_GXXnVUtURSw");
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const Foo = qwikifyQrl(/*#__PURE__*/ qrl(i_0Yoy9qA0SC0, "Foo_qwikify_0Yoy9qA0SC0"));
+export const Bar = /*#__PURE__*/ qrl(i_GXXnVUtURSw, "Bar_GXXnVUtURSw");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAQE,OAAO,MAAM,MAAM,wEAA2B;AAE9C,OAAO,MAAM,0DAAmB;AAEhC,OAAO,MAAM,oBAAM,4EAQhB\"}")
+== DIAGNOSTICS ==
+
+[]

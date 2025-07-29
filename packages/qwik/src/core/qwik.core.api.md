@@ -372,6 +372,13 @@ function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}
 export { h as createElement }
 export { h }
 
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
+}
+
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
 
@@ -685,7 +692,6 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
 // Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
 //
 // @public
 export type QwikHTMLElements = {
@@ -742,8 +748,6 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
-// Warning: (ae-forgotten-export) The symbol "SVGProps" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
@@ -1618,6 +1622,10 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
     z?: number | string | undefined;
     // (undocumented)
     zoomAndPan?: string | undefined;
+}
+
+// @public (undocumented)
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
 }
 
 // @public

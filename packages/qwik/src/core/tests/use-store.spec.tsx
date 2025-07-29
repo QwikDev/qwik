@@ -14,7 +14,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../testing/element-fixture';
-import { getStoreHandler } from '../signal/store';
+import { getStoreHandler } from '../reactive-primitives/impl/store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -682,9 +682,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">
-            <Signal>0</Signal>
-          </div>
+          <div key="0">0</div>
         </Fragment>
       </Component>
     );

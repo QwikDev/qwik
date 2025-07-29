@@ -10,6 +10,9 @@ export interface DeserializeContainer {
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
+  readonly $scheduler$: Scheduler | null;
 }
 
 export interface Container {
@@ -22,6 +25,7 @@ export interface Container {
   readonly $getObjectById$: (id: number | string) => any;
   readonly $serverData$: Record<string, any>;
   $currentUniqueId$: number;
+  $buildBase$: string | null;
 
   handleError(err: any, $host$: HostElement): void;
   getParentHost(host: HostElement): HostElement | null;
@@ -41,10 +45,10 @@ export interface Container {
   ensureProjectionResolved(host: HostElement): void;
   serializationCtxFactory(
     NodeConstructor: {
-      new (...rest: any[]): { nodeType: number; id: string };
+      new (...rest: any[]): { __brand__: 'SsrNode' };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { $ssrNode$: ISsrNode };
+      new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
@@ -55,6 +59,7 @@ export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
+  vNode?: WeakRef<VNode>;
 }
 
 export type qWindow = Window & {
@@ -67,10 +72,6 @@ export type qWindow = Window & {
 
 export type QwikLoaderEventScope = '-document' | '-window' | '';
 
-export const isContainer = (container: any): container is Container => {
-  return container && typeof container === 'object' && typeof container.setHostProp === 'function';
-};
-
 /**
  * A friendly name tag for a VirtualVNode.
  *
@@ -80,7 +81,7 @@ export const isContainer = (container: any): container is Container => {
  */
 export const DEBUG_TYPE = 'q:type';
 
-export enum VirtualType {
+export const enum VirtualType {
   Virtual = 'V',
   Fragment = 'F',
   WrappedSignal = 'S',
@@ -90,17 +91,14 @@ export enum VirtualType {
   Projection = 'P',
 }
 
-const START = '\x1b[34m';
-const END = '\x1b[0m';
-
 export const VirtualTypeName: Record<string, string> = {
-  [VirtualType.Virtual]: /* ********* */ START + 'Virtual' + END, //
-  [VirtualType.Fragment]: /* ******** */ START + 'Fragment' + END, //
-  [VirtualType.WrappedSignal]: /* *** */ START + 'Signal' + END, //
-  [VirtualType.Awaited]: /* ********* */ START + 'Awaited' + END, //
-  [VirtualType.Component]: /* ******* */ START + 'Component' + END, //
-  [VirtualType.InlineComponent]: /* * */ START + 'InlineComponent' + END, //
-  [VirtualType.Projection]: /* ****** */ START + 'Projection' + END, //
+  [VirtualType.Virtual]: /* ********* */ 'Virtual', //
+  [VirtualType.Fragment]: /* ******** */ 'Fragment', //
+  [VirtualType.WrappedSignal]: /* *** */ 'Signal', //
+  [VirtualType.Awaited]: /* ********* */ 'Awaited', //
+  [VirtualType.Component]: /* ******* */ 'Component', //
+  [VirtualType.InlineComponent]: /* * */ 'InlineComponent', //
+  [VirtualType.Projection]: /* ****** */ 'Projection', //
 };
 
 export const enum QContainerValue {
@@ -119,3 +117,9 @@ export interface QContainerElement extends Element {
   qFuncs?: Function[];
   _qwikjson_?: any;
 }
+
+/** @public */
+export type SerializationStrategy =
+  // TODO: implement this in the future
+  // 'auto' |
+  'never' | 'always';

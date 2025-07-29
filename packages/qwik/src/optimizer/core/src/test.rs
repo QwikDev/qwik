@@ -73,7 +73,6 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		transpile_jsx: input.transpile_jsx,
 		preserve_filenames: input.preserve_filenames,
 		explicit_extensions: input.explicit_extensions,
-		manual_chunks: input.manual_chunks,
 		entry_strategy: input.entry_strategy,
 		mode: input.mode,
 		scope: input.scope,
@@ -83,6 +82,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
+		// filler to maintain line offsets
 	})
 }
 
@@ -1751,12 +1751,12 @@ export const Child = component$(() => {
 });
 "#
 		.to_string(),
+		// filler to maintain line offsets
+		// this is a test for manual chunks
+		// which are no longer used in the optimizer
+		//
 		transpile_ts: true,
 		transpile_jsx: true,
-		manual_chunks: Some(HashMap::from_iter(vec![
-			("C5XE49Nqd3A".into(), "chunk_clicks".into()),
-			("elliVSnAiOQ".into(), "chunk_clicks".into()),
-		])),
 		entry_strategy: EntryStrategy::Smart,
 		..TestInput::default()
 	});
@@ -3400,7 +3400,7 @@ export const Local = component$(() => {
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3482,7 +3482,7 @@ export const Greeter = component$(() => {
 		root_dir: None,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3522,7 +3522,7 @@ export const Greeter = component$(() => {
 			minify: MinifyMode::Simplify,
 			explicit_extensions: true,
 			mode: option.0,
-			manual_chunks: None,
+			// filler to maintain line offsets
 			entry_strategy: option.1,
 			transpile_ts: option.2,
 			transpile_jsx: option.2,
@@ -4327,6 +4327,108 @@ fn should_wrap_store_expression() {
 	});
 }
 
+#[test]
+fn should_not_wrap_var_template_string() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$ } from '@qwik.dev/core';
+		import { inlineTranslate } from 'translate-lib';
+
+		export default component$(() => {
+			const t = inlineTranslate();
+
+			const productTitle = useComputed$(() => {
+				return 'Test title';
+			});
+
+			return (
+				<img 
+					attr={t('home.imageAlt.founded-product:')}
+					alt={`${t('home.imageAlt.founded-product:')} ${productTitle.value}`} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_type_asserted_variables_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			return (
+				<div>
+					{(count as any).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_logical_expression_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const count2 = useSignal(0);
+			return (
+				<div>
+					{(count || count2).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_ternary_function_operator_with_fn() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+
+		export default component$(() => {
+		const toggle = useSignal(true);
+		const t = (key: string) => key;
+		return (
+			<button
+				type="button"
+				title={
+				toggle.value !== ''
+					? t('app.message.exists@@there is a message for you')
+					: t('app.message.not_exists@@click to get a message!')
+				}
+			></button>
+		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {
@@ -4359,7 +4461,6 @@ struct TestInput {
 	pub dev_path: Option<String>,
 	pub src_dir: String,
 	pub root_dir: Option<String>,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub entry_strategy: EntryStrategy,
 	pub minify: MinifyMode,
 	pub transpile_ts: bool,
@@ -4385,7 +4486,6 @@ impl TestInput {
 			src_dir: "/user/qwik/src/".to_string(),
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
-			manual_chunks: None,
 			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,
 			transpile_ts: false,

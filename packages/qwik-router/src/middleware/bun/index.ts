@@ -1,6 +1,4 @@
 /// <reference types="bun" />
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
@@ -10,6 +8,8 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
+  getNotFound,
+  isStaticPath,
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
@@ -19,10 +19,8 @@ import { MIME_TYPES } from '../request-handler/mime-types';
 /** @public */
 export function createQwikRouter(opts: QwikRouterBunOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
@@ -129,7 +127,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
     let filePath: string;
     if (fileName.includes('.')) {
       filePath = join(staticFolder, pathname);
-    } else if (opts.qwikRouterConfig!.trailingSlash) {
+    } else if (!globalThis.__NO_TRAILING_SLASH__) {
       filePath = join(staticFolder, pathname + 'index.html');
     } else {
       filePath = join(staticFolder, pathname, 'index.html');

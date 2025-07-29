@@ -1,6 +1,13 @@
-import type { RouteActionValue, SimpleURL } from './types';
+import type { SimpleURL } from './types';
 
-import { QACTION_KEY } from './constants';
+import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
+import {
+  _UNINITIALIZED,
+  type ClientContainer,
+  type SerializationStrategy,
+} from '@qwik.dev/core/internal';
+import { QACTION_KEY, QLOADER_KEY } from './constants';
+import { loadClientData } from './use-endpoint';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -31,11 +38,19 @@ export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
 export const getClientDataPath = (
   pathname: string,
   pageSearch?: string,
-  action?: RouteActionValue
+  options?: {
+    actionId?: string;
+    loaderIds?: string[];
+  }
 ) => {
   let search = pageSearch ?? '';
-  if (action) {
-    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(action.id);
+  if (options?.actionId) {
+    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(options.actionId);
+  }
+  if (options?.loaderIds) {
+    for (const loaderId of options.loaderIds) {
+      search += (search ? '&' : '?') + QLOADER_KEY + '=' + encodeURIComponent(loaderId);
+    }
   }
   return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
 };
@@ -58,16 +73,7 @@ export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL
   return null;
 };
 
-export const shouldPrefetchData = (clientNavPath: string | null, currentLoc: { url: URL }) => {
-  if (clientNavPath) {
-    const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
-    const currentUrl = toUrl('', currentLoc.url);
-    return !isSamePath(prefetchUrl, currentUrl);
-  }
-  return false;
-};
-
-export const shouldPrefetchSymbols = (clientNavPath: string | null, currentLoc: { url: URL }) => {
+export const shouldPreload = (clientNavPath: string | null, currentLoc: { url: URL }) => {
   if (clientNavPath) {
     const prefetchUrl = toUrl(clientNavPath, currentLoc.url);
     const currentUrl = toUrl('', currentLoc.url);
@@ -94,4 +100,28 @@ export const deepFreeze = (obj: any) => {
     }
   });
   return Object.freeze(obj);
+};
+
+export const createLoaderSignal = (
+  loadersObject: Record<string, unknown>,
+  loaderId: string,
+  url: URL,
+  serializationStrategy: SerializationStrategy,
+  container?: ClientContainer
+) => {
+  return createAsyncComputed$(
+    async () => {
+      if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
+        const data = await loadClientData(url, undefined, {
+          loaderIds: [loaderId],
+        });
+        loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
+      }
+      return loadersObject[loaderId];
+    },
+    {
+      container: container as ClientContainer,
+      serializationStrategy,
+    }
+  );
 };

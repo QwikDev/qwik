@@ -1,9 +1,9 @@
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
-import type { SubscriptionData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import type { Signal } from '../reactive-primitives/signal.public';
+import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import { createScheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
@@ -21,6 +21,7 @@ export abstract class _SharedContainer implements Container {
   $serverData$: Record<string, any>;
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
+  $buildBase$: string | null = null;
 
   constructor(
     scheduleDrain: () => void,
@@ -50,14 +51,13 @@ export abstract class _SharedContainer implements Container {
 
   serializationCtxFactory(
     NodeConstructor: {
-      new (...rest: any[]): { nodeType: number; id: string };
+      new (...rest: any[]): { __brand__: 'SsrNode' };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { $ssrNode$: ISsrNode };
+      new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter,
-    prepVNodeData?: (vNode: any) => void
+    writer?: StreamWriter
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
@@ -66,8 +66,7 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
-      writer,
-      prepVNodeData
+      writer
     );
   }
 

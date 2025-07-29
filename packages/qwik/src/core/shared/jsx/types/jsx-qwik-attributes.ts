@@ -1,10 +1,11 @@
 import type { QRL } from '../../qrl/qrl.public';
-import type { Signal } from '../../../signal/signal.public';
+import type { Signal } from '../../../reactive-primitives/signal.public';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,
   QwikInitEvent,
   QwikSymbolEvent,
+  QwikViewTransitionEvent,
   QwikVisibleEvent,
 } from './jsx-qwik-events';
 
@@ -113,6 +114,7 @@ type AllEventMapRaw = HTMLElementEventMap &
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
     qvisible: QwikVisibleEvent;
+    qviewtransition: QwikViewTransitionEvent;
   };
 
 /** This corrects the TS definition for ToggleEvent @public */

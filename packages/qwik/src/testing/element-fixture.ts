@@ -82,7 +82,7 @@ function isDocumentOrWindowEvent(eventName: string): boolean {
 export async function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventNameCamel: string,
+  eventName: string,
   eventPayload: any = {}
 ): Promise<void> {
   const elements =
@@ -93,10 +93,7 @@ export async function trigger(
     if (!element) {
       continue;
     }
-    const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const isDocumentOrWindow = isDocumentOrWindowEvent(kebabEventName);
 
-    let eventName = kebabEventName;
     let scope: QwikLoaderEventScope = '';
     if (eventName.startsWith(':')) {
       // :document:event or :window:event
@@ -111,9 +108,8 @@ export async function trigger(
       cancelable: true,
     });
     Object.assign(event, eventPayload);
-    const attrName = isDocumentOrWindow
-      ? `on-${kebabEventName.substring(1)}`
-      : `on:${kebabEventName}`;
+    const prefix = scope ? 'on' + scope + ':' : 'on:';
+    const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }
   await getTestPlatform().flush();
@@ -183,5 +179,8 @@ export async function advanceToNextTimerAndFlush() {
 }
 
 export function cleanupAttrs(innerHTML: string | undefined): any {
-  return innerHTML?.replaceAll(/ q:key="[^"]+"/g, '').replaceAll(/ :=""/g, '');
+  return innerHTML
+    ?.replaceAll(/ q:key="[^"]+"/g, '')
+    .replaceAll(/ :=""/g, '')
+    .replaceAll(/ on:\w+="[^"]+"/g, '');
 }

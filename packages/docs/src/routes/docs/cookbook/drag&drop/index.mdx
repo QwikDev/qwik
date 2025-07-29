@@ -23,7 +23,7 @@ you can use the `preventdefault:dragover` and `preventdefault:drop` attributes.
 
 <CodeFile src="/src/routes/demo/cookbook/drag&drop/basic">
 ```tsx
-import { component$, useSignal, sync$, $ } from '@builder.io/qwik';
+import { component$, useSignal, sync$, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const items1 = useSignal([
@@ -41,7 +41,7 @@ export default component$(() => {
   return (
     <div class="flex min-h-screen justify-center gap-8 bg-gray-50 p-8">
       <div
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
@@ -91,7 +91,7 @@ export default component$(() => {
       </div>
 
       <div
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
@@ -155,7 +155,7 @@ export default component$(() => {
 
 <CodeFile src="/src/routes/demo/cookbook/drag&drop/advanced">
 ```tsx
-import { component$, sync$, useSignal, $ } from '@builder.io/qwik';
+import { component$, sync$, useSignal, $ } from '@qwik.dev/core';
 
 type Item = {
   id: number;
@@ -179,7 +179,7 @@ export default component$(() => {
     <div class="flex min-h-screen justify-center gap-8 bg-gray-50 p-8">
       <div
         data-dropzone
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
@@ -257,7 +257,7 @@ export default component$(() => {
       </div>
 
       <div
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         data-dropzone
         preventdefault:dragover
         preventdefault:drop

@@ -13,12 +13,13 @@ export interface ClientContainer extends Container {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qBase: string;
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
   renderDone: Promise<void> | null;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
@@ -51,10 +52,6 @@ export interface QDocument extends Document {
    * This map is used to rebuild virtual nodes from the HTML. Missing extra text nodes, and Fragments.
    */
   qVNodeData: WeakMap<Element, string>;
-}
-
-export interface QNode extends Node {
-  qVNode?: VNode;
 }
 
 /**
@@ -99,8 +96,7 @@ export const enum VNodeFlags {
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11_111111,
-  negated_mask /* ****** */ = 0b11_111111,
+  mask /* ************** */ = 0b11_111111,
   shift /* ************* */ = 8,
 }
 

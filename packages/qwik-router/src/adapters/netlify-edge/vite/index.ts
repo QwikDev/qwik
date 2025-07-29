@@ -1,5 +1,5 @@
 import { basePathname } from '@qwik-router-config';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
@@ -131,4 +131,4 @@ export interface NetlifyEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /** @public */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

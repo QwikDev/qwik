@@ -3,30 +3,20 @@ import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  ComputedEvent,
-  QLocaleAttr,
-  RenderEvent,
-  ResourceEvent,
-  TaskEvent,
-} from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
-import { isArray } from '../shared/utils/types';
+import { isArray, isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ContainerElement } from '../client/types';
-import {
-  WrappedSignal,
-  type SubscriptionData,
-  type EffectSubscription,
-  type EffectSubscriptionProp,
-} from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { type ClientContainer, type ContainerElement } from '../client/types';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
-import { getSubscriber } from '../signal/subscriber';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 
 declare const document: QwikDocument;
 
@@ -37,24 +27,11 @@ export interface SimplifiedServerRequestEvent<T = unknown> {
   request: Request;
 }
 
-export interface StyleAppend {
-  styleId: string;
-  content: string | null;
-}
-
-// Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
-export interface ServerRequestEvent<T = unknown> {
-  url: URL;
-  locale: string | undefined;
-  request: Request;
-}
-
 export type PossibleEvents =
   | Event
   | SimplifiedServerRequestEvent
   | typeof TaskEvent
   | typeof RenderEvent
-  | typeof ComputedEvent
   | typeof ResourceEvent;
 
 export interface RenderInvokeContext extends InvokeContext {
@@ -88,7 +65,6 @@ export interface InvokeContext {
 
 let _context: InvokeContext | undefined;
 
-/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -111,6 +87,7 @@ export const getInvokeContext = (): InvokeContext => {
   return ctx;
 };
 
+/** @internal */
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {
@@ -163,25 +140,12 @@ export function invokeApply<FN extends (...args: any) => any>(
   return returnValue;
 }
 
-export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) => {
-  const waitOn = ctx.$waitOn$;
-  if (waitOn.length === 0) {
-    const result = callback();
-    if (isPromise(result)) {
-      waitOn.push(result);
-    }
-  } else {
-    waitOn.push(Promise.all(waitOn).then(callback));
-  }
-};
-
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);
-  const container = domContainer.element;
-  const vNode = container ? vnode_locate(domContainer.rootVNode, element) : undefined;
-  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  const hostElement = vnode_locate(domContainer.rootVNode, element);
+  const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, vNode, element, event, url);
+  return newInvokeContext(locale, hostElement, element, event, url);
 };
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
@@ -194,7 +158,7 @@ export const newInvokeContext = (
 ): InvokeContext => {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
-    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
+    locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -261,7 +225,7 @@ export const trackSignalAndAssignHost = (
   container: Container,
   data?: SubscriptionData
 ) => {
-  if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
+  if (value instanceof WrappedSignalImpl && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;
   }
   return trackSignal(() => value.value, host, property, container, data);
@@ -294,6 +258,14 @@ export const _getContextEvent = (): unknown => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
     return iCtx.$event$;
+  }
+};
+
+/** @internal */
+export const _getContextContainer = (): ClientContainer | undefined => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$container$ as ClientContainer;
   }
 };
 

@@ -3,6 +3,7 @@ import {
   Fragment,
   Fragment as Signal,
   component$,
+  isServer,
   useSignal,
   useStore,
   useTask$,
@@ -12,7 +13,7 @@ import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/c
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
-import { WrappedSignal } from '../signal/signal';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -180,7 +181,7 @@ describe.each([
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });
-        const count = new WrappedSignal(
+        const count = new WrappedSignalImpl(
           null,
           (o: any, prop: string) => o[prop],
           [countRaw, 'count'],
@@ -217,6 +218,33 @@ describe.each([
         useTask$(({ track }) => {
           const count = track(store, 'count');
           store.double = 2 * count;
+        });
+        return <button onClick$={() => store.count++}>{store.double}</button>;
+      });
+
+      const { vNode, document } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>2</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>4</Signal>
+          </button>
+        </Component>
+      );
+    });
+    it('should track store', async () => {
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0 });
+        useTask$(({ track }) => {
+          const storeCounter = track(store);
+          store.double = 2 * storeCounter.count;
         });
         return <button onClick$={() => store.count++}>{store.double}</button>;
       });
@@ -782,5 +810,45 @@ describe.each([
     });
     const { vNode } = await render(<Cmp />, { debug });
     expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
+  });
+
+  it('catch the ', async () => {
+    const error = new Error('HANDLE ME');
+    const Cmp = component$(() => {
+      useTask$(() => {
+        if (isServer) {
+          document.body;
+        }
+      });
+
+      return <div>1</div>;
+    });
+    const Cmp1 = component$(() => {
+      useTask$(() => {
+        throw error;
+      });
+
+      return <div>1</div>;
+    });
+    try {
+      await render(
+        <ErrorProvider>
+          <Cmp />
+        </ErrorProvider>,
+        { debug }
+      );
+    } catch (e: unknown) {
+      expect((e as Error).message).toBeTruthy;
+    }
+    try {
+      await render(
+        <ErrorProvider>
+          <Cmp1 />
+        </ErrorProvider>,
+        { debug }
+      );
+    } catch (error) {
+      expect((error as Error).message).toBe('HANDLE ME');
+    }
   });
 });

@@ -12,7 +12,6 @@
     "outDir": "./dist-dev/tsc-out",
     "declarationDir": "./dist-dev/dts-out",
     "strict": true,
-    "verbatimModuleSyntax": true,
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true,
@@ -23,13 +22,7 @@
       "@qwik-router-sw-register-build": [
         "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"],
-      "@qwik-router-not-found-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/not-found-paths.ts"
-      ],
-      "@qwik-router-static-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/static-paths.ts"
-      ]
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
     },
     "types": ["node", "vite/client"],
     "esModuleInterop": true,
@@ -49,6 +42,7 @@
     "starters/apps/todo-test",
     "starters/apps/e2e",
     "starters/apps/qwikrouter-test/**/*",
+    "starters/apps/qwikrouter-test.prod/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",

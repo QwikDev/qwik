@@ -1,24 +1,24 @@
+import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
 import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
-import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
 import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
 import { Task, TaskFlags, cleanupTask, type DescriptorBase, type Tracker } from './use-task';
 
 import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { delay, isPromise, safeCall } from '../shared/utils/promises';
-import { isFunction, isObject } from '../shared/utils/types';
-import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
-import { useSequentialScope } from './use-sequential-scope';
-import { EffectProperty, isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import { clearAllEffects } from '../signal/signal-cleanup';
-import { ResourceEvent } from '../shared/utils/markers';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/impl/store';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { StoreFlags } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
 import { assertDefined } from '../shared/error/assert';
-import { noSerialize } from '../shared/utils/serialize-utils';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { ChoreType } from '../shared/util-chore-type';
-import { getSubscriber } from '../signal/subscriber';
+import { ResourceEvent } from '../shared/utils/markers';
+import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
+import { isObject } from '../shared/utils/types';
+import { useSequentialScope } from './use-sequential-scope';
+import { cleanupFn, trackFn } from './utils/tracker';
 
 const DEBUG: boolean = false;
 
@@ -185,7 +185,7 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource) && resource.value) {
+  if (isResourceReturn(resource)) {
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
       // create a subscription for the resource._state changes
@@ -204,25 +204,27 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    return resource.value.then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = resource.value;
+    if (value) {
+      return value.then(
+        useBindInvokeContext(props.onResolved),
+        useBindInvokeContext(props.onRejected)
+      );
+    } else {
+      // this is temporary value until the `runResource` is executed and promise is assigned to the value
+      return Promise.resolve(undefined);
+    }
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
     );
   } else if (isSignal(resource)) {
-    return Promise.resolve(resource.value).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = retryOnPromise(() => resource.value);
+    const promise = isPromise(value) ? value : Promise.resolve(value);
+    return promise.then(useBindInvokeContext(props.onResolved));
   } else {
-    return Promise.resolve(resource as T).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    return Promise.resolve(resource as T).then(useBindInvokeContext(props.onResolved));
   }
 }
 
@@ -249,10 +251,6 @@ export const createResourceReturn = <T>(
   result.value = initialPromise as Promise<T>;
 
   return createStore(container, result, StoreFlags.RECURSIVE);
-};
-
-export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getStoreTarget(resource) as any;
 };
 
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
@@ -282,46 +280,15 @@ export const runResource = <T>(
     task
   );
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = getSubscriber(task, EffectProperty.COMPONENT);
-    ctx.$container$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else {
-        return obj;
-      }
-    });
-  };
-
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => {
-      try {
-        fn();
-      } catch (err) {
-        handleError(err);
-      }
-    });
-    done = true;
-  });
+  const track = trackFn(task, container);
+  const [cleanup, cleanups] = cleanupFn(task, (reason: unknown) =>
+    container.handleError(reason, host)
+  );
 
   const resourceTarget = unwrapStore(resource);
   const opts: ResourceCtx<T> = {
     track,
-    cleanup(fn) {
-      if (typeof fn === 'function') {
-        cleanups.push(fn);
-      }
-    },
+    cleanup,
     cache(policy) {
       let milliseconds = 0;
       if (policy === 'immutable') {

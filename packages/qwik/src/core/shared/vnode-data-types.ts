@@ -61,8 +61,8 @@ export const VNodeDataChar = {
   ID_CHAR: /* ********* */ '=',
   PROPS: /* ************** */ 62, // `>` - `q:props' - Component Props
   PROPS_CHAR: /* ****** */ '>',
-  SLOT_REF: /* *********** */ 63, // `?` - `q:sref` - Slot reference.
-  SLOT_REF_CHAR: /* *** */ '?',
+  SLOT_PARENT: /* ******** */ 63, // `?` - `q:sparent` - Slot parent.
+  SLOT_PARENT_CHAR: /*  */ '?',
   KEY: /* **************** */ 64, // `@` - `q:key` - Element key.
   KEY_CHAR: /* ******** */ '@',
   SEQ: /* **************** */ 91, // `[` - `q:seq' - Seq value from `useSequentialScope()`

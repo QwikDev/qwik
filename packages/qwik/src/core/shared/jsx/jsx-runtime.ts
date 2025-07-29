@@ -8,7 +8,8 @@ import { logOnceWarn, logWarn } from '../utils/log';
 import { ELEMENT_ID, OnRenderProp, QScopedStyle, QSlot, QSlotS } from '../utils/markers';
 import { qDev, seal } from '../utils/qdev';
 import { isArray, isObject, isString } from '../utils/types';
-import { WrappedSignal } from '../../signal/signal';
+import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
+import { WrappedSignalFlags } from '../../reactive-primitives/types';
 import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
@@ -197,8 +198,6 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
   return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 
-export const SKIP_RENDER_TYPE = ':skipRender';
-
 export const isPropsProxy = (obj: any): obj is PropsProxy => {
   return obj && obj[_VAR_PROPS] !== undefined;
 };
@@ -317,19 +316,6 @@ export const jsxDEV = <T extends string | FunctionComponent<Props>>(
 
 export type { QwikJSX as JSX };
 
-export const createJSXError = (message: string, node: JSXNodeInternal) => {
-  const error = new Error(message);
-  if (!node.dev) {
-    return error;
-  }
-  error.stack = `JSXError: ${message}\n${filterStack(node.dev.stack!, 1)}`;
-  return error;
-};
-
-const filterStack = (stack: string, offset: number = 0) => {
-  return stack.split('\n').slice(offset).join('\n');
-};
-
 export function createPropsProxy(
   varProps: Props,
   constProps: Props | null,
@@ -360,7 +346,9 @@ class PropsProxyHandler implements ProxyHandler<any> {
         ? this.$constProps$[prop as string]
         : this.$varProps$[prop as string];
     // a proxied value that the optimizer made
-    return value instanceof WrappedSignal ? value.value : value;
+    return value instanceof WrappedSignalImpl && value.$flags$ & WrappedSignalFlags.UNWRAP
+      ? value.value
+      : value;
   }
   set(_: any, prop: string | symbol, value: any) {
     if (prop === _CONST_PROPS) {
@@ -400,7 +388,7 @@ class PropsProxyHandler implements ProxyHandler<any> {
       (this.$constProps$ ? prop in this.$constProps$ : false);
     return hasProp;
   }
-  getOwnPropertyDescriptor(target: any, p: string | symbol): PropertyDescriptor | undefined {
+  getOwnPropertyDescriptor(_: any, p: string | symbol): PropertyDescriptor | undefined {
     const value =
       p === 'children' && this.$children$ != null
         ? this.$children$

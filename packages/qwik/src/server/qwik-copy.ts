@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-restricted-imports */
 /**
  * @file
  *
@@ -13,7 +12,12 @@
  *   lists code which we are OK to have duplicated.
  */
 
-export { mapApp_remove, mapArray_get, mapArray_set } from '../core/client/util-mapArray';
+export {
+  mapApp_remove,
+  mapArray_get,
+  mapArray_set,
+  mapArray_has,
+} from '../core/client/util-mapArray';
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
 export { ChoreType } from '../core/shared/util-chore-type';
@@ -41,7 +45,6 @@ export {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QTemplate,
   QVersionAttr,
@@ -58,4 +61,5 @@ export {
 } from '../core/shared/utils/scoped-styles';
 export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
-export { getValidManifest } from '../optimizer/src/manifest';
+export { getQueue, preload, resetQueue } from '../core/preloader/queue';
+export { initPreloader } from '../core/preloader/bundle-graph';

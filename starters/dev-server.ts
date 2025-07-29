@@ -19,7 +19,6 @@ import {
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build, type InlineConfig, type PluginOption } from "vite";
-import { getErrorHtml } from "../packages/qwik-router/src/middleware/request-handler/error-handler";
 import type { PackageJSON } from "../scripts/util";
 
 const isWindows = process.platform === "win32";
@@ -51,8 +50,6 @@ const qwikRouterMjs = join(packagesDir, "qwik-router", "lib", "index.qwik.mjs");
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = "@router-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
-const qwikRouterNotFoundPaths = "@qwik-router-not-found-paths";
-const qwikRouterStaticPaths = "@qwik-router-static-paths";
 
 Error.stackTraceLimit = 1000;
 
@@ -136,18 +133,13 @@ async function buildApp(
         if (id.endsWith(qwikRouterVirtualEntry)) {
           return qwikRouterVirtualEntry;
         }
-        if (id === qwikRouterStaticPaths || id === qwikRouterNotFoundPaths) {
-          return "./" + id;
-        }
       },
       load(id) {
         if (id.endsWith(qwikRouterVirtualEntry)) {
           return `import { createQwikRouter } from '@qwik.dev/router/middleware/node';
-import qwikRouterConfig from '@qwik-router-config';
 import render from '${escapeChars(resolve(appSrcDir, "entry.ssr"))}';
 const { router, notFound } = createQwikRouter({
   render,
-  qwikRouterConfig,
   base: '${basePath}build/',
 });
 export {
@@ -156,18 +148,13 @@ export {
 }
 `;
         }
-        if (id.endsWith(qwikRouterStaticPaths)) {
-          return `export function isStaticPath(method, url){ return false; };`;
-        }
-        if (id.endsWith(qwikRouterNotFoundPaths)) {
-          const notFoundHtml = getErrorHtml(404, "Resource Not Found");
-          return `export function getNotFound(){ return ${JSON.stringify(
-            notFoundHtml,
-          )}; };`;
-        }
       },
     });
     const qwikRouterVite = await import("@qwik.dev/router/vite");
+    // TODO when you add this, vite-imagetools images no longer become assets!!! (they still get emitted, but don't show up in the build)
+    // const qwikRouterSsg = await import(
+    //   "@qwik.dev/router/adapters/node-server/vite"
+    // );
 
     plugins.push(
       qwikRouterVite.qwikRouter({
@@ -179,6 +166,9 @@ export {
           },
         ],
       }) as PluginOption,
+      // qwikRouterSsg.nodeServerAdapter({
+      //   ssg: null,
+      // }) as PluginOption,
     );
   }
 
@@ -210,7 +200,7 @@ export {
         optimizer.qwikVite({
           /**
            * normally qwik finds qwik-router via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik router imports
+           * because it causes it to try to lookup the special qwik router imports
            * even when we're not actually importing qwik-router
            */
           disableVendorScan: true,
@@ -223,7 +213,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
     }),
@@ -240,7 +230,10 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
+          ssr: {
+            manifestInput: clientManifest,
+          },
         }),
       ],
       define: {
@@ -266,7 +259,7 @@ function removeDir(dir: string) {
       }
     });
     rmSync(dir);
-  } catch (e) {
+  } catch {
     /**/
   }
 }
@@ -351,7 +344,7 @@ async function main() {
     startersDir,
     "..",
     "node_modules",
-    "@builder.io",
+    "@qwik.dev",
     "partytown",
     "lib",
   );

@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-alpha.6",
+  "version": "2.0.0-beta.6",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3",
@@ -11,17 +11,16 @@
     "undici": "*",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.2",
-    "vite": "^5",
-    "vite-imagetools": "^7",
+    "vite-imagetools": "^7.1.0",
     "zod": "3.22.4"
   },
   "devDependencies": {
     "@azure/functions": "3.5.1",
-    "@microsoft/api-extractor": "7.43.1",
+    "@microsoft/api-extractor": "7.52.4",
     "@netlify/edge-functions": "2.10.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "20.14.11",
+    "@types/node": "24.0.4",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
     "estree-util-value-to-estree": "3.1.2",
@@ -37,7 +36,7 @@
     "remark-gfm": "4.0.0",
     "set-cookie-parser": "2.6.0",
     "tsm": "2.3.0",
-    "typescript": "5.4.5",
+    "typescript": "5.8.3",
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
@@ -93,9 +92,14 @@
       "require": "./lib/adapters/shared/vite/index.cjs"
     },
     "./adapters/static/vite": {
-      "types": "./lib/adapters/static/vite/index.d.ts",
-      "import": "./lib/adapters/static/vite/index.mjs",
-      "require": "./lib/adapters/static/vite/index.cjs"
+      "types": "./lib/adapters/ssg/vite/index.d.ts",
+      "import": "./lib/adapters/ssg/vite/index.mjs",
+      "require": "./lib/adapters/ssg/vite/index.cjs"
+    },
+    "./adapters/ssg/vite": {
+      "types": "./lib/adapters/ssg/vite/index.d.ts",
+      "import": "./lib/adapters/ssg/vite/index.mjs",
+      "require": "./lib/adapters/ssg/vite/index.cjs"
     },
     "./adapters/vercel-edge/vite": {
       "types": "./lib/adapters/vercel-edge/vite/index.d.ts",
@@ -145,9 +149,14 @@
       "import": "./lib/middleware/vercel-edge/index.mjs"
     },
     "./static": {
-      "types": "./lib/static/index.d.ts",
-      "import": "./lib/static/index.mjs",
-      "require": "./lib/static/index.cjs"
+      "types": "./lib/ssg/index.d.ts",
+      "import": "./lib/ssg/index.mjs",
+      "require": "./lib/ssg/index.cjs"
+    },
+    "./ssg": {
+      "types": "./lib/ssg/index.d.ts",
+      "import": "./lib/ssg/index.mjs",
+      "require": "./lib/ssg/index.cjs"
     },
     "./vite": {
       "types": "./lib/vite/index.d.ts",
@@ -155,7 +164,7 @@
       "require": "./lib/vite/index.cjs"
     },
     "./service-worker": {
-      "types": "./lib/service-worker.d.ts",
+      "types": "./service-worker.d.ts",
       "import": "./lib/service-worker.mjs",
       "require": "./lib/service-worker.cjs"
     },
@@ -170,13 +179,14 @@
     "README.md",
     "service-worker.d.ts",
     "static.d.ts",
+    "ssg.d.ts",
     "vite.d.ts"
   ],
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": "^5"
+    "vite": ">=5 <8"
   },
   "publishConfig": {
     "access": "public"

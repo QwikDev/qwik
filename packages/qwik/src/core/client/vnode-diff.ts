@@ -9,6 +9,7 @@ import {
   directGetPropsProxyProp,
   isJSXNode,
   type Props,
+  type PropsProxy,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -26,7 +27,6 @@ import {
   QDefaultSlot,
   QSlot,
   QSlotParent,
-  QStyle,
   QBackRefs,
   QTemplate,
   Q_PREFIX,
@@ -35,11 +35,11 @@ import {
 import { isPromise } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  getEventNameScopeFromJsxProp,
+  getEventNameFromJsxEvent,
+  getEventNameScopeFromJsxEvent,
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
+  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { ChoreType } from '../shared/util-chore-type';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
@@ -47,6 +47,7 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
 import {
+  ElementVNodeProps,
   VNodeFlags,
   VNodeProps,
   type ClientAttrKey,
@@ -59,7 +60,6 @@ import {
 } from './types';
 import {
   vnode_ensureElementInflated,
-  vnode_getAttr,
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
@@ -73,6 +73,7 @@ import {
   vnode_getType,
   vnode_insertBefore,
   vnode_isElementVNode,
+  vnode_isProjection,
   vnode_isTextVNode,
   vnode_isVNode,
   vnode_isVirtualVNode,
@@ -90,18 +91,20 @@ import {
 } from './vnode';
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
-import { getNewElementNamespaceData } from './vnode-namespace';
-import { WrappedSignal, EffectProperty, isSignal, SubscriptionData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
+import { isSignal } from '../reactive-primitives/utils';
+import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
-import { isParentSlotProp, isSlotProp } from '../shared/utils/prop';
+import { isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects } from '../signal/signal-cleanup';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-
-export type ComponentQueue = Array<VNode>;
+import { EffectProperty } from '../reactive-primitives/types';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -139,8 +142,8 @@ export const vnode_diff = (
   /// When elements have keys they can be consumed out of order and therefore we can't use nextSibling.
   /// In such a case this array will contain the elements after the current location.
   /// The array even indices will contains keys and odd indices the vNode.
-  let vSiblings: Array<string | null | VNode> | null = null; // See: `SiblingsArray`
-  let vSiblingsIdx = -1;
+  let vSiblings: Map<string, VNode> | null = null;
+  let vSiblingsArray: Array<string | VNode | null> | null = null;
 
   /// Current set of JSX children.
   let jsxChildren: JSXChildren[] = null!;
@@ -281,16 +284,9 @@ export const vnode_diff = (
    * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
    */
   function peekNextSibling() {
-    if (vSiblings !== null) {
-      // We came across a key, and we moved nodes around. This means we can no longer use
-      // `vnode_getNextSibling` to look at next node and instead we have to go by `vSiblings`.
-      const idx = vSiblingsIdx + SiblingsArray.NextVNode;
-      return idx < vSiblings.length ? (vSiblings[idx] as any) : null;
-    } else {
-      // If we don't have a `vNewNode`, than that means we just reconciled the current node.
-      // So advance it.
-      return vCurrent ? vnode_getNextSibling(vCurrent) : null;
-    }
+    // If we don't have a `vNewNode`, than that means we just reconciled the current node.
+    // So advance it.
+    return vCurrent ? vnode_getNextSibling(vCurrent) : null;
   }
 
   /**
@@ -302,9 +298,6 @@ export const vnode_diff = (
    */
   function advanceToNextSibling() {
     vCurrent = peekNextSibling();
-    if (vSiblings !== null) {
-      vSiblingsIdx += SiblingsArray.Size; // advance;
-    }
   }
 
   /**
@@ -335,7 +328,7 @@ export const vnode_diff = (
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
       vSiblings = null;
-      vSiblingsIdx = -1;
+      vSiblingsArray = null;
       vParent = vNewNode || vCurrent!;
       vCurrent = vnode_getFirstChild(vParent);
       vNewNode = null;
@@ -346,8 +339,8 @@ export const vnode_diff = (
   function ascend() {
     const descendVNode = stack.pop(); // boolean: descendVNode
     if (descendVNode) {
-      vSiblingsIdx = stack.pop();
       vSiblings = stack.pop();
+      vSiblingsArray = stack.pop();
       vNewNode = stack.pop();
       vCurrent = stack.pop();
       vParent = stack.pop();
@@ -362,7 +355,7 @@ export const vnode_diff = (
   function stackPush(children: JSXChildren, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
-      stack.push(vParent, vCurrent, vNewNode, vSiblings, vSiblingsIdx);
+      stack.push(vParent, vCurrent, vNewNode, vSiblingsArray, vSiblings);
     }
     stack.push(descendVNode);
     if (Array.isArray(children)) {
@@ -387,9 +380,6 @@ export const vnode_diff = (
   function getInsertBefore() {
     if (vNewNode) {
       return vCurrent;
-    } else if (vSiblings !== null) {
-      const nextIdx = vSiblingsIdx + SiblingsArray.NextVNode;
-      return nextIdx < vSiblings.length ? (vSiblings[nextIdx] as VNode) : null;
     } else {
       return peekNextSibling();
     }
@@ -458,6 +448,8 @@ export const vnode_diff = (
       slotName,
       (id) => vnode_locate(container.rootVNode, id)
     );
+    // if projection is marked as deleted then we need to create a new one
+    vCurrent = vCurrent && vCurrent[VNodeProps.flags] & VNodeFlags.Deleted ? null : vCurrent;
     if (vCurrent == null) {
       vNewNode = vnode_newVirtual();
       // you may be tempted to add the projection into the current parent, but
@@ -525,7 +517,7 @@ export const vnode_diff = (
     const constProps = jsxNode.constProps;
     if (constProps && typeof constProps == 'object' && 'name' in constProps) {
       const constValue = constProps.name;
-      if (vHost && constValue instanceof WrappedSignal) {
+      if (vHost && constValue instanceof WrappedSignalImpl) {
         return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
       }
     }
@@ -566,8 +558,8 @@ export const vnode_diff = (
       while (vCurrent) {
         const toRemove = vCurrent;
         advanceToNextSibling();
-        cleanup(container, toRemove);
         if (vParent === vnode_getParent(toRemove)) {
+          cleanup(container, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
           vnode_remove(journal, vParent as ElementVNode | VirtualVNode, toRemove, true);
@@ -609,8 +601,8 @@ export const vnode_diff = (
         if (isJsxPropertyAnEventName(key)) {
           // So for event handlers we must add them to the vNode so that qwikloader can look them up
           // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxProp(key);
-          const scope = getEventNameScopeFromJsxProp(key);
+          const eventName = getEventNameFromJsxEvent(key);
+          const scope = getEventNameScopeFromJsxEvent(key);
           if (eventName) {
             vnode_setProp(
               vNewNode as ElementVNode,
@@ -624,7 +616,7 @@ export const vnode_diff = (
             // add an event attr with empty value for qwikloader element selector.
             // We don't need value here. For ssr this value is a QRL,
             // but for CSR value should be just empty
-            const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+            const htmlEvent = jsxEventToHtmlAttribute(key);
             if (htmlEvent) {
               vnode_setAttr(journal, vNewNode as ElementVNode, htmlEvent, '');
             }
@@ -681,6 +673,14 @@ export const vnode_diff = (
 
         value = serializeAttribute(key, value, scopedStyleIdPrefix);
         if (value != null) {
+          if (vNewNode![VNodeProps.flags] & VNodeFlags.NS_svg) {
+            // only svg elements can have namespace attributes
+            const namespace = getAttributeNamespace(key);
+            if (namespace) {
+              element.setAttributeNS(namespace, key, String(value));
+              continue;
+            }
+          }
           element.setAttribute(key, String(value));
         }
       }
@@ -737,10 +737,6 @@ export const vnode_diff = (
         vCurrent = vNewNode;
         // We need to clean up the vNewNode, because we don't want to skip advance to next sibling (see `advance` function).
         vNewNode = null;
-        // We need also to go back to the previous sibling, because we assigned previous sibling to the vCurrent.
-        if (vSiblings !== null) {
-          vSiblingsIdx -= SiblingsArray.Size;
-        }
       }
     }
     // reconcile attributes
@@ -757,11 +753,14 @@ export const vnode_diff = (
       mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
+
+    const element = vNode[ElementVNodeProps.element] as QElement;
+    element.vNode = new WeakRef(vNode);
+
     needsQDispatchEventPatch =
       setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
-      const element = vnode_getNode(vNode) as QElement;
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
           const eventName = event.type;
@@ -788,7 +787,7 @@ export const vnode_diff = (
     }
   }
 
-  /** @param tag Returns true if `qDispatchEvent` needs patching */
+  /** @returns True if `qDispatchEvent` needs patching */
   function setBulkProps(
     vnode: ElementVNode,
     srcAttrs: ClientAttrs,
@@ -818,9 +817,9 @@ export const vnode_diff = (
         } else if (typeof value === 'function') {
           value(element);
           return;
-        } else if (value == null) {
-          return;
-        } else {
+        }
+        // handling null value is not needed here, because we are filtering null values earlier
+        else {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
       }
@@ -833,7 +832,12 @@ export const vnode_diff = (
         value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
       }
 
-      vnode_setAttr(journal, vnode, key, serializeAttribute(key, value, scopedStyleIdPrefix));
+      vnode_setAttr(
+        journal,
+        vnode,
+        key,
+        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null
+      );
       if (value === null) {
         // if we set `null` than attribute was removed and we need to shorten the dstLength
         dstLength = dstAttrs.length;
@@ -841,8 +845,8 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxProp(key);
-      const scope = getEventNameScopeFromJsxProp(key);
+      const eventName = getEventNameFromJsxEvent(key);
+      const scope = getEventNameScopeFromJsxEvent(key);
       if (eventName) {
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
@@ -853,7 +857,7 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = convertEventNameFromJsxPropToHtmlAttr(key);
+        const htmlEvent = jsxEventToHtmlAttribute(key);
         if (htmlEvent) {
           record(htmlEvent, '');
         }
@@ -869,7 +873,6 @@ export const vnode_diff = (
       } else if (srcKey == null) {
         // Source has more keys, so we need to remove them from destination
         if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
-          patchEventDispatch = true;
           dstIdx++;
         } else {
           record(dstKey!, null);
@@ -916,6 +919,7 @@ export const vnode_diff = (
         // we need to increment dstIdx too, because we added destination key and value to the VNode
         // and dstAttrs is a reference to the VNode
         dstIdx++;
+        dstLength = dstAttrs.length;
         dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
       } else {
         // Source is missing the key, so we need to remove it from destination.
@@ -940,38 +944,26 @@ export const vnode_diff = (
   }
 
   /**
-   * Retrieve the child with the given key.
+   * This function is used to retrieve the child with the given key. If the child is not found, it
+   * will return null.
    *
-   * By retrieving the child with the given key we are effectively removing it from the list of
-   * future elements. This means that we can't just use `vnode_getNextSibling` to find the next
-   * instead we have to keep track of the elements we have already seen.
+   * After finding the first child with the given key we will create a map of all the keyed siblings
+   * and an array of non-keyed siblings. This is done to optimize the search for the next child with
+   * the specified key.
    *
-   * We call this materializing the elements.
-   *
-   * `vSiblingsIdx`:
-   *
-   * - -1: Not materialized
-   * - Positive number - the index of the next element in the `vSiblings` array.
-   *
-   * By retrieving the child with the given key we are effectively removing it from the list (hence
-   * we need to splice the `vSiblings` array).
-   *
-   * @param key
-   * @returns Array where: (see: `SiblingsArray`)
-   *
-   *   - Idx%3 == 0 nodeName
-   *   - Idx%3 == 1 key
-   *   - Idx%3 == 2 vNode
+   * @param nodeName - The name of the node.
+   * @param key - The key of the node.
+   * @returns The child with the given key or null if not found.
    */
   function retrieveChildWithKey(
     nodeName: string | null,
     key: string | null
   ): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
-    if (vSiblingsIdx === -1) {
+    if (vSiblings === null) {
       // it is not materialized; so materialize it.
-      vSiblings = [];
-      vSiblingsIdx = 0;
+      vSiblings = new Map<string, VNode>();
+      vSiblingsArray = [];
       let vNode = vCurrent;
       while (vNode) {
         const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
@@ -979,20 +971,29 @@ export const vnode_diff = (
         if (vNodeWithKey === null && vKey == key && name == nodeName) {
           vNodeWithKey = vNode as ElementVNode | VirtualVNode;
         } else {
-          // we only add the elements which we did not find yet.
-          vSiblings.push(name, vKey, vNode);
+          if (vKey === null) {
+            vSiblingsArray.push(name, vNode);
+          } else {
+            // we only add the elements which we did not find yet.
+            vSiblings.set(name + ':' + vKey, vNode);
+          }
         }
         vNode = vnode_getNextSibling(vNode);
       }
     } else {
-      for (let idx = vSiblingsIdx; idx < vSiblings!.length; idx += SiblingsArray.Size) {
-        const name = vSiblings![idx + SiblingsArray.Name];
-        const vKey = vSiblings![idx + SiblingsArray.Key];
-        if (vKey === key && name === nodeName) {
-          vNodeWithKey = vSiblings![idx + SiblingsArray.VNode] as any;
-          // remove the node from the siblings array
-          vSiblings?.splice(idx, SiblingsArray.Size);
-          break;
+      if (key === null) {
+        for (let i = 0; i < vSiblingsArray!.length; i += 2) {
+          if (vSiblingsArray![i] === nodeName) {
+            vNodeWithKey = vSiblingsArray![i + 1] as ElementVNode | VirtualVNode;
+            vSiblingsArray!.splice(i, 2);
+            break;
+          }
+        }
+      } else {
+        const vSibling = vSiblings.get(nodeName + ':' + key);
+        if (vSibling) {
+          vNodeWithKey = vSibling as ElementVNode | VirtualVNode;
+          vSiblings.delete(nodeName + ':' + key);
         }
       }
     }
@@ -1000,7 +1001,13 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey) {
+    const checkKey = type === VirtualType.Fragment;
+    if (
+      vCurrent &&
+      vnode_isVirtualVNode(vCurrent) &&
+      getKey(vCurrent) === jsxKey &&
+      (checkKey ? !!jsxKey : true)
+    ) {
       // All is good.
       return;
     } else if (jsxKey !== null) {
@@ -1056,28 +1063,46 @@ export const vnode_diff = (
         } else {
           // We did not find the component, create it.
           insertNewComponent(host, componentQRL, jsxProps);
-        }
-        host = vNewNode as VirtualVNode;
-        shouldRender = true;
-      } else if (!hashesAreEqual) {
-        insertNewComponent(host, componentQRL, jsxProps);
-        if (vNewNode) {
-          host = vNewNode as VirtualVNode;
           shouldRender = true;
         }
+        host = vNewNode as VirtualVNode;
+      } else if (!hashesAreEqual || !jsxNode.key) {
+        insertNewComponent(host, componentQRL, jsxProps);
+        host = vNewNode as VirtualVNode;
+        shouldRender = true;
       }
 
       if (host) {
-        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        let vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        const propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
+        shouldRender = shouldRender || propsAreDifferent;
         if (shouldRender) {
+          if (propsAreDifferent) {
+            if (vNodeProps) {
+              // Reuse the same props instance, qrls can use the current props instance
+              // as a capture ref, so we can't change it.
+              // We need to do this directly, because normally we would subscribe to the signals
+              // if any signal is there.
+              vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
+              vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
+            } else if (jsxProps) {
+              // If there is no props instance, create a new one.
+              // We can do this because we are not using the props instance for anything else.
+              vnode_setProp(host, ELEMENT_PROPS, jsxProps);
+              vNodeProps = jsxProps;
+            }
+          }
+          // Assign the new QRL instance to the host.
+          // Unfortunately it is created every time, something to fix in the optimizer.
+          vnode_setProp(host, OnRenderProp, componentQRL);
+
           /**
            * Mark host as not deleted. The host could have been marked as deleted if it there was a
            * cleanup run. Now we found it and want to reuse it, so we need to mark it as not
            * deleted.
            */
           host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1085,6 +1110,7 @@ export const vnode_diff = (
       const lookupKey = jsxNode.key;
       const vNodeLookupKey = getKey(host);
       const lookupKeysAreEqual = lookupKey === vNodeLookupKey;
+      const vNodeComponentHash = getComponentHash(host, container.$getObjectById$);
 
       if (!lookupKeysAreEqual) {
         // See if we already have this inline component later on.
@@ -1096,6 +1122,11 @@ export const vnode_diff = (
           // We did not find the inline component, create it.
           insertNewInlineComponent();
         }
+        host = vNewNode as VirtualVNode;
+      }
+      // inline components don't have component hash - q:renderFn prop, so it should be null
+      else if (vNodeComponentHash != null) {
+        insertNewInlineComponent();
         host = vNewNode as VirtualVNode;
       }
 
@@ -1180,14 +1211,6 @@ export const vnode_diff = (
   }
 };
 
-export const isQStyleVNode = (vNode: VNode): boolean => {
-  return (
-    vnode_isElementVNode(vNode) &&
-    vnode_getElementName(vNode) === 'style' &&
-    vnode_getAttr(vNode, QStyle) !== null
-  );
-};
-
 /**
  * Retrieve the key from the VNode.
  *
@@ -1244,7 +1267,12 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
 function Projection() {}
 
 function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolean {
-  if (!src || !dst) {
+  const srcEmpty = isPropsEmpty(src);
+  const dstEmpty = isPropsEmpty(dst);
+  if (srcEmpty && dstEmpty) {
+    return false;
+  }
+  if (srcEmpty || dstEmpty) {
     return true;
   }
   let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
@@ -1262,6 +1290,13 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
+}
+
+function isPropsEmpty(props: Record<string, any>): boolean {
+  if (!props) {
+    return true;
+  }
+  return Object.keys(props).length === 0;
 }
 
 function removePropsKeys(keys: string[], propKeys: string[]): string[] {
@@ -1290,6 +1325,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
+    markVNodeAsDeleted(vCursor);
     // Text nodes don't have subscriptions or children;
     return;
   }
@@ -1326,7 +1362,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         const attrs = vnode_getProps(vCursor);
         for (let i = 0; i < attrs.length; i = i + 2) {
           const key = attrs[i] as string;
-          if (!isParentSlotProp(key) && isSlotProp(key)) {
+          if (isSlotProp(key)) {
             const value = attrs[i + 1];
             if (value) {
               attrs[i + 1] = null; // prevent infinite loop
@@ -1346,8 +1382,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         }
       }
 
-      const isProjection =
-        type & VNodeFlags.Virtual && vnode_getProp(vCursor as VirtualVNode, QSlot, null) !== null;
+      const isProjection = vnode_isProjection(vCursor);
       // Descend into children
       if (!isProjection) {
         // Only if it is not a projection
@@ -1368,6 +1403,8 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
           return;
         }
       }
+    } else if (type & VNodeFlags.Text) {
+      markVNodeAsDeleted(vCursor);
     }
     // Out of children
     if (vCursor === vNode) {
@@ -1431,12 +1468,5 @@ function markVNodeAsDeleted(vCursor: VNode) {
  * This marks the property as immutable. It is needed for the QRLs so that QwikLoader can get a hold
  * of them. This character must be `:` so that the `vnode_getAttr` can ignore them.
  */
-const HANDLER_PREFIX = ':';
+export const HANDLER_PREFIX = ':';
 let count = 0;
-const enum SiblingsArray {
-  Name = 0,
-  Key = 1,
-  VNode = 2,
-  Size = 3,
-  NextVNode = Size + VNode,
-}

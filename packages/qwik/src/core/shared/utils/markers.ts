@@ -3,21 +3,12 @@ import { QContainerValue } from '../types';
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
 
-/** Component style host prefix */
-export const ComponentStylesPrefixHost = '💎';
-
 /** Component style content prefix */
 export const ComponentStylesPrefixContent = '⚡️';
 
-/** Prefix used to identify on listeners. */
-export const EventPrefix = 'on:';
-
-/** Attribute used to mark that an event listener is attached. */
-export const EventAny = 'on:.';
 /** `<some-element q:slot="...">` */
 export const QSlot = 'q:slot';
-export const QSlotParent = ':';
-export const QSlotRef = 'q:sref';
+export const QSlotParent = 'q:sparent';
 export const QSlotS = 'q:s';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
@@ -26,7 +17,6 @@ export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QBackRefs = 'q:brefs';
-export const QManifestHash = 'q:manifest-hash';
 export const QFuncsPrefix = 'qFuncs_';
 
 export const getQFuncs = (
@@ -49,7 +39,6 @@ export const QIgnore = 'q:ignore';
 export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
-export const QShadowRoot = 'q:shadowroot';
 
 export const QTemplate = 'q:template';
 
@@ -62,17 +51,20 @@ export const QContainerSelector =
   QContainerValue.TEXT +
   '])';
 
+// Node namespaces
 export const HTML_NS = 'http://www.w3.org/1999/xhtml';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 export const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
 
+// Attributes namespaces
+export const XLINK_NS = 'http://www.w3.org/1999/xlink';
+export const XML_NS = 'http://www.w3.org/XML/1998/namespace';
+
 export const ResourceEvent = 'qResource';
-export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
 export const TaskEvent = 'qTask';
 
 /** `<q:slot name="...">` */
-export const QSlotInertName = '\u0000';
 export const QDefaultSlot = '';
 
 /**
@@ -88,10 +80,6 @@ export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
-export const ELEMENT_SELF_ID = -1;
-export const ELEMENT_ID_SELECTOR = '[q\\:id]';
-export const ELEMENT_ID_PREFIX = '#';
-export const INLINE_FN_PREFIX = '@';
 export const Q_PREFIX = 'q:';
 
 /** Non serializable markers - always begins with `:` character */

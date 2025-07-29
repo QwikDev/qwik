@@ -69,39 +69,6 @@ export const onRequest: RequestHandler = event => {
 };
 ```
 
-### Add it to the service worker as well
-
-```tsx {12,22} /nonce/ title="src/root.ts"
-import { component$, useServerData } from "@qwik.dev/core";
-import {
-  QwikRouterProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
-} from "@qwik.dev/router";
-import { RouterHead } from "./components/router-head/router-head";
-import { isDev } from "@qwik.dev/core";
-
-import "./global.css";
-
-export default component$(() => {
-  const nonce = useServerData<string | undefined>("nonce");
-  return (
-    <QwikRouterProvider>
-      <head>
-        <meta charSet="utf-8" />
-        {!isDev && <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.json`} />}
-
-        <RouterHead />
-      </head>
-      <body lang="en">
-        <RouterOutlet />
-        {!isDev && <ServiceWorkerRegister nonce={nonce} />}
-      </body>
-    </QwikRouterProvider>
-  );
-});
-```
-
 ### Custom scripts
 
 If you have custom script tags that you need to add the nonce to, you can use the `useServerData` hook to get the nonce from the server and add it to your script tags.

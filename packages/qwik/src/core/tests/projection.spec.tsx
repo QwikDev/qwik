@@ -2,7 +2,7 @@ import {
   Fragment as Component,
   component$,
   createContextId,
-  Fragment as DerivedSignal,
+  Fragment as WrappedSignal,
   Fragment,
   Fragment as InlineComponent,
   jsx,
@@ -22,7 +22,8 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_getNextSibling, vnode_getProp, vnode_locate } from '../client/vnode';
-import { HTML_NS, SVG_NS } from '../shared/utils/markers';
+import { HTML_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const DEBUG = false;
 
@@ -88,7 +89,9 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">parent-contentrender-content</q:template>
+        <q:template hidden aria-hidden="true">
+          parent-contentrender-content
+        </q:template>
       );
     }
   });
@@ -473,7 +476,7 @@ describe.each([
         <span>
           <Projection />
           {'('}
-          <DerivedSignal>render-content</DerivedSignal>
+          render-content
           {')'}
         </span>
       </InlineComponent>
@@ -490,7 +493,7 @@ describe.each([
           <span>
             <Projection>{'parent-content'}</Projection>
             {'('}
-            <DerivedSignal>child-content</DerivedSignal>
+            child-content
             {')'}
           </span>
         </InlineComponent>
@@ -830,7 +833,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -841,14 +844,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -895,7 +898,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -906,14 +909,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -1127,6 +1130,177 @@ describe.each([
     );
   });
 
+  it('should cleanup removed projection and remove it from parent component', async () => {
+    const SomeCmp = component$((props: { toggle: boolean }) => {
+      return <>{props.toggle && <Slot />}</>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          <SomeCmp toggle={toggle.value}>
+            {toggle.value && <h1>Title 1</h1>}
+            {!toggle.value && <h1>Title 2</h1>}
+          </SomeCmp>
+        </>
+      );
+    });
+
+    const { document, vNode } = await render(<Cmp />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <h1>Title 1</h1>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required></Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <h1>Title 1</h1>
+              </Projection>
+            </Fragment>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should render the same content projection with different structure', async () => {
+    const Cmp1 = component$(() => {
+      return (
+        <>
+          <h1>Test</h1>
+          <p>Test content</p>
+        </>
+      );
+    });
+
+    const Cmp2 = component$((props: { toggle: boolean }) => {
+      return (
+        <>
+          {props.toggle && <Slot />}
+          {!props.toggle && (
+            <>
+              <Slot />
+            </>
+          )}
+        </>
+      );
+    });
+
+    const Parent = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <div>
+          <button onClick$={() => (toggle.value = !toggle.value)}>toggle</button>
+          <Cmp2 toggle={toggle.value}>
+            <Cmp1 />
+          </Cmp2>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <h1>Test</h1>
+                    <p>Test content</p>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <Fragment ssr-required>
+                      <h1>Test</h1>
+                      <p>Test content</p>
+                    </Fragment>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(cleanupAttrs(document.body.querySelector('div')?.outerHTML)).toEqual(
+      '<div><button>toggle</button><h1>Test</h1><p>Test content</p></div>'
+    );
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <button>toggle</button>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Projection ssr-required>
+                <Component ssr-required>
+                  <Fragment ssr-required>
+                    <h1>Test</h1>
+                    <p>Test content</p>
+                  </Fragment>
+                </Component>
+              </Projection>
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
   describe('ensureProjectionResolved', () => {
     (globalThis as any).log = [] as string[];
     beforeEach(() => {
@@ -1172,7 +1346,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1187,7 +1361,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1206,7 +1380,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1267,7 +1441,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1290,7 +1464,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1308,7 +1482,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1323,7 +1497,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{'child-content'}</DerivedSignal>
+                  <WrappedSignal>{'child-content'}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1353,7 +1527,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1386,13 +1560,14 @@ describe.each([
         );
       });
       const { document } = await render(<Parent />, { debug: DEBUG });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       await expect(document.querySelector('#first')).toMatchDOM(
-        <div id="first" q:slot="content-1">
+        <div id="first" q:slot="content-1" {...qContainerAttr}>
           <strong>A variable here!</strong>
         </div>
       );
       await expect(document.querySelector('#second')).toMatchDOM(
-        <div q:slot="content-2" id="second" class="after">
+        <div q:slot="content-2" id="second" class="after" {...qContainerAttr}>
           <span>here my raw HTML</span>
         </div>
       );
@@ -1416,7 +1591,9 @@ describe.each([
       const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} hidden aria-hidden="true">
+            {content}
+          </q:template>
         );
       }
       expect(vNode).toMatchVDOM(
@@ -1504,7 +1681,9 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} hidden aria-hidden="true">
+            {content}
+          </q:template>
         );
       }
 
@@ -1512,7 +1691,7 @@ describe.each([
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}></q:template>
+          <q:template key={undefined} hidden aria-hidden="true"></q:template>
         );
       }
     });
@@ -1560,7 +1739,9 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined}>{content}</q:template>
+          <q:template key={undefined} hidden aria-hidden="true">
+            {content}
+          </q:template>
         );
       }
       await trigger(document.body, '#reload', 'click');
@@ -1625,6 +1806,86 @@ describe.each([
               </div>
             </Component>
             <button></button>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should correctly inflate text nodes from q:template', async () => {
+      const Cmp = component$((props: { show: boolean }) => {
+        return <span>{props.show && <Slot />}</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <Cmp show={show.value}>a</Cmp>
+            <Cmp show={show.value}>b</Cmp>
+          </>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
           </Fragment>
         </Component>
       );
@@ -2024,6 +2285,63 @@ describe.each([
     }
   });
 
+  it('should toggle content projection from undefined or null', async () => {
+    const Wrapper = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      const show = useSignal(false);
+
+      return (
+        <>
+          <button
+            onClick$={() => {
+              show.value = !show.value;
+            }}
+          >
+            Click
+          </button>
+          <Wrapper>{show.value ? <div>Test</div> : undefined}</Wrapper>
+          <Wrapper>{show.value ? <div>Test</div> : null}</Wrapper>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Click</button>
+          <Component ssr-required>
+            <Projection ssr-required></Projection>
+          </Component>
+          <Component ssr-required>
+            <Projection ssr-required></Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>Click</button>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div>Test</div>
+            </Projection>
+          </Component>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <div>Test</div>
+            </Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#1630', async () => {
       const Child = component$(() => <b>CHILD</b>);
@@ -2189,7 +2507,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="a">
-                        Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
+                        Alpha <WrappedSignal ssr-required>{'123'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2217,7 +2535,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="b">
-                        Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
+                        Bravo <WrappedSignal ssr-required>{'124'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2277,7 +2595,7 @@ describe.each([
                   <Projection ssr-required>
                     <div q:slot="b">
                       {'Bravo '}
-                      <DerivedSignal ssr-required>1</DerivedSignal>
+                      <WrappedSignal ssr-required>1</WrappedSignal>
                     </div>
                   </Projection>
                 </Component>

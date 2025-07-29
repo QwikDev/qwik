@@ -77,6 +77,7 @@ export default component$(() => {
     track(() => store.entryStrategy);
     track(() => store.files);
     track(() => store.version);
+    track(() => store.preloader);
 
     if (isBrowser) {
       if (store.version) {
@@ -184,8 +185,6 @@ export const onGet: RequestHandler = ({ cacheControl }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
   });
 };
 

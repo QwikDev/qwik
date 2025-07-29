@@ -93,10 +93,14 @@ export interface SegmentAnalysis {
   canonicalFilename: string;
   extension: string;
   parent: string | null;
-  ctxKind: 'event' | 'function';
+  ctxKind: 'eventHandler' | 'function';
   ctxName: string;
   captures: boolean;
   loc: [number, number];
+  /** The parameter names if it's a function with parameters */
+  paramNames?: string[];
+  /** The transformed names of scoped variables, if any */
+  captureNames?: string[];
 }
 
 // RESULT OUTPUT ***************
@@ -120,7 +124,7 @@ export interface Diagnostic {
   code: string | null;
   file: string;
   message: string;
-  highlights: SourceLocation[];
+  highlights: SourceLocation[] | null;
   suggestions: string[] | null;
 }
 
@@ -205,20 +209,54 @@ export interface QwikManifest {
   manifestHash: string;
   /** QRL symbols */
   symbols: { [symbolName: string]: QwikSymbol };
-  /** Where QRLs are located */
+  /** Where QRLs are located. The key is the symbol name, the value is the bundle fileName */
   mapping: { [symbolName: string]: string };
-  /** All code bundles, used to know the import graph */
+  /**
+   * All code bundles, used to know the import graph. The key is the bundle fileName relative to
+   * "build/"
+   */
   bundles: { [fileName: string]: QwikBundle };
+  /** All assets. The key is the fileName relative to the rootDir */
+  assets?: { [fileName: string]: QwikAsset };
+  /** All bundles in a compact graph format with probabilities */
+  bundleGraph?: QwikBundleGraph;
+  /** The bundle graph fileName */
+  bundleGraphAsset?: string;
+  /** The preloader bundle fileName */
+  preloader?: string;
+  /** The Qwik core bundle fileName */
+  core?: string;
+  /** The Qwik loader bundle fileName */
+  qwikLoader?: string;
   /** CSS etc to inject in the document head */
   injections?: GlobalInjections[];
+  /** The version of the manifest */
   version: string;
+  /** The options used to build the manifest */
   options?: {
     target?: string;
     buildMode?: string;
-    entryStrategy?: { [key: string]: any };
+    entryStrategy?: { type: EntryStrategy['type'] };
   };
+  /** The platform used to build the manifest */
   platform?: { [name: string]: string };
 }
+/**
+ * The manifest values that are needed for SSR.
+ *
+ * @public
+ */
+export type ServerQwikManifest = Pick<
+  QwikManifest,
+  | 'manifestHash'
+  | 'injections'
+  | 'bundleGraph'
+  | 'bundleGraphAsset'
+  | 'mapping'
+  | 'preloader'
+  | 'core'
+  | 'qwikLoader'
+>;
 
 /**
  * Bundle graph.
@@ -246,22 +284,42 @@ export interface QwikSymbol {
   displayName: string;
   hash: string;
   canonicalFilename: string;
-  ctxKind: 'function' | 'event';
+  ctxKind: 'function' | 'eventHandler';
   ctxName: string;
+  /** Whether the symbol captures a variable */
   captures: boolean;
   parent: string | null;
   loc: [number, number];
+  /** The parameter names if it's a function with parameters */
+  paramNames?: string[];
+  /** The transformed names of scoped variables, if any */
+  captureNames?: string[];
 }
 
 /** @public */
 export interface QwikBundle {
+  /** Size of the bundle */
   size: number;
-  /** Not precise, but an indication of whether this import may be a task */
-  isTask?: boolean;
+  /** Total size of this bundle's static import graph */
+  total: number;
+  /** Interactivity score of the bundle */
+  interactivity?: number;
+  /** Symbols in the bundle */
   symbols?: string[];
+  /** Direct imports */
   imports?: string[];
+  /** Dynamic imports */
   dynamicImports?: string[];
+  /** Source files of the bundle */
   origins?: string[];
+}
+
+/** @public */
+export interface QwikAsset {
+  /** Name of the asset */
+  name: string | undefined;
+  /** Size of the asset */
+  size: number;
 }
 
 /** @public */
@@ -306,12 +364,7 @@ export interface Path {
 /** @public */
 export interface ResolvedManifest {
   mapper: SymbolMapper;
-  manifest: QwikManifest;
-}
-
-/** @public */
-export interface InsightManifest {
-  type: 'smart';
-  manual: Record<string, string>;
-  prefetch: { route: string; symbols: string[] }[];
+  manifest: ServerQwikManifest;
+  injections?: GlobalInjections[];
+  bundleGraph?: QwikBundleGraph;
 }

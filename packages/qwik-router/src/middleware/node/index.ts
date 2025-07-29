@@ -1,9 +1,11 @@
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  getNotFound,
+  isStaticPath,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import { createReadStream } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Http2ServerRequest } from 'node:http2';
@@ -18,10 +20,8 @@ import { computeOrigin, fromNodeHttp, getUrl } from './http';
 /** @public */
 export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNodeRequestOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
 
   const qwikSerializer: QwikSerializer = {
@@ -108,7 +108,7 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         let filePath: string;
         if (basename(pathname).includes('.')) {
           filePath = join(staticFolder, pathname);
-        } else if (opts.qwikRouterConfig!.trailingSlash) {
+        } else if (!globalThis.__NO_TRAILING_SLASH__) {
           filePath = join(staticFolder, pathname + 'index.html');
         } else {
           filePath = join(staticFolder, pathname, 'index.html');

@@ -1,6 +1,7 @@
 import {
   Fragment,
   Fragment as Signal,
+  Fragment as Component,
   component$,
   createComputed$,
   createSignal,
@@ -17,8 +18,8 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
-import { QError } from '../shared/error/error';
 import * as qError from '../shared/error/error';
+import { QError } from '../shared/error/error';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -246,6 +247,62 @@ describe.each([
       expect((e as Error).message).toBeDefined();
       expect(qErrorSpy).toHaveBeenCalledWith(QError.computedNotSync, expect.any(Array));
     }
+  });
+
+  it('should track when recomputing computed signal', async () => {
+    const Cmp = component$(() => {
+      const boolean1 = useSignal(true);
+      const boolean2 = useSignal(true);
+      const computed = useComputed$(() => {
+        return boolean1.value || boolean2.value;
+      });
+
+      return (
+        <div>
+          {`${boolean1.value}`}
+          {`${boolean2.value}`}
+          {`${computed.value}`}
+          <button id="toggle-boolean1" onClick$={() => (boolean1.value = !boolean1.value)}></button>
+          <button id="toggle-boolean2" onClick$={() => (boolean2.value = !boolean2.value)}></button>
+        </div>
+      );
+    });
+    const { vNode, container } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'true'}</Signal>
+          <Signal ssr-required>{'true'}</Signal>
+          <Signal ssr-required>{'true'}</Signal>
+          <button id="toggle-boolean1"></button>
+          <button id="toggle-boolean2"></button>
+        </div>
+      </Component>
+    );
+    await trigger(container.element, 'button[id="toggle-boolean1"]', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'false'}</Signal>
+          <Signal ssr-required>{'true'}</Signal>
+          <Signal ssr-required>{'true'}</Signal>
+          <button id="toggle-boolean1"></button>
+          <button id="toggle-boolean2"></button>
+        </div>
+      </Component>
+    );
+    await trigger(container.element, 'button[id="toggle-boolean2"]', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'false'}</Signal>
+          <Signal ssr-required>{'false'}</Signal>
+          <Signal ssr-required>{'false'}</Signal>
+          <button id="toggle-boolean1"></button>
+          <button id="toggle-boolean2"></button>
+        </div>
+      </Component>
+    );
   });
 
   describe('createComputed$', () => {

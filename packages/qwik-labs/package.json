@@ -6,7 +6,7 @@
     "@builder.io/qwik": "workspace:^",
     "@eslint/js": "9.25.1",
     "@types/node": "20.14.11",
-    "eslint": "9.25.1",
+    "eslint": "^8.57.0 || ^9.0.0",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.0.0",
     "np": "10.0.1",
@@ -14,7 +14,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "8.26.1",
     "undici": "*",
-    "vite": "5.3.5",
+    "vite": "^5",
     "zod": "3.22.4"
   },
   "engines": {

@@ -60,13 +60,13 @@ function createBulkPlugin(): Plugin {
   };
 }
 
-export default defineConfig(({ command, mode }): UserConfig => {
+export default defineConfig((): UserConfig => {
   return {
     plugins: [
       qwikCity(),
       qwikVite({ debug: true }),
       createBulkPlugin(),
-      tsconfigPaths(),
+      tsconfigPaths({ root: "." }),
       basicSsl(),
     ],
     build: {

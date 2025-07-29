@@ -112,6 +112,7 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
     readonly env: EnvGetter;
     readonly headers: Headers;
     readonly method: string;
+    readonly originalUrl: URL;
     readonly params: Readonly<Record<string, string>>;
     readonly parseBody: () => Promise<unknown>;
     readonly pathname: string;
@@ -134,6 +135,7 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
     readonly locale: (local?: string) => string;
     // Warning: (ae-forgotten-export) The symbol "RedirectCode" needs to be exported by the entry point index.d.ts
     readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
+    readonly rewrite: (pathname: string) => RewriteMessage;
     // Warning: (ae-forgotten-export) The symbol "SendMethod" needs to be exported by the entry point index.d.ts
     readonly send: SendMethod;
     // Warning: (ae-forgotten-export) The symbol "StatusCodes" needs to be exported by the entry point index.d.ts
@@ -175,6 +177,13 @@ export interface ResolveValue {
 }
 
 // @public (undocumented)
+export class RewriteMessage extends AbortMessage {
+    constructor(pathname: string);
+    // (undocumented)
+    readonly pathname: string;
+}
+
+// @public (undocumented)
 export class ServerError<T = any> extends Error {
     constructor(status: number, data: T);
     // (undocumented)
@@ -185,7 +194,7 @@ export class ServerError<T = any> extends Error {
 
 // @public (undocumented)
 export interface ServerRenderOptions extends RenderOptions {
-    checkOrigin?: boolean;
+    checkOrigin?: boolean | 'lax-proto';
     // (undocumented)
     qwikCityPlan: QwikCityPlan;
     // (undocumented)

@@ -21,7 +21,7 @@
     "@microsoft/api-extractor": "7.52.4",
     "@netlify/edge-functions": "2.10.0",
     "@types/mdast": "4.0.4",
-    "@types/node": "20.14.11",
+    "@types/node": "20.19.0",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
     "estree-util-value-to-estree": "3.1.2",

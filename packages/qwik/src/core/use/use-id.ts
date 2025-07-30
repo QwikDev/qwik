@@ -1,8 +1,9 @@
-import type { QRL } from '..';
+import { isDev, type QRL } from '..';
 import { hashCode } from '../shared/utils/hash_code';
 import { OnRenderProp } from '../shared/utils/markers';
 import { useSequentialScope } from './use-sequential-scope';
 import { getNextUniqueIndex } from '../shared/utils/unique-index-generator';
+import { HookType, wrapSeq } from './utils/for-devTool';
 
 /** @public */
 export const useId = (): string => {
@@ -25,5 +26,5 @@ export const useId = (): string => {
     firstChar += 17;
     id = String.fromCharCode(firstChar) + id.substring(1);
   }
-  return set(id);
+  return set(isDev ? wrapSeq(HookType.useId, id) : id) as string;
 };

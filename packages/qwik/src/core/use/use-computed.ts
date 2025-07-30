@@ -9,6 +9,8 @@ import { createComputedSignal } from '../reactive-primitives/signal-api';
 import type { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import type { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import type { ComputedOptions } from '../reactive-primitives/types';
+import { isDev } from '@qwik.dev/core/build';
+import { HookType, wrapSeq } from './utils/for-devTool';
 
 /** @public */
 export type ComputedFn<T> = () => T;
@@ -34,7 +36,7 @@ export const useComputedCommon = <
   }
   assertQrl(qrl);
   const signal = createFn(qrl, options);
-  set(signal);
+  set(isDev ? (wrapSeq(HookType.useComputed$, signal) as any) : signal);
 
   // Note that we first save the signal
   // and then we throw to load the qrl

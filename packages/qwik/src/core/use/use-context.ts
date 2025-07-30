@@ -6,6 +6,8 @@ import { isObject } from '../shared/utils/types';
 import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { fromCamelToKebabCase } from '../shared/utils/event-names';
+import { HookType, wrapSeq } from './utils/for-devTool';
+import { isDev } from '@qwik.dev/core/build';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -195,7 +197,7 @@ export const useContextProvider = <STATE>(context: ContextId<STATE>, newValue: S
     verifySerializable(newValue);
   }
   iCtx.$container$.setContext(iCtx.$hostElement$, context, newValue);
-  set(1);
+  set(isDev ? wrapSeq(HookType.useContextProvider, newValue) : 1);
 };
 
 export interface UseContext {
@@ -268,13 +270,17 @@ export const useContext: UseContext = <STATE>(
 
   const value: STATE | undefined = iCtx.$container$.resolveContext(iCtx.$hostElement$, context);
   if (typeof defaultValue === 'function') {
-    return set(invoke(undefined, defaultValue as any, value));
+    return set(
+      isDev
+        ? wrapSeq(HookType.useContext, invoke(undefined, defaultValue as any, value))
+        : invoke(undefined, defaultValue as any, value)
+    );
   }
   if (value !== undefined) {
-    return set(value);
+    return set(isDev ? wrapSeq(HookType.useContext, value) : value);
   }
   if (defaultValue !== undefined) {
-    return set(defaultValue);
+    return set(isDev ? wrapSeq(HookType.useContext, defaultValue) : defaultValue);
   }
   throw qError(QError.notFoundContext, [context.id]);
 };

@@ -19,6 +19,8 @@ import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/prom
 import { isObject } from '../shared/utils/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { HookType, wrapSeq } from './utils/for-devTool';
+import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG: boolean = false;
 
@@ -107,7 +109,7 @@ export const useResourceQrl = <T>(
     null
   ) as ResourceDescriptor<any>;
   container.$scheduler$(ChoreType.TASK, task);
-  set(resource);
+  set(isDev ? (wrapSeq(HookType.useResource$, resource) as any) : resource);
 
   return resource;
 };

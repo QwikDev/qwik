@@ -3,6 +3,8 @@ import { isFunction } from '../shared/utils/types';
 import { createSignal, type Signal } from '../reactive-primitives/signal.public';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
+import { HookType, wrapSeq } from './utils/for-devTool';
+import { isDev } from '@qwik.dev/core/build';
 
 /** @public */
 export interface UseSignal {
@@ -36,5 +38,5 @@ export const useConstant = <T>(value: (() => T) | T): T => {
   }
   // Note: We are not using `invoke` here because we don't want to clear the context
   value = isFunction(value) && !isQwikComponent(value) ? value() : value;
-  return set(value as T);
+  return set(isDev ? (wrapSeq(HookType.useSignal, value) as any) : value);
 };

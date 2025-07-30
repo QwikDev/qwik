@@ -5,7 +5,7 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@eslint/js": "9.25.1",
-    "@types/node": "20.14.11",
+    "@types/node": "20.19.0",
     "eslint": "9.25.1",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.0.0",
@@ -14,7 +14,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "8.26.1",
     "undici": "*",
-    "vite": "5.3.5",
+    "vite": "7.0.6",
     "zod": "3.22.4"
   },
   "engines": {

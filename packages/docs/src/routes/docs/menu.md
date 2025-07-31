@@ -17,7 +17,7 @@
 - [Slots](</docs/(qwik)/components/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [API Reference](</api/qwik/>)
+- [API Reference](/api/qwik/)
 
 ## Qwik Router
 
@@ -32,7 +32,7 @@
 - [Middleware](</docs/(qwikrouter)/middleware/index.mdx>)
 - [server$](</docs/(qwikrouter)/server$/index.mdx>)
 - [Error handling](</docs/(qwikrouter)/error-handling/index.mdx>)
-- [Re-exporting loaders](/docs/(qwikrouter)/re-exporting-loaders/index.mdx)
+- [Re-exporting loaders](</docs/(qwikrouter)/re-exporting-loaders/index.mdx>)
 - [Caching](</docs/(qwikrouter)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikrouter)/html-attributes/index.mdx>)
 - [API reference](</docs/(qwikrouter)/api/index.mdx>)
@@ -100,6 +100,7 @@
 - [Node](deployments/node/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
+- [Azion](deployments/azion/index.mdx)
 
 ## Guides
 
@@ -111,6 +112,7 @@
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikrouter)/guides/env-variables/index.mdx>)
+- [Rewrites](<docs/(qwikrouter)/guides/rewrites/index.mdx>)
 
 ## Concepts
 

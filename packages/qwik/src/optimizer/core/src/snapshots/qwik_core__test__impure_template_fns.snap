@@ -35,6 +35,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _auto_useFoo as useFoo } from "./test";
 import { useSignal } from "@qwik.dev/core";
+const i_eF3QEzgQWcY = ()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY");
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
@@ -42,7 +43,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
         /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY"), "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+            onClick$: /*#__PURE__*/ qrl(i_eF3QEzgQWcY, "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
                 count
             ])
         }, "Count up", 3, null)
@@ -50,7 +51,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,QAAQ;;;WAAuB;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,QAAQ;;;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -98,6 +99,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     418,
     437
+  ],
+  "captureNames": [
+    "count"
   ]
 }
 */
@@ -105,6 +109,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 const useFoo = (count)=>{
     const tag = (s)=>{
         const value = typeof s === "string" ? s : s[0];
@@ -112,11 +117,11 @@ const useFoo = (count)=>{
     };
     return tag;
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 export { useFoo as _auto_useFoo };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,mHAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEE,MAAM,SAAS,CAAC;IACf,MAAM,MAAM,CAAC;QACZ,MAAM,QAAQ,OAAO,MAAM,WAAW,IAAI,CAAC,CAAC,EAAE;QAC9C,OAAO,GAAG,MAAM,CAAC,EAAE,MAAM,KAAK,EAAE;IACjC;IACA,OAAO;AACR;AAEA,6BAAe,6EAUZ\"}")
 == DIAGNOSTICS ==
 
 []

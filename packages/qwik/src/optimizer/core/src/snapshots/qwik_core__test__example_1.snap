@@ -22,12 +22,13 @@ const renderHeader = component($(() => {
 ============================= test.tsx_renderHeader_zBbHWn4e8Cg.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+const i_fV2uzAL99u4 = ()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4");
 export const renderHeader_zBbHWn4e8Cg = ()=>{
-    return <div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_div_onClick_fV2uzAL99u4"), "renderHeader_div_onClick_fV2uzAL99u4")}/>;
+    return <div onClick={/*#__PURE__*/ qrl(i_fV2uzAL99u4, "renderHeader_div_onClick_fV2uzAL99u4")}/>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";wCAG8B;IAC7B,QACE,IAAI;AAEP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;wCAG8B;IAC7B,QACE,IAAI;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -80,12 +81,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
+const i_U6Kkv07sbpQ = ()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ");
+const i_zBbHWn4e8Cg = ()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg");
 import { component } from '@qwik.dev/core';
-export const renderHeader = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_zBbHWn4e8Cg"), "renderHeader_zBbHWn4e8Cg");
-const renderHeader = component(/*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader_component_U6Kkv07sbpQ"), "renderHeader_component_U6Kkv07sbpQ"));
+export const renderHeader = /*#__PURE__*/ qrl(i_zBbHWn4e8Cg, "renderHeader_zBbHWn4e8Cg");
+const renderHeader = component(/*#__PURE__*/ qrl(i_U6Kkv07sbpQ, "renderHeader_component_U6Kkv07sbpQ"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,gHAIV;AACH,MAAM,eAAe\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAY,SAAS,QAAkB,iBAAiB;AAExD,OAAO,MAAM,4EAIV;AACH,MAAM,eAAe\"}")
 ============================= test.tsx_renderHeader_div_onClick_fV2uzAL99u4.tsx (ENTRY POINT)==
 
 export const renderHeader_div_onClick_fV2uzAL99u4 = (ctx)=>console.log(ctx);
@@ -109,6 +112,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     126,
     151
+  ],
+  "paramNames": [
+    "ctx"
   ]
 }
 */

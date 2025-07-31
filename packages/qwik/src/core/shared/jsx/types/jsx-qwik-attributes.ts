@@ -114,7 +114,7 @@ type AllEventMapRaw = HTMLElementEventMap &
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
     qvisible: QwikVisibleEvent;
-    qviewTransition: QwikViewTransitionEvent;
+    qviewtransition: QwikViewTransitionEvent;
   };
 
 /** This corrects the TS definition for ToggleEvent @public */

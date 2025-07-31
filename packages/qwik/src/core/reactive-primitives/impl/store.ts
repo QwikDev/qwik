@@ -1,7 +1,7 @@
 import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { tryGetInvokeContext } from '../../use/use-core';
-import { isSerializableObject } from '../../shared/utils/types';
+import { isObject, isSerializableObject } from '../../shared/utils/types';
 import type { Container } from '../../shared/types';
 import {
   addQrlToSerializationCtx,
@@ -41,6 +41,7 @@ export const unwrapStore = <T>(value: T): T => {
   return getStoreTarget<any>(value) || value;
 };
 
+/** @internal */
 export const isStore = (value: StoreTarget): boolean => {
   return STORE_TARGET in value;
 };
@@ -124,8 +125,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     const flags = this.$flags$;
     if (
       flags & StoreFlags.RECURSIVE &&
-      typeof value === 'object' &&
-      value !== null &&
+      isObject(value) &&
       !Object.isFrozen(value) &&
       !isStore(value) &&
       !Object.isFrozen(target)
@@ -244,6 +244,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   (target as any)[prop] = value;
+  // TODO: trigger effects through the scheduler
   triggerEffects(
     currentStore.$container$,
     currentStore,

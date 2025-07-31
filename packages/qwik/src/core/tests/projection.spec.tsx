@@ -2,7 +2,7 @@ import {
   Fragment as Component,
   component$,
   createContextId,
-  Fragment as DerivedSignal,
+  Fragment as WrappedSignal,
   Fragment,
   Fragment as InlineComponent,
   jsx,
@@ -89,7 +89,9 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">parent-contentrender-content</q:template>
+        <q:template hidden aria-hidden="true">
+          parent-contentrender-content
+        </q:template>
       );
     }
   });
@@ -474,7 +476,7 @@ describe.each([
         <span>
           <Projection />
           {'('}
-          <DerivedSignal>render-content</DerivedSignal>
+          render-content
           {')'}
         </span>
       </InlineComponent>
@@ -491,7 +493,7 @@ describe.each([
           <span>
             <Projection>{'parent-content'}</Projection>
             {'('}
-            <DerivedSignal>child-content</DerivedSignal>
+            child-content
             {')'}
           </span>
         </InlineComponent>
@@ -831,7 +833,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -842,14 +844,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'0'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -896,7 +898,7 @@ describe.each([
               <Projection ssr-required>
                 <Fragment ssr-required>
                   {'DEFAULT '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </Fragment>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
@@ -907,14 +909,14 @@ describe.each([
               <Projection ssr-required>
                 <span q:slot="start">
                   {'START '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
               <Projection ssr-required>{render === ssrRenderToDom ? '' : null}</Projection>
               <Projection ssr-required>
                 <span q:slot="end">
                   {'END '}
-                  <DerivedSignal ssr-required>{'1'}</DerivedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
                 </span>
               </Projection>
             </div>
@@ -1344,7 +1346,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1359,7 +1361,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1378,7 +1380,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1439,7 +1441,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1462,7 +1464,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1480,7 +1482,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{''}</DerivedSignal>
+                  <WrappedSignal>{''}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1495,7 +1497,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>{'child-content'}</DerivedSignal>
+                  <WrappedSignal>{'child-content'}</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1525,7 +1527,7 @@ describe.each([
             <Component>
               <span class="child">
                 <Projection>
-                  <DerivedSignal>child-content</DerivedSignal>
+                  <WrappedSignal>child-content</WrappedSignal>
                 </Projection>
               </span>
             </Component>
@@ -1589,7 +1591,7 @@ describe.each([
       const { document, vNode } = await render(<Cmp>{content}</Cmp>, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );
@@ -1679,7 +1681,7 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );
@@ -1689,7 +1691,7 @@ describe.each([
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none"></q:template>
+          <q:template key={undefined} hidden aria-hidden="true"></q:template>
         );
       }
     });
@@ -1737,7 +1739,7 @@ describe.each([
       const { document } = await render(<Parent />, { debug: DEBUG });
       if (render == ssrRenderToDom) {
         await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} style="display: none">
+          <q:template key={undefined} hidden aria-hidden="true">
             {content}
           </q:template>
         );
@@ -1804,6 +1806,86 @@ describe.each([
               </div>
             </Component>
             <button></button>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should correctly inflate text nodes from q:template', async () => {
+      const Cmp = component$((props: { show: boolean }) => {
+        return <span>{props.show && <Slot />}</span>;
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <Cmp show={show.value}>a</Cmp>
+            <Cmp show={show.value}>b</Cmp>
+          </>
+        );
+      });
+      const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+            <Component ssr-required>
+              <span></span>
+            </Component>
+          </Fragment>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <button></button>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>a</Projection>
+              </span>
+            </Component>
+            <Component ssr-required>
+              <span>
+                <Projection ssr-required>b</Projection>
+              </span>
+            </Component>
           </Fragment>
         </Component>
       );
@@ -2425,7 +2507,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="a">
-                        Alpha <DerivedSignal ssr-required>{'123'}</DerivedSignal>
+                        Alpha <WrappedSignal ssr-required>{'123'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2453,7 +2535,7 @@ describe.each([
                   <Component ssr-required>
                     <Projection ssr-required>
                       <div q:slot="b">
-                        Bravo <DerivedSignal ssr-required>{'124'}</DerivedSignal>
+                        Bravo <WrappedSignal ssr-required>{'124'}</WrappedSignal>
                       </div>
                     </Projection>
                   </Component>
@@ -2513,7 +2595,7 @@ describe.each([
                   <Projection ssr-required>
                     <div q:slot="b">
                       {'Bravo '}
-                      <DerivedSignal ssr-required>1</DerivedSignal>
+                      <WrappedSignal ssr-required>1</WrappedSignal>
                     </div>
                   </Projection>
                 </Component>

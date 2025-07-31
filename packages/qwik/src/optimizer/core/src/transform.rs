@@ -59,6 +59,7 @@ pub struct Segment {
 	pub data: SegmentData,
 	pub hash: u64,
 	pub span: Span,
+	pub param_names: Option<Vec<JsWord>>,
 }
 
 #[derive(Debug, Clone)]
@@ -91,7 +92,7 @@ pub struct QwikTransform<'a> {
 	pub options: QwikTransformOptions<'a>,
 
 	segment_names: HashMap<String, u32>,
-	// extra_top_items: BTreeMap<Id, ast::ModuleItem>,
+	pub extra_top_items: BTreeMap<Id, ast::ModuleItem>,
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
@@ -220,7 +221,7 @@ impl<'a> QwikTransform<'a> {
 			decl_stack: Vec::with_capacity(32),
 			segments: Vec::with_capacity(16),
 			segment_stack: Vec::with_capacity(16),
-			// extra_top_items: BTreeMap::new(),
+			extra_top_items: BTreeMap::new(),
 			extra_bottom_items: BTreeMap::new(),
 
 			segment_names: HashMap::new(),
@@ -584,11 +585,18 @@ impl<'a> QwikTransform<'a> {
 
 		// Handle `obj.prop` case
 		if let ast::Expr::Member(member) = folded.clone() {
-			if let ast::Expr::Ident(_) = *member.obj {
+			let obj_expr = if let ast::Expr::Paren(paren_expr) = (*member.obj).clone() {
+				// for example (obj as any).prop
+				paren_expr.expr
+			} else {
+				member.obj
+			};
+
+			if let ast::Expr::Ident(_) = *obj_expr {
 				let prop_sym = prop_to_string(&member.prop);
 				if let Some(prop_sym) = prop_sym {
 					let id = self.ensure_core_import(&_WRAP_PROP);
-					return (Some(make_wrap(&id, member.obj, prop_sym)), is_const);
+					return (Some(make_wrap(&id, obj_expr, prop_sym)), is_const);
 				}
 			}
 		}
@@ -768,13 +776,13 @@ impl<'a> QwikTransform<'a> {
 		segment_hash: u64,
 	) -> ast::CallExpr {
 		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
+		let param_names = Self::extract_param_names(&expr);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
-		let entry = self.options.entry_policy.get_entry_for_sym(
-			&segment_data.hash,
-			&self.stack_ctxt,
-			&segment_data,
-		);
+		let entry = self
+			.options
+			.entry_policy
+			.get_entry_for_sym(&self.stack_ctxt, &segment_data);
 
 		let mut import_path = ["./", &canonical_filename].concat();
 		if self.options.explicit_extensions {
@@ -790,6 +798,7 @@ impl<'a> QwikTransform<'a> {
 			data: segment_data,
 			expr: Box::new(expr),
 			hash: segment_hash,
+			param_names,
 		});
 		import_expr
 	}
@@ -935,28 +944,46 @@ impl<'a> QwikTransform<'a> {
 		segment_data: &SegmentData,
 		span: &Span,
 	) -> ast::CallExpr {
-		let mut args = vec![
-			ast::Expr::Arrow(ast::ArrowExpr {
-				body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
-					ast::CallExpr {
-						callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-							js_word!("import"),
-							DUMMY_SP,
-							Default::default(),
-						)))),
-						args: vec![ast::ExprOrSpread {
-							spread: None,
-							expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
-								span: DUMMY_SP,
-								value: path,
-								raw: None,
-							}))),
-						}],
-						..Default::default()
-					},
-				)))),
+		// Put the QRL import function in module scope
+		let import_fn_name = private_ident!(format!("i_{}", segment_data.hash));
+		let import_fn = ast::Expr::Arrow(ast::ArrowExpr {
+			body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
+				ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
+						js_word!("import"),
+						DUMMY_SP,
+						Default::default(),
+					)))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+							span: DUMMY_SP,
+							value: path,
+							raw: None,
+						}))),
+					}],
+					..Default::default()
+				},
+			)))),
+			..Default::default()
+		});
+		self.extra_top_items.insert(
+			id!(import_fn_name),
+			ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+				kind: ast::VarDeclKind::Const,
+				decls: vec![ast::VarDeclarator {
+					name: ast::Pat::Ident(ast::BindingIdent::from(import_fn_name.clone())),
+					init: Some(Box::new(import_fn)),
+					definite: false,
+					span: DUMMY_SP,
+				}],
 				..Default::default()
-			}),
+			})))),
+		);
+
+		// Create the qrl arguments
+		let mut args = vec![
+			ast::Expr::Ident(import_fn_name),
 			ast::Expr::Lit(ast::Lit::Str(ast::Str {
 				span: DUMMY_SP,
 				value: symbol.into(),
@@ -1007,6 +1034,7 @@ impl<'a> QwikTransform<'a> {
 	) -> ast::CallExpr {
 		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
 			|| matches!(expr, ast::Expr::Ident(_));
+		let param_names = Self::extract_param_names(&expr);
 		let inlined_expr = if should_inline {
 			expr
 		} else {
@@ -1022,6 +1050,7 @@ impl<'a> QwikTransform<'a> {
 				data: segment_data.clone(),
 				expr: Box::new(expr),
 				hash: new_ident.ctxt.as_u32() as u64,
+				param_names,
 			});
 			ast::Expr::Ident(new_ident)
 		};
@@ -1710,6 +1739,96 @@ impl<'a> QwikTransform<'a> {
 		}
 		self.create_internal_call(fn_name, args, true)
 	}
+
+	fn extract_param_names(expr: &ast::Expr) -> Option<Vec<JsWord>> {
+		fn pat_to_string(pat: &ast::Pat) -> Option<JsWord> {
+			match pat {
+				ast::Pat::Ident(ident) => Some(ident.id.sym.clone()),
+				ast::Pat::Rest(rest) => {
+					pat_to_string(&rest.arg).map(|name| JsWord::from(format!("...{}", name)))
+				}
+				ast::Pat::Array(array) => {
+					let mut parts = Vec::new();
+					for elem in &array.elems {
+						match elem {
+							Some(pat) => {
+								if let Some(name) = pat_to_string(pat) {
+									parts.push(name.to_string());
+								}
+							}
+							None => parts.push("".to_string()),
+						}
+					}
+					if parts.is_empty() {
+						None
+					} else {
+						Some(JsWord::from(format!("[{}]", parts.join(", "))))
+					}
+				}
+				ast::Pat::Object(obj) => {
+					let mut parts = Vec::new();
+					for prop in &obj.props {
+						match prop {
+							ast::ObjectPatProp::KeyValue(kv) => {
+								let key = match &kv.key {
+									ast::PropName::Ident(ident) => ident.sym.to_string(),
+									ast::PropName::Str(str) => str.value.to_string(),
+									ast::PropName::Num(num) => num.value.to_string(),
+									ast::PropName::BigInt(bigint) => bigint.value.to_string(),
+									ast::PropName::Computed(_) => continue,
+								};
+								if let Some(value) = pat_to_string(&kv.value) {
+									parts.push(format!("{}: {}", key, value));
+								}
+							}
+							ast::ObjectPatProp::Assign(assign) => {
+								parts.push(assign.key.sym.to_string());
+							}
+							ast::ObjectPatProp::Rest(_) => {
+								// Skip rest properties in object patterns
+							}
+						}
+					}
+					if parts.is_empty() {
+						None
+					} else {
+						Some(JsWord::from(format!("{{{}}}", parts.join(", "))))
+					}
+				}
+				_ => None,
+			}
+		}
+
+		match expr {
+			ast::Expr::Arrow(arrow) => {
+				let mut names = Vec::with_capacity(arrow.params.len());
+				for param in &arrow.params {
+					if let Some(name) = pat_to_string(param) {
+						names.push(name);
+					}
+				}
+				if names.is_empty() {
+					None
+				} else {
+					Some(names)
+				}
+			}
+			ast::Expr::Fn(fn_expr) => {
+				let mut names = Vec::with_capacity(fn_expr.function.params.len());
+				for param in &fn_expr.function.params {
+					if let Some(name) = pat_to_string(&param.pat) {
+						names.push(name);
+					}
+				}
+				if names.is_empty() {
+					None
+				} else {
+					Some(names)
+				}
+			}
+			_ => None,
+		}
+	}
 }
 
 impl<'a> Fold for QwikTransform<'a> {
@@ -1764,7 +1883,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					create_synthetic_named_import(new_local, &import.source)
 				}),
 		);
-		// body.extend(self.extra_top_items.values().cloned());
+		body.extend(self.extra_top_items.values().cloned());
 		body.append(&mut module_body);
 		body.extend(self.extra_bottom_items.values().cloned());
 

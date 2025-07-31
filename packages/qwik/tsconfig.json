@@ -8,12 +8,14 @@
       "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/build": ["packages/qwik/src/build"],
       "@qwik.dev/core/optimizer": ["packages/qwik/src/optimizer/src"],
+      "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],
       "@qwik.dev/core/testing": ["packages/qwik/src/testing"],
       "@qwik.dev/core/worker": ["packages/qwik/src/web-worker"],
       "@qwik.dev/core/devtools": ["packages/qwik/src/devtools"],
       "@qwik.dev/core/insights": ["packages/qwik/src/insights"],
-      "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"]
+      "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"],
+      "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"]
     }
   },
   "include": ["src", "global.d.ts"],

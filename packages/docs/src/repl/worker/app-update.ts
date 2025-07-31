@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ReplInputOptions, ReplResult } from '../types';
 import { appBundleClient } from './app-bundle-client';
 import { appBundleSsr } from './app-bundle-ssr';
@@ -16,7 +15,10 @@ export const appUpdate = async (
     type: 'result',
     clientId,
     buildId: options.buildId,
-    html: '',
+    htmlResult: {
+      rawHtml: '',
+      prettyHtml: '',
+    },
     transformedModules: [],
     clientBundles: [],
     manifest: undefined,

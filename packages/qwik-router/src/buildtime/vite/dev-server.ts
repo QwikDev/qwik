@@ -1,4 +1,4 @@
-import type { QwikManifest, QwikViteDevResponse } from '@qwik.dev/core/optimizer';
+import type { QwikViteDevResponse } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -11,14 +11,15 @@ import {
 import { getQwikRouterServerData } from '../../middleware/request-handler/response-page';
 import type { QwikSerializer } from '../../middleware/request-handler/types';
 import {
-  getRouteMatchPathname,
   QDATA_JSON,
+  getRouteMatchPathname,
   runQwikRouter,
 } from '../../middleware/request-handler/user-response';
 import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
   ActionInternal,
+  RebuildRouteInfoInternal,
   ContentMenu,
   LoadedRoute,
   LoaderInternal,
@@ -33,6 +34,7 @@ import { getExtension, normalizePath } from '../../utils/fs';
 import { updateBuildContext } from '../build';
 import type { BuildContext, BuildRoute } from '../types';
 import { formatError } from './format-error';
+import { RequestEvShareServerTiming } from '../../middleware/request-handler/request-event';
 
 export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
   const matchRouteRequest = (pathname: string) => {
@@ -42,7 +44,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         return { route, params };
       }
 
-      if (ctx.opts.trailingSlash && !pathname.endsWith('/')) {
+      if (!globalThis.__NO_TRAILING_SLASH__ && !pathname.endsWith('/')) {
         params = matchRoute(route.pathname, pathname + '/');
         if (params) {
           return { route, params };
@@ -127,7 +129,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     return { serverPlugins, loadedRoute };
   };
   const resolveRoute = (routeModulePaths: WeakMap<RouteModule<unknown>, string>, url: URL) => {
-    const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+    const matchPathname = getRouteMatchPathname(url.pathname);
     routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).finally(() => {
       delete routePs[matchPathname];
     });
@@ -188,13 +190,13 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
               res.setHeader('Set-Cookie', cookieHeaders);
             }
 
-            const serverTiming = requestEv.sharedMap.get('@serverTiming') as
+            const serverTiming = requestEv.sharedMap.get(RequestEvShareServerTiming) as
               | [string, number][]
               | undefined;
             if (serverTiming) {
               res.setHeader(
                 'Server-Timing',
-                serverTiming.map((a) => `${a[0]};dur=${a[1]}`).join(',')
+                serverTiming.map(([name, duration]) => `${name};dur=${duration}`).join(',')
               );
             }
             (res as QwikViteDevResponse)._qwikEnvData = {
@@ -224,25 +226,31 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
-          const manifest: QwikManifest = {
-            manifestHash: '',
-            symbols: {},
-            mapping: {},
-            bundles: {},
-            injections: [],
-            version: '1',
-          };
-
           const { _deserialize, _serialize, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
+
+          const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+            const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
+            const requestHandlers = resolveRequestHandlers(
+              serverPlugins,
+              loadedRoute,
+              req.method ?? 'GET',
+              false,
+              renderFn
+            );
+
+            return {
+              loadedRoute,
+              requestHandlers,
+            };
+          };
 
           const { completion, requestEv } = runQwikRouter(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
-            manifest,
-            ctx.opts.trailingSlash,
+            rebuildRouteInfo,
             ctx.opts.basePathname,
             qwikSerializer
           );
@@ -451,7 +459,7 @@ export function staticDistMiddleware({ config }: ViteDevServer) {
           fs.createReadStream(filePath).pipe(res);
           return;
         }
-      } catch (e) {
+      } catch {
         //
       }
     }
@@ -488,7 +496,7 @@ function formatDevSerializeError(err: any, routeModulePaths: WeakMap<RouteModule
         if (line > -1) {
           err.loc.line = line + 1;
         }
-      } catch (e) {
+      } catch {
         // nothing
       }
     }

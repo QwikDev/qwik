@@ -1,16 +1,25 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { SerializerArg } from './types';
+import type { ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
   createSerializerSignal as createSerializerQrl,
+  createAsyncComputedSignal as createAsyncComputedQrl,
 } from './signal-api';
-
+import type { ComputedReturnType } from '../use/use-computed';
+import type { AsyncComputedReturnType } from '../use/use-async-computed';
 export { isSignal } from './utils';
 
 /** @public */
 export interface ReadonlySignal<T = unknown> {
   readonly value: T;
+}
+
+/** @public */
+export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+  // TODO: enable later this, after the scheduler changes for "streaming" signals values
+  // loading: boolean;
+  // error: Error | null;
 }
 
 /**
@@ -38,10 +47,16 @@ export interface Signal<T = any> extends ReadonlySignal<T> {
  */
 export interface ComputedSignal<T> extends ReadonlySignal<T> {
   /**
-   * Use this to force recalculation and running subscribers, for example when the calculated value
-   * mutates but remains the same object. Useful for third-party libraries.
+   * Use this to force running subscribers, for example when the calculated value mutates but
+   * remains the same object.
    */
   force(): void;
+
+  /**
+   * Use this to force recalculation and running subscribers, for example when the calculated value
+   * mutates but remains the same object.
+   */
+  invalidate(): void;
 }
 
 /**
@@ -73,16 +88,31 @@ export const createSignal: {
  * The QRL must be a function which returns the value of the signal. The function must not have side
  * effects, and it must be synchronous.
  *
- * If you need the function to be async, use `useSignal` and `useTask$` instead.
+ * If you need the function to be async, use `useAsyncComputed$` instead.
  *
  * @public
  */
 export const createComputed$: <T>(
-  qrl: () => T
-) => T extends Promise<any> ? never : ComputedSignal<T> = /*#__PURE__*/ implicit$FirstArg(
-  createComputedQrl as any
-);
+  qrl: () => T,
+  options?: ComputedOptions
+) => ComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createComputedQrl as any);
 export { createComputedQrl };
+
+/**
+ * Create an async computed signal which is calculated from the given QRL. A computed signal is a
+ * signal which is calculated from other signals or async operation. When the signals change, the
+ * computed signal is recalculated.
+ *
+ * The QRL must be a function which returns the value of the signal. The function must not have side
+ * effects, and it can be async.
+ *
+ * @public
+ */
+export const createAsyncComputed$: <T>(
+  qrl: () => Promise<T>,
+  options?: ComputedOptions
+) => AsyncComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncComputedQrl as any);
+export { createAsyncComputedQrl };
 
 /**
  * Create a signal that holds a custom serializable value. See {@link useSerializer$} for more

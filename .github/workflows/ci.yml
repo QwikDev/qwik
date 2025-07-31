@@ -272,6 +272,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy,rustfmt
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -569,7 +571,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
-        run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
+        run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
         uses: actions/upload-artifact@v4
@@ -694,6 +696,9 @@ jobs:
 
       - name: Playwright E2E Tests
         run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+
+      - name: Playwright E2E Integration Tests
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       # RE-ENABBLE THIS AFTER qwik.dev/ packages are published
       # - name: Validate Create Qwik Cli

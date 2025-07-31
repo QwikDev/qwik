@@ -1,11 +1,14 @@
 import type { VNode } from '../client/types';
 import type { ISsrNode } from '../ssr/ssr-types';
-import type { Task } from '../use/use-task';
+import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/utils/serialize-utils';
+import type { ComputedFn } from '../use/use-computed';
+import type { AsyncComputedFn } from '../use/use-async-computed';
+import type { Container, SerializationStrategy } from '../shared/types';
 
 /**
  * # ================================
@@ -33,7 +36,18 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
   untrackedValue: T;
 }
 
-export type ComputeQRL<T> = QRLInternal<() => T>;
+export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
+export type AsyncComputedCtx = {
+  track: Tracker;
+  cleanup: (callback: () => void) => void;
+};
+export type AsyncComputeQRL<T> = QRLInternal<AsyncComputedFn<T>>;
+
+/** @public */
+export interface ComputedOptions {
+  serializationStrategy?: SerializationStrategy;
+  container?: Container;
+}
 
 export const enum SignalFlags {
   INVALID = 1,
@@ -44,7 +58,14 @@ export const enum WrappedSignalFlags {
   UNWRAP = 2,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags;
+export const enum ComputedSignalFlags {
+  // TODO: implement this in the future
+  // SERIALIZATION_STRATEGY_AUTO = 4,
+  SERIALIZATION_STRATEGY_NEVER = 8,
+  SERIALIZATION_STRATEGY_ALWAYS = 16,
+}
+
+export type AllSignalFlags = SignalFlags | WrappedSignalFlags | ComputedSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

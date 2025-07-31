@@ -37,7 +37,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => {
   return {
-    plugins: [qwikRouter(), qwikVite(), tsconfigPaths()],
+    plugins: [qwikRouter(), qwikVite(), tsconfigPaths({ root: '.' })],
   };
 });
 ```

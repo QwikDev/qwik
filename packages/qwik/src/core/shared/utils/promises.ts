@@ -1,3 +1,4 @@
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
@@ -95,7 +96,7 @@ export const delay = (timeout: number) => {
   });
 };
 
-// Retries a function that throws a promise.
+/** Retries a function that throws a promise. */
 export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,
   retryCount: number = 0
@@ -115,6 +116,10 @@ export function retryOnPromise<T>(
     }
     return result;
   } catch (e) {
+    if (isDev && isServer && e instanceof ReferenceError && e.message.includes('window')) {
+      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+      throw e;
+    }
     return retryOrThrow(e);
   }
 }

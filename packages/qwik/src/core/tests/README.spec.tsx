@@ -199,7 +199,7 @@ describe.each([
     if (render === ssrRenderToDom) {
       // We can only assert this is SSR, as CSR does just keeps unused nodes in memory. (No need to write them to DOM)
       expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
-        <q:template style="display:none">
+        <q:template hidden aria-hidden="true">
           <Fragment>
             <span q:slot="my-slot">
               <b>parent-projection-value</b>

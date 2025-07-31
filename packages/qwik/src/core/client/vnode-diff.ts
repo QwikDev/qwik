@@ -9,6 +9,7 @@ import {
   directGetPropsProxyProp,
   isJSXNode,
   type Props,
+  type PropsProxy,
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -90,7 +91,7 @@ import {
 } from './vnode';
 import { mapApp_findIndx } from './util-mapArray';
 import { mapArray_set } from './util-mapArray';
-import { getNewElementNamespaceData } from './vnode-namespace';
+import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { isSignal } from '../reactive-primitives/utils';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
@@ -103,6 +104,7 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import { EffectProperty } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { _CONST_PROPS, _VAR_PROPS } from '../internal';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -671,6 +673,14 @@ export const vnode_diff = (
 
         value = serializeAttribute(key, value, scopedStyleIdPrefix);
         if (value != null) {
+          if (vNewNode![VNodeProps.flags] & VNodeFlags.NS_svg) {
+            // only svg elements can have namespace attributes
+            const namespace = getAttributeNamespace(key);
+            if (namespace) {
+              element.setAttributeNS(namespace, key, String(value));
+              continue;
+            }
+          }
           element.setAttribute(key, String(value));
         }
       }
@@ -991,7 +1001,13 @@ export const vnode_diff = (
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
-    if (vCurrent && vnode_isVirtualVNode(vCurrent) && getKey(vCurrent) === jsxKey && !!jsxKey) {
+    const checkKey = type === VirtualType.Fragment;
+    if (
+      vCurrent &&
+      vnode_isVirtualVNode(vCurrent) &&
+      getKey(vCurrent) === jsxKey &&
+      (checkKey ? !!jsxKey : true)
+    ) {
       // All is good.
       return;
     } else if (jsxKey !== null) {
@@ -1047,9 +1063,9 @@ export const vnode_diff = (
         } else {
           // We did not find the component, create it.
           insertNewComponent(host, componentQRL, jsxProps);
+          shouldRender = true;
         }
         host = vNewNode as VirtualVNode;
-        shouldRender = true;
       } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
         host = vNewNode as VirtualVNode;
@@ -1057,16 +1073,36 @@ export const vnode_diff = (
       }
 
       if (host) {
-        const vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
-        shouldRender = shouldRender || propsDiffer(jsxProps, vNodeProps);
+        let vNodeProps = vnode_getProp<any>(host, ELEMENT_PROPS, container.$getObjectById$);
+        const propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
+        shouldRender = shouldRender || propsAreDifferent;
         if (shouldRender) {
+          if (propsAreDifferent) {
+            if (vNodeProps) {
+              // Reuse the same props instance, qrls can use the current props instance
+              // as a capture ref, so we can't change it.
+              // We need to do this directly, because normally we would subscribe to the signals
+              // if any signal is there.
+              vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
+              vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
+            } else if (jsxProps) {
+              // If there is no props instance, create a new one.
+              // We can do this because we are not using the props instance for anything else.
+              vnode_setProp(host, ELEMENT_PROPS, jsxProps);
+              vNodeProps = jsxProps;
+            }
+          }
+          // Assign the new QRL instance to the host.
+          // Unfortunately it is created every time, something to fix in the optimizer.
+          vnode_setProp(host, OnRenderProp, componentQRL);
+
           /**
            * Mark host as not deleted. The host could have been marked as deleted if it there was a
            * cleanup run. Now we found it and want to reuse it, so we need to mark it as not
            * deleted.
            */
           host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, jsxProps);
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1231,7 +1267,12 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
 function Projection() {}
 
 function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolean {
-  if (!src || !dst) {
+  const srcEmpty = isPropsEmpty(src);
+  const dstEmpty = isPropsEmpty(dst);
+  if (srcEmpty && dstEmpty) {
+    return false;
+  }
+  if (srcEmpty || dstEmpty) {
     return true;
   }
   let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
@@ -1249,6 +1290,13 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     }
   }
   return false;
+}
+
+function isPropsEmpty(props: Record<string, any>): boolean {
+  if (!props) {
+    return true;
+  }
+  return Object.keys(props).length === 0;
 }
 
 function removePropsKeys(keys: string[], propKeys: string[]): string[] {

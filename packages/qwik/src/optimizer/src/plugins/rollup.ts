@@ -9,9 +9,7 @@ import type {
   TransformModule,
   TransformModuleInput,
 } from '../types';
-import { versions } from '../versions';
 import {
-  Q_MANIFEST_FILENAME,
   createQwikPlugin,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
@@ -68,11 +66,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
         experimental: qwikRollupOpts.experimental,
       };
 
-      const opts = qwikPlugin.normalizeOptions(pluginOpts);
-
-      if (!inputOpts.input) {
-        inputOpts.input = opts.input;
-      }
+      await qwikPlugin.normalizeOptions(pluginOpts);
+      // Override the input with the normalized input
+      const { input } = qwikPlugin.getOptions();
+      inputOpts.input = input;
 
       return inputOpts;
     },
@@ -121,33 +118,7 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
       const opts = qwikPlugin.getOptions();
 
       if (opts.target === 'client') {
-        // client build
-        const optimizer = qwikPlugin.getOptimizer();
-        const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
-        const manifest = await outputAnalyzer.generateManifest();
-        manifest.platform = {
-          ...versions,
-          rollup: this.meta?.rollupVersion || '',
-          env: optimizer.sys.env,
-          os: optimizer.sys.os,
-        };
-        if (optimizer.sys.env === 'node') {
-          manifest.platform.node = process.versions.node;
-        }
-
-        if (typeof opts.manifestOutput === 'function') {
-          await opts.manifestOutput(manifest);
-        }
-
-        if (typeof opts.transformedModuleOutput === 'function') {
-          await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-        }
-
-        this.emitFile({
-          type: 'asset',
-          fileName: Q_MANIFEST_FILENAME,
-          source: JSON.stringify(manifest, null, 2),
-        });
+        await qwikPlugin.generateManifest(this, rollupBundle);
       }
     },
   };
@@ -179,6 +150,35 @@ export function normalizeRollupOutputOptions(
   };
 }
 
+const getChunkFileName = (
+  prefix: string,
+  opts: NormalizedQwikPluginOptions,
+  optimizer: Optimizer
+) => {
+  if (opts.buildMode === 'production' && !opts.debug) {
+    return `${prefix}build/q-[hash].js`;
+  } else {
+    // Friendlier names in dev or preview with debug mode
+    return (chunkInfo: Rollup.PreRenderedChunk) => {
+      if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
+        return `${prefix}build/core.js`;
+      }
+      if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-router/lib/index.qwik.mjs'))) {
+        return `${prefix}build/qwik-router.js`;
+      }
+
+      // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
+      // Besides, Rollup doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
+      const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
+      const sanitized = relativePath
+        .replace(/^(\.\.\/)+/, '')
+        .replace(/^\/+/, '')
+        .replace(/\//g, '-');
+      return `${prefix}build/${sanitized}.js`;
+    };
+  }
+};
+
 export function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
   rollupOutputOptsObj: Rollup.OutputOptions | undefined,
@@ -188,69 +188,40 @@ export function normalizeRollupOutputOptionsObject(
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
   const manualChunks = qwikPlugin.manualChunks;
+
+  if (!outputOpts.assetFileNames) {
+    // SEO likes readable asset names
+    // assetsDir allows assets to be in a deeper directory for serving, e.g. Astro
+    outputOpts.assetFileNames = `${useAssetsDir ? `${opts.assetsDir}/` : ''}assets/[hash]-[name].[ext]`;
+  }
+
+  const chunkFileName = getChunkFileName(useAssetsDir ? `${opts.assetsDir}` : '', opts, optimizer);
   if (opts.target === 'client') {
     // client output
-    if (!outputOpts.assetFileNames) {
-      // SEO likes readable asset names
-      const assetFileNames = 'assets/[hash]-[name].[ext]';
-      outputOpts.assetFileNames = useAssetsDir
-        ? `${opts.assetsDir}/${assetFileNames}`
-        : assetFileNames;
-    }
-
-    let fileName: string | ((chunkInfo: Rollup.PreRenderedChunk) => string) | undefined;
-    if (opts.buildMode === 'production' && !opts.debug) {
-      fileName = 'build/q-[hash].js';
-    } else {
-      // Friendlier names in dev or preview with debug mode
-      fileName = (chunkInfo) => {
-        if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
-          return 'build/core.js';
-        }
-        if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-router/lib/index.qwik.mjs'))) {
-          return 'build/qwik-router.js';
-        }
-
-        // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
-        // Besides, Rollup doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
-        const path = optimizer.sys.path;
-        const relativePath = path.relative(optimizer.sys.cwd(), chunkInfo.name);
-        const sanitized = relativePath
-          .replace(/^(\.\.\/)+/, '')
-          .replace(/^\/+/, '')
-          .replace(/\//g, '-');
-        return `build/${sanitized}.js`;
-      };
-    }
-    // client production output
     if (!outputOpts.entryFileNames) {
-      outputOpts.entryFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      // we don't treat entries specially for the client
+      outputOpts.entryFileNames = chunkFileName;
     }
     if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = useAssetsDir ? `${opts.assetsDir}/${fileName}` : fileName;
+      outputOpts.chunkFileNames = chunkFileName;
     }
-  } else if (opts.buildMode === 'production') {
-    // server production output
-    // everything in same dir so './@qwik-router...' imports work from entry and chunks
-    if (!outputOpts.chunkFileNames) {
-      outputOpts.chunkFileNames = 'q-[hash].js';
-    }
-  }
-  // all other cases, like lib output
-  if (!outputOpts.assetFileNames) {
-    outputOpts.assetFileNames = 'assets/[hash]-[name].[ext]';
-  }
 
-  if (opts.target === 'client') {
     // client should always be es
     outputOpts.format = 'es';
     const prevManualChunks = outputOpts.manualChunks;
     if (prevManualChunks && typeof prevManualChunks !== 'function') {
       throw new Error('manualChunks must be a function');
     }
+
+    // We need custom chunking for the client build
     outputOpts.manualChunks = prevManualChunks
       ? (id, meta) => prevManualChunks(id, meta) || manualChunks(id, meta)
       : manualChunks;
+  } else {
+    // server production output, try to be similar to client
+    if (!outputOpts.chunkFileNames) {
+      outputOpts.chunkFileNames = chunkFileName;
+    }
   }
 
   if (!outputOpts.dir) {

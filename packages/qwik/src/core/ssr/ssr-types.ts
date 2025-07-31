@@ -4,15 +4,15 @@ import type {
   Container,
   JSXChildren,
   JSXOutput,
+  ResolvedManifest,
   SerializationContext,
   ValueOrPromise,
 } from '../../server/qwik-types';
-import type { PrefetchResource } from '../../server/types';
-import type { QRL } from '../shared/qrl/qrl.public';
-import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
-import type { ResourceReturnInternal } from '../use/use-resource';
-import type { Signal } from '../reactive-primitives/signal.public';
 import type { VNodeData } from '../../server/vnode-data';
+import type { Signal } from '../reactive-primitives/signal.public';
+import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { ResourceReturnInternal } from '../use/use-resource';
 
 export type SsrAttrKey = string;
 export type SsrAttrValue = string | Signal<any> | boolean | object | null;
@@ -25,12 +25,12 @@ export interface StreamWriter {
 
 export interface ISsrNode {
   id: string;
-  currentComponentNode: ISsrNode | null;
+  parentSsrNode: ISsrNode | null;
   vnodeData?: VNodeData;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;
-  addChildVNodeData(child: VNodeData): void;
+  addChild(child: ISsrNode): void;
 }
 
 /** @internal */
@@ -56,10 +56,11 @@ export type SymbolToChunkResolver = (symbol: string) => string;
 
 export interface SSRContainer extends Container {
   readonly tag: string;
+  readonly isHtml: boolean;
   readonly writer: StreamWriter;
-  readonly prefetchResources: PrefetchResource[];
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
+  readonly resolvedManifest: ResolvedManifest;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
@@ -77,7 +78,6 @@ export interface SSRContainer extends Container {
 
   openFragment(attrs: SsrAttrs): void;
   closeFragment(): void;
-  addCurrentElementFrameAsComponentChild(): void;
 
   openProjection(attrs: SsrAttrs): void;
   closeProjection(): void;
@@ -91,10 +91,12 @@ export interface SSRContainer extends Container {
   htmlNode(rawHtml: string): void;
   commentNode(text: string): void;
   addRoot(obj: any): number | undefined;
-  getLastNode(): ISsrNode;
+  getOrCreateLastNode(): ISsrNode;
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void;
   isStatic(): boolean;
   render(jsx: JSXOutput): Promise<void>;
+
+  emitPreloaderPre(): void;
 
   emitQwikLoaderAtTopIfNeeded(): void;
 }

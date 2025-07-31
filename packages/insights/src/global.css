@@ -2,11 +2,9 @@
  * Tailwind CSS imports
  * View the full documentation at https://tailwindcss.com
  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
+@theme {
   /* --link-offset: 0.15rem;
   --primary-50: #f0f9ff;
   --primary-100: #dff3ff;
@@ -104,8 +102,9 @@ html {
   font-style: normal;
   font-weight: 400;
   src: url(./fonts/poppins-400.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
-    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* latin */
@@ -114,8 +113,9 @@ html {
   font-style: normal;
   font-weight: 500;
   src: url(./fonts/poppins-500.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
-    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 /* latin */
@@ -124,8 +124,9 @@ html {
   font-style: normal;
   font-weight: 700;
   src: url(./fonts/poppins-700.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
-    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
+    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 html,
@@ -196,11 +197,11 @@ input {
 }
 
 input {
-  @apply px-4 py-2 w-full rounded;
+  @apply px-4 py-2 w-full rounded-sm;
 }
 
 .button {
-  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded border border-slate-300 px-8 py-2;
+  @apply inline-flex cursor-pointer items-center justify-center gap-3 rounded-sm border border-slate-300 px-8 py-2;
 }
 
 svg {

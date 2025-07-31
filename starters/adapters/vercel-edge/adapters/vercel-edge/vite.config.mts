@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.vercel-edge.tsx", "@qwik-router-config"],
+        input: ["src/entry.vercel-edge.tsx"],
       },
       outDir: ".vercel/output/functions/_qwik-router.func",
     },

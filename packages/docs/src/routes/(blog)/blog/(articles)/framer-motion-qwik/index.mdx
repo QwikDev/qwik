@@ -1,6 +1,7 @@
 ---
 title: 'Building Framer Motion Animations Inside a Qwik Application'
-authorName: 'Yoav Ganbar'
+authors:
+  - 'Yoav Ganbar'
 tags: ['Web development']
 date: 'March 21, 2023'
 canonical: 'https://www.builder.io/blog/framer-motion-qwik'
@@ -63,7 +64,7 @@ const MyComponent = () => {
       backgroundColor: ['#ff008c', '#d309e1', '#9c1aff', '#7700ff', '#ff008c'],
       transition: { duration: 2 },
     }}
-      className="h-52 w-52 rounded bg-green-500"
+      className="h-52 w-52 rounded-sm bg-green-500"
     />
   );
 };
@@ -92,7 +93,7 @@ const MyComponent = () => (
       backgroundColor: ['#ff008c', '#d309e1', '#9c1aff', '#7700ff', '#ff008c'],
       transition: { duration: 2 },
     }}
-    className="h-52 w-52 rounded bg-green-500"
+    className="h-52 w-52 rounded-sm bg-green-500"
   />
 );
 

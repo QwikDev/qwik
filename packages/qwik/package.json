@@ -1,14 +1,15 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-alpha.9",
+  "version": "2.0.0-beta.6",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "csstype": "^3.1"
+    "csstype": "^3.1",
+    "rollup": "^4.44.0"
   },
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -16,9 +17,9 @@
     "ignore": "5.3.1",
     "image-size": "1.1.1",
     "kleur": "4.1.5",
-    "prettier": "3.4.2",
+    "prettier": "3.5.3",
     "ts-morph": "23.0.0",
-    "vitest": "3.1.1"
+    "vitest": "3.2.4"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -103,12 +104,12 @@
       "require": "./dist/loader/index.cjs"
     },
     "./insights": {
-      "types": "./dist/insights/index.d.ts",
+      "types": "./dist/insights.d.ts",
       "import": "./dist/insights/index.qwik.mjs",
       "require": "./dist/insights/index.qwik.cjs"
     },
     "./insights/vite": {
-      "types": "./dist/insights/vite/index.d.ts",
+      "types": "./dist/insights/vite.d.ts",
       "import": "./dist/insights/vite/index.mjs",
       "require": "./dist/insights/vite/index.cjs"
     },
@@ -118,6 +119,10 @@
       "types": "./dist/optimizer.d.ts",
       "import": "./dist/optimizer.mjs",
       "require": "./dist/optimizer.cjs"
+    },
+    "./preloader": {
+      "import": "./dist/preloader.mjs",
+      "require": "./dist/preloader.cjs"
     },
     "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",
@@ -133,8 +138,6 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
-    "./qwik-prefetch.js": "./dist/qwik-prefetch.js",
-    "./qwik-prefetch.debug.js": "./dist/qwik-prefetch.debug.js",
     "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
@@ -157,28 +160,28 @@
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [
+    "Automatic Optimization",
     "framework",
     "generator",
+    "javascript streaming",
+    "lazy execution",
+    "performance",
     "prerender",
+    "resumability",
+    "resumable",
     "server-side-render",
     "ssg",
     "ssr",
     "static-site",
     "static-site-generator",
     "webapp",
-    "website",
-    "javascript streaming",
-    "lazy execution",
-    "resumability",
-    "resumable",
-    "performance",
-    "Automatic Optimization"
+    "website"
   ],
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
     "prettier": "*",
-    "vite": ">=5 <7",
+    "vite": ">=5 <8",
     "vitest": ">=2 <3"
   },
   "peerDependenciesMeta": {

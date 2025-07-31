@@ -5,10 +5,16 @@ import {
   useSignal,
   Fragment as Component,
   Fragment,
-  Fragment as Signal,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { HTML_NS, MATH_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
+import {
+  HTML_NS,
+  MATH_NS,
+  QContainerAttr,
+  SVG_NS,
+  XLINK_NS,
+  XML_NS,
+} from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
@@ -206,9 +212,7 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal ssr-required>
-                  <Fragment ssr-required></Fragment>
-                </Signal>
+                <Fragment ssr-required></Fragment>
               </svg>
             </Component>
           </button>
@@ -227,9 +231,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
-                </Signal>
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
               </svg>
             </Component>
           </button>
@@ -254,9 +256,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <Fragment></Fragment>
-                </Signal>
+                <Fragment></Fragment>
               </svg>
             </Component>
           </button>
@@ -352,6 +352,44 @@ describe.each([
           <path d="M20 20" />
         </svg>
       );
+    });
+
+    describe('xlink and xml namespaces', () => {
+      it('should render xlink:href and xml:lang', async () => {
+        const SvgComp = component$(() => {
+          return (
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use xlink:href="#logo-c"></use>
+                </mask>
+              </g>
+              <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          );
+        });
+        const { vNode, document } = await render(<SvgComp />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use xlink:href="#logo-c"></use>
+                </mask>
+              </g>
+              <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          </Component>
+        );
+
+        const useElement = document.querySelector('use');
+        const xLinkHref = useElement?.attributes.getNamedItem('xlink:href');
+        expect(xLinkHref?.namespaceURI).toEqual(XLINK_NS);
+
+        const textElement = document.querySelector('text');
+        const xmlLang = textElement?.attributes.getNamedItem('xml:lang');
+        expect(xmlLang?.namespaceURI).toEqual(XML_NS);
+      });
     });
   });
 

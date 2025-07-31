@@ -39,6 +39,8 @@ function Hola(props: any) {
   return <div {...props}></div>;
 }
 
+const globalObj = ['foo', 'bar'];
+
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
@@ -221,6 +223,150 @@ describe.each([
               <span>Component 2</span>
               <Signal ssr-required>2</Signal>
             </div>
+          </Component>
+        </main>
+      </Component>
+    );
+  });
+
+  it('should not rerender not changed component', async () => {
+    (globalThis as any).componentExecuted = [];
+    const Component1 = component$(() => {
+      (globalThis as any).componentExecuted.push('Component1');
+      const signal1 = useSignal(1);
+      return (
+        <div>
+          <span>Component 1</span>
+          {signal1.value}
+        </div>
+      );
+    });
+    const Component2 = component$(() => {
+      (globalThis as any).componentExecuted.push('Component2');
+      const signal2 = useSignal(2);
+      return (
+        <div>
+          <span>Component 2</span>
+          {signal2.value}
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      (globalThis as any).componentExecuted.push('Parent');
+      const show = useSignal(true);
+      return (
+        <main class="parent" onClick$={() => (show.value = false)}>
+          {show.value && <Component1 />}
+          <Component2 />
+        </main>
+      );
+    });
+    const { vNode, container } = await render(<Parent />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          <Component ssr-required>
+            <div>
+              <span>Component 1</span>
+              <Signal ssr-required>1</Signal>
+            </div>
+          </Component>
+          <Component ssr-required>
+            <div>
+              <span>Component 2</span>
+              <Signal ssr-required>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </Component>
+    );
+    expect((globalThis as any).componentExecuted).toEqual(['Parent', 'Component1', 'Component2']);
+    await trigger(container.element, 'main.parent', 'click');
+    expect((globalThis as any).componentExecuted).toEqual([
+      'Parent',
+      'Component1',
+      'Component2',
+      'Parent',
+    ]);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          {''}
+          <Component ssr-required>
+            <div>
+              <span>Component 2</span>
+              <Signal ssr-required>2</Signal>
+            </div>
+          </Component>
+        </main>
+      </Component>
+    );
+  });
+
+  it('should not rerender component with empty props', async () => {
+    (globalThis as any).componentExecuted = [];
+    const Component1 = component$<PropsOf<any>>(() => {
+      (globalThis as any).componentExecuted.push('Component1');
+      return <div></div>;
+    });
+    const Parent = component$(() => {
+      (globalThis as any).componentExecuted.push('Parent');
+      const show = useSignal(true);
+      return (
+        <main class="parent" onClick$={() => (show.value = !show.value)}>
+          {show.value && <Component1 />}
+          <Component1 />
+        </main>
+      );
+    });
+    const { vNode, container } = await render(<Parent />, { debug });
+    expect((globalThis as any).componentExecuted).toEqual(['Parent', 'Component1', 'Component1']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          <Component ssr-required>
+            <div></div>
+          </Component>
+          <Component ssr-required>
+            <div></div>
+          </Component>
+        </main>
+      </Component>
+    );
+    await trigger(container.element, 'main.parent', 'click');
+    expect((globalThis as any).componentExecuted).toEqual([
+      'Parent',
+      'Component1',
+      'Component1',
+      'Parent',
+    ]);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          {''}
+          <Component ssr-required>
+            <div></div>
+          </Component>
+        </main>
+      </Component>
+    );
+    await trigger(container.element, 'main.parent', 'click');
+    expect((globalThis as any).componentExecuted).toEqual([
+      'Parent',
+      'Component1',
+      'Component1',
+      'Parent',
+      'Parent',
+      'Component1',
+    ]);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <main class="parent">
+          <Component ssr-required>
+            <div></div>
+          </Component>
+          <Component ssr-required>
+            <div></div>
           </Component>
         </main>
       </Component>
@@ -818,7 +964,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal ssr-required>{'1'}</Signal>
+                {'1'}
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -826,7 +972,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal ssr-required>{'2'}</Signal>
+                {'2'}
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -845,7 +991,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal ssr-required>{'1'}</Signal>
+                {'1'}
                 {', active: '}
                 <Signal ssr-required>{'true'}</Signal>
               </div>
@@ -853,7 +999,7 @@ describe.each([
             <Component>
               <div>
                 {'Child '}
-                <Signal ssr-required>{'2'}</Signal>
+                {'2'}
                 {', active: '}
                 <Signal ssr-required>{'false'}</Signal>
               </div>
@@ -1778,14 +1924,14 @@ describe.each([
     });
 
     const Cmp = component$(() => {
-      const $toggled = useSignal<boolean>(false);
+      const toggled = useSignal<boolean>(false);
 
       return (
         <TestB
-          aria-label={$toggled.value ? 'a' : 'a1'}
-          title={$toggled.value ? 'a' : 'a1'}
+          aria-label={toggled.value ? 'a' : 'a1'}
+          title={toggled.value ? 'a' : 'a1'}
           onClick$={() => {
-            $toggled.value = !$toggled.value;
+            toggled.value = !toggled.value;
           }}
         >
           <span>Hello, World!</span>
@@ -2109,6 +2255,114 @@ describe.each([
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
     expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+  });
+
+  it('should reuse the same props instance when props are changing', async () => {
+    (globalThis as any).logs = [];
+    type ChildProps = {
+      obj: string;
+      foo: SignalType<number>;
+    };
+    const Child = component$<ChildProps>(({ obj, foo }) => {
+      (globalThis as any).logs.push('child render ' + obj);
+      useTask$(({ track }) => {
+        foo && track(foo);
+        (globalThis as any).logs.push(obj);
+      });
+      return <></>;
+    });
+
+    const Cmp = component$(() => {
+      const foo = useSignal(0);
+      (globalThis as any).logs.push('parent render');
+      return (
+        <div>
+          <button
+            onClick$={() => {
+              foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+            }}
+          >
+            click
+          </button>
+          <Child obj={globalObj[foo.value]} foo={foo} />
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+
+    await trigger(document.body, 'button', 'click');
+
+    expect((globalThis as any).logs).toEqual([
+      'parent render',
+      'child render foo',
+      'foo',
+      'parent render',
+      'bar',
+      'child render bar',
+    ]);
+
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should change component props to new one for the same component with the same key', async () => {
+    (globalThis as any).logs = [];
+    const FirstCmp = component$((props: { foo?: string; bar?: string }) => {
+      (globalThis as any).logs.push('foo' in props, 'bar' in props);
+      return <div>{props.foo}</div>;
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? <FirstCmp key="1" foo="foo" /> : <FirstCmp key="1" bar="bar" />}
+        </>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    expect((globalThis as any).logs).toEqual([true, false]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true]);
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).logs).toEqual([true, false, false, true, true, false]);
+    (globalThis as any).logs = undefined;
+  });
+
+  it('should early materialize element with ref property', async () => {
+    const Cmp = component$(() => {
+      const element = useSignal<HTMLDivElement>();
+      const listToForceReRender = useSignal([]);
+
+      useVisibleTask$(() => {
+        element.value!.innerHTML = 'I am the innerHTML content!';
+      });
+
+      return (
+        <div>
+          <div ref={element} />
+          <button
+            onClick$={() => {
+              listToForceReRender.value = [];
+            }}
+          >
+            Render
+          </button>
+          {listToForceReRender.value.map(() => (
+            <div />
+          ))}
+        </div>
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+    await trigger(document.body, 'button', 'click');
+    expect(document.body.innerHTML).toContain('I am the innerHTML content!');
   });
 
   describe('regression', () => {
@@ -2581,6 +2835,41 @@ describe.each([
           </Fragment>
         </Component>
       );
+    });
+
+    it('#7531 - should correctly materialize vnodes with keys including special characters', async () => {
+      const ChildComp = component$(() => {
+        return <></>;
+      });
+
+      const Cmp = component$(() => {
+        const toggle = useSignal(true);
+
+        const places = [
+          'Beaupré, Canada',
+          'Łódź, Poland',
+          '北京, China',
+          '|, Separator',
+          '||, Double Separator',
+        ];
+        return (
+          <div>
+            <button
+              onClick$={() => {
+                toggle.value = !toggle.value;
+              }}
+            >
+              click
+            </button>
+            {toggle.value &&
+              places.map((place) => <ChildComp key={`trip-teaser-${place}`}></ChildComp>)}
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+
+      await trigger(document.body, 'button', 'click');
     });
   });
 });

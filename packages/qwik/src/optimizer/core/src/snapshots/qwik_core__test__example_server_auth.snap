@@ -51,11 +51,13 @@ export const { onRequest, logout, getSession, signup } = auth$({
 import { serverAuthQrl } from "@auth/qwik";
 import { qrl } from "@qwik.dev/core";
 import { authQrl } from "@auth/qwik";
-export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y"));
-export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY"));
+const i_GU0aY5QCETY = ()=>import("./test.tsx_auth_GU0aY5QCETY");
+const i_qVqpX2a0p9Y = ()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y");
+export const { onRequest, logout, getSession, signup } = serverAuthQrl(/*#__PURE__*/ qrl(i_qVqpX2a0p9Y, "serverAuth_qVqpX2a0p9Y"));
+export const { onRequest, logout, getSession, signup } = authQrl(/*#__PURE__*/ qrl(i_GU0aY5QCETY, "auth_GU0aY5QCETY"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,4GAetD;AAEH,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,0FAetD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,0EAetD;AAEH,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,8DAetD\"}")
 ============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
 
 import Facebook from "next-auth/providers/facebook";

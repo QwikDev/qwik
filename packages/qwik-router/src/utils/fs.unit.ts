@@ -256,7 +256,6 @@ test('createFileId, Menu', () => {
       routesDir,
       serverPluginsDir,
       basePathname: t.basePathname,
-      trailingSlash: t.trailingSlash,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
@@ -265,7 +264,9 @@ test('createFileId, Menu', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
+    globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getPathnameFromDirPath(opts, t.dirPath);
     assert.equal(pathname, t.expect, t.dirPath);
   });
@@ -357,7 +358,6 @@ test('parseRouteIndexName', () => {
       routesDir,
       serverPluginsDir,
       basePathname: t.basePathname,
-      trailingSlash: t.trailingSlash,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
@@ -366,7 +366,9 @@ test('parseRouteIndexName', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
+    globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     const pathname = getMenuPathname(opts, t.filePath);
     assert.equal(pathname, t.expect);
   });

@@ -47,11 +47,13 @@ export const ModelImg = component$<ModelProps>((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Image = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Image_component_CS20HgBlRYI"), "Image_component_CS20HgBlRYI"));
-export const ModelImg = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA"), "ModelImg_component_iJe6ICWVnyA"));
+const i_CS20HgBlRYI = ()=>import("./test.tsx_Image_component_CS20HgBlRYI");
+const i_iJe6ICWVnyA = ()=>import("./test.tsx_ModelImg_component_iJe6ICWVnyA");
+export const Image = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_CS20HgBlRYI, "Image_component_CS20HgBlRYI"));
+export const ModelImg = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_iJe6ICWVnyA, "ModelImg_component_iJe6ICWVnyA"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,sBAAQ,qHAMlB;AAEH,OAAO,MAAM,yBAAW,2HAsBrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,sBAAQ,8EAMlB;AAEH,OAAO,MAAM,yBAAW,iFAsBrB\"}")
 ============================= test.tsx_ModelImg_component_iJe6ICWVnyA.js (ENTRY POINT)==
 
 import { Image } from "./test";
@@ -60,8 +62,9 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useResourceQrl } from "@qwik.dev/core";
+const i_Ogi9hEJvtmI = ()=>import("./test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI");
 export const ModelImg_component_iJe6ICWVnyA = (props)=>{
-    const imgLoc = useResourceQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI"), "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI", [
+    const imgLoc = useResourceQrl(/*#__PURE__*/ qrl(i_Ogi9hEJvtmI, "ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI", [
         props
     ]));
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted(Resource, null, {
@@ -74,7 +77,7 @@ export const ModelImg_component_iJe6ICWVnyA = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;8CAa+C,CAAC;IAC9C,MAAM,SAAS;;;IAIf,qBACE,gDACE,WAAC;QACC,OAAO;QACP,YAAY,kBAAM,WAAC,iBAAE;QACrB,YAAY,CAAC,MACX,qBACE,gDACE,WAAC;gBACC,KAAK;;;AAQrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;8CAa+C,CAAC;IAC9C,MAAM,SAAS;;;IAIf,qBACE,gDACE,WAAC;QACC,OAAO;QACP,YAAY,kBAAM,WAAC,iBAAE;QACrB,YAAY,CAAC,MACX,qBACE,gDACE,WAAC;gBACC,KAAK;;;AAQrB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -92,6 +95,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     343,
     780
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
@@ -124,6 +130,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     386,
     488
+  ],
+  "paramNames": [
+    "props"
+  ],
+  "captureNames": [
+    "props"
   ]
 }
 */
@@ -156,6 +168,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     212,
     292
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

@@ -1,11 +1,12 @@
 import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
-import { isSignal, type Signal } from './signal.public';
+import { isSignal } from './signal.public';
 import { getStoreTarget } from './impl/store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
-import { SignalFlags, WrappedSignalFlags } from './types';
+import { WrappedSignalFlags } from './types';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
+import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 const getValueProp = (p0: any) => p0.value;
@@ -33,7 +34,9 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
     return obj[prop];
   }
   if (isSignal(obj)) {
-    assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    if (!(obj instanceof AsyncComputedSignalImpl)) {
+      assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+    }
     if (obj instanceof WrappedSignalImpl && obj.flags & WrappedSignalFlags.UNWRAP) {
       return obj;
     }
@@ -56,22 +59,8 @@ export const _wrapProp = <T extends Record<any, any>, P extends keyof T>(...args
       return wrappedValue;
     }
   }
-  // We need to forward the access to the original object
-  return getWrapped(args);
-};
-
-/** @internal */
-export const _wrapStore = <T extends Record<any, any>, P extends keyof T>(
-  obj: T,
-  prop: P
-): Signal<T> => {
-  const target = getStoreTarget(obj)!;
-  const value = target[prop];
-  if (isSignal(value)) {
-    return value;
-  } else {
-    return new WrappedSignalImpl(null, getProp, [obj, prop], null, SignalFlags.INVALID);
-  }
+  // the object is not reactive, so we can just return the value
+  return obj[prop];
 };
 
 /** @internal @deprecated v1 compat */

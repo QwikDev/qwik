@@ -72,7 +72,7 @@ export default defineConfig(() => {
           outDir: 'resources/', // This is the right setting
         },
       }),
-      tsconfigPaths(),
+      tsconfigPaths({ root: '.' }),
     ],
   };
 });

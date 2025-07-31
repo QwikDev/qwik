@@ -51,12 +51,16 @@ export const QContainerSelector =
   QContainerValue.TEXT +
   '])';
 
+// Node namespaces
 export const HTML_NS = 'http://www.w3.org/1999/xhtml';
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 export const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
 
+// Attributes namespaces
+export const XLINK_NS = 'http://www.w3.org/1999/xlink';
+export const XML_NS = 'http://www.w3.org/XML/1998/namespace';
+
 export const ResourceEvent = 'qResource';
-export const ComputedEvent = 'qComputed';
 export const RenderEvent = 'qRender';
 export const TaskEvent = 'qTask';
 

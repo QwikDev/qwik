@@ -6,6 +6,7 @@ export {
   ComputedSignal,
   ContextId,
   createComputed$,
+  createAsyncComputed$,
   createSerializer$,
   createContextId,
   createSignal,
@@ -43,6 +44,7 @@ export {
   QwikSVGElements,
   QwikJSX as JSX,
   QwikJSX,
+  QwikVisibleEvent,
   ReadonlySignal,
   render,
   RenderOnce,
@@ -56,6 +58,7 @@ export {
   TaskCtx,
   // TODO do we really want to export this?
   untrack,
+  useAsyncComputed$,
   useComputed$,
   useConstant,
   useContext,
@@ -78,4 +81,6 @@ export {
   version,
   withLocale,
   SVGAttributes,
+  HTMLElementAttrs,
+  SVGProps,
 } from './dist/core-internal';

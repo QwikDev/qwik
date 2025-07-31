@@ -13,7 +13,7 @@ import {
   type PropsOf,
   type QRL,
 } from "@qwik.dev/core";
-import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
+import { h, SSRComment, SSRRaw, type Signal } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
 
 export const Render = component$(() => {
@@ -103,6 +103,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4455 />
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
+      <RerenderOnce />
     </>
   );
 });
@@ -960,3 +961,32 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+
+const globalObj = ["foo", "bar"];
+
+let logs: any[] = [];
+
+const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
+  ({ obj, foo }) => {
+    logs.push("render Cmp", obj, foo.value);
+    return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
+  },
+);
+
+export const RerenderOnce = component$(() => {
+  const foo = useSignal(0);
+  logs = [];
+  return (
+    <div>
+      <button
+        id="rerender-once-button"
+        onClick$={() => {
+          foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+        }}
+      >
+        click
+      </button>
+      <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});

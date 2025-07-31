@@ -28,7 +28,7 @@ import {
   QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -47,9 +47,17 @@ class ParentComponentData {
     public $componentFrame$: ISsrComponentFrame | null
   ) {}
 }
+class MaybeAsyncSignal {}
+
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
-  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | ParentComponentData | AsyncGenerator
+  | JSXOutput
+  | StackFn
+  | Promise<JSXOutput>
+  | typeof Promise
+  | ParentComponentData
+  | AsyncGenerator
+  | typeof MaybeAsyncSignal
 >;
 
 /** @internal */
@@ -69,6 +77,14 @@ export async function _walkJSX(
       if (value instanceof ParentComponentData) {
         options.currentStyleScoped = value.$scopedStyle$;
         options.parentComponentFrame = value.$componentFrame$;
+        continue;
+      } else if (value === MaybeAsyncSignal) {
+        // It could be an async signal, but it is not resolved yet, we need to wait for it.
+        // We could do that in the processJSXNode,
+        // but it will mean that we need to await it there, and it will return a promise.
+        // We probably want to avoid creating a promise for all jsx nodes.
+        const trackFn = stack.pop() as () => StackValue;
+        await retryOnPromise(() => stack.push(trackFn()));
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
@@ -112,9 +128,10 @@ function processJSXNode(
       }
     } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
-      const signalNode = ssr.getLastNode();
+      const signalNode = ssr.getOrCreateLastNode();
       enqueue(ssr.closeFragment);
-      enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(() => trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(MaybeAsyncSignal);
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -169,10 +186,15 @@ function processJSXNode(
         enqueue(ssr.closeElement);
 
         if (type === 'head') {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
           enqueue(ssr.additionalHeadNodes);
-          enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
+        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
+          (ssr as any)._didAddQwikLoader = true;
         }
 
         const children = jsx.children as JSXOutput;
@@ -184,7 +206,6 @@ function processJSXNode(
             attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
           }
           ssr.openFragment(attrs);
-          ssr.addCurrentElementFrameAsComponentChild();
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
@@ -198,7 +219,7 @@ function processJSXNode(
             projectionAttrs.push(QSlotParent, compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
-            const node = ssr.getLastNode();
+            const node = ssr.getOrCreateLastNode();
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
 
@@ -249,7 +270,7 @@ function processJSXNode(
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
-          const host = ssr.getLastNode();
+          const host = ssr.getOrCreateLastNode();
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,

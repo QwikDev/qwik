@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { ReplInputOptions } from '../types';
 import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, QWIK_REPL_DEPS_CACHE } from './repl-constants';
 import type { QwikWorkerGlobal } from './repl-service-worker';
@@ -11,7 +10,7 @@ export const depResponse = async (pkgName: string, pkgPath: string) => {
   if (pkgName === QWIK_PKG_NAME) {
     const version = dep.version;
     const [M, m, p] = version.split('-')[0].split('.').map(Number);
-    if (!pkgPath.startsWith('/bindings')) {
+    if (!pkgPath.startsWith('/bindings') && !pkgPath.startsWith('/handlers.mjs')) {
       if (M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))) {
         pkgPath = `/dist${pkgPath}`;
       }

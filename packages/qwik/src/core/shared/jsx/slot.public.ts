@@ -4,7 +4,7 @@ import type { FunctionComponent } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 /**
- * Allows to project the children of the current component. <Slot/> can only be used within the
+ * Allows to project the children of the current component. `<Slot/>` can only be used within the
  * context of a component defined with `component$`.
  *
  * @public

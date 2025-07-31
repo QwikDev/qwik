@@ -1,11 +1,13 @@
 import {
   Fragment as Component,
+  Fragment as Signal,
   component$,
   createContextId,
   useContext,
   useContextProvider,
   useSignal,
   useStore,
+  useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -229,6 +231,36 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div></div>
+      </Component>
+    );
+  });
+
+  it('should track element ref', async () => {
+    const Cmp = component$(() => {
+      const element = useSignal<HTMLDivElement>();
+      const signal = useSignal(0);
+
+      useTask$(({ track }) => {
+        track(element);
+        signal.value++;
+      });
+
+      return (
+        <div>
+          <div ref={element}>Test</div>
+          {signal.value}
+        </div>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Test</div>
+          <Signal>1</Signal>
+        </div>
       </Component>
     );
   });

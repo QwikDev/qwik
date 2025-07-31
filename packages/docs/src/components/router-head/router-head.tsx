@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { component$ } from '@qwik.dev/core';
 import { useDocumentHead, useLocation } from '@qwik.dev/router';
 import { Social } from './social';

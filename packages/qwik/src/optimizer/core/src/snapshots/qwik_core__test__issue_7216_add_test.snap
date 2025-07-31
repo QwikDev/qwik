@@ -24,10 +24,11 @@ export default component$((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,6BAAe,mHAUZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,6BAAe,6EAUZ\"}")
 ============================= test.tsx_test_component_p_onHi_MzKNRhr770k.js (ENTRY POINT)==
 
 export const test_component_p_onHi_MzKNRhr770k = ()=>'hi';
@@ -84,21 +85,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _jsxSplit } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_MzKNRhr770k = ()=>import("./test.tsx_test_component_p_onHi_MzKNRhr770k");
+const i_WVa6OMq4yIM = ()=>import("./test.tsx_test_component_p_onConst_WVa6OMq4yIM");
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("p", {
-        onHi$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_onHi_MzKNRhr770k"), "test_component_p_onHi_MzKNRhr770k"),
+        onHi$: /*#__PURE__*/ qrl(i_MzKNRhr770k, "test_component_p_onHi_MzKNRhr770k"),
         ...props.foo,
         onHello$: props.helloHandler$,
         ...props.rest,
         onVar$: props.onVarHandler$
     }, {
-        onConst$: /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_p_onConst_WVa6OMq4yIM"), "test_component_p_onConst_WVa6OMq4yIM"),
+        onConst$: /*#__PURE__*/ qrl(i_WVa6OMq4yIM, "test_component_p_onConst_WVa6OMq4yIM"),
         asd: "1"
     }, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAE0B,CAAC;IACzB,qBAAQ,UAAC;QACT,KAAK;QACJ,GAAG,MAAM,GAAG;QACb,UAAU,MAAM,aAAa;QAC5B,GAAG,MAAM,IAAI;QACd,QAAQ,MAAM,aAAa;;QAC3B,QAAQ;QACR,KAAK;;AAEP\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAE0B,CAAC;IACzB,qBAAQ,UAAC;QACT,KAAK;QACJ,GAAG,MAAM,GAAG;QACb,UAAU,MAAM,aAAa;QAC5B,GAAG,MAAM,IAAI;QACd,QAAQ,MAAM,aAAa;;QAC3B,QAAQ;QACR,KAAK;;AAEP\"}")
 /*
 {
   "origin": "test.tsx",
@@ -116,6 +119,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     75,
     274
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

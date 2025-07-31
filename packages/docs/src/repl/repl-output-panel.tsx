@@ -1,19 +1,67 @@
 import { component$, useComputed$ } from '@qwik.dev/core';
 import { CodeBlock } from '../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
-import { ReplOutputSymbols } from './repl-output-symbols';
+import { ReplOutputSegments } from './repl-output-segments';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import type { ReplAppInput, ReplStore } from './types';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
+import { _dumpState, _preprocessState, _vnode_toString } from '@qwik.dev/core/internal';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = useComputed$(
     () => store.diagnostics.length + store.monacoDiagnostics.length
   );
-  const clientBundlesNoCore = useComputed$(() =>
-    // Qwik Core is not interesting and is large, slowing down the UI
-    store.clientBundles.filter((b) => !b.path.endsWith('qwikCore.js'))
-  );
+
+  const domContainerFromResultHtml = useComputed$(() => {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(store.htmlResult.rawHtml, 'text/html');
+      return _getDomContainer(doc.documentElement);
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  });
+
+  const parsedState = useComputed$(() => {
+    try {
+      const container = domContainerFromResultHtml.value;
+      const doc = container!.element;
+      const qwikStates = doc.querySelectorAll('script[type="qwik/state"]');
+      if (qwikStates.length !== 0) {
+        const data = qwikStates[qwikStates.length - 1];
+        const origState = JSON.parse(data?.textContent || '[]');
+        _preprocessState(origState, container as any);
+        return origState
+          ? _dumpState(origState, false, '', null)
+              //remove first new line
+              .replace(/\n/, '')
+          : 'No state found';
+      }
+      return 'No state found';
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  });
+
+  const vdomTree = useComputed$(() => {
+    try {
+      const container = domContainerFromResultHtml.value;
+      return _vnode_toString.call(
+        container!.rootVNode as any,
+        Number.MAX_SAFE_INTEGER,
+        '',
+        true,
+        false,
+        false
+      );
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  });
 
   return (
     <div class="repl-panel repl-output-panel">
@@ -38,10 +86,10 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
 
         {store.enableClientOutput ? (
           <ReplTabButton
-            text="Symbols"
-            isActive={store.selectedOutputPanel === 'symbols'}
+            text="Segments"
+            isActive={store.selectedOutputPanel === 'segments'}
             onClick$={async () => {
-              store.selectedOutputPanel = 'symbols';
+              store.selectedOutputPanel = 'segments';
             }}
           />
         ) : null}
@@ -107,17 +155,35 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         </div>
 
         {store.selectedOutputPanel === 'html' ? (
-          <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} />
+          <div class="output-result output-html flex flex-col gap-2">
+            <div>
+              <span class="code-block-info">HTML</span>
+              <CodeBlock
+                language="markup"
+                code={store.htmlResult.prettyHtml || store.htmlResult.rawHtml}
+              />
+            </div>
+            {parsedState.value ? (
+              <div>
+                <span class="code-block-info">Parsed State</span>
+                <CodeBlock language="clike" code={parsedState.value} />
+              </div>
+            ) : null}
+            {vdomTree.value ? (
+              <div>
+                <span class="code-block-info">VNode Tree</span>
+                <CodeBlock language="markup" code={vdomTree.value} />
+              </div>
+            ) : null}
           </div>
         ) : null}
 
-        {store.selectedOutputPanel === 'symbols' ? (
-          <ReplOutputSymbols outputs={store.transformedModules} />
+        {store.selectedOutputPanel === 'segments' ? (
+          <ReplOutputSegments outputs={store.transformedModules} />
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (
-          <ReplOutputModules headerText="/build/" outputs={clientBundlesNoCore.value} />
+          <ReplOutputModules headerText="/build/" outputs={store.clientBundles} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (

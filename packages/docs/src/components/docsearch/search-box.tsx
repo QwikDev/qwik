@@ -1,4 +1,4 @@
-import { component$, useVisibleTask$, useContext, type Signal, type QRL } from '@qwik.dev/core';
+import { component$, useVisibleTask$, useContext, type Signal } from '@qwik.dev/core';
 
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
@@ -15,9 +15,9 @@ export type SearchBoxTranslations = Partial<{
 
 interface SearchBoxProps {
   state: DocSearchState;
+  isOpen: Signal<boolean>;
   autoFocus: boolean;
   inputRef: Signal<HTMLInputElement | null>;
-  onClose$: QRL<() => void>;
 }
 
 export const SearchBox = component$((props: SearchBoxProps) => {
@@ -96,7 +96,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
               }
             }
             if (event.key === 'Escape') {
-              props.state.isOpen = false;
+              props.isOpen.value = false;
             }
             if (event.key === 'Enter') {
               if (props.state.activeItemId !== null) {
@@ -121,7 +121,7 @@ export const SearchBox = component$((props: SearchBoxProps) => {
         class="DocSearch-Cancel"
         type="reset"
         aria-label="Cancel"
-        onClick$={() => props.onClose$.apply(null, [])}
+        onClick$={() => (props.isOpen.value = false)}
       >
         Cancel
       </button>

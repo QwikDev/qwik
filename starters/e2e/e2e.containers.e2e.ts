@@ -20,7 +20,7 @@ test.describe("container", () => {
   });
 
   test("should handle inner counter", async ({ page }) => {
-    const container = page.locator(".inline-container");
+    const container = page.locator(".inline-container container");
     const anchor = container.locator("a");
 
     await expect(anchor).toHaveText("1 / 1");
@@ -35,5 +35,11 @@ test.describe("container", () => {
     await expect(anchor).toHaveText("1 / 1");
     await anchor.click();
     await expect(anchor).toHaveText("2 / 3");
+  });
+
+  test("dynamic preload", async ({ page }) => {
+    const preloaderScript = page.locator(`script[q\\:type='link-js']`).first();
+    await expect(preloaderScript).toBeDefined();
+    // We don't have a way to check if modules are preloaded, because the links go away
   });
 });

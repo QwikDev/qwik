@@ -30,20 +30,6 @@ export const requestHandler = (ev: FetchEvent) => {
             return htmlRsp;
           }
 
-          // app client modules
-          // const replEvent: ReplEventMessage = {
-          //   type: 'event',
-          //   clientId,
-          //   event: {
-          //     kind: 'client-module',
-          //     scope: 'network',
-          //     message: [reqUrl.pathname + reqUrl.search],
-          //     start: performance.now(),
-          //   },
-          // };
-
-          // sendMessageToReplServer(replEvent);
-
           return rsp;
         }
 
@@ -133,7 +119,7 @@ const injectDevHtml = (clientId: string, html?: string) => {
   });
 
   document.addEventListener('qsymbol', (ev) => {
-    const symbolName = ev.detail;
+    const symbolName = ev.detail?.symbol;
     sendToServerWindow({
       kind: 'symbol',
       scope: 'client',
@@ -169,5 +155,9 @@ const injectDevHtml = (clientId: string, html?: string) => {
   }, true);
 })();`;
 
-  return `<script :>${s}</script>${html || ''}`;
+  if (!html) {
+    return '';
+  }
+
+  return html.replace(/<\/body>/i, `<script>${s}</script></body>`);
 };

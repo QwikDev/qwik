@@ -85,11 +85,14 @@ export type {
   QwikHTMLElements,
   QwikSVGElements,
   SVGAttributes,
+  HTMLElementAttrs,
+  SVGProps,
 } from './shared/jsx/types/jsx-generated';
 export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';
 export type { StreamWriter, RenderSSROptions } from './ssr/ssr-types';
 export type { RenderOptions, RenderResult } from './client/types';
+export type { SerializationStrategy } from './shared/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // use API
@@ -109,7 +112,7 @@ export type { UseStylesScoped } from './use/use-styles';
 export type { UseSignal } from './use/use-signal';
 export type { ContextId } from './use/use-context';
 export type { UseStoreOptions } from './use/use-store.public';
-export type { ComputedFn } from './use/use-computed';
+export type { ComputedFn, ComputedReturnType } from './use/use-computed';
 export { useComputedQrl } from './use/use-computed';
 export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
@@ -131,10 +134,13 @@ export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
 export { useComputed$ } from './use/use-computed';
+export type { AsyncComputedFn, AsyncComputedReturnType } from './use/use-async-computed';
+export { useAsyncComputedQrl, useAsyncComputed$ } from './use/use-async-computed';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
+  type AsyncComputedReadonlySignal,
   type Signal,
   type ComputedSignal,
 } from './reactive-primitives/signal.public';
@@ -145,7 +151,10 @@ export {
   createComputed$,
   createSerializerQrl,
   createSerializer$,
+  createAsyncComputedQrl,
+  createAsyncComputed$,
 } from './reactive-primitives/signal.public';
+export type { ComputedOptions } from './reactive-primitives/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Low-Level API

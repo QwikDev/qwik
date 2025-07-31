@@ -23,14 +23,15 @@ export const App2 = qwikify$(() => (
 
 /* @jsxImportSource react */ import { qwikifyQrl } from "./qwikfy";
 import { qrl } from "@qwik.dev/core";
+const i_RKJW7oCMdS4 = ()=>import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js");
 import { jsx as _jsx } from "react/jsx-runtime";
 export const App = ()=>/*#__PURE__*/ _jsx("div", {
         onClick$: ()=>console.log('App')
     });
-export const App2 = qwikifyQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_qwikify_RKJW7oCMdS4.js"), "App2_qwikify_RKJW7oCMdS4"));
+export const App2 = qwikifyQrl(/*#__PURE__*/ qrl(i_RKJW7oCMdS4, "App2_qwikify_RKJW7oCMdS4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;AAI1B,OAAO,MAAM,MAAM,kBAClB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OAC9B;AAEF,OAAO,MAAM,OAAO,gHAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACA,0BAA0B;;;;AAI1B,OAAO,MAAM,MAAM,kBAClB,KAAC;QAAI,UAAU,IAAI,QAAQ,GAAG,CAAC;OAC9B;AAEF,OAAO,MAAM,OAAO,yEAEjB\"}")
 ============================= test.tsx_App2_qwikify_RKJW7oCMdS4.js (ENTRY POINT)==
 
 import { jsx as _jsx } from "react/jsx-runtime";

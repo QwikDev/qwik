@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   $,
   component$,
@@ -28,7 +27,10 @@ export const Repl = component$((props: ReplProps) => {
       clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
         .toString(36)
         .toLowerCase(),
-      html: '',
+      htmlResult: {
+        rawHtml: '',
+        prettyHtml: '',
+      },
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],
@@ -106,6 +108,7 @@ export const Repl = component$((props: ReplProps) => {
     track(() => input.files);
     track(() => input.version);
     track(() => input.debug);
+    track(() => input.preloader);
     track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
@@ -208,6 +211,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         version: input.version,
         serverUrl: store.serverUrl,
         deps: getDependencies(input),
+        preloader: !!input.preloader,
       },
     };
 

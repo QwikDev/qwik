@@ -68,6 +68,14 @@ const defaultManifest: QwikManifest = {
   bundles: {},
   mapping,
   version: '1',
+  preloader: 'preloader.js',
+};
+const manifestWithHelpers = {
+  ...defaultManifest,
+  core: 'core.js',
+  preloader: 'preloader.js',
+  qwikLoader: 'qwik-loader.js',
+  bundleGraphAsset: 'assets/bundle-graph.json',
 };
 
 const ManyEventsComponent = component$(() => {
@@ -246,7 +254,6 @@ describe('render api', () => {
         });
         expect(result).toMatchObject({
           isStatic: true,
-          prefetchResources: expect.any(Array),
           timing: expect.any(Object),
           manifest: expect.any(Object),
           snapshotResult: expect.any(Object),
@@ -376,7 +383,7 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
-      it('should render at bottom by default', async () => {
+      it('should render at bottom as fallback', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
@@ -386,57 +393,11 @@ describe('render api', () => {
           ?.previousSibling as HTMLElement;
         expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
         expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
-      });
-      it('should render at bottom', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          qwikLoader: {
-            position: 'bottom',
-          },
-        });
-        const document = createDocument({ html: result.html });
-        // qwik loader is one before last
-        const qwikLoaderScriptElement = document.body.firstChild?.lastChild
-          ?.previousSibling as HTMLElement;
-        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
-        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
-        // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
-      });
-      it('should render at top', async () => {
-        const result = await renderToStringAndSetPlatform(
-          [
-            <head>
-              <script></script>
-            </head>,
-            <body>
-              <ManyEventsComponent />
-            </body>,
-          ],
-          {
-            containerTagName: 'html',
-            qwikLoader: {
-              position: 'top',
-            },
-          }
-        );
-        const document = createDocument({ html: result.html });
-        // should render in head
-        const head = document.head as HTMLButtonElement;
-        // qwik events should be the last script
-        const firstQwikEventsScriptElement = head.lastChild as HTMLElement;
-        // qwik loader should be one before qwik events script
-        const qwikLoaderScriptElement = firstQwikEventsScriptElement.previousSibling as HTMLElement;
         // qwik events should be the last script of body
-        const secondQwikEventsScriptElement = document.body.lastChild as HTMLElement;
-
-        expect(firstQwikEventsScriptElement.textContent).toContain(
-          'window.qwikevents.push("click")'
+        const eventsScriptElement = document.body.lastChild as HTMLElement;
+        expect(eventsScriptElement.textContent).toContain(
+          '(window.qwikevents||(window.qwikevents=[]))'
         );
-        expect(secondQwikEventsScriptElement.textContent).toContain('window.qwikevents.push');
-
-        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
-        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
       });
       it('should always render', async () => {
         const result = await renderToStringAndSetPlatform(<div>static</div>, {
@@ -447,7 +408,7 @@ describe('render api', () => {
         });
         const document = createDocument({ html: result.html });
         // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
+        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
       });
       it('should not render for static content and auto include', async () => {
@@ -485,7 +446,7 @@ describe('render api', () => {
         const eventScript = document.querySelector('script[id=qwikloader]')
           ?.nextSibling as HTMLElement;
         expect(eventScript.textContent).toContain(
-          'window.qwikevents.push("focus", "click", "dblclick", "blur")'
+          '(window.qwikevents||(window.qwikevents=[])).push("focus", "click", "dblclick", "blur")'
         );
       });
     });
@@ -510,171 +471,19 @@ describe('render api', () => {
         );
       });
     });
-    describe('qwikPrefetchServiceWorker', () => {
-      it.todo('should render', async () => {
-        // TODO: not used?
-      });
-    });
-    describe('prefetchStrategy', () => {
-      it('should render with default prefetch implementation', async () => {
+    describe('preloader', () => {
+      // we need a test with a built manifest
+      it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-          },
-          manifest: defaultManifest,
-        });
-        expect(result.prefetchResources).toEqual(expect.any(Array));
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-            },
-          },
           manifest: defaultManifest,
         });
         const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=prefetch][as=script]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","prefetch")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-              linkRel: 'modulepreload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=modulepreload]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append" and linkRel: "modulepreload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-              linkRel: 'modulepreload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","modulepreload")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with linkInsert: "html-append" and linkRel: "preload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'html-append',
-              linkRel: 'preload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link[rel=preload]')).toHaveLength(1);
-      });
-      it('should render with linkInsert: "js-append" and linkRel: "preload"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              linkInsert: 'js-append',
-              linkRel: 'preload',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        const linkJsScript = document.querySelectorAll('script[q\\:type=link-js]');
-        expect(linkJsScript).toHaveLength(1);
-        expect(linkJsScript[0]?.textContent).toContain('setAttribute("rel","preload")');
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with prefetchEvent: "null"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              prefetchEvent: null,
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(0);
-        expect(document.querySelectorAll('link')).toHaveLength(0);
-      });
-      it('should render with workerFetchInsert: "always"', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          prefetchStrategy: {
-            symbolsToPrefetch: 'auto',
-            implementation: {
-              workerFetchInsert: 'always',
-            },
-          },
-          manifest: defaultManifest,
-        });
-        const document = createDocument({ html: result.html });
-        expect(document.querySelectorAll('script[q\\:type=prefetch-bundles]')).toHaveLength(1);
-        expect(document.querySelectorAll('script[q\\:type=link-js]')).toHaveLength(0);
-        expect(document.querySelectorAll('script[q\\:type=prefetch-worker]')).toHaveLength(1);
+        const preloadScript = document.querySelectorAll('script[q\\:type=preload]');
+        expect(preloadScript).toHaveLength(1);
+        expect(preloadScript[0]?.textContent).toContain(`import(`);
+        // no bundlegraph because no manifest
+        // expect(preloadScript[0]?.textContent).toContain(`bundle-graph`);
         expect(document.querySelectorAll('link')).toHaveLength(0);
       });
     });
@@ -686,6 +495,31 @@ describe('render api', () => {
         });
         const document = createDocument({ html: result.html });
         expect(document.body.firstChild?.nodeName.toLowerCase()).toEqual(testTag);
+      });
+      it('should render qwik loader and preloader for custom tag name', async () => {
+        const testTag = 'test-tag';
+        const result = await renderToStringAndSetPlatform(<Counter />, {
+          containerTagName: testTag,
+          manifest: manifestWithHelpers,
+        });
+        const document = createDocument({ html: result.html });
+        const containerElement = document.body.firstChild;
+        expect(containerElement?.nodeName.toLowerCase()).toEqual(testTag);
+        expect(containerElement?.lastChild?.textContent ?? '').toContain('window.qwikevents');
+        const scripts = document.querySelectorAll('script');
+        expect(scripts[0]?.getAttribute('src')).toEqual('/build/qwik-loader.js');
+        expect(scripts[1]?.innerHTML).toContain('/build/preloader.js');
+        expect(scripts[4]?.innerHTML).toContain('/build/preloader.js');
+        const links = document.querySelectorAll('link');
+        expect(links[0]?.getAttribute('href')).toEqual('/build/qwik-loader.js');
+        expect(links[0]?.getAttribute('rel')).toEqual('modulepreload');
+        expect(links[1]?.getAttribute('href')).toEqual('/build/preloader.js');
+        expect(links[1]?.getAttribute('rel')).toEqual('modulepreload');
+        expect(links[2]?.getAttribute('href')).toEqual('/assets/bundle-graph.json');
+        expect(links[2]?.getAttribute('rel')).toEqual('preload');
+        expect(links[2]?.getAttribute('as')).toEqual('fetch');
+        expect(links[3]?.getAttribute('href')).toEqual('/build/core.js');
+        expect(links[3]?.getAttribute('rel')).toEqual('modulepreload');
       });
       it('should render custom container attributes', async () => {
         const testAttrName = 'test-attr';
@@ -775,7 +609,7 @@ describe('render api', () => {
             symbol1: {
               canonicalFilename: 'symbol1filename',
               captures: false,
-              ctxKind: 'event',
+              ctxKind: 'eventHandler',
               ctxName: 'symbol1ctxname',
               displayName: 'symbol1displayname',
               hash: 'symbol1hash',
@@ -787,6 +621,7 @@ describe('render api', () => {
           bundles: {
             bundle1: {
               size: 1,
+              total: 1,
               dynamicImports: [],
             },
           },
@@ -864,7 +699,9 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: true,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">debug</script>');
+        expect(cleanupAttrs(result.html)).toContain(
+          '<script id="qwikloader" async type="module">debug</script>'
+        );
       });
 
       it('should emit qwik loader without debug mode', async () => {
@@ -872,7 +709,9 @@ describe('render api', () => {
           containerTagName: 'div',
           debug: false,
         });
-        expect(cleanupAttrs(result.html)).toContain('<script id="qwikloader">min</script>');
+        expect(cleanupAttrs(result.html)).toContain(
+          '<script id="qwikloader" async type="module">min</script>'
+        );
       });
     });
     describe('snapshotResult', () => {
@@ -1125,7 +964,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(6);
+        expect(stream.write).toHaveBeenCalledTimes(7);
       });
     });
   });

@@ -96,8 +96,7 @@ export const enum VNodeFlags {
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11_111111,
-  negated_mask /* ****** */ = 0b11_111111,
+  mask /* ************** */ = 0b11_111111,
   shift /* ************* */ = 8,
 }
 

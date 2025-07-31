@@ -8,9 +8,10 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { throwIfQRLNotResolved } from '../utils';
 import type { BackRef } from '../cleanup';
 import { getSubscriber } from '../subscriber';
-import type { ComputeQRL, EffectSubscription } from '../types';
+import { ComputedSignalFlags, ComputeQRL, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
+import type { QRLInternal } from '../../shared/qrl/qrl-class';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -21,24 +22,28 @@ const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikD
  *
  * The value is available synchronously, but the computation is done lazily.
  */
-export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
+export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
+  extends SignalImpl<T>
+  implements BackRef
+{
   /**
    * The compute function is stored here.
    *
    * The computed functions must be executed synchronously (because of this we need to eagerly
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
-  $computeQrl$: ComputeQRL<T>;
-  $flags$: SignalFlags;
+  $computeQrl$: S;
+  $flags$: SignalFlags | ComputedSignalFlags;
   $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
     container: Container | null,
-    fn: ComputeQRL<T>,
+    fn: S,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags = SignalFlags.INVALID
+    flags: SignalFlags | ComputedSignalFlags = SignalFlags.INVALID |
+      ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
   ) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
@@ -47,10 +52,15 @@ export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     this.$flags$ = flags;
   }
 
-  $invalidate$() {
+  invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
     this.$forceRunEffects$ = false;
-    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      this.$effects$
+    );
   }
 
   /**
@@ -59,7 +69,12 @@ export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    */
   force() {
     this.$forceRunEffects$ = true;
-    this.$container$?.$scheduler$(ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS, null, this);
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      this.$effects$
+    );
   }
 
   get untrackedValue() {
@@ -82,7 +97,7 @@ export class ComputedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     const previousEffectSubscription = ctx?.$effectSubscriber$;
     ctx && (ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE));
     try {
-      const untrackedValue = computeQrl.getFn(ctx)() as T;
+      const untrackedValue = (computeQrl.getFn(ctx) as S)() as T;
       if (isPromise(untrackedValue)) {
         throw qError(QError.computedNotSync, [
           computeQrl.dev ? computeQrl.dev.file : '',

@@ -50,6 +50,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "loc": [
     231,
     247
+  ],
+  "paramNames": [
+    "ev"
   ]
 }
 */
@@ -59,14 +62,15 @@ import { Header } from "./test";
 import { bar as bbar } from "../state";
 import * as dep2 from "dep2";
 import { qrl } from "@qwik.dev/core";
+const i_KjD9TCNkNxY = ()=>import("./test.tsx_Header_component_Header_onClick_KjD9TCNkNxY");
 export const Header_component_UVBJuFYfvDo = ()=>{
-    return <Header onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_Header_onClick_KjD9TCNkNxY"), "Header_component_Header_onClick_KjD9TCNkNxY")}>
+    return <Header onClick={/*#__PURE__*/ qrl(i_KjD9TCNkNxY, "Header_component_Header_onClick_KjD9TCNkNxY")}>
 			{dep2.stuff()}{bbar()}
 		</Header>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;4CAMiC;IAChC,QACE,OAAO,iJAA8B;GACrC,CAAC,KAAK,KAAK,IAAI,OAAO;EACvB,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;;4CAMiC;IAChC,QACE,OAAO,0FAA8B;GACrC,CAAC,KAAK,KAAK,IAAI,OAAO;EACvB,EAAE;AAEJ\"}")
 /*
 {
   "origin": "project/test.tsx",
@@ -121,11 +125,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_UVBJuFYfvDo"), "Header_component_UVBJuFYfvDo"));
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_wGkRHWXaqjs"), "App_component_wGkRHWXaqjs"));
+const i_UVBJuFYfvDo = ()=>import("./test.tsx_Header_component_UVBJuFYfvDo");
+const i_wGkRHWXaqjs = ()=>import("./test.tsx_App_component_wGkRHWXaqjs");
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_UVBJuFYfvDo, "Header_component_UVBJuFYfvDo"));
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_wGkRHWXaqjs, "App_component_wGkRHWXaqjs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;AAMA,OAAO,MAAM,uBAAS,uHAMnB;AAEH,OAAO,MAAM,oBAAM,iHAIhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAMA,OAAO,MAAM,uBAAS,+EAMnB;AAEH,OAAO,MAAM,oBAAM,4EAIhB\"}")
 == DIAGNOSTICS ==
 
 []

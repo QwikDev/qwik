@@ -109,3 +109,21 @@ For middleware, you'll notice that each one calls the common `@qwik.dev/router/m
 ### Add To The Starter CLI
 
 The next step is to add the new adapter to the Starter CLI. For this step it's probably best to ping the core team on [Discord](https://qwik.dev/chat) to help you get started. The CLI is a great place to add the new adapter, because it's a great way to test the new adapter and make sure it's working as expected.
+
+## Cache Headers
+
+To assure proper caching of your built files, you need to serve them with the correct cache headers.
+
+By default, files are generated under `dist/build` and `dist/assets`, and they get a content hash in the filename. This means that the name is unique for the contents of those files, and they can be cached indefinitely.
+
+Therefore, we recommend that you serve these files with the following header:
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+
+The various deployment platforms have different ways of configuring this, and the starters should have the correct configuration already set (you can `npx qwik add` again to update the configuration). However, there is no one-size-fits-all solution, so verify that caching is working as expected.
+
+To verify proper caching, you can visit your site and open the developer tools to inspect the network requests. When you reload the page, you should see that all requests for assets are coming from the browser cache and are not contacting the server. Even a `304 Not Modified` response is not good enough, because it means that the browser is still unsure that the content is cached.
+
+ ⚠️ **Note**: If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), then translated bundles (`build/[locale]/*.js`) can retain identical filenames between builds even when translations change. Consider how long you want to cache these files for so users get the latest translations.

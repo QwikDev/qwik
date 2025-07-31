@@ -18,15 +18,16 @@
   "devDependencies": {
     "@qwik.dev/core": "latest",
     "@qwik.dev/router": "latest",
-    "@types/eslint": "latest",
+    "@eslint/js": "latest",
     "@types/node": "latest",
-    "@typescript-eslint/eslint-plugin": "latest",
-    "@typescript-eslint/parser": "latest",
+    "typescript-eslint": "latest",
     "eslint": "latest",
     "eslint-plugin-qwik": "latest",
+    "globals": "latest",
     "prettier": "latest",
     "typescript": "latest",
-    "vite": "^4.5.2",
+    "typescript-plugin-css-modules": "latest",
+    "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {

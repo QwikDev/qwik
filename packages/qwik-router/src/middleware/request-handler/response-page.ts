@@ -1,6 +1,8 @@
+import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
   getRequestLoaders,
+  getRequestLoaderSerializationStrategyMap,
   getRequestRoute,
   RequestEvSharedActionFormData,
   RequestEvSharedActionId,
@@ -10,7 +12,7 @@ import {
 import type { RequestEvent } from './types';
 
 export function getQwikRouterServerData(requestEv: RequestEvent) {
-  const { url, params, request, status, locale } = requestEv;
+  const { params, request, status, locale, originalUrl } = requestEv;
   const requestHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
@@ -19,7 +21,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
   const routeName = requestEv.sharedMap.get(RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
   const headers = requestEv.request.headers;
-  const reconstructedUrl = new URL(url.pathname + url.search, url);
+  const reconstructedUrl = new URL(originalUrl.pathname + originalUrl.search, originalUrl);
   const host = headers.get('X-Forwarded-Host')!;
   const protocol = headers.get('X-Forwarded-Proto')!;
   if (host) {
@@ -30,13 +32,16 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
     reconstructedUrl.protocol = protocol;
   }
 
+  const loaders = getRequestLoaders(requestEv);
+  const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
+
   return {
     url: reconstructedUrl.href,
     requestHeaders,
     locale: locale(),
     nonce,
     containerAttributes: {
-      'q:route': routeName,
+      [Q_ROUTE]: routeName,
     },
     qwikrouter: {
       routeName,
@@ -45,7 +50,8 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
       loadedRoute: getRequestRoute(requestEv),
       response: {
         status: status(),
-        loaders: getRequestLoaders(requestEv),
+        loaders,
+        loadersSerializationStrategy,
         action,
         formData,
       },

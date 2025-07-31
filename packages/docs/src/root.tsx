@@ -54,10 +54,11 @@ export default component$(() => {
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
         <RouterHead />
+
         <ServiceWorkerRegister />
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
-        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        <Insights />
       </head>
       <body
         class={{
@@ -67,7 +68,6 @@ export default component$(() => {
       >
         <RouterOutlet />
         <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
-        {/* Core Web Vitals experiment until November 8: Do not bring back any SW until then! Reach out to @maiieul first if you believe you have a good reason to change this. */}
       </body>
     </QwikRouterProvider>
   );
@@ -75,5 +75,7 @@ export default component$(() => {
 
 export function collectSymbols() {
   (window as any).symbols = [];
-  document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
+  document.addEventListener('qsymbol', (e) =>
+    (window as any).symbols.push((e as any).detail.symbol)
+  );
 }

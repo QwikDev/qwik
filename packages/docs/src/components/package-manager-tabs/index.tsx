@@ -96,7 +96,7 @@ const CopyButton = component$(() => {
   return (
     <button
       onClick$={copyToClipboard$}
-      class="px-5 rounded absolute right-0 top-0 text-white h-full group"
+      class="px-5 rounded-sm absolute right-0 top-0 text-white h-full group"
       aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
       title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >

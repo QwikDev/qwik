@@ -69,9 +69,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Component ssr-required>
-          <span>
-            <WrappedSignal ssr-required>CONTEXT_VALUE</WrappedSignal>
-          </span>
+          <span>CONTEXT_VALUE</span>
         </Component>
       </Component>
     );
@@ -93,9 +91,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Component ssr-required>
-          <span>
-            <WrappedSignal ssr-required>CONTEXT_VALUE</WrappedSignal>
-          </span>
+          <span>CONTEXT_VALUE</span>
         </Component>
       </Component>
     );
@@ -251,11 +247,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
+                      <p>1</p>
                       <p>
-                        <WrappedSignal ssr-required>1</WrappedSignal>
-                      </p>
-                      <p>
-                        <Awaited>0</Awaited>
+                        <Awaited ssr-required>0</Awaited>
                       </p>
                       <p>
                         <WrappedSignal ssr-required>0</WrappedSignal>
@@ -279,9 +273,7 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>
-                        <WrappedSignal ssr-required>1</WrappedSignal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited ssr-required>2</Awaited>
                       </p>
@@ -352,7 +344,7 @@ describe.each([
                 <Component ssr-required>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    <WrappedSignal ssr-required>{'hello'}</WrappedSignal>
+                    {'hello'}
                   </div>
                 </Component>
               </Projection>

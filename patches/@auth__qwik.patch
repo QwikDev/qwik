@@ -3,12 +3,12 @@ index 344a147d81a24d041488239401b91b078b061edc..61c0c9afdd048e6befe4d142dd4def44
 --- a/index.qwik.js
 +++ b/index.qwik.js
 @@ -1,7 +1,6 @@
- import { globalActionQrl, zodQrl, z, routeLoaderQrl } from "@builder.io/qwik-city";
- import { inlinedQrl, useLexicalScope, implicit$FirstArg } from "@builder.io/qwik";
+ import { globalActionQrl, zodQrl, z, routeLoaderQrl } from "@qwik.dev/router";
+ import { inlinedQrl, useLexicalScope, implicit$FirstArg } from "@qwik.dev/core";
 -import { Auth, skipCSRFCheck, isAuthAction } from "@auth/core";
 -import { customFetch } from "@auth/core";
 +import { customFetch as customFetch$1, Auth, skipCSRFCheck, isAuthAction } from "@auth/core";
- import { isServer } from "@builder.io/qwik/build";
+ import { isServer } from "@qwik.dev/core/build";
  var setCookie = { exports: {} };
  var defaultParseOptions = {
 @@ -292,9 +291,11 @@ AccountNotLinked.type = "AccountNotLinked";

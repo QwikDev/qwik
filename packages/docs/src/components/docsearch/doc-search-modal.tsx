@@ -1,4 +1,11 @@
-import { component$, useSignal, noSerialize, useContextProvider, useTask$ } from '@qwik.dev/core';
+import {
+  component$,
+  useSignal,
+  noSerialize,
+  useContextProvider,
+  useTask$,
+  type Signal,
+} from '@qwik.dev/core';
 import { MAX_QUERY_SIZE } from './constants';
 import { SearchContext } from './context';
 import type { DocSearchProps, DocSearchState } from './doc-search';
@@ -23,6 +30,7 @@ export type DocSearchModalProps = DocSearchProps & {
   translations?: ModalTranslations;
   state: DocSearchState;
   aiResultOpen?: boolean;
+  isOpen: Signal<boolean>;
 };
 
 export const DocSearchModal = component$(
@@ -34,6 +42,7 @@ export const DocSearchModal = component$(
     transformItems$ = identity,
     aiResultOpen,
     disableUserPersonalization = false,
+    isOpen,
   }: DocSearchModalProps) => {
     const containerRef = useSignal<Element>();
     const modalRef = useSignal<Element>();
@@ -44,7 +53,7 @@ export const DocSearchModal = component$(
     const onSelectItem = noSerialize(({ item, event }: any) => {
       if (event) {
         if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
-          state.isOpen = false;
+          isOpen.value = false;
         }
       }
     }) as any;
@@ -106,14 +115,10 @@ export const DocSearchModal = component$(
     useTask$(() => {
       if (isBrowser) {
         document.body.classList.add('DocSearch--active');
-        const isMobileMediaQuery = window.matchMedia('(max-width: 768px)');
-
-        if (isMobileMediaQuery.matches) {
-          state.snippetLength = 5;
-        }
 
         return () => {
           document.body.classList.remove('DocSearch--active');
+          document.body.style.overflow = '';
         };
       }
     });
@@ -167,20 +172,13 @@ export const DocSearchModal = component$(
         tabIndex={0}
         onMouseDown$={(event) => {
           if (event.target === containerRef.value) {
-            state.isOpen = false;
+            isOpen.value = false;
           }
         }}
       >
         <div class="DocSearch-Modal" ref={modalRef}>
           <header class="DocSearch-SearchBar" ref={formElementRef}>
-            <SearchBox
-              state={state}
-              autoFocus={true}
-              inputRef={inputRef as any}
-              onClose$={() => {
-                state.isOpen = false;
-              }}
-            />
+            <SearchBox isOpen={isOpen} state={state} autoFocus={true} inputRef={inputRef as any} />
           </header>
 
           <div class="DocSearch-Dropdown" ref={dropdownRef}>

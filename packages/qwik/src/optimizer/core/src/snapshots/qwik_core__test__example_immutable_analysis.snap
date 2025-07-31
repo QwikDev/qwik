@@ -87,10 +87,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAKA,OAAO,MAAM,oBAAM,iHA4ChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAKA,OAAO,MAAM,oBAAM,4EA4ChB\"}")
 ============================= test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -118,6 +119,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     760,
     792
+  ],
+  "paramNames": [
+    "ev"
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
@@ -158,11 +165,15 @@ import importedValue from "v";
 import { qrl } from "@qwik.dev/core";
 import styles from "./styles.module.css";
 import { useStore } from "@qwik.dev/core";
+const i_2zF7jA3Yti0 = ()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0");
+const i_eeDEK6EM1oo = ()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo");
+const i_pU6yOC5P6sY = ()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY");
+const i_zrFduYbT3xM = ()=>import("./test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM");
 export const App_component_ckEPmXZlub0 = (props)=>{
     const state = useStore({
         count: 0
     });
-    const remove = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY"), "App_component_remove_pU6yOC5P6sY", [
+    const remove = /*#__PURE__*/ qrl(i_pU6yOC5P6sY, "App_component_remove_pU6yOC5P6sY", [
         state
     ]);
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
@@ -176,15 +187,15 @@ export const App_component_ckEPmXZlub0 = (props)=>{
             onClick$: props.onClick$
         }, {
             class: styles.foo,
-            onEvent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_onEvent_zrFduYbT3xM"), "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
-            transparent$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo"), "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
+            onEvent$: /*#__PURE__*/ qrl(i_zrFduYbT3xM, "App_component_Fragment_Div_onEvent_zrFduYbT3xM"),
+            transparent$: /*#__PURE__*/ qrl(i_eeDEK6EM1oo, "App_component_Fragment_Div_transparent_eeDEK6EM1oo"),
             immutable1: "stuff",
             immutable2: {
                 foo: 'bar',
                 baz: importedValue ? true : false
             },
             immutable3: 2,
-            immutable4$: /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0"), "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
+            immutable4$: /*#__PURE__*/ qrl(i_2zF7jA3Yti0, "App_component_Fragment_Div_immutable4_2zF7jA3Yti0", [
                 state
             ]),
             immutable5: [
@@ -220,7 +231,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAK8B,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,OAAO;gBAC3B,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;yCAK8B,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,OAAO;gBAC3B,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",
@@ -238,6 +249,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     164,
     1148
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */
@@ -269,6 +283,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     256,
     358
+  ],
+  "paramNames": [
+    "id"
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */

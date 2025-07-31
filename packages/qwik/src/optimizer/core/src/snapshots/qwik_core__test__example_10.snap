@@ -69,13 +69,19 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/project/test.tsx\"],\"names\"
   "loc": [
     67,
     393
+  ],
+  "paramNames": [
+    "decl1",
+    "{decl2}",
+    "[decl3]"
   ]
 }
 */
 ============================= project/test.tsx ==
 
 import { qrl } from "@qwik.dev/core";
-/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_WlR3xnI6u38"), "Header_WlR3xnI6u38");
+const i_WlR3xnI6u38 = ()=>import("./test.tsx_Header_WlR3xnI6u38");
+/*#__PURE__*/ qrl(i_WlR3xnI6u38, "Header_WlR3xnI6u38");
 
 
 Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")

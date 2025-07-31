@@ -1,6 +1,5 @@
 // This was vibe-coded with AI
-import { ESLintUtils } from '@typescript-eslint/utils';
-import ts from 'typescript';
+import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 import { QwikEslintExamples } from '../examples';
 
 const createRule = ESLintUtils.RuleCreator(
@@ -22,192 +21,164 @@ export const serializerSignalUsage = createRule({
   },
   defaultOptions: [],
   create(context) {
-    // Check if we have TypeScript services available
-    if (!context.parserServices?.program || !context.parserServices?.esTreeNodeToTSNodeMap) {
-      return {};
+    // Helper: check if an identifier looks like a signal/store by name
+    function isSignalOrStoreName(name: string): boolean {
+      return (
+        name.endsWith('Signal') || name.endsWith('Store') || name === 'signal' || name === 'store'
+      );
     }
 
-    const services = {
-      program: context.parserServices.program,
-      esTreeNodeToTSNodeMap: context.parserServices.esTreeNodeToTSNodeMap,
-    };
-    const typeChecker = services.program.getTypeChecker();
-
-    function isSignalOrStoreType(type: ts.Type): boolean {
-      if (!type.symbol) {
-        // For 'any' type, check if it's being used like a store/signal
-        if (type.flags & ts.TypeFlags.Any) {
-          return true; // Consider 'any' as potentially a store/signal
-        }
-        return false;
-      }
-
-      // Check if it's a Signal or Store by name
-      // Note, we don't have a Store type but we might in the future
-      if (type.symbol.name === 'Signal' || type.symbol.name === 'Store') {
-        return true;
-      }
-
-      // Check if it's a Signal by having a value property
-      const properties = type.getProperties();
-      const hasValue = properties.some((p) => p.name === 'value');
-      if (hasValue) {
-        return true;
-      }
-
-      // Check if it's a Store by checking if it's an object with properties
-      if (type.flags & ts.TypeFlags.Object) {
-        // For object types, consider them stores if they have properties
-        // This catches both explicit Store types and plain objects used as stores
-        return properties.length > 0;
-      }
-
-      return false;
-    }
-
-    function collectSignalsFromFunction(node: any): Set<string> {
+    // Helper: collect signals/stores used in a function body
+    function collectSignalsFromFunction(
+      node: TSESTree.BlockStatement | TSESTree.Expression
+    ): Set<string> {
       const signals = new Set<string>();
-      const visited = new WeakSet();
+      const visited = new WeakSet<object>();
       const functionParams = new Set<string>();
 
-      // Collect function parameters first
-      if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
-        node.params.forEach((param: any) => {
+      // Collect function parameters if available
+      if ('params' in node && Array.isArray(node.params)) {
+        node.params.forEach((param) => {
           if (param.type === 'Identifier') {
             functionParams.add(param.name);
           }
         });
       }
 
-      function isAssignmentTarget(node: any): boolean {
-        const parent = node.parent;
+      function isAssignmentTarget(node: TSESTree.Node): boolean {
+        const parent = (node as any).parent;
         if (!parent) {
           return false;
         }
-
-        // Check if it's the left side of an assignment
         if (parent.type === 'AssignmentExpression' && parent.left === node) {
           return true;
         }
-
-        // Check if it's the target of an update expression (++, --)
         if (parent.type === 'UpdateExpression' && parent.argument === node) {
           return true;
         }
-
         return false;
       }
 
-      function visit(node: any) {
-        if (!node || typeof node !== 'object' || visited.has(node)) {
+      function visit(n: any) {
+        if (!n || typeof n !== 'object' || visited.has(n)) {
           return;
         }
-        visited.add(node);
+        visited.add(n);
 
-        if (node.type === 'MemberExpression' && !isAssignmentTarget(node)) {
-          const obj = node.object;
-          if (obj?.type === 'Identifier' && !functionParams.has(obj.name)) {
-            const tsNode = services.esTreeNodeToTSNodeMap.get(obj);
-            if (tsNode) {
-              const type = typeChecker.getTypeAtLocation(tsNode);
-              if (isSignalOrStoreType(type)) {
-                if (type.flags & ts.TypeFlags.Object || type.flags & ts.TypeFlags.Any) {
-                  // For stores, track each property access
-                  const propName = node.property?.name;
-                  if (propName) {
-                    signals.add(`${obj.name}.${propName}`);
-                  }
-                } else {
-                  // For signals, track the whole signal
-                  signals.add(obj.name);
-                }
+        // MemberExpression: obj.value or obj.prop
+        if (n.type === 'MemberExpression' && !isAssignmentTarget(n)) {
+          // Only support simple identifiers for now
+          if (n.object.type === 'Identifier' && !functionParams.has(n.object.name)) {
+            // Heuristic: treat as signal if .value, or as store if .prop
+            if (n.property.type === 'Identifier' && n.property.name === 'value') {
+              signals.add(n.object.name);
+            } else if (n.property.type === 'Identifier') {
+              // If the object name looks like a store, track property
+              if (isSignalOrStoreName(n.object.name)) {
+                signals.add(`${n.object.name}.${n.property.name}`);
               }
             }
           }
         }
 
-        // Visit specific AST properties that can contain nodes
-        const properties = [
-          'body',
-          'expression',
-          'expressions',
-          'argument',
-          'arguments',
-          'left',
-          'right',
-          'object',
-          'property',
-        ];
+        // Identifier: countSignal, myStore, etc.
+        if (n.type === 'Identifier' && !functionParams.has(n.name) && isSignalOrStoreName(n.name)) {
+          signals.add(n.name);
+        }
 
-        for (const prop of properties) {
-          const value = node[prop];
+        // Visit child nodes
+        for (const key in n) {
+          if (key === 'parent') {
+            continue;
+          }
+          const value = n[key];
           if (Array.isArray(value)) {
-            value.forEach((v) => visit(v));
+            value.forEach(visit);
           } else if (value && typeof value === 'object') {
-            value.parent = node; // Add parent reference for assignment checking
+            (value as any).parent = n; // for assignment checking
             visit(value);
           }
         }
       }
 
-      const body = node.type === 'BlockStatement' ? node.body : [node];
-      body.forEach(visit);
+      // If node is a block, visit all statements; else, visit the expression
+      if (node.type === 'BlockStatement') {
+        node.body.forEach(visit);
+      } else {
+        visit(node);
+      }
       return signals;
     }
 
     return {
-      CallExpression(node) {
+      CallExpression(node: TSESTree.CallExpression) {
         if (
           node.callee.type === 'Identifier' &&
           (node.callee.name === 'useSerializer$' || node.callee.name === 'createSerializer$')
         ) {
           const arg = node.arguments[0];
+          if (
+            arg &&
+            (arg.type === 'ArrowFunctionExpression' || arg.type === 'FunctionExpression')
+          ) {
+            // Find the returned object
+            let returnValue: TSESTree.ObjectExpression | undefined;
+            if (arg.body.type === 'BlockStatement') {
+              const ret = arg.body.body.find((stmt) => stmt.type === 'ReturnStatement') as
+                | TSESTree.ReturnStatement
+                | undefined;
+              if (ret && ret.argument && ret.argument.type === 'ObjectExpression') {
+                returnValue = ret.argument;
+              }
+            } else if (arg.body.type === 'ObjectExpression') {
+              returnValue = arg.body;
+            }
 
-          // Check if the argument is a function that returns an object
-          if (arg?.type === 'ArrowFunctionExpression' || arg?.type === 'FunctionExpression') {
-            const returnValue =
-              arg.body.type === 'BlockStatement'
-                ? (arg.body.body.find((stmt: any) => stmt.type === 'ReturnStatement') as any)
-                    ?.argument
-                : arg.body;
-
-            if (returnValue?.type === 'ObjectExpression') {
+            if (returnValue) {
               const updateProp = returnValue.properties.find(
                 (p) =>
                   p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'update'
-              );
+              ) as TSESTree.Property | undefined;
               const deserializeProp = returnValue.properties.find(
                 (p) =>
                   p.type === 'Property' &&
                   p.key.type === 'Identifier' &&
                   p.key.name === 'deserialize'
-              );
+              ) as TSESTree.Property | undefined;
 
               if (updateProp && deserializeProp) {
-                const updateFn = (updateProp as any).value;
-                const deserializeFn = (deserializeProp as any).value;
+                const updateFn = updateProp.value;
+                const deserializeFn = deserializeProp.value;
 
-                const updateSignals = collectSignalsFromFunction(updateFn.body);
-                const deserializeSignals = collectSignalsFromFunction(deserializeFn.body);
+                // Only support function expressions for now
+                if (
+                  (updateFn.type === 'ArrowFunctionExpression' ||
+                    updateFn.type === 'FunctionExpression') &&
+                  (deserializeFn.type === 'ArrowFunctionExpression' ||
+                    deserializeFn.type === 'FunctionExpression')
+                ) {
+                  const updateSignals = collectSignalsFromFunction(updateFn.body);
+                  const deserializeSignals = collectSignalsFromFunction(deserializeFn.body);
 
-                // Check both directions
-                const missingInDeserialize = Array.from(updateSignals).filter(
-                  (signal) => !deserializeSignals.has(signal)
-                );
-                const missingInUpdate = Array.from(deserializeSignals).filter(
-                  (signal) => !updateSignals.has(signal)
-                );
+                  // Check both directions
+                  const missingInDeserialize = Array.from(updateSignals).filter(
+                    (signal) => !deserializeSignals.has(signal)
+                  );
+                  const missingInUpdate = Array.from(deserializeSignals).filter(
+                    (signal) => !updateSignals.has(signal)
+                  );
 
-                const allMissingSignals = [...missingInDeserialize, ...missingInUpdate];
+                  const allMissingSignals = [...missingInDeserialize, ...missingInUpdate];
 
-                if (allMissingSignals.length > 0) {
-                  context.report({
-                    node: updateProp,
-                    messageId: 'serializerSignalMismatch',
-                    data: {
-                      signals: allMissingSignals.join(', '),
-                    },
-                  });
+                  if (allMissingSignals.length > 0) {
+                    context.report({
+                      node: updateProp,
+                      messageId: 'serializerSignalMismatch',
+                      data: {
+                        signals: allMissingSignals.join(', '),
+                      },
+                    });
+                  }
                 }
               }
             }

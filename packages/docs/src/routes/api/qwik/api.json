@@ -221,6 +221,48 @@
       "mdFile": "core._.md"
     },
     {
+      "name": "AsyncComputedFn",
+      "id": "asynccomputedfn",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedFn",
+          "id": "asynccomputedfn"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.asynccomputedfn.md"
+    },
+    {
+      "name": "AsyncComputedReadonlySignal",
+      "id": "asynccomputedreadonlysignal",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReadonlySignal",
+          "id": "asynccomputedreadonlysignal"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "mdFile": "core.asynccomputedreadonlysignal.md"
+    },
+    {
+      "name": "AsyncComputedReturnType",
+      "id": "asynccomputedreturntype",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReturnType",
+          "id": "asynccomputedreturntype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;\n```\n**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.asynccomputedreturntype.md"
+    },
+    {
       "name": "cache",
       "id": "resourcectx-cache",
       "hierarchy": [
@@ -325,6 +367,34 @@
       "mdFile": "core.computedfn.md"
     },
     {
+      "name": "ComputedOptions",
+      "id": "computedoptions",
+      "hierarchy": [
+        {
+          "name": "ComputedOptions",
+          "id": "computedoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface ComputedOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[container?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[serializationStrategy?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/types.ts",
+      "mdFile": "core.computedoptions.md"
+    },
+    {
+      "name": "ComputedReturnType",
+      "id": "computedreturntype",
+      "hierarchy": [
+        {
+          "name": "ComputedReturnType",
+          "id": "computedreturntype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type ComputedReturnType<T> = T extends Promise<any> ? never : ComputedSignal<T>;\n```\n**References:** [ComputedSignal](#computedsignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
+      "mdFile": "core.computedreturntype.md"
+    },
+    {
       "name": "ComputedSignal",
       "id": "computedsignal",
       "hierarchy": [
@@ -334,7 +404,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\n\n```typescript\nexport interface ComputedSignal<T> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[force()](#computedsignal-force)\n\n\n</td><td>\n\nUse this to force running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n</td></tr>\n<tr><td>\n\n[invalidate()](#computedsignal-invalidate)\n\n\n</td><td>\n\nUse this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.computedsignal.md"
     },
@@ -381,6 +451,20 @@
       "mdFile": "core.correctedtoggleevent.md"
     },
     {
+      "name": "createAsyncComputed$",
+      "id": "createasynccomputed_",
+      "hierarchy": [
+        {
+          "name": "createAsyncComputed$",
+          "id": "createasynccomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.\n\n\n```typescript\ncreateAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
+      "mdFile": "core.createasynccomputed_.md"
+    },
+    {
       "name": "createComputed$",
       "id": "createcomputed_",
       "hierarchy": [
@@ -390,7 +474,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useSignal` and `useTask$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T) => T extends Promise<any> ? never : ComputedSignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useAsyncComputed$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createcomputed_.md"
     },
@@ -585,7 +669,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object. Useful for third-party libraries.\n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
+      "content": "Use this to force running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n```typescript\nforce(): void;\n```\n**Returns:**\n\nvoid",
       "mdFile": "core.computedsignal.force.md"
     },
     {
@@ -673,6 +757,20 @@
       "mdFile": "core.h.md"
     },
     {
+      "name": "HTMLElementAttrs",
+      "id": "htmlelementattrs",
+      "hierarchy": [
+        {
+          "name": "HTMLElementAttrs",
+          "id": "htmlelementattrs"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> \n```\n**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts",
+      "mdFile": "core.htmlelementattrs.md"
+    },
+    {
       "name": "implicit$FirstArg",
       "id": "implicit_firstarg",
       "hierarchy": [
@@ -719,6 +817,23 @@
       "kind": "Interface",
       "content": "```typescript\ninterface IntrinsicElements extends LenientQwikElements \n```\n**Extends:** LenientQwikElements",
       "mdFile": "core.qwikjsx.intrinsicelements.md"
+    },
+    {
+      "name": "invalidate",
+      "id": "computedsignal-invalidate",
+      "hierarchy": [
+        {
+          "name": "ComputedSignal",
+          "id": "computedsignal-invalidate"
+        },
+        {
+          "name": "invalidate",
+          "id": "computedsignal-invalidate"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "Use this to force recalculation and running subscribers, for example when the calculated value mutates but remains the same object.\n\n\n```typescript\ninvalidate(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.computedsignal.invalidate.md"
     },
     {
       "name": "isSignal",
@@ -1080,7 +1195,7 @@
         }
       ],
       "kind": "Function",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nLoad the prefetch graph for the container.\n\nEach Qwik container needs to include its own prefetch graph.\n\n\n```typescript\nPrefetchGraph: (opts?: {\n    base?: string;\n    manifestHash?: string;\n    manifestURL?: string;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }\n\n\n</td><td>\n\n_(Optional)_ Options for the loading prefetch graph.\n\n- `base` - Base of the graph. For a default installation this will default to the q:base value `/build/`<!-- -->. But if more than one MFE is installed on the page, then each MFE needs to have its own base. - `manifestHash` - Hash of the manifest file to load. If not provided the hash will be extracted from the container attribute `q:manifest-hash` and assume the default build file `${base}/q-bundle-graph-${manifestHash}.json`<!-- -->. - `manifestURL` - URL of the manifest file to load if non-standard bundle graph location name.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class. You can remove this component from your app.\n> \n\n\n```typescript\nPrefetchGraph: (_opts?: {\n    base?: string;\n    manifestHash?: string;\n    manifestURL?: string;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n\\_opts\n\n\n</td><td>\n\n{ base?: string; manifestHash?: string; manifestURL?: string; nonce?: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts",
       "mdFile": "core.prefetchgraph.md"
     },
@@ -1094,7 +1209,7 @@
         }
       ],
       "kind": "Function",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nInstall a service worker which will prefetch the bundles.\n\nThere can only be one service worker per page. Because there can be many separate Qwik Containers on the page each container needs to load its prefetch graph using `PrefetchGraph` component.\n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    scope?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }\n\n\n</td><td>\n\nOptions for the prefetch service worker.\n\n- `base` - Base URL for the service worker. Default is `import.meta.env.BASE_URL`<!-- -->, which is defined by Vite's `config.base` and defaults to `/`<!-- -->. - `scope` - Base URL for when the service-worker will activate. Default is `/` - `path` - Path to the service worker. Default is `qwik-prefetch-service-worker.js` unless you pass a path that starts with a `/` then the base is ignored. Default is `qwik-prefetch-service-worker.js` - `verbose` - Verbose logging for the service worker installation. Default is `false` - `nonce` - Optional nonce value for security purposes, defaults to `undefined`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class.ts. Leave this in your app for a while so it uninstalls existing service workers, but don't use it for new projects.\n> \n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    scope?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n    nonce?: string;\n}) => JSXOutput\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts",
       "mdFile": "core.prefetchserviceworker.md"
     },
@@ -1304,7 +1419,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n};\n```\n**References:** [QwikAttributes](#qwikattributes)",
+      "content": "The DOM props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikHTMLElements = {\n    [tag in keyof HTMLElementTagNameMap]: Augmented<HTMLElementTagNameMap[tag], SpecialAttrs[tag]> & HTMLElementAttrs & QwikAttributes<HTMLElementTagNameMap[tag]>;\n};\n```\n**References:** [HTMLElementAttrs](#htmlelementattrs)<!-- -->, [QwikAttributes](#qwikattributes)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts",
       "mdFile": "core.qwikhtmlelements.md"
     },
@@ -1444,7 +1559,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "The SVG props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikSVGElements = {\n    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;\n};\n```",
+      "content": "The SVG props without plain handlers, for use inside functions\n\n\n```typescript\nexport type QwikSVGElements = {\n    [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;\n};\n```\n**References:** [SVGProps](#svgprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts",
       "mdFile": "core.qwiksvgelements.md"
     },
@@ -1458,7 +1573,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    qBase: string;\n    qManifest: string;\n    qVersion: string;\n    href: string;\n    symbol: string;\n    element: Element;\n    reqTime: number;\n}>;\n```",
+      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    qManifest?: string;\n    qVersion?: string;\n    href?: string;\n}>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.qwiksymbolevent.md"
     },
@@ -1743,6 +1858,20 @@
       "mdFile": "core.resourcereturn.md"
     },
     {
+      "name": "SerializationStrategy",
+      "id": "serializationstrategy",
+      "hierarchy": [
+        {
+          "name": "SerializationStrategy",
+          "id": "serializationstrategy"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type SerializationStrategy = 'never' | 'always';\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/types.ts",
+      "mdFile": "core.serializationstrategy.md"
+    },
+    {
       "name": "SerializerSymbol",
       "id": "serializersymbol",
       "hierarchy": [
@@ -1808,7 +1937,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "Allows to project the children of the current component. <Slot/> can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n    children?: JSXChildren;\n}>\n```",
+      "content": "Allows to project the children of the current component. `<Slot/>` can only be used within the context of a component defined with `component$`<!-- -->.\n\n\n```typescript\nSlot: FunctionComponent<{\n    name?: string;\n    children?: JSXChildren;\n}>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/slot.public.ts",
       "mdFile": "core.slot.md"
     },
@@ -1995,6 +2124,20 @@
       "mdFile": "core.svgattributes.md"
     },
     {
+      "name": "SVGProps",
+      "id": "svgprops",
+      "hierarchy": [
+        {
+          "name": "SVGProps",
+          "id": "svgprops"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> \n```\n**Extends:** [SVGAttributes](#svgattributes)<!-- -->, [QwikAttributes](#qwikattributes)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts",
+      "mdFile": "core.svgprops.md"
+    },
+    {
       "name": "sync$",
       "id": "sync_",
       "hierarchy": [
@@ -2032,7 +2175,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup(callback)](#)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface TaskCtx \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[cleanup](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(callback: () =&gt; void) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[track](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Tracker](#tracker)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "core.taskctx.md"
     },
@@ -2093,6 +2236,20 @@
       "mdFile": "core.unwrapstore.md"
     },
     {
+      "name": "useAsyncComputed$",
+      "id": "useasynccomputed_",
+      "hierarchy": [
+        {
+          "name": "useAsyncComputed$",
+          "id": "useasynccomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncComputedFn](#asynccomputedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
+      "mdFile": "core.useasynccomputed_.md"
+    },
+    {
       "name": "useComputed$",
       "id": "usecomputed_",
       "hierarchy": [
@@ -2102,7 +2259,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => T extends Promise<any> ? never : ReadonlySignal<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nT extends Promise&lt;any&gt; ? never : [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;",
+      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts",
       "mdFile": "core.usecomputed_.md"
     },

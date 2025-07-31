@@ -53,6 +53,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     394,
     428
+  ],
+  "captureNames": [
+    "currentType"
   ]
 }
 */
@@ -60,10 +63,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE"), "Cmp_component_4ryKJTOKjWE"));
+const i_4ryKJTOKjWE = ()=>import("./test.tsx_Cmp_component_4ryKJTOKjWE");
+export const Cmp = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_4ryKJTOKjWE, "Cmp_component_4ryKJTOKjWE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,oBAAM,iHAchB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,oBAAM,4EAchB\"}")
 ============================= test.tsx_Cmp_component_4ryKJTOKjWE.js (ENTRY POINT)==
 
 import { A } from "./componentA";
@@ -71,6 +75,7 @@ import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+const i_GyS1w0fRTAk = ()=>import("./test.tsx_Cmp_component_Fragment_button_onClick_GyS1w0fRTAk");
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const currentStep = useSignal('STEP_1');
     const currentType = useSignal('PREVIOUS');
@@ -79,7 +84,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
     };
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Cmp_component_Fragment_button_onClick_GyS1w0fRTAk"), "Cmp_component_Fragment_button_onClick_GyS1w0fRTAk", [
+            onClick$: /*#__PURE__*/ qrl(i_GyS1w0fRTAk, "Cmp_component_Fragment_button_onClick_GyS1w0fRTAk", [
                 currentType
             ])
         }, "CLICK", 3, null),
@@ -90,7 +95,7 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,QAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;yCAI8B;IAC7B,MAAM,cAAc,UAAU;IAC9B,MAAM,cAAc,UAA+B;IAEnD,MAAM,UAAU,CAAC,MAAc;QAC9B,OAAO,SAAS,WAAW,WAAW;IACvC;IAEA,qBACC;sBACC,WAAC;YAAO,QAAQ;;;WAAsC;sBACtD,WAAC;YAAE,MAAM,QAAQ,YAAY,KAAK,EAAE,YAAY,KAAK;;;AAGxD\"}")
 /*
 {
   "origin": "test.tsx",

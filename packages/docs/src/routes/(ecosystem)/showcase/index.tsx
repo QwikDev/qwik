@@ -10,6 +10,9 @@ export interface MediaEntry {
   size: 'small' | 'large';
   perf: {
     score: number;
+    inpMs: number;
+    clsScore: number;
+    ttfbMs: number;
     fcpDisplay: string;
     fcpScore: number;
     lcpDisplay: string;
@@ -22,16 +25,24 @@ export interface MediaEntry {
 
 export default component$(() => {
   useStyles$(styles);
+  pages.sort(() => (Math.random() > 0.5 ? 1 : -1));
+  const greatSites = pages.filter((site) => site.perf.score >= 0.9);
+  const runnerUpSites = pages.filter((site) => site.perf.score >= 0.8 && site.perf.score < 0.9);
   return (
     <article class="showcase">
       <h1>Showcase</h1>
 
       <ul class="grid">
-        {pages
-          .sort(() => (Math.random() > 0.5 ? 1 : -1))
-          .map((entry) => (
-            <SiteLink entry={entry as any} key={entry.href} />
-          ))}
+        {greatSites.map((entry) => (
+          <SiteLink entry={entry as any} key={entry.href} />
+        ))}
+      </ul>
+      <h1>Honorable Mentions</h1>
+
+      <ul class="grid">
+        {runnerUpSites.map((entry) => (
+          <SiteLink entry={entry as any} key={entry.href} />
+        ))}
       </ul>
       <section>
         <h2>Add Site</h2>
@@ -65,39 +76,74 @@ export default component$(() => {
 });
 
 export const SiteLink = component$((props: { entry: MediaEntry }) => {
+  const { size, href, imgSrc, perf, title } = props.entry;
   return (
-    <li class={props.entry.size}>
-      <Score speedScore={props.entry.perf.score} url={props.entry.href}></Score>
-      <a class="card" href={props.entry.href} target="_blank" rel="nofollow noreferrer">
-        <img width="1440" height="980" loading="lazy" src={props.entry.imgSrc} aria-hidden="true" />
+    <li class={size}>
+      <Score speedScore={perf.score} url={href}></Score>
+      <a class="card" href={href} target="_blank" rel="nofollow noreferrer">
+        <img width="1440" height="980" loading="lazy" src={imgSrc} aria-hidden="true" />
         <div class="backdrop">
           <div class="metrics">
-            <div
-              style={{
-                '--color': getLighthouseColorForScore(props.entry.perf.ttiScore),
-              }}
-            >
-              <h3>TTF</h3>
-              <p>{props.entry.perf.ttiDisplay}</p>
-            </div>
-            <div
-              style={{
-                '--color': getLighthouseColorForScore(props.entry.perf.fcpScore),
-              }}
-            >
-              <h3>FCP</h3>
-              <p>{props.entry.perf.fcpDisplay}</p>
-            </div>
-            <div
-              style={{
-                '--color': getLighthouseColorForScore(props.entry.perf.lcpScore),
-              }}
-            >
-              <h3>LCP</h3>
-              <p>{props.entry.perf.lcpDisplay}</p>
-            </div>
+            {perf.inpMs ? (
+              <div
+                style={{
+                  '--color': getLighthouseColorForMs(perf.inpMs, 200, 500),
+                }}
+              >
+                <h3>INP</h3>
+                <p>{perf.inpMs}ms</p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  '--color': getLighthouseColorForScore(perf.ttiScore),
+                }}
+              >
+                <h3>TTI</h3>
+                <p>{perf.ttiDisplay}</p>
+              </div>
+            )}
+            {perf.lcpDisplay ? (
+              <div
+                style={{
+                  '--color': getLighthouseColorForScore(perf.lcpScore),
+                }}
+              >
+                <h3>LCP</h3>
+                <p>{perf.lcpDisplay}</p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  '--color': getLighthouseColorForScore(perf.fcpScore),
+                }}
+              >
+                <h3>FCP</h3>
+                <p>{perf.fcpDisplay}</p>
+              </div>
+            )}
+            {perf.clsScore != null && (
+              <div
+                style={{
+                  '--color': getLighthouseColorForCls(perf.clsScore),
+                }}
+              >
+                <h3>CLS</h3>
+                <p>{perf.clsScore}</p>
+              </div>
+            )}
+            {perf.ttfbMs && (
+              <div
+                style={{
+                  '--color': getLighthouseColorForMs(perf.ttfbMs, 800, 1800),
+                }}
+              >
+                <h3>TTFB</h3>
+                <p>{perf.ttfbMs}ms</p>
+              </div>
+            )}
           </div>
-          <p class="title">{props.entry.title}</p>
+          <p class="title">{title}</p>
         </div>
       </a>
     </li>
@@ -141,11 +187,16 @@ const lighthouseRed = '#f33';
 const lighthouseOrange = '#ffaa32';
 const lighthouseGreen = '#0c6';
 
-export function getLighthouseColorForScore(score: number) {
+function getLighthouseColorForScore(score: number) {
   return score < 0.5 ? lighthouseRed : score < 0.9 ? lighthouseOrange : lighthouseGreen;
 }
-
-export function getPagespeedInsightsUrl(url: string) {
+function getLighthouseColorForMs(ms: number, goodMs: number, badMs: number) {
+  return ms < goodMs ? lighthouseGreen : ms < badMs ? lighthouseOrange : lighthouseRed;
+}
+function getLighthouseColorForCls(cls: number) {
+  return cls < 0.1 ? lighthouseGreen : cls < 0.25 ? lighthouseOrange : lighthouseRed;
+}
+function getPagespeedInsightsUrl(url: string) {
   return `https://pagespeed.web.dev/report?url=${encodeURIComponent(url)}`;
 }
 

@@ -17,14 +17,18 @@ import {
   type QRL,
 } from '@qwik.dev/core';
 import {
+  _getContextContainer,
   _getContextElement,
   _getQContainerElement,
+  _UNINITIALIZED,
   _waitUntilRendered,
-  _weakSerialize,
+  SerializerSymbol,
   type _ElementVNode,
+  type AsyncComputedReadonlySignal,
+  type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE } from './constants';
+import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -65,7 +69,8 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
+import { startViewTransition } from './view-transition';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -99,7 +104,7 @@ export interface QwikRouterProps {
    *
    * @see https://github.com/WICG/view-transitions/blob/main/explainer.md
    * @see https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API
-   * @see https://caniuse.com/mdn-api_viewtransition
+   * @see https://caniuse.com/mdn_api_viewtransition
    */
   viewTransition?: boolean;
 }
@@ -122,7 +127,18 @@ const internalState = { navCount: 0 };
 
 /** @public */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
-  useStyles$(`:root{view-transition-name:none}`);
+  useStyles$(`
+    @layer qwik {
+      @supports selector(html:active-view-transition-type(type)) {
+        html:active-view-transition-type(qwik-navigation) {
+          :root{view-transition-name:none}
+        }
+      }
+      @supports not selector(html:active-view-transition-type(type)) {
+        :root{view-transition-name:none}
+      }
+    }
+  `);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(
@@ -133,6 +149,17 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   const urlEnv = useServerData<string>('url');
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
+  }
+
+  if (isServer) {
+    if (
+      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
+      !__EXPERIMENTAL__.enableRequestRewrite
+    ) {
+      throw new Error(
+        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+      );
+    }
   }
 
   const url = new URL(urlEnv);
@@ -146,7 +173,43 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     { deep: false }
   );
   const navResolver: { r?: () => void } = {};
-  const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
+  const container = _getContextContainer();
+  const getSerializationStrategy = (loaderId: string): SerializationStrategy => {
+    return (
+      env.response.loadersSerializationStrategy.get(loaderId) ||
+      DEFAULT_LOADERS_SERIALIZATION_STRATEGY
+    );
+  };
+
+  // On server this object contains the all the loaders data
+  // On client after resuming this object contains only keys and _UNINITIALIZED as values
+  // Thanks to this we can use this object as a capture ref and not to serialize unneeded data
+  // While resolving the loaders we will override the _UNINITIALIZED with the actual data
+  const loadersObject: Record<string, unknown> = {};
+
+  // This object contains the signals for the loaders
+  // It is used for the loaders context RouteStateContext
+  const loaderState: Record<string, AsyncComputedReadonlySignal<unknown>> = {};
+
+  for (const [key, value] of Object.entries(env.response.loaders)) {
+    loadersObject[key] = value;
+    loaderState[key] = createLoaderSignal(
+      loadersObject,
+      key,
+      url,
+      getSerializationStrategy(key),
+      container
+    );
+  }
+  // Serialize it as keys and _UNINITIALIZED as values
+  (loadersObject as any)[SerializerSymbol] = (obj: Record<string, unknown>) => {
+    const loadersSerializationObject: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      loadersSerializationObject[k] = getSerializationStrategy(k) === 'always' ? v : _UNINITIALIZED;
+    }
+    return loadersSerializationObject;
+  };
+
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
@@ -279,7 +342,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
         if (!scroller) {
           scroller = document.getElementById(QWIK_CITY_SCROLLER);
-          if (scroller) {
+          if (scroller && isDev) {
             console.warn(
               `Please update your scroller ID to "${QWIK_ROUTER_SCROLLER}" as "${QWIK_CITY_SCROLLER}" is deprecated and will be removed in V3`
             );
@@ -356,10 +419,10 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
         // ensure correct trailing slash
         if (trackUrl.pathname.endsWith('/')) {
-          if (!qwikRouterConfig.trailingSlash) {
+          if (globalThis.__NO_TRAILING_SLASH__) {
             trackUrl.pathname = trackUrl.pathname.slice(0, -1);
           }
-        } else if (qwikRouterConfig.trailingSlash) {
+        } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname += '/';
         }
         let loadRoutePromise = loadRoute(
@@ -381,19 +444,23 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
-          trackUrl = newURL;
+          // Change our path to the canonical path in the response unless rewrite.
+          if (!pageData.isRewrite) {
+            trackUrl = newURL;
+          }
+
           loadRoutePromise = loadRoute(
             qwikRouterConfig.routes,
             qwikRouterConfig.menus,
             qwikRouterConfig.cacheModules,
-            trackUrl.pathname
+            newURL.pathname // Load the actual required path.
           );
         }
 
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
+          console.error(e);
           window.location.href = newHref;
           return;
         }
@@ -405,8 +472,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Restore search params unless it's a redirect
-        const isRedirect = navType === 'form' && !isSamePath(trackUrl, prevUrl);
-        if (navigation.dest.search && !isRedirect) {
+        if (navigation.dest.search && !!isSamePath(trackUrl, prevUrl)) {
           trackUrl.search = navigation.dest.search;
         }
 
@@ -437,11 +503,6 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         documentHead.frontmatter = resolvedHead.frontmatter;
 
         if (isBrowser) {
-          if (props.viewTransition !== false) {
-            // mark next DOM render to use startViewTransition API
-            (document as any).__q_view_transition__ = true;
-          }
-
           let scrollState: ScrollState | undefined;
           if (navType === 'popstate') {
             scrollState = getScrollHistory();
@@ -453,7 +514,8 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             (navigation.scroll &&
               (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
               (navType === 'link' || navType === 'popstate')) ||
-            isRedirect
+            // Action might have responded with a redirect.
+            (navType === 'form' && !isSamePath(trackUrl, prevUrl))
           ) {
             // Mark next DOM render to scroll.
             (document as any).__q_scroll_restore__ = () =>
@@ -461,12 +523,28 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           }
 
           const loaders = clientPageData?.loaders;
-          const win = window as ClientSPAWindow;
           if (loaders) {
-            Object.assign(loaderState, loaders);
+            const container = _getContextContainer();
+            for (const [key, value] of Object.entries(loaders)) {
+              const signal = loaderState[key];
+              const awaitedValue = await value;
+              loadersObject[key] = awaitedValue;
+              if (!signal) {
+                loaderState[key] = createLoaderSignal(
+                  loadersObject,
+                  key,
+                  trackUrl,
+                  DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
+                  container
+                );
+              } else {
+                signal.invalidate();
+              }
+            }
           }
           CLIENT_DATA_CACHE.clear();
 
+          const win = window as ClientSPAWindow;
           if (!win._qRouterSPA) {
             // only add event listener once
             win._qRouterSPA = true;
@@ -638,10 +716,28 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
             saveScrollHistory(scrollState);
           }
 
-          clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
-          _waitUntilRendered(elm as Element).then(() => {
+          const navigate = () => {
+            clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            return _waitUntilRendered(elm as Element);
+          };
+
+          const _waitNextPage = () => {
+            if (isServer || props.viewTransition === false) {
+              return navigate();
+            } else {
+              const viewTransition = startViewTransition({
+                update: navigate,
+                types: ['qwik-navigation'],
+              });
+              if (!viewTransition) {
+                return Promise.resolve();
+              }
+              return viewTransition.ready;
+            }
+          };
+          _waitNextPage().then(() => {
             const container = _getQContainerElement(elm as _ElementVNode)!;
-            container.setAttribute('q:route', routeName);
+            container.setAttribute(Q_ROUTE, routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
             win._qRouterScrollEnabled = true;
@@ -655,11 +751,11 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         }
       }
     }
-    const promise = run();
+
     if (isServer) {
-      return promise;
+      return run();
     } else {
-      return;
+      run();
     }
   });
 
@@ -699,7 +795,7 @@ export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) =>
     { deep: false }
   );
 
-  const loaderState = useSignal({});
+  const loaderState = {};
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =

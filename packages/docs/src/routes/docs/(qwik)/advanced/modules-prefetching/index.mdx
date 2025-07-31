@@ -18,11 +18,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 # Prefetching Modules
 
-Qwik provides various strategies to prefetch modules ahead of time. This page describes the **low-level** features of Qwik's prefetching. 
-
-- [Pre-populate the Cache with service workers](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx)
-- [Link rel](#link-rel)
-- [Web Worker Fetch](#web-worker-fetch)
+Qwik prefetches modules ahead of time. This page describes the **low-level** features of Qwik's prefetching. 
 
 Prefetching modules allows applications to start downloading necessary code in the background before users actually need it. The ideal solution is to prefetch only the smallest amount of relevant code that is highly likely to be executed from a user's interaction, while also avoiding any JavaScript that _will not_ be used.
 
@@ -38,87 +34,26 @@ For example, consider a product page that is mostly static except for one "Add t
 
 For our "Add to cart" example, the optimizer collects the symbols only for the click event listener and the renderer for the add to cart widget. There is no need to download, hydrate, and re-render any other parts of the application that aren't relevant.  This demonstrates Qwik's capability to determine which interactions are possible and to prefetch only the necessary code for the event listener.  In contrast, traditional approaches require the entire application or route, including framework code, to be prefetched just to add the click event listener.
 
-## Prefetch Strategy
+## Preloader
 
-The prefetching strategy is the logic that decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any visible listeners on the page. To configure the prefetching strategy, use the options argument of the `renderToStream()` function, often found in the `src/entry.ssr.tsx` source file. Providing optimal prefetching strategies is a continual commitment of Qwik.
+The preloader is the part of Qwik that decides which JavaScript, if any, Qwik should prefetch in the background. By default, Qwik will prefetch any event handlers on the page, as well as their dependencies.
 
-```ts
-export default function (opts: RenderToStreamOptions) {
-  return renderToStream(<Root />, {
-    manifest,
-    prefetchStrategy: {
-      // custom prefetching config
-    },
-    ...opts,
-  });
-}
-```
+This is done probabilistically based on various metrics, including the real-use metrics collected from [Insights](/docs/labs/insights/)
+
+To give an example, suppose we have two event handlers, one an `onClick` handler and the other a `beforePrint` handler. The click handler is much more likely to be used than the print handler, so Qwik will prefetch the click handler with a higher probability. Furthermore if both handlers are importing the Qwik core bundle, that core bundle is more important than either of the event handlers, and will be prefetched first.
+
+During execution, new segments of code are imported and they each impact the probability of the segments to be loaded.
 
 ### Implementation
 
-Browsers offer numerous ways to implement a [prefetching strategy](#prefetchStrategy). Qwik can be configured to prefer one implementation over another, each with pros and cons. Depending on this configuration, the generated HTML content will include the chosen prefetch implementation.
+The prefetching is done by adding `<link rel="modulepreload">` elements to the document. SSR will determine the most likely bundles and add some `<link>` elements to the HTML.
 
-```ts
-export default function (opts: RenderToStreamOptions) {
-  return renderToStream(<Root />, {
-    manifest,
-    prefetchStrategy: {
-      implementation: {
-        // custom prefetching implementation
-      },
-    },
-    ...opts,
-  });
-}
-```
+Then, a script is addded that loads the preloader as well as the module graph, and it is passed all the bundles discovered during the SSR render.
 
+The preloader will then add the remaining `<link>` elements to the document head, keeping only a few active at a time so that high priority bundles can be added at any time.
 
-| Option              | Description                                                                                                                                                                                                                                                                                                           |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prefetchEvent`     | Dispatch a `qprefetch` event with `detail` data containing the urls that should be prefetched. The event dispatch script will be inlined into the document's HTML. By default, the `prefetchEvent` implementation will be set to `always`.                                                                            |
-| `linkInsert`        | Insert the `<link>` element into the document. When using `html-append`, it will render each `<link>` directly within the html, appended at the end of the body. Using the `js-append` option, it will instead insert some JavaScript, which creates the elements at runtime and appends them at the end of the body. |
-| `linkRel`           | This option is used to define the [`rel` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types) of the `<link>` element. When the `linkInsert` option is used, the default is `prefetch`. Other options include `preload` and `modulepreload`.                                                      |
-| `linkFetchPriority` | This option is used to define the [`fetchpriority` attribute](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#fetchpriority) of the `<link>` element. When the `linkInsert` option is used, the default is `null`. Other options include `low`, `high` and `auto`.
-| `workerFetchInsert` | Prefetch urls by calling a `fetch()` for each module, with the goal of populating the network cache.                                                                                                                                                                                                                  |
+Most browsers support `rel="modulepreload"`, but for older browsers, Qwik will fall back to `rel="preload"` attribute.
 
-#### Dispatched Prefetch Event
-
-[Speculative Module Fetching](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) is the preferred caching strategy. This strategy listens for the `qprefetch` event, which is dispatched by the Qwik framework. The event contains a list of URLs that the background thread should use to pre-populate the browser's [Cache](https://developer.mozilla.org/en-US/docs/Web/API/Cache).
-
-Qwik should be configured to use the `prefetchEvent` implementation, which will dispatch a `qprefetch` event. By default, the `prefetchEvent` implementation will be set to `always`. Next, [Speculative Module Fetching](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) will listen for this event and communicate with its service worker to persist the Request / Response object pairs so they are cached in long-lived memory.
-
-By using a service worker to intercept `fetch` requests from the browser, this approach allows granular control over caching, along with preventing duplicate requests for the same resource.
-
-Below is an example of manually dispatching the event. These events are dispatched from Qwik itself and do not require developers to dispatch these events manually. Additionally, the [service worker](../../../(qwikrouter)/advanced/speculative-module-fetching/index.mdx) will automatically add listeners for these events.
-
-```ts
-dispatchEvent(new CustomEvent("qprefetch", { detail: {
-  bundles: [...]
-}}));
-```
-
-#### Link `rel`
-
-Using the `<link>` element with the `rel` attribute is a common approach by today's frameworks, and Qwik can use this method by configuring the `linkInsert` and `linkRel` options. The link rel approach, although effective, currently faces a lack of support on all devices, at least at the time of writing. Additionally, during development, it can be misleading to assume that it works everywhere, since prefetching on mobile devices is not easily visible.
-
-For example, Safari does not support `modulepreload`. This is significant because mobile devices may benefit the most from module preloading. Similarly Firefox does not support link rel `prefetch` when on `https`.
-
-> Prefetch is a feature designed to enhance the speed of our visitors' experiences. However, the effectiveness can vary depending on the combination of browser and CDN/server used, highlighting the importance of an optimized setup to ensure the best performance.
->
-> \- <cite><a href="https://andydavies.me/blog/2020/07/08/rel-equals-prefetch-and-the-importance-of-effective-http-slash-2-prioritisation/">Rel=prefetch and the Importance of Effective HTTP/2 Prioritisation</a></cite>
-
-Additionally, it's possible for multiple requests for the same resource. For example, let's say we want to prefetch `module-a.js`, and while it's downloading regardless of how long it takes, the user interacts with the app. The app then decides to actually request and execute `module-a.js`. At the time of this writing, browsers will often fire off a second request making matters worse.
-
-##### link rel="modulepreload"
-
-- Even though it's in the HTML spec, that doesn't mean your end-users are preloading your app correctly. [Can I Use: modulepreload](https://caniuse.com/link-rel-modulepreload)
-- Not supported by [Firefox](https://bugzilla.mozilla.org/show_bug.cgi?id=1425310).
-
-#### Web Worker Fetch
-
-`workerFetchInsert` instructs Qwik to employ a web worker to `fetch()` a JavaScript file, with the goal of priming the browser cache with the module. By using a web worker, the fetch and caching logic lives on another thread. The fetch response will also have an `immutable` or long cache-control header, so the browser doesn't make a second network request.
-
-The downside of this setting is that the fetched response is thrown away, and it's only at the browser level that hopefully the file is cached.
 
 ## Frequently Asked Prefetching Questions
 
@@ -141,4 +76,4 @@ No, for several reasons:
 
 **QUESTION**: _Who is responsible for knowing what code to prefetch?_
 
-Qwik can automatically generate the prefetch instructions as part of the SSR rendering. By executing the application, Qwik has runtime knowledge of which components are visible, which events the users can trigger and what code will need to be downloaded. The result is that the prefetch is an ideal set of files for this page. No action on the developers' part is required other than adding the prefetching strategy to `renderToStream()`.
+Qwik automatically generates the prefetch instructions as part of the SSR rendering. By executing the application, Qwik has runtime knowledge of which components are visible, which events the users can trigger and what code will need to be downloaded. The result is that the prefetch is an ideal set of files for this page. No action on the developers' part is required.

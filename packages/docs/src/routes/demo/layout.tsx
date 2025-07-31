@@ -1,6 +1,4 @@
-/* eslint-disable no-console */
-import { component$, Slot } from '@qwik.dev/core';
-import { useStyles$ } from '@qwik.dev/core';
+import { component$, Slot, useStyles$ } from '@qwik.dev/core';
 import STYLES from './demo-reset.css?inline';
 
 export default component$(() => {
@@ -21,6 +19,7 @@ function logQSymbols() {
   const consoleUl = document.getElementById('console')!;
   consoleUl.className = 'console';
   consoleUl.innerHTML = '<h1>Console</h1>';
+  // eslint-disable-next-line no-constant-binary-expression
   false &&
     document.addEventListener('qsymbol', (e) => {
       const detail = (e as any as { detail: { symbol: string } }).detail;

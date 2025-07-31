@@ -54,15 +54,15 @@ test('rollup default set input options, ssr', async () => {
     target: 'ssr',
   } as any;
   const plugin = qwikRollup(initOpts);
+  const input = normalizePath(resolve(cwd, 'src', 'my.ssr.tsx'));
   const rollupInputOpts: Rollup.InputOptions = await plugin.options!({
-    input: normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')),
+    input,
   });
   const opts: NormalizedQwikPluginOptions = plugin.api.getOptions();
-
   assert.deepEqual(typeof rollupInputOpts.onwarn, 'function');
   assert.deepEqual(rollupInputOpts.treeshake, undefined);
-  assert.deepEqual(rollupInputOpts.input, normalizePath(resolve(cwd, 'src', 'my.ssr.tsx')));
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'my.ssr.tsx'))]);
+  assert.deepEqual(rollupInputOpts.input, [input]);
+  assert.deepEqual(opts.input, [input]);
 });
 
 test('rollup default output options, client', async () => {

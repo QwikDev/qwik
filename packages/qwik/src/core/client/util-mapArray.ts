@@ -1,5 +1,6 @@
 import { assertTrue } from '../shared/error/assert';
 
+/** @internal */
 export const mapApp_findIndx = <T>(array: (T | null)[], key: string, start: number): number => {
   assertTrue(start % 2 === 0, 'Expecting even number.');
   let bottom = (start as number) >> 1;
@@ -19,6 +20,7 @@ export const mapApp_findIndx = <T>(array: (T | null)[], key: string, start: numb
   return (bottom << 1) ^ -1;
 };
 
+/** @internal */
 export const mapArray_set = <T>(
   array: (T | null)[],
   key: string,
@@ -48,6 +50,7 @@ export const mapApp_remove = <T>(array: (T | null)[], key: string, start: number
   return value;
 };
 
+/** @internal */
 export const mapArray_get = <T>(array: (T | null)[], key: string, start: number): T | null => {
   const indx = mapApp_findIndx(array, key, start);
   if (indx >= 0) {

@@ -7,8 +7,6 @@
  * - https://qwik.dev/docs/deployments/cloudflare-pages/
  *
  */
-import { manifest } from "@qwik-client-manifest";
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformCloudflarePages,
@@ -19,6 +17,6 @@ declare global {
   interface QwikRouterPlatform extends PlatformCloudflarePages {}
 }
 
-const fetch = createQwikRouter({ render, qwikRouterConfig, manifest });
+const fetch = createQwikRouter({ render });
 
 export { fetch };

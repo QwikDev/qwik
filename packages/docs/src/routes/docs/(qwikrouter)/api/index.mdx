@@ -300,7 +300,6 @@ export default component$(() => {
       </head>
       <body lang="en">
         <RouterOutlet />
-        <ServiceWorkerRegister />
       </body>
     </QwikRouterProvider>
   );
@@ -463,7 +462,7 @@ Whether Qwik should prefetch and cache the target page of this `Link`, this incl
 
 This **improves UX performance** for client-side (**SPA**) navigations.
 
-Prefetching occurs when a the Link enters the viewport in production (`on:qvisibile`), or with `mouseover`/`focus` during dev.
+Prefetching occurs when a the Link enters the viewport in production (`on:qvisible`), or with `mouseover`/`focus` during dev.
 
 Prefetching will not occur if the user has the **data saver** setting enabled.
 

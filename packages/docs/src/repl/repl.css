@@ -1,4 +1,4 @@
-@tailwind components;
+@reference "tailwindcss";
 
 .repl {
   color: var(--text-color);
@@ -199,6 +199,15 @@
   overflow: auto;
 }
 
+.output-html .code-block-info {
+  display: block;
+  font-weight: bold;
+  background-color: rgb(33 104 170 / 15%);
+  padding: 5px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .output-html pre {
   height: 100%;
 }
@@ -207,13 +216,11 @@
   white-space: pre-wrap;
 }
 
-@layer components {
-  .sm-grid-column {
-    grid-template-columns: 100%;
-  }
-  .md-grid-column {
-    grid-template-columns: minmax(200px, 25%) auto;
-  }
+@utility sm-grid-column {
+  grid-template-columns: 100%;
+}
+@utility md-grid-column {
+  grid-template-columns: minmax(200px, 25%) auto;
 }
 
 .output-modules {
@@ -232,7 +239,7 @@
 .output-modules .file-tree {
   padding: 0 15px 15px 15px;
   grid-area: repl-file-tree;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .output-modules .file-tree-header {
@@ -244,8 +251,6 @@
   display: block;
   margin: 4px 0px 2px 9px;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 }
 
 .output-modules .file-tree-items a:hover,
@@ -272,8 +277,7 @@
   margin-bottom: 15px;
   background-color: rgb(33 104 170 / 15%);
   padding: 5px 10px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
 }
 
 .output-modules .file-size {

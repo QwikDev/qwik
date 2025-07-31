@@ -10,7 +10,6 @@
  * - npm run build
  *
  */
-import { manifest } from "@qwik-client-manifest";
 import {
   renderToStream,
   type RenderToStreamOptions,
@@ -20,7 +19,6 @@ import { extractBase } from "./routes/[locale]/i18n-utils";
 
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    manifest,
     ...opts,
     base: extractBase, // determine the base URL for the client code
     // Use container attributes to set attributes on the html tag.

@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .docs .content-container {
   @apply px-8 lg:pl-0 xl:pr-0;
   @apply mx-auto min-h-[100vh];
@@ -8,11 +10,12 @@
   @apply pt-8 lg:pt-5;
   @apply min-w-48;
 
-  @screen lg {
-    /* approx 85ch, but since the contents use font-sizes in absolute values,
+  /* @screen lg { */
+  /* approx 85ch, but since the contents use font-sizes in absolute values,
        we need to use an absolute value here too */
-    max-width: 850px;
-  }
+  /* max-width: 850px; */
+  /* }  */
+  @apply lg:max-w-[850px];
 }
 
 .docs article a {
@@ -268,4 +271,15 @@ pre {
 .docs article img {
   border-radius: 5px;
   overflow: hidden;
+}
+
+.docs-long-list {
+  display: flex;
+  flex-wrap: wrap;
+  & ul {
+    display: contents;
+    & li {
+      list-style-type: none;
+    }
+  }
 }

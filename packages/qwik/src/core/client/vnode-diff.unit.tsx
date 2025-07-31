@@ -1,4 +1,4 @@
-import { Fragment, _jsxSorted } from '@qwik.dev/core';
+import { Fragment, _fnSignal, _jsxSorted } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode } from './vnode';
@@ -6,6 +6,7 @@ import { vnode_diff } from './vnode-diff';
 import type { QElement } from '../shared/types';
 import { createSignal } from '../reactive-primitives/signal-api';
 import { QError, qError } from '../shared/error/error';
+import type { VirtualVNode } from './types';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -430,7 +431,75 @@ describe('vNode-diff', () => {
       expect(b2).toBe(selectB2());
     });
   });
-  describe.todo('fragments', () => {});
+  describe('fragments', () => {
+    it('should not rerender signal wrapper fragment', async () => {
+      const { vNode, vParent, container } = vnode_fromJSX(
+        _jsxSorted('div', {}, null, [_jsxSorted(Fragment, {}, null, ['1'], 0, null)], 0, null)
+      );
+      const test = _jsxSorted('div', {}, null, [_fnSignal(() => '2', [], '() => "2"')], 0, null);
+      const expected = _jsxSorted(
+        'div',
+        {},
+        null,
+        [_jsxSorted(Fragment, {}, null, ['2'], 0, null)],
+        0,
+        null
+      );
+
+      const signalFragment = vnode_getFirstChild(vNode!) as VirtualVNode;
+      expect(signalFragment).toBeDefined();
+
+      vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vNode).toMatchVDOM(expected);
+      expect(signalFragment).toBe(vnode_getFirstChild(vNode!));
+    });
+
+    it('should not rerender promise wrapper fragment', async () => {
+      const { vNode, vParent, container } = vnode_fromJSX(
+        _jsxSorted('div', {}, null, [_jsxSorted(Fragment, {}, null, ['1'], 0, null)], 0, null)
+      );
+      const test = _jsxSorted('div', {}, null, [Promise.resolve('2')], 0, null);
+      const expected = _jsxSorted(
+        'div',
+        {},
+        null,
+        [_jsxSorted(Fragment, {}, null, ['2'], 0, null)],
+        0,
+        null
+      );
+
+      const promiseFragment = vnode_getFirstChild(vNode!) as VirtualVNode;
+      expect(promiseFragment).toBeDefined();
+
+      await vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vNode).toMatchVDOM(expected);
+      expect(promiseFragment).toBe(vnode_getFirstChild(vNode!));
+    });
+
+    it('should rerender fragment if no key', async () => {
+      const { vNode, vParent, container } = vnode_fromJSX(
+        _jsxSorted('div', {}, null, [_jsxSorted(Fragment, {}, null, ['1'], 0, null)], 0, null)
+      );
+      const test = _jsxSorted(
+        'div',
+        {},
+        null,
+        [_jsxSorted(Fragment, {}, null, ['2'], 0, null)],
+        0,
+        null
+      );
+
+      const fragment = vnode_getFirstChild(vNode!) as VirtualVNode;
+      expect(fragment).toBeDefined();
+
+      await vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vNode).toMatchVDOM(test);
+      expect(fragment).not.toBe(vnode_getFirstChild(vNode!));
+    });
+  });
   describe('attributes', () => {
     describe('const props', () => {
       it('should set attributes', async () => {

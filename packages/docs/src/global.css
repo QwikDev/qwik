@@ -64,6 +64,11 @@
 
 :root {
   color-scheme: light;
+  --theme-name: 'light';
+
+  --color-tab-active-bg: #046ee959;
+  --color-tab-active-text: black;
+
   --header-height: 80px;
   --aside-width: 300px;
   --container-max-width: 1400px;
@@ -124,7 +129,7 @@
 
   --made-with-love-text-color: #333333;
 
-  --on-this-page-hover-bg-color: #0093ee17;
+  --on-this-page-hover-bg-color: var(--qwik-light-blue);
 
   --media-separator-color: #dddddd;
   --media-video-shadow-color: var(--qwik-dark-blue);
@@ -134,6 +139,11 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  --theme-name: 'dark';
+
+  --color-tab-active-bg: #3e3e3e;
+  --color-tab-active-text: white;
+
   --qwik-blue: #009dfd;
 
   --bg-color: #101010;
@@ -165,10 +175,17 @@
 
   --made-with-love-text-color: #c6c5cb;
 
+  --on-this-page-hover-bg-color: #0093ee17;
+
   --media-separator-color: rgba(255, 255, 255, 0.1);
   --media-video-shadow-color: var(--qwik-blue);
 
   --panel-toggle-background-color: var(--qwik-dark-blue);
+}
+
+.theme-name::before {
+  content: var(--theme-name);
+  text-transform: capitalize;
 }
 
 @media (max-width: 768px) {

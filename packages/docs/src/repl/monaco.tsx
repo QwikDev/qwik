@@ -1,7 +1,7 @@
 import { isServer, noSerialize } from '@qwik.dev/core';
 import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
-import { getColorPreference } from '../components/theme-toggle/theme-toggle';
+import { getTheme } from '../components/theme-toggle/theme-toggle';
 import { QWIK_PKG_NAME, QWIK_PKG_NAME_V1, bundled, getNpmCdnUrl } from './bundled';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from './types';
@@ -50,7 +50,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getColorPreference() === 'dark'),
+    theme: getEditorTheme(getTheme() === 'dark'),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);

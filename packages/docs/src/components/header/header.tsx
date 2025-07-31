@@ -1,4 +1,4 @@
-import { component$, useContext, useStyles$ } from '@qwik.dev/core';
+import { component$, useContext, useStyles$, useSignal, type PropsOf } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';

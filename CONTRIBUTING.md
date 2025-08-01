@@ -69,7 +69,7 @@ You need to have these tools up and running in your local machine:
 - one of the following:
   - [Nix](https://nixos.org)
   - [Docker](https://www.docker.com/)
-  - Locally installed NodeJS v18+ and optionally Rust
+  - Locally installed NodeJS v22+ and optionally Rust
 
 #### Nix
 
@@ -94,6 +94,9 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 - Install devcontainers following their documentation.
 - In your terminal navigate to the Qwik's project root directory.
 - Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
+
+> [!NOTE]
+> On Windows, you may run into an `EPERM` permissions error when running the startup script `corepack enable & pnpm install`. This may be due to container permissions on Windows host systems. You can ignore the error, because it will still successfully boot and connect to the dev container. Then in the remote terminal, run `sudo /home/circleci/local/bin/pnpm install` to perform the initial install which will run all the postinstall scripts as root.
 
 ##### Using development container without Dev Containers and VSCode
 
@@ -145,7 +148,7 @@ Furthermore, to build the optimizer you optionally need Rust.
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
-3. Node version >= `18`.
+3. Node version >= `22`.
 4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
 5. run `pnpm install`
 

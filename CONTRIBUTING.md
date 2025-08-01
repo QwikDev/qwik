@@ -95,8 +95,14 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 - In your terminal navigate to the Qwik's project root directory.
 - Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
 
+> [!TIP]
+> If you are using Podman, be sure to update the [VSCode dev container settings](https://code.visualstudio.com/remote/advancedcontainers/docker-options#_podman). Don't forget to allocate enough resources to the Podman machine to avoid slow builds.
+
 > [!NOTE]
-> On Windows, you may run into an `EPERM` permissions error when running the startup script `corepack enable & pnpm install`. This may be due to container permissions on Windows host systems. You can ignore the error, because it will still successfully boot and connect to the dev container. Then in the remote terminal, run `sudo /home/circleci/bin/pnpm install` to perform the initial install which will run all the postinstall scripts as root.
+> You may run into an `EEXISTS` error when the Dev Container runs the "updateContentCommand" script. This may happen if pnpm gets installed automatically during the setup process. You can ignore the error because the container will be setup correctly, then run `pnpm install` in the project root once the container is connected and the terminal is available.
+
+> [!CAUTION]
+> The Dev Container may not work on Windows properly due to a difference with Windows container host volume permissions and ownership. It's recommended to use Mac or Linux instead, or configure your environment to build the project without Dev Containers.
 
 ##### Using development container without Dev Containers and VSCode
 

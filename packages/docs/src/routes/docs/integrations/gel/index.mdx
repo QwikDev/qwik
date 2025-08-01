@@ -1,0 +1,60 @@
+---
+title: Gel | Integrations
+keywords: 'Gel, EdgeDB, database, data, postgres'
+contributors:
+  - nabrams
+updated_at: '2024-08-01T18:53:23Z'
+created_at: '2025-08-01T23:00:50Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Gel Data
+
+[GelDB](https://www.geldata.com/) Gel is a scalable, integrated data platform on top of Postgres. 
+
+Gel gives the relational model a fresh facelift, solves n+1, simplifies migrations, 
+
+and streamlines your entire database workflow.
+
+Gel can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
+
+The easiest way to add Gel to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `db` folder with the drizzle schema.
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add gel
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add gel
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add gel
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add gel
+```
+</span>
+</PackageManagerTabs>
+
+> Gel is a modern data platform built on PostgreSQL that provides a unified interface for managing, querying, and scaling your data. It offers features like real-time analytics, seamless migrations, and integrated workflows to simplify database operations for developers and teams.
+
+## Auto-generating queries
+
+Gel lets you automatically generate queries for your database schema by using
+
+their query language EdgeQL combined with `npm install @gel/generate  --save-dev`.
+
+The following `<generator>`s are currently supported:
+
+- `queries`: Generate typed functions from *.edgeql files
+- `interfaces`: Generate interfaces for your schema types
+- `edgeql-js`: Generate the query builder
+

@@ -96,7 +96,7 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 - Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
 
 > [!NOTE]
-> On Windows, you may run into an `EPERM` permissions error when running the startup script `corepack enable & pnpm install`. This may be due to container permissions on Windows host systems. You can ignore the error, because it will still successfully boot and connect to the dev container. Then in the remote terminal, run `sudo /home/circleci/local/bin/pnpm install` to perform the initial install which will run all the postinstall scripts as root.
+> On Windows, you may run into an `EPERM` permissions error when running the startup script `corepack enable & pnpm install`. This may be due to container permissions on Windows host systems. You can ignore the error, because it will still successfully boot and connect to the dev container. Then in the remote terminal, run `sudo /home/circleci/bin/pnpm install` to perform the initial install which will run all the postinstall scripts as root.
 
 ##### Using development container without Dev Containers and VSCode
 

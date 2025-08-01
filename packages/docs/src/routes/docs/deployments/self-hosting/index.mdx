@@ -1,0 +1,775 @@
+---
+title: Self-Hosting
+contributors:
+  - iitzIrFan
+updated_at: '2024-03-24T19:30:00Z'
+created_at: '2024-03-24T19:30:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Self-Hosting Qwik Applications
+
+This guide provides comprehensive instructions for self-hosting your Qwik application on your own infrastructure, whether it's a VPS, bare metal server, or container platform.
+
+## Prerequisites
+
+- Node.js >= 16.8.0 (18.x LTS or later recommended)
+- A web server like Nginx, Apache, or similar for production deployments
+- (Optional) Docker for containerized deployments
+- (Optional) PM2 or similar for process management
+
+## Build Options
+
+Qwik provides several adapters suited for self-hosting scenarios. Choose the one that best fits your infrastructure:
+
+### Fastify (Node.js)
+
+Fastify offers better performance than Express and is another good option for self-hosting:
+
+```shell
+npx qwik add fastify
+```
+
+### Static Site
+
+For simple applications without dynamic server functionality:
+
+```shell
+npx qwik add static
+```
+
+When using the static adapter, make sure to update your `adapters/static/vite.config.ts` file with your actual domain:
+
+```ts
+staticAdapter({
+  origin: 'https://your-actual-domain.com',
+})
+```
+
+## Building for Production
+
+After adding the appropriate adapter, build your application. This will create a `dist/` directory with all the necessary files for deployment:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run build
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
+
+The build process will generate:
+
+- `dist/` directory containing:
+  - **Vite-generated files**:
+    - `dist/build/` – JavaScript and CSS bundles (code-split and optimized)
+    - `dist/assets/` – Fonts, images, and static assets processed by Vite
+  - **Non-Vite files (copied as-is)**:
+    - Everything from the `public/` folder (e.g., favicon, robots.txt, etc.)
+  - **Static site generation output** (if SSG is used):
+    - Pre-rendered `.html` pages
+    - Route-specific `q-data.json` files
+  - **Manifest files**:
+    - `manifest.json` – For PWA support
+    - `q-manifest.json` – Used during development, **can be omitted from production**
+
+- `server/` directory:
+  - Contains server entrypoints like `entry.fastify.js` or `entry.express.js` depending on the adapter used.
+
+## Deployment Methods
+
+### Method 1: Node.js Server Deployment
+
+For Express or Fastify adapters, the build process generates a server entry file at `server/entry.express.js` or `server/entry.fastify.js`.
+
+1. Transfer these files to your production server:
+   - `dist/` (client assets)
+   - `server/` (server code)
+   - `package.json` (for dependencies)
+
+2. Install production dependencies on the server:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install --prod
+```
+</span>
+<span q:slot="npm">
+```shell
+npm install --omit=dev
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn install --production
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install --production
+```
+</span>
+</PackageManagerTabs>
+
+3. Set the required environment variables:
+
+```shell
+# Important: This is required for CSRF protection
+export ORIGIN=https://your-domain.com
+
+# Set production mode
+export NODE_ENV=production
+
+# Optional: Define a custom port (default is 3000)
+export PORT=3000
+```
+
+4. Run the server:
+
+```shell
+# For Express
+node server/entry.express.js
+
+# For Fastify
+node server/entry.fastify.js
+```
+
+5. For production use, use a process manager like PM2:
+
+```shell
+npm install -g pm2
+
+# For Express
+pm2 start server/entry.express.js --name qwik-app
+
+# For Fastify
+pm2 start server/entry.fastify.js --name qwik-app
+```
+
+### Using systemd
+
+Create a systemd service file:
+
+```ini
+[Unit]
+Description=Qwik Application
+After=network.target
+
+[Service]
+Type=simple
+User=qwikuser
+WorkingDirectory=/path/to/your/app
+ExecStart=/usr/bin/node server/entry.express.js
+Restart=always
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+```shell
+sudo systemctl enable qwik-app
+sudo systemctl start qwik-app
+```
+
+### Method 2: Docker Deployment
+
+Using Docker is recommended for containerized deployments. Create a `Dockerfile` in your project root:
+
+```Dockerfile
+ARG NODE_VERSION=18.18.2
+
+################################################################################
+# Use node image for base image for all stages.
+FROM node:${NODE_VERSION}-alpine as base
+
+# Set working directory for all build stages.
+WORKDIR /usr/src/app
+
+################################################################################
+# Create a stage for installing production dependencies.
+FROM base as deps
+
+# Download dependencies as a separate step to take advantage of Docker's caching.
+# Leverage a cache mount to /root/.yarn to speed up subsequent builds.
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=yarn.lock,target=yarn.lock \
+    --mount=type=cache,target=/root/.yarn \
+    yarn install --frozen-lockfile
+
+################################################################################
+# Create a stage for building the application.
+FROM deps as build
+
+# Copy the rest of the source files into the image.
+COPY . .
+
+# Run the build script.
+RUN yarn run build
+
+################################################################################
+# Create a new stage to run the application with minimal runtime dependencies
+FROM base as final
+
+# Use production node environment by default.
+ENV NODE_ENV production
+
+# IMPORTANT: Set your actual domain for CSRF protection
+ENV ORIGIN https://your-domain.com
+
+# Run the application as a non-root user.
+USER node
+
+# Copy package.json so that package manager commands can be used.
+COPY package.json .
+
+# Copy the production dependencies from the deps stage and also
+# the built application from the build stage into the image.
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/server ./server
+
+# Expose the port that the application listens on.
+EXPOSE 3000
+
+# Run the application.
+CMD yarn serve
+```
+
+Build and run your Docker container:
+
+```shell
+# Build the image
+docker build -t qwik-app .
+
+# Run the container
+docker run -p 3000:3000 -e ORIGIN=https://your-domain.com qwik-app
+```
+
+### Method 3: Static Site Deployment
+
+If using the static adapter, copy the contents of the `dist` directory to your web server's document root:
+
+```shell
+# Example using rsync
+rsync -avz dist/ user@your-server:/path/to/webroot/
+```
+
+## Web Server Configuration
+
+## Web Server Configurations
+
+### 1. Nginx for Node.js Applications
+
+For Node.js deployments using Express or Fastify, use this Nginx configuration as a reverse proxy:
+
+```nginx
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$host$request_uri;
+}
+
+# Main server block
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL configuration
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+
+    # Proxy to Node.js server
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static assets handling (build and assets directories)
+    location ~ ^/(build|assets)/ {
+        root /path/to/your/app/dist;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+    
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+}
+```
+
+### 2. Nginx for Static Sites
+
+For static site deployments, use this Nginx configuration:
+
+```nginx
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$host$request_uri;
+}
+
+# Main server block
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL configuration
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    
+    # Document root
+    root /path/to/your/app/dist;
+    index index.html;
+    
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Main location block
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    
+    # Cache settings for static assets (build and assets directories)
+    location ~ ^/(build|assets)/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+        try_files $uri =404;
+        gzip_static on;
+        brotli_static on;
+    }
+    
+    # Route loader data caching
+    location ~ /[^/]+/q-data\.json$ {
+        expires 30s;
+        add_header Cache-Control "public, must-revalidate";
+        try_files $uri =404;
+    }
+    
+    # Security: Deny access to hidden files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+    
+    # Security: Deny access to .git directory
+    location ^~ /.git/ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
+```
+
+### 3. Apache Configuration
+
+For Apache with mod_proxy enabled, use this configuration:
+
+```apache
+# HTTP to HTTPS redirect
+<VirtualHost *:80>
+    ServerName your-domain.com
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</VirtualHost>
+
+# Main server block
+<VirtualHost *:443>
+    ServerName your-domain.com
+    
+    # SSL Configuration
+    SSLEngine on
+    SSLCertificateFile /path/to/cert.pem
+    SSLCertificateKeyFile /path/to/key.pem
+    
+    # Proxy to Node.js server
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+    
+    # Serve static assets directly (build and assets directories)
+    <Directory /path/to/your/app/dist/build>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+        
+        <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresDefault "access plus 1 year"
+            Header append Cache-Control "public, immutable"
+        </IfModule>
+    </Directory>
+    
+    # Alias for both build and assets directories
+    AliasMatch ^/(build|assets)/(.*)$ /path/to/your/app/dist/$1/$2
+    
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # SPA fallback
+    <IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteBase /
+        RewriteRule ^index\.html$ - [L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule . /index.html [L]
+    </IfModule>
+</VirtualHost>
+```
+
+## Security Best Practices
+
+### CSRF Protection
+
+Qwik City applications are protected against CSRF (Cross-Site Request Forgery) attacks by default for all state-mutating HTTP methods (POST, PATCH, DELETE). This protection is crucial for preventing unauthorized actions on behalf of authenticated users.
+
+#### How It Works
+
+1. **Default Protection**: Enabled by default for all non-idempotent requests
+2. **Origin Checking**: Validates the `Origin` and `Referer` headers against the `ORIGIN` environment variable
+3. **Configuration**: Controlled via the `checkOrigin` option in `createQwikCity`
+
+#### Configuration Options
+
+##### 1. Basic Configuration (Recommended)
+
+```tsx
+// src/entry.express.tsx or src/entry.fastify.tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  // CSRF protection is enabled by default when ORIGIN is set
+  checkOrigin: true
+});
+```
+
+##### 2. SSL Offload Proxy Setup
+
+When behind a reverse proxy (Nginx, CloudFront, etc.), use `'lax-proto'` to handle `X-Forwarded-Proto` headers:
+
+```tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: 'lax-proto' // Required for proper proxy support
+});
+```
+
+##### 3. Disabling CSRF (Not Recommended)
+
+```tsx
+const { router, notFound } = createQwikCity({
+  render,
+  qwikCityPlan,
+  manifest,
+  checkOrigin: false // Disables CSRF protection (not recommended for production)
+});
+```
+
+### Essential Security Headers
+
+Configure these security headers in your web server:
+
+```nginx
+# Nginx example
+add_header X-Content-Type-Options    "nosniff" always;
+add_header X-Frame-Options          "SAMEORIGIN" always;
+add_header X-XSS-Protection         "1; mode=block" always;
+add_header Referrer-Policy          "strict-origin-when-cross-origin" always;
+add_header Content-Security-Policy  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" always;
+```
+
+### Additional Security Measures
+
+1. **User Privileges**
+   - Run Node.js as a non-root user
+   - Use process managers like PM2 with `--user` flag
+
+2. **Network Security**
+   - Configure firewalls to expose only necessary ports (typically 80, 443)
+   - Use fail2ban to protect against brute force attacks
+   - Implement rate limiting for API endpoints
+
+3. **Dependencies**
+   - Regularly update all dependencies
+   - Use `npm audit` or `yarn audit` to identify vulnerabilities
+   - Consider using Dependabot or similar tools
+
+4. **HTTPS**
+   - Enforce HTTPS with HSTS header
+   - Use modern TLS configurations (TLS 1.2/1.3)
+   - Implement certificate auto-renewal (e.g., Certbot for Let's Encrypt)
+
+5. **Application Hardening**
+   - Set appropriate file permissions
+   - Disable directory listing
+   - Protect sensitive files (e.g., `.env`, `.git`)
+   - Implement proper CORS policies
+
+6. **Monitoring & Logging**
+   - Monitor for suspicious activities
+   - Implement centralized logging
+   - Set up alerts for security events
+
+## Monitoring and Logging
+
+### Application Monitoring
+
+#### 1. Process Management with PM2
+
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Start application
+pm2 start dist/server/entry.express.js --name qwik-app
+
+# Monitor application
+pm2 monit
+
+# View logs
+pm2 logs qwik-app
+
+# Set up PM2 to start on system boot
+pm2 startup
+pm2 save
+
+# Set up PM2 dashboard (optional)
+npm install -g pm2-web
+pm2-web --config pm2-webrc.json
+```
+
+#### 2. Web Server Logs
+
+**Nginx**
+```bash
+# Access logs
+/var/log/nginx/access.log
+/var/log/nginx/error.log
+
+# Enable JSON logging format in nginx.conf
+log_format json_combined escape=json
+  '{"timestamp":"$time_iso8601",'
+  '"remote_addr":"$remote_addr",'
+  '"remote_user":"$remote_user",'
+  '"request":"$request",'
+  '"status":"$status",'
+  '"body_bytes_sent":"$body_bytes_sent",'
+  '"http_referer":"$http_referer",'
+  '"http_user_agent":"$http_user_agent"}';
+```
+
+### Performance Monitoring
+
+#### 1. System-Level Monitoring
+
+```bash
+# Basic system monitoring
+top
+htop
+nmon
+
+# Network monitoring
+iftop
+iotop
+
+# Disk I/O
+iostat -x 1
+```
+
+#### 2. Application Performance Monitoring (APM)
+
+**Using Prometheus + Grafana**
+
+1. Set up Prometheus to collect metrics
+2. Configure Grafana for visualization
+3. Monitor key metrics:
+   - Request rates
+   - Error rates
+   - Response times
+   - Resource utilization
+
+**Alternative APM Solutions**
+- [New Relic](https://newrelic.com/)
+- [Datadog](https://www.datadoghq.com/)
+- [Sentry](https://sentry.io/)
+- [Elastic APM](https://www.elastic.co/observability/application-performance-monitoring)
+
+## Performance Optimization
+
+### Network Optimization
+
+1. **HTTP/2 and HTTP/3**
+   - Enable HTTP/2 in Nginx/Apache
+   - Consider HTTP/3 for modern browsers
+   - Configure proper keep-alive settings
+
+2. **CDN Integration**
+   - Use Cloudflare, CloudFront, or similar
+   - Configure edge caching rules
+   - Enable automatic image optimization
+
+3. **Compression**
+   - Enable Brotli compression
+   - Pre-compress static assets
+   - Configure proper cache headers
+
+### Asset Optimization
+
+1. **Caching Strategy**
+   ```nginx
+   # Immutable assets (hashed filenames)
+   location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$ {
+       expires 1y;
+       add_header Cache-Control "public, max-age=31536000, immutable";
+       access_log off;
+   }
+   ```
+
+2. **Lazy Loading**
+   - Use Qwik's built-in lazy loading
+   - Split large components
+   - Implement route-based code splitting
+
+3. **Image Optimization**
+   - Use modern formats (WebP/AVIF)
+   - Implement responsive images
+   - Lazy load below-the-fold images
+
+### Server-Side Optimization
+
+1. **Node.js Tuning**
+   - Set appropriate `NODE_ENV=production`
+   - Tune V8 garbage collection
+   - Use worker threads for CPU-intensive tasks
+
+2. **Database Optimization**
+   - Implement connection pooling
+   - Add appropriate indexes
+   - Use query optimization techniques
+
+3. **Caching Layer**
+   - Implement Redis/Memcached
+   - Cache API responses
+   - Use stale-while-revalidate patterns
+
+### Asset Compression
+
+Enable efficient compression for static assets:
+
+1. Pre-compress static files during build:
+```shell
+# Install compression tools
+npm install -g brotli-cli gzip-cli
+
+# Compress build assets in parallel with maximum compression
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 gzip -9 -k &
+find dist/build dist/assets -type f -regex '.*\.\(js\|css\|html\|json\)$' -print0 | xargs -0 brotli -15 -k &
+wait
+```
+
+2. Configure Nginx to serve pre-compressed files:
+```nginx
+location ~ ^/(build|assets)/ {
+    root /path/to/your/app/dist;
+    expires 1y;
+    add_header Cache-Control "public, max-age=31536000, immutable, no-transform" always;
+    access_log off;
+    # Enable pre-compressed file serving
+    gzip_static on;
+    brotli_static on;
+    try_files $uri =404;
+}
+```
+
+## Scaling Considerations
+
+For high-traffic applications:
+
+1. Set up load balancing with multiple Node.js instances
+2. Use container orchestration (Kubernetes, Docker Swarm)
+3. Consider a microservices architecture for larger applications
+4. Implement Redis or similar for session management across instances
+5. Use a serverless approach for predictable scaling
+
+## Troubleshooting Common Issues
+
+1. **404 Not Found**: 
+   - Check your Nginx/Apache configuration paths
+   - Verify that URL rewriting is properly configured
+   - **Check file permissions**: Ensure the web server user has read access to all files and execute permission on all parent directories
+     ```shell
+     # Check permissions for a specific file
+     sudo -u nginx ls -ld /path/to/static/file
+     
+     # Check directory permissions (go up the path to find where access is denied)
+     sudo -u nginx ls -ld /path/to/static/
+     sudo -u nginx ls -ld /path/to/
+     sudo -u nginx ls -ld /path/
+     
+     # NixOS-specific: Web server users typically don't have access to /home by default
+     # You may need to adjust the permissions or move the files to /var/www or similar
+     ```
+
+2. **503 Service Unavailable**: 
+   - Verify the Node process is running (`pm2 list` or `ps aux | grep node`)
+   - Check server logs for memory issues or crashes
+
+3. **CSRF Errors**: 
+   - Ensure the `ORIGIN` environment variable is correctly set
+   - Check that form submissions include the correct CSRF token
+
+4. **Performance Issues**: 
+   - Enable compression in your web server
+   - Check for memory leaks using Node.js profiling
+   - Verify that static assets are served with proper cache headers
+
+5. **Missing Assets**:
+   - Ensure your build process is complete
+   - Check that the `/build/` and `/assets/` directories are correctly exposed

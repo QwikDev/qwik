@@ -173,6 +173,9 @@ pnpm install && pnpm build.local
 
 If you want to work on the Rust code, use `build.full` instead of `build.local`.
 
+> [!NOTE]
+> After running `build.local`, you may see Git diffs for API-related files and `JSXNode`. You should run the `api.update` script to resolve them.
+
 ### Fast build
 
 This will build only Qwik and Qwik City and their types. This is not enough to run the docs.

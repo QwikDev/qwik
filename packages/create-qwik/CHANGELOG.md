@@ -1,5 +1,13 @@
 # create-qwik
 
+## 1.15.0
+
+### Patch Changes
+
+- 🐞🩹 fix up vercel starter config (by [@cmbartschat](https://github.com/cmbartschat) in [#7663](https://github.com/QwikDev/qwik/pull/7663))
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
+
 ## 1.14.1
 
 ### Patch Changes

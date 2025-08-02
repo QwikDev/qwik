@@ -26,13 +26,15 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
-    match: blockIfChild,
+    match: (blocked, blocking) =>
+      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsParent(blocked, blocking),
   },
   // COMPONENT blocks VISIBLE on same host
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
-    match: blockIfChild,
+    match: (blocked, blocking) =>
+      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsParent(blocked, blocking),
   },
 ];
 
@@ -84,7 +86,22 @@ const BLOCKING_RULES: BlockingRule[] = [
   },
 ];
 
-function blockIfChild(blocked: Chore, blocking: Chore) {
+function blockIfBlockingIsParent(blocked: Chore, blocking: Chore) {
+  let blockedHost: HostElement | null = blocked.$host$;
+  if (!vnode_isVNode(blockedHost)) {
+    return false;
+  }
+  // check if blocking chore is a parent of blocked chore
+  while (blockedHost) {
+    if (blockedHost === blocking.$host$) {
+      return true;
+    }
+    blockedHost = vnode_getParent(blockedHost as VNode) as VNode | null;
+  }
+  return false;
+}
+
+function blockIfBlockingIsChild(blocked: Chore, blocking: Chore) {
   let blockingHost: HostElement | null = blocking.$host$;
   if (!vnode_isVNode(blockingHost)) {
     return false;

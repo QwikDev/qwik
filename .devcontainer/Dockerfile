@@ -1,4 +1,4 @@
-FROM cimg/rust:1.73-node
+FROM cimg/rust:1.88.0-node
 
 RUN rustup --version; \
     cargo --version; \

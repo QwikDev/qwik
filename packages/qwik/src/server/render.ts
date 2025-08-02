@@ -50,7 +50,10 @@ export async function renderToStream(
   const resolvedManifest = resolveManifest(opts.manifest);
   function flush() {
     if (buffer) {
-      nativeStream.write(buffer);
+      nativeStream.write(buffer).catch((e) => {
+        console.error(`Could not write buffer: ${buffer.slice(0, 200)}...`);
+        console.error(e);
+      });
       buffer = '';
       bufferSize = 0;
       networkFlushes++;

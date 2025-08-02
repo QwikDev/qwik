@@ -128,7 +128,7 @@ import type { OnRenderFn } from './component.public';
 import { assertFalse } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
-import { getPlatform, isServerPlatform } from './platform/platform';
+import { isServerPlatform } from './platform/platform';
 import { type QRLInternal } from './qrl/qrl-class';
 import { isQrl } from './qrl/qrl-utils';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
@@ -142,6 +142,7 @@ import { serializeAttribute } from './utils/styles';
 import { type ValueOrPromise } from './utils/types';
 import { invoke, newInvokeContext } from '../use/use-core';
 import { addBlockedChore, findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
+import { createNextTick } from './platform/next-tick';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -203,11 +204,12 @@ export const createScheduler = (
   let drainScheduled = false;
   let isDraining = false;
   let isJournalFlushRunning = false;
+  const nextTick = createNextTick(drainChoreQueue);
 
   function drainInNextTick() {
     if (!drainScheduled) {
       drainScheduled = true;
-      getPlatform().nextTick(() => drainChoreQueue());
+      nextTick();
     }
   }
   // Drain for ~16.67ms, then apply journal flush for ~16.67ms, then repeat
@@ -302,8 +304,7 @@ export const createScheduler = (
     if (type === ChoreType.WAIT_FOR_QUEUE) {
       getChorePromise(chore);
       drainChore = chore as Chore<ChoreType.WAIT_FOR_QUEUE>;
-      // TODO: I think this is not right, because we can drain the same queue twice
-      immediateDrain();
+      drainInNextTick();
       return chore;
     }
 

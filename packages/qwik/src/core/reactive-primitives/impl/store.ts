@@ -254,12 +254,15 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   (target as any)[prop] = value;
-  currentStore.$container$?.$scheduler$?.schedule(
-    ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-    null,
-    currentStore,
-    getEffects(target, prop, currentStore.$effects$)
-  );
+  const effects = getEffects(target, prop, currentStore.$effects$);
+  if (effects) {
+    currentStore.$container$?.$scheduler$?.schedule(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      currentStore,
+      effects
+    );
+  }
 }
 
 function getEffects<T extends Record<string | symbol, any>>(

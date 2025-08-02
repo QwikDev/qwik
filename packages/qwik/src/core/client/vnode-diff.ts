@@ -183,6 +183,12 @@ export const vnode_diff = (
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
     stackPush(jsxNode, true);
+
+    if (vParent[VNodeProps.flags] & VNodeFlags.Deleted) {
+      // Ignore diff if the parent is deleted.
+      return;
+    }
+
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         assertFalse(vParent === vCurrent, "Parent and current can't be the same");

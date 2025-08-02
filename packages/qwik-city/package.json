@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-city",
   "description": "The meta-framework for Qwik.",
-  "version": "1.14.1",
+  "version": "1.15.0",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@mdx-js/mdx": "^3.1.0",
@@ -11,8 +11,8 @@
     "undici": "*",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": "^5",
-    "vite-imagetools": "^7.1.0",
+    "vite": ">=5 <8",
+    "vite-imagetools": "^7",
     "zod": "3.25.48"
   },
   "devDependencies": {
@@ -21,7 +21,7 @@
     "@microsoft/api-extractor": "7.52.9",
     "@netlify/edge-functions": "2.16.2",
     "@types/mdast": "4.0.4",
-    "@types/node": "20.14.11",
+    "@types/node": "20.19.0",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
     "estree-util-value-to-estree": "3.4.0",
@@ -175,7 +175,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": "^5"
+    "vite": ">=5 <8"
   },
   "publishConfig": {
     "access": "public"

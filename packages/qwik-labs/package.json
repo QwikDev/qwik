@@ -5,7 +5,7 @@
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
     "@eslint/js": "9.32.0",
-    "@types/node": "20.14.11",
+    "@types/node": "20.19.0",
     "eslint": "9.32.0",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.3.0",
@@ -14,7 +14,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "8.33.0",
     "undici": "*",
-    "vite": "5.3.5",
+    "vite": "7.0.6",
     "zod": "3.25.48"
   },
   "engines": {
@@ -38,7 +38,7 @@
   ],
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "vite": "^5",
+    "vite": ">=5 <8",
     "zod": "3.25.48"
   },
   "private": true,

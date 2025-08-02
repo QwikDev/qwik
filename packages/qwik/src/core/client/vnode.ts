@@ -1092,31 +1092,36 @@ export const vnode_insertBefore = (
     vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
-  let adjustedInsertBefore: VNode | null = null;
-  if (insertBefore == null) {
-    if (vnode_isVirtualVNode(parent)) {
-      // If `insertBefore` is null, than we need to insert at the end of the list.
-      // Well, not quite. If the parent is a virtual node, our "last node" is not the same
-      // as the DOM "last node". So in that case we need to look for the "next node" from
-      // our parent.
-      adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
-    }
-  } else if (vnode_isVirtualVNode(insertBefore)) {
-    // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
-    adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
-  } else {
-    adjustedInsertBefore = insertBefore;
-  }
-  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
+  const parentIsDeleted = parent[VNodeProps.flags] & VNodeFlags.Deleted;
 
-  // Here we know the insertBefore node
-  if (domChildren && domChildren.length) {
-    journal.push(
-      VNodeJournalOpCode.Insert,
-      parentNode,
-      vnode_getNode(adjustedInsertBefore),
-      ...domChildren
-    );
+  // if the parent is deleted, then we don't need to insert the new child
+  if (!parentIsDeleted) {
+    let adjustedInsertBefore: VNode | null = null;
+    if (insertBefore == null) {
+      if (vnode_isVirtualVNode(parent)) {
+        // If `insertBefore` is null, than we need to insert at the end of the list.
+        // Well, not quite. If the parent is a virtual node, our "last node" is not the same
+        // as the DOM "last node". So in that case we need to look for the "next node" from
+        // our parent.
+        adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
+      }
+    } else if (vnode_isVirtualVNode(insertBefore)) {
+      // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
+      adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
+    } else {
+      adjustedInsertBefore = insertBefore;
+    }
+    adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
+
+    // Here we know the insertBefore node
+    if (domChildren && domChildren.length) {
+      journal.push(
+        VNodeJournalOpCode.Insert,
+        parentNode,
+        vnode_getNode(adjustedInsertBefore),
+        ...domChildren
+      );
+    }
   }
 
   // link newChild into the previous/next list
@@ -1137,6 +1142,10 @@ export const vnode_insertBefore = (
   newChild[VNodeProps.previousSibling] = vPrevious;
   newChild[VNodeProps.nextSibling] = vNext;
   newChild[VNodeProps.parent] = parent;
+  if (parentIsDeleted) {
+    // if the parent is deleted, then the new child is also deleted
+    newChild[VNodeProps.flags] |= VNodeFlags.Deleted;
+  }
 };
 
 export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {

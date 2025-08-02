@@ -332,15 +332,15 @@ export const runResource = <T>(
   });
 
   // Execute mutation inside empty invocation
+  // TODO: is it right? why we need to invoke inside context and trigger effects?
   invoke(iCtx, () => {
     // console.log('RESOURCE.pending: ');
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
-    const promise = (resource.value = new Promise((r, re) => {
+    resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
-    }));
-    promise.catch(ignoreErrorToPreventNodeFromCrashing);
+    });
   });
 
   const promise: ValueOrPromise<void> = safeCall(
@@ -369,9 +369,4 @@ export const runResource = <T>(
     ]);
   }
   return promise;
-};
-
-const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
-  // ignore error to prevent node from crashing
-  // node will crash in promise is rejected and no one is listening to the rejection.
 };

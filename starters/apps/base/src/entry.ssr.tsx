@@ -19,6 +19,13 @@ export default createRenderer((opts) => {
         lang: "en-us",
         ...opts.containerAttributes,
       },
+      serverData: {
+        ...opts.serverData,
+        // These are the default values for the document head and are overridden by the `head` exports
+        // documentHead: {
+        //   title: "My App",
+        // },
+      },
     },
   };
 });

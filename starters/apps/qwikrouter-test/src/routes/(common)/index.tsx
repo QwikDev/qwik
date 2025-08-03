@@ -1,5 +1,4 @@
 import { component$ } from "@qwik.dev/core";
-import type { DocumentHead } from "@qwik.dev/router";
 // @ts-ignore
 import ImageJpeg from "../../media/MyTest.jpeg?jsx";
 // @ts-ignore
@@ -18,7 +17,3 @@ export default component$(() => {
     </div>
   );
 });
-
-export const head: DocumentHead = {
-  title: "Welcome to Qwik Router",
-};

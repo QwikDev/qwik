@@ -18,9 +18,10 @@ export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
-  locale: string
+  locale: string,
+  defaults?: DocumentHeadValue
 ) => {
-  const head = createDocumentHead();
+  const head = createDocumentHead(defaults);
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
     if (loaderOrAction.__brand === 'server_loader') {
@@ -92,11 +93,11 @@ const mergeArray = (
   }
 };
 
-export const createDocumentHead = (): ResolvedDocumentHead => ({
-  title: '',
-  meta: [],
-  links: [],
-  styles: [],
-  scripts: [],
-  frontmatter: {},
+export const createDocumentHead = (defaults?: DocumentHeadValue): ResolvedDocumentHead => ({
+  title: defaults?.title || '',
+  meta: [...(defaults?.meta || [])],
+  links: [...(defaults?.links || [])],
+  styles: [...(defaults?.styles || [])],
+  scripts: [...(defaults?.scripts || [])],
+  frontmatter: { ...defaults?.frontmatter },
 });

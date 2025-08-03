@@ -40,6 +40,7 @@ export type {
   RouteData,
   RouteLocation,
   RouteNavigate,
+  ServerData,
   StaticGenerate,
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,

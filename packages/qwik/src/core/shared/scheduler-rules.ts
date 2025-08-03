@@ -1,6 +1,7 @@
 import type { VNode } from '../client/types';
 import { vnode_getParent, vnode_isVNode } from '../client/vnode';
 import { Task, TaskFlags } from '../use/use-task';
+import type { QRLInternal } from './qrl/qrl-class';
 import type { Chore } from './scheduler';
 import type { Container, HostElement } from './types';
 import { ChoreType } from './util-chore-type';
@@ -22,7 +23,9 @@ type BlockingRule = {
  */
 
 const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
-  // NODE_DIFF blocks VISIBLE on same host
+  // NODE_DIFF blocks VISIBLE on same host,
+  // if the blocked chore is a child of the blocking chore
+  // or the blocked chore is a sibling of the blocking chore
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
@@ -30,6 +33,8 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
       blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsParent(blocked, blocking),
   },
   // COMPONENT blocks VISIBLE on same host
+  // if the blocked chore is a child of the blocking chore
+  // or the blocked chore is a sibling of the blocking chore
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
@@ -43,17 +48,29 @@ const BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.RUN_QRL,
     blockingType: ChoreType.QRL_RESOLVE,
-    match: (blocked, blocking) => blocked.$host$ === blocking.$host$,
+    match: (blocked, blocking) => {
+      const blockedQrl = blocked.$target$ as QRLInternal<unknown>;
+      const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
+      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedQrl, blockingQrl);
+    },
   },
   {
     blockedType: ChoreType.TASK,
     blockingType: ChoreType.QRL_RESOLVE,
-    match: (blocked, blocking) => blocked.$host$ === blocking.$host$,
+    match: (blocked, blocking) => {
+      const blockedTask = blocked.$payload$ as Task;
+      const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
+      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedTask.$qrl$, blockingQrl);
+    },
   },
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.QRL_RESOLVE,
-    match: (blocked, blocking) => blocked.$host$ === blocking.$host$,
+    match: (blocked, blocking) => {
+      const blockedTask = blocked.$payload$ as Task;
+      const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
+      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedTask.$qrl$, blockingQrl);
+    },
   },
   // COMPONENT blocks NODE_DIFF, NODE_PROP on same host
   {
@@ -114,6 +131,14 @@ function blockIfBlockingIsChild(blocked: Chore, blocking: Chore) {
     blockingHost = vnode_getParent(blockingHost as VNode) as VNode | null;
   }
   return false;
+}
+
+function blockIfSameHost(blocked: Chore, blocking: Chore) {
+  return blocked.$host$ === blocking.$host$;
+}
+
+function blockIfSameQRL(blockedQRL: QRLInternal<unknown>, blockingQRL: QRLInternal<unknown>) {
+  return blockedQRL.$symbol$ === blockingQRL.$symbol$;
 }
 
 export function findBlockingChore(

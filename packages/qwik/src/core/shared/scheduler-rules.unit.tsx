@@ -7,18 +7,21 @@ import { ELEMENT_SEQ } from './utils/markers';
 import type { Container } from './types';
 import { VNodeProps } from '../client/types';
 import { vnode_newVirtual } from '../client/vnode';
+import { $, type QRL } from './qrl/qrl.public';
+import { createQRL } from './qrl/qrl-class';
 
 const createMockChore = (
   type: ChoreType,
   host: object,
   idx: number | string = 0,
-  payload: any = null
+  payload: any = null,
+  target: any = null
 ): Chore => ({
   $type$: type,
   $host$: host as any,
   $idx$: idx,
   $payload$: payload,
-  $target$: null,
+  $target$: target,
   $state$: 0,
   $blockedChores$: null,
   $returnValue$: null,
@@ -34,48 +37,106 @@ const createMockContainer = (elementSeqMap: Map<object, any[]>) =>
     }),
   }) as unknown as Container;
 
+function createMockTask(
+  host: object,
+  opts: { index?: number; qrl?: QRL; visible?: boolean }
+): Task {
+  return new Task(
+    opts.visible ? TaskFlags.VISIBLE_TASK : TaskFlags.TASK,
+    opts.index || 0,
+    host as any,
+    opts.qrl || ($(() => null) as any),
+    null!,
+    null!
+  );
+}
+
+function createMockQRL(symbol: string): QRL {
+  return createQRL(null, symbol, null, null, null, null) as QRL;
+}
+
 describe('findBlockingChore', () => {
   const host1 = { el: 'host1' };
   const host2 = { el: 'host2' };
 
   describe('QRL_RESOLVE blocking', () => {
-    const blockingChore = createMockChore(ChoreType.QRL_RESOLVE, host1);
+    const blockingChore = createMockChore(
+      ChoreType.QRL_RESOLVE,
+      host1,
+      0,
+      null,
+      createMockQRL('qrl1')
+    );
     const container = createMockContainer(new Map());
 
     it.each([ChoreType.RUN_QRL, ChoreType.TASK, ChoreType.VISIBLE])(
-      'should block %s on the same host',
+      'should block %s on the same host with the same qrl',
       (blockedType) => {
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
-        const newChore = createMockChore(blockedType, host1);
+        let newChore;
+        if (blockedType === ChoreType.VISIBLE || blockedType === ChoreType.TASK) {
+          newChore = createMockChore(
+            blockedType,
+            host1,
+            0,
+            createMockTask(host1, {
+              qrl: createMockQRL('qrl1'),
+              visible: blockedType === ChoreType.VISIBLE,
+            })
+          );
+        } else {
+          newChore = createMockChore(blockedType, host1, 0, null, createMockQRL('qrl1'));
+        }
 
         const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
         expect(result).toBe(blockingChore);
       }
     );
 
-    it('should NOT block on a different host', () => {
+    it('should NOT block on a different host with the same qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
-      const newChore = createMockChore(ChoreType.RUN_QRL, host2);
+      const newChore = createMockChore(ChoreType.RUN_QRL, host2, 0, null, createMockQRL('qrl1'));
 
       const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
       expect(result).toBeNull();
     });
 
-    it('should find blocking chore in blockedChores set', () => {
+    it('should NOT block on a different host with a different qrl', () => {
+      const choreQueue = [blockingChore];
+      const blockedChores = new Set<Chore>();
+      const newChore = createMockChore(ChoreType.RUN_QRL, host2, 0, null, createMockQRL('qrl2'));
+      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      expect(result).toBeNull();
+    });
+
+    it('should NOT block on a the same host with a different qrl', () => {
+      const choreQueue = [blockingChore];
+      const blockedChores = new Set<Chore>();
+      const newChore = createMockChore(ChoreType.RUN_QRL, host1, 0, null, createMockQRL('qrl2'));
+      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      expect(result).toBeNull();
+    });
+
+    it('should find blocking chore in blockedChores set with the same qrl', () => {
       const choreQueue: Chore[] = [];
       const blockedChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.RUN_QRL, host1);
+      const newChore = createMockChore(ChoreType.RUN_QRL, host1, 0, null, createMockQRL('qrl1'));
 
       const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
       expect(result).toBe(blockingChore);
     });
 
-    it('should block VISIBLE on the same host', () => {
+    it('should block VISIBLE on the same host with the same qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
-      const newChore = createMockChore(ChoreType.VISIBLE, host1);
+      const newChore = createMockChore(
+        ChoreType.VISIBLE,
+        host1,
+        0,
+        createMockTask(host1, { qrl: createMockQRL('qrl1'), visible: true })
+      );
 
       const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
       expect(result).toBe(blockingChore);
@@ -86,6 +147,8 @@ describe('findBlockingChore', () => {
     const parentVNode = vnode_newVirtual();
     const childVNode = vnode_newVirtual();
     childVNode[VNodeProps.parent] = parentVNode;
+    const siblingVNode = vnode_newVirtual();
+    siblingVNode[VNodeProps.parent] = parentVNode;
 
     const container = createMockContainer(new Map());
 
@@ -112,6 +175,19 @@ describe('findBlockingChore', () => {
 
         const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
         expect(result).toBe(blockingChore);
+      }
+    );
+
+    it.each([ChoreType.COMPONENT, ChoreType.NODE_DIFF])(
+      'should NOT block VISIBLE chore if it is a sibling of a %s chore',
+      (blockingType) => {
+        const blockingChore = createMockChore(blockingType, siblingVNode);
+        const choreQueue = [blockingChore];
+        const blockedChores = new Set<Chore>();
+        const newChore = createMockChore(ChoreType.VISIBLE, childVNode);
+
+        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        expect(result).toBeNull();
       }
     );
 

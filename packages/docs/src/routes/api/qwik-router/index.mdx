@@ -321,6 +321,70 @@ string
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## createRenderer
+
+Creates the `render()` function that is required by `createQwikRouter()`. It requires a function that returns the `jsx` and `options` for the renderer.
+
+```typescript
+createRenderer: (
+  getOptions: (options: RendererOptions) => {
+    jsx: JSXOutput;
+    options: RendererOutputOptions;
+  },
+) => Render;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+getOptions
+
+</td><td>
+
+(options: [RendererOptions](#rendereroptions)) =&gt; \{ jsx: JSXOutput; options: [RendererOutputOptions](#rendereroutputoptions); }
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+Render
+
+```tsx
+const renderer = createRenderer((opts) => {
+  if (opts.requestHeaders["x-hello"] === "world") {
+    return { jsx: <Hello />, options: opts };
+  }
+  return {
+    jsx: <Root />,
+    options: {
+      ...opts,
+      serverData: {
+        ...opts.serverData,
+        documentHead: {
+          meta: [{ name: "renderedAt", content: new Date().toISOString() }],
+        },
+      },
+    },
+  };
+});
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
+
 ## DataValidator
 
 ```typescript
@@ -1777,6 +1841,14 @@ export type PreventNavigateCallback = (
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## Q_ROUTE
+
+```typescript
+Q_ROUTE = "q:route";
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts)
+
 ## QWIK_CITY_SCROLLER
 
 > Warning: This API is now obsolete.
@@ -1990,6 +2062,98 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## QwikRouterEnvData
+
+```typescript
+export interface QwikRouterEnvData
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[ev](./router.qwikrouterenvdata.ev.md)
+
+</td><td>
+
+</td><td>
+
+RequestEvent
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[loadedRoute](./router.qwikrouterenvdata.loadedroute.md)
+
+</td><td>
+
+</td><td>
+
+LoadedRoute \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[params](./router.qwikrouterenvdata.params.md)
+
+</td><td>
+
+</td><td>
+
+[PathParams](#pathparams)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[response](./router.qwikrouterenvdata.response.md)
+
+</td><td>
+
+</td><td>
+
+EndpointResponse
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[routeName](./router.qwikrouterenvdata.routename.md)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 ## QwikRouterMockProps
 
 ```typescript
@@ -2121,6 +2285,32 @@ QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
+
+## RendererOptions
+
+```typescript
+export type RendererOptions = Omit<RenderOptions, "serverData"> & {
+  serverData: ServerData;
+};
+```
+
+**References:** [ServerData](#serverdata)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
+
+## RendererOutputOptions
+
+```typescript
+export type RendererOutputOptions = Omit<RenderOptions, "serverData"> & {
+  serverData: ServerData & {
+    documentHead?: DocumentHeadValue;
+  } & Record<string, unknown>;
+};
+```
+
+**References:** [ServerData](#serverdata), [DocumentHeadValue](#documentheadvalue)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts)
 
 ## ResolvedDocumentHead
 
@@ -2334,6 +2524,27 @@ _(Optional)_
 [ServerQRL](#serverqrl)&lt;T&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
+
+## ServerData
+
+The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client.
+
+```typescript
+export type ServerData = {
+  url: string;
+  requestHeaders: Record<string, string>;
+  locale: string | undefined;
+  nonce: string | undefined;
+  containerAttributes: Record<string, string> & {
+    [Q_ROUTE]: string;
+  };
+  qwikrouter: QwikRouterEnvData;
+};
+```
+
+**References:** [Q_ROUTE](#q_route), [QwikRouterEnvData](#qwikrouterenvdata)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 ## ServerFunction
 

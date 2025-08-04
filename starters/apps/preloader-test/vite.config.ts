@@ -25,7 +25,7 @@ function createBulkPlugin(): Plugin {
 
       // Create bulk with an exponential-like distribution between 0kb and 50kb
       // Most files will be closer to 0kb, with a few reaching 50kb
-      const maxSize = 50000;
+      const maxSize = 500;
       const x = hash[0] / 255; // Normalize first byte to 0-1
       const exp = Math.pow(x, 6); // Skew distribution
       const bulkSize = Math.floor(maxSize * exp);
@@ -60,13 +60,13 @@ function createBulkPlugin(): Plugin {
   };
 }
 
-export default defineConfig(({ command, mode }): UserConfig => {
+export default defineConfig((): UserConfig => {
   return {
     plugins: [
       qwikCity(),
       qwikVite({ debug: true }),
       createBulkPlugin(),
-      tsconfigPaths(),
+      tsconfigPaths({ root: "." }),
       basicSsl(),
     ],
     build: {

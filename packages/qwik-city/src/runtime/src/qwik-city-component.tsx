@@ -116,6 +116,17 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     throw new Error(`Missing Qwik URL Env Data`);
   }
 
+  if (isServer) {
+    if (
+      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
+      !__EXPERIMENTAL__.enableRequestRewrite
+    ) {
+      throw new Error(
+        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+      );
+    }
+  }
+
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>(
     {
@@ -345,13 +356,16 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const newHref = pageData.href;
         const newURL = new URL(newHref, trackUrl);
         if (!isSamePath(newURL, trackUrl)) {
-          // Change our path to the canonical path in the response.
-          trackUrl = newURL;
+          // Change our path to the canonical path in the response unless rewrite.
+          if (!pageData.isRewrite) {
+            trackUrl = newURL;
+          }
+
           loadRoutePromise = loadRoute(
             qwikCity.routes,
             qwikCity.menus,
             qwikCity.cacheModules,
-            trackUrl.pathname
+            newURL.pathname // Load the actual required path.
           );
         }
 
@@ -369,8 +383,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         const pageModule = contentModules[contentModules.length - 1] as PageModule;
 
         // Restore search params unless it's a redirect
-        const isRedirect = navType === 'form' && !isSamePath(trackUrl, prevUrl);
-        if (navigation.dest.search && !isRedirect) {
+        if (navigation.dest.search && !!isSamePath(trackUrl, prevUrl)) {
           trackUrl.search = navigation.dest.search;
         }
 
@@ -416,7 +429,8 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             (navigation.scroll &&
               (!navigation.forceReload || !isSamePath(trackUrl, prevUrl)) &&
               (navType === 'link' || navType === 'popstate')) ||
-            isRedirect
+            // Action might have responded with a redirect.
+            (navType === 'form' && !isSamePath(trackUrl, prevUrl))
           ) {
             // Mark next DOM render to scroll.
             (document as any).__q_scroll_restore__ = () =>

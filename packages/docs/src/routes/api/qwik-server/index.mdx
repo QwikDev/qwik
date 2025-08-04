@@ -575,7 +575,9 @@ Description
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Whether to include the qwikloader script in the document. Normally you don't need to worry about this, but in case of multi-container apps using different Qwik versions, you might want to only enable it on one of the containers.
+
+Defaults to `'auto'`.
 
 </td></tr>
 <tr><td>
@@ -715,7 +717,7 @@ _(Optional)_
 
 </td><td>
 
-[PreloaderOptions](#preloaderoptions) \| boolean
+[PreloaderOptions](#preloaderoptions) \| false
 
 </td><td>
 
@@ -832,7 +834,7 @@ boolean
 
 </td><td>
 
-QwikManifest
+ServerQwikManifest
 
 </td><td>
 
@@ -1312,7 +1314,7 @@ Auto: Prefetch all possible QRLs used by the document. Default
 ```typescript
 export type SymbolsToPrefetch =
   | "auto"
-  | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 ```
 
 **References:** [PrefetchResource](#prefetchresource)

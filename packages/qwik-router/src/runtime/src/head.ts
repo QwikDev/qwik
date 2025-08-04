@@ -76,11 +76,12 @@ const resolveDocumentHead = (
 };
 
 const mergeArray = (
-  existingArr: { key?: string }[],
-  newArr: readonly { key?: string }[] | undefined
+  existingArr: { key?: string | number | null }[],
+  newArr: readonly { key?: string | number | null }[] | undefined
 ) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
+      // items with the same string key are replaced
       if (typeof newItem.key === 'string') {
         const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
         if (existingIndex > -1) {

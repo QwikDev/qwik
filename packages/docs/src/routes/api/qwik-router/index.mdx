@@ -483,6 +483,33 @@ ResolveSyncValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+## DocumentHeadTags
+
+This renders all the tags collected from `head`.
+
+You can partially override the head, for example if you want to change the title:
+
+```tsx
+import { DocumentHeadTags, useDocumentHead } from "@qwik.dev/router";
+
+export default component$(() => {
+  const head = useDocumentHead();
+  return <DocumentHeadTags title={`${head.title} - My App`} />;
+});
+```
+
+You don't have to use this component, you can also do it yourself for full control. Just copy the code from this component and modify it to your needs.
+
+Note that this component normally only runs once, during SSR. You can use Signals in your `src/root.tsx` to make runtime changes to `<head>` if needed.
+
+```typescript
+DocumentHeadTags: import("@qwik.dev/core").Component<
+  DocumentHeadValue<Record<string, unknown>>
+>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/document-head-tags-component.tsx)
+
 ## DocumentHeadValue
 
 ```typescript
@@ -554,7 +581,7 @@ readonly [DocumentMeta](#documentmeta)[]
 
 </td><td>
 
-_(Optional)_ Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
+_(Optional)_ Used to manually set meta tags in the head.
 
 </td></tr>
 <tr><td>
@@ -615,584 +642,70 @@ _(Optional)_ Sets `document.title`.
 ## DocumentLink
 
 ```typescript
-export interface DocumentLink
+export type DocumentLink = QwikIntrinsicElements["link"];
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[as?](./router.documentlink.as.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[crossorigin?](./router.documentlink.crossorigin.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[disabled?](./router.documentlink.disabled.md)
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[href?](./router.documentlink.href.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[hreflang?](./router.documentlink.hreflang.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[id?](./router.documentlink.id.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[imagesizes?](./router.documentlink.imagesizes.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[imagesrcset?](./router.documentlink.imagesrcset.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[integrity?](./router.documentlink.integrity.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[key?](./router.documentlink.key.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[media?](./router.documentlink.media.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[prefetch?](./router.documentlink.prefetch.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[referrerpolicy?](./router.documentlink.referrerpolicy.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[rel?](./router.documentlink.rel.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[sizes?](./router.documentlink.sizes.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[title?](./router.documentlink.title.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[type?](./router.documentlink.type.md)
-
-</td><td>
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 ## DocumentMeta
 
 ```typescript
-export interface DocumentMeta
+export type DocumentMeta = QwikIntrinsicElements["meta"];
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[content?](./router.documentmeta.content.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[httpEquiv?](./router.documentmeta.httpequiv.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[itemprop?](./router.documentmeta.itemprop.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[key?](./router.documentmeta.key.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[media?](./router.documentmeta.media.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[name?](./router.documentmeta.name.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[property?](./router.documentmeta.property.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 ## DocumentScript
 
-> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-
 ```typescript
-export interface DocumentScript
+export type DocumentScript = (
+  | (Omit<QwikIntrinsicElements["script"], "dangerouslySetInnerHTML"> & {
+      props?: never;
+    })
+  | {
+      key?: string;
+      props: Readonly<QwikIntrinsicElements["script"]>;
+    }
+) &
+  (
+    | {
+        script?: string;
+        dangerouslySetInnerHTML?: never;
+      }
+    | {
+        dangerouslySetInnerHTML?: string;
+        script?: never;
+      }
+  );
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[key?](./router.documentscript.key.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-**_(BETA)_** _(Optional)_
-
-</td></tr>
-<tr><td>
-
-[props?](./router.documentscript.props.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Readonly&lt;QwikIntrinsicElements['script']&gt;
-
-</td><td>
-
-**_(BETA)_** _(Optional)_
-
-</td></tr>
-<tr><td>
-
-[script?](./router.documentscript.script.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-**_(BETA)_** _(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
 ## DocumentStyle
 
 ```typescript
-export interface DocumentStyle
+export type DocumentStyle = Readonly<
+  (
+    | (Omit<QwikIntrinsicElements["style"], "dangerouslySetInnerHTML"> & {
+        props?: never;
+      })
+    | {
+        key?: string;
+        props: Readonly<QwikIntrinsicElements["style"]>;
+      }
+  ) &
+    (
+      | {
+          style?: string;
+          dangerouslySetInnerHTML?: never;
+        }
+      | {
+          dangerouslySetInnerHTML?: string;
+          style?: never;
+        }
+    )
+>;
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[key?](./router.documentstyle.key.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[props?](./router.documentstyle.props.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-Readonly&lt;QwikIntrinsicElements['style']&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-[style](./router.documentstyle.style.md)
-
-</td><td>
-
-`readonly`
-
-</td><td>
-
-string
-
-</td><td>
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 

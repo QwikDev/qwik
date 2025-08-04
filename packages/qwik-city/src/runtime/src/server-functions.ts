@@ -92,7 +92,7 @@ export const routeActionQrl = ((
       // only throw in true SSR (no mock context)
       if (isNodeServer()) {
         throw new Error(`Actions can not be invoked within the server during SSR.
-Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
+          Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
       }
       let data: unknown | FormData | SubmitEvent;
       let form: HTMLFormElement | undefined;

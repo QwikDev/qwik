@@ -600,7 +600,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterMockProvider` instead. Will be removed in V3\n> \n\n\n```typescript\nQwikCityMockProvider: import(\"@qwik.dev/core\").Component<QwikRouterMockProps>\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useQwikMockRouter()` instead. Will be removed in V3\n> \n\n\n```typescript\nQwikCityMockProvider: import(\"@qwik.dev/core\").Component<QwikRouterMockProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikcitymockprovider.md"
     },
@@ -628,7 +628,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterProps` instead. will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityProps = QwikRouterProps;\n```\n**References:** [QwikRouterProps](#qwikrouterprops)",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterProps` instead. Will be removed in v3.\n> \n\n\n```typescript\nexport type QwikCityProps = QwikRouterProps;\n```\n**References:** [QwikRouterProps](#qwikrouterprops)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikcityprops.md"
     },
@@ -642,7 +642,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterProvider` instead. will be removed in V3\n> \n\n\n```typescript\nQwikCityProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `useQwikRouter()` instead. Will be removed in v3.\n> \n\n\n```typescript\nQwikCityProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikcityprovider.md"
     },
@@ -726,7 +726,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "```typescript\nQwikRouterProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
+      "content": "This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component.\n\n\n```typescript\nQwikRouterProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikrouterprovider.md"
     },
@@ -1065,6 +1065,20 @@
       "content": "Prevent navigation attempts. This hook registers a callback that will be called before SPA or browser navigation.\n\nReturn `true` to prevent navigation.\n\n\\#\\#\\#\\# SPA Navigation\n\nFor Single-Page-App (SPA) navigation (via `<Link />`<!-- -->, `const nav = useNavigate()`<!-- -->, and browser backwards/forwards inside SPA history), the callback will be provided with the target, either a URL or a number. It will only be a number if `nav(number)` was called to navigate forwards or backwards in SPA history.\n\nIf you return a Promise, the navigation will be blocked until the promise resolves.\n\nThis can be used to show a nice dialog to the user, and wait for the user to confirm, or to record the url, prevent the navigation, and navigate there later via `nav(url)`<!-- -->.\n\n\\#\\#\\#\\# Browser Navigation\n\nHowever, when the user navigates away by clicking on a regular `<a />`<!-- -->, reloading, or moving backwards/forwards outside SPA history, this callback will not be awaited. This is because the browser does not provide a way to asynchronously prevent these navigations.\n\nIn this case, returning returning `true` will tell the browser to show a confirmation dialog, which cannot be customized. You are also not able to show your own `window.confirm()` dialog during the callback, the browser won't allow it. If you return a Promise, it will be considered as `true`<!-- -->.\n\nWhen the callback is called from the browser, no url will be provided. Use this to know whether you can show a dialog or just return `true` to prevent the navigation.\n\n\n```typescript\nusePreventNavigate$: (qrl: PreventNavigateCallback) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[PreventNavigateCallback](#preventnavigatecallback)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts",
       "mdFile": "router.usepreventnavigate_.md"
+    },
+    {
+      "name": "useQwikRouter",
+      "id": "useqwikrouter",
+      "hierarchy": [
+        {
+          "name": "useQwikRouter",
+          "id": "useqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "This hook initializes Qwik Router, providing the necessary context for it to work.\n\nThis hook should be used once, at the root of your application.\n\n\n```typescript\nuseQwikRouter: (props?: QwikRouterProps) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nprops\n\n\n</td><td>\n\n[QwikRouterProps](#qwikrouterprops)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nvoid",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
+      "mdFile": "router.useqwikrouter.md"
     },
     {
       "name": "valibot$",

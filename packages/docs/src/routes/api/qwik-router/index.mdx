@@ -1400,7 +1400,7 @@ export type QwikCityMockProps = QwikRouterMockProps;
 
 > Warning: This API is now obsolete.
 >
-> Use `QwikRouterMockProvider` instead. Will be removed in V3
+> Use `useQwikMockRouter()` instead. Will be removed in V3
 
 ```typescript
 QwikCityMockProvider: import("@qwik.dev/core").Component<QwikRouterMockProps>;
@@ -1426,7 +1426,7 @@ export type QwikCityPlan = QwikRouterConfig;
 
 > Warning: This API is now obsolete.
 >
-> Use `QwikRouterProps` instead. will be removed in V3
+> Use `QwikRouterProps` instead. Will be removed in v3.
 
 ```typescript
 export type QwikCityProps = QwikRouterProps;
@@ -1440,7 +1440,7 @@ export type QwikCityProps = QwikRouterProps;
 
 > Warning: This API is now obsolete.
 >
-> Use `QwikRouterProvider` instead. will be removed in V3
+> Use `useQwikRouter()` instead. Will be removed in v3.
 
 ```typescript
 QwikCityProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
@@ -1792,6 +1792,8 @@ Default: `true`
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
 ## QwikRouterProvider
+
+This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component.
 
 ```typescript
 QwikRouterProvider: import("@qwik.dev/core").Component<QwikRouterProps>;
@@ -2374,6 +2376,49 @@ qrl
 void
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/use-functions.ts)
+
+## useQwikRouter
+
+This hook initializes Qwik Router, providing the necessary context for it to work.
+
+This hook should be used once, at the root of your application.
+
+```typescript
+useQwikRouter: (props?: QwikRouterProps) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+props
+
+</td><td>
+
+[QwikRouterProps](#qwikrouterprops)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx)
 
 ## valibot$
 

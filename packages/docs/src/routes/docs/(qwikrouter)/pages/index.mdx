@@ -121,6 +121,31 @@ export const head: DocumentHead = ({resolveValue, params}) => {
 };
 ```
 
+### Server-injected Head
+
+You can also pass `documentHead` to `createRenderer()` as part of the `serverData` option.
+
+The values passed will be used as the default values for `useDocumentHead()`, before the `head` exports are resolved.
+
+```tsx title="src/entry.ssr.tsx" {10}
+import { createRenderer } from "@qwik.dev/router";
+import Root from "./root";
+
+export default createRenderer((opts) => {
+  return {
+    app: <Root />,
+    options: {
+    ...opts,
+    serverData: {
+      ...opts.serverData,
+      documentHead: {
+        title: "My App",
+      },
+    },
+  }
+});
+```
+
 ### Nested Layouts and Head
 
 In an advanced case, a [layout](/docs/(qwikrouter)/layout/index.mdx) may want to modify the document title of an already resolved document head. In the example below, the page component returns the title of `Foo`. The containing layout component can read the value of the page's document head and modify it. In this example, the layout component is adding `MyCompany - ` to the title, so that when rendered, the title will be `MyCompany - Foo`. Every layout in the stack has the opportunity to return a new value.

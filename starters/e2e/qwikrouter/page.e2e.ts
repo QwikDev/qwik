@@ -27,7 +27,7 @@ function tests() {
     /***********  Home Page  ***********/
     await assertPage(ctx, {
       pathname: "/qwikrouter-test/",
-      title: "Welcome to Qwik Router - Qwik",
+      title: "Qwik Router Test - Qwik",
       layoutHierarchy: ["root"],
       h1: "Welcome to Qwik Router",
       activeHeaderLink: false,

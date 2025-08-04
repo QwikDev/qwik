@@ -3,6 +3,7 @@ import {
   createSignal,
   event$,
   isBrowser,
+  isServer,
   useStyles$,
   type Signal,
 } from '@qwik.dev/core';
@@ -10,16 +11,18 @@ import { themeStorageKey } from '../router-head/theme-script';
 import { SunAndMoon } from './sun-and-moon';
 import themeToggle from './theme-toggle.css?inline';
 
-type ThemeName = 'dark' | 'light' | undefined;
+type ThemeName = 'dark' | 'light' | 'auto';
 
 export const getTheme = (): ThemeName => {
+  if (isServer) {
+    return 'auto';
+  }
   let theme;
-  const matchMedia = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   try {
     theme = localStorage.getItem(themeStorageKey);
-    return (theme as ThemeName) || matchMedia;
+    return (theme as ThemeName) || 'auto';
   } catch {
-    return matchMedia;
+    return 'auto';
   }
 };
 
@@ -38,13 +41,12 @@ export const getThemeSignal = () => {
 };
 
 export const setTheme = (theme: ThemeName) => {
-  if (!theme) {
-    localStorage.removeItem(themeStorageKey);
-    theme = getTheme();
+  if (theme === 'auto') {
+    document.firstElementChild?.removeAttribute('data-theme');
   } else {
-    localStorage.setItem(themeStorageKey, theme);
+    document.firstElementChild?.setAttribute('data-theme', theme!);
   }
-  document.firstElementChild?.setAttribute('data-theme', theme!);
+  localStorage.setItem(themeStorageKey, theme);
   if (currentThemeSignal) {
     currentThemeSignal.value = theme;
   }

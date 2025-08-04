@@ -14,15 +14,10 @@ export default defineConfig(async () => {
       qwikCity(),
       qwikTypes(),
       qwikVite(),
-      tsconfigPaths({ projects: ['.'] }),
+      tsconfigPaths({ root: '.' }),
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

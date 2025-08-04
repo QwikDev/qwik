@@ -13,7 +13,6 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
-import { RedirectMessage } from './redirect-handler';
 import {
   RequestEvQwikSerializer,
   RequestEvIsRewrite,
@@ -33,13 +32,14 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
-import { ServerError } from './error-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import { RedirectMessage, ServerError } from '@builder.io/qwik-city/middleware/request-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderHandler: RequestHandler
 ) => {
   const routeLoaders: LoaderInternal[] = [];
@@ -67,6 +67,10 @@ export const resolveRequestHandlers = (
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
     ) {
       requestHandlers.unshift(csrfCheckMiddleware);
+
+      if (checkOrigin === 'lax-proto') {
+        requestHandlers.push(csrfLaxProtoCheckMiddleware);
+      }
     }
     if (isPageRoute) {
       // server$
@@ -424,7 +428,13 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
 
+function csrfLaxProtoCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv, 'lax-proto');
+}
 function csrfCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv);
+}
+function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
   const isForm = isContentType(
     requestEv.request.headers,
     'application/x-www-form-urlencoded',
@@ -434,7 +444,18 @@ function csrfCheckMiddleware(requestEv: RequestEvent) {
   if (isForm) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
-    const forbidden = inputOrigin !== origin;
+    let forbidden = inputOrigin !== origin;
+
+    // fix https://github.com/QwikDev/qwik/issues/7688
+    if (
+      forbidden &&
+      laxProto &&
+      origin.startsWith('https://') &&
+      inputOrigin?.slice(4) === origin.slice(5)
+    ) {
+      forbidden = false;
+    }
+
     if (forbidden) {
       throw requestEv.error(
         403,

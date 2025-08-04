@@ -1,5 +1,9 @@
 import { component$, isDev } from "@qwik.dev/core";
-import { QwikRouterProvider, RouterOutlet } from "@qwik.dev/router";
+import {
+  DocumentHeadTags,
+  QwikRouterProvider,
+  RouterOutlet,
+} from "@qwik.dev/router";
 import { RouterHead } from "./components/router-head/router-head";
 
 import "./global.css";
@@ -22,9 +26,10 @@ export default component$(() => {
             href={`${import.meta.env.BASE_URL}manifest.json`}
           />
         )}
+        <DocumentHeadTags />
         <RouterHead />
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
     </QwikRouterProvider>

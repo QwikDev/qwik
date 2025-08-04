@@ -48,6 +48,7 @@ export async function renderToStream(
   const firstFlushTimer = createTimer();
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
+  const nonce = opts.serverData?.nonce;
   function flush() {
     if (buffer) {
       nativeStream.write(buffer);
@@ -123,16 +124,21 @@ export async function renderToStream(
   let didAddQwikLoader = false;
   if (includeMode !== 'never' && qwikLoaderChunk) {
     beforeContent.unshift(
-      jsx('link', { rel: 'modulepreload', href: `${buildBase}${qwikLoaderChunk}` }),
+      jsx('link', {
+        rel: 'modulepreload',
+        href: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
+      }),
       jsx('script', {
         type: 'module',
         async: true,
         src: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
       })
     );
     didAddQwikLoader = true;
   }
-  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, opts.serverData?.nonce);
+  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, nonce);
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -161,7 +167,7 @@ export async function renderToStream(
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
-          nonce: opts.serverData?.nonce,
+          nonce,
         })
       );
       if (snapshotResult.funcs.length > 0) {
@@ -170,7 +176,7 @@ export async function renderToStream(
           jsx('script', {
             'q:func': 'qwik/json',
             dangerouslySetInnerHTML: serializeFunctions(hash, snapshotResult.funcs),
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }
@@ -188,7 +194,7 @@ export async function renderToStream(
             async: true,
             type: 'module',
             dangerouslySetInnerHTML: qwikLoaderScript,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }
@@ -200,7 +206,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }

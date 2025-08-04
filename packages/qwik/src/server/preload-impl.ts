@@ -66,12 +66,13 @@ export const preloaderPre = (
        * We add modulepreloads even when the script is at the top because they already fire during
        * html download
        */
-      jsx('link', { rel: 'modulepreload', href: preloaderPath }),
+      jsx('link', { rel: 'modulepreload', href: preloaderPath, nonce }),
       jsx('link', {
         rel: 'preload',
         href: bundleGraphPath,
         as: 'fetch',
         crossorigin: 'anonymous',
+        nonce,
       }),
       jsx('script', {
         type: 'module',
@@ -84,7 +85,7 @@ export const preloaderPre = (
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
   if (corePath) {
-    beforeContent.push(jsx('link', { rel: 'modulepreload', href: corePath }));
+    beforeContent.push(jsx('link', { rel: 'modulepreload', href: corePath, nonce }));
   }
 };
 

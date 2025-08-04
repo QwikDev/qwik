@@ -14,15 +14,12 @@ type ThemeName = 'dark' | 'light' | undefined;
 
 export const getTheme = (): ThemeName => {
   let theme;
+  const matchMedia = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   try {
     theme = localStorage.getItem(themeStorageKey);
+    return (theme as ThemeName) || matchMedia;
   } catch {
-    //
-  }
-  if (theme) {
-    return theme as ThemeName;
-  } else {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return matchMedia;
   }
 };
 
@@ -41,6 +38,7 @@ export const getThemeSignal = () => {
 };
 
 export const setTheme = (theme: ThemeName) => {
+  console.log(theme);
   if (!theme) {
     localStorage.removeItem(themeStorageKey);
     theme = getTheme();

@@ -84,20 +84,6 @@ export const QWIK_ROUTER_SCROLLER = '_qRouterScroller';
 
 /** @public */
 export interface QwikRouterProps {
-  // /**
-  //  * The QwikRouter component must have only two direct children: `<head>` and `<body>`, like the following example:
-  //  *
-  //  * ```tsx
-  //  * <QwikRouterProvider>
-  //  *   <head>
-  //  *     <meta charset="utf-8" />
-  //  *   </head>
-  //  *   <body lang="en"></body>
-  //  * </QwikRouterProvider>
-  //  * ```
-  //  */
-  // children?: [JSXNode, JSXNode];
-
   /**
    * Enable the ViewTransition API
    *
@@ -111,7 +97,7 @@ export interface QwikRouterProps {
 }
 
 /**
- * @deprecated Use `QwikRouterProps` instead. will be removed in V3
+ * @deprecated Use `QwikRouterProps` instead. Will be removed in v3.
  * @public
  */
 export type QwikCityProps = QwikRouterProps;
@@ -126,8 +112,13 @@ const preventNav: {
 // We need to use an object so we can write into it from qrls
 const internalState = { navCount: 0 };
 
-/** @public */
-export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+/**
+ * @public
+ * This hook initializes Qwik Router, providing the necessary context for it to work.
+ *
+ * This hook should be used once, at the root of your application.
+ */
+export const useQwikRouter = (props?: QwikRouterProps) => {
   useStyles$(`
     @layer qwik {
       @supports selector(html:active-view-transition-type(type)) {
@@ -732,7 +723,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
           };
 
           const _waitNextPage = () => {
-            if (isServer || props.viewTransition === false) {
+            if (isServer || props?.viewTransition === false) {
               return navigate();
             } else {
               const viewTransition = startViewTransition({
@@ -768,12 +759,16 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
       run();
     }
   });
+};
 
+/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component. */
+export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+  useQwikRouter(props);
   return <Slot />;
 });
 
 /**
- * @deprecated Use `QwikRouterProvider` instead. will be removed in V3
+ * @deprecated Use `useQwikRouter()` instead. Will be removed in v3.
  * @public
  */
 export const QwikCityProvider = QwikRouterProvider;
@@ -792,7 +787,7 @@ export interface QwikRouterMockProps {
 export type QwikCityMockProps = QwikRouterMockProps;
 
 /** @public */
-export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) => {
+const useQwikMockRouter = (props: QwikRouterMockProps) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>(
@@ -836,12 +831,16 @@ export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) =>
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
+};
 
+/** @public */
+export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) => {
+  useQwikMockRouter(props);
   return <Slot />;
 });
 
 /**
- * @deprecated Use `QwikRouterMockProvider` instead. Will be removed in V3
+ * @deprecated Use `useQwikMockRouter()` instead. Will be removed in V3
  * @public
  */
 export const QwikCityMockProvider = QwikRouterMockProvider;

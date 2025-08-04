@@ -38,7 +38,6 @@ export const getThemeSignal = () => {
 };
 
 export const setTheme = (theme: ThemeName) => {
-  console.log(theme);
   if (!theme) {
     localStorage.removeItem(themeStorageKey);
     theme = getTheme();

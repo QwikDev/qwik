@@ -318,38 +318,36 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
 
-## `<QwikRouterProvider>`
+## `useQwikRouter()`
 
-The `QwikRouterProvider` component initializes Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) and `useLocation()`.
+The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent), `useLocation()` and `<RouterOutlet />`.
 
-This component is usually located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file:
+This hook should be located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file.
 
 ```tsx title="src/root.tsx"
+import { useQwikRouter } from '@qwik.dev/router';
+
 export default component$(() => {
-  /**
-   * The root of a Qwik site always start with the <QwikRouterProvider> component,
-   * immediately followed by the document's <head> and <body>.
-   *
-   * Don't remove the `<head>` and `<body>` elements.
-   */
+  useQwikRouter();
 
   return (
-    <QwikRouterProvider>
+    <>
       <head>
-        <meta charSet="utf-8" />
-        <link rel="manifest" href="/manifest.json" />
-        <RouterHead />
+        {/* ... */}
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });
 ```
 
-> `QwikRouterProvider` does not render any DOM element, not even the matched route. It merely initializes Qwik Router core logic so it should not be used more than once in the same app.
+> `useQwikRouter()` should only be called once, in the root of your application.
 
+## `<QwikRouterProvider>`
+
+The `QwikRouterProvider` component is a wrapper around the `useQwikRouter()` hook. It does not render any DOM element, not even the matched route. We recommend using the hook instead of this component.
 
 ## `<QwikRouterMockProvider>`
 

@@ -61,9 +61,11 @@ export default defineConfig(({ command, mode }): UserConfig => {
 import { Insights } from '@qwik.dev/core';
 
 export default component$(() => {
+  useQwikRouter();
+
   // ...
   return (
-    <QwikRouterProvider>
+    <>
       <head>
         // ...
         <Insights
@@ -73,7 +75,7 @@ export default component$(() => {
       <body lang="en">
         // ...
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });
 ```

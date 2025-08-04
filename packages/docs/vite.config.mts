@@ -98,11 +98,6 @@ function transformerMetaShowTitle(): ShikiTransformer {
 export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

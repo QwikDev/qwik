@@ -6,11 +6,10 @@ import { GithubLogo } from '../svgs/github-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 
 type OnThisPageMoreProps = {
-  theme: 'light' | 'dark' | 'auto';
   editUrl: string;
 };
 
-export const OnThisPageMore = component$<OnThisPageMoreProps>(({ theme, editUrl }) => {
+export const OnThisPageMore = component$<OnThisPageMoreProps>(({ editUrl }) => {
   const OnThisPageMore = [
     {
       href: editUrl,
@@ -45,15 +44,11 @@ export const OnThisPageMore = component$<OnThisPageMoreProps>(({ theme, editUrl 
         {OnThisPageMore.map((el, index) => {
           return (
             <li
-              class={`${
-                theme === 'light'
-                  ? 'hover:bg-[var(--qwik-light-blue)]'
-                  : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-              } rounded-lg`}
+              class="hover:bg-(--on-this-page-hover-bg-color) rounded-lg"
               key={`more-items-on-this-page-${index}`}
             >
               <a class="more-item" href={el.href} rel="noopener" target="_blank">
-                {el.icon && <el.icon width={20} height={20} />}
+                <el.icon width={20} height={20} />
                 <span>{el.text}</span>
               </a>
             </li>

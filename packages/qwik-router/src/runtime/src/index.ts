@@ -116,3 +116,5 @@ export {
   type RendererOptions,
   type RendererOutputOptions,
 } from './create-renderer';
+
+export { DocumentHeadTags } from './document-head-tags-component';

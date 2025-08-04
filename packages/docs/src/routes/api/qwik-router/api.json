@@ -143,6 +143,20 @@
       "mdFile": "router.documentheadprops.md"
     },
     {
+      "name": "DocumentHeadTags",
+      "id": "documentheadtags",
+      "hierarchy": [
+        {
+          "name": "DocumentHeadTags",
+          "id": "documentheadtags"
+        }
+      ],
+      "kind": "Variable",
+      "content": "This renders all the tags collected from `head`<!-- -->.\n\nYou can partially override the head, for example if you want to change the title:\n\n```tsx\nimport { DocumentHeadTags, useDocumentHead } from '@qwik.dev/router';\n\nexport default component$(() => {\n  const head = useDocumentHead();\n  return <DocumentHeadTags title={`${head.title} - My App`} />;\n});\n```\nYou don't have to use this component, you can also do it yourself for full control. Just copy the code from this component and modify it to your needs.\n\nNote that this component normally only runs once, during SSR. You can use Signals in your `src/root.tsx` to make runtime changes to `<head>` if needed.\n\n\n```typescript\nDocumentHeadTags: import(\"@qwik.dev/core\").Component<DocumentHeadValue<Record<string, unknown>>>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/document-head-tags-component.tsx",
+      "mdFile": "router.documentheadtags.md"
+    },
+    {
       "name": "DocumentHeadValue",
       "id": "documentheadvalue",
       "hierarchy": [
@@ -152,7 +166,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](./router.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./router.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./router.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head. Additionally, the `data` property could be used to set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./router.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./router.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface DocumentHeadValue<FrontMatter extends Record<string, any> = Record<string, unknown>> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[frontmatter?](./router.documentheadvalue.frontmatter.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;FrontMatter&gt;\n\n\n</td><td>\n\n_(Optional)_ Arbitrary object containing custom data. When the document head is created from markdown files, the frontmatter attributes that are not recognized as a well-known meta names (such as title, description, author, etc...), are stored in this property.\n\n\n</td></tr>\n<tr><td>\n\n[links?](./router.documentheadvalue.links.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentLink](#documentlink)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<link>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[meta?](./router.documentheadvalue.meta.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentMeta](#documentmeta)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually set meta tags in the head.\n\n\n</td></tr>\n<tr><td>\n\n[scripts?](./router.documentheadvalue.scripts.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentScript](#documentscript)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<script>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[styles?](./router.documentheadvalue.styles.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nreadonly [DocumentStyle](#documentstyle)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Used to manually append `<style>` elements to the `<head>`<!-- -->.\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentheadvalue.title.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Sets `document.title`<!-- -->.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentheadvalue.md"
     },
@@ -165,8 +179,8 @@
           "id": "documentlink"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentLink \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[as?](./router.documentlink.as.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[crossorigin?](./router.documentlink.crossorigin.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[disabled?](./router.documentlink.disabled.md)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[href?](./router.documentlink.href.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[hreflang?](./router.documentlink.hreflang.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[id?](./router.documentlink.id.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesizes?](./router.documentlink.imagesizes.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imagesrcset?](./router.documentlink.imagesrcset.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[integrity?](./router.documentlink.integrity.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](./router.documentlink.key.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](./router.documentlink.media.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[prefetch?](./router.documentlink.prefetch.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[referrerpolicy?](./router.documentlink.referrerpolicy.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[rel?](./router.documentlink.rel.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[sizes?](./router.documentlink.sizes.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[title?](./router.documentlink.title.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[type?](./router.documentlink.type.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DocumentLink = QwikIntrinsicElements['link'];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentlink.md"
     },
@@ -179,8 +193,8 @@
           "id": "documentmeta"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentMeta \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[content?](./router.documentmeta.content.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[httpEquiv?](./router.documentmeta.httpequiv.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[itemprop?](./router.documentmeta.itemprop.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[key?](./router.documentmeta.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[media?](./router.documentmeta.media.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[name?](./router.documentmeta.name.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[property?](./router.documentmeta.property.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DocumentMeta = QwikIntrinsicElements['meta'];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentmeta.md"
     },
@@ -193,8 +207,8 @@
           "id": "documentscript"
         }
       ],
-      "kind": "Interface",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n\n\n```typescript\nexport interface DocumentScript \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](./router.documentscript.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(BETA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](./router.documentscript.props.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['script'\\]&gt;\n\n\n</td><td>\n\n**_(BETA)_** _(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[script?](./router.documentscript.script.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n**_(BETA)_** _(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DocumentScript = ((Omit<QwikIntrinsicElements['script'], 'dangerouslySetInnerHTML'> & {\n    props?: never;\n}) | {\n    key?: string;\n    props: Readonly<QwikIntrinsicElements['script']>;\n}) & ({\n    script?: string;\n    dangerouslySetInnerHTML?: never;\n} | {\n    dangerouslySetInnerHTML?: string;\n    script?: never;\n});\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentscript.md"
     },
@@ -207,8 +221,8 @@
           "id": "documentstyle"
         }
       ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface DocumentStyle \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[key?](./router.documentstyle.key.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[props?](./router.documentstyle.props.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nReadonly&lt;QwikIntrinsicElements\\['style'\\]&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[style](./router.documentstyle.style.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dangerouslySetInnerHTML'> & {\n    props?: never;\n}) | {\n    key?: string;\n    props: Readonly<QwikIntrinsicElements['style']>;\n}) & ({\n    style?: string;\n    dangerouslySetInnerHTML?: never;\n} | {\n    dangerouslySetInnerHTML?: string;\n    style?: never;\n})>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.documentstyle.md"
     },

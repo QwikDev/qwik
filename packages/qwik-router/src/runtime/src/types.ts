@@ -147,10 +147,7 @@ export interface DocumentHeadValue<
 > {
   /** Sets `document.title`. */
   readonly title?: string;
-  /**
-   * Used to manually set meta tags in the head. Additionally, the `data` property could be used to
-   * set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
-   */
+  /** Used to manually set meta tags in the head. */
   readonly meta?: readonly DocumentMeta[];
   /** Used to manually append `<link>` elements to the `<head>`. */
   readonly links?: readonly DocumentLink[];
@@ -172,50 +169,54 @@ export type ResolvedDocumentHead<
 > = Required<DocumentHeadValue<FrontMatter>>;
 
 /** @public */
-export interface DocumentMeta {
-  readonly content?: string;
-  readonly httpEquiv?: string;
-  readonly name?: string;
-  readonly property?: string;
-  readonly key?: string;
-  readonly itemprop?: string;
-  readonly media?: string;
-}
+export type DocumentMeta = QwikIntrinsicElements['meta'];
 
 /** @public */
-export interface DocumentLink {
-  as?: string;
-  crossorigin?: string;
-  disabled?: boolean;
-  href?: string;
-  hreflang?: string;
-  id?: string;
-  imagesizes?: string;
-  imagesrcset?: string;
-  integrity?: string;
-  media?: string;
-  prefetch?: string;
-  referrerpolicy?: string;
-  rel?: string;
-  sizes?: string;
-  title?: string;
-  type?: string;
-  key?: string;
-}
+export type DocumentLink = QwikIntrinsicElements['link'];
 
 /** @public */
-export interface DocumentStyle {
-  readonly style: string;
-  readonly props?: Readonly<QwikIntrinsicElements['style']>;
-  readonly key?: string;
-}
+export type DocumentStyle = Readonly<
+  (
+    | (Omit<QwikIntrinsicElements['style'], 'dangerouslySetInnerHTML'> & { props?: never })
+    | {
+        key?: string;
+        /**
+         * The props of the style element. @deprecated Prefer setting the properties directly
+         * instead of using this property.
+         */
+        props: Readonly<QwikIntrinsicElements['style']>;
+      }
+  ) &
+    (
+      | {
+          /** The inline style content. */
+          style?: string;
+          dangerouslySetInnerHTML?: never;
+        }
+      | { dangerouslySetInnerHTML?: string; style?: never }
+    )
+>;
 
-/** @beta */
-export interface DocumentScript {
-  readonly script?: string;
-  readonly props?: Readonly<QwikIntrinsicElements['script']>;
-  readonly key?: string;
-}
+/** @public */
+export type DocumentScript = (
+  | (Omit<QwikIntrinsicElements['script'], 'dangerouslySetInnerHTML'> & { props?: never })
+  | {
+      key?: string;
+      /**
+       * The props of the script element. @deprecated Prefer setting the properties directly instead
+       * of using this property.
+       */
+      props: Readonly<QwikIntrinsicElements['script']>;
+    }
+) &
+  (
+    | {
+        /** The inline script content. */
+        script?: string;
+        dangerouslySetInnerHTML?: never;
+      }
+    | { dangerouslySetInnerHTML?: string; script?: never }
+  );
 
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {

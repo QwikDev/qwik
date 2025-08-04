@@ -55,6 +55,7 @@ import type {
   ContentModule,
   ContentState,
   ContentStateInternal,
+  DocumentHeadValue,
   Editable,
   EndpointResponse,
   LoadedRoute,
@@ -150,6 +151,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
+  const serverHead = useServerData<DocumentHeadValue>('documentHead');
 
   if (isServer) {
     if (
@@ -217,7 +219,9 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     replaceState: false,
     scroll: true,
   });
-  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
+    createDocumentHead(serverHead)
+  );
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
@@ -487,7 +491,13 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
+        const resolvedHead = resolveHead(
+          clientPageData!,
+          routeLocation,
+          contentModules,
+          locale,
+          serverHead
+        );
 
         // Update content
         content.headings = pageModule.headings;

@@ -18,6 +18,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
+import type { Q_ROUTE } from './constants';
 
 export type {
   Cookie,
@@ -349,6 +350,7 @@ export interface StaticGenerate {
 
 /** @deprecated Use `QwikRouterEnvData` instead. Will be removed in V3. */
 export type QwikCityEnvData = QwikRouterEnvData;
+/** @public */
 export interface QwikRouterEnvData {
   routeName: string;
   ev: RequestEvent;
@@ -356,6 +358,16 @@ export interface QwikRouterEnvData {
   response: EndpointResponse;
   loadedRoute: LoadedRoute | null;
 }
+
+/** @public The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client. */
+export type ServerData = {
+  url: string;
+  requestHeaders: Record<string, string>;
+  locale: string | undefined;
+  nonce: string | undefined;
+  containerAttributes: Record<string, string> & { [Q_ROUTE]: string };
+  qwikrouter: QwikRouterEnvData;
+};
 
 export interface SimpleURL {
   origin: string;

@@ -260,6 +260,14 @@ Unit tests use [vitest](https://vitest.dev)
 pnpm test.unit
 ```
 
+For tests that rely on browser APIs, run the DOM-focused build:
+
+```shell
+pnpm test.unit.browser
+```
+
+This preset uses [`jsdom`](https://github.com/jsdom/jsdom) under the hood, so ensure it is installed.
+
 ### E2E Tests Only
 
 E2E tests use [Playwright](https://playwright.dev/).

@@ -50,7 +50,8 @@ import type {
 } from './types';
 import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 
-import { isDev, isServer } from '@builder.io/qwik';
+import { isDev } from '@builder.io/qwik';
+import { isNodeServer } from './utils';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 
@@ -88,10 +89,10 @@ export const routeActionQrl = ((
     });
 
     const submit = $((input: unknown | FormData | SubmitEvent = {}) => {
-      // only throw in true SSR when no window object is present (no mock context)
-      if (isServer && typeof window === 'undefined') {
+      // only throw in true SSR (no mock context)
+      if (isNodeServer()) {
         throw new Error(`Actions can not be invoked within the server during SSR.
-Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
+          Action.run() can only be called on the browser, for example when a user clicks a button, or submits a form.`);
       }
       let data: unknown | FormData | SubmitEvent;
       let form: HTMLFormElement | undefined;
@@ -165,7 +166,7 @@ export const globalActionQrl = ((
   ...rest: (CommonLoaderActionOptions | DataValidator)[]
 ) => {
   const action = routeActionQrl(actionQrl, ...(rest as any));
-  if (isServer) {
+  if (isNodeServer()) {
     if (typeof globalThis._qwikActionsMap === 'undefined') {
       globalThis._qwikActionsMap = new Map();
     }
@@ -219,7 +220,7 @@ export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(r
 export const validatorQrl = ((
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
 ): DataValidator => {
-  if (isServer) {
+  if (isNodeServer()) {
     return {
       validate: validator,
     };
@@ -267,7 +268,7 @@ export const valibotQrl: ValibotConstructorQRL = (
       'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.'
     );
   }
-  if (isServer) {
+  if (isNodeServer()) {
     return {
       __brand: 'valibot',
       async validate(ev, inputData) {
@@ -333,7 +334,7 @@ export const zodQrl: ZodConstructorQRL = (
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
   >
 ): ZodDataValidator => {
-  if (isServer) {
+  if (isNodeServer()) {
     return {
       __brand: 'zod',
       async validate(ev, inputData) {
@@ -389,7 +390,7 @@ export const serverQrl = <T extends ServerFunction>(
   qrl: QRL<T>,
   options?: ServerConfig
 ): ServerQRL<T> => {
-  if (isServer) {
+  if (isNodeServer()) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextElement()) {
       throw new Error('For security reasons, we cannot serialize QRLs that capture lexical scope.');
@@ -409,7 +410,7 @@ export const serverQrl = <T extends ServerFunction>(
           ? (args.shift() as AbortSignal)
           : undefined;
 
-      if (isServer) {
+      if (isNodeServer()) {
         // Running during SSR, we can call the function directly
         let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
 

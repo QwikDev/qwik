@@ -87,6 +87,20 @@
       "mdFile": "router.contentmenu.md"
     },
     {
+      "name": "createRenderer",
+      "id": "createrenderer",
+      "hierarchy": [
+        {
+          "name": "createRenderer",
+          "id": "createrenderer"
+        }
+      ],
+      "kind": "Function",
+      "content": "Creates the `render()` function that is required by `createQwikRouter()`<!-- -->. It requires a function that returns the `jsx` and `options` for the renderer.\n\n\n```typescript\ncreateRenderer: (getOptions: (options: RendererOptions) => {\n    jsx: JSXOutput;\n    options: RendererOutputOptions;\n}) => Render\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ngetOptions\n\n\n</td><td>\n\n(options: [RendererOptions](#rendereroptions)<!-- -->) =&gt; { jsx: JSXOutput; options: [RendererOutputOptions](#rendereroutputoptions)<!-- -->; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nRender\n\n\n\n```tsx\nconst renderer = createRenderer((opts) => {\n  if (opts.requestHeaders['x-hello'] === 'world') {\n    return { jsx: <Hello />, options: opts };\n  }\n  return { jsx: <Root />, options: {\n    ...opts,\n    serverData: {\n      ...opts.serverData,\n      documentHead: {\n        meta: [\n          { name: 'renderedAt', content: new Date().toISOString() },\n        ],\n      },\n    },\n  } };\n});\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
+      "mdFile": "router.createrenderer.md"
+    },
+    {
       "name": "DataValidator",
       "id": "datavalidator",
       "hierarchy": [
@@ -507,6 +521,20 @@
       "mdFile": "router.preventnavigatecallback.md"
     },
     {
+      "name": "Q_ROUTE",
+      "id": "q_route",
+      "hierarchy": [
+        {
+          "name": "Q_ROUTE",
+          "id": "q_route"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nQ_ROUTE = \"q:route\"\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/constants.ts",
+      "mdFile": "router.q_route.md"
+    },
+    {
       "name": "QWIK_CITY_SCROLLER",
       "id": "qwik_city_scroller",
       "hierarchy": [
@@ -619,6 +647,20 @@
       "mdFile": "router.qwikrouterconfig.md"
     },
     {
+      "name": "QwikRouterEnvData",
+      "id": "qwikrouterenvdata",
+      "hierarchy": [
+        {
+          "name": "QwikRouterEnvData",
+          "id": "qwikrouterenvdata"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterEnvData \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[ev](./router.qwikrouterenvdata.ev.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRequestEvent\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loadedRoute](./router.qwikrouterenvdata.loadedroute.md)\n\n\n</td><td>\n\n\n</td><td>\n\nLoadedRoute \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[params](./router.qwikrouterenvdata.params.md)\n\n\n</td><td>\n\n\n</td><td>\n\n[PathParams](#pathparams)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[response](./router.qwikrouterenvdata.response.md)\n\n\n</td><td>\n\n\n</td><td>\n\nEndpointResponse\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[routeName](./router.qwikrouterenvdata.routename.md)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.qwikrouterenvdata.md"
+    },
+    {
       "name": "QwikRouterMockProps",
       "id": "qwikroutermockprops",
       "hierarchy": [
@@ -673,6 +715,34 @@
       "content": "```typescript\nQwikRouterProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikrouterprovider.md"
+    },
+    {
+      "name": "RendererOptions",
+      "id": "rendereroptions",
+      "hierarchy": [
+        {
+          "name": "RendererOptions",
+          "id": "rendereroptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RendererOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData;\n};\n```\n**References:** [ServerData](#serverdata)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
+      "mdFile": "router.rendereroptions.md"
+    },
+    {
+      "name": "RendererOutputOptions",
+      "id": "rendereroutputoptions",
+      "hierarchy": [
+        {
+          "name": "RendererOutputOptions",
+          "id": "rendereroutputoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {\n    serverData: ServerData & {\n        documentHead?: DocumentHeadValue;\n    } & Record<string, unknown>;\n};\n```\n**References:** [ServerData](#serverdata)<!-- -->, [DocumentHeadValue](#documentheadvalue)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/create-renderer.ts",
+      "mdFile": "router.rendereroutputoptions.md"
     },
     {
       "name": "ResolvedDocumentHead",
@@ -785,6 +855,20 @@
       "content": "```typescript\nserver$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\nServerConfig \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[ServerQRL](#serverqrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.server_.md"
+    },
+    {
+      "name": "ServerData",
+      "id": "serverdata",
+      "hierarchy": [
+        {
+          "name": "ServerData",
+          "id": "serverdata"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client.\n\n\n```typescript\nexport type ServerData = {\n    url: string;\n    requestHeaders: Record<string, string>;\n    locale: string | undefined;\n    nonce: string | undefined;\n    containerAttributes: Record<string, string> & {\n        [Q_ROUTE]: string;\n    };\n    qwikrouter: QwikRouterEnvData;\n};\n```\n**References:** [Q\\_ROUTE](#q_route)<!-- -->, [QwikRouterEnvData](#qwikrouterenvdata)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.serverdata.md"
     },
     {
       "name": "ServerFunction",

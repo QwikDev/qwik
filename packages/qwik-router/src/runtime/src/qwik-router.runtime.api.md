@@ -16,6 +16,8 @@ import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
 import type { ReadonlySignal } from '@qwik.dev/core';
+import { Render } from '@qwik.dev/core/server';
+import { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventAction } from '@qwik.dev/router/middleware/request-handler';
 import { RequestEventBase } from '@qwik.dev/router/middleware/request-handler';
@@ -98,6 +100,12 @@ export { Cookie }
 export { CookieOptions }
 
 export { CookieValue }
+
+// @public
+export const createRenderer: (getOptions: (options: RendererOptions) => {
+    jsx: JSXOutput_2;
+    options: RendererOutputOptions;
+}) => Render;
 
 // @public (undocumented)
 export type DataValidator<T extends Record<string, any> = {}> = {
@@ -331,6 +339,9 @@ export type PathParams = Record<string, string>;
 // @public (undocumented)
 export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;
 
+// @public (undocumented)
+export const Q_ROUTE = "q:route";
+
 // @public @deprecated (undocumented)
 export const QWIK_CITY_SCROLLER = "_qCityScroller";
 
@@ -369,6 +380,24 @@ export interface QwikRouterConfig {
 }
 
 // @public (undocumented)
+export interface QwikRouterEnvData {
+    // (undocumented)
+    ev: RequestEvent;
+    // Warning: (ae-forgotten-export) The symbol "LoadedRoute" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    loadedRoute: LoadedRoute | null;
+    // (undocumented)
+    params: PathParams;
+    // Warning: (ae-forgotten-export) The symbol "EndpointResponse" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    response: EndpointResponse;
+    // (undocumented)
+    routeName: string;
+}
+
+// @public (undocumented)
 export interface QwikRouterMockProps {
     // (undocumented)
     goto?: RouteNavigate;
@@ -388,6 +417,18 @@ export interface QwikRouterProps {
 
 // @public (undocumented)
 export const QwikRouterProvider: Component<QwikRouterProps>;
+
+// @public (undocumented)
+export type RendererOptions = Omit<RenderOptions, 'serverData'> & {
+    serverData: ServerData;
+};
+
+// @public (undocumented)
+export type RendererOutputOptions = Omit<RenderOptions, 'serverData'> & {
+    serverData: ServerData & {
+        documentHead?: DocumentHeadValue;
+    } & Record<string, unknown>;
+};
 
 export { RequestEvent }
 
@@ -460,6 +501,18 @@ export const RouterOutlet: Component<unknown>;
 //
 // @public (undocumented)
 export const server$: <T extends ServerFunction>(qrl: T, options?: ServerConfig | undefined) => ServerQRL<T>;
+
+// @public
+export type ServerData = {
+    url: string;
+    requestHeaders: Record<string, string>;
+    locale: string | undefined;
+    nonce: string | undefined;
+    containerAttributes: Record<string, string> & {
+        [Q_ROUTE]: string;
+    };
+    qwikrouter: QwikRouterEnvData;
+};
 
 // @public (undocumented)
 export type ServerFunction = {

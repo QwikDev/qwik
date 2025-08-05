@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { findBlockingChore, findBlockingChoreForVisible, addBlockedChore } from './scheduler-rules';
+import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 import { ChoreType } from './util-chore-type';
-import type { Chore } from './scheduler';
+import { addBlockedChore, type Chore } from './scheduler';
 import { Task, TaskFlags } from '../use/use-task';
 import { ELEMENT_SEQ } from './utils/markers';
 import type { Container } from './types';

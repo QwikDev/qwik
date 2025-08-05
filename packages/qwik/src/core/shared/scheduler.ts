@@ -78,14 +78,6 @@
  *   within component.
  * - Visible Tasks are sorted afterJournalFlush, than depth first on component and finally in
  *   declaration order within component.
- *
- * Blocking chores:
- *
- * - RUN_QRL -> TASK
- * - TASK -> subsequent TASK
- * - COMPONENT -> NODE_DIFF
- * - COMPONENT -> TRIGGER_EFFECTS
- * - QRL_RESOLVE -> RUN_QRL, COMPONENT
  */
 
 import { type DomContainer } from '../client/dom-container';
@@ -141,11 +133,11 @@ import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import { type ValueOrPromise } from './utils/types';
 import { invoke, newInvokeContext } from '../use/use-core';
-import { addBlockedChore, findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
+import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 import { createNextTick } from './platform/next-tick';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = false;
+const DEBUG: boolean = true;
 
 enum ChoreState {
   NONE = 0,
@@ -314,7 +306,7 @@ export const createScheduler = (
       type === ChoreType.NODE_PROP ||
       type === ChoreType.QRL_RESOLVE;
     if (isServer && isClientOnly) {
-      DEBUG && debugTrace(`skip client chore ${debugChoreTypeToString(type)}`, null, choreQueue);
+      DEBUG && debugTrace(`skip client chore ${debugChoreTypeToString(type)}`, chore, choreQueue);
       // TODO mark done?
       return chore;
     }
@@ -481,8 +473,7 @@ export const createScheduler = (
         }
       }
     } catch (e) {
-      DEBUG && debugTrace('execute.ERROR sync', currentChore, choreQueue);
-      container.handleError(e, currentChore?.$host$ || null);
+      handleError(currentChore!, e);
       scheduleBlockedChoresAndDrainIfNeeded(currentChore!);
     } finally {
       maybeFinishDrain();
@@ -808,6 +799,17 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
     vnode_isVNode(chore.$host$) &&
     chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
   );
+}
+
+export function addBlockedChore(
+  blockedChore: Chore,
+  blockingChore: Chore,
+  blockedChores: Set<Chore>
+) {
+  DEBUG && debugTrace(`blocked chore by ${debugChoreToString(blockingChore)}`, blockedChore);
+  blockingChore.$blockedChores$ ||= [];
+  blockingChore.$blockedChores$.push(blockedChore);
+  blockedChores.add(blockedChore);
 }
 
 function debugChoreTypeToString(type: ChoreType): string {

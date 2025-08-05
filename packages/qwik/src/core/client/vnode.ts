@@ -1750,6 +1750,17 @@ export const vnode_getParent = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.parent] || null;
 };
 
+export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
+  let parent = vnode_getParent(vnode);
+  while (parent) {
+    if (parent === ancestor) {
+      return true;
+    }
+    parent = vnode_getParent(parent);
+  }
+  return false;
+};
+
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
   if (vnode === null || vnode_isVirtualVNode(vnode)) {
     return null;

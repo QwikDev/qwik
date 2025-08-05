@@ -1,5 +1,4 @@
-import type { VNode } from '../client/types';
-import { vnode_getParent, vnode_isVNode } from '../client/vnode';
+import { vnode_isDescendantOf, vnode_isVNode } from '../client/vnode';
 import { Task, TaskFlags } from '../use/use-task';
 import type { QRLInternal } from './qrl/qrl-class';
 import type { Chore } from './scheduler';
@@ -30,7 +29,7 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
     match: (blocked, blocking) =>
-      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsParent(blocked, blocking),
+      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsChild(blocking, blocked),
   },
   // COMPONENT blocks VISIBLE on same host
   // if the blocked chore is a child of the blocking chore
@@ -39,7 +38,7 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
     match: (blocked, blocking) =>
-      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsParent(blocked, blocking),
+      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsChild(blocking, blocked),
   },
 ];
 
@@ -103,34 +102,13 @@ const BLOCKING_RULES: BlockingRule[] = [
   },
 ];
 
-function blockIfBlockingIsParent(blocked: Chore, blocking: Chore) {
-  let blockedHost: HostElement | null = blocked.$host$;
-  if (!vnode_isVNode(blockedHost)) {
-    return false;
-  }
-  // check if blocking chore is a parent of blocked chore
-  while (blockedHost) {
-    if (blockedHost === blocking.$host$) {
-      return true;
-    }
-    blockedHost = vnode_getParent(blockedHost as VNode) as VNode | null;
-  }
-  return false;
-}
-
 function blockIfBlockingIsChild(blocked: Chore, blocking: Chore) {
-  let blockingHost: HostElement | null = blocking.$host$;
-  if (!vnode_isVNode(blockingHost)) {
+  const blockingHost = blocking.$host$;
+  const blockedHost = blocked.$host$;
+  if (!vnode_isVNode(blockingHost) || !vnode_isVNode(blockedHost)) {
     return false;
   }
-  // check if blocked chore is a parent of blocking chore
-  while (blockingHost) {
-    if (blockingHost === blocked.$host$) {
-      return true;
-    }
-    blockingHost = vnode_getParent(blockingHost as VNode) as VNode | null;
-  }
-  return false;
+  return vnode_isDescendantOf(blockingHost, blockedHost);
 }
 
 function blockIfSameHost(blocked: Chore, blocking: Chore) {
@@ -147,6 +125,19 @@ export function findBlockingChore(
   blockedChores: Set<Chore>,
   container: Container
 ): Chore | null {
+  // TODO: should we do this?
+  // for (const candidate of choreQueue) {
+  //   if (blockIfBlockingIsChild(chore, candidate)) {
+  //     return candidate;
+  //   }
+  // }
+
+  // for (const candidate of blockedChores) {
+  //   if (blockIfBlockingIsChild(chore, candidate)) {
+  //     return candidate;
+  //   }
+  // }
+
   for (const rule of BLOCKING_RULES) {
     if (chore.$type$ !== rule.blockedType) {
       continue;
@@ -205,14 +196,4 @@ export function findBlockingChoreForVisible(
     }
   }
   return null;
-}
-
-export function addBlockedChore(
-  blockedChore: Chore,
-  blockingChore: Chore,
-  blockedChores: Set<Chore>
-) {
-  blockingChore.$blockedChores$ ||= [];
-  blockingChore.$blockedChores$.push(blockedChore);
-  blockedChores.add(blockedChore);
 }

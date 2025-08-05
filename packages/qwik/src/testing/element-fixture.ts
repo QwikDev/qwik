@@ -1,7 +1,7 @@
 import { getDomContainer, type ClientContainer } from '@qwik.dev/core';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
-import type { QElement, QwikLoaderEventScope } from '../core/shared/types';
+import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
@@ -182,9 +182,13 @@ export const dispatch = async (
   }
 };
 
-export async function advanceToNextTimerAndFlush() {
+export async function advanceToNextTimerAndFlush(container: Container) {
   vi.advanceTimersToNextTimer();
+  const waitForQueueChore = container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
   await getTestPlatform().flush();
+  if (waitForQueueChore) {
+    await waitForQueueChore.$returnValue$;
+  }
 }
 
 export function cleanupAttrs(innerHTML: string | undefined): any {

@@ -10,8 +10,16 @@
         }
       }
     });
-  } else {
-    // eslint-disable-next-line no-console
-    console.log('Service worker not supported in this browser.');
+  }
+  if ('caches' in window) {
+    caches
+      .keys()
+      .then((names) => {
+        const cacheName = names.find((name) => name.startsWith('QwikBuild'));
+        if (cacheName) {
+          caches.delete(cacheName).catch(console.error);
+        }
+      })
+      .catch(console.error);
   }
 })();

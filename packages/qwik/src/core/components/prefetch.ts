@@ -74,6 +74,17 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
       });
     });
   }
+  if ('caches' in window) {
+    caches
+      .keys()
+      .then((names) => {
+        const cacheName = names.find((name) => name.startsWith('QwikBundles'));
+        if (cacheName) {
+          caches.delete(cacheName).catch(console.error);
+        }
+      })
+      .catch(console.error);
+  }
 }).toString();
 
 /**

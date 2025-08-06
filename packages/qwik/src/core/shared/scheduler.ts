@@ -137,7 +137,7 @@ import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rule
 import { createNextTick } from './platform/next-tick';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 enum ChoreState {
   NONE = 0,
@@ -163,9 +163,11 @@ export interface Chore<T extends ChoreType = ChoreType> {
   $payload$: unknown;
   $state$: ChoreState;
   $blockedChores$: Chore[] | null;
+  $startTime$: number | undefined;
+  $endTime$: number | undefined;
 
-  $resolve$?: (value: any) => void;
-  $reject$?: (reason?: any) => void;
+  $resolve$: ((value: any) => void) | undefined;
+  $reject$: ((reason?: any) => void) | undefined;
   $returnValue$: ValueOrPromise<ChoreReturnValue<T>>;
 }
 
@@ -290,6 +292,10 @@ export const createScheduler = (
       $payload$: isTask ? hostOrTask : payload,
       $state$: ChoreState.NONE,
       $blockedChores$: null,
+      $startTime$: undefined,
+      $endTime$: undefined,
+      $resolve$: undefined,
+      $reject$: undefined,
       $returnValue$: null!,
     };
 
@@ -306,7 +312,13 @@ export const createScheduler = (
       type === ChoreType.NODE_PROP ||
       type === ChoreType.QRL_RESOLVE;
     if (isServer && isClientOnly) {
-      DEBUG && debugTrace(`skip client chore ${debugChoreTypeToString(type)}`, chore, choreQueue);
+      DEBUG &&
+        debugTrace(
+          `skip client chore ${debugChoreTypeToString(type)}`,
+          chore,
+          choreQueue,
+          blockedChores
+        );
       // TODO mark done?
       return chore;
     }
@@ -321,7 +333,7 @@ export const createScheduler = (
       chore,
       (container as DomContainer).rootVNode || null
     ) as Chore<T>;
-    DEBUG && debugTrace('schedule', chore, choreQueue);
+    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 
@@ -354,7 +366,7 @@ export const createScheduler = (
         isJournalFlushRunning = true;
         journalFlush();
         isJournalFlushRunning = false;
-        DEBUG && debugTrace('journalFlush.DONE', null, choreQueue);
+        DEBUG && debugTrace('journalFlush.DONE', null, choreQueue, blockedChores);
       }
     };
 
@@ -375,7 +387,7 @@ export const createScheduler = (
       applyJournalFlush();
       drainChore?.$resolve$!(null);
       drainChore = null;
-      DEBUG && debugTrace('drain.DONE', drainChore, choreQueue);
+      DEBUG && debugTrace('drain.DONE', drainChore, choreQueue, blockedChores);
     };
 
     const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
@@ -416,7 +428,7 @@ export const createScheduler = (
           chore.$type$ !== ChoreType.CLEANUP_VISIBLE
         ) {
           // skip deleted chore
-          DEBUG && debugTrace('skip chore', chore, choreQueue);
+          DEBUG && debugTrace('skip chore', chore, choreQueue, blockedChores);
           continue;
         }
 
@@ -429,6 +441,7 @@ export const createScheduler = (
         }
 
         // Note that this never throws
+        chore.$startTime$ = performance.now();
         const result = executeChore(chore, isServer);
         chore.$returnValue$ = result;
         if (isPromise(result)) {
@@ -437,9 +450,10 @@ export const createScheduler = (
 
           result
             .then((value) => {
+              chore.$endTime$ = performance.now();
               chore.$returnValue$ = value;
               chore.$state$ = ChoreState.DONE;
-              DEBUG && debugTrace('execute.DONE', chore, choreQueue);
+              DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
               // If we used the result as promise, this won't exist
               chore.$resolve$?.(value);
             })
@@ -460,7 +474,8 @@ export const createScheduler = (
               }
             });
         } else {
-          DEBUG && debugTrace('execute.DONE', chore, choreQueue);
+          chore.$endTime$ = performance.now();
+          DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
           chore.$state$ = ChoreState.DONE;
           chore.$resolve$?.(result);
           scheduleBlockedChoresAndDrainIfNeeded(chore);
@@ -481,8 +496,9 @@ export const createScheduler = (
   }
 
   function handleError(chore: Chore, e: any) {
+    chore.$endTime$ = performance.now();
     chore.$state$ = ChoreState.FAILED;
-    DEBUG && debugTrace('execute.ERROR', chore, choreQueue);
+    DEBUG && debugTrace('execute.ERROR', chore, choreQueue, blockedChores);
     // If we used the result as promise, this won't exist
     chore.$reject$?.(e);
     container.handleError(e, chore.$host$);
@@ -493,7 +509,7 @@ export const createScheduler = (
     isServer: boolean
   ): ValueOrPromise<ChoreReturnValue<T>> {
     const host = chore.$host$;
-    DEBUG && debugTrace('execute', chore, choreQueue);
+    DEBUG && debugTrace('execute', chore, choreQueue, blockedChores);
     let returnValue: ValueOrPromise<ChoreReturnValue<ChoreType>>;
     switch (chore.$type$) {
       case ChoreType.COMPONENT:
@@ -806,7 +822,13 @@ export function addBlockedChore(
   blockingChore: Chore,
   blockedChores: Set<Chore>
 ) {
-  DEBUG && debugTrace(`blocked chore by ${debugChoreToString(blockingChore)}`, blockedChore);
+  DEBUG &&
+    debugTrace(
+      `blocked chore by ${debugChoreToString(blockingChore)}`,
+      blockedChore,
+      undefined,
+      blockedChores
+    );
   blockingChore.$blockedChores$ ||= [];
   blockingChore.$blockedChores$.push(blockedChore);
   blockedChores.add(blockedChore);
@@ -830,6 +852,7 @@ function debugChoreTypeToString(type: ChoreType): string {
     )[type] || 'UNKNOWN: ' + type
   );
 }
+
 function debugChoreToString(chore: Chore): string {
   const type = debugChoreTypeToString(chore.$type$);
   const state = chore.$state$ ? `[${ChoreState[chore.$state$]}] ` : '';
@@ -838,21 +861,96 @@ function debugChoreToString(chore: Chore): string {
   return `${state}Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL ? qrlTarget : host} ${chore.$idx$})`;
 }
 
-function debugTrace(action: string, arg?: any | null, queue?: Chore[]) {
-  const lines = ['===========================\nScheduler: ' + action];
-  if (arg && '$type$' in arg) {
-    lines.push('      arg: ' + debugChoreToString(arg));
-  } else {
-    lines.push('      arg: ' + String(arg).replaceAll(/\n.*/gim, ''));
+function debugTrace(action: string, arg?: any | null, queue?: Chore[], blockedChores?: Set<Chore>) {
+  const lines: string[] = [];
+
+  // Header
+  lines.push(`Scheduler: ${action}`);
+
+  // Argument section
+  if (arg) {
+    lines.push('');
+    if (arg && '$type$' in arg) {
+      const chore = arg as Chore;
+      const type = debugChoreTypeToString(chore.$type$);
+      const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
+      const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
+      const target =
+        chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL
+          ? qrlTarget
+          : host;
+
+      lines.push(`🎯 Current Chore:`);
+      lines.push(`  Type: ${type}`);
+      lines.push(`  Target: ${target}`);
+
+      // Show execution time if available
+      if (chore.$startTime$ && chore.$endTime$) {
+        const executionTime = chore.$endTime$ - chore.$startTime$;
+        lines.push(`  Time: ${executionTime.toFixed(2)}ms`);
+      } else if (chore.$startTime$) {
+        const elapsedTime = performance.now() - chore.$startTime$;
+        lines.push(`  Time: ${elapsedTime.toFixed(2)}ms (running)`);
+      }
+
+      // Show blocked chores for this chore
+      if (chore.$blockedChores$ && chore.$blockedChores$.length > 0) {
+        lines.push(`  ⛔ Blocked Chores:`);
+        chore.$blockedChores$.forEach((blockedChore, index) => {
+          const blockedType = debugChoreTypeToString(blockedChore.$type$);
+          const blockedTarget = String(blockedChore.$host$).replaceAll(/\n.*/gim, '');
+          lines.push(`    ${index + 1}. ${blockedType} ${blockedTarget} ${blockedChore.$idx$}`);
+        });
+      }
+    } else {
+      lines.push(`📝 Argument: ${String(arg).replaceAll(/\n.*/gim, '')}`);
+    }
   }
-  if (queue) {
-    queue.forEach((chore) => {
-      const active = chore === arg ? '>>>' : '   ';
-      lines.push(
-        `     ${active} > ` + (chore.$state$ ? '[running] ' : '') + debugChoreToString(chore)
-      );
+
+  // Queue section
+  if (queue && queue.length > 0) {
+    lines.push('');
+    lines.push(`📋 Queue (${queue.length} items):`);
+
+    queue.forEach((chore, index) => {
+      const isActive = chore === arg;
+      const activeMarker = isActive ? `▶ ` : '  ';
+      const type = debugChoreTypeToString(chore.$type$);
+      const state = chore.$state$ ? `[${ChoreState[chore.$state$]}]` : '';
+      const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
+      const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
+      const target =
+        chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL
+          ? qrlTarget
+          : host;
+
+      const line = `${activeMarker}${state} ${type} ${target} ${chore.$idx$}`;
+      lines.push(line);
     });
   }
+
+  // Blocked chores section
+  if (blockedChores && blockedChores.size > 0) {
+    lines.push('');
+    lines.push(`🚫 Blocked Chores (${blockedChores.size} items):`);
+
+    Array.from(blockedChores).forEach((chore, index) => {
+      const type = debugChoreTypeToString(chore.$type$);
+      const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
+      const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
+      const target =
+        chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL
+          ? qrlTarget
+          : host;
+
+      lines.push(`  ${index + 1}. ${type} ${target} ${chore.$idx$}`);
+    });
+  }
+
+  // Footer
+  lines.push('');
+  lines.push('─'.repeat(60));
+
   // eslint-disable-next-line no-console
   console.log(lines.join('\n') + '\n');
 }

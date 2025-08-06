@@ -188,7 +188,7 @@ test.describe("signals", () => {
     test("issue 2245", async ({ page }) => {
       const btn = page.locator("#issue-2245-btn");
       const results = page.locator(".issue-2245-results p");
-      expect(await results.count()).toBe(16);
+      await expect(results).toHaveCount(16);
       for (let i = 0; i < 16; i++) {
         await expect(results.nth(i)).toHaveCSS("color", "rgb(0, 0, 0)");
       }

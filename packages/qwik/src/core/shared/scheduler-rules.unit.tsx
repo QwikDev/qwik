@@ -25,6 +25,10 @@ const createMockChore = (
   $state$: 0,
   $blockedChores$: null,
   $returnValue$: null,
+  $startTime$: undefined,
+  $endTime$: undefined,
+  $resolve$: undefined,
+  $reject$: undefined,
 });
 
 const createMockContainer = (elementSeqMap: Map<object, any[]>) =>

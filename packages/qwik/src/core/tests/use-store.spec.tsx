@@ -20,7 +20,7 @@ const debug = false; //true;
 Error.stackTraceLimit = 100;
 
 describe.each([
-  // { render: ssrRenderToDom }, //
+  { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useStore', ({ render }) => {
   it('should render value', async () => {

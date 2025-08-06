@@ -145,10 +145,13 @@
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      if (resolvedURL.origin === origin) {
+      if (isWindows) {
         const params = new URLSearchParams();
-        const prefix = isWindows ? srcDir : '';
-        params.set('file', prefix + resolvedURL.pathname);
+        const filePath =
+          resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
+            ? resolvedURL.pathname.slice(1)
+            : resolvedURL.pathname;
+        params.set('file', filePath);
         fetch('/__open-in-editor?' + params.toString());
       } else {
         location.href = resolvedURL.href;

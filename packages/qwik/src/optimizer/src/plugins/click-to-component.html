@@ -144,8 +144,9 @@
 
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
+      const isMac = navigator.platform.includes('Mac');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      if (isWindows) {
+      if (isWindows || isMac) {
         const params = new URLSearchParams();
         const filePath =
           resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')

@@ -107,7 +107,7 @@ export function handleSearch(
   return q
     .then((sources) => {
       return Promise.all(
-        sources.map(async (source) => {
+        sources.map((source) => {
           return Promise.resolve(source.getItems()).then((itemsOrDescription) =>
             preResolve<any>(itemsOrDescription, source.sourceId)
           );

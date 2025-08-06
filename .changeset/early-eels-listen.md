@@ -3,4 +3,4 @@
 '@builder.io/qwik-city': patch
 ---
 
-PATCH: Keeping the service worker components now properly unregisters them.
+FIX: Keeping the service worker components now properly unregisters them.

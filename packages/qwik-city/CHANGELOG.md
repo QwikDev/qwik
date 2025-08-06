@@ -1,5 +1,17 @@
 # @builder.io/qwik-city
 
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 Keeping the service worker components now properly unregisters them. (by [@maiieul](https://github.com/maiieul) in [#7781](https://github.com/QwikDev/qwik/pull/7781))
+
+- 🐞🩹 Keeping the service worker components now also removes their associated Cache storage. (by [@maiieul](https://github.com/maiieul) in [#7782](https://github.com/QwikDev/qwik/pull/7782))
+
 ## 1.15.0
 
 ### Minor Changes

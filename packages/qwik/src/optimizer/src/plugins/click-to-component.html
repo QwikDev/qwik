@@ -146,13 +146,22 @@
       const isWindows = navigator.platform.includes('Win');
       const isMac = navigator.platform.includes('Mac');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
+      const prefix = isWindows ? srcDir : '';
       if (isWindows || isMac) {
+        let finalPath;
         const params = new URLSearchParams();
         const filePath =
           resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
             ? resolvedURL.pathname.slice(1)
             : resolvedURL.pathname;
-        params.set('file', filePath);
+        if (filePath.startsWith(prefix)) {
+          finalPath = filePath;
+        } else {
+          const cleaned = filePath.replace(/^[/\\]?src[/\\]/, '');
+          const sep = '\\';
+          finalPath = prefix.endsWith(sep) ? prefix + cleaned : prefix + sep + cleaned;
+        }
+        params.set('file', finalPath);
         fetch('/__open-in-editor?' + params.toString());
       } else {
         location.href = resolvedURL.href;

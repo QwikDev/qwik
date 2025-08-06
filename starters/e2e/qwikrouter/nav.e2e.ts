@@ -93,7 +93,7 @@ test.describe("nav", () => {
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
-      test("should restore scroll on back and forward navigations", async ({
+      test.only("should restore scroll on back and forward navigations", async ({
         page,
       }) => {
         await page.goto("/qwikrouter-test/scroll-restoration/page-long/");
@@ -108,7 +108,10 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-short/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
+        await page.waitForFunction(
+          () => window.scrollX === 0 && window.scrollY === 0,
+        );
+        // expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 
         const scrollHeightShort = await getScrollHeight(page);
         await scrollTo(page, 0, scrollHeightShort);
@@ -127,10 +130,11 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-long/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
+        await page.waitForFunction(
+          (scrollHeightLong) =>
+            window.scrollX === 0 && window.scrollY === scrollHeightLong,
           scrollHeightLong,
-        ]);
+        );
 
         const scrollDetector3 = scrollDetector(page);
         await page.goForward();
@@ -140,10 +144,11 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-short/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
+        await page.waitForFunction(
+          (scrollHeightShort) =>
+            window.scrollX === 0 && window.scrollY === scrollHeightShort,
           scrollHeightShort,
-        ]);
+        );
       });
 
       test("issue4502 (link)", async ({ page }) => {

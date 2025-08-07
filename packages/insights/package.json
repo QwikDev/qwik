@@ -23,7 +23,6 @@
     "@types/density-clustering": "1.3.3",
     "@types/node": "20.19.0",
     "autoprefixer": "10.4.19",
-    "better-sqlite3": "9.6.0",
     "eslint": "9.25.1",
     "eslint-plugin-qwik": "workspace:^",
     "globals": "16.0.0",

@@ -49,7 +49,7 @@ import { isPromise } from './utils/promises';
 import { SerializerSymbol, fastSkipSerialize } from './utils/serialize-utils';
 import {
   _EFFECT_BACK_REF,
-  ComputedSignalFlags,
+  SerializationSignalFlags,
   EffectSubscriptionProp,
   NEEDS_COMPUTATION,
   SignalFlags,
@@ -1258,9 +1258,9 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       } else if (value instanceof ComputedSignalImpl) {
         let v = value.$untrackedValue$;
         const shouldAlwaysSerialize =
-          value.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
         const shouldNeverSerialize =
-          value.$flags$ & ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+          value.$flags$ & SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
         const isInvalid = value.$flags$ & SignalFlags.INVALID;
         const isSkippable = fastSkipSerialize(value.$untrackedValue$);
 

@@ -21,7 +21,6 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   $flags$: AllSignalFlags;
   $hostElement$: HostElement | null = null;
-  $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
@@ -42,7 +41,6 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$forceRunEffects$ = false;
     this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
@@ -56,7 +54,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    * remained the same object.
    */
   force() {
-    this.$forceRunEffects$ = false;
+    this.$flags$ |= SignalFlags.RUN_EFFECTS;
     this.$container$?.$scheduler$.schedule(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
@@ -66,17 +64,14 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   }
 
   get untrackedValue() {
-    const didChange = this.$computeIfNeeded$();
-    if (didChange) {
-      this.$forceRunEffects$ = didChange;
-    }
+    this.$computeIfNeeded$();
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
+      return;
     }
     const untrackedValue = trackSignal(
       () => this.$func$(...this.$args$),
@@ -84,13 +79,13 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       EffectProperty.VNODE,
       this.$container$!
     );
-    // TODO: we should remove invalid flag here
+    // TODO: we should remove invalid flag here, but some tests are failing
     // this.$flags$ &= ~SignalFlags.INVALID;
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
+      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue;
     }
-    return didChange;
   }
   // Make this signal read-only
   set value(_: any) {

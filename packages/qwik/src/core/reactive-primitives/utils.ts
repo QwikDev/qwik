@@ -19,7 +19,7 @@ import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
 import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
-  ComputedSignalFlags,
+  SerializationSignalFlags,
   EffectProperty,
   EffectSubscriptionProp,
   SignalFlags,
@@ -156,7 +156,7 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): ComputedSignalFlags | SignalFlags => {
+): SerializationSignalFlags | SignalFlags => {
   let flags = SignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
@@ -164,10 +164,10 @@ export const getComputedSignalFlags = (
     //   flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_AUTO;
     //   break;
     case 'never':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
       break;
     case 'always':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
       break;
   }
   return flags;

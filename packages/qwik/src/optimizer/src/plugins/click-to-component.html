@@ -156,15 +156,10 @@
         resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
           ? resolvedURL.pathname.slice(1)
           : resolvedURL.pathname;
-      let finalPath;
-      if (filePath.startsWith(prefix)) {
-        finalPath = filePath;
-      } else {
-        // remove the extra src from filePath as prefix already contains it
-        const cleaned = filePath.replace(/^[/\\]?src[/\\]/, '');
-        const sep = isWindows ? '\\' : '/';
-        finalPath = prefix.endsWith(sep) ? prefix + cleaned : prefix + sep + cleaned;
-      }
+      const sep = isWindows ? '\\' : '/';
+      // remove the extra src from filePath as prefix already contains it
+      const suffix = filePath.split(`${sep}src${sep}`)[1];
+      const finalPath = prefix.endsWith(sep) ? prefix + suffix : prefix + sep + suffix;
       params.set('file', finalPath);
       fetch('/__open-in-editor?' + params.toString());
     };

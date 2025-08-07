@@ -149,22 +149,60 @@
 
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
-      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');
-      const params = new URLSearchParams();
-      const filePath =
-        resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
-          ? resolvedURL.pathname.slice(1)
-          : resolvedURL.pathname;
-      let finalPath;
-      if (filePath.startsWith(prefix)) {
-        finalPath = filePath;
-      } else {
-        // remove the extra src from filePath as prefix already contains it
-        const cleaned = filePath.replace(/^[/\\]?src[/\\]/, '');
-        const sep = isWindows ? '\\' : '/';
-        finalPath = prefix.endsWith(sep) ? prefix + cleaned : prefix + sep + cleaned;
+      const baseForURL = isWindows ? origin : srcDir;
+      const resolvedURL = new URL(path, baseForURL);
+
+      let pathname = resolvedURL.pathname || '';
+      if (resolvedURL.protocol === 'file:' && pathname.startsWith('/')) {
+        pathname = pathname.slice(1);
       }
+      if (pathname.startsWith('/@fs')) {
+        pathname = pathname.slice(4);
+      }
+
+      // Normalize slashes and sanitize to lowercase for consistency
+      let normalizedPath = pathname.replace(/\\/g, '/');
+      normalizedPath = normalizedPath.toLowerCase();
+
+      // Extract everything after 'src/'
+      let relativeFromSrc = normalizedPath;
+      const idx = normalizedPath.indexOf('/src/');
+      if (idx !== -1) {
+        relativeFromSrc = normalizedPath.slice(idx + 5);
+      } else if (normalizedPath.startsWith('src/')) {
+        relativeFromSrc = normalizedPath.slice(4);
+      } else if (normalizedPath.startsWith('/src/')) {
+        relativeFromSrc = normalizedPath.slice(5);
+      }
+      relativeFromSrc = relativeFromSrc.replace(/^\/+/, '');
+
+      const isValid =
+        relativeFromSrc.length > 0 &&
+        !relativeFromSrc.includes('..') &&
+        !relativeFromSrc.endsWith('/');
+      if (!isValid) {
+        console.warn('Qwik Click-to-Source: invalid resolved path', {
+          input: path,
+          href: resolvedURL.href,
+          pathname,
+          normalizedPath,
+          relativeFromSrc,
+        });
+        return;
+      }
+
+      let prefix = srcDir;
+      if (!isWindows) {
+        prefix = srcDir.replace('http://local.local', '');
+      }
+      prefix = prefix.replace(/\\/g, '/');
+      if (!prefix.endsWith('/')) {
+        prefix += '/';
+      }
+
+      let finalPath = (prefix + relativeFromSrc).replace(/\\/g, '/').toLowerCase();
+
+      const params = new URLSearchParams();
       params.set('file', finalPath);
       fetch('/__open-in-editor?' + params.toString());
     };

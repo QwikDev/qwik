@@ -10,6 +10,7 @@
     cursor: pointer;
     z-index: 999999;
   }
+
   #qwik-inspector-info-popup {
     position: fixed;
     bottom: 10px;
@@ -28,13 +29,16 @@
     z-index: 999999;
     contain: layout;
   }
+
   #qwik-inspector-info-popup p {
     margin: 0px;
   }
+
   @-webkit-keyframes fadeOut {
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
     }
@@ -44,6 +48,7 @@
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
       visibility: hidden;
@@ -144,28 +149,24 @@
 
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
-      const isMac = navigator.platform.includes('Mac');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      const prefix = isWindows ? srcDir : '';
-      if (isWindows || isMac) {
-        let finalPath;
-        const params = new URLSearchParams();
-        const filePath =
-          resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
-            ? resolvedURL.pathname.slice(1)
-            : resolvedURL.pathname;
-        if (filePath.startsWith(prefix)) {
-          finalPath = filePath;
-        } else {
-          const cleaned = filePath.replace(/^[/\\]?src[/\\]/, '');
-          const sep = '\\';
-          finalPath = prefix.endsWith(sep) ? prefix + cleaned : prefix + sep + cleaned;
-        }
-        params.set('file', finalPath);
-        fetch('/__open-in-editor?' + params.toString());
+      const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');
+      const params = new URLSearchParams();
+      const filePath =
+        resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
+          ? resolvedURL.pathname.slice(1)
+          : resolvedURL.pathname;
+      let finalPath;
+      if (filePath.startsWith(prefix)) {
+        finalPath = filePath;
       } else {
-        location.href = resolvedURL.href;
+        // remove the extra src from filePath as prefix already contains it
+        const cleaned = filePath.replace(/^[/\\]?src[/\\]/, '');
+        const sep = isWindows ? '\\' : '/';
+        finalPath = prefix.endsWith(sep) ? prefix + cleaned : prefix + sep + cleaned;
       }
+      params.set('file', finalPath);
+      fetch('/__open-in-editor?' + params.toString());
     };
     document.addEventListener(
       'contextmenu',

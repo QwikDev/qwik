@@ -93,7 +93,7 @@ test.describe("nav", () => {
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
-      test.only("should restore scroll on back and forward navigations", async ({
+      test("should restore scroll on back and forward navigations", async ({
         page,
       }) => {
         await page.goto("/qwikrouter-test/scroll-restoration/page-long/");

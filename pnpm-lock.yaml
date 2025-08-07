@@ -579,25 +579,6 @@ importers:
         specifier: 23.0.0
         version: 23.0.0
 
-  packages/qwik-auth:
-    dependencies:
-      '@auth/core':
-        specifier: ^0.30.0
-        version: 0.30.0
-    devDependencies:
-      '@builder.io/qwik':
-        specifier: workspace:^
-        version: link:../qwik
-      '@builder.io/qwik-city':
-        specifier: workspace:^
-        version: link:../qwik-city
-      '@types/set-cookie-parser':
-        specifier: 2.4.10
-        version: 2.4.10
-      set-cookie-parser:
-        specifier: 2.6.0
-        version: 2.6.0
-
   packages/qwik-city:
     dependencies:
       '@mdx-js/mdx':

@@ -52,7 +52,6 @@ const booleanOptions = [
   'platformBindingWasmCopy',
   'prepareRelease',
   'qwik',
-  'qwikauth',
   'qwikcity',
   'qwiklabs',
   'qwikreact',

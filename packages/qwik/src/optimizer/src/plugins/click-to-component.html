@@ -150,17 +150,14 @@
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');
       const params = new URLSearchParams();
       const filePath =
         resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
           ? resolvedURL.pathname.slice(1)
-          : resolvedURL.pathname;
-      const sep = isWindows ? '\\' : '/';
-      // remove the extra src from filePath as prefix already contains it
-      const suffix = filePath.split('/src/')[1];
-      const finalPath = prefix.endsWith(sep) ? prefix + suffix : prefix + sep + suffix;
-      params.set('file', finalPath);
+          : filePath.startsWith('/@fs')
+            ? resolvedURL.pathname.slice(4)
+            : resolvedURL.pathname;
+      params.set('file', filePath);
       fetch('/__open-in-editor?' + params.toString());
     };
     document.addEventListener(

@@ -6,7 +6,7 @@ import "./global.css";
 export default function Root() {
   return (
     <SomeProvider>
-      <QwikRouterProvider>
+      <QwikRouterProvider viewTransition={false}>
         <head>
           <meta charset="utf-8" />
           <RouterHead />

@@ -91,7 +91,6 @@ import {
 } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
-import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { StoreHandler } from '../reactive-primitives/impl/store';
@@ -99,6 +98,7 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
 import {
+  SignalFlags,
   type AsyncComputeQRL,
   type ComputeQRL,
   type EffectSubscription,
@@ -636,21 +636,15 @@ export const createScheduler = (
             break;
           }
 
-          if (target instanceof AsyncComputedSignalImpl) {
-            // TODO: it should be triggered only when value is changed only
-            returnValue = retryOnPromise(() => {
-              triggerEffects(container, target, effects);
-            }) as ValueOrPromise<ChoreReturnValue<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>>;
-          } else if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
-            const forceRunEffects = target.$forceRunEffects$;
-            target.$forceRunEffects$ = false;
+          if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
             const ctx = newInvokeContext();
             ctx.$container$ = container;
             // needed for computed signals and throwing QRLs
             returnValue = maybeThen(
               retryOnPromise(() => invoke.call(target, ctx, target.$computeIfNeeded$)),
-              (didChange) => {
-                if (didChange || forceRunEffects) {
+              () => {
+                if (target.$flags$ & SignalFlags.RUN_EFFECTS) {
+                  target.$flags$ &= ~SignalFlags.RUN_EFFECTS;
                   return retryOnPromise(() => triggerEffects(container, target, effects));
                 }
               }

@@ -29,7 +29,7 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
     match: (blocked, blocking) =>
-      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsChild(blocking, blocked),
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
   // COMPONENT blocks VISIBLE on same host
   // if the blocked chore is a child of the blocking chore
@@ -38,7 +38,7 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
     match: (blocked, blocking) =>
-      blockIfBlockingIsChild(blocked, blocking) || blockIfBlockingIsChild(blocking, blocked),
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
 ];
 
@@ -50,7 +50,7 @@ const BLOCKING_RULES: BlockingRule[] = [
     match: (blocked, blocking) => {
       const blockedQrl = blocked.$target$ as QRLInternal<unknown>;
       const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
-      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedQrl, blockingQrl);
+      return isSameHost(blocked, blocking) && isSameQrl(blockedQrl, blockingQrl);
     },
   },
   {
@@ -59,7 +59,7 @@ const BLOCKING_RULES: BlockingRule[] = [
     match: (blocked, blocking) => {
       const blockedTask = blocked.$payload$ as Task;
       const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
-      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedTask.$qrl$, blockingQrl);
+      return isSameHost(blocked, blocking) && isSameQrl(blockedTask.$qrl$, blockingQrl);
     },
   },
   {
@@ -68,7 +68,7 @@ const BLOCKING_RULES: BlockingRule[] = [
     match: (blocked, blocking) => {
       const blockedTask = blocked.$payload$ as Task;
       const blockingQrl = blocking.$target$ as QRLInternal<unknown>;
-      return blockIfSameHost(blocked, blocking) && blockIfSameQRL(blockedTask.$qrl$, blockingQrl);
+      return isSameHost(blocked, blocking) && isSameQrl(blockedTask.$qrl$, blockingQrl);
     },
   },
   // COMPONENT blocks NODE_DIFF, NODE_PROP on same host
@@ -102,41 +102,55 @@ const BLOCKING_RULES: BlockingRule[] = [
   },
 ];
 
-function blockIfBlockingIsChild(blocked: Chore, blocking: Chore) {
-  const blockingHost = blocking.$host$;
-  const blockedHost = blocked.$host$;
-  if (!vnode_isVNode(blockingHost) || !vnode_isVNode(blockedHost)) {
+function isDescendant(descendantChore: Chore, ancestorChore: Chore): boolean {
+  const descendantHost = descendantChore.$host$;
+  const ancestorHost = ancestorChore.$host$;
+  if (!vnode_isVNode(descendantHost) || !vnode_isVNode(ancestorHost)) {
     return false;
   }
-  return vnode_isDescendantOf(blockingHost, blockedHost);
+  return vnode_isDescendantOf(descendantHost, ancestorHost);
 }
 
-function blockIfSameHost(blocked: Chore, blocking: Chore) {
-  return blocked.$host$ === blocking.$host$;
+function isSameHost(a: Chore, b: Chore): boolean {
+  return a.$host$ === b.$host$;
 }
 
-function blockIfSameQRL(blockedQRL: QRLInternal<unknown>, blockingQRL: QRLInternal<unknown>) {
-  return blockedQRL.$symbol$ === blockingQRL.$symbol$;
+function isSameQrl(a: QRLInternal<unknown>, b: QRLInternal<unknown>): boolean {
+  return a.$symbol$ === b.$symbol$;
+}
+
+function findBlockingChoreInQueue(chore: Chore, choreQueue: Chore[]): Chore | null {
+  for (const candidate of choreQueue) {
+    // everything after VISIBLE is not blocking. Visible task should not block anything.
+    if (candidate.$type$ >= ChoreType.VISIBLE) {
+      continue;
+    }
+    if (isDescendant(chore, candidate)) {
+      return candidate;
+    }
+  }
+  return null;
 }
 
 export function findBlockingChore(
   chore: Chore,
   choreQueue: Chore[],
   blockedChores: Set<Chore>,
+  runningChores: Set<Chore>,
   container: Container
 ): Chore | null {
-  // TODO: should we do this?
-  // for (const candidate of choreQueue) {
-  //   if (blockIfBlockingIsChild(chore, candidate)) {
-  //     return candidate;
-  //   }
-  // }
-
-  // for (const candidate of blockedChores) {
-  //   if (blockIfBlockingIsChild(chore, candidate)) {
-  //     return candidate;
-  //   }
-  // }
+  const blockingChoreInChoreQueue = findBlockingChoreInQueue(chore, choreQueue);
+  if (blockingChoreInChoreQueue) {
+    return blockingChoreInChoreQueue;
+  }
+  const blockingChoreInBlockedChores = findBlockingChoreInQueue(chore, Array.from(blockedChores));
+  if (blockingChoreInBlockedChores) {
+    return blockingChoreInBlockedChores;
+  }
+  const blockingChoreInRunningChores = findBlockingChoreInQueue(chore, Array.from(runningChores));
+  if (blockingChoreInRunningChores) {
+    return blockingChoreInRunningChores;
+  }
 
   for (const rule of BLOCKING_RULES) {
     if (chore.$type$ !== rule.blockedType) {
@@ -152,6 +166,13 @@ export function findBlockingChore(
     }
     // Check in blockedChores
     for (const candidate of blockedChores) {
+      if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
+        return candidate;
+      }
+    }
+
+    // Check in runningChores
+    for (const candidate of runningChores) {
       if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
         return candidate;
       }

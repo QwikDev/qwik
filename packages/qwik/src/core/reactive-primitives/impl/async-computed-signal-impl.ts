@@ -6,7 +6,7 @@ import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
 import { AsyncComputeQRL, SerializationSignalFlags, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
-import { throwIfQRLNotResolved } from '../utils';
+import { throwIfQRLNotResolved, triggerEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
 import type { NoSerialize } from '../../shared/utils/serialize-utils';
@@ -60,12 +60,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedLoading(value: boolean) {
     if (value !== this.$untrackedLoading$) {
       this.$untrackedLoading$ = value;
-      this.$container$?.$scheduler$.schedule(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
-        this,
-        this.$loadingEffects$
-      );
+      triggerEffects(this.$container$, this, this.$loadingEffects$);
     }
   }
 
@@ -85,12 +80,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedError(value: Error | null) {
     if (value !== this.$untrackedError$) {
       this.$untrackedError$ = value;
-      this.$container$?.$scheduler$.schedule(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
-        this,
-        this.$errorEffects$
-      );
+      triggerEffects(this.$container$, this, this.$errorEffects$);
     }
   }
 

@@ -9,9 +9,15 @@ const deepUpdate = (prev: any, next: any) => {
       prev[key] = next[key];
     }
   }
-  for (const key in prev) {
-    if (!(key in next)) {
-      delete prev[key];
+
+  // Assuming prev & next are both arrays.
+  if (Array.isArray(prev)) {
+    prev.length = routeLoaderObject.length;
+  } else {
+    for (const key in prev) {
+      if (!(key in next)) {
+        delete prev[key];
+      }
     }
   }
 };

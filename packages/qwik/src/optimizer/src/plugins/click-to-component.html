@@ -154,7 +154,7 @@
         resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
           ? resolvedURL.pathname.slice(1)
           : resolvedURL.pathname.startsWith('/@fs/')
-            ? resolvedURL.pathname.slice(4)
+            ? resolvedURL.pathname.slice(isWindows ? 5 : 4)
             : resolvedURL.pathname;
       if (filePath.startsWith('/src/')) {
         const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');

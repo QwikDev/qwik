@@ -78,6 +78,7 @@ describe('findBlockingChore', () => {
       (blockedType) => {
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         let newChore;
         if (blockedType === ChoreType.VISIBLE || blockedType === ChoreType.TASK) {
           newChore = createMockChore(
@@ -93,7 +94,13 @@ describe('findBlockingChore', () => {
           newChore = createMockChore(blockedType, host1, 0, null, createMockQRL('qrl1'));
         }
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBe(blockingChore);
       }
     );
@@ -101,40 +108,85 @@ describe('findBlockingChore', () => {
     it('should NOT block on a different host with the same qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.RUN_QRL, host2, 0, null, createMockQRL('qrl1'));
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should NOT block on a different host with a different qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.RUN_QRL, host2, 0, null, createMockQRL('qrl2'));
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should NOT block on a the same host with a different qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.RUN_QRL, host1, 0, null, createMockQRL('qrl2'));
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should find blocking chore in blockedChores set with the same qrl', () => {
       const choreQueue: Chore[] = [];
       const blockedChores = new Set<Chore>([blockingChore]);
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.RUN_QRL, host1, 0, null, createMockQRL('qrl1'));
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(blockingChore);
+    });
+
+    it('should find blocking chore in runningChores set with the same qrl', () => {
+      const choreQueue: Chore[] = [];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>([blockingChore]);
+      const newChore = createMockChore(ChoreType.RUN_QRL, host1, 0, null, createMockQRL('qrl1'));
+
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBe(blockingChore);
     });
 
     it('should block VISIBLE on the same host with the same qrl', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(
         ChoreType.VISIBLE,
         host1,
@@ -142,7 +194,13 @@ describe('findBlockingChore', () => {
         createMockTask(host1, { qrl: createMockQRL('qrl1'), visible: true })
       );
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBe(blockingChore);
     });
   });
@@ -162,9 +220,16 @@ describe('findBlockingChore', () => {
         const blockingChore = createMockChore(blockingType, parentVNode);
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         const newChore = createMockChore(ChoreType.VISIBLE, childVNode);
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBe(blockingChore);
       }
     );
@@ -175,9 +240,16 @@ describe('findBlockingChore', () => {
         const blockingChore = createMockChore(blockingType, childVNode);
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBe(blockingChore);
       }
     );
@@ -188,9 +260,16 @@ describe('findBlockingChore', () => {
         const blockingChore = createMockChore(blockingType, siblingVNode);
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         const newChore = createMockChore(ChoreType.VISIBLE, childVNode);
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBeNull();
       }
     );
@@ -202,9 +281,16 @@ describe('findBlockingChore', () => {
         const blockingChore = createMockChore(blockingType, otherVNode);
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBeNull();
       }
     );
@@ -214,9 +300,16 @@ describe('findBlockingChore', () => {
       const blockingChore = createMockChore(ChoreType.COMPONENT, nonVNodeHost as any);
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
   });
@@ -230,9 +323,16 @@ describe('findBlockingChore', () => {
       (blockedType) => {
         const choreQueue = [blockingChore];
         const blockedChores = new Set<Chore>();
+        const runningChores = new Set<Chore>();
         const newChore = createMockChore(blockedType, host1);
 
-        const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+        const result = findBlockingChore(
+          newChore,
+          choreQueue,
+          blockedChores,
+          runningChores,
+          container
+        );
         expect(result).toBe(blockingChore);
       }
     );
@@ -240,18 +340,48 @@ describe('findBlockingChore', () => {
     it('should NOT block on a different host', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.NODE_DIFF, host2);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should find blocking chore in blockedChores set', () => {
       const choreQueue: Chore[] = [];
       const blockedChores = new Set<Chore>([blockingChore]);
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.NODE_DIFF, host1);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(blockingChore);
+    });
+
+    it('should find blocking chore in runningChores set', () => {
+      const choreQueue: Chore[] = [];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>([blockingChore]);
+      const newChore = createMockChore(ChoreType.NODE_DIFF, host1);
+
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBe(blockingChore);
     });
   });
@@ -275,45 +405,96 @@ describe('findBlockingChore', () => {
     it('should block a subsequent TASK on the same host', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.TASK, host1, 2, task2);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBe(blockingChore);
     });
 
     it('should NOT block a preceding TASK on the same host', () => {
       const choreQueue = [createMockChore(ChoreType.TASK, host1, 2, task2)];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.TASK, host1, 0, task1);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should NOT block a TASK on a different host', () => {
       const choreQueue = [blockingChore];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.TASK, host2, 0, task3_otherHost);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
 
     it('should find blocking TASK in blockedChores set', () => {
       const choreQueue: Chore[] = [];
       const blockedChores = new Set<Chore>([blockingChore]);
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.TASK, host1, 2, task2);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(blockingChore);
+    });
+
+    it('should find blocking TASK in runningChores set', () => {
+      const choreQueue: Chore[] = [];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>([blockingChore]);
+      const newChore = createMockChore(ChoreType.TASK, host1, 2, task2);
+
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBe(blockingChore);
     });
 
     it('should not block if it is the first task (index 0)', () => {
       const choreQueue = [blockingChoreOtherHost];
       const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.TASK, host1, 0, task1);
 
-      const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+      const result = findBlockingChore(
+        newChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
       expect(result).toBeNull();
     });
   });
@@ -322,126 +503,183 @@ describe('findBlockingChore', () => {
     const container = createMockContainer(new Map());
     const choreQueue = [createMockChore(ChoreType.COMPONENT, host1)];
     const blockedChores = new Set<Chore>();
+    const runningChores = new Set<Chore>();
     const newChore = createMockChore(ChoreType.RUN_QRL, host1); // Not blocked by COMPONENT
 
-    const result = findBlockingChore(newChore, choreQueue, blockedChores, container);
+    const result = findBlockingChore(newChore, choreQueue, blockedChores, runningChores, container);
     expect(result).toBeNull();
+  });
+  describe('Ancestor blocking', () => {
+    const parentVNode = vnode_newVirtual();
+    const childVNode = vnode_newVirtual();
+    childVNode[VNodeProps.parent] = parentVNode;
+    const unrelatedVNode = vnode_newVirtual();
+    const container = createMockContainer(new Map());
+    const ancestorChore = createMockChore(ChoreType.NODE_DIFF, parentVNode);
+    const descendantChore = createMockChore(ChoreType.VISIBLE, childVNode);
+
+    it('should block if an ancestor is in the choreQueue', () => {
+      const choreQueue = [ancestorChore];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorChore);
+    });
+
+    it('should block if an ancestor is in the blockedChores', () => {
+      const choreQueue: Chore[] = [];
+      const blockedChores = new Set<Chore>([ancestorChore]);
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorChore);
+    });
+
+    it('should block if an ancestor is in the runningChores', () => {
+      const choreQueue: Chore[] = [];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>([ancestorChore]);
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorChore);
+    });
+
+    it('should not block if candidate is a descendant, not ancestor', () => {
+      const choreQueue = [descendantChore];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        ancestorChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should not block for unrelated chores', () => {
+      const unrelatedChore = createMockChore(ChoreType.NODE_DIFF, unrelatedVNode);
+      const choreQueue = [unrelatedChore];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should not block if candidate chore type is VISIBLE or greater', () => {
+      const ancestorVisibleChore = createMockChore(ChoreType.VISIBLE, parentVNode);
+      const choreQueue = [ancestorVisibleChore];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
   });
 });
 
 describe('findBlockingChoreForVisible', () => {
   const host1 = { el: 'host1' };
   const host2 = { el: 'host2' };
+  const parentVNode = vnode_newVirtual();
+  const childVNode = vnode_newVirtual();
+  childVNode[VNodeProps.parent] = parentVNode;
+  const unrelatedVNode = vnode_newVirtual();
 
-  describe('VISIBLE_BLOCKING_RULES - NODE_DIFF blocking VISIBLE', () => {
-    const parentVNode = vnode_newVirtual();
-    const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
-    const unrelatedVNode = vnode_newVirtual();
-
-    const container = createMockContainer(new Map());
-
-    it('should block VISIBLE chore if NODE_DIFF is a parent of VISIBLE', () => {
-      const blockingChore = createMockChore(ChoreType.NODE_DIFF, parentVNode);
+  const container = createMockContainer(new Map());
+  it.each([
+    ['parent', ChoreType.NODE_DIFF, parentVNode, childVNode],
+    ['child', ChoreType.NODE_DIFF, childVNode, parentVNode],
+    ['parent', ChoreType.COMPONENT, parentVNode, childVNode],
+    ['child', ChoreType.COMPONENT, childVNode, parentVNode],
+  ])(
+    'should block VISIBLE chore if %s is a %s of VISIBLE',
+    (_, blockingType, blockingHost, visibleHost) => {
+      const blockingChore = createMockChore(blockingType, blockingHost);
       const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, childVNode);
-
+      const newChore = createMockChore(ChoreType.VISIBLE, visibleHost);
       const result = findBlockingChoreForVisible(newChore, runningChores, container);
       expect(result).toBe(blockingChore);
-    });
+    }
+  );
 
-    it('should block VISIBLE chore if NODE_DIFF is a child of VISIBLE', () => {
-      const blockingChore = createMockChore(ChoreType.NODE_DIFF, childVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
+  it('should NOT block VISIBLE chore if NODE_DIFF is on a different branch', () => {
+    const blockingChore = createMockChore(ChoreType.NODE_DIFF, unrelatedVNode);
+    const runningChores = new Set<Chore>([blockingChore]);
+    const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
 
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBe(blockingChore);
-    });
-
-    it('should NOT block VISIBLE chore if NODE_DIFF is on a different branch', () => {
-      const blockingChore = createMockChore(ChoreType.NODE_DIFF, unrelatedVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBeNull();
-    });
-
-    it('should handle non-VNode hosts gracefully for NODE_DIFF', () => {
-      const nonVNodeHost = { el: 'not-a-vnode' };
-      const blockingChore = createMockChore(ChoreType.NODE_DIFF, nonVNodeHost as any);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBeNull();
-    });
-
-    it('should handle non-VNode hosts gracefully for VISIBLE', () => {
-      const blockingChore = createMockChore(ChoreType.NODE_DIFF, childVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const nonVNodeHost = { el: 'not-a-vnode' };
-      const newChore = createMockChore(ChoreType.VISIBLE, nonVNodeHost as any);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBeNull();
-    });
+    const result = findBlockingChoreForVisible(newChore, runningChores, container);
+    expect(result).toBeNull();
   });
 
-  describe('VISIBLE_BLOCKING_RULES - COMPONENT blocking VISIBLE', () => {
-    const parentVNode = vnode_newVirtual();
-    const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
-    const unrelatedVNode = vnode_newVirtual();
+  it('should handle non-VNode hosts gracefully for NODE_DIFF', () => {
+    const nonVNodeHost = { el: 'not-a-vnode' };
+    const blockingChore = createMockChore(ChoreType.NODE_DIFF, nonVNodeHost as any);
+    const runningChores = new Set<Chore>([blockingChore]);
+    const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
 
-    const container = createMockContainer(new Map());
-
-    it('should block VISIBLE chore if COMPONENT is a parent of VISIBLE', () => {
-      const blockingChore = createMockChore(ChoreType.COMPONENT, parentVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, childVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBe(blockingChore);
-    });
-
-    it('should block VISIBLE chore if COMPONENT is a child of VISIBLE', () => {
-      const blockingChore = createMockChore(ChoreType.COMPONENT, childVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBe(blockingChore);
-    });
-
-    it('should NOT block VISIBLE chore if COMPONENT is on a different branch', () => {
-      const blockingChore = createMockChore(ChoreType.COMPONENT, unrelatedVNode);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBeNull();
-    });
-
-    it('should handle non-VNode hosts gracefully for COMPONENT', () => {
-      const nonVNodeHost = { el: 'not-a-vnode' };
-      const blockingChore = createMockChore(ChoreType.COMPONENT, nonVNodeHost as any);
-      const runningChores = new Set<Chore>([blockingChore]);
-      const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
-
-      const result = findBlockingChoreForVisible(newChore, runningChores, container);
-      expect(result).toBeNull();
-    });
+    const result = findBlockingChoreForVisible(newChore, runningChores, container);
+    expect(result).toBeNull();
   });
 
-  describe('VISIBLE_BLOCKING_RULES - multiple blocking chores', () => {
-    const parentVNode = vnode_newVirtual();
-    const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
+  it('should handle non-VNode hosts gracefully for VISIBLE', () => {
+    const blockingChore = createMockChore(ChoreType.NODE_DIFF, childVNode);
+    const runningChores = new Set<Chore>([blockingChore]);
+    const nonVNodeHost = { el: 'not-a-vnode' };
+    const newChore = createMockChore(ChoreType.VISIBLE, nonVNodeHost as any);
 
-    const container = createMockContainer(new Map());
+    const result = findBlockingChoreForVisible(newChore, runningChores, container);
+    expect(result).toBeNull();
+  });
 
+  it('should NOT block VISIBLE chore if COMPONENT is on a different branch', () => {
+    const blockingChore = createMockChore(ChoreType.COMPONENT, unrelatedVNode);
+    const runningChores = new Set<Chore>([blockingChore]);
+    const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
+
+    const result = findBlockingChoreForVisible(newChore, runningChores, container);
+    expect(result).toBeNull();
+  });
+
+  it('should handle non-VNode hosts gracefully for COMPONENT', () => {
+    const nonVNodeHost = { el: 'not-a-vnode' };
+    const blockingChore = createMockChore(ChoreType.COMPONENT, nonVNodeHost as any);
+    const runningChores = new Set<Chore>([blockingChore]);
+    const newChore = createMockChore(ChoreType.VISIBLE, parentVNode);
+
+    const result = findBlockingChoreForVisible(newChore, runningChores, container);
+    expect(result).toBeNull();
+  });
+
+  describe('multiple blocking chores', () => {
     it('should return the first matching blocking chore when multiple exist', () => {
       const blockingChore1 = createMockChore(ChoreType.NODE_DIFF, parentVNode);
       const blockingChore2 = createMockChore(ChoreType.COMPONENT, parentVNode);
@@ -468,13 +706,7 @@ describe('findBlockingChoreForVisible', () => {
     });
   });
 
-  describe('VISIBLE_BLOCKING_RULES - chore type filtering', () => {
-    const parentVNode = vnode_newVirtual();
-    const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
-
-    const container = createMockContainer(new Map());
-
+  describe('chore type filtering', () => {
     it('should only check VISIBLE chores', () => {
       const blockingChore = createMockChore(ChoreType.NODE_DIFF, childVNode);
       const runningChores = new Set<Chore>([blockingChore]);
@@ -510,7 +742,7 @@ describe('findBlockingChoreForVisible', () => {
     });
   });
 
-  describe('VISIBLE_BLOCKING_RULES - deep hierarchy', () => {
+  describe('deep hierarchy', () => {
     const grandparentVNode = vnode_newVirtual();
     const parentVNode = vnode_newVirtual();
     const childVNode = vnode_newVirtual();
@@ -559,9 +791,7 @@ describe('findBlockingChoreForVisible', () => {
     });
   });
 
-  describe('VISIBLE_BLOCKING_RULES - edge cases', () => {
-    const container = createMockContainer(new Map());
-
+  describe('edge cases', () => {
     it('should handle empty runningChores set', () => {
       const runningChores = new Set<Chore>();
       const newChore = createMockChore(ChoreType.VISIBLE, host1);

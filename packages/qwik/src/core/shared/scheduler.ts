@@ -323,7 +323,13 @@ export const createScheduler = (
       return chore;
     }
 
-    const blockingChore = findBlockingChore(chore, choreQueue, blockedChores, container);
+    const blockingChore = findBlockingChore(
+      chore,
+      choreQueue,
+      blockedChores,
+      runningChores,
+      container
+    );
     if (blockingChore) {
       addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
@@ -397,6 +403,7 @@ export const createScheduler = (
             blockedChore,
             choreQueue,
             blockedChores,
+            runningChores,
             container
           );
           if (blockingChore) {

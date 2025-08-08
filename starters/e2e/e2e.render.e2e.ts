@@ -489,29 +489,16 @@ test.describe("render", () => {
 
     test("should rerender child once", async ({ page }) => {
       const button = page.locator("#rerender-once-button");
-      expect(await page.locator("#rerender-once-child").innerHTML()).toEqual(
-        '["render Cmp","foo",0]',
+      const rerenderOnceChild = page.locator("#rerender-once-child");
+      await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');
+      await button.click();
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1]',
       );
       await button.click();
-      if (isClient) {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","foo",0,"render Cmp","bar",1]',
-        );
-      } else {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","bar",1]',
-        );
-      }
-      await button.click();
-      if (isClient) {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
-        );
-      } else {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","bar",1,"render Cmp","foo",0]',
-        );
-      }
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
+      );
     });
   }
 
@@ -525,6 +512,7 @@ test.describe("render", () => {
       await expect(page.locator("#rerenderCount")).toHaveText(
         `Render ${Number(v) + 1}`,
       );
+      await page.waitForLoadState("networkidle");
     });
     tests(true);
   });

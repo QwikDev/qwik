@@ -1,4 +1,4 @@
-import { partytownVite } from '@builder.io/partytown/utils';
+import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { qwikInsights } from '@builder.io/qwik-labs/vite';
 import { qwikReact } from '@builder.io/qwik-react/vite';
@@ -98,11 +98,6 @@ function transformerMetaShowTitle(): ShikiTransformer {
 export default defineConfig(async () => {
   const routesDir = resolve('src', 'routes');
   return {
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

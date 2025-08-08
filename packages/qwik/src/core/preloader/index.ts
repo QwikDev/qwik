@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Note: this file gets built separately from the rest of the core module, and is then kept separate
  * in the dist directory via manualChunks. This way it can run before the rest of the core module is

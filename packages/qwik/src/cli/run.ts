@@ -8,6 +8,7 @@ import { note, panic, pmRunCmd, printHeader, bye } from './utils/utils';
 import { runBuildCommand } from './utils/run-build-command';
 import { intro, isCancel, select, confirm } from '@clack/prompts';
 import { runV2Migration } from './migrate-v2/run-migration';
+import { runQwikClientCommand } from './check-client';
 
 const SPACE_TO_HINT = 18;
 const COMMANDS = [
@@ -52,6 +53,13 @@ const COMMANDS = [
     hint: 'Rescopes the application from @builder.io/* namespace to @qwik.dev/*',
     run: (app: AppCommand) => runV2Migration(app),
     showInHelp: false,
+  },
+  {
+    value: 'check-client',
+    label: 'check-client',
+    hint: 'Make sure the client bundle is up-to-date with the source code',
+    run: (app: AppCommand) => runQwikClientCommand(app),
+    showInHelp: true,
   },
   {
     value: 'help',
@@ -108,6 +116,10 @@ async function runCommand(app: AppCommand) {
     }
     case 'migrate-v2': {
       await runV2Migration(app);
+      return;
+    }
+    case 'check-client': {
+      await runQwikClientCommand(app);
       return;
     }
     case 'version': {

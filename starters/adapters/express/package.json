@@ -1,7 +1,7 @@
 {
   "description": "Express.js server",
   "scripts": {
-    "build.server": "vite build -c adapters/express/vite.config.ts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/express/vite.config.ts",
     "serve": "node server/entry.express"
   },
   "dependencies": {

@@ -42,6 +42,7 @@ export type {
 
 export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
+export type { QwikEsbuildPluginOptions, QwikEsbuildPlugin } from './plugins/esbuild';
 export type {
   QwikViteDevResponse,
   QwikVitePlugin,
@@ -52,5 +53,6 @@ export type {
 export type { BundleGraphAdder } from './plugins/bundle-graph';
 
 export { qwikRollup } from './plugins/rollup';
+export { qwikEsbuild } from './plugins/esbuild';
 export { qwikVite } from './plugins/vite';
 export { symbolMapper } from './plugins/vite-dev-server';

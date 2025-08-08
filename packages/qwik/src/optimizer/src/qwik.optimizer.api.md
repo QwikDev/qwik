@@ -4,7 +4,8 @@
 
 ```ts
 
-import type { Plugin as Plugin_2 } from 'vite';
+import type { Plugin as Plugin_2 } from 'esbuild';
+import type { Plugin as Plugin_3 } from 'vite';
 
 // @public
 export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
@@ -185,6 +186,39 @@ export interface QwikBundle {
 
 // @public
 export type QwikBundleGraph = Array<string | number>;
+
+// @public
+export function qwikEsbuild(qwikEsbuildOpts?: QwikEsbuildPluginOptions): Plugin_2;
+
+// @public (undocumented)
+export type QwikEsbuildPlugin = Plugin_2;
+
+// @public (undocumented)
+export interface QwikEsbuildPluginOptions {
+    assetsDir?: string;
+    buildMode?: QwikBuildMode;
+    // (undocumented)
+    csr?: boolean;
+    debug?: boolean;
+    entryStrategy?: EntryStrategy;
+    // Warning: (ae-incompatible-release-tags) The symbol "experimental" is marked as @public, but its signature references "ExperimentalFeatures" which is marked as @alpha
+    experimental?: (keyof typeof ExperimentalFeatures)[];
+    input?: string[] | string | {
+        [entry: string]: string;
+    };
+    lint?: boolean;
+    manifestInput?: QwikManifest;
+    manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
+    // (undocumented)
+    optimizerOptions?: OptimizerOptions;
+    outDir?: string;
+    rootDir?: string;
+    sourcemap?: boolean;
+    srcDir?: string;
+    srcInputs?: TransformModuleInput[] | null;
+    target?: QwikBuildTarget;
+    transformedModuleOutput?: ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
+}
 
 // @public
 export interface QwikManifest {

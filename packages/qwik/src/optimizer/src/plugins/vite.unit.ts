@@ -50,7 +50,6 @@ const noExternal = [
   '@qwik.dev/core/internal',
   '@qwik.dev/core/server',
   '@qwik.dev/core/build',
-  '@qwik.dev/router',
 ];
 
 const excludeDeps = [
@@ -61,7 +60,6 @@ const excludeDeps = [
   '@qwik.dev/core/jsx-dev-runtime',
   '@qwik.dev/core/build',
   '@qwik-client-manifest',
-  '@qwik.dev/router',
   '@builder.io/qwik',
   '@builder.io/qwik-city',
 ];

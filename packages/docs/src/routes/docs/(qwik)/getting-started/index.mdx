@@ -616,6 +616,91 @@ NOTE:
 - Your application should now have a production build running on localhost:4173.
 - If you interact with the application now, the network tab of the dev tools should show that the bundles have been [preloaded](/docs/advanced/speculative-module-fetching/).
 
+### 8. Github Pages static site
+
+Although not its primary focus, Qwik is also capable of generating static sites.
+
+Qwik uses **server-side rendering** by default, so some modifications to the code are in order. This tutorial fetches jokes from `https://icanhazdadjoke.com` with `routeLoader$()`, which runs on the server. Since that will not work for a static site, the code needs to be refactored with `useTask$()` to use **client-side fetching**.
+
+To set up a Qwik static site, optionally for Github Pages, refer to the following steps.
+
+#### Add the static site adapter
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add static
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add static
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add static
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add static
+```
+</span>
+</PackageManagerTabs>
+
+* Running the above command will make the following changes to your project:
+  - A `build.server` script will be automatically added to your `package.json` file.
+  - An `adapters/static/vite.config.ts` file will be created for the static site specific config.
+* To build the static site:
+  ```bash
+  npm run build.server
+  ```
+  Your build files will be generated into the `dist` folder by default.
+
+#### Configure the static site adapter for Github Pages
+
+* Update `staticAdapter({origin: )` in `adapters/static/vite.config.ts` to the **full Github URL**:
+  ```ts
+  plugins: [
+    staticAdapter({
+      origin: "https://username.github.io/qwik-jokes-tutorial",
+    }),
+  ],
+  ```
+* Add `base: '/qwik-jokes-tutorial/',` in the **root** `vite.config.ts`:
+  ```ts
+  base: '/qwik-jokes-tutorial/',
+  plugins: [
+    qwikCity(),
+    qwikVite(),
+    tsconfigPaths()
+  ],
+  ```
+* Use `npm run build.full` for the build step in the `.github/workflows/main.yml` Github Action workflow:
+  ```yml
+  - name: Build Qwik app
+    run: npm run build.full
+  ```
+  The `scripts` section of `package.json` should contain:
+  ```json
+  "scripts": {
+    "build": "qwik build",
+    "build.client": "vite build",
+    "build.full": "npm run build && npm run build.server",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.server": "vite build -c adapters/static/vite.config.ts",
+  ...
+  }
+  ```
+* Make sure to upload `dist/qwik-jokes-tutorial` in the upload step of the `.github/workflows/main.yml` Github Action workflow:
+  ```yml
+  - name: Upload build output as an artifact for GitHub Pages
+    uses: actions/upload-pages-artifact@v3
+    with:
+      path: ./dist/qwik-jokes-tutorial
+  ```
+
 ## Review
 
 Congratulations, you've learned a lot about Qwik!

@@ -41,6 +41,7 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
+    "vite": "7.1.0",
     "yaml": "2.4.5"
   },
   "engines": {
@@ -174,9 +175,6 @@
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
-  "peerDependencies": {
-    "vite": ">=5 <8"
-  },
   "publishConfig": {
     "access": "public"
   },

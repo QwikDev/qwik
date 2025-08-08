@@ -205,6 +205,8 @@ function isInAnything(text: string): TagNesting {
     case 'input':
     case 'textarea':
       return TagNesting.PHRASING_INSIDE_INPUT;
+    case 'picture':
+      return TagNesting.PICTURE;
 
     default:
       return TagNesting.ANYTHING;

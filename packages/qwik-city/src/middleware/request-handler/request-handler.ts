@@ -64,7 +64,7 @@ async function loadRequestHandlers(
   qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderFn: Render
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;

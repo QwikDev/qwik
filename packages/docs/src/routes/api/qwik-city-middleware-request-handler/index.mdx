@@ -1659,7 +1659,7 @@ number
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/error-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/server-error.ts)
 
 ## ServerRenderOptions
 
@@ -1694,13 +1694,13 @@ Description
 
 </td><td>
 
-boolean
+boolean \| 'lax-proto'
 
 </td><td>
 
 _(Optional)_ Protection against cross-site request forgery (CSRF) attacks.
 
-When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.
+When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
 
 Be careful when disabling this option as it may lead to CSRF attacks.
 

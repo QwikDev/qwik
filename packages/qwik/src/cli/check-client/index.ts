@@ -1,5 +1,5 @@
 import type { AppCommand } from '../utils/app-command';
-import { intro, log, outro } from '@clack/prompts';
+// Removed non-critical logging to keep command output silent unless there are serious issues
 import { red } from 'kleur/colors';
 import { runInPkg } from '../utils/install-deps';
 import { getPackageManager, panic } from '../utils/utils';
@@ -53,12 +53,10 @@ async function checkClientCommand(app: AppCommand, src: string, dist: string): P
 
 async function goBuild(app: AppCommand) {
   const pkgManager = getPackageManager();
-  intro('Building client (manifest missing or outdated)...');
   const { install } = await runInPkg(pkgManager, ['run', 'build.client'], app.rootDir);
   if (!(await install)) {
     throw new Error('Client build command reported failure.');
   }
-  outro('Client build complete');
 }
 
 /**
@@ -75,9 +73,7 @@ async function getManifestTs(manifestPath: string) {
     return stats.mtimeMs;
   } catch (err: any) {
     // Handle errors accessing the manifest file
-    if (err.code === 'ENOENT') {
-      log.warn(`q-manifest.json file not found`);
-    } else {
+    if (err.code !== 'ENOENT') {
       panic(`Error accessing manifest file ${manifestPath}: ${err.message}`);
     }
     return null;
@@ -119,9 +115,6 @@ export async function hasNewer(srcPath: string, timestamp: number): Promise<bool
     try {
       items = await fs.readdir(dir, { withFileTypes: true });
     } catch (err: any) {
-      if (err.code !== 'ENOENT') {
-        log.warn(`Cannot read directory ${dir}: ${err.message}`);
-      }
       return;
     }
 
@@ -141,7 +134,7 @@ export async function hasNewer(srcPath: string, timestamp: number): Promise<bool
           }
         }
       } catch (err: any) {
-        log.warn(`Cannot access ${fullPath}: ${err.message}`);
+        // Intentionally silent for non-critical access issues
       }
     }
   }

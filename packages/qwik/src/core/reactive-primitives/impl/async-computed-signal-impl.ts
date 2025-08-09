@@ -1,6 +1,5 @@
 import { qwikDebugToString } from '../../debug';
 import type { Container } from '../../shared/types';
-import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';

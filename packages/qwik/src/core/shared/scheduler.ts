@@ -440,6 +440,9 @@ export const createScheduler = (
         }
 
         if (chore.$type$ === ChoreType.VISIBLE) {
+          // ensure that the journal flush is applied before the visible chore is executed
+          // so that the visible chore can see the latest DOM changes
+          applyJournalFlush();
           const blockingChore = findBlockingChoreForVisible(chore, runningChores, container);
           if (blockingChore && blockingChore.$state$ === ChoreState.RUNNING) {
             addBlockedChore(chore, blockingChore, blockedChores);

@@ -121,8 +121,8 @@ function isSameQrl(a: QRLInternal<unknown>, b: QRLInternal<unknown>): boolean {
 
 function findBlockingChoreInQueue(chore: Chore, choreQueue: Chore[]): Chore | null {
   for (const candidate of choreQueue) {
-    // everything after VISIBLE is not blocking. Visible task should not block anything.
-    if (candidate.$type$ >= ChoreType.VISIBLE) {
+    // everything after VISIBLE is not blocking. Visible task, task and resource should not block anything in this rule.
+    if (candidate.$type$ >= ChoreType.VISIBLE || candidate.$type$ === ChoreType.TASK) {
       continue;
     }
     if (isDescendant(chore, candidate)) {

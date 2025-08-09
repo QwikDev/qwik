@@ -112,8 +112,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> | null = null;
-  public resolveRenderDone: (() => void) | null = null;
   public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
@@ -126,7 +124,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
-    super(() => vnode_applyJournal(this.$journal$), {}, element.getAttribute(QLocaleAttr)!);
+    super(
+      () => {
+        this.$flushEpoch$++;
+        vnode_applyJournal(this.$journal$);
+      },
+      {},
+      element.getAttribute(QLocaleAttr)!
+    );
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw qError(QError.elementWithoutContainer);

@@ -36,6 +36,8 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 // @internal (undocumented)
 export interface ClientContainer extends Container {
     // (undocumented)
+    $flushEpoch$: number;
+    // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)
     $initialQRLsIndexes$: Array<number> | null;
@@ -57,10 +59,6 @@ export interface ClientContainer extends Container {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
-    // (undocumented)
-    renderDone: Promise<void> | null;
-    // (undocumented)
-    resolveRenderDone: (() => void) | null;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -258,11 +256,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void> | null;
-    // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
-    // (undocumented)
-    resolveRenderDone: (() => void) | null;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
@@ -931,6 +925,8 @@ export abstract class _SharedContainer implements Container {
     $buildBase$: string | null;
     // (undocumented)
     $currentUniqueId$: number;
+    // (undocumented)
+    $flushEpoch$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)

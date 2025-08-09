@@ -603,6 +603,21 @@ describe('findBlockingChore', () => {
       );
       expect(result).toBeNull();
     });
+
+    it('should not block if candidate chore type is TASK', () => {
+      const ancestorTaskChore = createMockChore(ChoreType.TASK, parentVNode);
+      const choreQueue = [ancestorTaskChore];
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
   });
 });
 

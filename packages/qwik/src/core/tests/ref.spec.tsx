@@ -21,8 +21,7 @@ describe.each([
   { render: domRender }, //
 ])('$render.name: ref', ({ render }) => {
   describe('useVisibleTask$', () => {
-    // TODO this probably never worked
-    it.todo('should handle ref prop', async () => {
+    it('should handle ref prop', async () => {
       const Cmp = component$(() => {
         const v = useSignal<Element>();
         useVisibleTask$(() => {

@@ -6,7 +6,6 @@ import {
   sync$,
   useContext,
   useServerData,
-  useVisibleTask$,
 } from '@qwik.dev/core';
 import { _getContextElement, _getDomContainer } from '@qwik.dev/core/internal';
 
@@ -23,12 +22,6 @@ export const RouterOutlet = component$(() => {
   }
 
   const internalContext = useContext(ContentInternalContext);
-
-  useVisibleTask$(({ track }) => {
-    track(internalContext);
-    const element = _getContextElement();
-    _getDomContainer(element as Element).resolveRenderDone?.();
-  });
 
   const contents = internalContext.value;
 

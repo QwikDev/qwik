@@ -21,6 +21,7 @@ export abstract class _SharedContainer implements Container {
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
   $buildBase$: string | null = null;
+  $flushEpoch$: number = 0;
 
   constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;

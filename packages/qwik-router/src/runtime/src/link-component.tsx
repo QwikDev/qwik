@@ -75,8 +75,9 @@ export const Link = component$<LinkProps>((props) => {
           // If default was prevented, than it is up to us to make client side navigation.
           if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
-            nav(elm.href, { forceReload: reload, replaceState, scroll });
-            elm.removeAttribute('aria-pressed');
+            nav(elm.href, { forceReload: reload, replaceState, scroll }).then(() => {
+              elm.removeAttribute('aria-pressed');
+            });
           }
         }
       })

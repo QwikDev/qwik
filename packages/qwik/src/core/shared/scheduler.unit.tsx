@@ -134,7 +134,9 @@ describe('scheduler', () => {
       'b1: Render',
       'vnode-diff',
       'b2.2: Task',
+      'journalFlush',
       'b1.0: VisibleTask',
+      'journalFlush',
       'b2.2: VisibleTask',
       'journalFlush',
     ]);

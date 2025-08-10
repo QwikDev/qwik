@@ -319,7 +319,8 @@ export const createScheduler = (
           choreQueue,
           blockedChores
         );
-      // TODO mark done?
+      // Mark skipped client-only chores as completed on the server
+      finishChore(chore, undefined);
       return chore;
     }
 
@@ -460,12 +461,8 @@ export const createScheduler = (
 
           result
             .then((value) => {
-              chore.$endTime$ = performance.now();
-              chore.$returnValue$ = value;
-              chore.$state$ = ChoreState.DONE;
               DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
-              // If we used the result as promise, this won't exist
-              chore.$resolve$?.(value);
+              finishChore(chore, value);
             })
             .catch((e) => {
               if (chore.$state$ !== ChoreState.RUNNING) {
@@ -484,10 +481,8 @@ export const createScheduler = (
               }
             });
         } else {
-          chore.$endTime$ = performance.now();
           DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
-          chore.$state$ = ChoreState.DONE;
-          chore.$resolve$?.(result);
+          finishChore(chore, result);
           scheduleBlockedChoresAndDrainIfNeeded(chore);
         }
 
@@ -503,6 +498,13 @@ export const createScheduler = (
     } finally {
       maybeFinishDrain();
     }
+  }
+
+  function finishChore(chore: Chore, value: any) {
+    chore.$endTime$ = performance.now();
+    chore.$state$ = ChoreState.DONE;
+    chore.$returnValue$ = value;
+    chore.$resolve$?.(value);
   }
 
   function handleError(chore: Chore, e: any) {
@@ -879,14 +881,14 @@ function debugTrace(action: string, arg?: any | null, queue?: Chore[], blockedCh
       const type = debugChoreTypeToString(chore.$type$);
       const host = String(chore.$host$).replaceAll(/\n.*/gim, '');
       const qrlTarget = (chore.$target$ as QRLInternal<any>)?.$symbol$;
-      const target =
+      const targetOrHost =
         chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL
           ? qrlTarget
           : host;
 
       lines.push(`🎯 Current Chore:`);
       lines.push(`  Type: ${type}`);
-      lines.push(`  Target: ${target}`);
+      lines.push(`  Host: ${targetOrHost}`);
 
       // Show execution time if available
       if (chore.$startTime$ && chore.$endTime$) {

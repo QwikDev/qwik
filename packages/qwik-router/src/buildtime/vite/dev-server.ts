@@ -9,7 +9,6 @@ import {
   resolveRequestHandlers,
 } from '../../middleware/request-handler/resolve-request-handlers';
 import { getQwikRouterServerData } from '../../middleware/request-handler/response-page';
-import type { QwikSerializer } from '../../middleware/request-handler/types';
 import {
   QDATA_JSON,
   getRouteMatchPathname,
@@ -226,10 +225,6 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
-          const { _deserialize, _serialize, _verifySerializable } =
-            await server.ssrLoadModule('@qwik-serializer');
-          const qwikSerializer: QwikSerializer = { _deserialize, _serialize, _verifySerializable };
-
           const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
             const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
             const requestHandlers = resolveRequestHandlers(
@@ -251,8 +246,7 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
             loadedRoute,
             requestHandlers,
             rebuildRouteInfo,
-            ctx.opts.basePathname,
-            qwikSerializer
+            ctx.opts.basePathname
           );
           const result = await completion;
           if (result != null) {

@@ -1,5 +1,5 @@
 import { type QRL } from '@qwik.dev/core';
-import { _UNINITIALIZED } from '@qwik.dev/core/internal';
+import { _serialize, _UNINITIALIZED, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
 import {
@@ -17,7 +17,6 @@ import {
 import { HttpStatus } from './http-status-codes';
 import {
   RequestEvIsRewrite,
-  RequestEvQwikSerializer,
   RequestEvShareQData,
   RequestEvShareServerTiming,
   RequestEvSharedActionId,
@@ -28,13 +27,7 @@ import {
   type RequestEventInternal,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
-import type {
-  ErrorCodes,
-  QwikSerializer,
-  RequestEvent,
-  RequestEventBase,
-  RequestHandler,
-} from './types';
+import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
 // Import separately to avoid duplicate imports in the vite dev server
 import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
@@ -189,7 +182,6 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
-    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
         console.warn(
@@ -224,7 +216,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
                 )
               : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
             if (isDev) {
-              verifySerializable(qwikSerializer, actionResolved, action.__qrl);
+              verifySerializable(actionResolved, action.__qrl);
             }
             loaders[selectedActionId] = actionResolved;
           }
@@ -243,7 +235,6 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
     }
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
-    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     if (routeLoaders.length > 0) {
       let currentLoaders: LoaderInternal[] = [];
       if (requestEv.query.has(QLOADER_KEY)) {
@@ -259,7 +250,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
         currentLoaders = routeLoaders;
       }
       const resolvedLoadersPromises = currentLoaders.map((loader) =>
-        getRouteLoaderPromise(loader, loaders, requestEv, isDev, qwikSerializer)
+        getRouteLoaderPromise(loader, loaders, requestEv, isDev)
       );
       await Promise.all(resolvedLoadersPromises);
     }
@@ -270,8 +261,7 @@ export async function getRouteLoaderPromise(
   loader: LoaderInternal,
   loaders: Record<string, unknown>,
   requestEv: RequestEventInternal,
-  isDev: boolean,
-  qwikSerializer: QwikSerializer
+  isDev: boolean
 ) {
   const loaderId = loader.__id;
   loaders[loaderId] = runValidators(
@@ -298,7 +288,7 @@ export async function getRouteLoaderPromise(
         loaders[loaderId] = resolvedLoader();
       } else {
         if (isDev) {
-          verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+          verifySerializable(resolvedLoader, loader.__qrl);
         }
         loaders[loaderId] = resolvedLoader;
       }
@@ -351,7 +341,6 @@ async function pureServerFunction(ev: RequestEvent) {
   ) {
     ev.exit();
     const isDev = getRequestMode(ev) === 'dev';
-    const qwikSerializer = (ev as RequestEventInternal)[RequestEvQwikSerializer];
     const data = await ev.parseBody();
     if (Array.isArray(data)) {
       const [qrl, ...args] = data;
@@ -377,9 +366,9 @@ async function pureServerFunction(ev: RequestEvent) {
           const stream = writable.getWriter();
           for await (const item of result) {
             if (isDev) {
-              verifySerializable(qwikSerializer, item, qrl);
+              verifySerializable(item, qrl);
             }
-            const message = await qwikSerializer._serialize([item]);
+            const message = await _serialize([item]);
             if (ev.signal.aborted) {
               break;
             }
@@ -387,9 +376,9 @@ async function pureServerFunction(ev: RequestEvent) {
           }
           stream.close();
         } else {
-          verifySerializable(qwikSerializer, result, qrl);
+          verifySerializable(result, qrl);
           ev.headers.set('Content-Type', 'application/qwik-json');
-          const message = await qwikSerializer._serialize([result]);
+          const message = await _serialize([result]);
           ev.send(200, message);
         }
         return;
@@ -424,9 +413,9 @@ function fixTrailingSlash(ev: RequestEvent) {
   }
 }
 
-export function verifySerializable(qwikSerializer: QwikSerializer, data: any, qrl: QRL) {
+export function verifySerializable(data: any, qrl: QRL) {
   try {
-    qwikSerializer._verifySerializable(data, undefined);
+    _verifySerializable(data, undefined);
   } catch (e: any) {
     if (e instanceof Error && qrl.dev) {
       (e as any).loc = qrl.dev;
@@ -640,9 +629,8 @@ export async function renderQData(requestEv: RequestEvent) {
         isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
       };
   const writer = requestEv.getWritableStream().getWriter();
-  const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];
   // write just the page json data to the response body
-  const data = await qwikSerializer._serialize([qData]);
+  const data = await _serialize([qData]);
   writer.write(encoder.encode(data));
   requestEv.sharedMap.set(RequestEvShareQData, qData);
 

@@ -1,5 +1,4 @@
 /// <reference types="bun" />
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ClientConn,
@@ -26,7 +25,6 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
   // still missing from bun: last check was bun version 1.1.8
   globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
 
-  const qwikSerializer = { _deserialize, _serialize, _verifySerializable };
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -66,7 +64,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       };
 
       // send request to qwik router request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
           if (v) {

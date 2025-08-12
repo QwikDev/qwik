@@ -641,6 +641,27 @@ describe.each([
     );
   });
 
+  it('should handle falsy values in dangerouslySetInnerHTML', async () => {
+    const Cmp = component$(() => {
+      return (
+        <main>
+          <div dangerouslySetInnerHTML={undefined}></div>
+          <div dangerouslySetInnerHTML={null!}></div>
+          {/* @ts-ignore-next-line */}
+          <div dangerouslySetInnerHTML={false}></div>
+        </main>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <div></div>
+        <div></div>
+        <div></div>
+      </main>
+    );
+  });
+
   it('should render textarea value', async () => {
     const Cmp = component$(() => {
       const signal = useSignal('value 123');

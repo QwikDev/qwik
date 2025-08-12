@@ -655,8 +655,10 @@ export const vnode_diff = (
         }
 
         if (key === dangerouslySetInnerHTML) {
-          element.innerHTML = value as string;
-          element.setAttribute(QContainerAttr, QContainerValue.HTML);
+          if (value) {
+            element.innerHTML = String(value);
+            element.setAttribute(QContainerAttr, QContainerValue.HTML);
+          }
           continue;
         }
 

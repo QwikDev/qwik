@@ -23,7 +23,6 @@ import type {
 } from './types';
 import { validatePlugin } from './validate-plugin';
 
-const QWIK_SERIALIZER = '@qwik-serializer';
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
@@ -160,9 +159,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     resolveId(id) {
-      if (id === QWIK_SERIALIZER) {
-        return join(rootDir!, id);
-      }
       if (id === QWIK_ROUTER_CONFIG_ID || id === QWIK_ROUTER_ENTRIES_ID) {
         return {
           id: join(rootDir!, id),
@@ -183,10 +179,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         if (id.endsWith(QWIK_ROUTER_ENTRIES_ID)) {
           // @qwik-router-entries
           return generateQwikRouterEntries(ctx);
-        }
-        const isSerializer = id.endsWith(QWIK_SERIALIZER);
-        if (isSerializer) {
-          return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
         const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
         const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);

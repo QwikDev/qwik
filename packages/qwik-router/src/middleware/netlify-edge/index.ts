@@ -4,7 +4,6 @@ import type {
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
 
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import {
   getNotFound,
@@ -12,7 +11,6 @@ import {
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import type { QwikSerializer } from '../request-handler/types';
 
 // @qwik.dev/router/middleware/netlify-edge
 
@@ -23,11 +21,6 @@ export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
     console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
   }
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -65,7 +58,7 @@ export function createQwikRouter(opts: QwikRouterNetlifyOptions) {
       };
 
       // send request to qwik router request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
           if (v) {

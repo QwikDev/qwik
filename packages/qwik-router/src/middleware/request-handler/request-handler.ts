@@ -2,7 +2,7 @@ import type { Render } from '@qwik.dev/core/server';
 import { loadRoute } from '../../runtime/src/routing';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
-import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
+import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user-response';
 
 /**
@@ -17,8 +17,7 @@ let qwikRouterConfigActual: QwikRouterConfig;
  */
 export async function requestHandler<T = unknown>(
   serverRequestEv: ServerRequestEvent<T>,
-  opts: ServerRenderOptions,
-  qwikSerializer: QwikSerializer
+  opts: ServerRenderOptions
 ): Promise<QwikRouterRun<T> | null> {
   const { render, checkOrigin } = opts;
   let { qwikRouterConfig } = opts;
@@ -70,8 +69,7 @@ export async function requestHandler<T = unknown>(
       route,
       requestHandlers,
       rebuildRouteInfo,
-      qwikRouterConfig.basePathname,
-      qwikSerializer
+      qwikRouterConfig.basePathname
     );
   }
   return null;

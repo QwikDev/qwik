@@ -886,11 +886,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXOutput;
+    onPending?: () => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXOutput;
+    onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onResolved: (value: T) => JSXOutput;
+    onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }

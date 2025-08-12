@@ -2365,6 +2365,18 @@ describe.each([
     expect(document.body.innerHTML).toContain('I am the innerHTML content!');
   });
 
+  it('should not throw when props are null', async () => {
+    const Child = component$((props: any) => {
+      props = (globalThis as any).stuff ? (globalThis as any).foo : (globalThis as any).bar;
+      return <div {...props} />;
+    });
+    const Cmp = component$(() => {
+      return <Child />;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('div')).toMatchDOM(<div />);
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

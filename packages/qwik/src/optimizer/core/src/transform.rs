@@ -22,7 +22,7 @@ use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
-use swc_ecmascript::ast::{self};
+use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
 use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
 
@@ -813,6 +813,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		let node_type = node.args.remove(0);
 		let node_props = node.args.remove(0);
+
 		let (name_token, is_fn, is_text_only) = match &*node_type.expr {
 			ast::Expr::Lit(ast::Lit::Str(str)) => {
 				self.stack_ctxt.push(str.value.to_string());
@@ -1163,32 +1164,12 @@ impl<'a> QwikTransform<'a> {
 		let const_props = if const_props_raw.is_empty() {
 			get_null_arg()
 		} else {
-			ast::ExprOrSpread {
-				spread: None,
-				expr: Box::new(ast::Expr::Object(ast::ObjectLit {
-					props: const_props_raw,
-					span: DUMMY_SP,
-				})),
-			}
+			self.build_unwrapped_props(const_props_raw)
 		};
 
-		let children = if let Some(children) = children {
-			ast::ExprOrSpread {
-				spread: None,
-				expr: children,
-			}
-		} else {
-			get_null_arg()
-		};
+		let children = self.build_children(children);
 
-		let flags = ast::ExprOrSpread {
-			spread: None,
-			expr: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
-				value: flags as f64,
-				span: DUMMY_SP,
-				raw: None,
-			}))),
-		};
+		let flags = self.build_flags(flags);
 		(should_sort, var_props, const_props, children, flags)
 	}
 
@@ -1525,7 +1506,42 @@ impl<'a> QwikTransform<'a> {
 								var_props.push(prop.fold_with(self));
 							}
 						}
-						// spread props and other PropOrSpread cases (pretty much impossible)
+						// spread props
+						ast::PropOrSpread::Spread(spread) => {
+							if spread.expr.is_ident() {
+								let (_, var_props_call, const_props_call, _, _) =
+									self.handle_jsx_props_obj_spread(&spread);
+
+								// If there are more spreads after it,
+								// both _getVarProps and _getConstProps should be spread into the same props object
+
+								let var_props_call_prop =
+									ast::PropOrSpread::Spread(ast::SpreadElement {
+										expr: var_props_call.expr,
+										dot3_token: DUMMY_SP,
+									});
+								let const_props_call_prop =
+									ast::PropOrSpread::Spread(ast::SpreadElement {
+										expr: const_props_call.expr,
+										dot3_token: DUMMY_SP,
+									});
+
+								var_props.push(var_props_call_prop);
+								if spread_props_count > 1 {
+									// Add both spreads to var_props since they'll be combined
+									var_props.push(const_props_call_prop);
+								} else {
+									// Single spread or last spread - keep the original separation
+									const_props.push(const_props_call_prop);
+								}
+							} else {
+								// If the spread is not an ident, we need to handle it like default spread
+								var_props.push(ast::PropOrSpread::Spread(spread).fold_with(self));
+							}
+
+							spread_props_count -= 1;
+						}
+						// other PropOrSpread cases (pretty much impossible)
 						prop => {
 							var_props.push(prop.fold_with(self));
 							spread_props_count -= 1;
@@ -1572,6 +1588,64 @@ impl<'a> QwikTransform<'a> {
 			}
 			_ => (true, vec![], vec![], None, 0),
 		}
+	}
+
+	fn handle_jsx_props_obj_spread(
+		&mut self,
+		spread: &SpreadElement,
+	) -> (
+		bool,
+		ast::ExprOrSpread,
+		ast::ExprOrSpread,
+		ast::ExprOrSpread,
+		ast::ExprOrSpread,
+	) {
+		let spread_expr = spread.expr.clone();
+		let get_var_props = self.ensure_core_import(&_GET_VAR_PROPS);
+		let get_const_props = self.ensure_core_import(&_GET_CONST_PROPS);
+
+		let var_props_call = ast::Expr::Call(ast::CallExpr {
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+				&get_var_props,
+			)))),
+			args: vec![ast::ExprOrSpread {
+				spread: None,
+				expr: spread_expr.clone(),
+			}],
+			..Default::default()
+		});
+
+		let const_props_call = ast::Expr::Call(ast::CallExpr {
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+				&get_const_props,
+			)))),
+			args: vec![ast::ExprOrSpread {
+				spread: None,
+				expr: spread_expr,
+			}],
+			..Default::default()
+		});
+
+		(
+			false, // should_sort, default to false, because props should be already sorted
+			ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(var_props_call),
+			},
+			ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(const_props_call),
+			},
+			get_null_arg(), // children
+			ast::ExprOrSpread {
+				spread: None,
+				expr: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
+					value: 0.0, // flags
+					span: DUMMY_SP,
+					raw: None,
+				}))),
+			},
+		)
 	}
 
 	fn convert_children(
@@ -1827,6 +1901,60 @@ impl<'a> QwikTransform<'a> {
 				}
 			}
 			_ => None,
+		}
+	}
+
+	fn wrap_props_in_object(&self, props: Vec<ast::PropOrSpread>) -> ast::ExprOrSpread {
+		ast::ExprOrSpread {
+			spread: None,
+			expr: Box::new(ast::Expr::Object(ast::ObjectLit {
+				props,
+				span: DUMMY_SP,
+			})),
+		}
+	}
+
+	fn build_unwrapped_props(&self, props: Vec<ast::PropOrSpread>) -> ast::ExprOrSpread {
+		// If there's only one const prop and it's a spread of _getConstProps, pass it directly
+		if props.len() == 1 {
+			if let ast::PropOrSpread::Spread(spread) = &props[0] {
+				if let ast::Expr::Call(call_expr) = &*spread.expr {
+					if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &call_expr.callee {
+						if ident.sym == *_GET_CONST_PROPS {
+							// Pass _getConstProps directly without wrapping
+							return ast::ExprOrSpread {
+								spread: None,
+								expr: spread.expr.clone(),
+							};
+						}
+					}
+				}
+			}
+		}
+
+		// Otherwise, wrap in an object
+		self.wrap_props_in_object(props)
+	}
+
+	fn build_children(&self, children: Option<Box<ast::Expr>>) -> ast::ExprOrSpread {
+		if let Some(children) = children {
+			ast::ExprOrSpread {
+				spread: None,
+				expr: children,
+			}
+		} else {
+			get_null_arg()
+		}
+	}
+
+	fn build_flags(&self, flags: u32) -> ast::ExprOrSpread {
+		ast::ExprOrSpread {
+			spread: None,
+			expr: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
+				value: flags as f64,
+				span: DUMMY_SP,
+				raw: None,
+			}))),
 		}
 	}
 }

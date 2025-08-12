@@ -1089,9 +1089,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (key === dangerouslySetInnerHTML) {
-          innerHTML = String(value);
-          key = QContainerAttr;
-          value = QContainerValue.HTML;
+          if (value) {
+            innerHTML = String(value);
+            key = QContainerAttr;
+            value = QContainerValue.HTML;
+          }
           // we can skip this attribute for a style node
           // because we skip materializing the style node
           if (tag === 'style') {

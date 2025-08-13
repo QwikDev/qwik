@@ -1,4 +1,3 @@
-import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
 import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
@@ -493,7 +492,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedId = parseId(id);
     const pathId = normalizePath(parsedId.pathId);
 
-    let result: ResolveIdResult;
+    let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
 
@@ -626,7 +625,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
-  ): Promise<LoadResult> => {
+  ): Promise<Rollup.LoadResult> => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
@@ -703,8 +702,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     code: string,
     id: string,
-    transformOpts: Parameters<Extract<Plugin['transform'], Function>>[2] = {}
-  ): Promise<TransformResult> {
+    transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
+  ): Promise<Rollup.TransformResult> {
     if (id.startsWith('\0')) {
       return;
     }
@@ -850,7 +849,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     canonPath: (p: string) => string;
   };
 
-  const createOutputAnalyzer = (rollupBundle: OutputBundle) => {
+  const createOutputAnalyzer = (rollupBundle: Rollup.OutputBundle) => {
     const injections: GlobalInjections[] = [];
 
     const outputAnalyzer: OutputAnalyzer = {
@@ -993,7 +992,10 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     }
   }
 
-  function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
+  function manualChunks(
+    id: string,
+    { getModuleInfo }: Parameters<Extract<Rollup.OutputOptions['manualChunks'], Function>>[1]
+  ) {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1027,7 +1029,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
 
   async function generateManifest(
     ctx: Rollup.PluginContext,
-    rollupBundle: OutputBundle,
+    rollupBundle: Rollup.OutputBundle,
     bundleGraphAdders?: Set<BundleGraphAdder>,
     manifestExtra?: Partial<QwikManifest>
   ) {

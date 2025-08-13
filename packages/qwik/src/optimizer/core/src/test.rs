@@ -4429,6 +4429,124 @@ fn should_not_wrap_ternary_function_operator_with_fn() {
 	});
 }
 
+#[test]
+fn should_split_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props} test="test"></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div test="test" {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Foo } from './foo';
+
+		export default component$((props) => {
+			return (
+				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop4() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props: any) => {
+			return <button {...props} onClick$={() => props.onClick$()}></button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop5() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		function Hola(props: any) {
+			return <div {...props}></div>;
+		}
+
+		export default component$(() => {
+		return <Hola>
+			<div>1</div>
+			<div>2</div>
+		</Hola>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

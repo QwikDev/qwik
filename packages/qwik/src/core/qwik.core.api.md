@@ -341,6 +341,12 @@ export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
 
+// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+
 // @internal (undocumented)
 export const _getContextContainer: () => ClientContainer | undefined;
 
@@ -366,6 +372,9 @@ export const getPlatform: () => CorePlatform;
 
 // @internal (undocumented)
 export function _getQContainerElement(element: Element | _VNode): Element | null;
+
+// @internal (undocumented)
+export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -447,8 +456,6 @@ export function _isStringifiable(value: unknown): value is _Stringifiable;
 // @internal (undocumented)
 export const _isTask: (value: any) => value is Task;
 
-// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
-//
 // @public
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>;
 export { jsx }
@@ -892,8 +899,6 @@ export interface ResourceResolved<T> {
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
 

@@ -525,7 +525,7 @@ export const _mapApp_findIndx: <T>(array: (T | null)[], key: string, start: numb
 export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number) => T | null;
 
 // @internal (undocumented)
-export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number) => void;
+export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number, allowNullValue?: boolean) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;

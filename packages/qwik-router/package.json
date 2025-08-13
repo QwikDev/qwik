@@ -20,7 +20,7 @@
     "@netlify/edge-functions": "2.17.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "24.0.4",
+    "@types/node": "24.2.1",
     "@types/refractor": "3.4.1",
     "@types/set-cookie-parser": "2.4.10",
     "estree-util-value-to-estree": "3.4.0",

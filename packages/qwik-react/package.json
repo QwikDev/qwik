@@ -5,7 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
-    "@types/react": "18.3.3",
+    "@types/react": "19.1.10",
     "@types/react-dom": "18.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",

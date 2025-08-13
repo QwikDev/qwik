@@ -25,16 +25,17 @@ export const mapArray_set = <T>(
   array: (T | null)[],
   key: string,
   value: T | null,
-  start: number
+  start: number,
+  allowNullValue: boolean = false
 ) => {
   const indx = mapApp_findIndx(array, key, start);
   if (indx >= 0) {
-    if (value == null) {
+    if (value == null && !allowNullValue) {
       array.splice(indx, 2);
     } else {
       array[indx + 1] = value;
     }
-  } else if (value != null) {
+  } else if (value != null || allowNullValue) {
     array.splice(indx ^ -1, 0, key as any, value);
   }
 };

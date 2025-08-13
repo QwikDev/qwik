@@ -36,18 +36,14 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
   };
 }
 
+function createMockRequestEvent(url = 'http://localhost:3000/test') {
+  const serverRequestEv = createMockServerRequestEvent(url);
+  return createRequestEvent(serverRequestEv, null, [], true, '/', mockQwikSerializer, vi.fn());
+}
+
 describe('request-event redirect', () => {
   it('should not cache redirects by default', () => {
-    const serverRequestEv = createMockServerRequestEvent();
-    const requestEv = createRequestEvent(
-      serverRequestEv,
-      null,
-      [],
-      true,
-      '/',
-      mockQwikSerializer,
-      vi.fn()
-    );
+    const requestEv = createMockRequestEvent();
 
     requestEv.headers.set('Cache-Control', 'max-age=3600, public');
 
@@ -60,16 +56,7 @@ describe('request-event redirect', () => {
   });
 
   it('should set Cache-Control to no-store for redirects with status > 301', () => {
-    const serverRequestEv = createMockServerRequestEvent();
-    const requestEv = createRequestEvent(
-      serverRequestEv,
-      null,
-      [],
-      true,
-      '/',
-      mockQwikSerializer,
-      vi.fn()
-    );
+    const requestEv = createMockRequestEvent();
 
     const result = requestEv.redirect(307, '/new-location');
 
@@ -80,16 +67,7 @@ describe('request-event redirect', () => {
   });
 
   it('should fix invalid redirect URLs with multiple slashes', () => {
-    const serverRequestEv = createMockServerRequestEvent();
-    const requestEv = createRequestEvent(
-      serverRequestEv,
-      null,
-      [],
-      true,
-      '/',
-      mockQwikSerializer,
-      vi.fn()
-    );
+    const requestEv = createMockRequestEvent();
 
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -103,16 +81,7 @@ describe('request-event redirect', () => {
   });
 
   it('should throw error when trying to redirect after headers are sent', () => {
-    const serverRequestEv = createMockServerRequestEvent();
-    const requestEv = createRequestEvent(
-      serverRequestEv,
-      null,
-      [],
-      true,
-      '/',
-      mockQwikSerializer,
-      vi.fn()
-    );
+    const requestEv = createMockRequestEvent();
 
     // Trigger getWritableStream to simulate headers being sent
     requestEv.getWritableStream();

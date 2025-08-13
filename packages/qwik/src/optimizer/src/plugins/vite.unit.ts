@@ -96,8 +96,14 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
-  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  const relDev = path.relative(cwd, chunkInfoMocks[1].name);
+  const sanitizedDev = relDev
+    .replace(/^\(\.\.\/\)+/, '')
+    .replace(/^\/+/, '')
+    .replace(/\//g, '-');
+  const expectedDevChunk = `build/${sanitizedDev}.js`;
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedDevChunk);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedDevChunk);
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -180,13 +186,21 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
-  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
-  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  const relBuildDev = path.relative(cwd, chunkInfoMocks[1].name);
+  const sanitizedBuildDev = relBuildDev
+    .replace(/^\(\.\.\/\)+/, '')
+    .replace(/^\/+/, '')
+    .replace(/\//g, '-');
+  const expectedBuildDevChunk = `build/${sanitizedBuildDev}.js`;
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -225,7 +239,9 @@ test('command: build, mode: production', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
@@ -267,7 +283,9 @@ test('command: build, --mode production (client)', async () => {
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'client-dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
 });
@@ -296,7 +314,9 @@ test('command: build, --ssr entry.server.tsx', async () => {
   assert.deepEqual(plugin.enforce, 'pre');
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'entry.server.tsx'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.server.tsx')),
+  ]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.isFunction(outputOptions.chunkFileNames);
@@ -337,7 +357,9 @@ test('command: serve, --mode ssr', async () => {
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, undefined);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'renderz.tsx')),
+  ]);
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(c.publicDir, undefined);
@@ -366,7 +388,9 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(build.minify, undefined);
   assert.deepEqual(build.ssr, undefined);
-  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'renderz.tsx'))]);
+  assert.deepEqual((rollupOptions.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'renderz.tsx')),
+  ]);
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'ssr-dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(c.publicDir, undefined);

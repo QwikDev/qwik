@@ -7,7 +7,7 @@
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
-    "@builder.io/qwik": "1.14.1",
+    "@builder.io/qwik": "npm:@qwik.dev/core",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@modular-forms/qwik": "0.23.1",

@@ -12,7 +12,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function ssgAdapter(opts: SsgAdapterOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[SsgAdapterOptions](#ssgadapteroptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "```typescript\nexport declare function ssgAdapter(opts: SsgAdapterOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[SsgAdapterOptions](#ssgadapteroptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/adapters/ssg/vite/index.ts",
       "mdFile": "router.ssgadapter.md"
     },

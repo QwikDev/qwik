@@ -71,7 +71,11 @@ export const preloaderPre = (
      * We add modulepreloads even when the script is at the top because they already fire during
      * html download
      */
-    container.openElement('link', null, ['rel', 'modulepreload', 'href', preloaderBundle]);
+    const preloaderLinkAttrs = ['rel', 'modulepreload', 'href', preloaderBundle];
+    if (nonce) {
+      preloaderLinkAttrs.push('nonce', nonce);
+    }
+    container.openElement('link', null, preloaderLinkAttrs);
     container.closeElement();
     container.openElement('link', null, [
       'rel',
@@ -101,7 +105,11 @@ export const preloaderPre = (
 
   const corePath = simplifyPath(base, resolvedManifest?.manifest.core);
   if (corePath) {
-    container.openElement('link', null, ['rel', 'modulepreload', 'href', corePath]);
+    const linkAttrs = ['rel', 'modulepreload', 'href', corePath];
+    if (nonce) {
+      linkAttrs.push('nonce', nonce);
+    }
+    container.openElement('link', null, linkAttrs);
     container.closeElement();
   }
 };

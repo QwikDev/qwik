@@ -185,6 +185,8 @@ const getDependencies = (input: ReplAppInput) => {
       `${prefix}server.cjs`,
       `/bindings/qwik.wasm.cjs`,
       `/bindings/qwik_wasm_bg.wasm`,
+      `${prefix}qwikloader.js`,
+      `${prefix}preloader.mjs`,
     ]) {
       bundles[p] = getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, p);
     }

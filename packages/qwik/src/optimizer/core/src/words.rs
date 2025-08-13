@@ -39,4 +39,6 @@ lazy_static! {
 	pub static ref JSX: JsWord = JsWord::from("jsx");
 	pub static ref JSXS: JsWord = JsWord::from("jsxs");
 	pub static ref JSX_DEV: JsWord = JsWord::from("jsxDEV");
+	pub static ref _GET_VAR_PROPS: JsWord = JsWord::from("_getVarProps");
+	pub static ref _GET_CONST_PROPS: JsWord = JsWord::from("_getConstProps");
 }

@@ -48,6 +48,8 @@ export {
   _jsxS,
   _jsxSorted,
   _jsxSplit,
+  _getVarProps,
+  _getConstProps,
 } from './shared/jsx/jsx-runtime';
 export { _fnSignal } from './shared/qrl/inlined-fn';
 export { _SharedContainer } from './shared/shared-container';

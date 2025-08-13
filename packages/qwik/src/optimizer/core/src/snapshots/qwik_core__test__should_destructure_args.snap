@@ -39,6 +39,8 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,uDAAuD;AACvD,0CAA0C;AAC1C,6BAAe,6EAab\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
@@ -60,8 +62,8 @@ export const test_component_LUXeXe0DQrg = (props)=>{
         id: _wrapProp(props, "id")
     }, null, [
         /*#__PURE__*/ _jsxSplit("span", {
-            ...rest
-        }, null, [
+            ..._getVarProps(rest)
+        }, _getConstProps(rest), [
             _wrapProp(props, "message"),
             " ",
             _wrapProp(props, "count")
@@ -73,7 +75,7 @@ export const test_component_LUXeXe0DQrg = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;YAAM,GAAG,IAAI;;;YACL;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;4BAAS;0BAAA;;YACD;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
 /*
 {
   "origin": "test.tsx",

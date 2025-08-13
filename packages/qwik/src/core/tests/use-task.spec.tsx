@@ -2,6 +2,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Signal,
+  Slot,
   component$,
   isServer,
   useSignal,
@@ -322,6 +323,47 @@ describe.each([
         'Child of "B" (2)', // increment
         'Child of "A" (2)', // toggle
       ]);
+    });
+
+    it('should not rerun on track if the value is not a signal', async () => {
+      (globalThis as any).counter = 0;
+      const OtpBase = component$((props: any) => {
+        useTask$(({ track }) => {
+          track(() => props.disabled);
+          (globalThis as any).counter++;
+        });
+
+        return (
+          <div>
+            <Slot />
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const isDisabled = useSignal(false);
+
+        const OtpRoot = (props: any) => {
+          return <OtpBase {...props}>{props.children}</OtpBase>;
+        };
+        return (
+          <>
+            <OtpRoot disabled={isDisabled.value} />
+
+            <button type="button" onClick$={() => (isDisabled.value = !isDisabled.value)}>
+              Disable OTP
+            </button>
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).counter).toBe(5);
+      (globalThis as any).counter = undefined;
     });
   });
   describe('queue', () => {

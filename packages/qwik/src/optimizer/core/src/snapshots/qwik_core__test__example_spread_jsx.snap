@@ -54,6 +54,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { createElement as _createElement } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
@@ -78,8 +80,8 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
             href: "/favicon.svg"
         }, null, 3, null),
         head.meta.map((m)=>/*#__PURE__*/ _jsxSplit("meta", {
-                ...m
-            }, null, null, 0, "u6_0")),
+                ..._getVarProps(m)
+            }, _getConstProps(m), null, 0, "u6_0")),
         head.links.map((l)=>/*#__PURE__*/ _createElement("link", {
                 ...l,
                 key: l.key
@@ -93,7 +95,7 @@ export const RouterHead_component_DPA76mgIou0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;gDAOqC;IACpC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,WAAC,qBAAO,KAAK,KAAK;sBAElB,WAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,WAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,WAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,UAAC;gBAAM,GAAG,CAAC;;QAGX,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;gDAOqC;IACpC,MAAM,OAAO;IACb,MAAM,MAAM;IAEZ,qBACA;sBACC,WAAC,qBAAO,KAAK,KAAK;sBAElB,WAAC;YAAK,KAAI;YAAY,IAAI,YAAE;;sBAC5B,WAAC;YAAK,MAAK;YAAW,SAAQ;;sBAC9B,WAAC;YAAK,KAAI;YAAO,MAAK;YAAgB,MAAK;;QAE1C,KAAK,IAAI,CAAC,GAAG,CAAC,CAAC,kBACf,UAAC;gCAAS;8BAAA;QAGV,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,kBAChB,eAAC;gBAAM,GAAG,CAAC;gBAAE,KAAK,EAAE,GAAG;;QAGvB,KAAK,MAAM,CAAC,GAAG,CAAC,CAAC,kBACjB,eAAC;gBAAO,GAAG,EAAE,KAAK;gBAAE,yBAAyB,EAAE,KAAK;gBAAE,KAAK,EAAE,GAAG;;;AAInE\"}")
 /*
 {
   "origin": "test.tsx",

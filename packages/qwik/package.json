@@ -182,7 +182,7 @@
   "peerDependencies": {
     "prettier": "*",
     "vite": ">=5 <8",
-    "vitest": ">=2 <3"
+    "vitest": ">=2 <4"
   },
   "peerDependenciesMeta": {
     "vitest": {

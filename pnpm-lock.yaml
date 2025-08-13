@@ -5,6 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@builder.io/qwik': npm:@qwik.dev/core
+  '@builder.io/qwik-city': npm:@qwik.dev/router
   prettier: 3.6.2
   typescript: 5.8.3
   vfile: 6.0.3
@@ -280,8 +282,8 @@ importers:
         specifier: 4.14.3
         version: 4.14.3
       '@builder.io/qwik':
-        specifier: 1.14.1
-        version: 1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))
+        specifier: npm:@qwik.dev/core
+        version: '@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))'
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@18.3.3)(react@18.3.1)
@@ -290,7 +292,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1)
       '@modular-forms/qwik':
         specifier: 0.23.1
-        version: 0.23.1(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
+        version: 0.23.1(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
       '@mui/material':
         specifier: 5.16.4
         version: 5.16.4(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -302,7 +304,7 @@ importers:
         version: 6.20.4(@mui/material@5.16.4(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mui/system@5.16.4(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@qwik-ui/headless':
         specifier: 0.6.7
-        version: 0.6.7(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
+        version: 0.6.7(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
@@ -350,7 +352,7 @@ importers:
         version: 0.0.42
       '@unpic/qwik':
         specifier: 0.0.38
-        version: 0.0.38(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
+        version: 0.0.38(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
       algoliasearch:
         specifier: 4.16.0
         version: 4.16.0
@@ -462,7 +464,7 @@ importers:
         version: 0.15.10
       '@modular-forms/qwik':
         specifier: ^0.24.0
-        version: 0.24.0(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))
+        version: 0.24.0
       '@typescript/analyze-trace':
         specifier: ^0.10.1
         version: 0.10.1
@@ -890,13 +892,6 @@ packages:
 
   '@bugsnag/safe-json-stringify@6.0.0':
     resolution: {integrity: sha512-htzFO1Zc57S8kgdRK9mLcPVTW1BY2ijfH7Dk2CeZmspTWKdKqSo1iwmqrq2WtRjFlo8aRZYgLX0wFrDXF/9DLA==}
-
-  '@builder.io/qwik@1.14.1':
-    resolution: {integrity: sha512-bq1fkt8RhjkENQOs/bxh8i1IuQ0DIfIZ1RgyoZYmADxcyKjhVRcCx+6kaRUkjovb5sR06pqH96YaHjI7iI/CMw==}
-    engines: {node: '>=16.8.0 <18.0.0 || >=18.11'}
-    hasBin: true
-    peerDependencies:
-      vite: ^5
 
   '@builder.io/vite-plugin-macro@0.0.7':
     resolution: {integrity: sha512-tDdYnRtkxtZ3KRZMdUAetwEXPYQLQWIMtvbFY9klVKQII1P3IooAobByqNiHPy8W0EcLe8ZDVq2cK8z8RNtiHQ==}
@@ -2244,14 +2239,14 @@ packages:
   '@modular-forms/qwik@0.23.1':
     resolution: {integrity: sha512-oiXMdbH0HNotc9LMUwoEwZSJkY7/SObyQCgAZHsAPIQOyQrDhG2W8rEJVy0zFtSOCxk6NZjLiMcXfcI5glKU8A==}
     peerDependencies:
-      '@builder.io/qwik': ^1.4.0
-      '@builder.io/qwik-city': ^1.4.0
+      '@builder.io/qwik': npm:@qwik.dev/core
+      '@builder.io/qwik-city': npm:@qwik.dev/router
 
   '@modular-forms/qwik@0.24.0':
     resolution: {integrity: sha512-mF+cOw2lmiEjCf7odYW65d1gxp5ozqAbDfX5Z6yAt0wE7wsRHBZgi0YoXAh63vRCEcR5UMG/9kdTXj3KCjxhug==}
     peerDependencies:
-      '@builder.io/qwik': ^1.4.0
-      '@builder.io/qwik-city': ^1.4.0
+      '@builder.io/qwik': npm:@qwik.dev/core
+      '@builder.io/qwik-city': npm:@qwik.dev/router
 
   '@mui/core-downloads-tracker@5.16.7':
     resolution: {integrity: sha512-RtsCt4Geed2/v74sbihWzzRs+HsIQCfclHeORh5Ynu2fS4icIKozcSubwuG7vtzq2uW3fOR1zITSP84TNt2GoQ==}
@@ -2804,7 +2799,21 @@ packages:
     resolution: {integrity: sha512-rbBQslITfPFXpqcDlh5jKrb2hwGuTncyB9Z4Vu/8WKHO1iLiAxPcML16yKFxEBkMxq4hEjFRUc31ztg93sH3Rg==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      '@builder.io/qwik': '>=1.3.1'
+      '@builder.io/qwik': npm:@qwik.dev/core
+
+  '@qwik.dev/core@2.0.0-beta.7':
+    resolution: {integrity: sha512-QxMBuuD84rXkAUzekz4nk+q9xBjkFPGoXrqExcK8ZXUR7OKr5hknkYic/wtwgwGgnMVRNeuCpWW3xwma2HKIuw==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    hasBin: true
+    peerDependencies:
+      prettier: 3.6.2
+      vite: '>=5 <8'
+      vitest: '>=2 <3'
+    peerDependenciesMeta:
+      prettier:
+        optional: true
+      vitest:
+        optional: true
 
   '@qwik.dev/partytown@0.11.2':
     resolution: {integrity: sha512-795y49CqBiKiwKAD+QBZlzlqEK275hVcazZ7wBPSfgC23L+vWuA7PJmMpgxojOucZHzYi5rAAQ+IP1I3BKVZxw==}
@@ -3462,7 +3471,7 @@ packages:
     resolution: {integrity: sha512-5I3M9a6VGrw9KF5B7GHxpvwU3VyRfJ1qCWNSlcdLxw8S6m0lapOXL5oJq0gnRlde7csMfyE12oogmtp8nAibbw==}
     engines: {node: '>=15.0.0'}
     peerDependencies:
-      '@builder.io/qwik': '*'
+      '@builder.io/qwik': npm:@qwik.dev/core
 
   '@vercel/nft@0.27.7':
     resolution: {integrity: sha512-FG6H5YkP4bdw9Ll1qhmbxuE8KwW2E/g8fJpM183fWQLeVDGqzeywMIeJ9h2txdWZ03psgWMn6QymTxaDLmdwUg==}
@@ -6445,7 +6454,6 @@ packages:
 
   libsql@0.5.17:
     resolution: {integrity: sha512-RRlj5XQI9+Wq+/5UY8EnugSWfRmHEw4hn3DKlPrkUgZONsge1PwTtHcpStP6MSNi8ohcbsRgEHJaymA33a8cBw==}
-    cpu: [x64, arm64, wasm32, arm]
     os: [darwin, linux, win32]
 
   light-my-request@5.13.0:
@@ -9720,12 +9728,6 @@ snapshots:
 
   '@bugsnag/safe-json-stringify@6.0.0': {}
 
-  '@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))':
-    dependencies:
-      csstype: 3.1.3
-      rollup: 4.44.0
-      vite: 7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)
-
   '@builder.io/vite-plugin-macro@0.0.7(@types/node@24.0.4)(lightningcss@1.30.1)(rollup@4.44.0)(terser@5.43.1)':
     dependencies:
       '@rollup/pluginutils': 5.2.0(rollup@4.44.0)
@@ -10876,13 +10878,12 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@modular-forms/qwik@0.23.1(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
+  '@modular-forms/qwik@0.23.1(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
     dependencies:
-      '@builder.io/qwik': 1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))'
 
-  '@modular-forms/qwik@0.24.0(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
+  '@modular-forms/qwik@0.24.0':
     dependencies:
-      '@builder.io/qwik': 1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))
       decode-formdata: 0.7.5
 
   '@mui/core-downloads-tracker@5.16.7': {}
@@ -11618,14 +11619,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@qwik-ui/headless@0.6.7(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
+  '@qwik-ui/headless@0.6.7(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
     dependencies:
-      '@builder.io/qwik': 1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))'
       '@floating-ui/core': 1.6.2
       '@floating-ui/dom': 1.6.5
       '@oddbird/popover-polyfill': 0.4.3
       body-scroll-lock-upgrade: 1.1.0
       focus-trap: 7.5.4
+
+  '@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))':
+    dependencies:
+      csstype: 3.1.3
+      rollup: 4.44.0
+      vite: 7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)
+    optionalDependencies:
+      prettier: 3.6.2
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)
 
   '@qwik.dev/partytown@0.11.2':
     dependencies:
@@ -12349,9 +12359,9 @@ snapshots:
     dependencies:
       unpic: 3.18.0
 
-  '@unpic/qwik@0.0.38(@builder.io/qwik@1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
+  '@unpic/qwik@0.0.38(@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1)))':
     dependencies:
-      '@builder.io/qwik': 1.14.1(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.7(prettier@3.6.2)(vite@7.1.0(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.0.4)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.6.1))'
 
   '@vercel/nft@0.27.7(rollup@4.44.0)(supports-color@9.4.0)':
     dependencies:

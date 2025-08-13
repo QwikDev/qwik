@@ -160,6 +160,8 @@
   "packageManager": "pnpm@9.15.5",
   "pnpm": {
     "overrides": {
+      "@builder.io/qwik": "npm:@qwik.dev/core",
+      "@builder.io/qwik-city": "npm:@qwik.dev/router",
       "prettier": "3.6.2",
       "typescript": "5.8.3",
       "vfile": "6.0.3"

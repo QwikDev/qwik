@@ -341,6 +341,7 @@
 }
 
 .detail-options select {
+  background-color: var(--repl-tab-bg-color);
   border: 1px solid var(--repl-tab-bg-color);
   border-radius: 3px;
 }

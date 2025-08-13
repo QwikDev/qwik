@@ -813,9 +813,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (qwikLoaderBundle) {
         // always emit the preload+import. It will probably be used at some point on the site
         qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
-        this.openElement('link', ['rel', 'modulepreload', 'href', qwikLoaderBundle]);
+        const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+        const nonce = this.renderOptions.serverData?.nonce;
+        if (nonce) {
+          linkAttrs.push('nonce', nonce);
+        }
+        this.openElement('link', linkAttrs);
         this.closeElement();
-        this.openElement('script', ['type', 'module', 'async', true, 'src', qwikLoaderBundle]);
+        const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
+        if (nonce) {
+          scriptAttrs.push('nonce', nonce);
+        }
+        this.openElement('script', scriptAttrs);
         this.closeElement();
       }
     }

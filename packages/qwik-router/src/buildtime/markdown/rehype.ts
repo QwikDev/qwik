@@ -144,6 +144,7 @@ function createExport(mdast: Root, identifierName: string, val: any) {
             type: 'ExportNamedDeclaration',
             source: null,
             specifiers: [],
+            attributes: [],
             declaration: {
               type: 'VariableDeclaration',
               kind: 'const',

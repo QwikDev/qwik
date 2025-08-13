@@ -47,20 +47,10 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
 
 const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
 
-// Give a grace period before unregistering the event listener
-let doNotClean = true;
 const broadcast = (infix: string, ev: Event, type = ev.type) => {
-  let found = doNotClean;
   querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((el) => {
-    found = true;
     dispatch(el, infix, ev, type);
   });
-  if (!found) {
-    window[infix.slice(1) as 'window' | 'document'].removeEventListener(
-      type,
-      infix === '-window' ? processWindowEvent : processDocumentEvent
-    );
-  }
 };
 
 const resolveContainer = (containerEl: QContainerElement) => {
@@ -263,15 +253,7 @@ const addEventListener = (
   el.addEventListener(eventName, handler, { capture, passive: false });
 };
 
-let cleanTimer: NodeJS.Timeout;
 const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
-  doNotClean = true;
-  clearTimeout(cleanTimer);
-  /**
-   * Give 20s to have nodes appear that use this event. Newly added nodes will have listeners
-   * attached by the DOM renderer so won't use the qwikloader.
-   */
-  cleanTimer = setTimeout(() => (doNotClean = false), 20_000);
   for (const eventNameOrNode of eventNames) {
     if (typeof eventNameOrNode === 'string') {
       // If it is string we just add the event to window and each of our roots.

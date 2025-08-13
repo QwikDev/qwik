@@ -73,7 +73,7 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { mapArray_get, mapArray_set } from './util-mapArray';
+import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -220,20 +220,17 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       this.setHostProp(host, QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value as T;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
       host = this.getParentHost(host)!;
     }

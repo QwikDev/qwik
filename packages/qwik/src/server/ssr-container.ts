@@ -44,6 +44,7 @@ import {
   escapeHTML,
   isClassAttr,
   mapArray_get,
+  mapArray_has,
   mapArray_set,
   maybeThen,
   qError,
@@ -263,10 +264,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     const ssrNode: ISsrNode = host as any;
     let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
     // Store the node which will store the context
     this.addRoot(ssrNode);
   }
@@ -275,11 +276,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let ssrNode: ISsrNode | null = host as any;
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
       ssrNode = ssrNode.parentSsrNode;
     }

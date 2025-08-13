@@ -1,0 +1,76 @@
+{
+  "id": "qwik-router-middleware-cloudflare-pages",
+  "package": "@qwik.dev/qwik-router/middleware/cloudflare-pages",
+  "members": [
+    {
+      "name": "createQwikCity",
+      "id": "createqwikcity",
+      "hierarchy": [
+        {
+          "name": "createQwikCity",
+          "id": "createqwikcity"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `createQwikRouter` instead. Will be removed in V3\n> \n\n\n```typescript\ncreateQwikCity: typeof createQwikRouter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts",
+      "mdFile": "router.createqwikcity.md"
+    },
+    {
+      "name": "createQwikRouter",
+      "id": "createqwikrouter",
+      "hierarchy": [
+        {
+          "name": "createQwikRouter",
+          "id": "createqwikrouter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterCloudflarePagesOptions): (request: PlatformCloudflarePages[\"request\"], env: PlatformCloudflarePages[\"env\"] & {\n    ASSETS: {\n        fetch: (req: Request) => Response;\n    };\n}, ctx: PlatformCloudflarePages[\"ctx\"]) => Promise<Response>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterCloudflarePagesOptions](#qwikroutercloudflarepagesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n(request: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\[\"request\"\\], env: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\[\"env\"\\] &amp; { ASSETS: { fetch: (req: Request) =&gt; Response; }; }, ctx: [PlatformCloudflarePages](#platformcloudflarepages)<!-- -->\\[\"ctx\"\\]) =&gt; Promise&lt;Response&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts",
+      "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "PlatformCloudflarePages",
+      "id": "platformcloudflarepages",
+      "hierarchy": [
+        {
+          "name": "PlatformCloudflarePages",
+          "id": "platformcloudflarepages"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface PlatformCloudflarePages \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[ctx](./router.platformcloudflarepages.ctx.md)\n\n\n</td><td>\n\n\n</td><td>\n\n{ waitUntil: (promise: Promise&lt;any&gt;) =&gt; void; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[env?](./router.platformcloudflarepages.env.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[request](./router.platformcloudflarepages.request.md)\n\n\n</td><td>\n\n\n</td><td>\n\nRequest\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts",
+      "mdFile": "router.platformcloudflarepages.md"
+    },
+    {
+      "name": "QwikCityCloudflarePagesOptions",
+      "id": "qwikcitycloudflarepagesoptions",
+      "hierarchy": [
+        {
+          "name": "QwikCityCloudflarePagesOptions",
+          "id": "qwikcitycloudflarepagesoptions"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `QwikRouterCloudflarePagesOptions` instead. Will be removed in V3\n> \n\n\n```typescript\nexport type QwikCityCloudflarePagesOptions = QwikRouterCloudflarePagesOptions;\n```\n**References:** [QwikRouterCloudflarePagesOptions](#qwikroutercloudflarepagesoptions)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts",
+      "mdFile": "router.qwikcitycloudflarepagesoptions.md"
+    },
+    {
+      "name": "QwikRouterCloudflarePagesOptions",
+      "id": "qwikroutercloudflarepagesoptions",
+      "hierarchy": [
+        {
+          "name": "QwikRouterCloudflarePagesOptions",
+          "id": "qwikroutercloudflarepagesoptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikRouterCloudflarePagesOptions extends ServerRenderOptions \n```\n**Extends:** ServerRenderOptions",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/cloudflare-pages/index.ts",
+      "mdFile": "router.qwikroutercloudflarepagesoptions.md"
+    }
+  ]
+}

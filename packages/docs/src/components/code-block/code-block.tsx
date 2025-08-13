@@ -1,4 +1,4 @@
-import { component$, useStyles$, type QRL, useVisibleTask$, useSignal } from '@builder.io/qwik';
+import { component$, useStyles$, type QRL, useVisibleTask$, useSignal } from '@qwik.dev/core';
 import prismjs from 'prismjs';
 // Set to global so that prism language plugins can find it.
 const _global =
@@ -15,7 +15,7 @@ import styles from './code-block.css?inline';
 import { CopyCode } from '../copy-code/copy-code-block';
 interface CodeBlockProps {
   path?: string;
-  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
+  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx' | 'clike';
   code: string;
   pathInView$?: QRL<(name: string) => void>;
   observerRootId?: string;

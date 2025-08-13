@@ -1,0 +1,48 @@
+{
+  "id": "qwik-router-vite-ssg",
+  "package": "@qwik.dev/qwik-router/vite/ssg",
+  "members": [
+    {
+      "name": "ssgAdapter",
+      "id": "ssgadapter",
+      "hierarchy": [
+        {
+          "name": "ssgAdapter",
+          "id": "ssgadapter"
+        }
+      ],
+      "kind": "Function",
+      "content": "```typescript\nexport declare function ssgAdapter(opts: SsgAdapterOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[SsgAdapterOptions](#ssgadapteroptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/adapters/ssg/vite/index.ts",
+      "mdFile": "router.ssgadapter.md"
+    },
+    {
+      "name": "SsgAdapterOptions",
+      "id": "ssgadapteroptions",
+      "hierarchy": [
+        {
+          "name": "SsgAdapterOptions",
+          "id": "ssgadapteroptions"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface SsgAdapterOptions extends Omit<SsgRenderOptions, 'outDir'> \n```\n**Extends:** Omit&lt;SsgRenderOptions, 'outDir'&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/adapters/ssg/vite/index.ts",
+      "mdFile": "router.ssgadapteroptions.md"
+    },
+    {
+      "name": "staticAdapter",
+      "id": "staticadapter",
+      "hierarchy": [
+        {
+          "name": "staticAdapter",
+          "id": "staticadapter"
+        }
+      ],
+      "kind": "Variable",
+      "content": "> Warning: This API is now obsolete.\n> \n> Use `ssgAdapter` instead.\n> \n\n\n```typescript\nstaticAdapter: typeof ssgAdapter\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/adapters/ssg/vite/index.ts",
+      "mdFile": "router.staticadapter.md"
+    }
+  ]
+}

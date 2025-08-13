@@ -1,4 +1,4 @@
-import { component$ } from "@builder.io/qwik";
+import { component$ } from "@qwik.dev/core";
 import Dynamic9 from "./dynamic9";
 
 export default component$(() => {

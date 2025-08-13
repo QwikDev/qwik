@@ -1,5 +1,5 @@
 import type { MockDocumentOptions, MockWindow } from './types';
-import qwikDom from '@builder.io/qwik-dom';
+import qwikDom from '@qwik.dev/dom';
 import { normalizeUrl } from './util';
 
 /**

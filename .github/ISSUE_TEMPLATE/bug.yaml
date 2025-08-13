@@ -17,7 +17,7 @@ body:
         - Qwik Rollup / Vite plugin
         - Qwik Optimizer (rust)
         - Qwik React
-        - Qwik City (routing)
+        - Qwik Router
         - Starters / CLI
         - Qwik Playground
     validations:
@@ -53,7 +53,7 @@ body:
     id: system-info
     attributes:
       label: System Info
-      description: Output of `npx envinfo --system --npmPackages '{vite,undici,typescript,@builder.io/*}' --binaries --browsers`
+      description: Output of `npx envinfo --system --npmPackages '{vite,typescript,@builder.io/*,@qwik.dev/*}' --binaries --browsers`
       render: shell
       placeholder: System, Binaries, Browsers
     validations:

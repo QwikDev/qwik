@@ -1,64 +1,55 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2329
+assertion_line: 2440
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
+import { component$, useStore } from '@qwik.dev/core';
 
 export const App = component$((props: Stuff) => {
-    return (
-        <>
-            <Cmp key="stuff"></Cmp>
-            <Cmp></Cmp>
-            <Cmp prop="23"></Cmp>
-            <Cmp prop="23" key={props.stuff}></Cmp>
-            <p key={props.stuff}>Hello Qwik</p>
-        </>
-    );
+	return (
+		<>
+			<Cmp key="stuff"></Cmp>
+			<Cmp></Cmp>
+			<Cmp prop="23"></Cmp>
+			<Cmp prop="23" key={props.stuff}></Cmp>
+			<p key={props.stuff}>Hello Qwik</p>
+		</>
+	);
 });
 
 ============================= test.js ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0"));
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0.js");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAUhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAUhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
-import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";
-import { _IMMUTABLE } from "@builder.io/qwik";
-import { _jsxC } from "@builder.io/qwik";
-import { _jsxQ } from "@builder.io/qwik";
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _jsxSorted } from "@qwik.dev/core";
 export const App_component_ckEPmXZlub0 = (props)=>{
-    return /*#__PURE__*/ _jsxC(_Fragment, {
-        children: [
-            /*#__PURE__*/ _jsxC(Cmp, null, 3, "stuff"),
-            /*#__PURE__*/ _jsxC(Cmp, null, 3, "u6_0"),
-            /*#__PURE__*/ _jsxC(Cmp, {
-                prop: "23",
-                [_IMMUTABLE]: {
-                    prop: _IMMUTABLE
-                }
-            }, 3, "u6_1"),
-            /*#__PURE__*/ _jsxC(Cmp, {
-                prop: "23",
-                [_IMMUTABLE]: {
-                    prop: _IMMUTABLE
-                }
-            }, 3, props.stuff),
-            /*#__PURE__*/ _jsxQ("p", null, null, "Hello Qwik", 3, props.stuff)
-        ]
-    }, 1, "u6_2");
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSorted(Cmp, null, null, null, 3, "stuff"),
+        /*#__PURE__*/ _jsxSorted(Cmp, null, null, null, 3, "u6_0"),
+        /*#__PURE__*/ _jsxSorted(Cmp, null, {
+            prop: "23"
+        }, null, 3, "u6_1"),
+        /*#__PURE__*/ _jsxSorted(Cmp, null, {
+            prop: "23"
+        }, null, 3, props.stuff),
+        /*#__PURE__*/ _jsxSorted("p", null, null, "Hello Qwik", 3, props.stuff)
+    ], 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG8B,CAAC;IAC3B,qBACI;;0BACI,MAAC,cAAQ;0BACT,MAAC;0BACD,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;;0BACT,MAAC;gBAAI,MAAK;;oBAAL,IAAI;;kBAAW,MAAM,KAAK;0BAC/B,MAAC,iBAAoB,iBAAb,MAAM,KAAK;;;AAG/B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B,CAAC;IAC9B,qBACC;sBACC,WAAC,0BAAQ;sBACT,WAAC;sBACD,WAAC;YAAI,MAAK;;sBACV,WAAC;YAAI,MAAK;oBAAU,MAAM,KAAK;sBAC/B,WAAC,iBAAoB,iBAAb,MAAM,KAAK;;AAGtB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -74,8 +65,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    90,
-    348
+    88,
+    283
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

@@ -1,0 +1,101 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4511
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props: any) => {
+			return <button {...props} onClick$={() => props.onClick$()}></button>;
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAEZ\"}")
+============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const test_component_button_onClick_DGk9xLyRokA = ()=>{
+    const [props] = useLexicalScope();
+    return props.onClick$();
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDAIuC;;WAAM,MAAM,QAAQ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_button_onClick_DGk9xLyRokA",
+  "entry": null,
+  "displayName": "test.tsx_test_component_button_onClick",
+  "hash": "DGk9xLyRokA",
+  "canonicalFilename": "test.tsx_test_component_button_onClick_DGk9xLyRokA",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    135,
+    157
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_DGk9xLyRokA = ()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA");
+export const test_component_LUXeXe0DQrg = (props)=>{
+    return /*#__PURE__*/ _jsxSplit("button", {
+        ..._getVarProps(props),
+        onClick$: /*#__PURE__*/ qrl(i_DGk9xLyRokA, "test_component_button_onClick_DGk9xLyRokA", [
+            props
+        ])
+    }, _getConstProps(props), null, 0, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAW;QAAO,QAAQ;;;sBAAf;AACpB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    173
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

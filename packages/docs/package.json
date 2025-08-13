@@ -2,15 +2,12 @@
   "name": "qwik-docs",
   "description": "Qwik Docs Site",
   "version": "0.0.1",
-  "author": "Builder.io Team",
+  "author": "Qwik Team",
   "bugs": "https://github.com/QwikDev/qwik",
   "devDependencies": {
     "@algolia/autocomplete-core": "1.7.4",
     "@algolia/client-search": "4.14.3",
-    "@builder.io/qwik": "workspace:^",
-    "@builder.io/qwik-city": "workspace:^",
-    "@builder.io/qwik-labs": "workspace:^",
-    "@builder.io/qwik-react": "workspace:^",
+    "@builder.io/qwik": "npm:@qwik.dev/core@*",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@modular-forms/qwik": "0.23.1",
@@ -18,7 +15,10 @@
     "@mui/system": "5.16.4",
     "@mui/x-data-grid": "6.20.4",
     "@qwik-ui/headless": "0.6.7",
+    "@qwik.dev/core": "workspace:*",
     "@qwik.dev/partytown": "0.11.2",
+    "@qwik.dev/react": "workspace:*",
+    "@qwik.dev/router": "workspace:*",
     "@shikijs/colorized-brackets": "3.9.1",
     "@shikijs/rehype": "3.9.1",
     "@shikijs/transformers": "3.9.1",
@@ -27,7 +27,7 @@
     "@tailwindcss/vite": "4.1.11",
     "@types/leaflet": "1.9.20",
     "@types/prismjs": "1.26.5",
-    "@types/react": "18.3.3",
+    "@types/react": "19.1.10",
     "@types/react-dom": "18.3.0",
     "@unpic/core": "0.0.42",
     "@unpic/qwik": "0.0.38",
@@ -49,7 +49,7 @@
     "tailwindcss": "4.1.11",
     "terser": "5.43.1",
     "tsm": "2.3.0",
-    "typescript": "5.4.5",
+    "typescript": "5.8.3",
     "undici": "*",
     "valibot": "0.33.3",
     "vite": "7.1.0",
@@ -58,7 +58,7 @@
     "wrangler": "3.65.1"
   },
   "engines": {
-    "node": ">=18.11",
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=8.6.12"
@@ -67,11 +67,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "qwik build",
+    "build": "pnpm build.repl-sw && qwik build",
     "build.client": "vite build",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
-    "build.repl-sw": "vite --config vite.config-repl-sw.mts build",
-    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config.mts",
+    "build.repl-sw": "vite --config vite.config-repl-sw build",
+    "build.server": "NODE_OPTIONS=--max-old-space-size=8192 vite build -c adapters/cloudflare-pages/vite.config",
     "build.showcase": "pnpm node scripts/showcase.js",
     "codesandbox.sync": "tsx codesandbox.sync.ts",
     "contributors": "tsx contributors.ts",
@@ -83,5 +83,6 @@
     "preview.only": "NODE_DEBUG=net,http node --inspect-brk ../../node_modules/vite/bin/vite.js preview",
     "preview.wrangler": "wrangler pages dev ./dist --compatibility-flags=nodejs_als",
     "start": "pnpm dev"
-  }
+  },
+  "type": "module"
 }

@@ -1,11 +1,11 @@
 import {
-  component$,
   $,
-  useStore,
+  component$,
   noSerialize,
   useSignal,
+  useStore,
   type Signal,
-} from "@builder.io/qwik";
+} from "@qwik.dev/core";
 
 export const LexicalScope = component$(() => {
   const signal = useSignal(0);
@@ -122,7 +122,7 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
     // eslint-disable-next-line
     console.assert(isNaN(nan));
 
-    rejected.catch((reason) => {
+    rejected.catch((reason) =>
       promise.then((promiseValue) => {
         state.result = JSON.stringify([
           a,
@@ -159,8 +159,8 @@ export const LexicalScopeChild = component$((props: LexicalScopeProps) => {
           JSON.stringify([...map.entries()]),
         ]);
         state.count++;
-      });
-    });
+      }),
+    );
   });
 
   return (

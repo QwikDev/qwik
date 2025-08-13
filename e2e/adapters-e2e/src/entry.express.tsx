@@ -7,18 +7,12 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import { createQwikCity, type PlatformNode } from '@builder.io/qwik-city/middleware/node';
+import { createQwikRouter } from '@qwik.dev/router/middleware/node';
 import 'dotenv/config';
-import qwikCityPlan from '@qwik-city-plan';
-import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 import express from 'express';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-
-declare global {
-  interface QwikCityPlatform extends PlatformNode {}
-}
 
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), '..', '..', 'dist');
@@ -28,10 +22,8 @@ const buildDir = join(distDir, 'build');
 const PORT = process.env.PORT ?? 3000;
 
 // Create the Qwik City Node middleware
-const { router, notFound } = createQwikCity({
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
-  manifest,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

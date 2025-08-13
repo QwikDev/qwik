@@ -1,0 +1,75 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4405
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { component$, useSignal } from '@qwik.dev/core';
+
+
+		export default component$(() => {
+		const toggle = useSignal(true);
+		const t = (key: string) => key;
+		return (
+			<button
+				type="button"
+				title={
+				toggle.value !== ''
+					? t('app.message.exists@@there is a message for you')
+					: t('app.message.not_exists@@click to get a message!')
+				}
+			></button>
+		);
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIE,6BAAe,6EAaZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+export const test_component_LUXeXe0DQrg = ()=>{
+    const toggle = useSignal(true);
+    const t = (key)=>key;
+    return /*#__PURE__*/ _jsxSorted("button", {
+        title: toggle.value !== '' ? t('app.message.exists@@there is a message for you') : t('app.message.not_exists@@click to get a message!')
+    }, {
+        type: "button"
+    }, null, 3, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;0CAI4B;IAC1B,MAAM,SAAS,UAAU;IACzB,MAAM,IAAI,CAAC,MAAgB;IAC3B,qBACC,WAAC;QAEA,OACA,OAAO,KAAK,KAAK,KACd,EAAE,oDACF,EAAE;;QAJL,MAAK;;AAQP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    90,
+    389
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

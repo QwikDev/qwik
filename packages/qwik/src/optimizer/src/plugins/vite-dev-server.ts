@@ -1,17 +1,10 @@
 /* eslint-disable no-console */
-import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { Render, RenderToStreamOptions } from '@qwik.dev/core/server';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import { SYNC_QRL } from '../../../core/qrl/qrl-class';
-import type {
-  OptimizerSystem,
-  Path,
-  ServerQwikManifest,
-  SymbolMapper,
-  SymbolMapperFn,
-} from '../types';
+import type { OptimizerSystem, Path, ServerQwikManifest } from '../types';
 import clickToComponent from './click-to-component.html?raw';
 import errorHost from './error-host.html?raw';
 import imageDevTools from './image-size-runtime.html?raw';
@@ -33,46 +26,6 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-function createSymbolMapper(base: string): SymbolMapperFn {
-  return (
-    symbolName: string,
-    _mapper: SymbolMapper | undefined,
-    parent: string | undefined
-  ): [string, string] => {
-    if (symbolName === SYNC_QRL) {
-      return [symbolName, ''];
-    }
-    if (!parent) {
-      console.error(
-        'qwik vite-dev-server symbolMapper: unknown qrl requested without parent:',
-        symbolName
-      );
-      return [symbolName, `${base}${symbolName}.js`];
-    }
-    // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
-    // It is always absolute but when on Windows that's without a /
-    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
-    return [symbolName, qrlFile];
-  };
-}
-
-let lazySymbolMapper: ReturnType<typeof createSymbolMapper> | null = null;
-/**
- * @alpha
- *   For a given symbol (QRL such as `onKeydown$`) the server needs to know which bundle the symbol is in.
- *
- *   Normally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.
- *
- *   This would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.
- */
-export let symbolMapper: ReturnType<typeof createSymbolMapper> = (symbolName, mapper, parent) => {
-  // This is a fallback in case the symbolMapper is copied early
-  if (lazySymbolMapper) {
-    return lazySymbolMapper(symbolName, mapper, parent);
-  }
-  throw new Error('symbolMapper not initialized');
-};
-
 export async function configureDevServer(
   base: string,
   server: ViteDevServer,
@@ -80,16 +33,10 @@ export async function configureDevServer(
   sys: OptimizerSystem,
   path: Path,
   isClientDevOnly: boolean,
-  clientDevInput: string | undefined,
-  devSsrServer: boolean
+  clientDevInput: string | undefined
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base);
-  if (!devSsrServer) {
-    // we just needed the symbolMapper
-    return;
-  }
-  const hasQwikCity = server.config.plugins?.some(
-    (plugin) => plugin.name === 'vite-plugin-qwik-city'
+  const hasQwikRouter = server.config.plugins?.some(
+    (plugin) => plugin.name === 'vite-plugin-qwik-router'
   );
 
   // to maintain css importers after HMR
@@ -104,12 +51,12 @@ export async function configureDevServer(
 
       if (shouldSsrRender(req, url)) {
         const { _qwikEnvData } = res as QwikViteDevResponse;
-        if (!_qwikEnvData && hasQwikCity) {
-          console.error(`not SSR rendering ${url} because Qwik City Env data did not populate`);
+        if (!_qwikEnvData && hasQwikRouter) {
+          console.error(`not SSR rendering ${url} because Qwik Router Env data did not populate`);
           res.statusCode ||= 404;
           res.setHeader('Content-Type', 'text/plain');
           res.writeHead(res.statusCode);
-          res.end('Not a SSR URL according to Qwik City');
+          res.end('Not a SSR URL according to Qwik Router');
           return;
         }
         const serverData: Record<string, any> = {
@@ -136,6 +83,14 @@ export async function configureDevServer(
         }
 
         const firstInput = opts.input && Object.values(opts.input)[0];
+        if (!firstInput) {
+          console.error(`no entry found for dev server`);
+          res.statusCode ||= 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.writeHead(res.statusCode);
+          res.end('No entry found for dev server');
+          return;
+        }
         const ssrModule = await server.ssrLoadModule(firstInput);
 
         const render: Render = ssrModule.default ?? ssrModule.render;
@@ -210,7 +165,6 @@ export async function configureDevServer(
             stream: res,
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
-            symbolMapper: isClientDevOnly ? undefined : symbolMapper,
             serverData,
             containerAttributes: { ...serverData.containerAttributes },
           };
@@ -400,7 +354,7 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (InternalPrefixRE.test(url.pathname)) {
     return false;
   }
-  if (pathname.includes('@builder.io/qwik/build')) {
+  if (pathname.includes('@qwik.dev/core/build')) {
     return false;
   }
   const acceptHeader = req.headers.accept || '';

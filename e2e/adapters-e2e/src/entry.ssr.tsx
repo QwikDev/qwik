@@ -9,27 +9,17 @@
  * - Npm run preview
  * - Npm run build
  */
-import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
-import { manifest } from '@qwik-client-manifest';
+import { createRenderer } from '@qwik.dev/router';
 import Root from './root';
 
-export default function (opts: RenderToStreamOptions) {
-  return renderToStream(<Root />, {
-    manifest,
+export default createRenderer((opts) => ({
+  jsx: <Root />,
+  options: {
     ...opts,
     // Use container attributes to set attributes on the html tag.
     containerAttributes: {
       lang: 'en-us',
       ...opts.containerAttributes,
     },
-    // prefetchStrategy: {
-    //   implementation: {
-    //     linkInsert: "html-append",
-    //     linkRel: "modulepreload",
-    //   },
-    // },
-    serverData: {
-      ...opts.serverData,
-    },
-  });
-}
+  },
+}));

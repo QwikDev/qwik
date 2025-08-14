@@ -10,7 +10,7 @@ import type { SsgOptions, SsgRenderOptions, SsgResult } from './types';
  */
 export async function generate(opts: SsgOptions) {
   const ssgPlatform = await getEntryModule();
-  const result: SsgResult = await ssgPlatform.generate(opts);
+  const result: SsgResult = (await ssgPlatform.generate(opts)) as any;
   return result;
 }
 
@@ -20,25 +20,14 @@ export type {
   SsgResult as StaticGenerateResult,
 };
 
-function getEntryModulePath() {
+function getEntryModule() {
   if (isDeno()) {
-    return './deno.mjs';
+    return import('./deno');
   }
-  if (isNode() || isBun()) {
-    if (isCjs()) {
-      return './node.cjs';
-    }
-    return './node.mjs';
+  if (isBun() || isNode()) {
+    return import('./node');
   }
   throw new Error(`Unsupported platform`);
-}
-
-function getEntryModule() {
-  const entryModule = getEntryModulePath();
-  if (isCjs()) {
-    return require(entryModule);
-  }
-  return import(entryModule);
 }
 
 function isDeno() {
@@ -51,11 +40,6 @@ function isBun() {
 
 function isNode() {
   return !isBun() && !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
-}
-
-function isCjs() {
-  const req = 'require';
-  return isNode() && typeof globalThis[req] === 'function';
 }
 
 declare const Deno: any;

@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-perf: remove a grace period before unregistering events from qwikloader
+INFRA: remove a grace period before unregistering events from qwikloader

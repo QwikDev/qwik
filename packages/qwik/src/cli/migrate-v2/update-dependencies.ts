@@ -79,7 +79,7 @@ export async function installTsMorph() {
   }
   const loading = spinner();
   loading.start('Fetching migration tools..');
-  (packageJson.devDependencies ??= {})['ts-morph'] = 'latest';
+  (packageJson.devDependencies ??= {})['ts-morph'] = '23';
   await writePackageJson(process.cwd(), packageJson);
   await runInstall();
   loading.stop('Migration tools have been loaded');

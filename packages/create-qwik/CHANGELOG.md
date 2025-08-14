@@ -1,5 +1,15 @@
 # create-qwik
 
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 fix up TypeScript compatibility in the localize starter (by [@FDiskas](https://github.com/FDiskas) in [#7617](https://github.com/QwikDev/qwik/pull/7617))
+
 ## 1.15.0
 
 ### Patch Changes

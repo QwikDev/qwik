@@ -1,5 +1,19 @@
 # @builder.io/qwik-city
 
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 Keeping the service worker components now properly unregisters them. (by [@maiieul](https://github.com/maiieul) in [#7781](https://github.com/QwikDev/qwik/pull/7781))
+
+- 🐞🩹 redirects no longer take their parent layout's Cache-Control value by default and are instead set to `no-store`. This prevents issues in redirection logic. We might introduce another API to enable caching redirects in the future. (by [@maiieul](https://github.com/maiieul) in [#7811](https://github.com/QwikDev/qwik/pull/7811))
+
+- 🐞🩹 Keeping the service worker components now also removes their associated Cache storage. (by [@maiieul](https://github.com/maiieul) in [#7782](https://github.com/QwikDev/qwik/pull/7782))
+
 ## 1.15.0
 
 ### Minor Changes

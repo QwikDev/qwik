@@ -559,7 +559,7 @@ test.describe("signals", () => {
       );
     });
 
-    test.skip("createSignal/createComputed$", async ({ page }) => {
+    test.only("createSignal/createComputed$", async ({ page }) => {
       const button = page.locator("#many-signals-button");
       const result = page.locator("#many-signals-result");
       // TODO createComputed$

@@ -11,8 +11,9 @@ import {
   useStore,
   type ResourceReturn,
 } from '@qwik.dev/core';
-import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
+import { ChoreType } from '../shared/util-chore-type';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -21,8 +22,7 @@ export function mutable(value: any) {
   return value;
 }
 
-// TODO: for now
-describe.skip.each([
+describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
 ])('$render.name: useResource', ({ render }) => {
@@ -127,7 +127,7 @@ describe.skip.each([
       </Component>
     );
 
-    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
@@ -140,7 +140,7 @@ describe.skip.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await getTestPlatform().flush();
+    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -196,7 +196,7 @@ describe.skip.each([
         </Fragment>
       </Component>
     );
-    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -215,7 +215,7 @@ describe.skip.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await getTestPlatform().flush();
+    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -276,10 +276,10 @@ describe.skip.each([
       </Component>
     );
     // double click
-    await trigger(container.element, 'button', 'click');
-    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
     await (global as any).delay.resolve();
-    await getTestPlatform().flush();
+    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>

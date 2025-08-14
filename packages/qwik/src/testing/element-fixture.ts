@@ -84,8 +84,10 @@ export async function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
   eventName: string,
-  eventPayload: any = {}
+  eventPayload: any = {},
+  options?: { waitForIdle?: boolean }
 ): Promise<void> {
+  const waitForIdle = options?.waitForIdle ?? true;
   const elements =
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
@@ -119,7 +121,7 @@ export async function trigger(
   }
   const waitForQueueChore = container?.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
   await getTestPlatform().flush();
-  if (waitForQueueChore) {
+  if (waitForIdle && waitForQueueChore) {
     await waitForQueueChore.$returnValue$;
   }
 }

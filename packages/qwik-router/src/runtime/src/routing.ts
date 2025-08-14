@@ -11,7 +11,7 @@ import {
   RouteDataProp,
   type RouteModule,
 } from './types';
-import { deepFreeze } from './utils';
+import { deepFreeze } from './deepFreeze';
 
 /** LoadRoute() runs in both client and server. */
 export const loadRoute = async (

@@ -1,4 +1,3 @@
-import { basePathname } from '@qwik-router-config';
 import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs, { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -39,7 +38,7 @@ export function netlifyEdgeAdapter(opts: NetlifyEdgeAdapterOptions = {}): any {
       };
     },
 
-    async generate({ serverOutDir }) {
+    async generate({ serverOutDir, basePathname }) {
       if (opts.functionRoutes !== false) {
         // https://docs.netlify.com/edge-functions/create-integration/#generate-declarations
 

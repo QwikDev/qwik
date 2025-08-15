@@ -11,7 +11,7 @@ export function createRoutes(
   isSSR: boolean
 ) {
   const includeEndpoints = isSSR;
-  const dynamicImports = ctx.target === 'client';
+  const dynamicImports = ctx.dynamicImports;
 
   if (ctx.layouts.length > 0) {
     c.push(`\n/** Qwik Router Layouts (${ctx.layouts.length}) */`);

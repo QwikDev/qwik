@@ -24,7 +24,7 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
     // this will throw if CF compatibility_date < 2022-11-30
     new globalThis.TextEncoderStream();
   } catch {
-    globalThis.TextEncoderStream = _TextEncoderStream_polyfill;
+    globalThis.TextEncoderStream = _TextEncoderStream_polyfill as any;
   }
   if (opts.manifest) {
     setServerPlatform(opts.manifest);

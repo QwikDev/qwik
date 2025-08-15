@@ -56,6 +56,7 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
     mdxPlugins?: MdxPlugins;
     // (undocumented)
     platform?: Record<string, unknown>;
+    staticImportRoutes?: boolean;
 }
 
 // (No @packageDocumentation comment for this package)

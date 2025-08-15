@@ -12,8 +12,7 @@ export interface BuildContext {
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client' | undefined;
-  isDevServer: boolean;
-  isDevServerClientOnly: boolean;
+  dynamicImports: boolean;
   isDirty: boolean;
   activeBuild: Promise<void> | null;
 }

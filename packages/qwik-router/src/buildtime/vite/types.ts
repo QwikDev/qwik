@@ -32,6 +32,8 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
   mdx?: MdxOptions;
   platform?: Record<string, unknown>;
   imageOptimization?: ImageOptimizationOptions;
+  /** Whether to use static imports for route modules (layout and index files). Defaults to `false`. */
+  staticImportRoutes?: boolean;
 }
 
 /** @public */

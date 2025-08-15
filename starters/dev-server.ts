@@ -327,7 +327,6 @@ function favicon(_: Request, res: Response) {
 }
 
 async function main() {
-  (globalThis as any).__qwik_testing = true;
   const partytownPath = resolve(
     startersDir,
     "..",

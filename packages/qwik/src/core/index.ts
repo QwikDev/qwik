@@ -2,7 +2,7 @@
 // Protect against duplicate imports
 //////////////////////////////////////////////////////////////////////////////////////////
 import { version } from './version';
-if ((globalThis as any).__qwik && !(globalThis as any).__qwik_testing) {
+if ((globalThis as any).__qwik) {
   throw new Error(
     `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}. Verify external vs bundled imports etc.`
   );

@@ -13,11 +13,6 @@
       "pinVersion": "1.47.0"
     },
     {
-      "label": "Undici should always be * until we remove it",
-      "dependencies": ["undici"],
-      "range": "*"
-    },
-    {
       "label": "use exact version numbers for devDependencies",
       "dependencyTypes": ["dev"],
       "range": ""

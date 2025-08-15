@@ -23,7 +23,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
   }
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
-  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
+  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill as any;
 
   if (opts.manifest) {
     setServerPlatform(opts.manifest);

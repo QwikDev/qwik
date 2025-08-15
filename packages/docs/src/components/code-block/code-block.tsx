@@ -31,8 +31,8 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
         // These need the Prism global that prismjs provides
         // We lazy import so we're sure about the order of the imports
         await Promise.all([
-          import('prismjs/components/prism-jsx'),
-          import('prismjs/components/prism-tsx'),
+          import('prismjs/components/prism-jsx.js' as any),
+          import('prismjs/components/prism-tsx.js' as any),
         ]);
       });
     }
@@ -69,8 +69,12 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
             : undefined;
   }
 
-  if (language && prismjs.languages[language]) {
-    const highlighted = prismjs.highlight(props.code, prismjs.languages[language], language);
+  if (language && holder.prismjs?.languages[language]) {
+    const highlighted = holder.prismjs.highlight(
+      props.code,
+      holder.prismjs.languages[language],
+      language
+    );
     const className = `language-${language}`;
     return (
       <div class="relative">

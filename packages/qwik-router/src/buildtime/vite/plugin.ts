@@ -1,5 +1,7 @@
 import swRegister from '@qwik-router-sw-register-build';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
+import type { Render } from '@qwik.dev/core/server';
+import type { DocumentHeadValue, RendererOptions, RendererOutputOptions } from '@qwik.dev/router';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
@@ -13,7 +15,6 @@ import { generateQwikRouterEntries } from '../runtime-generation/generate-entrie
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
@@ -22,6 +23,7 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
+import { formatError } from './format-error';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
@@ -103,6 +105,12 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             QWIK_ROUTER_SW_REGISTER,
           ],
         },
+        server: {
+          watch: {
+            // needed for recursive watching of index and layout files in the src/routes directory
+            disableGlobbing: false,
+          },
+        },
       };
       return updatedViteConfig;
     },
@@ -113,10 +121,13 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
 
-      ctx = createBuildContext(rootDir!, config.base, userOpts, target);
-
-      ctx.isDevServer = config.command === 'serve' && config.mode !== 'production';
-      ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
+      ctx = createBuildContext(
+        rootDir!,
+        config.base,
+        userOpts,
+        target,
+        !userOpts?.staticImportRoutes
+      );
 
       await validatePlugin(ctx.opts);
 
@@ -137,20 +148,145 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       outDir = config.build?.outDir;
     },
 
-    configureServer(server) {
-      // this callback is run after the vite middlewares are registered
+    async configureServer(server) {
+      // recursively watch all route files in the src/routes directory
+      const toWatch = resolve(
+        rootDir!,
+        'src/routes/**/{index,layout,entry,service-worker}{.,@,-}*'
+      );
+      server.watcher.add(toWatch);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      server.watcher.on('change', (path) => {
+        // If the path is not an index or layout file, skip
+        if (!/\/(index[.@]|layout[.-]|entry\.|service-worker\.)[^/]*$/.test(path)) {
+          return;
+        }
+        // Invalidate the router config
+        ctx!.isDirty = true;
+        const graph = server.environments?.ssr?.moduleGraph;
+        if (graph) {
+          const mod = graph.getModuleById('@qwik-router-config');
+          if (mod) {
+            graph.invalidateModule(mod);
+          }
+        }
+      });
+
       return () => {
-        if (!ctx) {
-          throw new Error('configureServer: Missing ctx from configResolved');
-        }
-        if (!ctx.isDevServer) {
-          // preview server: serve static files from the dist directory
-          server.middlewares.use(staticDistMiddleware(server));
-        }
-        // qwik router middleware injected BEFORE vite internal middlewares
-        // and BEFORE @qwik.dev/core/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
+        // this hits only when Vite hasn't handled client assets
+        server.middlewares.use(async (req, res, next) => {
+          // TODO more flexible entry points, like importing `render` from `src/server`
+          const mod = (await server.ssrLoadModule('src/entry.ssr')) as { default: Render };
+          if (!mod.default) {
+            console.error('No default export found in src/entry.ssr');
+            return next();
+          }
+          if (ctx!.isDirty) {
+            await build(ctx!);
+            ctx!.isDirty = false;
+          }
+
+          // entry.ts files
+          const entry = ctx!.entries.find(
+            (e) => req.url === `${server.config.base}${e.chunkFileName}`
+          );
+          if (entry) {
+            const entryContents = await server.transformRequest(
+              `/@fs${entry.filePath.startsWith('/') ? '' : '/'}${entry.filePath}`
+            );
+
+            if (entryContents) {
+              res.setHeader('Content-Type', 'text/javascript');
+              res.end(entryContents.code);
+            } else {
+              next();
+            }
+            return;
+          }
+          // in dev mode, serve a placeholder service worker
+          if (req.url === `${server.config.base}service-worker.js`) {
+            res.setHeader('Content-Type', 'text/javascript');
+            res.end(
+              `/* Qwik Router Dev Service Worker */` +
+                `self.addEventListener('install', () => self.skipWaiting());` +
+                `self.addEventListener('activate', (ev) => ev.waitUntil(self.clients.claim()));`
+            );
+            return;
+          }
+
+          const documentHead: DocumentHeadValue = {
+            // Vite normally injects these
+            links: [...server.moduleGraph.idToModuleMap.keys()]
+              .filter((id) => id.endsWith('.css'))
+              .map((id) => {
+                const { url } = server.moduleGraph.idToModuleMap.get(id)!;
+                return {
+                  key: id,
+                  rel: 'stylesheet',
+                  href: url,
+                };
+              }),
+            scripts: [
+              {
+                key: 'vite-dev-client',
+                props: {
+                  type: 'module',
+                  src: '/@vite/client',
+                },
+              },
+            ],
+          };
+
+          // Grab tags from other plugins
+          const fakeHTML = '<!DOCTYPE html><html><head>HEAD</head><body>BODY</body></html>';
+          for (const plugin of server.config.plugins) {
+            const handler =
+              (plugin.transformIndexHtml as any)?.handler || plugin.transformIndexHtml;
+            if (typeof handler === 'function') {
+              const result = await (handler(fakeHTML, {}) as ReturnType<
+                Extract<Plugin['transformIndexHtml'], Function>
+              >);
+              if (result) {
+                if (typeof result === 'string' || 'html' in result) {
+                  console.warn(
+                    'plugin',
+                    plugin.name,
+                    'returned a string for transformIndexHtml, which is not supported by qwik-router'
+                  );
+                } else {
+                  // TODO add these tags to the document
+                  console.warn('not implemented yet: adding these tags to the document', result);
+                }
+              }
+            }
+          }
+
+          const render = (async (opts: RendererOptions) => {
+            return await mod.default({
+              ...opts,
+              serverData: { ...opts.serverData, documentHead },
+            } as RendererOutputOptions as any);
+          }) as Render;
+
+          const { createQwikRouter } = (await server.ssrLoadModule(
+            '@qwik.dev/router/middleware/node'
+          )) as typeof import('@qwik.dev/router/middleware/node');
+          try {
+            const { router, staticFile, notFound } = createQwikRouter({ render });
+            staticFile(req, res, () => {
+              router(req, res, () => {
+                notFound(req, res, next);
+              });
+            });
+          } catch (e: any) {
+            if (e instanceof Error) {
+              server.ssrFixStacktrace(e);
+              formatError(e);
+            }
+            next(e);
+            return;
+          }
+        });
       };
     },
 
@@ -161,7 +297,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     resolveId(id) {
       if (id === QWIK_ROUTER_CONFIG_ID || id === QWIK_ROUTER_ENTRIES_ID) {
         return {
-          id: join(rootDir!, id),
+          id,
           // user entries added in the routes, like src/routes/service-worker.ts
           // are added as dynamic imports to the qwik-router-config as a way to create
           // a new entry point for the build. Ensure these are not treeshaken.
@@ -169,7 +305,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         };
       }
       if (id === QWIK_ROUTER_SW_REGISTER) {
-        return join(rootDir!, id);
+        return id;
       }
       return null;
     },
@@ -183,7 +319,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
         const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
-          if (!ctx.isDevServer && ctx.isDirty) {
+          if (ctx.isDirty) {
             await build(ctx);
 
             ctx.isDirty = false;
@@ -276,7 +412,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr' && !ctx?.isDevServer && outDir) {
+        if (ctx?.target === 'ssr' && outDir) {
           await generateServerPackageJson(outDir, ssrFormat);
         }
       },

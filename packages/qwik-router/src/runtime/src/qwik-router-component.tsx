@@ -26,6 +26,8 @@ import {
   type _ElementVNode,
   type AsyncComputedReadonlySignal,
   type SerializationStrategy,
+  forceStoreEffects,
+  _hasStoreEffects,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
@@ -156,15 +158,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   }
 
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>(
-    {
-      url,
-      params: env.params,
-      isNavigating: false,
-      prevUrl: undefined,
-    },
-    { deep: false }
-  );
+  const routeLocationTarget: MutableRouteLocation = {
+    url,
+    params: env.params,
+    isNavigating: false,
+    prevUrl: undefined,
+  };
+  const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void } = {};
   const container = _getContextContainer();
   const getSerializationStrategy = (loaderId: string): SerializationStrategy => {
@@ -470,14 +470,30 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (navigation.dest.search && !!isSamePath(trackUrl, prevUrl)) {
           trackUrl.search = navigation.dest.search;
         }
-
+        let shouldForcePrevUrl = false;
+        let shouldForceUrl = false;
+        let shouldForceParams = false;
         // Update route location
         if (!isSamePath(trackUrl, prevUrl)) {
-          routeLocation.prevUrl = prevUrl;
+          if (_hasStoreEffects(routeLocation, 'prevUrl')) {
+            shouldForcePrevUrl = true;
+          }
+          routeLocationTarget.prevUrl = prevUrl;
         }
 
-        routeLocation.url = trackUrl;
-        routeLocation.params = { ...params };
+        if (routeLocationTarget.url !== trackUrl) {
+          if (_hasStoreEffects(routeLocation, 'url')) {
+            shouldForceUrl = true;
+          }
+          routeLocationTarget.url = trackUrl;
+        }
+
+        if (routeLocationTarget.params !== params) {
+          if (_hasStoreEffects(routeLocation, 'params')) {
+            shouldForceParams = true;
+          }
+          routeLocationTarget.params = params;
+        }
 
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
@@ -746,6 +762,15 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               callRestoreScrollOnDocument();
             }
 
+            if (shouldForcePrevUrl) {
+              forceStoreEffects(routeLocation, 'prevUrl');
+            }
+            if (shouldForceUrl) {
+              forceStoreEffects(routeLocation, 'url');
+            }
+            if (shouldForceParams) {
+              forceStoreEffects(routeLocation, 'params');
+            }
             routeLocation.isNavigating = false;
             navResolver.r?.();
           });

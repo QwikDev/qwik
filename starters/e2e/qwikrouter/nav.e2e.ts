@@ -535,6 +535,38 @@ test.describe("nav", () => {
 
       await expect(page.locator("#redirected-result")).toHaveText("true");
     });
+
+    test("should not execute task from removed layout, and should be executed only once for SPA", async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      let logCounter = 0;
+      page.on("console", (msg) => {
+        if (msg.type() === "error") {
+          expect(msg.text()).toEqual(undefined);
+        } else if (msg.type() === "log") {
+          if (msg.text().includes("location path id")) {
+            logCounter++;
+          }
+        }
+      });
+      await page.goto("/qwikrouter-test/location-path");
+      await expect(page.locator("h1")).toHaveText("Location Path Root");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/");
+      await page.locator("#location-path-link").click();
+      await expect(page.locator("h1")).toHaveText("Location Path id");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/1/");
+      await page.locator("#location-path-link-root").click();
+      await expect(page.locator("h1")).toHaveText("Location Path Root");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/");
+      if (javaScriptEnabled) {
+        // should log on browser only in CSR
+        expect(logCounter).toBe(1);
+      } else {
+        // should not log in MPA, it is executed on server
+        expect(logCounter).toBe(0);
+      }
+    });
   }
 });
 

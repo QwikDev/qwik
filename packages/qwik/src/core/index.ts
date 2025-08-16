@@ -98,7 +98,7 @@ export type { SerializationStrategy } from './shared/types';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, unwrapStore } from './use/use-store.public';
+export { useStore, unwrapStore, forceStoreEffects } from './use/use-store.public';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';

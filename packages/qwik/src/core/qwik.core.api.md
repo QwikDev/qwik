@@ -325,6 +325,11 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 // @internal (undocumented)
 export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignalImpl<any>;
 
+// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void;
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -375,6 +380,9 @@ export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> 
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal (undocumented)
+export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
@@ -438,8 +446,6 @@ export interface ISsrComponentFrame {
     scopedStyleIds: Set<string>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _isStore: (value: StoreTarget) => boolean;
 

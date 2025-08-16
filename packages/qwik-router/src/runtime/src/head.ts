@@ -37,9 +37,10 @@ export const resolveHead = (
     }
     return data;
   }) as any as ResolveSyncValue;
+  const storeEv = (globalThis as any).qcAsyncRequestStore?.getStore?.();
   const headProps: DocumentHeadProps = {
     head,
-    withLocale: (fn) => withLocale(locale, fn),
+    withLocale: (fn) => (storeEv ? fn() : withLocale(locale, fn)),
     resolveValue: getData,
     ...routeLocation,
   };
@@ -50,7 +51,9 @@ export const resolveHead = (
       if (typeof contentModuleHead === 'function') {
         resolveDocumentHead(
           head,
-          withLocale(locale, () => contentModuleHead(headProps))
+          storeEv
+            ? contentModuleHead(headProps)
+            : withLocale(locale, () => contentModuleHead(headProps))
         );
       } else if (typeof contentModuleHead === 'object') {
         resolveDocumentHead(head, contentModuleHead);

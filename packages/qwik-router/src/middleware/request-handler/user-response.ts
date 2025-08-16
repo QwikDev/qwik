@@ -13,6 +13,7 @@ import {
 } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import { withLocale } from '@qwik.dev/core';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
@@ -63,9 +64,11 @@ export function runQwikRouter<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion: withLocale(requestEv.locale(), () =>
+      asyncStore
+        ? asyncStore.run(requestEv, () => runNext(requestEv, rebuildRouteInfo, resolve!))
+        : runNext(requestEv, rebuildRouteInfo, resolve!)
+    ),
   };
 }
 

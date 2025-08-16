@@ -135,6 +135,7 @@ import { type ValueOrPromise } from './utils/types';
 import { invoke, newInvokeContext } from '../use/use-core';
 import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 import { createNextTick } from './platform/next-tick';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -644,19 +645,27 @@ export const createScheduler = (
             | StoreHandler;
 
           const effects = chore.$payload$ as Set<EffectSubscription>;
-          if (!target.$effects$?.size) {
+          if (!effects?.size) {
             break;
           }
 
-          if (target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl) {
+          let shouldCompute =
+            target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl;
+          if (target instanceof AsyncComputedSignalImpl && effects !== target.$effects$) {
+            shouldCompute = false;
+          }
+
+          if (shouldCompute) {
             const ctx = newInvokeContext();
             ctx.$container$ = container;
             // needed for computed signals and throwing QRLs
             returnValue = maybeThen(
-              retryOnPromise(() => invoke.call(target, ctx, target.$computeIfNeeded$)),
+              retryOnPromise(() =>
+                invoke.call(target, ctx, (target as ComputedSignalImpl<unknown>).$computeIfNeeded$)
+              ),
               () => {
-                if (target.$flags$ & SignalFlags.RUN_EFFECTS) {
-                  target.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+                if ((target as ComputedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
+                  (target as ComputedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
                   return retryOnPromise(() => triggerEffects(container, target, effects));
                 }
               }
@@ -737,12 +746,14 @@ export const createScheduler = (
       return 1;
     }
 
-    // TODO: this is a hack to ensure that the effect chores are scheduled for the same target
+    // ensure that the effect chores are scheduled for the same target
+    // TODO: can we do this better?
     if (
       a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
       b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
-      a.$target$ instanceof StoreHandler &&
-      b.$target$ instanceof StoreHandler &&
+      ((a.$target$ instanceof StoreHandler && b.$target$ instanceof StoreHandler) ||
+        (a.$target$ instanceof AsyncComputedSignalImpl &&
+          b.$target$ instanceof AsyncComputedSignalImpl)) &&
       a.$payload$ !== b.$payload$
     ) {
       return 1;

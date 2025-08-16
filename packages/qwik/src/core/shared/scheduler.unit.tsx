@@ -45,7 +45,7 @@ describe('scheduler', () => {
   let blockedChores: Set<Chore>;
 
   async function waitForDrain() {
-    const chore = scheduler.schedule(ChoreType.WAIT_FOR_QUEUE);
+    const chore = scheduler(ChoreType.WAIT_FOR_QUEUE);
     getTestPlatform().flush();
     await chore.$returnValue$;
   }
@@ -81,12 +81,9 @@ describe('scheduler', () => {
   });
 
   it('should execute sort tasks', async () => {
-    scheduler.schedule(
-      ChoreType.TASK,
-      mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) })
-    );
-    scheduler.schedule(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
-    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { index: 2, qrl: $(() => testLog.push('b1.2')) }));
+    scheduler(ChoreType.TASK, mockTask(vAHost, { qrl: $(() => testLog.push('a1')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
     await waitForDrain();
     expect(testLog).toEqual([
       'a1', // DepthFirst a host component is before b host component.
@@ -96,15 +93,12 @@ describe('scheduler', () => {
     ]);
   });
   it('should execute visible tasks after journal flush', async () => {
-    scheduler.schedule(
+    scheduler(
       ChoreType.TASK,
       mockTask(vBHost2, { index: 2, qrl: $(() => testLog.push('b2.2: Task')) })
     );
-    scheduler.schedule(
-      ChoreType.TASK,
-      mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) })
-    );
-    scheduler.schedule(
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0: Task')) }));
+    scheduler(
       ChoreType.VISIBLE,
       mockTask(vBHost2, {
         index: 2,
@@ -112,7 +106,7 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler.schedule(
+    scheduler(
       ChoreType.VISIBLE,
       mockTask(vBHost1, {
         qrl: $(() => {
@@ -121,7 +115,7 @@ describe('scheduler', () => {
         visible: true,
       })
     );
-    scheduler.schedule(
+    scheduler(
       ChoreType.COMPONENT,
       vBHost1 as HostElement,
       $(() => testLog.push('b1: Render')) as unknown as QRLInternal<OnRenderFn<unknown>>,
@@ -143,14 +137,14 @@ describe('scheduler', () => {
   });
 
   it('should execute chore', async () => {
-    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
     await waitForDrain();
     expect(testLog).toEqual(['b1.0', 'journalFlush']);
   });
 
   it('should execute chore with promise', async () => {
     vi.useFakeTimers();
-    scheduler.schedule(
+    scheduler(
       ChoreType.TASK,
       mockTask(vBHost1, {
         qrl: $(
@@ -171,23 +165,20 @@ describe('scheduler', () => {
   });
 
   it('should execute multiple chores', async () => {
-    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
-    scheduler.schedule(
-      ChoreType.TASK,
-      mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')), index: 1 })
-    );
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')), index: 1 }));
     await waitForDrain();
     expect(testLog).toEqual(['b1.0', 'b1.1', 'journalFlush']);
   });
 
   it('should execute chore with promise and schedule blocked vnode-diff chores', async () => {
-    scheduler.schedule(
+    scheduler(
       ChoreType.COMPONENT,
       vBHost1 as HostElement,
       $(() => testLog.push('component')) as unknown as QRLInternal<OnRenderFn<unknown>>,
       {}
     );
-    scheduler.schedule(
+    scheduler(
       ChoreType.NODE_DIFF,
       vBHost1 as HostElement,
       vBHost1 as HostElement,
@@ -205,9 +196,9 @@ describe('scheduler', () => {
   });
 
   it('should execute chores in two ticks', async () => {
-    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.0')) }));
     await waitForDrain();
-    scheduler.schedule(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')) }));
+    scheduler(ChoreType.TASK, mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')) }));
     await waitForDrain();
     expect(testLog).toEqual(['b1.0', 'journalFlush', 'b1.1', 'journalFlush']);
   });
@@ -215,7 +206,7 @@ describe('scheduler', () => {
   it('should not go into infinity loop on thrown promise', async () => {
     (globalThis as any).executionCounter = vi.fn();
 
-    scheduler.schedule(
+    scheduler(
       ChoreType.COMPONENT,
       vBHost1 as HostElement,
       $(() => {
@@ -234,7 +225,7 @@ describe('scheduler', () => {
 
   it('should not go into infinity loop on thrown promise', async () => {
     (globalThis as any).counter = 0;
-    scheduler.schedule(
+    scheduler(
       ChoreType.COMPONENT,
       vBHost1 as HostElement,
       $(() => {
@@ -258,9 +249,9 @@ describe('scheduler', () => {
 
     vnode_setProp(vBHost1, ELEMENT_SEQ, [task1, task2, task3]);
 
-    scheduler.schedule(ChoreType.TASK, task1);
-    scheduler.schedule(ChoreType.TASK, task2);
-    scheduler.schedule(ChoreType.TASK, task3);
+    scheduler(ChoreType.TASK, task1);
+    scheduler(ChoreType.TASK, task2);
+    scheduler(ChoreType.TASK, task3);
     // schedule only first task
     expect(choreQueue.length).toBe(1);
     // block the rest

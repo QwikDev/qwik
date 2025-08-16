@@ -232,5 +232,5 @@ export const scheduleTask = (_event: Event, element: Element) => {
   const [task] = useLexicalScope<[Task]>();
   const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
   const container = getDomContainer(element);
-  container.$scheduler$.schedule(type, task);
+  container.$scheduler$(type, task);
 };

@@ -286,7 +286,7 @@ export const _waitUntilRendered = (elm: Element) => {
   // across an extra microtask, which signals that no new work re-scheduled.
   return (async () => {
     for (;;) {
-      await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+      await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
       const firstEpoch = container.$flushEpoch$ || 0;
       // Give a microtask for any immediate follow-up scheduling to enqueue

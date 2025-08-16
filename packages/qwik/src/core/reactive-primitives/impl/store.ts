@@ -108,7 +108,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 
   force(prop: keyof StoreTarget): void {
     const target = getStoreTarget(this)!;
-    this.$container$?.$scheduler$?.schedule(
+    this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       null,
       this,
@@ -198,7 +198,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (!Array.isArray(target)) {
       // If the target is an array, we don't need to trigger effects.
       // Changing the length property will trigger effects.
-      this.$container$?.$scheduler$.schedule(
+      this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,
@@ -290,7 +290,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   (target as any)[prop] = value;
   const effects = getEffects(target, prop, currentStore.$effects$);
   if (effects) {
-    currentStore.$container$?.$scheduler$?.schedule(
+    currentStore.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       null,
       currentStore,

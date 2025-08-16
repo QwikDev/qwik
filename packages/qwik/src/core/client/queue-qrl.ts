@@ -31,6 +31,6 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   }
 
   // We don't return anything, the scheduler is in charge now
-  const chore = scheduler.schedule(ChoreType.RUN_QRL, hostElement, runQrl, args);
+  const chore = scheduler(ChoreType.RUN_QRL, hostElement, runQrl, args);
   return getChorePromise(chore);
 };

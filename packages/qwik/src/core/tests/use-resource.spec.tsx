@@ -140,7 +140,7 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -215,7 +215,7 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -279,7 +279,7 @@ describe.each([
     await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
     await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
     await (global as any).delay.resolve();
-    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>

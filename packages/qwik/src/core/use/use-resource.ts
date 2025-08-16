@@ -13,7 +13,6 @@ import { StoreFlags } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { assertDefined } from '../shared/error/assert';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { ChoreType } from '../shared/util-chore-type';
 import { ResourceEvent } from '../shared/utils/markers';
 import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
 import { isObject } from '../shared/utils/types';
@@ -106,8 +105,8 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  container.$scheduler$(ChoreType.TASK, task);
   set(resource);
+  runResource(task, container, el);
 
   return resource;
 };
@@ -186,10 +185,10 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   if (isResourceReturn(resource)) {
+    // create a subscription for the resource._state changes
+    const state = resource._state;
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      // create a subscription for the resource._state changes
-      const state = resource._state;
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
@@ -204,16 +203,10 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    const value = resource.value;
-    if (value) {
-      return value.then(
-        useBindInvokeContext(props.onResolved),
-        useBindInvokeContext(props.onRejected)
-      );
-    } else {
-      // this is temporary value until the `runResource` is executed and promise is assigned to the value
-      return Promise.resolve(undefined);
-    }
+    return untrack(() => resource.value).then(
+      useBindInvokeContext(props.onResolved),
+      useBindInvokeContext(props.onRejected)
+    );
   } else if (isPromise(resource)) {
     return resource.then(
       useBindInvokeContext(props.onResolved),
@@ -232,7 +225,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     value: undefined as never,
-    loading: isServerPlatform() ? false : true,
+    loading: !isServerPlatform(),
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',
@@ -339,19 +332,19 @@ export const runResource = <T>(
   });
 
   // Execute mutation inside empty invocation
+  // TODO: is it right? why we need to invoke inside context and trigger effects?
   invoke(iCtx, () => {
     // console.log('RESOURCE.pending: ');
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
-    const promise = (resource.value = new Promise((r, re) => {
+    resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
-    }));
-    promise.catch(ignoreErrorToPreventNodeFromCrashing);
+    });
   });
 
   const promise: ValueOrPromise<void> = safeCall(
-    () => Promise.resolve(taskFn(opts)),
+    () => taskFn(opts),
     (value) => {
       setState(true, value);
     },
@@ -376,9 +369,4 @@ export const runResource = <T>(
     ]);
   }
   return promise;
-};
-
-const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
-  // ignore error to prevent node from crashing
-  // node will crash in promise is rejected and no one is listening to the rejection.
 };

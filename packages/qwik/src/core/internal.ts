@@ -5,7 +5,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
-export { queueQRL as _run } from './client/queue-qrl';
+export { _run } from './client/queue-qrl';
 export type {
   ContainerElement as _ContainerElement,
   ElementVNode as _ElementVNode,
@@ -37,6 +37,7 @@ export {
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
 export { _EFFECT_BACK_REF } from './reactive-primitives/types';
+export { _hasStoreEffects } from './reactive-primitives/impl/store';
 export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,

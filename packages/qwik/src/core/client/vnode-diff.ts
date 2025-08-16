@@ -105,6 +105,7 @@ import { EffectProperty } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { _CONST_PROPS, _VAR_PROPS } from '../internal';
+import { isSyncQrl } from '../shared/qrl/qrl-utils';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -182,6 +183,12 @@ export const vnode_diff = (
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
     stackPush(jsxNode, true);
+
+    if (vParent[VNodeProps.flags] & VNodeFlags.Deleted) {
+      // Ignore diff if the parent is deleted.
+      return;
+    }
+
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         assertFalse(vParent === vCurrent, "Parent and current can't be the same");
@@ -774,13 +781,17 @@ export const vnode_diff = (
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = container.$scheduler$(
-                ChoreType.RUN_QRL,
-                vNode,
-                qrl as QRLInternal<(...args: unknown[]) => unknown>,
-                [event, element]
-              ) as unknown;
-              returnValue = returnValue || value === true;
+              if (isSyncQrl(qrl)) {
+                qrl(event, element);
+              } else {
+                const value = container.$scheduler$(
+                  ChoreType.RUN_QRL,
+                  vNode,
+                  qrl as QRLInternal<(...args: unknown[]) => unknown>,
+                  [event, element]
+                ) as unknown;
+                returnValue = returnValue || value === true;
+              }
             }
           });
           return returnValue;

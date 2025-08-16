@@ -50,8 +50,9 @@ test.describe("effect-client", () => {
 
   test("issue 2015", async ({ page }) => {
     const order = page.locator("#issue-2015-order");
+    // check for non-blocking behavior of visible tasks, order is not guaranteed
     await expect(order).toHaveText(
-      "Order: start 1 finish 1 start 2 finish 2 start 3 finish 3",
+      /^Order: start \d+ start \d+ start \d+ finish \d+ finish \d+ finish \d+$/,
     );
   });
 

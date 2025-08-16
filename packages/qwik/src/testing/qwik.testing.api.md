@@ -85,7 +85,9 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
 }>;
 
 // @public
-export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any): Promise<void>;
+export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
+    waitForIdle?: boolean;
+}): Promise<void>;
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {

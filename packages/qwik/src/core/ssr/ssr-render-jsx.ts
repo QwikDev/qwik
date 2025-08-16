@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { queueQRL } from '../client/queue-qrl';
+import { _run } from '../client/queue-qrl';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
@@ -470,7 +470,7 @@ function setEvent(
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
     if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
-      qrl = createQRL(null, '_run', queueQRL, null, null, [qrl]);
+      qrl = createQRL(null, '_run', _run, null, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);
   };

@@ -3,6 +3,7 @@ import { pad, qwikDebugToString } from '../debug';
 import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined } from '../shared/error/assert';
 import type { Props } from '../shared/jsx/jsx-runtime';
+import { isServerPlatform } from '../shared/platform/platform';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, HostElement, SerializationStrategy } from '../shared/types';
@@ -18,7 +19,7 @@ import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
 import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
-  ComputedSignalFlags,
+  SerializationSignalFlags,
   EffectProperty,
   EffectSubscriptionProp,
   SignalFlags,
@@ -88,7 +89,7 @@ export const triggerEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null
 ) => {
-  const isBrowser = isDomContainer(container);
+  const isBrowser = !isServerPlatform();
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
@@ -155,7 +156,7 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): ComputedSignalFlags | SignalFlags => {
+): SerializationSignalFlags | SignalFlags => {
   let flags = SignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
@@ -163,10 +164,10 @@ export const getComputedSignalFlags = (
     //   flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_AUTO;
     //   break;
     case 'never':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
       break;
     case 'always':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
       break;
   }
   return flags;

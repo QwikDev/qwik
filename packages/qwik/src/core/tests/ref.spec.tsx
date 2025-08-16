@@ -7,7 +7,6 @@ import {
   useContextProvider,
   useSignal,
   useStore,
-  useTask$,
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -240,7 +239,7 @@ describe.each([
       const element = useSignal<HTMLDivElement>();
       const signal = useSignal(0);
 
-      useTask$(({ track }) => {
+      useVisibleTask$(({ track }) => {
         track(element);
         signal.value++;
       });
@@ -253,13 +252,16 @@ describe.each([
       );
     });
 
-    const { vNode } = await render(<Cmp />, { debug });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
 
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
           <div>Test</div>
-          <Signal>1</Signal>
+          <Signal ssr-required>1</Signal>
         </div>
       </Component>
     );

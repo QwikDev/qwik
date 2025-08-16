@@ -512,7 +512,7 @@ describe('shared-serialization', () => {
             Number 3
           ]
           Constant null
-          Number 3
+          Number 5
           Constant null
         ]
         1 WrappedSignal [
@@ -524,7 +524,7 @@ describe('shared-serialization', () => {
             String "value"
           ]
           Constant null
-          Number 3
+          Number 7
           Constant null
         ]
         (74 chars)"

@@ -5,7 +5,7 @@ import { trackSignal } from '../../use/use-core';
 import { throwIfQRLNotResolved } from '../utils';
 import type { SerializerArg } from '../types';
 import {
-  ComputedSignalFlags,
+  SerializationSignalFlags,
   EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
@@ -28,14 +28,14 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     super(
       container,
       argQrl as unknown as ComputeQRL<T>,
-      SignalFlags.INVALID | ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
+      SignalFlags.INVALID | SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
     );
   }
   $didInitialize$: boolean = false;
 
-  $computeIfNeeded$(): boolean {
+  $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
+      return;
     }
     throwIfQRLNotResolved(this.$computeQrl$);
     let arg = (this.$computeQrl$ as any as QRLInternal<SerializerArg<T, S>>).resolved!;
@@ -62,8 +62,8 @@ export class SerializerSignalImpl<T, S> extends ComputedSignalImpl<T> {
     this.$flags$ &= ~SignalFlags.INVALID;
     this.$didInitialize$ = true;
     if (didChange) {
+      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue as T;
     }
-    return didChange;
   }
 }

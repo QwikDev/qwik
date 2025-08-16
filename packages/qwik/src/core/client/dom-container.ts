@@ -359,7 +359,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $scheduleInitialQRLs$(): void {
     if (this.$initialQRLsIndexes$) {
       for (const index of this.$initialQRLsIndexes$) {
-        this.$scheduler$.schedule(
+        this.$scheduler$(
           ChoreType.QRL_RESOLVE,
           null,
           this.$getObjectById$(index) as QRLInternal<(...args: unknown[]) => unknown>

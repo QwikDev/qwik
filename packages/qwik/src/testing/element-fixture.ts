@@ -119,7 +119,7 @@ export async function trigger(
     const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }
-  const waitForQueueChore = container?.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
+  const waitForQueueChore = container?.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
   await getTestPlatform().flush();
   if (waitForIdle && waitForQueueChore) {
     await waitForQueueChore.$returnValue$;
@@ -186,7 +186,7 @@ export const dispatch = async (
 
 export async function advanceToNextTimerAndFlush(container: Container) {
   vi.advanceTimersToNextTimer();
-  const waitForQueueChore = container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE);
+  const waitForQueueChore = container.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
   await getTestPlatform().flush();
   if (waitForQueueChore) {
     await waitForQueueChore.$returnValue$;

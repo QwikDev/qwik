@@ -32,6 +32,30 @@ export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
 };
 
 /**
+ * Force a store to recompute and schedule effects.
+ *
+ * @public
+ */
+export const forceStoreEffects = (value: StoreTarget, prop: keyof StoreTarget): void => {
+  const handler = getStoreHandler(value);
+  if (handler) {
+    handler.force(prop);
+  }
+};
+
+/**
+ * @returns True if the store has effects for the given prop
+ * @internal
+ */
+export const _hasStoreEffects = (value: StoreTarget, prop: keyof StoreTarget): boolean => {
+  const handler = getStoreHandler(value);
+  if (handler) {
+    return (handler.$effects$?.get(prop)?.size ?? 0) > 0;
+  }
+  return false;
+};
+
+/**
  * Get the original object that was wrapped by the store. Useful if you want to clone a store
  * (structuredClone, IndexedDB,...)
  *
@@ -80,6 +104,16 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 
   toString(): string {
     return '[Store]';
+  }
+
+  force(prop: keyof StoreTarget): void {
+    const target = getStoreTarget(this)!;
+    this.$container$?.$scheduler$?.schedule(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      getEffects(target, prop, this.$effects$)
+    );
   }
 
   get(target: StoreTarget, prop: string | symbol) {

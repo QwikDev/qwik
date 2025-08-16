@@ -4,7 +4,7 @@ const test = testAppSuite('Build Layout');
 
 test('total layouts', ({ ctx: { layouts } }) => {
   // $ find starters/apps/qwikrouter-test/src/routes -name layout*tsx | wc -l
-  assert.equal(layouts.length, 12, JSON.stringify(layouts, null, 2));
+  assert.equal(layouts.length, 13, JSON.stringify(layouts, null, 2));
 });
 
 test('nested named layout', ({ assertLayout }) => {

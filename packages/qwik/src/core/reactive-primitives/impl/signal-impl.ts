@@ -54,7 +54,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
-      this.$container$?.$scheduler$.schedule(
+      this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         null,
         this,

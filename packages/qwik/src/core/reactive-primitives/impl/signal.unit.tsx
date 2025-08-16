@@ -118,7 +118,7 @@ describe('signal', () => {
 
   afterEach(async () => {
     delayMap.clear();
-    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
     await getTestPlatform().flush();
     container = null!;
   });
@@ -254,7 +254,7 @@ describe('signal', () => {
   }
 
   async function flushSignals() {
-    await container.$scheduler$.schedule(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */

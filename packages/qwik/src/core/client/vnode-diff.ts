@@ -784,7 +784,7 @@ export const vnode_diff = (
               if (isSyncQrl(qrl)) {
                 qrl(event, element);
               } else {
-                const value = container.$scheduler$.schedule(
+                const value = container.$scheduler$(
                   ChoreType.RUN_QRL,
                   vNode,
                   qrl as QRLInternal<(...args: unknown[]) => unknown>,
@@ -1115,7 +1115,7 @@ export const vnode_diff = (
            * deleted.
            */
           host[VNodeProps.flags] &= ~VNodeFlags.Deleted;
-          container.$scheduler$.schedule(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1358,7 +1358,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
               const task = obj;
               clearAllEffects(container, task);
               if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$.schedule(ChoreType.CLEANUP_VISIBLE, task);
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
               } else {
                 cleanupTask(task);
               }

@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 Zod validator uses defined locale for the current request (by [@knoid](https://github.com/knoid) in [#7804](https://github.com/QwikDev/qwik/pull/7804))
+
 ## 2.0.0-beta.7
 
 ### Minor Changes

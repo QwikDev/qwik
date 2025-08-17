@@ -187,7 +187,11 @@
     },
     "patchedDependencies": {
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "netlify-cli",
+      "simple-git-hooks"
+    ]
   },
   "private": true,
   "scripts": {

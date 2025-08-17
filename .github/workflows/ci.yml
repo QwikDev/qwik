@@ -778,6 +778,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: "Verify pnpm dedupe"
+        if: always()
+        run: pnpm dedupe --check
+
       - name: SyncPack Check
         if: always()
         run: pnpm run lint.syncpack

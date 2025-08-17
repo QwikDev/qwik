@@ -189,7 +189,9 @@
       "density-clustering@1.3.0": "patches/density-clustering@1.3.0.patch"
     },
     "ignoredBuiltDependencies": [
+      "esbuild",
       "netlify-cli",
+      "sharp",
       "simple-git-hooks"
     ]
   },

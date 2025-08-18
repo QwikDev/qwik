@@ -154,6 +154,7 @@ interface ElementFrame {
    */
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
+  currentFile: string | null;
 }
 
 const EMPTY_OBJ = {};
@@ -267,14 +268,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
         return mapArray_get(ctx, contextId.id, 0) as T;
       }
-      ssrNode = ssrNode.parentSsrNode;
+      ssrNode = ssrNode.parentComponent;
     }
     return undefined;
   }
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.parentSsrNode as ISsrNode | null;
+    return ssrNode.parentComponent as ISsrNode | null;
   }
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
@@ -344,6 +345,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
+    // create here for writeAttrs method to use it
+    const lastNode = this.getOrCreateLastNode();
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
@@ -354,7 +357,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
     this.write('>');
-    this.lastNode = null;
+
+    if (lastNode) {
+      lastNode.setTreeNonUpdatable();
+    }
     return innerHTML;
   }
 
@@ -430,6 +436,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
+
+    if (this.currentComponentNode) {
+      this.currentComponentNode.setTreeNonUpdatable();
+    }
     this.lastNode = null;
   }
 
@@ -481,7 +491,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.parentSsrNode || null;
+    this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -513,7 +523,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
         this.currentElementFrame!.depthFirstElementIdx + 1,
-        this.cleanupQueue
+        this.cleanupQueue,
+        this.currentElementFrame!.currentFile
       );
     }
     return this.lastNode!;
@@ -1007,6 +1018,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       elementName,
       depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
+      currentFile: isDev ? currentFile || null : null,
     };
     this.currentElementFrame = frame;
     this.vNodeDatas.push(frame.vNodeData);

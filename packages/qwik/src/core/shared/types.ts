@@ -123,3 +123,7 @@ export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |
   'never' | 'always';
+
+export const enum SsrNodeFlags {
+  Updatable = 1,
+}

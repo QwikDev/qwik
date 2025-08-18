@@ -109,7 +109,7 @@ describe('serializer v2', () => {
 
     describe('node references', () => {
       // doesn't use the vnode so not serialized
-      it.skip('should retrieve element', async () => {
+      it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
@@ -512,7 +512,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, '', -1, [], [] as any);
+        const obj = new SsrNode(null, '', -1, [], [] as any, null);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });

@@ -827,12 +827,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const bundle of Object.values(manifest.bundles)) {
         if (bundle.origins) {
-          bundle.origins = bundle.origins
-            .map((abs) => {
-              const relPath = path.relative(opts.rootDir, abs);
-              return normalizePath(relPath);
-            })
-            .sort();
+          bundle.origins = bundle.origins.sort();
         }
       }
 

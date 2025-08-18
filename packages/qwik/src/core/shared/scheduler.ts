@@ -105,7 +105,7 @@ import {
   type StoreTarget,
 } from '../reactive-primitives/types';
 import { triggerEffects } from '../reactive-primitives/utils';
-import type { ISsrNode } from '../ssr/ssr-types';
+import { type ISsrNode } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
   Task,
@@ -124,9 +124,8 @@ import { isServerPlatform } from './platform/platform';
 import { type QRLInternal } from './qrl/qrl-class';
 import { isQrl } from './qrl/qrl-utils';
 import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
-import type { Container, HostElement } from './types';
+import { SsrNodeFlags, type Container, type HostElement } from './types';
 import { ChoreType } from './util-chore-type';
-import { logWarn } from './utils/log';
 import { QScopedStyle } from './utils/markers';
 import { isPromise, maybeThen, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
@@ -136,6 +135,8 @@ import { invoke, newInvokeContext } from '../use/use-core';
 import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 import { createNextTick } from './platform/next-tick';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import { isSsrNode } from '../reactive-primitives/subscriber';
+import { logWarn } from './utils/log';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -335,6 +336,31 @@ export const createScheduler = (
     if (blockingChore) {
       addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
+    }
+    if (isServer && chore.$host$ && isSsrNode(chore.$host$)) {
+      const isUpdatable = !!(chore.$host$.flags & SsrNodeFlags.Updatable);
+
+      if (!isUpdatable) {
+        // We are running on the server.
+        // On server we can't schedule task for a different host!
+        // Server is SSR, and therefore scheduling for anything but the current host
+        // implies that things need to be re-run nad that is not supported because of streaming.
+        const warningMessage = `A '${choreTypeToName(
+          chore.$type$
+        )}' chore was scheduled on a host element that has already been streamed to the client.
+This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
+
+Problematic chore:
+  - Type: ${choreTypeToName(chore.$type$)}
+  - Host: ${chore.$host$.toString()}
+  - Nearest element location: ${chore.$host$.currentFile}
+
+This is often caused by modifying a signal in an already rendered component during SSR.`;
+        logWarn(warningMessage);
+        DEBUG &&
+          debugTrace('schedule.SKIPPED host is not updatable', chore, choreQueue, blockedChores);
+        return chore;
+      }
     }
     chore = sortedInsert(
       choreQueue,
@@ -710,15 +736,6 @@ export const createScheduler = (
       } else {
         assertFalse(vnode_isVNode(aHost), 'expected aHost to be SSRNode but it is a VNode');
         assertFalse(vnode_isVNode(bHost), 'expected bHost to be SSRNode but it is a VNode');
-        // we are running on the server.
-        // On server we can't schedule task for a different host!
-        // Server is SSR, and therefore scheduling for anything but the current host
-        // implies that things need to be re-run nad that is not supported because of streaming.
-        const errorMessage = `SERVER: during HTML streaming, re-running tasks on a different host is not allowed.
-          You are attempting to change a state that has already been streamed to the client.
-          This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
-          Problematic Node: ${aHost.toString()}`;
-        logWarn(errorMessage);
         const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
         if (hostDiff !== 0) {
           return hostDiff;
@@ -849,6 +866,25 @@ export function addBlockedChore(
   blockingChore.$blockedChores$ ||= [];
   blockingChore.$blockedChores$.push(blockedChore);
   blockedChores.add(blockedChore);
+}
+
+function choreTypeToName(type: ChoreType): string {
+  return (
+    (
+      {
+        [ChoreType.QRL_RESOLVE]: 'Resolve QRL',
+        [ChoreType.RUN_QRL]: 'Run QRL',
+        [ChoreType.TASK]: 'Task',
+        [ChoreType.NODE_DIFF]: 'Changes diffing',
+        [ChoreType.NODE_PROP]: 'Updating node property',
+        [ChoreType.COMPONENT]: 'Component',
+        [ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS]: 'Signal recompute',
+        [ChoreType.VISIBLE]: 'Visible',
+        [ChoreType.CLEANUP_VISIBLE]: 'Cleanup visible',
+        [ChoreType.WAIT_FOR_QUEUE]: 'Wait for queue',
+      } as Record<ChoreType, string>
+    )[type] || 'Unknown: ' + type
+  );
 }
 
 function debugChoreTypeToString(type: ChoreType): string {

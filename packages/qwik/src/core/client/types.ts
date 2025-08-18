@@ -77,10 +77,10 @@ export const enum VNodeFlags {
   Element /* ****************** */ = 0b00_000001,
   Virtual /* ****************** */ = 0b00_000010,
   ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000011,
+  Text /* ********************* */ = 0b00_000100,
   ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000101,
   TYPE_MASK /* **************** */ = 0b00_000111,
   INFLATED_TYPE_MASK /* ******* */ = 0b00_001111,
-  Text /* ********************* */ = 0b00_000100,
   /// Extra flag which marks if a node needs to be inflated.
   Inflated /* ***************** */ = 0b00_001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.

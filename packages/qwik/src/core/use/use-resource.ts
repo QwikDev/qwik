@@ -7,7 +7,12 @@ import { Task, TaskFlags, cleanupTask, type DescriptorBase, type Tracker } from 
 
 import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
-import { createStore, getStoreTarget, unwrapStore } from '../reactive-primitives/impl/store';
+import {
+  createStore,
+  forceStoreEffects,
+  getStoreTarget,
+  unwrapStore,
+} from '../reactive-primitives/impl/store';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { StoreFlags } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
@@ -303,17 +308,21 @@ export const runResource = <T>(
       done = true;
       if (resolved) {
         done = true;
-        resource.loading = false;
-        resource._state = 'resolved';
-        resource._resolved = value as T;
-        resource._error = undefined;
+        resourceTarget.loading = false;
+        resourceTarget._state = 'resolved';
+        resourceTarget._resolved = value as T;
+        resourceTarget._error = undefined;
         resolve(value as T);
       } else {
         done = true;
-        resource.loading = false;
-        resource._state = 'rejected';
-        resource._error = value as Error;
+        resourceTarget.loading = false;
+        resourceTarget._state = 'rejected';
+        resourceTarget._error = value as Error;
         reject(value as Error);
+      }
+
+      if (!isServerPlatform()) {
+        forceStoreEffects(resource, '_state');
       }
       return true;
     }

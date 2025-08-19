@@ -143,8 +143,10 @@ test('docs page loads', async ({ page }) => {
     'Bun',
     'Netlify Edge',
     'Node',
+    'Self-Hosting',
     'Vercel Edge',
     'Static Site',
+    'Azion',
   ];
 
   expect(deploymentsLinksOnPage).toStrictEqual(expectedDeploymentsLinks);
@@ -160,6 +162,7 @@ test('docs page loads', async ({ page }) => {
     'SSG',
     'Qwik Native Apps',
     'React Cheat Sheet',
+    'Debugging',
     'Best Practices',
     'Bundle Optimization',
     'Env variables',

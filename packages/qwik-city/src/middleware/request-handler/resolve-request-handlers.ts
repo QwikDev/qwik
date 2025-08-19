@@ -187,9 +187,9 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
     }
 
     if (routeLoaders.length > 0) {
-      await Promise.all(routeLoaders.map(loader));
+      await Promise.all(routeLoaders.map(routeLoader));
     }
-    function loader(loader: LoaderInternal) {
+    function routeLoader(loader: LoaderInternal) {
       const loaderId = loader.__id;
       loaders[loaderId] = runValidators(
         requestEv,
@@ -265,7 +265,7 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       }
     }
     if (routeLoaders.length > 0 && isAction) {
-      await Promise.all(routeLoaders.map(loader));
+      await Promise.all(routeLoaders.map(routeLoader));
     }
     isAction = false;
   };

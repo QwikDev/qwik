@@ -18,11 +18,6 @@ export default defineConfig(async () => {
       qwikInsights({ publicApiKey: loadEnv('', '.', '').PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
     ],
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',

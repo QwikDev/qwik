@@ -20,7 +20,6 @@ import type {
   ServerQwikManifest,
 } from '../types';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import type { LoadResult, OutputBundle, ResolveIdResult, TransformResult } from 'rollup';
 import { isWin, parseId } from './vite-utils';
 import type { BundleGraphAdder } from '..';
 import { convertManifestToBundleGraph } from './bundle-graph';
@@ -465,7 +464,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const parsedId = parseId(id);
     const pathId = normalizePath(parsedId.pathId);
 
-    let result: ResolveIdResult;
+    let result: Rollup.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
 
@@ -576,7 +575,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
-  ): Promise<LoadResult> => {
+  ): Promise<Rollup.LoadResult> => {
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
@@ -641,8 +640,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     ctx: Rollup.PluginContext,
     code: string,
     id: string,
-    transformOpts: Parameters<Extract<Plugin['transform'], Function>>[2] = {}
-  ): Promise<TransformResult> {
+    transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
+  ): Promise<Rollup.TransformResult> {
     if (id.startsWith('\0')) {
       return;
     }
@@ -745,21 +744,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           parentIds.set(key, id);
           currentOutputs.set(key, [mod, id]);
           deps.add(key);
-          if (opts.target === 'client') {
-            if (devServer) {
-              // invalidate the segment so that the client will pick it up
-              const rollupModule = devServer.moduleGraph.getModuleById(key);
-              if (rollupModule) {
-                devServer.moduleGraph.invalidateModule(rollupModule);
-              }
-            } else {
-              // rollup must be told about all entry points
-              ctx.emitFile({
-                id: key,
-                type: 'chunk',
-                preserveSignature: 'allow-extension',
-              });
-            }
+          if (opts.target === 'client' && !devServer) {
+            // rollup must be told about all entry points
+            ctx.emitFile({
+              id: key,
+              type: 'chunk',
+              preserveSignature: 'allow-extension',
+            });
           }
         }
       }
@@ -768,9 +759,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // unchanged imports are not missing in our internal transform cache
       // This can happen in the repl when the plugin is re-initialized
       // and possibly in other places
-      for (const id of deps.values()) {
-        await ctx.load({ id });
-      }
+      // NOTE: this should be Promise.all to avoid deadlocks
+      await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
 
       ctx.addWatchFile(id);
 
@@ -795,7 +785,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     canonPath: (p: string) => string;
   };
 
-  const createOutputAnalyzer = (rollupBundle: OutputBundle) => {
+  const createOutputAnalyzer = (rollupBundle: Rollup.OutputBundle) => {
     const injections: GlobalInjections[] = [];
 
     const outputAnalyzer: OutputAnalyzer = {
@@ -837,12 +827,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const bundle of Object.values(manifest.bundles)) {
         if (bundle.origins) {
-          bundle.origins = bundle.origins
-            .map((abs) => {
-              const relPath = path.relative(opts.rootDir, abs);
-              return normalizePath(relPath);
-            })
-            .sort();
+          bundle.origins = bundle.origins.sort();
         }
       }
 
@@ -935,24 +920,34 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     }
   }
 
-  function manualChunks(id: string, { getModuleInfo }: Rollup.ManualChunkMeta) {
-    // The preloader has to stay in a separate chunk if it's a client build
-    // the vite preload helper must be included or to prevent breaking circular dependencies
+  function manualChunks(
+    id: string,
+    { getModuleInfo }: Parameters<Extract<Rollup.OutputOptions['manualChunks'], Function>>[1]
+  ) {
     if (opts.target === 'client') {
-      if (id.endsWith(QWIK_PRELOADER_REAL_ID) || id === '\0vite/preload-helper.js') {
+      if (
+        // The preloader has to stay in a separate chunk if it's a client build
+        // the vite preload helper must be included to prevent breaking circular dependencies
+        id.endsWith('@builder.io/qwik/build') ||
+        /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/.test(id) ||
+        id === '\0vite/preload-helper.js'
+      ) {
         return 'qwik-preloader';
       } else if (/qwik[\\/]dist[\\/]qwikloader\.js$/.test(id)) {
         return 'qwik-loader';
       }
     }
 
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    if (segment) {
-      const { hash } = segment;
-      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-      if (chunkName) {
-        return chunkName;
+    const module = getModuleInfo(id);
+    if (module) {
+      const segment = module.meta.segment as SegmentAnalysis | undefined;
+      if (segment) {
+        const { hash } = segment;
+        const chunkName =
+          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+        if (chunkName) {
+          return chunkName;
+        }
       }
     }
     return null;
@@ -960,7 +955,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
 
   async function generateManifest(
     ctx: Rollup.PluginContext,
-    rollupBundle: OutputBundle,
+    rollupBundle: Rollup.OutputBundle,
     bundleGraphAdders?: Set<BundleGraphAdder>,
     manifestExtra?: Partial<QwikManifest>
   ) {
@@ -1090,7 +1085,6 @@ export const QWIK_CORE_SERVER = '@builder.io/qwik/server';
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@builder.io/qwik/preloader';
-export const QWIK_PRELOADER_REAL_ID = 'qwik/dist/preloader.mjs';
 
 export const SRC_DIR_DEFAULT = 'src';
 

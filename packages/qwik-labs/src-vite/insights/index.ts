@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { type PluginOption } from 'vite';
 
-const logWarn = (message?: any, ...rest) => {
+const logWarn = (message?: any, ...rest: any[]) => {
   // eslint-disable-next-line no-console
   console.warn('\x1b[33m%s\x1b[0m', `qwikInsight()[WARN]: ${message}`, ...rest);
 };

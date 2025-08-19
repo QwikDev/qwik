@@ -1,4 +1,4 @@
-import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -326,7 +326,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             output: {
               manualChunks: qwikPlugin.manualChunks,
             },
-          },
+            // temporary fix for rolldown-vite types
+          } as BuildOptions['rollupOptions'],
         },
         define: {
           [qDevKey]: qDev,

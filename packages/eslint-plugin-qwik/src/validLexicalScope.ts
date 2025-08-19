@@ -35,6 +35,7 @@ export const validLexicalScope = createRule({
             type: 'boolean',
           },
         },
+        additionalProperties: false,
         default: {
           allowAny: true,
         },

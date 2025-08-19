@@ -1,5 +1,38 @@
 # @builder.io/qwik-city
 
+## 1.15.0
+
+### Minor Changes
+
+- ✨ Added rewrite() to the RequestEvent object. It works like redirect but does not change the URL, (by [@omerman](https://github.com/omerman) in [#7562](https://github.com/QwikDev/qwik/pull/7562))
+  think of it as an internal redirect.
+
+  Example usage:
+
+  ```ts
+  export const onRequest: RequestHandler = async ({ url, rewrite }) => {
+    if (url.pathname.includes('/articles/the-best-article-in-the-world')) {
+      const artistId = db.getArticleByName('the-best-article-in-the-world');
+
+      // Url will remain /articles/the-best-article-in-the-world, but under the hood,
+      // will render /articles/${artistId}
+      throw rewrite(`/articles/${artistId}`);
+    }
+  };
+  ```
+
+### Patch Changes
+
+- 🐞🩹 Change Content-Type header in qwik requests to respect RFC 7231 (by [@joaomaridalho](https://github.com/joaomaridalho) in [#7690](https://github.com/QwikDev/qwik/pull/7690))
+
+- 🐞🩹 link/useNavigate with query params don't override loader/middleware redirect with query params anymore. (by [@maiieul](https://github.com/maiieul) in [#7733](https://github.com/QwikDev/qwik/pull/7733))
+
+- 🐞🩹 allow cross-protocol requests from the same domain (by [@gioboa](https://github.com/gioboa) in [#7693](https://github.com/QwikDev/qwik/pull/7693))
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
+
+- 🐞🩹 Duplicate ServerError class during dev mode (by [@wmertens](https://github.com/wmertens) in [#7724](https://github.com/QwikDev/qwik/pull/7724))
+
 ## 1.14.1
 
 ## 1.14.0

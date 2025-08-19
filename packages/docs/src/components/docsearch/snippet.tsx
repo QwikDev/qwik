@@ -20,9 +20,18 @@ interface SnippetProps<TItem> {
 
 export const Snippet = component$(
   ({ hit, attribute, tagName = 'span', ...rest }: SnippetProps<any>) => {
-    const data =
+    let data =
       getPropertyByPath(hit, `_snippetResult.${attribute ?? `hierarchy.${hit.type}`}.value`) ||
-      getPropertyByPath(hit, attribute ?? `hierarchy.${hit.type}`);
+      getPropertyByPath(hit, attribute ?? `hierarchy.${hit.type}`) ||
+      getPropertyByPath(hit, 'hierarchy.lvl0') + ' ' + getPropertyByPath(hit, 'hierarchy.lvl2');
+
+    const cleanedData = data.replace('<mark>', '').replace('</mark>', '').toLowerCase();
+    if (cleanedData === 'runtime-less') {
+      const paths = hit.url.split('/');
+      paths.pop();
+      data = `example: ${paths.pop()}`;
+    }
+
     return <span {...rest} dangerouslySetInnerHTML={data} />;
   }
 );

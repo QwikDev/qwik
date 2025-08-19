@@ -98,8 +98,10 @@
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
+- [Self-Hosting](deployments/self-hosting/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
+- [Azion](deployments/azion/index.mdx)
 
 ## Guides
 
@@ -108,6 +110,7 @@
 - [SSG](</docs/(qwikcity)/guides/static-site-generation/index.mdx>)
 - [Qwik Native Apps](</docs/(qwikcity)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikcity)/guides/react-cheat-sheet/index.mdx>)
+- [Debugging](</docs/(qwikcity)/guides/debugging/index.mdx>)
 - [Best Practices](</docs/(qwikcity)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikcity)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikcity)/guides/env-variables/index.mdx>)

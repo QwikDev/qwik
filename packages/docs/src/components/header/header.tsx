@@ -23,6 +23,7 @@ import {
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
+import { getPkgManagerPreference } from '../package-manager-tabs';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -46,6 +47,7 @@ export const Header = component$(() => {
   const pathname = useLocation().url.pathname;
 
   useVisibleTask$(() => {
+    globalStore.pkgManager = getPkgManagerPreference();
     globalStore.theme = getColorPreference();
     return colorSchemeChangeListener((isDark) => {
       globalStore.theme = isDark ? 'dark' : 'light';

@@ -10,7 +10,7 @@
     "nextSteps": {
       "lines": [
         " Please add `optimizeDeps: { include: ['@auth/qwik'] }`",
-        " to your vite.config.ts file.",
+        " to your vite.config.mts file.",
         " Have a look at the docs for more info: ",
         " https://qwik.dev/docs/integrations/authjs/"
       ]

@@ -38,7 +38,7 @@ const ignores = [
   'starters/apps/base',
   'starters/apps/library',
   'starters/templates',
-  '**/vite.config.ts',
+  '**/vite.config.mts',
   // packages with eslint.config.mjs
   'packages/qwik-labs',
   'packages/insights',

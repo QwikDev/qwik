@@ -106,7 +106,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
     +export const { onRequest, useSession, useSignIn, useSignOut } = 
     +  QwikAuth$(({ env }) => ({
    ```
-3. Update your `vite.config.ts` to include `"@auth/qwik"` to avoid potentials import issues
+3. Update your `vite.config.mts` to include `"@auth/qwik"` to avoid potentials import issues
 ```diff 
    export default defineConfig(({ command, mode }): UserConfig => {
   return {

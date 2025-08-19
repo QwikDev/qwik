@@ -57,10 +57,10 @@ This will create a new folder called `my-library` with the following structure:
 │   ├── index.ts
 │   └── root.tsx
 ├── tsconfig.json
-└── vite.config.ts
+└── vite.config.mts
 ```
 
-The most important files of a library are a properly configured `package.json` and `vite.config.ts`.
+The most important files of a library are a properly configured `package.json` and `vite.config.mts`.
 
 ## package.json
 
@@ -91,7 +91,7 @@ Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will
 
 > The file must be called with the `.qwik.mjs` extension, otherwise the Qwik Optimizer will not recognize it.
 
-## vite.config.ts
+## vite.config.mts
 
 ```ts {8-12}
 import { defineConfig } from 'vite';

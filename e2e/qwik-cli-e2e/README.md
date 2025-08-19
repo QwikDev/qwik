@@ -47,4 +47,4 @@ Both `config.cleanupFn();` and `killAllRegisteredProcesses` there are extremely 
 
 ## Adding new tests
 
-Right now we have only one test file within this project. This means only one test application will be created and used, which is good from the execution time standpoint. If more files are added, it shouldn't potentially be a problem as we have `fileParallelism: false` set in the `vite.config.ts`, which means only one test will be executed at a time. This obviously slows down the execution time, but is safer, because we're working with a real file system.
+Right now we have only one test file within this project. This means only one test application will be created and used, which is good from the execution time standpoint. If more files are added, it shouldn't potentially be a problem as we have `fileParallelism: false` set in the `vite.config.mts`, which means only one test will be executed at a time. This obviously slows down the execution time, but is safer, because we're working with a real file system.

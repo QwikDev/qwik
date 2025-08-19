@@ -36,7 +36,7 @@ const ignores = [
   '**/.rollup.cache',
   '**/dist',
   '**/tsconfig.tsbuildinfo',
-  '**/vite.config.ts',
+  '**/vite.config.mts',
   'eslint.config.mjs',
 ];
 

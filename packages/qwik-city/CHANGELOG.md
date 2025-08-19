@@ -140,7 +140,7 @@
   To use it, you need to pass `experimental: ['valibot']` as an option to the `qwikVite` plugin as such:
 
   ```ts
-  // vite.config.ts
+  // vite.config.mts
 
   export default defineConfig(({ command, mode }): UserConfig => {
     return {

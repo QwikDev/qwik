@@ -87,7 +87,7 @@ The good news is that with Qwik you are in full control of which symbol goes int
 
 ## `qwikVite()` Plugin
 
-`qwikVite()` plugin inside your `vite.config.ts` controls the symbol distribution. Normally the `entryStrategy` is set to `smart` which allows the Qwik to make heuristic guesses as to how the symbols should be lazy loaded. But it is possible to override the heuristic by providing `manual` configuration like this in `vite.config.ts` file:
+`qwikVite()` plugin inside your `vite.config.mts` controls the symbol distribution. Normally the `entryStrategy` is set to `smart` which allows the Qwik to make heuristic guesses as to how the symbols should be lazy loaded. But it is possible to override the heuristic by providing `manual` configuration like this in `vite.config.mts` file:
 
 ```typescript
 export default defineConfig(() => {
@@ -143,7 +143,7 @@ To collect symbol usage from a running application:
     </script>
     ```
 2. Perform some set of operations mimicking user behavior.
-3. Open the console and type `symbols` to see the list of symbols used. Use that information to update the `vite.config.ts` file.
+3. Open the console and type `symbols` to see the list of symbols used. Use that information to update the `vite.config.mts` file.
 
 
 > **NOTE:** We are looking into creating better ways of collecting this information in the future. (See [Insights](/docs/labs/insights/index.mdx).)

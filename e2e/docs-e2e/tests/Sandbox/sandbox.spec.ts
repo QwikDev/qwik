@@ -155,6 +155,7 @@ test.describe('Sandbox Hello World Example', () => {
   });
 
   test('Hello world Console', async ({ page }) => {
+    await page.waitForTimeout(1000);
     const button = page.getByRole('button', { name: 'Console' });
     await expect(button).toBeVisible();
     const serverConsoleText = page.getByText('🔴 Paused in server');

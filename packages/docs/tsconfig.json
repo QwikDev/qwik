@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "ES2020",
-    "module": "ES2020",
+    "target": "es2022",
+    "module": "es2022",
     "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",

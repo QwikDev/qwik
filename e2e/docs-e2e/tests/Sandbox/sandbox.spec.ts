@@ -107,8 +107,7 @@ test.describe('Sandbox Hello World Example', () => {
     const htmlButton = page.getByRole('button', { name: 'HTML' });
     await expect(htmlButton).toBeVisible();
     await htmlButton.click();
-    const htmlCode = page.locator('pre.language-markup');
-
+    const htmlCode = page.locator('code.language-html');
     await expect(htmlCode).toBeVisible();
     await expect(htmlCode).toContainText('<!DOCTYPE html>');
   });

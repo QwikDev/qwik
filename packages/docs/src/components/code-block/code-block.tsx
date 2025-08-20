@@ -1,11 +1,11 @@
 import { component$, useSignal, useStyles$, useVisibleTask$, type QRL } from '@builder.io/qwik';
-
 import { CopyCode } from '../copy-code/copy-code-block';
 import styles from './code-block.css?inline';
-import { highlight } from './prismjs';
+import { shikiInstance, SHIKI_THEME, type ShikiLangs } from './shiki-config';
+
 interface CodeBlockProps {
   path?: string;
-  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
+  language?: ShikiLangs;
   code: string;
   pathInView$?: QRL<(name: string) => void>;
   observerRootId?: string;
@@ -36,17 +36,13 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
   let language = props.language;
   if (!language && props.path && props.code) {
     const ext = props.path.split('.').pop();
-    language =
-      ext === 'js' || ext === 'json'
-        ? 'javascript'
-        : ext === 'html'
-          ? 'markup'
-          : ext === 'css'
-            ? 'css'
-            : undefined;
+    language = ext === 'js' || ext === 'json' ? 'javascript' : ext === 'css' ? 'css' : 'html';
   }
 
-  const highlighted = highlight(props.code, language);
+  const highlighted = shikiInstance.codeToHtml(props.code, {
+    lang: language!,
+    theme: SHIKI_THEME,
+  });
   const className = `language-${language}`;
   return (
     <div class="relative">

@@ -102,7 +102,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
 
         {store.selectedOutputPanel === 'html' ? (
           <div class="output-result output-html">
-            <CodeBlock language="markup" code={store.html} />
+            <CodeBlock language="html" code={store.html} />
           </div>
         ) : null}
 

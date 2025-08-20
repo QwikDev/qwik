@@ -819,7 +819,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nevent$: <T>(qrl: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
+      "content": "> Warning: This API is now obsolete.\n> \n> It will be removed in v2. Instead, use `$()`<!-- -->, and inside the function add `if (isServer) { return; }`\n> \n\n\n```typescript\nevent$: <T>(qrl: T) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/qrl/qrl.public.ts",
       "mdFile": "qwik.event_.md"
     },

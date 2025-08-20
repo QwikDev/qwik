@@ -32,7 +32,6 @@ test.describe('Sandbox Hello World Example', () => {
   test('Hello world app loads', async ({ page }) => {
     const spinner = page.locator('.repl-spinner');
     await expect(spinner).toBeVisible();
-    await page.waitForTimeout(1500);
     await expect(spinner).not.toBeVisible();
     const appText = page
       .getByRole('main')
@@ -65,7 +64,6 @@ test.describe('Sandbox Hello World Example', () => {
     await page.keyboard.press('Shift+End');
 
     await page.keyboard.type('return <p>Hello Test 1234</p>;');
-    await page.waitForTimeout(1000);
     await expect(text).not.toBeVisible();
 
     const appText = page
@@ -111,7 +109,7 @@ test.describe('Sandbox Hello World Example', () => {
     await htmlButton.click();
     const htmlCode = page.locator('pre.language-markup');
 
-    await expect(htmlCode).toBeVisible({ timeout: 5000 });
+    await expect(htmlCode).toBeVisible();
     await expect(htmlCode).toContainText('<!DOCTYPE html>');
   });
 
@@ -119,7 +117,7 @@ test.describe('Sandbox Hello World Example', () => {
     const button = page.getByRole('button', { name: 'Symbols' });
     await expect(button).toBeVisible();
     await button.click();
-    await page.waitForTimeout(3000);
+
     const symbolsText = page.getByText('import { _jsxQ } from');
     await expect(symbolsText).toBeVisible();
   });
@@ -128,7 +126,6 @@ test.describe('Sandbox Hello World Example', () => {
     const button = page.getByRole('button', { name: 'Client Bundles' });
     await expect(button).toBeVisible();
     await button.click();
-    await page.waitForTimeout(1000);
     const bundles = page.locator('#file-modules-client-modules').getByText('build/app.js');
     await expect(bundles).toBeVisible();
   });
@@ -137,8 +134,6 @@ test.describe('Sandbox Hello World Example', () => {
     const button = page.getByRole('button', { name: 'SSR Module' });
     await expect(button).toBeVisible();
     await button.click();
-    await page.waitForTimeout(1000);
-
     const module = page.locator('#file-modules-client-modules').getByText('entry.server.js');
     await expect(module).toBeVisible();
   });
@@ -147,15 +142,12 @@ test.describe('Sandbox Hello World Example', () => {
     const button = page.getByRole('button', { name: 'Diagnostics' });
     await expect(button).toBeVisible();
     await button.click();
-    await page.waitForTimeout(100);
-
     const diagnostics = page.locator('.output-result.output-diagnostics');
     await expect(diagnostics).toBeVisible();
     await expect(diagnostics).toHaveText('- No Reported Diagnostics -');
   });
 
   test('Hello world Console', async ({ page }) => {
-    await page.waitForTimeout(1000);
     const button = page.getByRole('button', { name: 'Console' });
     await expect(button).toBeVisible();
     const serverConsoleText = page.getByText('🔴 Paused in server');
@@ -166,8 +158,6 @@ test.describe('Sandbox Hello World Example', () => {
     const button = page.getByRole('button', { name: 'Options' });
     await expect(button).toBeVisible();
     await button.click();
-    await page.waitForTimeout(100);
-
     const serverConsoleText = page.getByText('🔴 Paused in server');
     await expect(serverConsoleText).not.toBeVisible();
     const DebugCheckBox = page.locator('label').filter({ hasText: 'Debug' });

@@ -5,4 +5,4 @@
 '@builder.io/qwik': minor
 ---
 
-feat: bump Vite to v7
+FEAT: bump Vite to v7

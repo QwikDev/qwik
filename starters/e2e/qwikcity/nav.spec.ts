@@ -1,4 +1,3 @@
-import { $ } from "bun";
 import {
   assertPage,
   getScrollHeight,

@@ -35,7 +35,6 @@
 ### Minor Changes
 
 - ✨ Major improvements to prefetching with automatic bundle preloading (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
-
   - This removes the need for service workers, and instead utilize `modulepreload` link tags for better browser integration.
   - Improves initial load performance by including dynamic imports in the prefetch
   - Reduces complexity while maintaining similar (and even better) functionality
@@ -47,7 +46,6 @@
   ***
 
   ⚠️ **ATTENTION:**
-
   - **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
   - **Configure** your server to provide long caching headers.
 
@@ -195,7 +193,6 @@
 - Async functions in `useComputed` are deprecated. (by [@wmertens](https://github.com/wmertens) in [#7013](https://github.com/QwikDev/qwik/pull/7013))
 
   **Why?**
-
   - Qwik can't track used signals after the first await, which leads to subtle bugs.
   - When calculating the first time, it will see it's a promise and it will restart the render function.
   - Both `useTask` and `useResource` are available, without these problems.

@@ -341,9 +341,6 @@ importers:
       '@types/leaflet':
         specifier: 1.9.20
         version: 1.9.20
-      '@types/prismjs':
-        specifier: 1.26.5
-        version: 1.26.5
       '@types/react':
         specifier: 18.3.3
         version: 18.3.3
@@ -380,9 +377,6 @@ importers:
       prism-themes:
         specifier: 1.9.0
         version: 1.9.0
-      prismjs:
-        specifier: 1.30.0
-        version: 1.30.0
       puppeteer:
         specifier: 22.13.1
         version: 22.13.1(typescript@5.4.5)
@@ -3584,9 +3578,6 @@ packages:
 
   '@types/prismjs@1.26.4':
     resolution: {integrity: sha512-rlAnzkW2sZOjbqZ743IHUhFcvzaGbqijwOu8QZnZCjfQzBqFE3s4lOTJEsxikImav9uzz/42I+O7YUs1mWgMlg==}
-
-  '@types/prismjs@1.26.5':
-    resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
 
   '@types/prompts@2.4.9':
     resolution: {integrity: sha512-qTxFi6Buiu8+50/+3DGIWLHM6QuWsEKugJnnP6iv2Mc4ncxE4A/OJkjuVOA+5X0X1S/nq5VJRa8Lu+nwcvbrKA==}
@@ -8276,10 +8267,6 @@ packages:
 
   prism-themes@1.9.0:
     resolution: {integrity: sha512-tX2AYsehKDw1EORwBps+WhBFKc2kxfoFpQAjxBndbZKr4fRmMkv47XN0BghC/K1qwodB1otbe4oF23vUTFDokw==}
-
-  prismjs@1.30.0:
-    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
-    engines: {node: '>=6'}
 
   proc-log@4.2.0:
     resolution: {integrity: sha512-g8+OnU/L2v+wyiVK+D5fA34J7EH8jZ8DDlvwhRCMxmMj7UCBvxiO1mGeN+36JXIKF4zevU4kRBd8lVgG9vLelA==}
@@ -12986,8 +12973,6 @@ snapshots:
   '@types/phoenix@1.6.6': {}
 
   '@types/prismjs@1.26.4': {}
-
-  '@types/prismjs@1.26.5': {}
 
   '@types/prompts@2.4.9':
     dependencies:
@@ -18474,8 +18459,6 @@ snapshots:
   printable-characters@1.0.42: {}
 
   prism-themes@1.9.0: {}
-
-  prismjs@1.30.0: {}
 
   proc-log@4.2.0: {}
 

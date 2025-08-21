@@ -1,5 +1,5 @@
 import type { MockDocumentOptions, MockWindow } from './types';
-import qwikDom from '@builder.io/qwik-dom';
+import domino from 'domino';
 import { normalizeUrl } from './util';
 
 /**
@@ -9,7 +9,7 @@ import { normalizeUrl } from './util';
  * @public
  */
 export function createDocument(opts?: MockDocumentOptions) {
-  const doc = qwikDom.createDocument(opts?.html);
+  const doc = domino.createDocument(opts?.html);
   ensureGlobals(doc, opts);
   return doc;
 }

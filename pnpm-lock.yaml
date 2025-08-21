@@ -12,6 +12,9 @@ patchedDependencies:
   density-clustering@1.3.0:
     hash: a73b7d6196af2d0008d995e999ba64b1aa82a981fcb3b71f1425e30f6390a6d4
     path: patches/density-clustering@1.3.0.patch
+  domino@2.1.6:
+    hash: cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d
+    path: patches/domino@2.1.6.patch
 
 importers:
 
@@ -566,9 +569,9 @@ importers:
       '@builder.io/qwik':
         specifier: workspace:^
         version: 'link:'
-      '@builder.io/qwik-dom':
-        specifier: workspace:^
-        version: link:../qwik-dom
+      domino:
+        specifier: 2.1.6
+        version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
       ignore:
         specifier: 5.3.1
         version: 5.3.1
@@ -5049,6 +5052,9 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
+  domino@2.1.6:
+    resolution: {integrity: sha512-3VdM/SXBZX2omc9JF9nOPCtDaYQ67BGp5CoLpIQlO2KCAPETs8TcDHacF26jXadGbvUteZzRTeos2fhID5+ucQ==}
+
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
 
@@ -8344,6 +8350,7 @@ packages:
   puppeteer@22.13.1:
     resolution: {integrity: sha512-PwXLDQK5u83Fm5A7TGMq+9BR7iHDJ8a3h21PSsh/E6VfhxiKYkU7+tvGZNSCap6k3pCNDd9oNteVBEctcBalmQ==}
     engines: {node: '>=18'}
+    deprecated: < 24.9.0 is no longer supported
     hasBin: true
 
   pure-rand@6.1.0:
@@ -14599,6 +14606,8 @@ snapshots:
   domhandler@5.0.3:
     dependencies:
       domelementtype: 2.3.0
+
+  domino@2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d): {}
 
   domutils@3.2.2:
     dependencies:

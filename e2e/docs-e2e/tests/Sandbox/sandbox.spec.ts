@@ -309,5 +309,8 @@ test.describe('Sandbox Runtime-less Example', () => {
     const DebugCheckBox = page.locator('label').filter({ hasText: 'Debug' });
     await expect(DebugCheckBox).toBeVisible();
     await expect(DebugCheckBox).not.toBeChecked();
+    const consoleButton = page.getByRole('button', { name: 'Console' });
+    consoleButton.click();
+    await expect(serverConsoleText).toBeVisible();
   });
 });

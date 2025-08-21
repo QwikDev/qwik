@@ -164,6 +164,9 @@ test.describe('Sandbox useTask', () => {
     const DebugCheckBox = page.locator('label').filter({ hasText: 'Debug' });
     await expect(DebugCheckBox).toBeVisible();
     await expect(DebugCheckBox).not.toBeChecked();
+    const consoleButton = page.getByRole('button', { name: 'Console' });
+    consoleButton.click();
+    await expect(serverConsoleText).toBeVisible();
   });
 
   test('useTask server console loads', async ({ page }) => {

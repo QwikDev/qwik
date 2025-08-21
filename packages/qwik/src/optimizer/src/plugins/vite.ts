@@ -323,9 +323,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
              * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
              */
             maxParallelFileOps: 1,
-            output: {
-              manualChunks: qwikPlugin.manualChunks,
-            },
             // temporary fix for rolldown-vite types
           } as BuildOptions['rollupOptions'],
         },

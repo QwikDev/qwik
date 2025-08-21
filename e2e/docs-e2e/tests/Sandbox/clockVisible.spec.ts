@@ -5,7 +5,7 @@ test.describe('Sandbox Clock Example', () => {
     await page.goto('/examples/visibility/clock/');
   });
 
-  test('Sandbox Counter page loads', async ({ page }) => {
+  test('Sandbox Clock page loads', async ({ page }) => {
     await expect(page).toHaveTitle('Below the fold Clock 📚 Qwik Documentation');
     const tabButtonsTop = page.getByText('app.tsxclock.cssentry.server.');
 

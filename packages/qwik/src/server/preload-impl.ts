@@ -240,5 +240,5 @@ const PreLoaderOptionsDefault: Required<PreloaderOptions> = {
   ssrPreloadProbability: 0.5,
   debug: false,
   maxIdlePreloads: 25,
-  preloadProbability: 0.35,
+  preloadProbability: 0.35, // deprecated
 };

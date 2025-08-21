@@ -204,10 +204,7 @@ export const adjustProbabilities = (
        * too.
        */
       let newInverseProbability: number;
-      if (
-        dep.$importProbability$ > 0.5 &&
-        (probability === 1 || (probability >= 0.99 && depsCount < 100))
-      ) {
+      if (probability === 1 || (probability >= 0.99 && depsCount < 100)) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);

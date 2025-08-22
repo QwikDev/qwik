@@ -67,12 +67,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    */
   force() {
     this.$flags$ |= SignalFlags.RUN_EFFECTS;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
-      this,
-      this.$effects$
-    );
+    super.force();
   }
 
   get untrackedValue() {

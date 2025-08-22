@@ -283,9 +283,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"NONE","hash":"NONE"}',
         );
@@ -304,9 +302,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/?query=123",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/?query=123");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"123","hash":"NONE"}',
         );
@@ -324,9 +320,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/?query=321",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/?query=321");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"321","hash":"NONE"}',
         );
@@ -344,7 +338,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(
@@ -364,7 +358,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(

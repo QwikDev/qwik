@@ -1,7 +1,7 @@
 import { $, _jsxSorted, type JSXOutput, type OnRenderFn, type QRL } from '@qwik.dev/core';
 
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
 import {
@@ -18,8 +18,8 @@ import { createScheduler, type Chore } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { ELEMENT_SEQ, QContainerAttr } from './utils/markers';
-import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 import { MAX_RETRY_ON_PROMISE_COUNT } from './utils/promises';
+import * as nextTick from './platform/next-tick';
 
 declare global {
   let testLog: string[];
@@ -258,6 +258,150 @@ describe('scheduler', () => {
     expect(blockedChores.size).toBe(2);
     await waitForDrain();
     expect(testLog).toEqual(['b1.0', 'b1.1', 'b1.2', 'journalFlush']);
+  });
+
+  describe('flushing', () => {
+    let scheduler: ReturnType<typeof createScheduler> = null!;
+    let document: ReturnType<typeof createDocument> = null!;
+    let vBHost1: VirtualVNode = null!;
+
+    let nextTickSpy: Mocked<any>;
+    async function waitForDrain() {
+      const chore = scheduler(ChoreType.WAIT_FOR_QUEUE);
+      getTestPlatform().flush();
+      await chore.$returnValue$;
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      nextTickSpy = vi.spyOn(nextTick, 'createNextTick');
+      (globalThis as any as { testLog: string[] }).testLog = [];
+      document = createDocument();
+      document.body.setAttribute(QContainerAttr, 'paused');
+      const container = getDomContainer(document.body);
+      scheduler = createScheduler(container, () => testLog.push('journalFlush'));
+      document.body.innerHTML = '<a></a><b></b>';
+      vnode_newUnMaterializedElement(document.body);
+      vBHost1 = vnode_newVirtual();
+      vnode_setProp(vBHost1, 'q:id', 'b1');
+    });
+
+    it('should flush journal periodically', async () => {
+      (globalThis as any).time = 0;
+      const performance = {
+        now: () => (globalThis as any).time,
+      };
+      vi.stubGlobal('performance', performance);
+
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+
+      // Schedule a bunch of tasks
+      for (let i = 0; i < 10; i++) {
+        scheduler(
+          ChoreType.TASK,
+          mockTask(vBHost1, {
+            index: i,
+            qrl: $(() => {
+              testLog.push(`b1.${i}`);
+              (globalThis as any).time += FREQUENCY_MS / 5; // Each task takes some time
+            }),
+          })
+        );
+      }
+
+      await waitForDrain();
+
+      expect(testLog).toEqual([
+        // First batch of tasks
+        'b1.0',
+        'b1.1',
+        'b1.2',
+        'b1.3',
+        'b1.4',
+        'b1.5',
+        'journalFlush', // Should flush after exactly 16.67ms (5 tasks × 3.33ms)
+        // Second batch of tasks
+        'b1.6',
+        'b1.7',
+        'b1.8',
+        'b1.9',
+        'journalFlush', // Final flush
+      ]);
+    });
+
+    it('should maintain flushBudgetStart across multiple drain calls', async () => {
+      (globalThis as any).time = 0;
+      const performance = {
+        now: () => (globalThis as any).time,
+      };
+      vi.stubGlobal('performance', performance);
+
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+
+      // First drain: Schedule tasks that take less than 16ms
+      for (let i = 0; i < 3; i++) {
+        scheduler(
+          ChoreType.TASK,
+          mockTask(vBHost1, {
+            index: i,
+            qrl: $(() => {
+              testLog.push(`batch1.${i}`);
+              (globalThis as any).time += FREQUENCY_MS / 6; // Each task takes ~2.67ms
+            }),
+          })
+        );
+      }
+
+      // First drain call - executes tasks and flushes at end (3 × 2.67ms = 8ms < 16ms)
+      await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+
+      // Verify first batch executed with journal flush at end
+      expect(testLog).toEqual(['batch1.0', 'batch1.1', 'batch1.2', 'journalFlush']);
+
+      // Reset time to test flushBudgetStart is reset after journal flush
+      (globalThis as any).time = 0;
+
+      // Second drain: Schedule many tasks that should trigger mid-drain flush
+      for (let i = 0; i < 8; i++) {
+        scheduler(
+          ChoreType.TASK,
+          mockTask(vBHost1, {
+            index: i,
+            qrl: $(() => {
+              testLog.push(`batch2.${i}`);
+              (globalThis as any).time += FREQUENCY_MS / 5; // Each task takes ~3.2ms
+            }),
+          })
+        );
+      }
+
+      // Second drain call - should trigger journal flush mid-drain when time >= 16ms
+      const secondDrain = scheduler(ChoreType.WAIT_FOR_QUEUE);
+      getTestPlatform().flush();
+      await secondDrain.$returnValue$;
+
+      expect(testLog).toEqual([
+        // First batch
+        'batch1.0',
+        'batch1.1',
+        'batch1.2',
+        'journalFlush', // End of first drain
+        // Second batch - should flush after batch2.5 (when now = 16ms at start of batch2.5)
+        'batch2.0',
+        'batch2.1',
+        'batch2.2',
+        'batch2.3',
+        'batch2.4',
+        'batch2.5',
+        'journalFlush', // Mid-drain flush when time >= 16ms
+        // Remaining tasks
+        'batch2.6',
+        'batch2.7',
+        'journalFlush', // Final flush at end of drain
+      ]);
+
+      expect(nextTickSpy).toHaveBeenCalledTimes(2);
+    });
   });
 });
 

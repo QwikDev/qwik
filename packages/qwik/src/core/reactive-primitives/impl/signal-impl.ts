@@ -32,6 +32,19 @@ export class SignalImpl<T = any> implements Signal<T> {
     DEBUG && log('new', this);
   }
 
+  /**
+   * Use this to force running subscribers, for example when the calculated value has mutated but
+   * remained the same object
+   */
+  force() {
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      this.$effects$
+    );
+  }
+
   get untrackedValue() {
     return this.$untrackedValue$;
   }

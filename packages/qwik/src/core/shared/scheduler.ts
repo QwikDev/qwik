@@ -200,6 +200,7 @@ export const createScheduler = (
   let drainScheduled = false;
   let isDraining = false;
   let isJournalFlushRunning = false;
+  let flushBudgetStart = 0;
   const nextTick = createNextTick(drainChoreQueue);
 
   function drainInNextTick() {
@@ -385,13 +386,15 @@ This is often caused by modifying a signal in an already rendered component duri
   }
 
   function drainChoreQueue(): void {
+    if (!isDraining) {
+      flushBudgetStart = performance.now();
+    }
     isDraining = true;
     const isServer = isServerPlatform();
-    const startTime = performance.now();
     let now = 0;
 
     const shouldApplyJournalFlush = () => {
-      return !isServer && now - startTime > FREQUENCY_MS;
+      return !isServer && now - flushBudgetStart >= FREQUENCY_MS;
     };
 
     const applyJournalFlush = () => {
@@ -400,6 +403,7 @@ This is often caused by modifying a signal in an already rendered component duri
         isJournalFlushRunning = true;
         journalFlush();
         isJournalFlushRunning = false;
+        flushBudgetStart = performance.now();
         DEBUG && debugTrace('journalFlush.DONE', null, choreQueue, blockedChores);
       }
     };
@@ -451,7 +455,6 @@ This is often caused by modifying a signal in an already rendered component duri
     try {
       while (choreQueue.length) {
         now = performance.now();
-
         const chore = (currentChore = choreQueue.shift()!);
         if (chore.$state$ !== ChoreState.NONE) {
           continue;

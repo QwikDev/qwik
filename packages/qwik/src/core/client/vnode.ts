@@ -1750,15 +1750,35 @@ export const vnode_getParent = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.parent] || null;
 };
 
-export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
-  let parent = vnode_getParent(vnode);
+export const vnode_isDescendantOf = (
+  vnode: VNode,
+  ancestor: VNode,
+  rootVNode: ElementVNode | null
+): boolean => {
+  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode, rootVNode);
   while (parent) {
     if (parent === ancestor) {
       return true;
     }
-    parent = vnode_getParent(parent);
+    parent = vnode_getParentOrProjectionParent(parent, rootVNode);
   }
   return false;
+};
+
+export const vnode_getParentOrProjectionParent = (
+  vnode: VNode,
+  rootVNode: ElementVNode | null
+): VNode | null => {
+  if (rootVNode) {
+    const parentProjection: VNode | null = vnode_getProp(vnode, QSlotParent, (id) =>
+      vnode_locate(rootVNode, id)
+    );
+    if (parentProjection) {
+      // This is a projection, so we need to check the parent of the projection
+      return parentProjection;
+    }
+  }
+  return vnode_getParent(vnode);
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {

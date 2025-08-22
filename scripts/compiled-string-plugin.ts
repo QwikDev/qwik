@@ -1,3 +1,4 @@
+import { minify } from 'terser';
 import type { Plugin } from 'vite';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
@@ -30,9 +31,9 @@ export function compiledStringPlugin(): Plugin {
             throw new Error(`Failed to load file: ${filePath}`);
           }
 
-          // The code already contains the "// @preserve-side-effects" comment
-          // which should help preserve side effects, but we'll ensure the resulting
-          // string maintains that marker
+          // minify the code
+          const minified = await minify(result.code ?? '');
+          result.code = minified.code!;
 
           return {
             code: `export default ${JSON.stringify(result.code)};`,

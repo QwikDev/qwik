@@ -174,6 +174,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
     const optimizer = getOptimizer();
     const path = optimizer.sys.path;
+    const resolvePath = (...paths: string[]) => normalizePath(path.resolve(...paths));
 
     opts.debug = !!updatedOpts.debug;
 
@@ -200,6 +201,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.buildMode ||= 'development';
     }
 
+    opts.csr = !!updatedOpts.csr;
+
     if (updatedOpts.entryStrategy && typeof updatedOpts.entryStrategy === 'object') {
       opts.entryStrategy = { ...updatedOpts.entryStrategy };
     }
@@ -223,57 +226,51 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (typeof opts.rootDir !== 'string') {
       opts.rootDir ||= optimizer.sys.cwd();
     }
-    opts.rootDir = normalizePath(path.resolve(optimizer.sys.cwd(), opts.rootDir));
-    let srcDir = normalizePath(path.resolve(opts.rootDir, SRC_DIR_DEFAULT));
+    opts.rootDir = resolvePath(optimizer.sys.cwd(), opts.rootDir);
+    let srcDir = resolvePath(opts.rootDir, SRC_DIR_DEFAULT);
     if (typeof updatedOpts.srcDir === 'string') {
-      opts.srcDir = normalizePath(path.resolve(opts.rootDir, updatedOpts.srcDir));
+      opts.srcDir = resolvePath(opts.rootDir, updatedOpts.srcDir);
       srcDir = opts.srcDir;
     } else {
       opts.srcDir ||= srcDir;
     }
-    opts.srcDir = normalizePath(path.resolve(opts.rootDir, normalizePath(opts.srcDir)));
+    opts.srcDir = resolvePath(opts.rootDir, opts.srcDir);
 
     if (Array.isArray(updatedOpts.tsconfigFileNames) && updatedOpts.tsconfigFileNames.length > 0) {
       opts.tsconfigFileNames = updatedOpts.tsconfigFileNames;
     }
 
-    if (!updatedOpts.input && !opts.input) {
+    if (!opts.csr && !updatedOpts.input && !opts.input) {
       // we only provide inputs if none were provided by the user
       if (opts.target === 'ssr') {
         // this is for dev mode, prod will have own setting
-        opts.input = [path.resolve(srcDir, 'entry.ssr')];
+        opts.input = [resolvePath(srcDir, 'entry.ssr')];
       } else if (opts.target === 'client') {
         // not really an entry, just a starting point
-        opts.input = [path.resolve(srcDir, 'root')];
+        opts.input = [resolvePath(srcDir, 'root')];
       } else {
         // others including lib should be ok already
         opts.input = undefined!;
       }
     }
 
-    if (!updatedOpts.csr) {
-      if (updatedOpts.outDir) {
-        // forced output directory
-        opts.outDir = normalizePath(path.resolve(opts.rootDir, normalizePath(updatedOpts.outDir)));
-      }
+    if (updatedOpts.outDir) {
+      // forced output directory
+      opts.outDir = resolvePath(opts.rootDir, updatedOpts.outDir);
+    }
 
-      // default output directory
-      opts.clientOutDir = normalizePath(
-        path.resolve(opts.rootDir, updatedOpts.clientOutDir || CLIENT_OUT_DIR)
-      );
-      opts.ssrOutDir = normalizePath(
-        path.resolve(opts.rootDir, updatedOpts.ssrOutDir || SSR_OUT_DIR)
-      );
-      if (opts.target === 'ssr') {
-        // server
-        opts.outDir ||= opts.ssrOutDir;
-      } else if (opts.target === 'lib') {
-        // library
-        opts.outDir ||= normalizePath(path.resolve(opts.rootDir, LIB_OUT_DIR));
-      } else {
-        // client
-        opts.outDir ||= opts.clientOutDir;
-      }
+    // default output directory
+    opts.clientOutDir = resolvePath(opts.rootDir, updatedOpts.clientOutDir || CLIENT_OUT_DIR);
+    opts.ssrOutDir = resolvePath(opts.rootDir, updatedOpts.ssrOutDir || SSR_OUT_DIR);
+    if (opts.target === 'ssr') {
+      // server
+      opts.outDir ||= opts.ssrOutDir;
+    } else if (opts.target === 'lib') {
+      // library
+      opts.outDir ||= resolvePath(opts.rootDir, LIB_OUT_DIR);
+    } else {
+      // client
+      opts.outDir ||= opts.clientOutDir;
     }
 
     if (typeof updatedOpts.manifestOutput === 'function') {
@@ -289,11 +286,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       opts.buildMode === 'production' &&
       maybeFs
     ) {
-      let clientManifestPath = normalizePath(path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME));
+      let clientManifestPath = resolvePath(opts.clientOutDir, Q_MANIFEST_FILENAME);
       if (!(await maybeFs.promises.stat(clientManifestPath).catch(() => false))) {
-        clientManifestPath = normalizePath(
-          path.resolve(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME)
-        );
+        clientManifestPath = resolvePath(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME);
       }
       try {
         const clientManifestStr = await maybeFs.promises.readFile(clientManifestPath, 'utf-8');
@@ -358,7 +353,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts.devTools.clickToSource = updatedOpts.devTools.clickToSource;
       }
     }
-    opts.csr = !!updatedOpts.csr;
 
     if ('inlineStylesUpToBytes' in optimizerOptions) {
       if (typeof optimizerOptions.inlineStylesUpToBytes === 'number') {

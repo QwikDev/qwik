@@ -1,68 +1,17 @@
-<style>
-  #qwik-inspector-overlay {
-    position: fixed;
-    background: rgba(24, 182, 246, 0.27);
-    pointer-events: none;
-    box-sizing: border-box;
-    border: 2px solid rgba(172, 126, 244, 0.46);
-    border-radius: 4px;
-    contain: strict;
-    cursor: pointer;
-    z-index: 999999;
-  }
-
-  #qwik-inspector-info-popup {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    font-family: monospace;
-    background: #000000c2;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    box-shadow:
-      0 20px 25px -5px rgb(0 0 0 / 34%),
-      0 8px 10px -6px rgb(0 0 0 / 24%);
-    backdrop-filter: blur(4px);
-    -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
-    animation: fadeOut 0.3s 3s ease-in-out forwards;
-    z-index: 999999;
-    contain: layout;
-  }
-
-  #qwik-inspector-info-popup p {
-    margin: 0px;
-  }
-
-  @-webkit-keyframes fadeOut {
-    0% {
-      opacity: 1;
-    }
-
-    100% {
-      opacity: 0;
-    }
-  }
-
-  @keyframes fadeOut {
-    0% {
-      opacity: 1;
-    }
-
-    100% {
-      opacity: 0;
-      visibility: hidden;
-    }
-  }
-</style>
-<div id="qwik-inspector-info-popup" aria-hidden="true">Click-to-Source</div>
-<script>
-  (function () {
+if (typeof document !== 'undefined') {
+  const register = () => {
     const inspectAttribute = 'data-qwik-inspector';
-    const hotKeys = globalThis.qwikdevtools.hotKeys;
-    const srcDir = globalThis.qwikdevtools.srcDir;
-    document.querySelector('#qwik-inspector-info-popup').textContent =
-      `Click-to-Source: ${hotKeys.join(' + ')}`;
+    const hotKeys = globalThis.__HOTKEYS__;
+    const srcDir = globalThis.__SRC_DIR__;
+    let popup = document.querySelector('#qwik-inspector-info-popup');
+    if (!popup) {
+      popup = document.createElement('div');
+      popup.id = 'qwik-inspector-info-popup';
+      popup['aria-hidden'] = 'true';
+      document.body.appendChild(popup);
+    }
+    popup.textContent = `Click-to-Source: ${hotKeys.join(' + ')}`;
+    // eslint-disable-next-line no-console
     console.debug(
       '%c🔍 Qwik Click-To-Source',
       'background: #564CE0; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;',
@@ -107,7 +56,7 @@
 
     window.addEventListener(
       'blur',
-      (event) => {
+      () => {
         window.__qwik_inspector_state.pressedKeys.clear();
         updateOverlay();
       },
@@ -139,7 +88,7 @@
             const inspectUrl = target.getAttribute(inspectAttribute);
             if (inspectUrl !== 'false') {
               body.style.setProperty('cursor', 'progress');
-              qwikOpenInEditor(inspectUrl);
+              globalThis.qwikOpenInEditor(inspectUrl);
             }
           }
         }
@@ -147,6 +96,7 @@
       { capture: true }
     );
 
+    // TODO use the vite dev URLs and translate in resolveId + use launch-editor from NPM
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
@@ -208,5 +158,7 @@
     }
     window.addEventListener('resize', updateOverlay);
     document.addEventListener('scroll', updateOverlay);
-  })();
-</script>
+  };
+
+  document.addEventListener('DOMContentLoaded', register);
+}

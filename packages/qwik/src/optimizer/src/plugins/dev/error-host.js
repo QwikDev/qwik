@@ -1,20 +1,9 @@
-<script>
-  document.addEventListener('qerror', (ev) => {
-    const ErrorOverlay = customElements.get('vite-error-overlay');
-    if (!ErrorOverlay) {
-      return;
-    }
-    const err = ev.detail.error;
-    const overlay = new ErrorOverlay(err);
-    document.body.appendChild(overlay);
-  });
-</script>
-<script>
-  /**
-   * Usage:
-   *
-   * <errored-host></errored-host>
-   */
+/**
+ * Usage:
+ *
+ * <errored-host></errored-host>
+ */
+if (typeof HTMLElement !== 'undefined') {
   class ErroredHost extends HTMLElement {
     get _root() {
       return this.shadowRoot || this;
@@ -22,7 +11,6 @@
 
     constructor() {
       super();
-      const self = this;
 
       this.state = {};
       if (!this.props) {
@@ -181,4 +169,14 @@
   }
 
   customElements.define('errored-host', ErroredHost);
-</script>
+
+  document.addEventListener('qerror', (ev) => {
+    const ErrorOverlay = customElements.get('vite-error-overlay');
+    if (!ErrorOverlay) {
+      return;
+    }
+    const err = ev.detail.error;
+    const overlay = new ErrorOverlay(err);
+    document.body.appendChild(overlay);
+  });
+}

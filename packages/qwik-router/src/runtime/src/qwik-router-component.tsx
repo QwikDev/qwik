@@ -509,7 +509,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // Update content
         content.headings = pageModule.headings;
         content.menu = menu;
-        contentInternal.value = noSerialize(contentModules);
+        (contentInternal as any).untrackedValue = noSerialize(contentModules);
 
         // Update document head
         documentHead.links = resolvedHead.links;
@@ -735,6 +735,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
           const navigate = () => {
             clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            (contentInternal as any).force();
             return _waitUntilRendered(elm as Element);
           };
 

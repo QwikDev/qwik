@@ -730,7 +730,7 @@ index 0000000000000000000000000000000000000000..21646f447f20fa710a7d855e597a9b9f
 --- /dev/null
 +++ b/.history/lib/KMEANS_20231205115425.js
 @@ -0,0 +1,213 @@
-+﻿/**
++ /**
 + * KMEANS clustering
 + *
 + * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>
@@ -949,7 +949,7 @@ index 0000000000000000000000000000000000000000..a6fab6e802b5ce7c9f7f8ac4183faff2
 --- /dev/null
 +++ b/.history/lib/KMEANS_20231205115515.js
 @@ -0,0 +1,213 @@
-+﻿/**
++ /**
 + * KMEANS clustering
 + *
 + * @author Lukasz Krawczyk <contact@lukaszkrawczyk.eu>

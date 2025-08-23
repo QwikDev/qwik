@@ -53,8 +53,8 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
-  const cancelProcess = () => {
-    backgroundInstall.abort();
+  const cancelProcess = async () => {
+    await backgroundInstall.abort();
     cancel('Operation cancelled.');
     process.exit(0);
   };
@@ -76,7 +76,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     });
 
     if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
-      return cancelProcess();
+      return await cancelProcess();
     }
 
     if (existingOutDirAnswer === 'replace') {
@@ -91,7 +91,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(starterIdAnswer)) {
-    return cancelProcess();
+    return await cancelProcess();
   }
 
   const starterId = starterIdAnswer as string;
@@ -102,7 +102,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(runDepInstallAnswer)) {
-    return cancelProcess();
+    return await cancelProcess();
   }
 
   const gitInitAnswer = await confirm({

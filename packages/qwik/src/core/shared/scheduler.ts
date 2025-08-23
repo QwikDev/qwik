@@ -201,6 +201,7 @@ export const createScheduler = (
   let isDraining = false;
   let isJournalFlushRunning = false;
   let flushBudgetStart = 0;
+  let currentTime = performance.now();
   const nextTick = createNextTick(drainChoreQueue);
 
   function drainInNextTick() {
@@ -385,50 +386,67 @@ This is often caused by modifying a signal in an already rendered component duri
     drainChoreQueue();
   }
 
-  function drainChoreQueue(): void {
-    if (!isDraining) {
+  ////////////////////////////////////////////////////////////////////////////////
+  // Drain queue helpers
+  ////////////////////////////////////////////////////////////////////////////////
+
+  function applyJournalFlush() {
+    if (!isJournalFlushRunning) {
+      // prevent multiple journal flushes from running at the same time
+      isJournalFlushRunning = true;
+      journalFlush();
+      isJournalFlushRunning = false;
       flushBudgetStart = performance.now();
+      DEBUG && debugTrace('journalFlush.DONE', null, choreQueue, blockedChores);
+    }
+  }
+
+  function shouldApplyJournalFlush(isServer: boolean) {
+    return !isServer && currentTime - flushBudgetStart >= FREQUENCY_MS;
+  }
+
+  function drainChoreQueue(): void {
+    const isServer = isServerPlatform();
+    drainScheduled = false;
+    if (isDraining) {
+      return;
+    }
+    // early return if the queue is empty
+    if (!choreQueue.length) {
+      applyJournalFlush();
+      if (drainChore && !runningChores.size) {
+        // resolve drainChore only if there are no running chores, because
+        // we are sure that we are done
+        drainChore.$resolve$!(null);
+        drainChore = null;
+      }
+      return;
     }
     isDraining = true;
-    const isServer = isServerPlatform();
-    let now = 0;
-
-    const shouldApplyJournalFlush = () => {
-      return !isServer && now - flushBudgetStart >= FREQUENCY_MS;
-    };
-
-    const applyJournalFlush = () => {
-      if (!isJournalFlushRunning) {
-        // prevent multiple journal flushes from running at the same time
-        isJournalFlushRunning = true;
-        journalFlush();
-        isJournalFlushRunning = false;
-        flushBudgetStart = performance.now();
-        DEBUG && debugTrace('journalFlush.DONE', null, choreQueue, blockedChores);
-      }
-    };
+    flushBudgetStart = performance.now();
 
     const maybeFinishDrain = () => {
       if (choreQueue.length) {
-        return drainChoreQueue();
+        drainInNextTick();
+        return false;
       }
-      if (!drainScheduled || (drainChore && runningChores.size)) {
-        if (shouldApplyJournalFlush()) {
+      if (drainChore && runningChores.size) {
+        if (shouldApplyJournalFlush(isServer)) {
           // apply journal flush even if we are not finished draining the queue
           applyJournalFlush();
         }
-        return;
+        return false;
       }
       currentChore = null;
-      drainScheduled = false;
-      isDraining = false;
       applyJournalFlush();
       drainChore?.$resolve$!(null);
       drainChore = null;
       DEBUG && debugTrace('drain.DONE', drainChore, choreQueue, blockedChores);
+      return true;
     };
 
     const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
+      let blockedChoresScheduled = false;
       if (chore.$blockedChores$) {
         for (const blockedChore of chore.$blockedChores$) {
           const blockingChore = findBlockingChore(
@@ -443,18 +461,21 @@ This is often caused by modifying a signal in an already rendered component duri
           } else {
             blockedChores.delete(blockedChore);
             sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
+            blockedChoresScheduled = true;
           }
         }
         chore.$blockedChores$ = null;
       }
-      drainInNextTick();
+      if (blockedChoresScheduled && !isDraining) {
+        drainInNextTick();
+      }
     };
 
     let currentChore: Chore | null = null;
 
     try {
       while (choreQueue.length) {
-        now = performance.now();
+        currentTime = performance.now();
         const chore = (currentChore = choreQueue.shift()!);
         if (chore.$state$ !== ChoreState.NONE) {
           continue;
@@ -491,7 +512,6 @@ This is often caused by modifying a signal in an already rendered component duri
 
           result
             .then((value) => {
-              DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
               finishChore(chore, value);
             })
             .catch((e) => {
@@ -506,17 +526,25 @@ This is often caused by modifying a signal in an already rendered component duri
               // Note that we ignore failed chores so the app keeps working
               // TODO decide if this is ok and document it
               scheduleBlockedChoresAndDrainIfNeeded(chore);
-              if (drainChore && !runningChores.size) {
-                maybeFinishDrain();
+              // If drainChore is not null, we are waiting for it to finish.
+              // If there are no running chores, we can finish the drain.
+              if (!runningChores.size) {
+                let finished = false;
+                if (drainChore) {
+                  finished = maybeFinishDrain();
+                }
+                if (!finished && !isDraining) {
+                  // if finished, then journal flush is already applied
+                  applyJournalFlush();
+                }
               }
             });
         } else {
-          DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
           finishChore(chore, result);
           scheduleBlockedChoresAndDrainIfNeeded(chore);
         }
 
-        if (shouldApplyJournalFlush()) {
+        if (shouldApplyJournalFlush(isServer)) {
           applyJournalFlush();
           drainInNextTick();
           return;
@@ -526,6 +554,7 @@ This is often caused by modifying a signal in an already rendered component duri
       handleError(currentChore!, e);
       scheduleBlockedChoresAndDrainIfNeeded(currentChore!);
     } finally {
+      isDraining = false;
       maybeFinishDrain();
     }
   }
@@ -535,6 +564,7 @@ This is often caused by modifying a signal in an already rendered component duri
     chore.$state$ = ChoreState.DONE;
     chore.$returnValue$ = value;
     chore.$resolve$?.(value);
+    DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
   }
 
   function handleError(chore: Chore, e: any) {

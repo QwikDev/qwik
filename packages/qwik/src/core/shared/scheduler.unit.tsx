@@ -43,6 +43,7 @@ describe('scheduler', () => {
   let handleError: (err: any, host: HostElement | null) => void;
   let choreQueue: Chore[];
   let blockedChores: Set<Chore>;
+  let runningChores: Set<Chore>;
 
   async function waitForDrain() {
     const chore = scheduler(ChoreType.WAIT_FOR_QUEUE);
@@ -52,18 +53,20 @@ describe('scheduler', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (globalThis as any as { testLog: string[] }).testLog = [];
+    (globalThis as any).testLog = [];
     document = createDocument();
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
     handleError = container.handleError = vi.fn();
     choreQueue = [];
     blockedChores = new Set();
+    runningChores = new Set();
     scheduler = createScheduler(
       container,
       () => testLog.push('journalFlush'),
       choreQueue,
-      blockedChores
+      blockedChores,
+      runningChores
     );
     document.body.innerHTML = '<a></a><b></b>';
     vBody = vnode_newUnMaterializedElement(document.body);

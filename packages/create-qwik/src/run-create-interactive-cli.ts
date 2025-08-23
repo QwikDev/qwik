@@ -76,7 +76,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     });
 
     if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
-      cancelProcess();
+      return cancelProcess();
     }
 
     if (existingOutDirAnswer === 'replace') {
@@ -91,7 +91,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(starterIdAnswer)) {
-    cancelProcess();
+    return cancelProcess();
   }
 
   const starterId = starterIdAnswer as string;
@@ -102,7 +102,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(runDepInstallAnswer)) {
-    cancelProcess();
+    return cancelProcess();
   }
 
   const gitInitAnswer = await confirm({

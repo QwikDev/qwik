@@ -139,7 +139,7 @@ import { isSsrNode } from '../reactive-primitives/subscriber';
 import { logWarn } from './utils/log';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = false;
+const DEBUG: boolean = true;
 
 enum ChoreState {
   NONE = 0,
@@ -203,8 +203,8 @@ export const createScheduler = (
   let flushBudgetStart = 0;
   const nextTick = createNextTick(drainChoreQueue);
 
-  function drainInNextTick() {
-    if (!drainScheduled) {
+  function drainInNextTick(force: boolean = false) {
+    if (!drainScheduled || force) {
       drainScheduled = true;
       nextTick();
     }
@@ -429,6 +429,7 @@ This is often caused by modifying a signal in an already rendered component duri
     };
 
     const scheduleBlockedChoresAndDrainIfNeeded = (chore: Chore) => {
+      let blockedChoresScheduled = false;
       if (chore.$blockedChores$) {
         for (const blockedChore of chore.$blockedChores$) {
           const blockingChore = findBlockingChore(
@@ -440,6 +441,7 @@ This is often caused by modifying a signal in an already rendered component duri
           );
           if (blockingChore) {
             addBlockedChore(blockedChore, blockingChore, blockedChores);
+            blockedChoresScheduled = true;
           } else {
             blockedChores.delete(blockedChore);
             sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
@@ -447,7 +449,9 @@ This is often caused by modifying a signal in an already rendered component duri
         }
         chore.$blockedChores$ = null;
       }
-      drainInNextTick();
+      if (blockedChoresScheduled) {
+        drainInNextTick(true);
+      }
     };
 
     let currentChore: Chore | null = null;
@@ -491,7 +495,6 @@ This is often caused by modifying a signal in an already rendered component duri
 
           result
             .then((value) => {
-              DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
               finishChore(chore, value);
             })
             .catch((e) => {
@@ -511,7 +514,6 @@ This is often caused by modifying a signal in an already rendered component duri
               }
             });
         } else {
-          DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
           finishChore(chore, result);
           scheduleBlockedChoresAndDrainIfNeeded(chore);
         }
@@ -535,6 +537,7 @@ This is often caused by modifying a signal in an already rendered component duri
     chore.$state$ = ChoreState.DONE;
     chore.$returnValue$ = value;
     chore.$resolve$?.(value);
+    DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
   }
 
   function handleError(chore: Chore, e: any) {

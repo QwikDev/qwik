@@ -114,7 +114,7 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
 async function mergeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
-    const srcPkgJson = JSON.parse(srcContent);
+    const srcPkgJson = json5.parse(srcContent);
     const destPkgJson = json5.parse(await fs.promises.readFile(destPath, 'utf-8'));
     Object.assign(srcPkgJson, destPkgJson);
 

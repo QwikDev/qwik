@@ -8,7 +8,7 @@ import { tryGetInvokeContext } from '../../use/use-core';
 import { throwIfQRLNotResolved } from '../utils';
 import type { BackRef } from '../cleanup';
 import { getSubscriber } from '../subscriber';
-import { ComputedSignalFlags, ComputeQRL, EffectSubscription } from '../types';
+import { SerializationSignalFlags, ComputeQRL, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
@@ -33,8 +33,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * resolve the QRL during the mark dirty phase so that any call to it will be synchronous). )
    */
   $computeQrl$: S;
-  $flags$: SignalFlags | ComputedSignalFlags;
-  $forceRunEffects$: boolean = false;
+  $flags$: SignalFlags | SerializationSignalFlags;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
@@ -42,8 +41,8 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     fn: S,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags: SignalFlags | ComputedSignalFlags = SignalFlags.INVALID |
-      ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
+    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID |
+      SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS
   ) {
     // The value is used for comparison when signals trigger, which can only happen
     // when it was calculated before. Therefore we can pass whatever we like.
@@ -54,7 +53,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$forceRunEffects$ = false;
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       null,
@@ -68,27 +66,19 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    * remained the same object
    */
   force() {
-    this.$forceRunEffects$ = true;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
-      this,
-      this.$effects$
-    );
+    this.$flags$ |= SignalFlags.RUN_EFFECTS;
+    super.force();
   }
 
   get untrackedValue() {
-    const didChange = this.$computeIfNeeded$();
-    if (didChange) {
-      this.$forceRunEffects$ = didChange;
-    }
+    this.$computeIfNeeded$();
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
+      return;
     }
     const computeQrl = this.$computeQrl$;
     throwIfQRLNotResolved(computeQrl);
@@ -107,12 +97,14 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       DEBUG && log('Signal.$compute$', untrackedValue);
 
       this.$flags$ &= ~SignalFlags.INVALID;
-
       const didChange = untrackedValue !== this.$untrackedValue$;
       if (didChange) {
+        // skip first computation when value is not changed
+        if (this.$untrackedValue$ !== NEEDS_COMPUTATION) {
+          this.$flags$ |= SignalFlags.RUN_EFFECTS;
+        }
         this.$untrackedValue$ = untrackedValue;
       }
-      return didChange;
     } finally {
       if (ctx) {
         ctx.$effectSubscriber$ = previousEffectSubscription;

@@ -43,7 +43,7 @@ export const render = async (
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
-  await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   return {
     cleanup: () => {
       cleanup(container, container.rootVNode);

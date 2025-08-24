@@ -84,7 +84,8 @@ export function vNodeData_createSsrNodeReference(
   currentComponentNode: ISsrNode | null,
   vNodeData: VNodeData,
   depthFirstElementIdx: number,
-  cleanupQueue: CleanupQueue
+  cleanupQueue: CleanupQueue,
+  currentFile: string | null
 ): ISsrNode {
   vNodeData[0] |= VNodeDataFlag.REFERENCE;
   const stack: number[] = [-1];
@@ -123,7 +124,14 @@ export function vNodeData_createSsrNodeReference(
       }
     }
   }
-  return new SsrNode(currentComponentNode, refId, attributesIndex, cleanupQueue, vNodeData);
+  return new SsrNode(
+    currentComponentNode,
+    refId,
+    attributesIndex,
+    cleanupQueue,
+    vNodeData,
+    currentFile
+  );
 }
 
 /**

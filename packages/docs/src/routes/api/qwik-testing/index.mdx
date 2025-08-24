@@ -507,6 +507,9 @@ export declare function trigger(
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
   eventName: string,
   eventPayload?: any,
+  options?: {
+    waitForIdle?: boolean;
+  },
 ): Promise<void>;
 ```
 
@@ -563,6 +566,19 @@ eventPayload
 </td><td>
 
 any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+\{ waitForIdle?: boolean; }
 
 </td><td>
 

@@ -24,6 +24,7 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  fullyParallel: true,
   testMatch: "*.e2e.ts",
   testIgnore: /.*example.spec.tsx?$/,
   retries: inGithubCI ? 0 : 1,

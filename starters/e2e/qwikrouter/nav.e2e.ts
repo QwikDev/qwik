@@ -108,7 +108,10 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-short/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
+        await page.waitForFunction(
+          () => window.scrollX === 0 && window.scrollY === 0,
+        );
+        // expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
 
         const scrollHeightShort = await getScrollHeight(page);
         await scrollTo(page, 0, scrollHeightShort);
@@ -127,10 +130,11 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-long/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
+        await page.waitForFunction(
+          (scrollHeightLong) =>
+            window.scrollX === 0 && window.scrollY === scrollHeightLong,
           scrollHeightLong,
-        ]);
+        );
 
         const scrollDetector3 = scrollDetector(page);
         await page.goForward();
@@ -140,10 +144,11 @@ test.describe("nav", () => {
         await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/page-short/",
         );
-        expect(await getWindowScrollXY(page)).toStrictEqual([
-          0,
+        await page.waitForFunction(
+          (scrollHeightShort) =>
+            window.scrollX === 0 && window.scrollY === scrollHeightShort,
           scrollHeightShort,
-        ]);
+        );
       });
 
       test("issue4502 (link)", async ({ page }) => {
@@ -278,9 +283,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"NONE","hash":"NONE"}',
         );
@@ -299,9 +302,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/?query=123",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/?query=123");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"123","hash":"NONE"}',
         );
@@ -319,9 +320,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
-          "/qwikrouter-test/issue2890/b/?query=321",
-        );
+        await expect(page).toHaveURL("/qwikrouter-test/issue2890/b/?query=321");
         await expect(page.locator("#loader")).toHaveText(
           'LOADER: {"query":"321","hash":"NONE"}',
         );
@@ -339,7 +338,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(
@@ -359,7 +358,7 @@ test.describe("nav", () => {
         await link.click();
 
         await expect(page.locator("h1")).toHaveText("Query");
-        await expect(toPath(page.url())).toEqual(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/issue2890/b/?query=321&hash=true#h2",
         );
         await expect(page.locator("#loader")).toHaveText(
@@ -529,6 +528,38 @@ test.describe("nav", () => {
       );
 
       await expect(page.locator("#redirected-result")).toHaveText("true");
+    });
+
+    test("should not execute task from removed layout, and should be executed only once for SPA", async ({
+      page,
+      javaScriptEnabled,
+    }) => {
+      let logCounter = 0;
+      page.on("console", (msg) => {
+        if (msg.type() === "error") {
+          expect(msg.text()).toEqual(undefined);
+        } else if (msg.type() === "log") {
+          if (msg.text().includes("location path id")) {
+            logCounter++;
+          }
+        }
+      });
+      await page.goto("/qwikrouter-test/location-path");
+      await expect(page.locator("h1")).toHaveText("Location Path Root");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/");
+      await page.locator("#location-path-link").click();
+      await expect(page.locator("h1")).toHaveText("Location Path id");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/1/");
+      await page.locator("#location-path-link-root").click();
+      await expect(page.locator("h1")).toHaveText("Location Path Root");
+      await expect(page).toHaveURL("/qwikrouter-test/location-path/");
+      if (javaScriptEnabled) {
+        // should log on browser only in CSR
+        expect(logCounter).toBe(1);
+      } else {
+        // should not log in MPA, it is executed on server
+        expect(logCounter).toBe(0);
+      }
     });
   }
 });

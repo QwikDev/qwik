@@ -9,10 +9,10 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
-  triggerEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
+import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -30,6 +30,19 @@ export class SignalImpl<T = any> implements Signal<T> {
     this.$container$ = container;
     this.$untrackedValue$ = value;
     DEBUG && log('new', this);
+  }
+
+  /**
+   * Use this to force running subscribers, for example when the calculated value has mutated but
+   * remained the same object
+   */
+  force() {
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      this.$effects$
+    );
   }
 
   get untrackedValue() {
@@ -54,14 +67,12 @@ export class SignalImpl<T = any> implements Signal<T> {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
-      // TODO: move this to the scheduler
-      triggerEffects(this.$container$, this, this.$effects$);
-      // this.$container$?.$scheduler$(
-      //   ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      //   null,
-      //   this,
-      //   this.$effects$
-      // );
+      this.$container$?.$scheduler$(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        null,
+        this,
+        this.$effects$
+      );
     }
   }
 

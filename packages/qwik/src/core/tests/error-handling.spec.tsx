@@ -7,7 +7,6 @@ import {
   Fragment as Projection,
   component$,
   useSignal,
-  useTask$,
 } from '@qwik.dev/core';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 
@@ -21,13 +20,9 @@ describe.each([
   it('should handle error in component with element wrapper', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);
-      useTask$(async ({ track }) => {
-        const count = track(counter);
-        if (count === 0) {
-          return;
-        }
+      if (counter.value !== 0) {
         throw new Error('error');
-      });
+      }
       return (
         <main>
           {''}
@@ -68,13 +63,9 @@ describe.each([
   it('should handle error in component with virtual wrapper', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);
-      useTask$(async ({ track }) => {
-        const count = track(counter);
-        if (count === 0) {
-          return;
-        }
+      if (counter.value !== 0) {
         throw new Error('error');
-      });
+      }
       return (
         <>
           {''}
@@ -105,6 +96,49 @@ describe.each([
                 <Signal ssr-required>1</Signal>
               </button>
             </errored-host>
+          </Component>
+        </Projection>
+      </Component>
+    );
+  });
+
+  it('should handle error in event handler', async () => {
+    const Cmp = component$(() => {
+      return (
+        <>
+          <button
+            onClick$={() => {
+              throw new Error('error');
+            }}
+          >
+            error
+          </button>
+          <div>some div</div>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(
+      <ErrorProvider>
+        <Cmp />
+      </ErrorProvider>,
+      { debug }
+    );
+    // override globalThis.document to make moving elements logic work
+    globalThis.document = document;
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Projection ssr-required>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <errored-host>
+                <button>error</button>
+              </errored-host>
+              <div>some div</div>
+            </Fragment>
           </Component>
         </Projection>
       </Component>

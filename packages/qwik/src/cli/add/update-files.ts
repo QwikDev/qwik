@@ -1,3 +1,4 @@
+import json5 from 'json5';
 import fs from 'node:fs';
 import { extname, join } from 'node:path';
 import type { FsUpdates, UpdateAppOptions } from '../types';
@@ -29,7 +30,7 @@ export async function mergeIntegrationDir(
         if (destName === 'package.json') {
           await mergePackageJsons(fileUpdates, srcChildPath, destRootPath);
         } else if (destName === 'settings.json') {
-          await mergeJsons(fileUpdates, srcChildPath, finalDestPath);
+          await mergeSettings(fileUpdates, srcChildPath, finalDestPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, finalDestPath);
         } else if (
@@ -110,11 +111,11 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
   }
 }
 
-async function mergeJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
     const srcPkgJson = JSON.parse(srcContent);
-    const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
+    const destPkgJson = json5.parse(await fs.promises.readFile(destPath, 'utf-8'));
     Object.assign(srcPkgJson, destPkgJson);
 
     fileUpdates.files.push({

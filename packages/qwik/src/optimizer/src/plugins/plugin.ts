@@ -280,27 +280,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (updatedOpts.manifestInput) {
       opts.manifestInput = getValidManifest(updatedOpts.manifestInput) || null;
     }
-    if (
-      !opts.manifestInput &&
-      opts.target === 'ssr' &&
-      opts.buildMode === 'production' &&
-      maybeFs
-    ) {
-      let clientManifestPath = resolvePath(opts.clientOutDir, Q_MANIFEST_FILENAME);
-      if (!(await maybeFs.promises.stat(clientManifestPath).catch(() => false))) {
-        clientManifestPath = resolvePath(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME);
-      }
-      try {
-        const clientManifestStr = await maybeFs.promises.readFile(clientManifestPath, 'utf-8');
-        opts.manifestInput = getValidManifest(JSON.parse(clientManifestStr)) || null;
-        // eslint-disable-next-line no-console
-        console.info('Read client manifest from', clientManifestPath);
-      } catch (e) {
-        console.warn(
-          `could not read Qwik client manifest ${clientManifestPath}, ignoring. Make sure you provide it to the SSR renderer. (${e})`
-        );
-      }
-    }
 
     if (typeof updatedOpts.transformedModuleOutput === 'function') {
       opts.transformedModuleOutput = updatedOpts.transformedModuleOutput;
@@ -939,6 +918,34 @@ export const isDev = ${JSON.stringify(isDev)};
   }
 
   async function getQwikServerManifestModule(isServer: boolean) {
+    if (
+      !opts.manifestInput &&
+      opts.target === 'ssr' &&
+      opts.buildMode === 'production' &&
+      maybeFs
+    ) {
+      const path = getPath();
+      let clientManifestPath = path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME);
+      if (!(await maybeFs.promises.stat(clientManifestPath).catch(() => false))) {
+        clientManifestPath = path.resolve(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME);
+      }
+      try {
+        const clientManifestStr = await maybeFs.promises.readFile(clientManifestPath, 'utf-8');
+        opts.manifestInput = getValidManifest(JSON.parse(clientManifestStr)) || null;
+        // eslint-disable-next-line no-console
+        console.info('Read client manifest from', clientManifestPath);
+      } catch (e) {
+        console.warn(
+          `\n==========\n` +
+            `Could not read Qwik client manifest ${clientManifestPath}.\n` +
+            `Make sure you provide it to the SSR renderer via the \`manifest\` argument, or define it in \`globalThis.__QWIK_MANIFEST__\` before the server bundle is loaded, or embed it in the server bundle by replacing \`globalThis.__QWIK_MANIFEST__\`.\n` +
+            `Without the manifest, the SSR renderer will not be able to generate event handlers.\n` +
+            `(${e})\n` +
+            `==========\n`
+        );
+      }
+    }
+
     const manifest = isServer ? opts.manifestInput : null;
     let serverManifest: ServerQwikManifest | null = null;
     if (manifest?.manifestHash) {
@@ -954,7 +961,7 @@ export const isDev = ${JSON.stringify(isDev)};
       };
     }
     return `// @qwik-client-manifest
-export const manifest = ${JSON.stringify(serverManifest)};\n`;
+export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'globalThis.__QWIK_MANIFEST__'};\n`;
   }
 
   function setSourceMapSupport(sourcemap: boolean) {

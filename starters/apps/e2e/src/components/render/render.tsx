@@ -4,7 +4,7 @@ import {
   useStore,
   useStylesScoped$,
   useTask$,
-  event$,
+  $,
   h,
   jsx,
   SkipRender,
@@ -549,7 +549,7 @@ export const Issue3398 = component$(() => {
 export const Issue3479 = component$(() => {
   const count = useSignal(0);
   const attributes = {
-    onClick$: event$(() => count.value++),
+    onClick$: $(() => count.value++),
   };
   const countStr = String(count.value) + "";
   return (

@@ -560,6 +560,9 @@ importers:
       '@builder.io/qwik':
         specifier: workspace:^
         version: 'link:'
+      '@croct/json5-parser':
+        specifier: ^0.1.1
+        version: 0.1.1
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
@@ -569,9 +572,6 @@ importers:
       image-size:
         specifier: 1.1.1
         version: 1.1.1
-      json5:
-        specifier: 2.2.3
-        version: 2.2.3
       kleur:
         specifier: 4.1.5
         version: 4.1.5
@@ -1064,6 +1064,12 @@ packages:
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
+
+  '@croct/json5-parser@0.1.1':
+    resolution: {integrity: sha512-7+yo8Kd5JJp+VF3bjYGXW0S1s3zOF6IiJczmQy1d+t/pFn8bo7kJcbzRP+C78kcqZoBW4gs5H/c7ZtsH5DDb7w==}
+
+  '@croct/json@2.1.0':
+    resolution: {integrity: sha512-UrWfjNQVlBxN+OVcFwHmkjARMW55MBN04E9KfGac8ac8z1QnFVuiOOFtMWXCk3UwsyRqhsNaFoYLZC+xxqsVjQ==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -6793,11 +6799,6 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
-  json5@2.2.3:
-    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
-    engines: {node: '>=6'}
-    hasBin: true
-
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
 
@@ -10570,6 +10571,12 @@ snapshots:
     optional: true
 
   '@colors/colors@1.6.0': {}
+
+  '@croct/json5-parser@0.1.1':
+    dependencies:
+      '@croct/json': 2.1.0
+
+  '@croct/json@2.1.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -16620,8 +16627,6 @@ snapshots:
   json-schema-traverse@1.0.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
-
-  json5@2.2.3: {}
 
   jsonfile@4.0.0:
     optionalDependencies:

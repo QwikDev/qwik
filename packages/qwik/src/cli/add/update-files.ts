@@ -1,4 +1,4 @@
-import json5 from 'json5';
+import { JsonParser, JsonObjectNode } from '@croct/json5-parser';
 import fs from 'node:fs';
 import { extname, join } from 'node:path';
 import type { FsUpdates, UpdateAppOptions } from '../types';
@@ -114,13 +114,16 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
 async function mergeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
-    const srcPkgJson = json5.parse(srcContent);
-    const destPkgJson = json5.parse(await fs.promises.readFile(destPath, 'utf-8'));
-    Object.assign(srcPkgJson, destPkgJson);
+    const srcPkgJson = JsonParser.parse(srcContent, JsonObjectNode);
+    const destPkgJson = JsonParser.parse(
+      await fs.promises.readFile(destPath, 'utf-8'),
+      JsonObjectNode
+    );
+    srcPkgJson.update({ ...srcPkgJson.toJSON(), ...destPkgJson.toJSON() });
 
     fileUpdates.files.push({
       path: destPath,
-      content: JSON.stringify(srcPkgJson, null, 2) + '\n',
+      content: srcPkgJson.toString() + '\n',
       type: 'modify',
     });
   } catch (e) {

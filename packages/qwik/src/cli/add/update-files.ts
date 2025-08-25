@@ -29,8 +29,8 @@ export async function mergeIntegrationDir(
 
         if (destName === 'package.json') {
           await mergePackageJsons(fileUpdates, srcChildPath, destRootPath);
-        } else if (destName === 'settings.json') {
-          await mergeSettings(fileUpdates, srcChildPath, finalDestPath);
+        } else if (destDir.endsWith('.vscode') && destName === 'settings.json') {
+          await mergeVSCodeSettings(fileUpdates, srcChildPath, finalDestPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, finalDestPath);
         } else if (
@@ -111,7 +111,7 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
   }
 }
 
-async function mergeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeVSCodeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
     const srcPkgJson = JsonParser.parse(srcContent, JsonObjectNode);
@@ -119,11 +119,11 @@ async function mergeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: 
       await fs.promises.readFile(destPath, 'utf-8'),
       JsonObjectNode
     );
-    srcPkgJson.update({ ...srcPkgJson.toJSON(), ...destPkgJson.toJSON() });
+    destPkgJson.update({ ...destPkgJson.toJSON(), ...srcPkgJson.toJSON() });
 
     fileUpdates.files.push({
       path: destPath,
-      content: srcPkgJson.toString() + '\n',
+      content: destPkgJson.toString() + '\n',
       type: 'modify',
     });
   } catch (e) {

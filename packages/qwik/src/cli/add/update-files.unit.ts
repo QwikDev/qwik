@@ -114,10 +114,18 @@ describe('mergeIntegrationDir', () => {
 
     expect(actualResults).toEqual(expectedResults);
 
-    const actualGlobalCssContent = fakeFileUpdates.files.find(
-      (f) => f.path === `destDir/subDestDir/apps/subpackage/src/global.css`
-    )?.content;
-
-    expect(actualGlobalCssContent).toBe('p{color: red}\n\n/* CSS */\n');
+    const tests = {
+      'destDir/subDestDir/apps/subpackage/fake.ts': 'fake file',
+      'destDir/subDestDir/should-stay-in-root.ts': 'fake file',
+      'destDir/subDestDir/package.json': '{"name": "fake"}',
+      'destDir/subDestDir/should-stay/should-also-stay.ts': 'fake file',
+      'destDir/subDestDir/apps/subpackage/.vscode/settings.json':
+        '{ \n          // Comment Foo\n          "css.lint.unknownAtRules": "ignore",\n          "name": "John Doe",\n          "age": 42\n      }\n',
+      'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
+    };
+    for (const [fileName, content] of Object.entries(tests)) {
+      const file = fakeFileUpdates.files.find((f) => f.path === fileName);
+      expect(file?.content.toString()).toBe(content);
+    }
   });
 });

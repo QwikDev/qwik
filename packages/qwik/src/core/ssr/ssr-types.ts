@@ -38,6 +38,14 @@ export interface ISsrNode {
 }
 
 /** @internal */
+export interface SsrBackpatch {
+  type: 'attribute';
+  vNodeId: string;
+  name: string;
+  serializedValue: string | true | null;
+}
+
+/** @internal */
 export interface ISsrComponentFrame {
   componentNode: ISsrNode;
   scopedStyleIds: Set<string>;

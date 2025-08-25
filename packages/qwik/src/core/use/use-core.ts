@@ -229,6 +229,16 @@ export const trackSignalAndAssignHost = (
   if (value instanceof WrappedSignalImpl && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;
   }
+
+  if (
+    typeof property === 'string' &&
+    property !== 'vnode' &&
+    property !== '.' &&
+    (container as any).$addSignalAttrMapping$
+  ) {
+    (container as any).$addSignalAttrMapping$(value, host, property, data);
+  }
+
   return trackSignal(() => value.value, host, property, container, data);
 };
 

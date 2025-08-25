@@ -342,6 +342,50 @@ export const createScheduler = (
       const isUpdatable = !!(chore.$host$.flags & SsrNodeFlags.Updatable);
 
       if (!isUpdatable) {
+        if (chore.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS) {
+          const effects = chore.$payload$ as Set<any>;
+
+          for (const effect of effects) {
+            if (!Array.isArray(effect) || effect.length < 4) {
+              continue;
+            }
+
+            const [hostNode, attrName, , subscriptionData] = effect;
+
+            if (!hostNode || typeof attrName !== 'string' || attrName === 'vnode') {
+              continue;
+            }
+
+            let value: any;
+            if (chore.$target$ && isSignal(chore.$target$)) {
+              value = (chore.$target$ as any).value;
+            } else {
+              value = subscriptionData?.$value$;
+              if (isSignal(value)) {
+                value = value.value as any;
+              }
+            }
+
+            let serialized = serializeAttribute(
+              attrName,
+              value,
+              subscriptionData?.$scopedStyleIdPrefix$
+            );
+            if (serialized === false) {
+              serialized = null;
+            }
+
+            const vNodeId = (hostNode as ISsrNode).id;
+
+            (container as any).$addBackpatch$?.({
+              type: 'attribute',
+              vNodeId,
+              name: attrName,
+              serializedValue: serialized as string | true | null,
+            });
+          }
+        }
+
         // We are running on the server.
         // On server we can't schedule task for a different host!
         // Server is SSR, and therefore scheduling for anything but the current host

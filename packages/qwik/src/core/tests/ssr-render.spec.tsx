@@ -358,4 +358,71 @@ describe('v2 ssr render', () => {
 
     expect(logWarnSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('should correctly backpatch attributes when node was already streamed', async () => {
+    const rootContextId = createContextId<RootContext>('root-context');
+
+    type RootContext = {
+      isDescription: Signal<boolean>;
+    };
+
+    const Input = component$(() => {
+      const context = useContext(rootContextId);
+
+      return (
+        <input
+          type="text"
+          aria-describedby={context.isDescription.value ? 'description' : undefined}
+        />
+      );
+    });
+
+    const Description = component$(() => {
+      const context = useContext(rootContextId);
+
+      useTask$(() => {
+        context.isDescription.value = true;
+      });
+
+      return <div id="description">Description</div>;
+    });
+
+    const Cmp = component$(() => {
+      const isDescription = useSignal(false);
+
+      const context: RootContext = {
+        isDescription,
+      };
+
+      useContextProvider(rootContextId, context);
+
+      return (
+        <>
+          <Input />
+          <Description />
+        </>
+      );
+    });
+
+    const { vNode, document } = await ssrRenderToDom(<Cmp />, { debug });
+
+    // Verify backpatch script was emitted
+    const html = document.documentElement.outerHTML;
+    expect(html).toContain('type="q:backpatch"');
+    expect(html).toContain('"vNodeId":"4"');
+    expect(html).toContain('"serializedValue":"description"');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <Component>
+            <input type="text" aria-describedby="description" />
+          </Component>
+          <Component>
+            <div id="description">Description</div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
 });

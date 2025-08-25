@@ -63,6 +63,7 @@ import {
   type SsrAttrKey,
   type SsrAttrValue,
   type SsrAttrs,
+  type SsrBackpatch,
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
@@ -191,6 +192,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
+  private $backpatches$ = new Array<SsrBackpatch>();
+  private $trackedSignalAttrs$ = new Array<{
+    signal: any;
+    vNodeId: string;
+    attrName: string;
+    originalValue: any;
+    scopedStyleIdPrefix: string | null;
+  }>();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -239,6 +248,28 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   handleError(err: any, _$host$: null): void {
     throw err;
+  }
+
+  $addBackpatch$(patch: SsrBackpatch): void {
+    this.$backpatches$.push(patch);
+  }
+
+  $addSignalAttrMapping$(signal: any, host: any, property: string, data: any): void {
+    const originalValue = signal.value;
+
+    if (!this.$trackedSignalAttrs$.some((t) => t.vNodeId === host.id && t.attrName === property)) {
+      this.$trackedSignalAttrs$.push({
+        signal,
+        vNodeId: host.id,
+        attrName: property,
+        originalValue,
+        scopedStyleIdPrefix: data?.$scopedStyleIdPrefix$ || null,
+      });
+
+      this.write(' q:backpatch-id="');
+      this.write(host.id);
+      this.write('"');
+    }
   }
 
   async render(jsx: JSXOutput) {
@@ -596,6 +627,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
+        this.checkForChangedSignals();
+        this.emitBackpatchData();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -788,6 +821,50 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('[');
       this.writeArray(fns, ',');
       this.write(']');
+      this.closeElement();
+    }
+  }
+
+  private checkForChangedSignals(): void {
+    for (const tracked of this.$trackedSignalAttrs$) {
+      const currentValue = tracked.signal.value;
+      const newSerialized = serializeAttribute(
+        tracked.attrName,
+        currentValue,
+        tracked.scopedStyleIdPrefix
+      );
+      const normalizedNew = newSerialized === false ? null : newSerialized;
+      const normalizedOriginal = tracked.originalValue === false ? null : tracked.originalValue;
+
+      if (normalizedNew !== normalizedOriginal) {
+        this.$backpatches$.push({
+          type: 'attribute',
+          vNodeId: tracked.vNodeId,
+          name: tracked.attrName,
+          serializedValue: normalizedNew as string | true | null,
+        });
+      }
+    }
+  }
+
+  private emitBackpatchData() {
+    if (this.$backpatches$.length > 0) {
+      const scriptAttrs: string[] = [];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write('(()=>{');
+      this.write('const patches=');
+      this.write(JSON.stringify(this.$backpatches$));
+      this.write(';for(const p of patches){');
+      this.write('const el=document.querySelector(`[q\\\\:backpatch-id="${p.vNodeId}"]`);');
+      this.write('if(el){');
+      this.write(
+        'if(p.serializedValue===null||p.serializedValue===false)el.removeAttribute(p.name);'
+      );
+      this.write('else el.setAttribute(p.name,p.serializedValue===true?"":p.serializedValue);');
+      this.write('}}})();');
       this.closeElement();
     }
   }

@@ -42,7 +42,6 @@ const noExternal = [
   '@qwik.dev/core/internal',
   '@qwik.dev/core/server',
   '@qwik.dev/core/build',
-  '@qwik.dev/router',
 ];
 
 const excludeDeps = [
@@ -53,7 +52,6 @@ const excludeDeps = [
   '@qwik.dev/core/jsx-dev-runtime',
   '@qwik.dev/core/build',
   '@qwik-client-manifest',
-  '@qwik.dev/router',
   '@builder.io/qwik',
   '@builder.io/qwik-city',
 ];
@@ -91,7 +89,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(opts.debug, false);
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
-  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
@@ -140,7 +138,7 @@ test('command: serve, mode: production', async () => {
 
   assert.deepEqual(build.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(build.emptyOutDir, undefined);
-  assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
+  assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
   assert.deepEqual(outputOptions.chunkFileNames, 'build/q-[hash].js');
   assert.deepEqual(outputOptions.entryFileNames, 'build/q-[hash].js');

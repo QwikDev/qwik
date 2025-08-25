@@ -1,0 +1,29 @@
+{
+  "description": "Use Qwik in browser-only mode",
+  "__qwik__": {
+    "displayName": "Integration: Qwik in browser-only mode",
+    "priority": -10,
+    "viteConfig": {},
+    "docs": [
+      "https://qwik.dev/docs/integrations/client-only/"
+    ],
+    "nextSteps": {
+      "title": "Next Steps",
+      "lines": [
+        " - run `pnpm dev` to start the development server",
+        " - run `pnpm preview` to view a production build",
+        " - run `pnpm build` to build the application"
+      ]
+    }
+  },
+  "dependencies": {
+    "@qwik.dev/core": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "latest"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
+}

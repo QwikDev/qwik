@@ -128,6 +128,12 @@ class DeserializationHandler implements ProxyHandler<object> {
 
     const container = this.$container$;
     let propValue = allocate(container, typeId, value);
+
+    // This should be here but it makes tests fail
+    // Reflect.set(target, property, propValue);
+    // this.$data$[idx] = undefined;
+    // this.$data$[idx + 1] = propValue;
+
     /** We stored the reference, so now we can inflate, allowing cycles. */
     if (typeId >= TypeIds.Error) {
       propValue = inflate(container, propValue, typeId, value);

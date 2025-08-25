@@ -569,6 +569,9 @@ importers:
       '@builder.io/qwik':
         specifier: workspace:^
         version: 'link:'
+      '@croct/json5-parser':
+        specifier: 0.1.1
+        version: 0.1.1
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
@@ -1070,6 +1073,12 @@ packages:
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
+
+  '@croct/json5-parser@0.1.1':
+    resolution: {integrity: sha512-7+yo8Kd5JJp+VF3bjYGXW0S1s3zOF6IiJczmQy1d+t/pFn8bo7kJcbzRP+C78kcqZoBW4gs5H/c7ZtsH5DDb7w==}
+
+  '@croct/json@2.1.0':
+    resolution: {integrity: sha512-UrWfjNQVlBxN+OVcFwHmkjARMW55MBN04E9KfGac8ac8z1QnFVuiOOFtMWXCk3UwsyRqhsNaFoYLZC+xxqsVjQ==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -10571,6 +10580,12 @@ snapshots:
     optional: true
 
   '@colors/colors@1.6.0': {}
+
+  '@croct/json5-parser@0.1.1':
+    dependencies:
+      '@croct/json': 2.1.0
+
+  '@croct/json@2.1.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

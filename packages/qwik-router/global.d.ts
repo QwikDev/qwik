@@ -6,7 +6,6 @@ type RequestEventInternal =
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 type SerializationStrategy = import('@qwik.dev/core/internal').SerializationStrategy;
 
-declare var qcAsyncRequestStore: AsyncStore | undefined;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 
 /** @deprecated Will be removed in v3 */

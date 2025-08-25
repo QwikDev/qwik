@@ -66,10 +66,10 @@ export const resolveRequestHandlers = (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
     ) {
-      requestHandlers.unshift(csrfCheckMiddleware);
-
       if (checkOrigin === 'lax-proto') {
-        requestHandlers.push(csrfLaxProtoCheckMiddleware);
+        requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
+      } else {
+        requestHandlers.unshift(csrfCheckMiddleware);
       }
     }
     if (isPageRoute) {

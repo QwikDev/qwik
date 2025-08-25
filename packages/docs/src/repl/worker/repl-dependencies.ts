@@ -70,6 +70,8 @@ const _loadDependencies = async (replOptions: ReplInputOptions) => {
   }
 
   if (!isSameQwikVersion(self.qwikCore?.version)) {
+    // Special case: we allow importing qwik again in the same process.
+    delete (globalThis as any).__qwik;
     await exec(QWIK_PKG_NAME, '/core.cjs');
     if (self.qwikCore) {
       console.debug(`Loaded @builder.io/qwik: ${self.qwikCore.version}`);

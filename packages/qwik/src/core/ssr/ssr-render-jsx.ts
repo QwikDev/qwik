@@ -245,20 +245,19 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          const commentData = String(directGetPropsProxyProp(jsx, 'data') || '');
-          if (commentData === 'qwik:backpatch:start') {
-            const scopeId = getNextUniqueIndex(ssr);
-            ssr.$enterBackpatchScope$?.(scopeId);
-            ssr.commentNode(`${commentData}:${scopeId}`);
-          } else if (commentData === 'qwik:backpatch:end') {
-            const currentScope = ssr.$currentBackpatchScope$;
-            if (currentScope) {
-              ssr.$exitBackpatchScope$?.(currentScope);
+          const commentContent = String(directGetPropsProxyProp(jsx, 'data') || '');
+          let outputComment = commentContent;
+          if (commentContent === 'qwik:backpatch:start') {
+            const backpatchScopeId = getNextUniqueIndex(ssr);
+            ssr.$enterBackpatchScope$?.(backpatchScopeId);
+            outputComment = `${commentContent}:${backpatchScopeId}`;
+          } else if (commentContent === 'qwik:backpatch:end') {
+            const currentBackpatchScope = ssr.$currentBackpatchScope$;
+            if (currentBackpatchScope) {
+              ssr.$exitBackpatchScope$?.(currentBackpatchScope);
             }
-            ssr.commentNode(commentData);
-          } else {
-            ssr.commentNode(commentData);
           }
+          ssr.commentNode(outputComment);
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;

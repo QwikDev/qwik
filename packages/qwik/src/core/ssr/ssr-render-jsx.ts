@@ -9,6 +9,7 @@ import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { getNextUniqueIndex } from '../shared/utils/unique-index-generator';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
@@ -244,7 +245,20 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
+          const commentData = String(directGetPropsProxyProp(jsx, 'data') || '');
+          if (commentData === 'qwik:backpatch:start') {
+            const scopeId = getNextUniqueIndex(ssr);
+            ssr.$enterBackpatchScope$?.(scopeId);
+            ssr.commentNode(`${commentData}:${scopeId}`);
+          } else if (commentData === 'qwik:backpatch:end') {
+            const currentScope = ssr.$currentBackpatchScope$;
+            if (currentScope) {
+              ssr.$exitBackpatchScope$?.(currentScope);
+            }
+            ssr.commentNode(commentData);
+          } else {
+            ssr.commentNode(commentData);
+          }
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;

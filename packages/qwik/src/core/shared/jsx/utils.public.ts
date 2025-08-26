@@ -23,6 +23,15 @@ export const SSRStreamBlock: FunctionComponent<{ children?: JSXOutput }> = (prop
 };
 
 /** @public */
+export const SSRBackpatch: FunctionComponent<{ children?: JSXOutput }> = (props) => {
+  return [
+    jsx(SSRComment, { data: 'qwik:backpatch:start' }),
+    props.children,
+    jsx(SSRComment, { data: 'qwik:backpatch:end' }),
+  ];
+};
+
+/** @public */
 export type SSRStreamProps = {
   children: SSRStreamChildren;
 };

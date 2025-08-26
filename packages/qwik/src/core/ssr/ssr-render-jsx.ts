@@ -245,19 +245,13 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          const commentContent = String(directGetPropsProxyProp(jsx, 'data') || '');
-          let outputComment = commentContent;
-          if (commentContent === 'qwik:backpatch:start') {
-            const backpatchScopeId = getNextUniqueIndex(ssr);
-            ssr.$enterBackpatchScope$?.(backpatchScopeId);
-            outputComment = `${commentContent}:${backpatchScopeId}`;
-          } else if (commentContent === 'qwik:backpatch:end') {
-            const currentBackpatchScope = ssr.$currentBackpatchScope$;
-            if (currentBackpatchScope) {
-              ssr.$exitBackpatchScope$?.(currentBackpatchScope);
-            }
+          const commentData = directGetPropsProxyProp(jsx, 'data') || '';
+          const commentContent = String(commentData);
+          if (commentContent.startsWith('qwik:backpatch')) {
+            ssr.commentNode(handleBackpatchComment(ssr, commentContent));
+          } else {
+            ssr.commentNode(commentContent);
           }
-          ssr.commentNode(outputComment);
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;
@@ -559,4 +553,19 @@ function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: strin
     }
     jsx.constProps['class'] = '';
   }
+}
+
+function handleBackpatchComment(ssr: SSRContainer, commentContent: string): string {
+  if (commentContent === 'qwik:backpatch:start') {
+    const backpatchScopeId = getNextUniqueIndex(ssr);
+    ssr.$enterBackpatchScope$?.(backpatchScopeId);
+    return `${commentContent}:${backpatchScopeId}`;
+  } else if (commentContent === 'qwik:backpatch:end') {
+    const currentBackpatchScope = ssr.$currentBackpatchScope$;
+    if (currentBackpatchScope) {
+      ssr.$exitBackpatchScope$?.(currentBackpatchScope);
+    }
+    return commentContent;
+  }
+  return commentContent;
 }

@@ -195,7 +195,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * We use this to keep track of the current backpatch scope if backpatch changes are needed
    * (updating a node already streamed)
    */
-  public currentBackpatchScope: string | null = null;
+  private backpatchScopeStack: string[] = [];
+
+  get currentBackpatchScope(): string | null {
+    return this.backpatchScopeStack.length > 0
+      ? this.backpatchScopeStack[this.backpatchScopeStack.length - 1]
+      : null;
+  }
 
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
@@ -263,13 +269,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   enterBackpatchScope(scopeId: string): void {
-    this.currentBackpatchScope = scopeId;
+    this.backpatchScopeStack.push(scopeId);
   }
 
   exitBackpatchScope(scopeId: string): void {
-    if (this.currentBackpatchScope === scopeId) {
+    // Find and remove the scope from the stack
+    const index = this.backpatchScopeStack.lastIndexOf(scopeId);
+    if (index !== -1) {
+      this.backpatchScopeStack.splice(index, 1);
       this.emitScopePatches(scopeId);
-      this.currentBackpatchScope = null;
     }
   }
 
@@ -882,17 +890,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private emitExecutorIfNeeded(): void {
-    if (this.isBackpatchExecutorEmitted) {
-      const scriptAttrs = ['id', 'qwik-backpatch-executor'];
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-      }
-      this.openElement('script', scriptAttrs);
-      this.write(
-        `(()=>{let e=document.querySelectorAll("script[data-qwik-backpatch]"),t=[];for(let a of e)try{let r=JSON.parse(a.textContent||"[]");t.push(...r)}catch(l){console.error("Failed to parse backpatch data:",l)}let i=new Map;for(let s of t)i.set(s.ssrNodeId+":"+s.name,s);for(let o of i.values()){let d=document.querySelector('[q\\\\:reactive-id="'+o.ssrNodeId+'"]');d&&(null===o.serializedValue||!1===o.serializedValue?d.removeAttribute(o.name):d.setAttribute(o.name,!0===o.serializedValue?"":o.serializedValue))}})();`
-      );
-      this.closeElement();
+    if (!this.isBackpatchExecutorEmitted) {
+      return;
     }
+    const scriptAttrs = ['id', 'qwik-backpatch-executor'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+    }
+    this.openElement('script', scriptAttrs);
+    this.write(
+      `(()=>{let e=document.querySelectorAll("script[data-qwik-backpatch]"),t=[];for(let a of e)try{let r=JSON.parse(a.textContent||"[]");t.push(...r)}catch(l){console.error("Failed to parse backpatch data:",l)}let i=new Map;for(let s of t)i.set(s.ssrNodeId+":"+s.name,s);for(let o of i.values()){let d=document.querySelector('[q\\\\:reactive-id="'+o.ssrNodeId+'"]');d&&(null===o.serializedValue||!1===o.serializedValue?d.removeAttribute(o.name):d.setAttribute(o.name,!0===o.serializedValue?"":o.serializedValue))}})();`
+    );
+    this.closeElement();
   }
 
   emitPreloaderPre() {

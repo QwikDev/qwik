@@ -636,6 +636,50 @@ JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 
+## waitForDrain
+
+Wait for the scheduler to drain.
+
+This is useful when testing async code.
+
+```typescript
+export declare function waitForDrain(container: Container): Promise<void>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+container
+
+</td><td>
+
+Container
+
+</td><td>
+
+The application container.
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;void&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts)
+
 ## walkJSX
 
 ```typescript

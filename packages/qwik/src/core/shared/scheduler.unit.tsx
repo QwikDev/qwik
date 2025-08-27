@@ -1,6 +1,6 @@
 import { $, _jsxSorted, type JSXOutput, type OnRenderFn, type QRL } from '@qwik.dev/core';
 
-import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
+import { createDocument } from '@qwik.dev/core/testing';
 import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
@@ -46,9 +46,7 @@ describe('scheduler', () => {
   let runningChores: Set<Chore>;
 
   async function waitForDrain() {
-    const chore = scheduler(ChoreType.WAIT_FOR_QUEUE);
-    getTestPlatform().flush();
-    await chore.$returnValue$;
+    await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   }
 
   beforeEach(() => {
@@ -269,10 +267,9 @@ describe('scheduler', () => {
     let vBHost1: VirtualVNode = null!;
 
     let nextTickSpy: Mocked<any>;
+
     async function waitForDrain() {
-      const chore = scheduler(ChoreType.WAIT_FOR_QUEUE);
-      getTestPlatform().flush();
-      await chore.$returnValue$;
+      await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
     }
 
     beforeEach(() => {
@@ -356,7 +353,7 @@ describe('scheduler', () => {
       }
 
       // First drain call - executes tasks and flushes at end (3 × 2.67ms = 8ms < 16ms)
-      await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+      await waitForDrain();
 
       // Verify first batch executed with journal flush at end
       expect(testLog).toEqual(['batch1.0', 'batch1.1', 'batch1.2', 'journalFlush']);
@@ -379,9 +376,7 @@ describe('scheduler', () => {
       }
 
       // Second drain call - should trigger journal flush mid-drain when time >= 16ms
-      const secondDrain = scheduler(ChoreType.WAIT_FOR_QUEUE);
-      getTestPlatform().flush();
-      await secondDrain.$returnValue$;
+      await waitForDrain();
 
       expect(testLog).toEqual([
         // First batch

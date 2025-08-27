@@ -105,6 +105,7 @@ import { EffectProperty } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { _CONST_PROPS, _VAR_PROPS } from '../internal';
+import { isSyncQrl } from '../shared/qrl/qrl-utils';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -182,6 +183,12 @@ export const vnode_diff = (
     vNewNode = null;
     vCurrent = vnode_getFirstChild(vStartNode);
     stackPush(jsxNode, true);
+
+    if (vParent[VNodeProps.flags] & VNodeFlags.Deleted) {
+      // Ignore diff if the parent is deleted.
+      return;
+    }
+
     while (stack.length) {
       while (jsxIdx < jsxCount) {
         assertFalse(vParent === vCurrent, "Parent and current can't be the same");
@@ -774,13 +781,17 @@ export const vnode_diff = (
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
             if (qrl) {
-              const value = container.$scheduler$(
-                ChoreType.RUN_QRL,
-                vNode,
-                qrl as QRLInternal<(...args: unknown[]) => unknown>,
-                [event, element]
-              ) as unknown;
-              returnValue = returnValue || value === true;
+              if (isSyncQrl(qrl)) {
+                qrl(event, element);
+              } else {
+                const value = container.$scheduler$(
+                  ChoreType.RUN_QRL,
+                  vNode,
+                  qrl as QRLInternal<(...args: unknown[]) => unknown>,
+                  [event, element]
+                ) as unknown;
+                returnValue = returnValue || value === true;
+              }
             }
           });
           return returnValue;
@@ -1401,7 +1412,18 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
          */
         const vFirstChild = vnode_getFirstChild(vCursor);
         if (vFirstChild) {
-          vnode_walkVNode(vFirstChild);
+          vnode_walkVNode(vFirstChild, (vNode) => {
+            /**
+             * Instead of an ID, we store a direct reference to the VNode. This is necessary to
+             * locate the slot's parent in a detached subtree, as the ID would become invalid.
+             */
+            if (vNode[VNodeProps.flags] & VNodeFlags.Virtual) {
+              // The QSlotParent is used to find the slot parent during scheduling
+              vnode_getProp(vNode as VirtualVNode, QSlotParent, (id) =>
+                vnode_locate(container.rootVNode, id)
+              );
+            }
+          });
           return;
         }
       }

@@ -69,16 +69,6 @@ export interface CorePlatform {
    */
   // </docs>
   raf: (fn: () => any) => Promise<any>;
-  // <docs markdown="./readme.md#CorePlatform.nextTick">
-  // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
-  // (edit ./readme.md#CorePlatform.nextTick instead and run `pnpm docs.sync`)
-  /**
-   * Perform operation on next tick.
-   *
-   * @param fn - The function to call when the tick is ready.
-   */
-  // </docs>
-  nextTick: (fn: () => any) => Promise<any>;
   // <docs markdown="./readme.md#CorePlatform.chunkForSymbol">
   // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
   // (edit ./readme.md#CorePlatform.chunkForSymbol instead and run `pnpm docs.sync`)

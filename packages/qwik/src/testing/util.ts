@@ -1,5 +1,7 @@
 import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { ChoreType } from '../core/shared/util-chore-type';
+import type { Container } from '../core/shared/types';
 
 /** @public */
 export function toFileUrl(filePath: string) {
@@ -92,3 +94,15 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
   __global ||
   __window ||
   __self) as any;
+
+/**
+ * Wait for the scheduler to drain.
+ *
+ * This is useful when testing async code.
+ *
+ * @param container - The application container.
+ * @public
+ */
+export async function waitForDrain(container: Container) {
+  await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+}

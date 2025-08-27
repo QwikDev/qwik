@@ -36,7 +36,7 @@ test.describe("toggle", () => {
 
     // Increment
     await btnIncrement.click();
-    logsStr += "Log(1)Child(1)";
+    logsStr += "Child(1)Log(1)";
 
     await expect(title).toHaveText("ToggleB");
     await expect(mount).toHaveText("mounted in client");

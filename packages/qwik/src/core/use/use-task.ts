@@ -156,10 +156,9 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   // deleted and we need to be able to release the task subscriptions.
   set(task);
   const container = iCtx.$container$;
-  const promise = container.$scheduler$(ChoreType.TASK, task);
-  if (isPromise(promise)) {
-    // TODO: should we handle this differently?
-    promise.catch(() => {});
+  const result = runTask(task, container, iCtx.$hostElement$);
+  if (isPromise(result)) {
+    throw result;
   }
 };
 
@@ -178,7 +177,7 @@ export const runTask = (
   const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
 
   const taskApi: TaskCtx = { track, cleanup };
-  const result: ValueOrPromise<void> = safeCall(
+  return safeCall(
     () => taskFn(taskApi),
     cleanup,
     (err: unknown) => {
@@ -190,7 +189,6 @@ export const runTask = (
       }
     }
   );
-  return result;
 };
 
 export const cleanupTask = (task: Task) => {

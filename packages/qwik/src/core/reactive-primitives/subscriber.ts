@@ -29,6 +29,6 @@ export function getSubscriber(
   return sub;
 }
 
-function isSsrNode(value: any): value is ISsrNode {
+export function isSsrNode(value: any): value is ISsrNode {
   return '__brand__' in value && value.__brand__ === 'SsrNode';
 }

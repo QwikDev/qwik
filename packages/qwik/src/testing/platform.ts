@@ -3,28 +3,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 function createPlatform() {
-  interface Queue<T> {
-    fn: () => Promise<T>;
-    promise: Promise<T>;
-    resolve: (value: T) => void;
-    reject: (value: any) => void;
-  }
-
-  let render: Queue<any> | null = null;
-  let resolveNextTickImmediate = false;
-
   const moduleCache = new Map<string, { [symbol: string]: any }>();
-  const flushNextTick = async () => {
-    await Promise.resolve();
-    if (render) {
-      try {
-        render.resolve(await render.fn());
-      } catch (e) {
-        render.reject(e);
-      }
-      render = null;
-    }
-  };
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
@@ -51,30 +30,6 @@ function createPlatform() {
         return mod[symbolName];
       });
     },
-    nextTick: async (renderMarked) => {
-      if (!render) {
-        render = {
-          fn: renderMarked,
-          promise: null!,
-          resolve: null!,
-          reject: null!,
-        };
-        render.promise = new Promise((resolve, reject) => {
-          render!.resolve = resolve;
-          render!.reject = reject;
-        });
-        if (resolveNextTickImmediate) {
-          resolveNextTickImmediate = false;
-          await flushNextTick();
-        }
-      } else if (renderMarked !== render.fn) {
-        // TODO(misko): proper error and test
-        throw new Error(
-          'Must be same function\nIt looks like previous test has not drained all ticks, and new test has started?'
-        );
-      }
-      return render.promise;
-    },
     raf: (fn) => {
       return new Promise((resolve) => {
         // Do not use process.nextTick, as this will execute at same priority as promises.
@@ -85,10 +40,7 @@ function createPlatform() {
       });
     },
     flush: async () => {
-      await flushNextTick();
-      if (!render) {
-        resolveNextTickImmediate = true;
-      }
+      await Promise.resolve();
     },
     chunkForSymbol() {
       return undefined;

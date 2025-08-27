@@ -190,12 +190,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
+
+  /**
+   * We use this to keep track of the current backpatch scope if backpatch changes are needed
+   * (updating a node already streamed)
+   */
+  public currentBackpatchScope: string | null = null;
+
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
-  public $currentBackpatchScope$: string | null = null;
-  private $backpatchExecutorEmitted$ = false;
-  private $signalReads$ = new Map<
+  private isBackpatchExecutorEmitted = false;
+  private backpatchMap = new Map<
     string,
     {
       signal: any;
@@ -256,33 +262,33 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     throw err;
   }
 
-  $enterBackpatchScope$(scopeId: string): void {
-    this.$currentBackpatchScope$ = scopeId;
+  enterBackpatchScope(scopeId: string): void {
+    this.currentBackpatchScope = scopeId;
   }
 
-  $exitBackpatchScope$(scopeId: string): void {
-    if (this.$currentBackpatchScope$ === scopeId) {
-      this.$emitBackpatchDataForScope$(scopeId);
-      this.$currentBackpatchScope$ = null;
+  exitBackpatchScope(scopeId: string): void {
+    if (this.currentBackpatchScope === scopeId) {
+      this.emitScopePatches(scopeId);
+      this.currentBackpatchScope = null;
     }
   }
 
-  $addSignalRead$(
+  addBackpatchEntry(
     signal: any,
     ssrNodeId: string,
     attrName: string,
     initialSerializedValue: string | true | null,
     scopedStyleIdPrefix: string | null
   ): void {
-    if (this.$currentBackpatchScope$) {
+    if (this.currentBackpatchScope) {
       const key = `${ssrNodeId}:${attrName}`;
-      this.$signalReads$.set(key, {
+      this.backpatchMap.set(key, {
         signal,
         ssrNodeId,
         attrName,
         initialSerializedValue,
         scopedStyleIdPrefix,
-        scopeId: this.$currentBackpatchScope$,
+        scopeId: this.currentBackpatchScope,
       });
     }
   }
@@ -642,7 +648,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
-        this.$emitBackpatchExecutorIfNeeded$();
+        this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -839,11 +845,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  $emitBackpatchDataForScope$(scopeId: string): void {
+  emitScopePatches(scopeId: string): void {
     const patches: SsrBackpatch[] = [];
 
-    // Check all signal reads for changes in this scope
-    for (const [, readData] of this.$signalReads$) {
+    for (const [, readData] of this.backpatchMap) {
       if (readData.scopeId === scopeId) {
         const currentValue = readData.signal.value;
         const currentSerialized = serializeAttribute(
@@ -865,10 +870,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
 
     if (patches.length > 0) {
-      // Mark that we need executor script (will emit at container close)
-      this.$backpatchExecutorEmitted$ = true;
-
-      // Emit scoped data
+      this.isBackpatchExecutorEmitted = true;
       const scriptAttrs = ['type', 'application/json', 'data-qwik-backpatch', scopeId];
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
@@ -879,8 +881,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private $emitBackpatchExecutorIfNeeded$(): void {
-    if (this.$backpatchExecutorEmitted$) {
+  private emitExecutorIfNeeded(): void {
+    if (this.isBackpatchExecutorEmitted) {
       const scriptAttrs = ['id', 'qwik-backpatch-executor'];
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
@@ -1220,13 +1222,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             $isConst$: isConst,
           });
 
-          // Track signal read for backpatching if in scope
-          if (this.$currentBackpatchScope$ && typeof key === 'string' && key !== 'ref') {
+          const isBackpatching =
+            this.currentBackpatchScope && typeof key === 'string' && key !== 'ref';
+          if (isBackpatching) {
             const initialSerialized = serializeAttribute(key, value.value, styleScopedId);
             const normalizedInitial = initialSerialized === false ? null : initialSerialized;
-            this.$addSignalRead$(value, lastNode.id, key, normalizedInitial, styleScopedId);
-
-            // Add reactive-id marker for client-side querying
+            this.addBackpatchEntry(value, lastNode.id, key, normalizedInitial, styleScopedId);
             this.write(' q:reactive-id="');
             this.write(lastNode.id);
             this.write('"');

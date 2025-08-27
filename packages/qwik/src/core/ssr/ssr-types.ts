@@ -112,10 +112,9 @@ export interface SSRContainer extends Container {
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
-  // Backpatch methods
-  $enterBackpatchScope$?(scopeId: string): void;
-  $exitBackpatchScope$?(scopeId: string): void;
-  $currentBackpatchScope$?: string | null;
+  enterBackpatchScope?(scopeId: string): void;
+  exitBackpatchScope?(scopeId: string): void;
+  currentBackpatchScope?: string | null;
 }
 
 /** @public */

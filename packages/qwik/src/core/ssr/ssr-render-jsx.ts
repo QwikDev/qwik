@@ -558,12 +558,12 @@ function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: strin
 function handleBackpatchComment(ssr: SSRContainer, commentContent: string): string {
   if (commentContent === 'qwik:backpatch:start') {
     const backpatchScopeId = getNextUniqueIndex(ssr);
-    ssr.$enterBackpatchScope$?.(backpatchScopeId);
+    ssr.enterBackpatchScope?.(backpatchScopeId);
     return `${commentContent}:${backpatchScopeId}`;
   } else if (commentContent === 'qwik:backpatch:end') {
-    const currentBackpatchScope = ssr.$currentBackpatchScope$;
+    const currentBackpatchScope = ssr.currentBackpatchScope;
     if (currentBackpatchScope) {
-      ssr.$exitBackpatchScope$?.(currentBackpatchScope);
+      ssr.exitBackpatchScope?.(currentBackpatchScope);
     }
     return commentContent;
   }

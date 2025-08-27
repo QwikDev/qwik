@@ -186,8 +186,30 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           }
 
           if (isSwRegister) {
+            // Detect if the developer added custom code in their service-worker.ts file
+            let didNotAddCustomCode = false;
+            const clientOutDir = qwikPlugin!.api.getClientOutDir();
+            const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
+            const clientOutBaseDir = join(clientOutDir, basePathRelDir);
+            for (const swEntry of ctx.serviceWorkers) {
+              try {
+                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
+                const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
+                const swCodeTrimmed = swCode.replace(/\s+/g, '');
+                if (
+                  swCodeTrimmed ===
+                    'addEventListener("install",()=>self.skipWaiting());addEventListener("activate",()=>self.clients.claim());' ||
+                  swCodeTrimmed ===
+                    'self.addEventListener("install",()=>self.skipWaiting());self.addEventListener("activate",()=>self.clients.claim());'
+                ) {
+                  didNotAddCustomCode = true;
+                }
+              } catch (e) {
+                console.error('Error reading service worker file', e);
+              }
+            }
             // @qwik-city-sw-register
-            return generateServiceWorkerRegister(ctx, swRegister);
+            return generateServiceWorkerRegister(ctx, swRegister, didNotAddCustomCode);
           }
         }
       }

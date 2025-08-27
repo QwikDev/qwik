@@ -38,13 +38,6 @@ export const createPlatform = (): CorePlatform => {
         });
       });
     },
-    nextTick: (fn) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(fn());
-        });
-      });
-    },
     chunkForSymbol(symbolName, chunk) {
       return [symbolName, chunk ?? '_'];
     },

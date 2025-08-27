@@ -124,7 +124,6 @@ export interface CorePlatform {
     chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
-    nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
 

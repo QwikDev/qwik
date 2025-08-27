@@ -888,35 +888,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
       this.openElement('script', scriptAttrs);
-      this.write(`(()=>{
-        const scripts = document.querySelectorAll('script[data-qwik-backpatch]');
-        const patches = [];
-        for (const script of scripts) {
-          try {
-            const scopePatches = JSON.parse(script.textContent || '[]');
-            patches.push(...scopePatches);
-          } catch (e) {
-            console.error('Failed to parse backpatch data:', e);
-          }
-        }
-        
-        // Dedupe by (ssrNodeId, name) keeping last
-        const deduped = new Map();
-        for (const patch of patches) {
-          deduped.set(\`\${patch.ssrNodeId}:\${patch.name}\`, patch);
-        }
-        
-        for (const patch of deduped.values()) {
-          const el = document.querySelector(\`[q\\\\:reactive-id="\${patch.ssrNodeId}"]\`);
-          if (el) {
-            if (patch.serializedValue === null || patch.serializedValue === false) {
-              el.removeAttribute(patch.name);
-            } else {
-              el.setAttribute(patch.name, patch.serializedValue === true ? '' : patch.serializedValue);
-            }
-          }
-        }
-      })();`);
+      this.write(
+        `(()=>{let e=document.querySelectorAll("script[data-qwik-backpatch]"),t=[];for(let a of e)try{let r=JSON.parse(a.textContent||"[]");t.push(...r)}catch(l){console.error("Failed to parse backpatch data:",l)}let i=new Map;for(let s of t)i.set(s.ssrNodeId+":"+s.name,s);for(let o of i.values()){let d=document.querySelector('[q\\\\:reactive-id="'+o.ssrNodeId+'"]');d&&(null===o.serializedValue||!1===o.serializedValue?d.removeAttribute(o.name):d.setAttribute(o.name,!0===o.serializedValue?"":o.serializedValue))}})();`
+      );
       this.closeElement();
     }
   }

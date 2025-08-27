@@ -228,6 +228,20 @@
       "mdFile": "core.vnode_fromjsx.md"
     },
     {
+      "name": "waitForDrain",
+      "id": "waitfordrain",
+      "hierarchy": [
+        {
+          "name": "waitForDrain",
+          "id": "waitfordrain"
+        }
+      ],
+      "kind": "Function",
+      "content": "Wait for the scheduler to drain.\n\nThis is useful when testing async code.\n\n\n```typescript\nexport declare function waitForDrain(container: Container): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontainer\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\nThe application container.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts",
+      "mdFile": "core.waitfordrain.md"
+    },
+    {
       "name": "walkJSX",
       "id": "walkjsx",
       "hierarchy": [

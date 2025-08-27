@@ -1,15 +1,11 @@
 import type { BuildContext } from '../types';
 
-export function generateServiceWorkerRegister(
-  ctx: BuildContext,
-  swRegister: string,
-  didNotAddCustomCode: boolean
-) {
+export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: string) {
   let swReg: string;
   let swUrl = '/service-worker.js';
 
-  // Also unregister if the developer removed the service-worker.ts file or did not add custom code to it; since Qwik 1.14.0 and above now use modulepreload by default
-  if (ctx.isDevServer || didNotAddCustomCode || ctx.serviceWorkers.length === 0) {
+  // Also unregister if the developer removed the service-worker.ts file since Qwik 1.14.0 and above now use modulepreload by default
+  if (ctx.isDevServer || ctx.serviceWorkers.length === 0) {
     swReg = SW_UNREGISTER;
   } else {
     swReg = swRegister;

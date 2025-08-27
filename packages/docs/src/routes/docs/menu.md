@@ -54,6 +54,7 @@
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 - [View Transition](/docs/cookbook/view-transition/index.mdx)
+- [Detect img tag onLoad](/docs/cookbook/detect-img-tag-onload/index.mdx)
 
 ## Integrations
 

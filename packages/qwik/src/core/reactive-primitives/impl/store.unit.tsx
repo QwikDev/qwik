@@ -21,7 +21,7 @@ describe('v2/store', () => {
   });
 
   afterEach(async () => {
-    await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
     await getTestPlatform().flush();
     container = null!;
   });
@@ -60,8 +60,8 @@ describe('v2/store', () => {
     return invoke(ctx, fn);
   }
 
-  function flushSignals() {
-    return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  async function flushSignals() {
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   }
 
   function effectQrl(fnQrl: QRL<() => void>) {

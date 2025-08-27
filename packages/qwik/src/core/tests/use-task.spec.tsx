@@ -57,7 +57,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'render', 'task', 'resolved']);
+    expect(log).toEqual(['Counter', 'task', 'resolved', 'Counter', 'render']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -133,7 +133,16 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'render', '1:task', '1:resolved', '2:task', '2:resolved']);
+    expect(log).toEqual([
+      'Counter',
+      '1:task',
+      '1:resolved',
+      'Counter',
+      '2:task',
+      '2:resolved',
+      'Counter', //
+      'render',
+    ]);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -390,7 +399,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['Counter', 'quadruple', 'double', 'quadruple']);
+      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -429,7 +438,7 @@ describe.each([
       const { vNode, document } = await render(<Counter />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['Counter: 0', 'task: 0'] : ['Counter: 0', 'task: 0', 'cleanup: 0']
+        isCSR ? ['task: 0', 'Counter: 0'] : ['task: 0', 'Counter: 0', 'cleanup: 0']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -486,7 +495,7 @@ describe.each([
       const { vNode, document } = await render(<Parent />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['Child', 'task:'] : ['Child', 'task:', 'cleanup:']
+        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -509,7 +518,7 @@ describe.each([
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
 
-      expect((globalThis as any).log).toEqual(['Child', 'task:']);
+      expect((globalThis as any).log).toEqual(['task:', 'Child']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -578,6 +587,7 @@ describe.each([
         // async microtasks run, task 1 queues a delay
         'inside.1',
         '2b',
+        'render',
         // task 3 runs sync and attaches to the promise
         '3a',
         // microtasks run
@@ -844,14 +854,46 @@ describe.each([
       ]);
 
       useTask$(({ track }) => {
-        track(() => sort.value);
-        table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+        const key = track(sort);
+        table.value = table.value.sort((a, b) => a[key] - b[key]).slice();
       });
 
-      return table.value.map((row) => row.size).join(' ');
+      return (
+        <>
+          <span>{table.value.map((row) => row.size).join(' ')}</span>
+          <button onClick$={() => (sort.value = sort.value === 'id' ? 'size' : 'id')}>Sort</button>
+        </>
+      );
     });
-    const { vNode } = await render(<Cmp />, { debug });
-    expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>1 2 3 4 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>4 3 2 1 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>1 2 3 4 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
   });
 
   it('catch the ', async () => {
@@ -861,13 +903,6 @@ describe.each([
         if (isServer) {
           document.body;
         }
-      });
-
-      return <div>1</div>;
-    });
-    const Cmp1 = component$(() => {
-      useTask$(() => {
-        throw error;
       });
 
       return <div>1</div>;
@@ -882,6 +917,13 @@ describe.each([
     } catch (e: unknown) {
       expect((e as Error).message).toBeTruthy;
     }
+    const Cmp1 = component$(() => {
+      useTask$(() => {
+        throw error;
+      });
+
+      return <div>1</div>;
+    });
     try {
       await render(
         <ErrorProvider>

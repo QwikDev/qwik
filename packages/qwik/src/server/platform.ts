@@ -88,15 +88,6 @@ export function createPlatform(
       console.error('server can not rerender');
       return Promise.resolve();
     },
-    nextTick: (fn) => {
-      return new Promise((resolve) => {
-        // Do not use process.nextTick, as this will execute at same priority as promises.
-        // We need to execute after promises.
-        setTimeout(() => {
-          resolve(fn());
-        });
-      });
-    },
     chunkForSymbol(symbolName: string, _chunk, parent) {
       return mapperFn(symbolName, mapper, parent);
     },

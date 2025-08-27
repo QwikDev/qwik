@@ -830,7 +830,19 @@ describe.each([
 
       const update = $(() => store2.count++);
       return (
-        <button onClick$={[$(() => store1.count++), update, undefined, [null, update]]}>
+        <button
+          onClick$={[
+            $(() => store1.count++),
+            update,
+            undefined,
+            [
+              null,
+              // Note, this is the same as update but we only run the same chore once
+              // Also, different AST so that later deduping of QRLs works
+              $(() => (store2.count += 1)),
+            ],
+          ]}
+        >
           {store1.count} / {store2.count}
         </button>
       );

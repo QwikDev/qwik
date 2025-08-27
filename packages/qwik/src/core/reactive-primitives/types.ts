@@ -51,21 +51,22 @@ export interface ComputedOptions {
 
 export const enum SignalFlags {
   INVALID = 1,
+  RUN_EFFECTS = 2,
 }
 
 export const enum WrappedSignalFlags {
   // should subscribe to value and be unwrapped for PropsProxy
-  UNWRAP = 2,
+  UNWRAP = 4,
 }
 
-export const enum ComputedSignalFlags {
+export const enum SerializationSignalFlags {
   // TODO: implement this in the future
-  // SERIALIZATION_STRATEGY_AUTO = 4,
-  SERIALIZATION_STRATEGY_NEVER = 8,
-  SERIALIZATION_STRATEGY_ALWAYS = 16,
+  // SERIALIZATION_STRATEGY_AUTO = 8,
+  SERIALIZATION_STRATEGY_NEVER = 16,
+  SERIALIZATION_STRATEGY_ALWAYS = 32,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags | ComputedSignalFlags;
+export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

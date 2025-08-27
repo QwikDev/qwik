@@ -683,21 +683,6 @@ True of running on the server platform.
 </td></tr>
 <tr><td>
 
-[nextTick](#)
-
-</td><td>
-
-</td><td>
-
-(fn: () =&gt; any) =&gt; Promise&lt;any&gt;
-
-</td><td>
-
-Perform operation on next tick.
-
-</td></tr>
-<tr><td>
-
 [raf](#)
 
 </td><td>
@@ -1317,6 +1302,57 @@ force(): void;
 **Returns:**
 
 void
+
+## forceStoreEffects
+
+Force a store to recompute and schedule effects.
+
+```typescript
+forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+value
+
+</td><td>
+
+StoreTarget
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+prop
+
+</td><td>
+
+keyof StoreTarget
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
 ## Fragment
 

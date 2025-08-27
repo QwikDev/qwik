@@ -209,7 +209,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Trigger an event in unit tests on an element.\n\nFuture deprecation candidate.\n\n\n```typescript\nexport declare function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nqueryOrElement\n\n\n</td><td>\n\nstring \\| Element \\| keyof HTMLElementTagNameMap \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventPayload\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
+      "content": "Trigger an event in unit tests on an element.\n\nFuture deprecation candidate.\n\n\n```typescript\nexport declare function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {\n    waitForIdle?: boolean;\n}): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nroot\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nqueryOrElement\n\n\n</td><td>\n\nstring \\| Element \\| keyof HTMLElementTagNameMap \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventPayload\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n{ waitForIdle?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/element-fixture.ts",
       "mdFile": "core.trigger.md"
     },
@@ -226,6 +226,20 @@
       "content": "```typescript\nexport declare function vnode_fromJSX(jsx: JSXOutput): {\n    vParent: _ElementVNode;\n    vNode: _VNode | null;\n    document: _QDocument;\n    container: ClientContainer;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ vParent: \\_ElementVNode; vNode: \\_VNode \\| null; document: \\_QDocument; container: ClientContainer; }",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts",
       "mdFile": "core.vnode_fromjsx.md"
+    },
+    {
+      "name": "waitForDrain",
+      "id": "waitfordrain",
+      "hierarchy": [
+        {
+          "name": "waitForDrain",
+          "id": "waitfordrain"
+        }
+      ],
+      "kind": "Function",
+      "content": "Wait for the scheduler to drain.\n\nThis is useful when testing async code.\n\n\n```typescript\nexport declare function waitForDrain(container: Container): Promise<void>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ncontainer\n\n\n</td><td>\n\nContainer\n\n\n</td><td>\n\nThe application container.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;void&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts",
+      "mdFile": "core.waitfordrain.md"
     },
     {
       "name": "walkJSX",

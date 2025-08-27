@@ -5,7 +5,13 @@ import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
-import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
+import {
+  SSRBackpatch,
+  SSRComment,
+  SSRRaw,
+  SSRStream,
+  type SSRStreamChildren,
+} from '../shared/jsx/utils.public';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
@@ -245,13 +251,7 @@ function processJSXNode(
             ssr.closeFragment();
           }
         } else if (type === SSRComment) {
-          const commentData = directGetPropsProxyProp(jsx, 'data') || '';
-          const commentContent = String(commentData);
-          if (commentContent.startsWith('qwik:backpatch')) {
-            ssr.commentNode(handleBackpatchComment(ssr, commentContent));
-          } else {
-            ssr.commentNode(commentContent);
-          }
+          ssr.commentNode(directGetPropsProxyProp(jsx, 'data') || '');
         } else if (type === SSRStream) {
           ssr.commentNode(FLUSH_COMMENT);
           const generator = jsx.children as SSRStreamChildren;
@@ -274,6 +274,18 @@ function processJSXNode(
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
+        } else if (type === SSRBackpatch) {
+          const backpatchScopeId = getNextUniqueIndex(ssr);
+          ssr.enterBackpatchScope?.(backpatchScopeId);
+
+          enqueue(() => {
+            if (ssr.currentBackpatchScope === backpatchScopeId) {
+              ssr.exitBackpatchScope?.(backpatchScopeId);
+            }
+          });
+
+          const children = jsx.children as JSXOutput;
+          children != null && enqueue(children);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -553,19 +565,4 @@ function appendClassIfScopedStyleExists(jsx: JSXNodeInternal, styleScoped: strin
     }
     jsx.constProps['class'] = '';
   }
-}
-
-function handleBackpatchComment(ssr: SSRContainer, commentContent: string): string {
-  if (commentContent === 'qwik:backpatch:start') {
-    const backpatchScopeId = getNextUniqueIndex(ssr);
-    ssr.enterBackpatchScope?.(backpatchScopeId);
-    return `${commentContent}:${backpatchScopeId}`;
-  } else if (commentContent === 'qwik:backpatch:end') {
-    const currentBackpatchScope = ssr.currentBackpatchScope;
-    if (currentBackpatchScope) {
-      ssr.exitBackpatchScope?.(currentBackpatchScope);
-    }
-    return commentContent;
-  }
-  return commentContent;
 }

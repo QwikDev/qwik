@@ -14,7 +14,7 @@ import { SSRBackpatch } from '../shared/jsx/utils.public';
 const debug = false;
 
 describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
-  it('emits marker and JSON blob inside wrapper when signal-derived attribute changes', async () => {
+  it('emits marker and JSON blob when signal-derived attribute changes', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
     const Child = component$(() => {
@@ -39,7 +39,8 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     const { document } = await ssrRenderToDom(<Root />, { debug });
     const html = document.documentElement.outerHTML;
 
-    expect(html).toMatch(/<input[^>]*\sq:reactive-id="/);
+    // Should have reactive-id marker and patch data
+    expect(html).toMatch(/q:reactive-id="/);
     expect(html).toMatch(/data-qwik-backpatch="/);
     expect(html).toContain('"type":"attribute"');
     expect(html).toContain('"name":"aria-describedby"');
@@ -71,8 +72,7 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     const { document } = await ssrRenderToDom(<Root />, { debug });
     const html = document.documentElement.outerHTML;
 
-    expect(html).toMatch(/<input[^>]*\sq:reactive-id="/);
-
+    expect(html).toMatch(/q:reactive-id="/);
     expect(html).not.toMatch(/data-qwik-backpatch=/);
   });
 

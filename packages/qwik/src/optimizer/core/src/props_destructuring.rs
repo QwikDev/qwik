@@ -57,12 +57,12 @@ impl<'a> PropsDestructuring<'a> {
 	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
 		if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
 			let new_ident = private_ident!("_rawProps");
-			if let Some((rest_id, local)) =
+			if let Some((rest_id_opt, local)) =
 				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
 			{
-				if let Some(rest_id) = rest_id {
+				if let Some(rest_id) = rest_id_opt {
 					let omit_fn = self.global_collect.import(&_REST_PROPS, self.core_module);
-					let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
+					let omit: Vec<JsWord> = local.iter().map(|(_, id, _)| id.clone()).collect();
 					transform_rest(
 						arrow,
 						&omit_fn,
@@ -413,9 +413,10 @@ fn transform_pat(
 			}
 		}
 	}
-	if skip || local.is_empty() {
+	if skip {
 		return None;
 	}
+	// Allow case with only rest binding (no local fields)
 	Some((rest_id, local))
 }
 
@@ -426,7 +427,30 @@ fn transform_rest(
 	props_expr: ast::Expr,
 	omit: Vec<JsWord>,
 ) {
-	let new_stmt = create_omit_props(omit_fn, rest_id, props_expr, omit);
+	let new_stmt = if omit.is_empty() {
+		// const rest = _restProps(rawProps);
+		ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+			kind: ast::VarDeclKind::Const,
+			decls: vec![ast::VarDeclarator {
+				definite: false,
+				span: DUMMY_SP,
+				init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+						omit_fn,
+					)))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(props_expr),
+					}],
+					..Default::default()
+				}))),
+				name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(rest_id))),
+			}],
+			..Default::default()
+		})))
+	} else {
+		create_omit_props(omit_fn, rest_id, props_expr, omit)
+	};
 	match &mut arrow.body {
 		box ast::BlockStmtOrExpr::BlockStmt(block) => {
 			block.stmts.insert(0, new_stmt);

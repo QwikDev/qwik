@@ -2,11 +2,6 @@
 #![deny(clippy::perf)]
 #![deny(clippy::nursery)]
 
-extern crate wee_alloc;
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 use js_sys::Error;
 use qwik_core::TransformModulesOptions;
 use serde::ser::Serialize;

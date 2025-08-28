@@ -22,6 +22,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+    error: Error | null;
+    loading: boolean;
 }
 
 // @public (undocumented)

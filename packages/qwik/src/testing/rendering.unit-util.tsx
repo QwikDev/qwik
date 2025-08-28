@@ -137,7 +137,6 @@ export async function ssrRenderToDom(
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');

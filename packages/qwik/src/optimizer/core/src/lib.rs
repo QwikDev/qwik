@@ -75,7 +75,7 @@ pub struct TransformModulesOptions {
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
 	let core_module = config
 		.core_module
-		.map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
+		.map_or_else(|| BUILDER_IO_QWIK.clone(), |s| s.into());
 	let src_dir = std::path::Path::new(&config.src_dir);
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 

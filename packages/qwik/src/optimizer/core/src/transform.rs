@@ -292,10 +292,7 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	fn register_context_name(
-		&mut self,
-		custom_symbol: Option<Atom>,
-	) -> (Atom, Atom, Atom, u64) {
+	fn register_context_name(&mut self, custom_symbol: Option<Atom>) -> (Atom, Atom, Atom, u64) {
 		if let Some(custom_symbol) = custom_symbol {
 			return (
 				custom_symbol.clone(),
@@ -310,7 +307,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		display_name = escape_sym(&display_name);
 		let first_char = display_name.chars().next();
-		if first_char.map_or(false, |c| c.is_ascii_digit()) {
+		if first_char.is_some_and(|c| c.is_ascii_digit()) {
 			display_name = format!("_{}", display_name);
 		}
 		let index = match self.segment_names.get_mut(&display_name) {
@@ -2030,7 +2027,7 @@ impl<'a> Fold for QwikTransform<'a> {
 				let is_const = node.kind == ast::VarDeclKind::Const;
 
 				for ident in identifiers {
-					let is_static = static_identifiers.iter().any(|id| *id == ident.0);
+					let is_static = static_identifiers.contains(&ident.0);
 					current_scope.push((ident.0, IdentType::Var(is_const && is_static)));
 				}
 			}
@@ -2039,11 +2036,12 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
-		let mut stacked = false;
-		if let ast::Pat::Ident(ref ident) = node.name {
+		let stacked = if let ast::Pat::Ident(ref ident) = node.name {
 			self.stack_ctxt.push(ident.id.sym.to_string());
-			stacked = true;
-		}
+			true
+		} else {
+			false
+		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
@@ -2234,12 +2232,12 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_jsx_element(&mut self, node: ast::JSXElement) -> ast::JSXElement {
-		let mut stacked = false;
-
-		if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
+		let stacked = if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
 			self.stack_ctxt.push(ident.sym.to_string());
-			stacked = true;
-		}
+			true
+		} else {
+			false
+		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
@@ -2504,15 +2502,11 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 }
 
 fn get_canonical_filename(display_name: &Atom, symbol_name: &Atom) -> Atom {
-	let hash = symbol_name.split('_').last().unwrap();
+	let hash = symbol_name.split('_').next_back().unwrap();
 	Atom::from(format!("{}_{}", display_name, hash))
 }
 
-fn parse_symbol_name(
-	symbol_name: Atom,
-	dev: bool,
-	file_name: &String,
-) -> (Atom, Atom, Atom) {
+fn parse_symbol_name(symbol_name: Atom, dev: bool, file_name: &String) -> (Atom, Atom, Atom) {
 	let mut splitter = symbol_name.rsplitn(2, '_');
 	let hash = splitter
 		.next()
@@ -2556,10 +2550,7 @@ fn get_qrl_dev_obj(abs_path: Atom, segment: &SegmentData, span: &Span) -> ast::E
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::IdentName::new(
-					Atom::from("displayName"),
-					DUMMY_SP,
-				)),
+				key: ast::PropName::Ident(ast::IdentName::new(Atom::from("displayName"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
 					value: segment.display_name.clone(),

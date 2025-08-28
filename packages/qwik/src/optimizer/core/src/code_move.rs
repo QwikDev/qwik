@@ -5,7 +5,7 @@ use crate::words::*;
 
 use anyhow::Error;
 use std::collections::BTreeMap;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -24,7 +24,7 @@ pub struct NewModuleCtx<'a> {
 	pub local_idents: &'a [Id],
 	pub scoped_idents: &'a [Id],
 	pub global: &'a GlobalCollect,
-	pub core_module: &'a JsWord,
+	pub core_module: &'a Atom,
 	pub need_transform: bool,
 	pub explicit_extensions: bool,
 	pub leading_comments: SingleThreadedCommentsMap,
@@ -162,7 +162,7 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 				span: DUMMY_SP,
 				definite: false,
 				name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
-					JsWord::from(name),
+					Atom::from(name),
 					DUMMY_SP,
 					Default::default(),
 				))),

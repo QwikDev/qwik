@@ -200,10 +200,14 @@ pub fn render_expr(expr: &ast::Expr) -> String {
 	expr.visit_mut_with(&mut hygiene_with_config(Default::default()));
 	expr.visit_mut_with(&mut fixer(None));
 	emitter
-		.emit_module_item(&ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+		.emit_module(&ast::Module {
 			span: DUMMY_SP,
-			expr: Box::new(expr),
-		})))
+			body: vec![ast::ModuleItem::Stmt(ast::Stmt::Expr(ast::ExprStmt {
+				span: DUMMY_SP,
+				expr: Box::new(expr),
+			}))],
+			shebang: None,
+		})
 		.expect("Should emit");
 
 	str::from_utf8(&buf)

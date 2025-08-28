@@ -31,7 +31,7 @@ use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::str;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
@@ -65,10 +65,10 @@ pub struct TransformModulesOptions {
 	pub scope: Option<String>,
 
 	pub core_module: Option<String>,
-	pub strip_exports: Option<Vec<JsWord>>,
-	pub strip_ctx_name: Option<Vec<JsWord>>,
+	pub strip_exports: Option<Vec<Atom>>,
+	pub strip_ctx_name: Option<Vec<Atom>>,
 	pub strip_event_handlers: bool,
-	pub reg_ctx_name: Option<Vec<JsWord>>,
+	pub reg_ctx_name: Option<Vec<Atom>>,
 	pub is_server: Option<bool>,
 }
 

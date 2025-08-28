@@ -18,7 +18,7 @@ use std::hash::Hash;
 use std::hash::Hasher; // import without risk of name clashing
 use std::iter;
 use std::str;
-use swc_atoms::{js_word, JsWord};
+use swc_atoms::{atom, Atom};
 use swc_common::comments::{Comments, SingleThreadedComments};
 use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
@@ -52,28 +52,28 @@ pub enum SegmentKind {
 
 #[derive(Debug, Clone)]
 pub struct Segment {
-	pub entry: Option<JsWord>,
-	pub canonical_filename: JsWord,
-	pub name: JsWord,
+	pub entry: Option<Atom>,
+	pub canonical_filename: Atom,
+	pub name: Atom,
 	pub expr: Box<ast::Expr>,
 	pub data: SegmentData,
 	pub hash: u64,
 	pub span: Span,
-	pub param_names: Option<Vec<JsWord>>,
+	pub param_names: Option<Vec<Atom>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct SegmentData {
-	pub extension: JsWord,
+	pub extension: Atom,
 	pub local_idents: Vec<Id>,
 	pub scoped_idents: Vec<Id>,
-	pub parent_segment: Option<JsWord>,
+	pub parent_segment: Option<Atom>,
 	pub ctx_kind: SegmentKind,
-	pub ctx_name: JsWord,
-	pub origin: JsWord,
-	pub path: JsWord,
-	pub display_name: JsWord,
-	pub hash: JsWord,
+	pub ctx_name: Atom,
+	pub origin: Atom,
+	pub path: Atom,
+	pub display_name: Atom,
+	pub hash: Atom,
 	pub need_transform: bool,
 }
 
@@ -96,7 +96,7 @@ pub struct QwikTransform<'a> {
 	extra_bottom_items: BTreeMap<Id, ast::ModuleItem>,
 	stack_ctxt: Vec<String>,
 	decl_stack: Vec<Vec<IdPlusType>>,
-	marker_functions: HashMap<Id, JsWord>,
+	marker_functions: HashMap<Id, Atom>,
 	jsx_functions: HashSet<Id>,
 	immutable_function_cmp: HashSet<Id>,
 	qcomponent_fn: Option<Id>,
@@ -108,7 +108,7 @@ pub struct QwikTransform<'a> {
 
 	jsx_mutable: bool,
 
-	segment_stack: Vec<JsWord>,
+	segment_stack: Vec<Atom>,
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
@@ -118,27 +118,27 @@ pub struct QwikTransformOptions<'a> {
 	pub path_data: &'a PathData,
 	pub dev_path: Option<&'a str>,
 	pub entry_policy: &'a dyn EntryPolicy,
-	pub extension: JsWord,
-	pub core_module: JsWord,
+	pub extension: Atom,
+	pub core_module: Atom,
 	pub explicit_extensions: bool,
 	pub comments: Option<&'a SingleThreadedComments>,
 	pub global_collect: GlobalCollect,
 	pub scope: Option<&'a String>,
 	pub mode: EmitMode,
 	pub entry_strategy: EntryStrategy,
-	pub reg_ctx_name: Option<&'a [JsWord]>,
-	pub strip_ctx_name: Option<&'a [JsWord]>,
+	pub reg_ctx_name: Option<&'a [Atom]>,
+	pub strip_ctx_name: Option<&'a [Atom]>,
 	pub strip_event_handlers: bool,
 	pub is_server: bool,
 	pub cm: Lrc<SourceMap>,
 }
 
-fn convert_qrl_word(id: &JsWord) -> Option<JsWord> {
+fn convert_qrl_word(id: &Atom) -> Option<Atom> {
 	let ident_name = id.as_ref();
 	let needs_qrl = ident_name.ends_with(QRL_SUFFIX);
 	if needs_qrl {
 		let new_specifier = [&ident_name[0..ident_name.len() - 1], LONG_SUFFIX].concat();
-		Some(JsWord::from(new_specifier))
+		Some(Atom::from(new_specifier))
 	} else {
 		None
 	}
@@ -294,8 +294,8 @@ impl<'a> QwikTransform<'a> {
 
 	fn register_context_name(
 		&mut self,
-		custom_symbol: Option<JsWord>,
-	) -> (JsWord, JsWord, JsWord, u64) {
+		custom_symbol: Option<Atom>,
+	) -> (Atom, Atom, Atom, u64) {
 		if let Some(custom_symbol) = custom_symbol {
 			return (
 				custom_symbol.clone(),
@@ -342,9 +342,9 @@ impl<'a> QwikTransform<'a> {
 		};
 		display_name = format!("{}_{}", &self.options.path_data.file_name, display_name);
 		(
-			JsWord::from(symbol_name),
-			JsWord::from(display_name),
-			JsWord::from(hash64),
+			Atom::from(symbol_name),
+			Atom::from(display_name),
+			Atom::from(hash64),
 			hash,
 		)
 	}
@@ -356,10 +356,10 @@ impl<'a> QwikTransform<'a> {
 		let last_stack = self
 			.stack_ctxt
 			.last()
-			.map_or_else(|| QSEGMENT.clone(), |last| JsWord::from(last.as_str()));
+			.map_or_else(|| QSEGMENT.clone(), |last| Atom::from(last.as_str()));
 
 		let ctx_name = if last_stack.ends_with("Qrl") {
-			JsWord::from(format!("{}$", last_stack.trim_end_matches("Qrl")))
+			Atom::from(format!("{}$", last_stack.trim_end_matches("Qrl")))
 		} else {
 			last_stack
 		};
@@ -617,8 +617,8 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		first_arg: ast::Expr,
 		ctx_kind: SegmentKind,
-		ctx_name: JsWord,
-		custom_symbol: Option<JsWord>,
+		ctx_name: Atom,
+		custom_symbol: Option<Atom>,
 	) -> ast::CallExpr {
 		self._create_synthetic_qsegment(first_arg, ctx_kind, ctx_name, custom_symbol)
 			.0
@@ -628,8 +628,8 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		first_arg: ast::Expr,
 		ctx_kind: SegmentKind,
-		ctx_name: JsWord,
-		custom_symbol: Option<JsWord>,
+		ctx_name: Atom,
+		custom_symbol: Option<Atom>,
 	) -> (ast::CallExpr, bool) {
 		let can_capture = can_capture_scope(&first_arg);
 		let first_arg_span = first_arg.span();
@@ -771,7 +771,7 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		segment_data: SegmentData,
 		expr: ast::Expr,
-		symbol_name: JsWord,
+		symbol_name: Atom,
 		span: Span,
 		segment_hash: u64,
 	) -> ast::CallExpr {
@@ -884,7 +884,7 @@ impl<'a> QwikTransform<'a> {
 
 	fn handle_jsx_value(
 		&mut self,
-		ctx_name: JsWord,
+		ctx_name: Atom,
 		value: Option<ast::JSXAttrValue>,
 	) -> Option<ast::JSXAttrValue> {
 		if let Some(ast::JSXAttrValue::JSXExprContainer(container)) = value {
@@ -916,18 +916,18 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	pub fn ensure_import(&mut self, new_specifier: &JsWord, source: &JsWord) -> Id {
+	pub fn ensure_import(&mut self, new_specifier: &Atom, source: &Atom) -> Id {
 		self.options.global_collect.import(new_specifier, source)
 	}
 
-	pub fn ensure_core_import(&mut self, new_specifier: &JsWord) -> Id {
+	pub fn ensure_core_import(&mut self, new_specifier: &Atom) -> Id {
 		self.options
 			.global_collect
 			.import(new_specifier, &self.options.core_module)
 	}
 
 	fn ensure_export(&mut self, id: &Id) {
-		let exported_name: Option<JsWord> = Some(format!("_auto_{}", id.0).into());
+		let exported_name: Option<Atom> = Some(format!("_auto_{}", id.0).into());
 		if self
 			.options
 			.global_collect
@@ -940,7 +940,7 @@ impl<'a> QwikTransform<'a> {
 
 	fn create_qrl(
 		&mut self,
-		path: JsWord,
+		path: Atom,
 		symbol: &str,
 		segment_data: &SegmentData,
 		span: &Span,
@@ -951,7 +951,7 @@ impl<'a> QwikTransform<'a> {
 			body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(ast::Expr::Call(
 				ast::CallExpr {
 					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(ast::Ident::new(
-						js_word!("import"),
+						atom!("import"),
 						DUMMY_SP,
 						Default::default(),
 					)))),
@@ -993,7 +993,7 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
+				Atom::from(
 					self.options
 						.dev_path
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
@@ -1030,7 +1030,7 @@ impl<'a> QwikTransform<'a> {
 		&mut self,
 		segment_data: SegmentData,
 		expr: ast::Expr,
-		symbol_name: JsWord,
+		symbol_name: Atom,
 		span: Span,
 	) -> ast::CallExpr {
 		let should_inline = matches!(self.options.entry_strategy, EntryStrategy::Inline)
@@ -1067,7 +1067,7 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
+				Atom::from(
 					self.options
 						.dev_path
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
@@ -1102,7 +1102,7 @@ impl<'a> QwikTransform<'a> {
 
 	pub fn create_internal_call(
 		&mut self,
-		fn_name: &JsWord,
+		fn_name: &Atom,
 		exprs: Vec<ast::Expr>,
 		pure: bool,
 	) -> ast::CallExpr {
@@ -1276,7 +1276,7 @@ impl<'a> QwikTransform<'a> {
 									// TODO: move this into jsx runtime with an inline QRL
 									// right now we can't do it because qwik doesn't get checked for QRLs
 									let folded = node.value.clone().fold_with(self);
-									let prop_name: JsWord = key_word[5..].into();
+									let prop_name: Atom = key_word[5..].into();
 									maybe_const_props.push(ast::PropOrSpread::Prop(Box::new(
 										ast::Prop::KeyValue(ast::KeyValueProp {
 											key: ast::PropName::Str(ast::Str {
@@ -1374,7 +1374,7 @@ impl<'a> QwikTransform<'a> {
 										))),
 										..Default::default()
 									});
-									let event_handler = JsWord::from(match key_word.as_ref() {
+									let event_handler = Atom::from(match key_word.as_ref() {
 										"bind:value" => "onInput$",
 										"bind:checked" => "onInput$",
 										_ => "onChange$",
@@ -1772,7 +1772,7 @@ impl<'a> QwikTransform<'a> {
 
 	fn create_noop_qrl(
 		&mut self,
-		symbol_name: &swc_atoms::JsWord,
+		symbol_name: &swc_atoms::Atom,
 		segment_data: SegmentData,
 	) -> ast::CallExpr {
 		let mut args = vec![ast::Expr::Lit(ast::Lit::Str(ast::Str {
@@ -1781,10 +1781,10 @@ impl<'a> QwikTransform<'a> {
 			raw: None,
 		}))];
 
-		let mut fn_name: &JsWord = &_NOOP_QRL;
+		let mut fn_name: &Atom = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				JsWord::from(
+				Atom::from(
 					self.options
 						.dev_path
 						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
@@ -1814,12 +1814,12 @@ impl<'a> QwikTransform<'a> {
 		self.create_internal_call(fn_name, args, true)
 	}
 
-	fn extract_param_names(expr: &ast::Expr) -> Option<Vec<JsWord>> {
-		fn pat_to_string(pat: &ast::Pat) -> Option<JsWord> {
+	fn extract_param_names(expr: &ast::Expr) -> Option<Vec<Atom>> {
+		fn pat_to_string(pat: &ast::Pat) -> Option<Atom> {
 			match pat {
 				ast::Pat::Ident(ident) => Some(ident.id.sym.clone()),
 				ast::Pat::Rest(rest) => {
-					pat_to_string(&rest.arg).map(|name| JsWord::from(format!("...{}", name)))
+					pat_to_string(&rest.arg).map(|name| Atom::from(format!("...{}", name)))
 				}
 				ast::Pat::Array(array) => {
 					let mut parts = Vec::new();
@@ -1836,7 +1836,7 @@ impl<'a> QwikTransform<'a> {
 					if parts.is_empty() {
 						None
 					} else {
-						Some(JsWord::from(format!("[{}]", parts.join(", "))))
+						Some(Atom::from(format!("[{}]", parts.join(", "))))
 					}
 				}
 				ast::Pat::Object(obj) => {
@@ -1866,7 +1866,7 @@ impl<'a> QwikTransform<'a> {
 					if parts.is_empty() {
 						None
 					} else {
-						Some(JsWord::from(format!("{{{}}}", parts.join(", "))))
+						Some(Atom::from(format!("{{{}}}", parts.join(", "))))
 					}
 				}
 				_ => None,
@@ -2293,7 +2293,7 @@ impl<'a> Fold for QwikTransform<'a> {
 				self.stack_ctxt.push(ident_name.clone());
 				if new_word.is_some() {
 					ast::JSXAttr {
-						value: self.handle_jsx_value(JsWord::from(ident_name), node.value),
+						value: self.handle_jsx_value(Atom::from(ident_name), node.value),
 						..node
 					}
 				} else {
@@ -2311,7 +2311,7 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_call_expr(&mut self, node: ast::CallExpr) -> ast::CallExpr {
 		let mut name_token = false;
 		let mut replace_callee = None;
-		let mut ctx_name: JsWord = QSEGMENT.clone();
+		let mut ctx_name: Atom = QSEGMENT.clone();
 
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			if id_eq!(ident, &self.sync_qrl_fn) {
@@ -2411,7 +2411,7 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 }
 
-pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> ast::ModuleItem {
+pub fn create_synthetic_named_export(local: &Id, exported: Option<Atom>) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::ExportNamed(ast::NamedExport {
 		span: DUMMY_SP,
 		type_only: false,
@@ -2432,7 +2432,7 @@ pub fn create_synthetic_named_export(local: &Id, exported: Option<JsWord>) -> as
 	}))
 }
 
-pub fn create_synthetic_named_import(local: &Id, src: &JsWord) -> ast::ModuleItem {
+pub fn create_synthetic_named_import(local: &Id, src: &Atom) -> ast::ModuleItem {
 	ast::ModuleItem::ModuleDecl(ast::ModuleDecl::Import(ast::ImportDecl {
 		phase: Default::default(),
 		span: DUMMY_SP,
@@ -2503,16 +2503,16 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 	(output, is_const)
 }
 
-fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
+fn get_canonical_filename(display_name: &Atom, symbol_name: &Atom) -> Atom {
 	let hash = symbol_name.split('_').last().unwrap();
-	JsWord::from(format!("{}_{}", display_name, hash))
+	Atom::from(format!("{}_{}", display_name, hash))
 }
 
 fn parse_symbol_name(
-	symbol_name: JsWord,
+	symbol_name: Atom,
 	dev: bool,
 	file_name: &String,
-) -> (JsWord, JsWord, JsWord) {
+) -> (Atom, Atom, Atom) {
 	let mut splitter = symbol_name.rsplitn(2, '_');
 	let hash = splitter
 		.next()
@@ -2522,17 +2522,17 @@ fn parse_symbol_name(
 	let s_n = if dev {
 		symbol_name.clone()
 	} else {
-		JsWord::from(format!("s_{}", hash))
+		Atom::from(format!("s_{}", hash))
 	};
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(abs_path: Atom, segment: &SegmentData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::IdentName::new(js_word!("file"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(atom!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
 					value: abs_path,
@@ -2540,7 +2540,7 @@ fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast:
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::IdentName::new(JsWord::from("lo"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(Atom::from("lo"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
 					span: DUMMY_SP,
 					value: span.lo().0 as f64,
@@ -2548,7 +2548,7 @@ fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast:
 				}))),
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-				key: ast::PropName::Ident(ast::IdentName::new(JsWord::from("hi"), DUMMY_SP)),
+				key: ast::PropName::Ident(ast::IdentName::new(Atom::from("hi"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Num(ast::Number {
 					span: DUMMY_SP,
 					value: span.hi().0 as f64,
@@ -2557,7 +2557,7 @@ fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast:
 			}))),
 			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
 				key: ast::PropName::Ident(ast::IdentName::new(
-					JsWord::from("displayName"),
+					Atom::from("displayName"),
 					DUMMY_SP,
 				)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
@@ -2570,7 +2570,7 @@ fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast:
 	})
 }
 
-fn prop_to_string(prop: &ast::MemberProp) -> Option<JsWord> {
+fn prop_to_string(prop: &ast::MemberProp) -> Option<Atom> {
 	match prop {
 		ast::MemberProp::Ident(ident) => Some(ident.sym.clone()),
 		ast::MemberProp::Computed(ast::ComputedPropName {
@@ -2673,7 +2673,7 @@ fn is_return_static(expr: &Option<Box<ast::Expr>>) -> bool {
 	}
 }
 
-fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: JsWord) -> ast::Expr {
+fn make_wrap(method: &Id, obj: Box<ast::Expr>, prop: Atom) -> ast::Expr {
 	// if the prop is the same as "value", don't pass the prop
 	let args = if prop == *"value" {
 		vec![ast::ExprOrSpread::from(obj)]

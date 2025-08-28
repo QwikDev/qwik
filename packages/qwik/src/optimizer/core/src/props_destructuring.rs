@@ -56,7 +56,7 @@ enum TransformInit {
 impl<'a> PropsDestructuring<'a> {
 	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
 		if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
-			let new_ident = private_ident!("props");
+			let new_ident = private_ident!("_rawProps");
 			if let Some((rest_id, local)) =
 				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
 			{

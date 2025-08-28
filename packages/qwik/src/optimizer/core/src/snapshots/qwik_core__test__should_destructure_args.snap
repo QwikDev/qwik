@@ -45,8 +45,8 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
-export const test_component_LUXeXe0DQrg = (props)=>{
-    const rest = _restProps(props, [
+export const test_component_LUXeXe0DQrg = (_rawProps)=>{
+    const rest = _restProps(_rawProps, [
         "message",
         "id",
         "count"
@@ -59,14 +59,14 @@ export const test_component_LUXeXe0DQrg = (props)=>{
     renders.renders++;
     const rerenders = renders.renders + 0;
     return /*#__PURE__*/ _jsxSorted("div", {
-        id: _wrapProp(props, "id")
+        id: _wrapProp(_rawProps, "id")
     }, null, [
         /*#__PURE__*/ _jsxSplit("span", {
             ..._getVarProps(rest)
         }, _getConstProps(rest), [
-            _wrapProp(props, "message"),
+            _wrapProp(_rawProps, "message"),
             " ",
-            _wrapProp(props, "count")
+            _wrapProp(_rawProps, "count")
         ], 0, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             class: "renders"
@@ -95,7 +95,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     522
   ],
   "paramNames": [
-    "props"
+    "_rawProps"
   ]
 }
 */

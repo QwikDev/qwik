@@ -72,12 +72,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@qwik.dev/core";
 export const ButtonArrow_button_onClick_9npo43fIGik = ()=>{
-    const [props] = useLexicalScope();
-    return console.log(props.text, props.color);
+    const [_rawProps] = useLexicalScope();
+    return console.log(_rawProps.text, _rawProps.color);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,OAFvB,YAAM\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAsBqC;;WAAI,QAAQ,GAAG,WAFvB,gBAAM\"}")
 /*
 {
   "origin": "test.tsx",
@@ -97,7 +97,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     473
   ],
   "captureNames": [
-    "props"
+    "_rawProps"
   ]
 }
 */
@@ -151,14 +151,14 @@ export function Button({ text, color }) {
         text
     ])}>{text}</button>;
 }
-export const ButtonArrow = (props)=>{
-    return <button onColor$={props.color} onClick$={/*#__PURE__*/ qrl(i_9npo43fIGik, "ButtonArrow_button_onClick_9npo43fIGik", [
-        props
-    ])}>{props.text}</button>;
+export const ButtonArrow = (_rawProps)=>{
+    return <button onColor$={_rawProps.color} onClick$={/*#__PURE__*/ qrl(i_9npo43fIGik, "ButtonArrow_button_onClick_9npo43fIGik", [
+        _rawProps
+    ])}>{_rawProps.text}</button>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,4EAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,gBAFyB,OAER;;eAFE,OAE8C;AAE3E,EAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,4EAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,oBAFyB,OAER;;mBAFE,OAE8C;AAE3E,EAAC\"}")
 == DIAGNOSTICS ==
 
 []

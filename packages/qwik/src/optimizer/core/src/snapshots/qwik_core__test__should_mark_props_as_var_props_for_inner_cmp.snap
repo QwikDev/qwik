@@ -105,14 +105,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@qwik.dev/core";
 import { serverImg } from "~/routes/(authenticated)/layout";
-export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async (props)=>{
-    const [props1] = useLexicalScope();
-    props.track(()=>props1.store.model);
+export const ModelImg_component_imgLoc_useResource_Ogi9hEJvtmI = async (_rawProps)=>{
+    const [props] = useLexicalScope();
+    _rawProps.track(()=>props.store.model);
     return await serverImg('some.png');
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iEAc8B;;IAC1B,MADmC,MAC7B,IAAM,OAAM,KAAK,CAAC,KAAK;IAC7B,OAAO,MAAM,UAAU\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;iEAc8B;;IAC1B,UADmC,MAC7B,IAAM,MAAM,KAAK,CAAC,KAAK;IAC7B,OAAO,MAAM,UAAU\"}")
 /*
 {
   "origin": "test.tsx",
@@ -132,7 +132,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     488
   ],
   "paramNames": [
-    "props"
+    "_rawProps"
   ],
   "captureNames": [
     "props"

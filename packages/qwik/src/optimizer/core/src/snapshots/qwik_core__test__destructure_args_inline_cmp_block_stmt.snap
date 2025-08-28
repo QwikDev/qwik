@@ -24,13 +24,13 @@ import { _fnSignal } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 const i_GbMO6TGQv9M = ()=>import("./test.tsx_test_div_onClick_GbMO6TGQv9M");
-export default ((props)=>{
+export default ((_rawProps)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
         "data-is-active": _fnSignal((p0)=>p0.data.selectedOutputDetail === 'options', [
-            props
+            _rawProps
         ], 'p0.data.selectedOutputDetail==="options"'),
         onClick$: /*#__PURE__*/ qrl(i_GbMO6TGQv9M, "test_div_onClick_GbMO6TGQv9M", [
-            props
+            _rawProps
         ])
     }, null, null, 2, "u6_0");
 });
@@ -41,12 +41,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@qwik.dev/core";
 export const test_div_onClick_GbMO6TGQv9M = ()=>{
-    const [props] = useLexicalScope();
-    props.data.selectedOutputDetail = 'options';
+    const [_rawProps] = useLexicalScope();
+    _rawProps.data.selectedOutputDetail = 'options';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAKwB;;IACR,MALI,KAKC,oBAAoB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAKwB;;IACR,UALI,KAKC,oBAAoB,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
@@ -66,7 +66,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     259
   ],
   "captureNames": [
-    "props"
+    "_rawProps"
   ]
 }
 */

@@ -61,38 +61,38 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    const rest = _restProps(props, [
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
+    const rest = _restProps(_rawProps, [
         "count",
         "some",
         "hello",
         "stuff",
         "stuffDefault"
     ]);
-    console.log(props.stuff, props.some ?? 3);
+    console.log(_rawProps.stuff, _rawProps.some ?? 3);
     useTaskQrl(/*#__PURE__*/ inlinedQrl(({ track })=>{
-        const [props, rest] = useLexicalScope();
-        track(()=>props.count);
-        console.log(props.count, rest, props.stuff, props.some ?? 3, props.stuffDefault ?? 123);
+        const [_rawProps, rest] = useLexicalScope();
+        track(()=>_rawProps.count);
+        console.log(_rawProps.count, rest, _rawProps.stuff, _rawProps.some ?? 3, _rawProps.stuffDefault ?? 123);
     }, "Works_component_useTask_pjo5U5Ikll0", [
-        props,
+        _rawProps,
         rest
     ]));
     return /*#__PURE__*/ _jsxSplit("div", {
         some: _fnSignal((p0)=>p0.some ?? 3, [
-            props
+            _rawProps
         ], "p0.some??1+2"),
         params: _fnSignal((p0)=>({
                 some: p0.some ?? 3
             }), [
-            props
+            _rawProps
         ], "{some:p0.some??1+2}"),
-        class: _wrapProp(props, "count"),
+        class: _wrapProp(_rawProps, "count"),
         ..._getVarProps(rest)
     }, {
         ..._getConstProps(rest),
         override: true
-    }, _wrapProp(props, "count"), 0, "u6_0");
+    }, _wrapProp(_rawProps, "count"), 0, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 export const NoWorks2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ count, stuff: { hey } })=>{
     console.log(hey);
@@ -122,7 +122,7 @@ export const NoWorks3 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(({ c
 }, "NoWorks3_component_fc13h5yYn14"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO/B,QAAQ,GAAG,OAHX,aAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,UARP;QASC,QAAQ,GAAG,OATZ,OASoB,YANpB,aAFA,QAAO,SAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,cARP;QASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;;;;IAOrB,qBACC,UAAC;QAAI,IAAI,qBAXV,QAAO;;;QAWW,MAAM,kBAAE,CAAA;gBAAE,IAAI,KAXhC,QAAO;YAW0B,CAAA;;;QAAG,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE,mCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG;AAEH,OAAO,MAAM,yBAAW,sCAAW,CAAC,EAAC,KAAK,EAAE,QAAQ,MAAM,EAAC;IAC1D,QAAQ,GAAG,CAAC;IACZ,oCAAS,CAAC,EAAC,KAAK,EAAC;;QAChB,MAAM,IAAM;QACZ,QAAQ,GAAG,CAAC;;;;IAEb,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB,sCAAG\"}")
 == DIAGNOSTICS ==
 
 []

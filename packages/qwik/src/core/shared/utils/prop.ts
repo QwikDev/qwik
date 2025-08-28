@@ -7,7 +7,7 @@ export function isSlotProp(prop: string): boolean {
 }
 
 /** @internal */
-export const _restProps = (props: PropsProxy, omit: string[], target: Props = {}) => {
+export const _restProps = (props: PropsProxy, omit: string[] = [], target: Props = {}) => {
   let constPropsTarget: Props | null = null;
   const constProps = props[_CONST_PROPS];
   if (constProps) {

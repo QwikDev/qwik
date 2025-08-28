@@ -61,7 +61,7 @@ import { _auto_I8 as I8 } from "./test";
 import { _auto_I9 as I9 } from "./test";
 import { qrl } from "@qwik.dev/core";
 const i_w0t0o3QMovU = ()=>import("./test.tsx_App_component_1_w0t0o3QMovU");
-export const App_component_ckEPmXZlub0 = (props)=>{
+export const App_component_ckEPmXZlub0 = (_rawProps)=>{
     console.log(I1, I2, I3, I4, I5, I6, I7, I8, I9);
     console.log(itsok, v1, v2, v3, obj);
     return /*#__PURE__*/ qrl(i_w0t0o3QMovU, "App_component_1_w0t0o3QMovU");
@@ -88,7 +88,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     346
   ],
   "paramNames": [
-    "props"
+    "_rawProps"
   ]
 }
 */

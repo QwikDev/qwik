@@ -61,7 +61,7 @@ impl<'a> PropsDestructuring<'a> {
 			{
 				if let Some(rest_id) = rest_id_opt {
 					let omit_fn = self.global_collect.import(&_REST_PROPS, self.core_module);
-					let omit: Vec<JsWord> = local.iter().map(|(_, id, _)| id.clone()).collect();
+					let omit: Vec<Atom> = local.iter().map(|(_, id, _)| id.clone()).collect();
 					transform_rest(
 						arrow,
 						&omit_fn,

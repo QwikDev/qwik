@@ -4547,6 +4547,32 @@ fn should_split_spread_props_with_additional_prop5() {
 	});
 }
 
+#[test]
+fn should_not_generate_conflicting_props_identifiers() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
+
+		export default component$(({ color, ...props }) => {
+		useComputed$(() => color)
+
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		// important to use hoist entry strategy to test this case
+		// only in hoist mode there was an issue with conflicting props identifiers
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

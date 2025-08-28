@@ -23,7 +23,7 @@ export const Foo = component$(({foo}) => {
 
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
 
-export const Foo_component_HTDRsvUbLiE = (props)=>{
+export const Foo_component_HTDRsvUbLiE = (_rawProps)=>{
     useMount$(()=>{});
     return <div/>;
 };
@@ -49,7 +49,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     199
   ],
   "paramNames": [
-    "props"
+    "_rawProps"
   ]
 }
 */

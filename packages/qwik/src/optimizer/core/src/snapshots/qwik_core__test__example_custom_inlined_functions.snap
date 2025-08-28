@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1307
+assertion_line: 1308
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -29,7 +28,7 @@ export const Lightweight = (props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-});
+};
 
 ============================= test.js ==
 
@@ -48,7 +47,7 @@ export const Lightweight = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,4EAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AACA,SAAkC,IAAI,EAAE,SAAS,QAAQ,iBAAiB;AAE1E,OAAO,MAAM,aAAa,CAAC;IAC1B,UAAU;AACX,EAAE;AAEF,OAAO,MAAM,WAAW,KAAK,YAAY;AAEzC,OAAO,MAAM,oBAAM,4EAQhB;AAEH,OAAO,MAAM,cAAc,CAAC;IAC3B;AAGD,EAAE\"}")
 ============================= test.tsx_App_component_useMemo_6Sc9KVki3Y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";

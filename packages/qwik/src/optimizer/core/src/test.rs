@@ -2,6 +2,7 @@
 
 use super::*;
 use serde_json::to_string_pretty;
+use swc_atoms::Atom;
 
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
@@ -49,15 +50,15 @@ macro_rules! test_input {
 }
 
 fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
-	let strip_exports: Option<Vec<JsWord>> = input
+	let strip_exports: Option<Vec<Atom>> = input
 		.strip_exports
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let reg_ctx_name: Option<Vec<Atom>> = input
 		.reg_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let strip_ctx_name: Option<Vec<Atom>> = input
 		.strip_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
 
 	transform_modules(TransformModulesOptions {
 		src_dir: input.src_dir,
@@ -1328,7 +1329,7 @@ export const Lightweight = (props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-});
+};
 "#
 		.to_string(),
 		transpile_ts: true,

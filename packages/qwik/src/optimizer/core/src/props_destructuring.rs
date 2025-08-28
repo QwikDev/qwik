@@ -5,7 +5,6 @@ use crate::collector::{new_ident_from_id, GlobalCollect, Id};
 use crate::is_const::is_const_expr;
 use crate::words::*;
 use swc_atoms::Atom;
-use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
@@ -15,13 +14,13 @@ struct PropsDestructuring<'a> {
 	component_ident: Option<Id>,
 	pub identifiers: HashMap<Id, ast::Expr>,
 	pub global_collect: &'a mut GlobalCollect,
-	pub core_module: &'a JsWord,
+	pub core_module: &'a Atom,
 }
 
 pub fn transform_props_destructuring(
 	program: &mut ast::Program,
 	global_collect: &mut GlobalCollect,
-	core_module: &JsWord,
+	core_module: &Atom,
 ) {
 	program.visit_mut_with(&mut PropsDestructuring {
 		component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
@@ -300,7 +299,7 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 	}
 }
 
-type TransformPatReturn = (Option<Id>, Vec<(Id, JsWord, ast::Expr)>);
+type TransformPatReturn = (Option<Id>, Vec<(Id, Atom, ast::Expr)>);
 fn transform_pat(
 	new_ident: ast::Expr,
 	obj: &ast::ObjectPat,
@@ -425,7 +424,7 @@ fn transform_rest(
 	omit_fn: &Id,
 	rest_id: &Id,
 	props_expr: ast::Expr,
-	omit: Vec<JsWord>,
+	omit: Vec<Atom>,
 ) {
 	let new_stmt = if omit.is_empty() {
 		// const rest = _restProps(rawProps);
@@ -468,7 +467,7 @@ fn create_omit_props(
 	omit_fn: &Id,
 	rest_id: &Id,
 	props_expr: ast::Expr,
-	omit: Vec<JsWord>,
+	omit: Vec<Atom>,
 ) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		kind: ast::VarDeclKind::Const,

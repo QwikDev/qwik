@@ -1,6 +1,6 @@
 import { qwikDebugToString } from '../../debug';
 import type { Container } from '../../shared/types';
-import { isPromise } from '../../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../../shared/utils/promises';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
 import { AsyncComputeQRL, SerializationSignalFlags, EffectSubscription } from '../types';
@@ -101,6 +101,10 @@ export class AsyncComputedSignalImpl<T>
   override invalidate() {
     super.invalidate();
     this.$promiseValue$ = NEEDS_COMPUTATION;
+  }
+
+  async resolve(): Promise<void> {
+    await retryOnPromise(() => this.$computeIfNeeded$());
   }
 
   $computeIfNeeded$() {

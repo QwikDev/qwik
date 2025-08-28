@@ -216,4 +216,26 @@ describe.each([
       );
     });
   });
+
+  describe('resolve', () => {
+    it('should not rerun if resolve is used before', async () => {
+      (globalThis as any).log = [];
+      const Counter = component$(() => {
+        const count = useSignal(1);
+        const doubleCount = useAsyncComputed$(() => Promise.resolve(count.value * 2));
+
+        useTask$(async () => {
+          await doubleCount.resolve();
+          (globalThis as any).log.push('task');
+          (globalThis as any).log.push(doubleCount.value);
+        });
+
+        return <div></div>;
+      });
+      await render(<Counter />, { debug });
+      expect((globalThis as any).log).toEqual(['task', 2]);
+
+      (globalThis as any).log = undefined;
+    });
+  });
 });

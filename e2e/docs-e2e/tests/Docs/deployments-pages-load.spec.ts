@@ -65,3 +65,8 @@ test('Deployments Static Site Adapter page loads', async ({ page }) => {
   await page.goto('/docs/deployments/static/');
   await expect(page).toHaveTitle('Static Site 📚 Qwik Documentation');
 });
+
+test('Deployments GitHub Pages Adapter page loads', async ({ page }) => {
+  await page.goto('/docs/deployments/github-pages/');
+  await expect(page).toHaveTitle('GitHub Pages 📚 Qwik Documentation');
+});

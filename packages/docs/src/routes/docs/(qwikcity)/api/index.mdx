@@ -276,6 +276,19 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikcity)/action/index.mdx) section for more information.
 
+## List all routes with qwikCityPlan.routes
+
+The `qwikCityPlan.routes` property is used to retrieve the list of the available routes of your application.
+
+```tsx
+import qwikCityPlan from '@qwik-city-plan';
+
+const routes = qwikCityPlan.routes;
+for (const route of routes) {
+	// your logic here
+}
+```
+
 ## `<QwikCityProvider>`
 
 The `QwikCityProvider` component initializes Qwik City in the existing document, providing the necessary context for Qwik City to work, such as [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) and `useLocation()`.

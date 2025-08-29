@@ -100,6 +100,8 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
+    // (undocumented)
+    resolveValue: ResolveValue;
 }
 
 // @public (undocumented)

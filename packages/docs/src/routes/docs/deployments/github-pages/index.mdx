@@ -149,4 +149,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-That's it!
+This GitHub Actions workflow automates the process of building and deploying a website to GitHub Pages.<br/>
+It triggers upon pushes to the main branch, ensuring the site is updated with the latest changes.<br/>
+The workflow first builds the website using pnpm, then uploads the generated files as an artifact.<br/>
+Finally, it deploys the artifact to GitHub Pages, making the site live.

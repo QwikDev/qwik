@@ -22,6 +22,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+    error: Error | null;
+    loading: boolean;
 }
 
 // @public (undocumented)
@@ -900,7 +902,7 @@ export interface ResourceResolved<T> {
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
 // @internal (undocumented)
-export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
+export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
 export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;

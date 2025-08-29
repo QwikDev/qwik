@@ -35,13 +35,13 @@ const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
     const [counter] = useLexicalScope();
     return counter.value++;
 };
-const Issue3742_component_svSy0PlWTAw = (props)=>{
+const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
     const counter = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", {
-        title: _fnSignal((p0, p1)=>(p1.description ?? '') && 'description' in p1.other ? `Hello ${p0.value}` : `Bye ${p0.value}`, [
-            counter,
-            props
-        ], '(p1.description??"")&&"description"in p1.other?`Hello ${p0.value}`:`Bye ${p0.value}`')
+        title: _fnSignal((p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`, [
+            _rawProps,
+            counter
+        ], '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`')
     }, null, [
         "Issue3742",
         /*#__PURE__*/ _jsxSorted("button", null, {

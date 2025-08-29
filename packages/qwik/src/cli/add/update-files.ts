@@ -119,7 +119,7 @@ async function mergeVSCodeSettings(fileUpdates: FsUpdates, srcPath: string, dest
       await fs.promises.readFile(destPath, 'utf-8'),
       JsonObjectNode
     );
-    destPkgJson.update({ ...destPkgJson.toJSON(), ...srcPkgJson.toJSON() });
+    destPkgJson.merge(srcPkgJson);
 
     fileUpdates.files.push({
       path: destPath,

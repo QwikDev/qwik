@@ -56,7 +56,7 @@ export default component$(() => {
     }
   `);
 
-  const isSPA = useSignal(false);
+  const isSPA = useSignal(true);
   const LinkCmp = isSPA.value ? Link : "a";
 
   return (
@@ -67,6 +67,12 @@ export default component$(() => {
             <LinkCmp href="/">Home</LinkCmp>
             <LinkCmp href="/form">Form</LinkCmp>
             <LinkCmp href="/about">About</LinkCmp>
+            <LinkCmp
+              href="/counters"
+              onQVisible$={() => console.log("visible")}
+            >
+              Counters
+            </LinkCmp>
           </nav>
           <label class="toggle-label">
             <input type="checkbox" bind:checked={isSPA} />

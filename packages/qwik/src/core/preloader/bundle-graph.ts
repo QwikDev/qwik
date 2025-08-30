@@ -1,5 +1,5 @@
 import { isBrowser } from '@builder.io/qwik/build';
-import { config, doc } from './constants';
+import { config, isJSRegex } from './constants';
 import { adjustProbabilities, bundles, log, shouldResetFactor, trigger } from './queue';
 import type { BundleGraph, BundleImport, ImportProbability } from './types';
 import { BundleImportState_None, BundleImportState_Alias } from './types';
@@ -8,15 +8,9 @@ export let base: string | undefined;
 export let graph: BundleGraph;
 
 const makeBundle = (name: string, deps?: ImportProbability[]) => {
-  const url = name.endsWith('.js')
-    ? doc
-      ? new URL(`${base}${name}`, doc.baseURI).toString()
-      : name
-    : null;
   return {
     $name$: name,
-    $url$: url,
-    $state$: url ? BundleImportState_None : BundleImportState_Alias,
+    $state$: isJSRegex.test(name) ? BundleImportState_None : BundleImportState_Alias,
     $deps$: shouldResetFactor ? deps?.map((d) => ({ ...d, $factor$: 1 })) : deps,
     $inverseProbability$: 1,
     $createdTs$: Date.now(),
@@ -37,7 +31,11 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
       if (idx < 0) {
         probability = -idx / 10;
       } else {
-        deps.push({ $name$: serialized[idx] as string, $probability$: probability, $factor$: 1 });
+        deps.push({
+          $name$: serialized[idx] as string,
+          $importProbability$: probability,
+          $factor$: 1,
+        });
       }
       i++;
     }
@@ -83,7 +81,7 @@ export const loadBundleGraph = (
       config.$DEBUG$ = !!opts.d;
     }
     if ('P' in opts) {
-      config.$maxBufferedPreloads$ = opts['P'] as number;
+      config.$maxIdlePreloads$ = opts['P'] as number;
     }
     if ('Q' in opts) {
       config.$invPreloadProbability$ = 1 - (opts['Q'] as number);
@@ -131,8 +129,8 @@ export const initPreloader = (
     if ('debug' in opts) {
       config.$DEBUG$ = !!opts.debug;
     }
-    if ('preloadProbability' in opts) {
-      config.$invPreloadProbability$ = 1 - (opts.preloadProbability as number);
+    if (typeof opts.preloadProbability === 'number') {
+      config.$invPreloadProbability$ = 1 - opts.preloadProbability;
     }
   }
   if (base != null || !serializedBundleGraph) {

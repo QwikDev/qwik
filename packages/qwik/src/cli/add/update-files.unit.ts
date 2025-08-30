@@ -1,3 +1,4 @@
+import { JsonObjectNode, JsonParser } from '@croct/json5-parser';
 import { fs } from 'memfs';
 import { join } from 'path';
 import { describe, expect, test, vi } from 'vitest';
@@ -39,6 +40,16 @@ function createFakeFiles(dir: string) {
   fs.writeFileSync(join(dir, 'fake.ts'), 'fake file');
   fs.writeFileSync(join(dir, 'package.json'), '{"name": "fake"}');
   fs.writeFileSync(join(dir, 'src', 'global.css'), 'p{color: red}');
+  fs.mkdirSync(join(dir, '.vscode'), { recursive: true });
+  const settings = JsonParser.parse<JsonObjectNode>(
+    `{
+          // Comment
+          "name": "John Doe",
+          "age": 42,
+      }`,
+    JsonObjectNode
+  );
+  fs.writeFileSync(join(dir, '.vscode', 'settings.json'), settings.toString());
 }
 
 describe('mergeIntegrationDir', () => {
@@ -51,6 +62,7 @@ describe('mergeIntegrationDir', () => {
     const expectedResults = [
       'destDir/subDestDir/fake.ts',
       'destDir/subDestDir/package.json',
+      'destDir/subDestDir/.vscode/settings.json',
       'destDir/subDestDir/src/global.css',
     ];
 
@@ -64,6 +76,18 @@ describe('mergeIntegrationDir', () => {
     const monorepoSubDir = join(fakeDestDir, 'apps', 'subpackage', 'src');
     fs.mkdirSync(monorepoSubDir, { recursive: true });
     fs.writeFileSync(join(monorepoSubDir, 'global.css'), '/* CSS */');
+    const settings = JsonParser.parse<JsonObjectNode>(
+      `{ 
+          // Comment Foo
+          "css.lint.unknownAtRules": "ignore"
+      }`,
+      JsonObjectNode
+    );
+    fs.mkdirSync(join(fakeDestDir, 'apps', 'subpackage', '.vscode'));
+    fs.writeFileSync(
+      join(fakeDestDir, 'apps', 'subpackage', '.vscode', 'settings.json'),
+      settings.toString()
+    );
 
     // Add a file that should stay in the root
     fs.writeFileSync(join(fakeSrcDir, 'should-stay-in-root.ts'), 'fake file');
@@ -84,15 +108,24 @@ describe('mergeIntegrationDir', () => {
       `destDir/subDestDir/should-stay-in-root.ts`,
       `destDir/subDestDir/package.json`,
       `destDir/subDestDir/should-stay/should-also-stay.ts`,
+      'destDir/subDestDir/apps/subpackage/.vscode/settings.json',
       `destDir/subDestDir/apps/subpackage/src/global.css`,
     ];
 
     expect(actualResults).toEqual(expectedResults);
 
-    const actualGlobalCssContent = fakeFileUpdates.files.find(
-      (f) => f.path === `destDir/subDestDir/apps/subpackage/src/global.css`
-    )?.content;
-
-    expect(actualGlobalCssContent).toBe('p{color: red}\n\n/* CSS */\n');
+    const tests = {
+      'destDir/subDestDir/apps/subpackage/fake.ts': 'fake file',
+      'destDir/subDestDir/should-stay-in-root.ts': 'fake file',
+      'destDir/subDestDir/package.json': '{"name": "fake"}',
+      'destDir/subDestDir/should-stay/should-also-stay.ts': 'fake file',
+      'destDir/subDestDir/apps/subpackage/.vscode/settings.json':
+        '{ \n          // Comment Foo\n          "css.lint.unknownAtRules": "ignore",\n          "name": "John Doe",\n          "age": 42\n      }\n',
+      'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
+    };
+    for (const [fileName, content] of Object.entries(tests)) {
+      const file = fakeFileUpdates.files.find((f) => f.path === fileName);
+      expect(file?.content.toString()).toBe(content);
+    }
   });
 });

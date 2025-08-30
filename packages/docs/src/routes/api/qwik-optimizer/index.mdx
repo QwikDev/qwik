@@ -48,6 +48,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -158,6 +159,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;[Optimizer](#optimizer)&gt;
@@ -321,9 +323,12 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
+
+## enableRequestRewrite
 
 ## EntryStrategy
 
@@ -368,6 +373,19 @@ Description
 
 </th></tr></thead>
 <tbody><tr><td>
+
+enableRequestRewrite
+
+</td><td>
+
+`"enableRequestRewrite"`
+
+</td><td>
+
+**_(ALPHA)_** Enable request.rewrite()
+
+</td></tr>
+<tr><td>
 
 noSPA
 
@@ -441,6 +459,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -482,6 +501,7 @@ pathObject
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -625,6 +645,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 boolean
@@ -660,6 +681,7 @@ string[]
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -703,6 +725,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -1042,6 +1065,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 \{ root: string; dir: string; base: string; ext: string; name: string; }
@@ -1215,6 +1239,63 @@ Description
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## preventNavigate
+
+## QwikAsset
+
+```typescript
+export interface QwikAsset
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[name](#)
+
+</td><td>
+
+</td><td>
+
+string \| undefined
+
+</td><td>
+
+Name of the asset
+
+</td></tr>
+<tr><td>
+
+[size](#)
+
+</td><td>
+
+</td><td>
+
+number
+
+</td><td>
+
+Size of the asset
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
 ## QwikBuildMode
 
@@ -1403,6 +1484,21 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[assets?](#)
+
+</td><td>
+
+</td><td>
+
+\{ [fileName: string]: [QwikAsset](#qwikasset); }
+
+</td><td>
+
+_(Optional)_ All assets. The key is the fileName relative to the rootDir
+
+</td></tr>
+<tr><td>
+
 [bundleGraph?](#)
 
 </td><td>
@@ -1418,6 +1514,21 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 </td></tr>
 <tr><td>
 
+[bundleGraphAsset?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The bundle graph fileName
+
+</td></tr>
+<tr><td>
+
 [bundles](#)
 
 </td><td>
@@ -1428,7 +1539,22 @@ _(Optional)_ All bundles in a compact graph format with probabilities
 
 </td><td>
 
-All code bundles, used to know the import graph
+All code bundles, used to know the import graph. The key is the bundle fileName relative to "build/"
+
+</td></tr>
+<tr><td>
+
+[core?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The Qwik core bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1473,7 +1599,7 @@ Content hash of the manifest, if this changes, the code changed
 
 </td><td>
 
-Where QRLs are located
+Where QRLs are located. The key is the symbol name, the value is the bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1519,6 +1645,21 @@ string
 </td><td>
 
 _(Optional)_ The preloader bundle fileName
+
+</td></tr>
+<tr><td>
+
+[qwikLoader?](#)
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ The Qwik loader bundle fileName
 
 </td></tr>
 <tr><td>
@@ -1590,6 +1731,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 any
@@ -2030,6 +2172,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 any
@@ -2290,6 +2433,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -2325,6 +2469,7 @@ string[]
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -2373,7 +2518,7 @@ Description
 
 </td><td>
 
-[QwikManifest](#qwikmanifest)
+[ServerQwikManifest](#serverqwikmanifest)
 
 </td><td>
 
@@ -2630,6 +2775,28 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
+
+## ServerQwikManifest
+
+The manifest values that are needed for SSR.
+
+```typescript
+export type ServerQwikManifest = Pick<
+  QwikManifest,
+  | "manifestHash"
+  | "injections"
+  | "bundleGraph"
+  | "bundleGraphAsset"
+  | "mapping"
+  | "preloader"
+  | "core"
+  | "qwikLoader"
+>;
+```
+
+**References:** [QwikManifest](#qwikmanifest)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts)
 
@@ -2949,6 +3116,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
@@ -3028,6 +3196,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [TransformOutput](#transformoutput)
@@ -3238,6 +3407,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;[TransformOutput](#transformoutput)&gt;
@@ -3317,6 +3487,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [TransformOutput](#transformoutput)

@@ -6,6 +6,7 @@
 
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
 import type { ResolvedManifest } from '@builder.io/qwik/optimizer';
+import type { ServerQwikManifest } from '@builder.io/qwik/optimizer';
 import type { SnapshotResult } from '@builder.io/qwik';
 import type { StreamWriter } from '@builder.io/qwik';
 import type { SymbolMapperFn } from '@builder.io/qwik/optimizer';
@@ -74,7 +75,8 @@ export interface PrefetchStrategy {
 // @public (undocumented)
 export interface PreloaderOptions {
     debug?: boolean;
-    maxBufferedPreloads?: number;
+    maxIdlePreloads?: number;
+    // @deprecated (undocumented)
     preloadProbability?: number;
     ssrPreloadProbability?: number;
     ssrPreloads?: number;
@@ -82,9 +84,8 @@ export interface PreloaderOptions {
 
 // @public (undocumented)
 export interface QwikLoaderOptions {
-    // (undocumented)
     include?: 'always' | 'never' | 'auto';
-    // (undocumented)
+    // @deprecated (undocumented)
     position?: 'top' | 'bottom';
 }
 
@@ -101,7 +102,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // @deprecated (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
     // (undocumented)
-    preloader?: PreloaderOptions | boolean;
+    preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     // Warning: (ae-forgotten-export) The symbol "QwikPrefetchServiceWorkerOptions" needs to be exported by the entry point index.d.ts
     //
@@ -117,7 +118,7 @@ export interface RenderResult {
     // (undocumented)
     isStatic: boolean;
     // (undocumented)
-    manifest?: QwikManifest;
+    manifest?: ServerQwikManifest;
     // (undocumented)
     prefetchResources: PrefetchResource[];
     // (undocumented)
@@ -199,7 +200,7 @@ export interface StreamingOptions {
 
 // @public
 export type SymbolsToPrefetch = 'auto' | ((opts: {
-    manifest: QwikManifest;
+    manifest: ServerQwikManifest;
 }) => PrefetchResource[]);
 
 // @public (undocumented)

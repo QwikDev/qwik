@@ -78,7 +78,13 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
           return rsp.text();
         }
       }
-
+      // this id is unchanged because it's an entry point
+      if (id === '@builder.io/qwik/qwikloader.js') {
+        const rsp = await depResponse('@builder.io/qwik', '/qwikloader.js');
+        if (rsp) {
+          return rsp.text();
+        }
+      }
       // We're the fallback, we know all the files
       if (/\.[jt]sx?$/.test(id)) {
         throw new Error(`load: unknown module ${id}`);

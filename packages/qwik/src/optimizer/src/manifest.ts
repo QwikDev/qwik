@@ -1,5 +1,5 @@
-import type { OutputBundle } from 'rollup';
-import { QWIK_PRELOADER_REAL_ID, type NormalizedQwikPluginOptions } from './plugins/plugin';
+import type { Rollup } from 'vite';
+import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
 // This is just the initial prioritization of the symbols and entries
@@ -388,32 +388,39 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
+const preloaderRegex = /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/;
+const coreRegex = /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/;
+const qwikLoaderRegex = /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/;
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: OutputBundle,
+  outputBundles: Rollup.OutputBundle,
   opts: NormalizedQwikPluginOptions,
-  debug: (...args: any[]) => void
+  debug: (...args: any[]) => void,
+  canonPath: (p: string) => string
 ) {
+  // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
-    manifestHash: '',
-    symbols: {},
-    mapping: {},
-    bundles: {},
-    injections,
     version: '1',
+    manifestHash: '',
     options: {
       target: opts.target,
       buildMode: opts.buildMode,
       // don't copy the insights stuff
       entryStrategy: opts.entryStrategy && { type: opts.entryStrategy.type },
     },
+    core: undefined,
+    preloader: undefined,
+    bundleGraphAsset: undefined,
+    injections,
+    mapping: {},
+    bundles: {},
+    assets: {},
+    symbols: {},
+    bundleGraph: undefined,
   };
 
-  const buildPath = path.resolve(opts.rootDir, opts.outDir, 'build');
-  const canonPath = (p: string) =>
-    path.relative(buildPath, path.resolve(opts.rootDir, opts.outDir, p));
   const getBundleName = (name: string) => {
     const bundle = outputBundles[name];
     if (!bundle) {
@@ -426,7 +433,14 @@ export function generateManifestFromBundles(
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
-    if (outputBundle.type !== 'chunk') {
+    if (outputBundle.type === 'asset') {
+      // we don't record map files as assets
+      if (!outputBundle.fileName.endsWith('js.map')) {
+        manifest.assets![outputBundle.fileName] = {
+          name: outputBundle.names[0],
+          size: outputBundle.source.length,
+        };
+      }
       continue;
     }
     const bundleFileName = canonPath(outputBundle.fileName);
@@ -464,6 +478,16 @@ export function generateManifestFromBundles(
       bundle.dynamicImports = bundleDynamicImports;
     }
 
+    // It can happen that our modules end up in facades, not nice but needs handling
+    if (outputBundle.facadeModuleId) {
+      if (preloaderRegex.test(outputBundle.facadeModuleId)) {
+        manifest.preloader = bundleFileName;
+      } else if (coreRegex.test(outputBundle.facadeModuleId)) {
+        manifest.core = bundleFileName;
+      } else if (qwikLoaderRegex.test(outputBundle.facadeModuleId)) {
+        manifest.qwikLoader = bundleFileName;
+      }
+    }
     // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
     const modulePaths = ids
@@ -471,8 +495,15 @@ export function generateManifestFromBundles(
       .map((m) => path.relative(opts.rootDir, m));
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
-      if (modulePaths.some((m) => m.endsWith(QWIK_PRELOADER_REAL_ID))) {
+      // keep these if statements separate so that weird bundling still works
+      if (!manifest.preloader && modulePaths.some((m) => preloaderRegex.test(m))) {
         manifest.preloader = bundleFileName;
+      }
+      if (!manifest.core && modulePaths.some((m) => coreRegex.test(m))) {
+        manifest.core = bundleFileName;
+      }
+      if (!manifest.qwikLoader && modulePaths.some((m) => qwikLoaderRegex.test(m))) {
+        manifest.qwikLoader = bundleFileName;
       }
     }
 
@@ -488,14 +519,14 @@ export function generateManifestFromBundles(
     }
     (manifest.bundles[bundle].symbols ||= []).push(symbol);
     manifest.symbols[symbol] = {
-      origin: segment.origin,
       displayName: segment.displayName,
-      canonicalFilename: segment.canonicalFilename,
       hash: segment.hash,
       ctxKind: segment.ctxKind,
       ctxName: segment.ctxName,
       captures: segment.captures,
+      canonicalFilename: segment.canonicalFilename,
       parent: segment.parent,
+      origin: segment.origin,
       loc: segment.loc,
     };
   }

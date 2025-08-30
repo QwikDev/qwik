@@ -5,8 +5,7 @@ import type { QContext } from '../core/state/context';
 import { QInstance } from '../core/util/markers';
 import type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';
 import { getSymbolHash, setServerPlatform } from './platform';
-import { includePreloader } from './preload-impl';
-import { getPreloadPaths } from './prefetch-strategy';
+import { preloaderPre, preloaderPost } from './preload-impl';
 import { getQwikLoaderScript } from './scripts';
 import type {
   QwikManifest,
@@ -18,7 +17,6 @@ import type {
 } from './types';
 import { createTimer, getBuildBase } from './utils';
 import { manifest as builtManifest } from '@qwik-client-manifest';
-import { initPreloader } from '../core/preloader/bundle-graph';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
@@ -50,6 +48,7 @@ export async function renderToStream(
   const firstFlushTimer = createTimer();
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
+  const nonce = opts.serverData?.nonce;
   function flush() {
     if (buffer) {
       nativeStream.write(buffer);
@@ -105,39 +104,15 @@ export async function renderToStream(
   if (containerTagName === 'html') {
     stream.write(DOCTYPE);
   } else {
-    // The container is not `<html>` so we don't include the qwikloader by default
     stream.write('<!--cq-->');
-    if (opts.qwikLoader) {
-      if (opts.qwikLoader.include === undefined) {
-        opts.qwikLoader.include = 'never';
-      }
-      if (opts.qwikLoader.position === undefined) {
-        opts.qwikLoader.position = 'bottom';
-      }
-    } else {
-      opts.qwikLoader = {
-        include: 'never',
-      };
-    }
   }
 
-  if (!resolvedManifest) {
+  if (!resolvedManifest && !isDev) {
     console.warn(
       `Missing client manifest, loading symbols in the client might 404. Please ensure the client build has run and generated the manifest for the server build.`
     );
   }
   await setServerPlatform(opts, resolvedManifest);
-  const bundleGraph = resolvedManifest?.manifest.bundleGraph;
-  if (bundleGraph) {
-    const preloaderOpts: Parameters<typeof initPreloader>[1] =
-      typeof opts.preloader === 'object'
-        ? {
-            debug: opts.preloader.debug,
-            preloadProbability: opts.preloader.ssrPreloadProbability,
-          }
-        : undefined;
-    initPreloader(bundleGraph, preloaderOpts);
-  }
 
   const injections = resolvedManifest?.manifest.injections;
   const beforeContent = injections
@@ -145,26 +120,25 @@ export async function renderToStream(
     : [];
 
   const includeMode = opts.qwikLoader?.include ?? 'auto';
-  const positionMode = opts.qwikLoader?.position ?? 'bottom';
+  const qwikLoaderChunk = resolvedManifest?.manifest.qwikLoader;
   let didAddQwikLoader = false;
-  if (positionMode === 'top' && includeMode !== 'never') {
+  if (includeMode !== 'never' && qwikLoaderChunk) {
+    beforeContent.unshift(
+      jsx('link', {
+        rel: 'modulepreload',
+        href: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
+      }),
+      jsx('script', {
+        type: 'module',
+        async: true,
+        src: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
+      })
+    );
     didAddQwikLoader = true;
-    const qwikLoaderScript = getQwikLoaderScript({
-      debug: opts.debug,
-    });
-    beforeContent.push(
-      jsx('script', {
-        id: 'qwikloader',
-        dangerouslySetInnerHTML: qwikLoaderScript,
-      })
-    );
-    // Assume there will be at least click and input handlers
-    beforeContent.push(
-      jsx('script', {
-        dangerouslySetInnerHTML: `window.qwikevents.push('click','input')`,
-      })
-    );
   }
+  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, nonce);
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -185,30 +159,15 @@ export async function renderToStream(
       snapshotResult = await _pauseFromContexts(contexts, containerState, undefined, textNodes);
 
       const children: (JSXNode | null)[] = [];
-      if (opts.preloader !== false) {
-        // skip prefetch implementation if prefetchStrategy === null
-        const preloadBundles = getPreloadPaths(snapshotResult, opts, resolvedManifest);
-        const base = containerAttributes['q:base']!;
-        // If no preloadBundles, there is no reactivity, so no need to include the preloader
-        if (preloadBundles.length > 0) {
-          const prefetchImpl = includePreloader(
-            base,
-            resolvedManifest,
-            opts.preloader,
-            preloadBundles,
-            opts.serverData?.nonce
-          );
-          if (prefetchImpl) {
-            children.push(prefetchImpl);
-          }
-        }
-      }
+
+      preloaderPost(buildBase, snapshotResult, opts, resolvedManifest, children);
+
       const jsonData = JSON.stringify(snapshotResult.state, undefined, isDev ? '  ' : undefined);
       children.push(
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
-          nonce: opts.serverData?.nonce,
+          nonce,
         })
       );
       if (snapshotResult.funcs.length > 0) {
@@ -217,22 +176,25 @@ export async function renderToStream(
           jsx('script', {
             'q:func': 'qwik/json',
             dangerouslySetInnerHTML: serializeFunctions(hash, snapshotResult.funcs),
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }
 
-      const needLoader = !didAddQwikLoader && (!snapshotResult || snapshotResult.mode !== 'static');
+      const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
       const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-      if (includeLoader) {
+      if (!didAddQwikLoader && includeLoader) {
         const qwikLoaderScript = getQwikLoaderScript({
           debug: opts.debug,
         });
         children.push(
           jsx('script', {
             id: 'qwikloader',
+            // execute even before DOM order
+            async: true,
+            type: 'module',
             dangerouslySetInnerHTML: qwikLoaderScript,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }
@@ -240,13 +202,11 @@ export async function renderToStream(
       // We emit the events separately so other qwikloaders can see them
       const extraListeners = Array.from(containerState.$events$, (s) => JSON.stringify(s));
       if (extraListeners.length > 0) {
-        const content =
-          (includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`) +
-          `.push(${extraListeners.join(', ')})`;
+        const content = `(window.qwikevents||(window.qwikevents=[])).push(${extraListeners.join(',')})`;
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }

@@ -12,7 +12,6 @@ export type BundleInfo = {
 
 export type BundleImport = BundleInfo & {
   $name$: string;
-  $url$: string | null;
   $state$: number;
   $createdTs$: number;
   $waitedMs$: number;
@@ -25,7 +24,7 @@ export type ImportProbability = {
   /** Bundle name */
   $name$: string;
   /** Probability */
-  $probability$: number;
+  $importProbability$: number;
   /** Probability adjust factor */
   $factor$: number;
 };

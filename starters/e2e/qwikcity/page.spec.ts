@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { assertPage, linkNavigate, load, locator } from "./util.js";
+import {
+  assertPage,
+  getPage,
+  linkNavigate,
+  load,
+  locator,
+  setPage,
+} from "./util.js";
 
 test.describe("Qwik City Page", () => {
   test.describe("mpa", () => {
@@ -103,6 +110,55 @@ function tests() {
       await linkNavigate(ctx, '[data-test-link="products-shirt"]');
       await assertPage(ctx, {
         pathname: "/qwikcity-test/products/tshirt/",
+        title: "Product tshirt - Qwik",
+        layoutHierarchy: ["root"],
+        h1: "Product: tshirt",
+        activeHeaderLink: "Products",
+      });
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(ctx, '[data-test-link="products-shirt-rewrite"]');
+      await assertPage(ctx, {
+        pathname: "/qwikcity-test/products/shirt-rewrite/",
+        title: "Product tshirt - Qwik",
+        layoutHierarchy: ["root"],
+        h1: "Product: tshirt",
+        activeHeaderLink: "Products",
+      });
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(
+        ctx,
+        '[data-test-link="products-shirt-rewrite-with-search"]',
+      );
+      await assertPage(ctx, {
+        pathname: "/qwikcity-test/products/shirt-rewrite/",
+        title: "Product tshirt - Qwik",
+        layoutHierarchy: ["root"],
+        h1: "Product: tshirt",
+        activeHeaderLink: "Products",
+        searchParams: { search: "true" },
+      });
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(
+        ctx,
+        '[data-test-link="products-shirt-rewrite-absolute-url"]',
+        500,
+      );
+      await assertPage(ctx, {
+        title: "500 Internal Server Error",
+      });
+      // Recover from error
+      await setPage(ctx, "/qwikcity-test/products/hat/");
+
+      /***********  Products: shirt (rewrite to /products/tshirt)  ***********/
+      await linkNavigate(
+        ctx,
+        '[data-test-link="products-shirt-rewrite-no-trailing-slash"]',
+      );
+      await assertPage(ctx, {
+        pathname: "/qwikcity-test/products/shirt-rewrite/",
         title: "Product tshirt - Qwik",
         layoutHierarchy: ["root"],
         h1: "Product: tshirt",

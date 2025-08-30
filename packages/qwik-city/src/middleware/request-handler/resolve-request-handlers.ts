@@ -13,9 +13,9 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
-import { RedirectMessage } from './redirect-handler';
 import {
   RequestEvQwikSerializer,
+  RequestEvIsRewrite,
   RequestEvSharedActionId,
   RequestRouteName,
   getRequestLoaders,
@@ -32,20 +32,23 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
-import { ServerError } from './error-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import { RedirectMessage, ServerError } from '@builder.io/qwik-city/middleware/request-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderHandler: RequestHandler
 ) => {
   const routeLoaders: LoaderInternal[] = [];
   const routeActions: ActionInternal[] = [];
 
   const requestHandlers: RequestHandler[] = [];
+
   const isPageRoute = !!(route && isLastModulePageRoute(route[2]));
+
   if (serverPlugins) {
     _resolveRequestHandlers(
       routeLoaders,
@@ -64,6 +67,10 @@ export const resolveRequestHandlers = (
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
     ) {
       requestHandlers.unshift(csrfCheckMiddleware);
+
+      if (checkOrigin === 'lax-proto') {
+        requestHandlers.push(csrfLaxProtoCheckMiddleware);
+      }
     }
     if (isPageRoute) {
       // server$
@@ -93,6 +100,7 @@ export const resolveRequestHandlers = (
       requestHandlers.push(renderHandler);
     }
   }
+
   return requestHandlers;
 };
 
@@ -363,7 +371,8 @@ async function pureServerFunction(ev: RequestEvent) {
 
 function fixTrailingSlash(ev: RequestEvent) {
   const trailingSlash = getRequestTrailingSlash(ev);
-  const { basePathname, pathname, url, sharedMap } = ev;
+  const { basePathname, originalUrl, sharedMap } = ev;
+  const { pathname, search } = originalUrl;
   const isQData = sharedMap.has(IsQData);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
@@ -371,7 +380,7 @@ function fixTrailingSlash(ev: RequestEvent) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
-        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + url.search);
+        throw ev.redirect(HttpStatus.MovedPermanently, pathname + '/' + search);
       }
     } else {
       // should not have a trailing slash
@@ -379,7 +388,7 @@ function fixTrailingSlash(ev: RequestEvent) {
         // remove slash from existing pathname
         throw ev.redirect(
           HttpStatus.MovedPermanently,
-          pathname.slice(0, pathname.length - 1) + url.search
+          pathname.slice(0, pathname.length - 1) + search
         );
       }
     }
@@ -427,7 +436,13 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
 
+function csrfLaxProtoCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv, 'lax-proto');
+}
 function csrfCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv);
+}
+function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
   const isForm = isContentType(
     requestEv.request.headers,
     'application/x-www-form-urlencoded',
@@ -437,7 +452,18 @@ function csrfCheckMiddleware(requestEv: RequestEvent) {
   if (isForm) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
-    const forbidden = inputOrigin !== origin;
+    let forbidden = inputOrigin !== origin;
+
+    // fix https://github.com/QwikDev/qwik/issues/7688
+    if (
+      forbidden &&
+      laxProto &&
+      origin.startsWith('https://') &&
+      inputOrigin?.slice(4) === origin.slice(5)
+    ) {
+      forbidden = false;
+    }
+
     if (forbidden) {
       throw requestEv.error(
         403,
@@ -509,6 +535,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   if (!isPageDataReq) {
     return;
   }
+
   try {
     await requestEv.next();
   } catch (err) {
@@ -523,6 +550,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   const status = requestEv.status();
   const location = requestEv.headers.get('Location');
   const isRedirect = status >= 301 && status <= 308 && location;
+
   if (isRedirect) {
     const adaptedLocation = makeQDataPath(location);
     if (adaptedLocation) {
@@ -548,7 +576,7 @@ export async function renderQData(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const location = requestEv.headers.get('Location');
+  const redirectLocation = requestEv.headers.get('Location');
   const trailingSlash = getRequestTrailingSlash(requestEv);
 
   const requestHeaders: Record<string, string> = {};
@@ -560,7 +588,8 @@ export async function renderQData(requestEv: RequestEvent) {
     action: requestEv.sharedMap.get(RequestEvSharedActionId),
     status: status !== 200 ? status : 200,
     href: getPathname(requestEv.url, trailingSlash),
-    redirect: location ?? undefined,
+    redirect: redirectLocation ?? undefined,
+    isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };
   const writer = requestEv.getWritableStream().getWriter();
   const qwikSerializer = (requestEv as RequestEventInternal)[RequestEvQwikSerializer];

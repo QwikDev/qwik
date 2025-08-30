@@ -7,28 +7,20 @@ import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vit
 
 const cwd = process.cwd();
 
-const chunkInfoMocks: Rollup.PreRenderedChunk[] = [
+const chunkInfoMocks = [
   {
     exports: [''],
     name: 'chunk.tsx',
     facadeModuleId: 'chunk.tsx',
-    isDynamicEntry: false,
-    isEntry: false,
-    isImplicitEntry: false,
     moduleIds: ['chunk.tsx'],
-    type: 'chunk',
   },
   {
     exports: [''],
     name: cwd + '/app/chunk.tsx',
     facadeModuleId: cwd + '/app/chunk.tsx',
-    isDynamicEntry: false,
-    isEntry: false,
-    isImplicitEntry: false,
     moduleIds: [cwd + '/app/chunk.tsx'],
-    type: 'chunk',
   },
-];
+] as Rollup.PreRenderedChunk[];
 
 function mockOptimizerOptions(): OptimizerOptions {
   return {
@@ -69,12 +61,19 @@ const excludeDeps = [
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
   (qwikVite(opts) as any)[0] as QwikVitePlugin;
 
+// undefined for Vite 5 - 6, an object for Vite 7
+const configHookPluginContext = undefined as any;
+
 test('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'serve', mode: 'development' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -117,7 +116,11 @@ test('command: serve, mode: production', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'serve', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -152,7 +155,11 @@ test('command: build, mode: development', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'development' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -199,7 +206,11 @@ test('command: build, mode: production', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -244,7 +255,11 @@ test('command: build, --mode production (client)', async () => {
   };
 
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -262,7 +277,8 @@ test('command: build, --ssr entry.server.tsx', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config(
+  const c = (await plugin.config.call(
+    configHookPluginContext,
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
   ))!;
@@ -307,7 +323,8 @@ test('command: serve, --mode ssr', async () => {
     },
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -335,7 +352,8 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
     },
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -359,7 +377,8 @@ test('should use the dist/ fallback with client target', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { assetsDir: 'my-assets-dir/' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -372,7 +391,8 @@ test('should use build.outDir config with client target', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -388,7 +408,8 @@ test('should use build.outDir config when assetsDir is _astro', async () => {
   const plugin = getPlugin(initOpts);
 
   // Astro sets a build.assetsDir of _astro, but we don't want to change that
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { assetsDir: '_astro' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -401,7 +422,8 @@ test('command: build, --mode lib', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     {
       build: {
         lib: {
@@ -436,7 +458,8 @@ test('command: build, --mode lib with multiple outputs', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     {
       build: {
         lib: {

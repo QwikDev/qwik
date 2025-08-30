@@ -570,8 +570,8 @@ importers:
         specifier: workspace:^
         version: 'link:'
       '@croct/json5-parser':
-        specifier: 0.1.1
-        version: 0.1.1
+        specifier: 0.2.0
+        version: 0.2.0
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
@@ -1074,8 +1074,8 @@ packages:
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
 
-  '@croct/json5-parser@0.1.1':
-    resolution: {integrity: sha512-7+yo8Kd5JJp+VF3bjYGXW0S1s3zOF6IiJczmQy1d+t/pFn8bo7kJcbzRP+C78kcqZoBW4gs5H/c7ZtsH5DDb7w==}
+  '@croct/json5-parser@0.2.0':
+    resolution: {integrity: sha512-bDFbKB5M/J9OIFc8nivlgRSln9zrweBOALA0BGC73jnB+5UyGD/aYj2sonAwEexKt6QDY2fW13tf3+nkiLi4CQ==}
 
   '@croct/json@2.1.0':
     resolution: {integrity: sha512-UrWfjNQVlBxN+OVcFwHmkjARMW55MBN04E9KfGac8ac8z1QnFVuiOOFtMWXCk3UwsyRqhsNaFoYLZC+xxqsVjQ==}
@@ -10845,7 +10845,7 @@ snapshots:
 
   '@colors/colors@1.6.0': {}
 
-  '@croct/json5-parser@0.1.1':
+  '@croct/json5-parser@0.2.0':
     dependencies:
       '@croct/json': 2.1.0
 

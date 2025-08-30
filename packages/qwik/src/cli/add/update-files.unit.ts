@@ -120,7 +120,7 @@ describe('mergeIntegrationDir', () => {
       'destDir/subDestDir/package.json': '{"name": "fake"}',
       'destDir/subDestDir/should-stay/should-also-stay.ts': 'fake file',
       'destDir/subDestDir/apps/subpackage/.vscode/settings.json':
-        '{ \n          // Comment Foo\n          "css.lint.unknownAtRules": "ignore",\n          "name": "John Doe",\n          "age": 42\n      }\n',
+        '{ \n          // Comment Foo\n          "css.lint.unknownAtRules": "ignore",\n          // Comment\n          "name": "John Doe",\n          "age": 42,\n      }\n',
       'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
     };
     for (const [fileName, content] of Object.entries(tests)) {

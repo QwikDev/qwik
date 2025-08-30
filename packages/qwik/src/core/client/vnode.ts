@@ -623,7 +623,8 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
   if ((flags & VNodeFlags.Inflated) === 0) {
-    const parentNode = vnode_getDomParent(vnode)!;
+    const parentNode = vnode_getDomParent(vnode);
+    assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
     const doc = parentNode.ownerDocument;
     // Walk the previous siblings and inflate them.
@@ -1035,7 +1036,7 @@ export const vnode_insertBefore = (
    * unlink the previous or next sibling, we don't know that after "a" node is "b". So we need to
    * find children first (and inflate them).
    */
-  const domParentVNode = vnode_getDomParentVNode(parent);
+  const domParentVNode = vnode_getDomParentVNode(parent, false);
   const parentNode = domParentVNode && domParentVNode[ElementVNodeProps.element];
   let domChildren: (Element | Text)[] | null = null;
   if (domParentVNode) {
@@ -1148,14 +1149,24 @@ export const vnode_insertBefore = (
   }
 };
 
-export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
-  vnode = vnode_getDomParentVNode(vnode) as VNode;
+export const vnode_getDomParent = (
+  vnode: VNode,
+  includeProjection = true
+): Element | Text | null => {
+  vnode = vnode_getDomParentVNode(vnode, includeProjection) as VNode;
   return (vnode && vnode[ElementVNodeProps.element]) as Element | Text | null;
 };
 
-export const vnode_getDomParentVNode = (vnode: VNode): ElementVNode | null => {
+export const vnode_getDomParentVNode = (
+  vnode: VNode,
+  includeProjection = true
+): ElementVNode | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode = vnode[VNodeProps.parent]!;
+    vnode =
+      vnode[VNodeProps.parent] ||
+      (includeProjection
+        ? vnode_getProp(vnode, QSlotParent, (id) => (vnode_isVNode(id) ? id : null))
+        : null)!;
   }
   return vnode;
 };
@@ -1172,7 +1183,7 @@ export const vnode_remove = (
   }
 
   if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent);
+    const domParent = vnode_getDomParent(vParent, false);
     const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
     if (isInnerHTMLParent) {
       // ignore children, as they are inserted via innerHTML

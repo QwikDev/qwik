@@ -63,10 +63,12 @@ import {
   type SsrAttrKey,
   type SsrAttrValue,
   type SsrAttrs,
+  type SsrBackpatch,
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
+
 import { getQwikLoaderScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
@@ -188,9 +190,34 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
+
+  /**
+   * We use this to keep track of the current backpatch scope if backpatch changes are needed
+   * (updating a node already streamed)
+   */
+  private backpatchScopeStack: string[] = [];
+
+  get currentBackpatchScope(): string | null {
+    return this.backpatchScopeStack.length > 0
+      ? this.backpatchScopeStack[this.backpatchScopeStack.length - 1]
+      : null;
+  }
+
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
+  private isBackpatchExecutorEmitted = false;
+  private backpatchMap = new Map<
+    string,
+    {
+      signal: any;
+      ssrNodeId: string;
+      attrName: string;
+      initialSerializedValue: string | true | null;
+      scopedStyleIdPrefix: string | null;
+      scopeId: string;
+    }
+  >();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -239,6 +266,39 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   handleError(err: any, _$host$: null): void {
     throw err;
+  }
+
+  enterBackpatchScope(scopeId: string): void {
+    this.backpatchScopeStack.push(scopeId);
+  }
+
+  exitBackpatchScope(scopeId: string): void {
+    // Find and remove the scope from the stack
+    const index = this.backpatchScopeStack.lastIndexOf(scopeId);
+    if (index !== -1) {
+      this.backpatchScopeStack.splice(index, 1);
+      this.emitScopePatches(scopeId);
+    }
+  }
+
+  addBackpatchEntry(
+    signal: any,
+    ssrNodeId: string,
+    attrName: string,
+    initialSerializedValue: string | true | null,
+    scopedStyleIdPrefix: string | null
+  ): void {
+    if (this.currentBackpatchScope) {
+      const key = `${ssrNodeId}:${attrName}`;
+      this.backpatchMap.set(key, {
+        signal,
+        ssrNodeId,
+        attrName,
+        initialSerializedValue,
+        scopedStyleIdPrefix,
+        scopeId: this.currentBackpatchScope,
+      });
+    }
   }
 
   async render(jsx: JSXOutput) {
@@ -596,6 +656,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
+        this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -790,6 +851,57 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(']');
       this.closeElement();
     }
+  }
+
+  emitScopePatches(scopeId: string): void {
+    const patches: SsrBackpatch[] = [];
+
+    for (const [, readData] of this.backpatchMap) {
+      if (readData.scopeId === scopeId) {
+        const currentValue = readData.signal.value;
+        const currentSerialized = serializeAttribute(
+          readData.attrName,
+          currentValue,
+          readData.scopedStyleIdPrefix
+        );
+        const normalizedCurrent = currentSerialized === false ? null : currentSerialized;
+
+        if (normalizedCurrent !== readData.initialSerializedValue) {
+          patches.push({
+            type: 'attribute',
+            ssrNodeId: readData.ssrNodeId,
+            name: readData.attrName,
+            serializedValue: normalizedCurrent as string | true | null,
+          });
+        }
+      }
+    }
+
+    if (patches.length > 0) {
+      this.isBackpatchExecutorEmitted = true;
+      const scriptAttrs = ['type', 'application/json', 'data-qwik-backpatch', scopeId];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write(JSON.stringify(patches));
+      this.closeElement();
+    }
+  }
+
+  private emitExecutorIfNeeded(): void {
+    if (!this.isBackpatchExecutorEmitted) {
+      return;
+    }
+    const scriptAttrs = ['id', 'qwik-backpatch-executor'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+    }
+    this.openElement('script', scriptAttrs);
+    this.write(
+      `(()=>{let e=document.querySelectorAll("script[data-qwik-backpatch]"),t=[];for(let a of e)try{let r=JSON.parse(a.textContent||"[]");t.push(...r)}catch(l){console.error("Failed to parse backpatch data:",l)}let i=new Map;for(let s of t)i.set(s.ssrNodeId+":"+s.name,s);for(let o of i.values()){let d=document.querySelector('[q\\\\:reactive-id="'+o.ssrNodeId+'"]');d&&(null===o.serializedValue||!1===o.serializedValue?d.removeAttribute(o.name):d.setAttribute(o.name,!0===o.serializedValue?"":o.serializedValue))}})();`
+    );
+    this.closeElement();
   }
 
   emitPreloaderPre() {
@@ -1092,6 +1204,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });
+
+          const isBackpatching =
+            this.currentBackpatchScope && typeof key === 'string' && key !== 'ref';
+          if (isBackpatching) {
+            const initialSerialized = serializeAttribute(key, value.value, styleScopedId);
+            const normalizedInitial = initialSerialized === false ? null : initialSerialized;
+            this.addBackpatchEntry(value, lastNode.id, key, normalizedInitial, styleScopedId);
+            this.write(' q:reactive-id="');
+            this.write(lastNode.id);
+            this.write('"');
+          }
+
           value = this.trackSignalValue(value, lastNode, key, signalData);
         }
 

@@ -2026,6 +2026,20 @@
       "mdFile": "core.snapshotstate.md"
     },
     {
+      "name": "SSRBackpatch",
+      "id": "ssrbackpatch",
+      "hierarchy": [
+        {
+          "name": "SSRBackpatch",
+          "id": "ssrbackpatch"
+        }
+      ],
+      "kind": "Variable",
+      "content": "```typescript\nSSRBackpatch: FunctionComponent<{\n    children?: JSXOutput;\n}>\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts",
+      "mdFile": "core.ssrbackpatch.md"
+    },
+    {
       "name": "SSRComment",
       "id": "ssrcomment",
       "hierarchy": [

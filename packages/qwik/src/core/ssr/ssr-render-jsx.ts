@@ -15,7 +15,6 @@ import {
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { getNextUniqueIndex } from '../shared/utils/unique-index-generator';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
@@ -27,6 +26,7 @@ import {
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
+  ELEMENT_BACKPATCH_ID,
   ELEMENT_KEY,
   FLUSH_COMMENT,
   QDefaultSlot,
@@ -56,6 +56,10 @@ class ParentComponentData {
 }
 class MaybeAsyncSignal {}
 
+class BackpatchScopeData {
+  constructor(public $backpatchId$: string | null) {}
+}
+
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
   | JSXOutput
@@ -65,6 +69,7 @@ type StackValue = ValueOrPromise<
   | ParentComponentData
   | AsyncGenerator
   | typeof MaybeAsyncSignal
+  | BackpatchScopeData
 >;
 
 /** @internal */
@@ -74,6 +79,7 @@ export async function _walkJSX(
   options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
+    backpatchId: string | null;
   }
 ): Promise<void> {
   const stack: StackValue[] = [value];
@@ -93,6 +99,9 @@ export async function _walkJSX(
         const trackFn = stack.pop() as () => StackValue;
         await retryOnPromise(() => stack.push(trackFn()));
         continue;
+      } else if (value instanceof BackpatchScopeData) {
+        options.backpatchId = value.$backpatchId$;
+        continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
@@ -104,6 +113,7 @@ export async function _walkJSX(
       processJSXNode(ssr, enqueue, value as JSXOutput, {
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
+        backpatchId: options.backpatchId,
       });
     }
   };
@@ -117,6 +127,7 @@ function processJSXNode(
   options: {
     styleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
+    backpatchId: string | null;
   }
 ) {
   // console.log('processJSXNode', value);
@@ -151,6 +162,7 @@ function processJSXNode(
           await _walkJSX(ssr, chunk as JSXOutput, {
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
+            backpatchId: options.backpatchId,
           });
           ssr.commentNode(FLUSH_COMMENT);
         }
@@ -171,19 +183,17 @@ function processJSXNode(
 
         const innerHTML = ssr.openElement(
           type,
-          varPropsToSsrAttrs(
-            jsx.varProps,
-            jsx.constProps,
-            ssr.serializationCtx,
-            options.styleScoped,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps,
-            jsx.varProps,
-            ssr.serializationCtx,
-            options.styleScoped
-          ),
+          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+            backpatchId: options.backpatchId,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+            backpatchId: options.backpatchId,
+          }),
           qwikInspectorAttrValue
         );
         if (innerHTML) {
@@ -262,6 +272,7 @@ function processJSXNode(
                 await _walkJSX(ssr, chunk as JSXOutput, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
+                  backpatchId: options.backpatchId,
                 });
                 ssr.commentNode(FLUSH_COMMENT);
               },
@@ -275,17 +286,11 @@ function processJSXNode(
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRBackpatch) {
-          const backpatchScopeId = getNextUniqueIndex(ssr);
-          ssr.enterBackpatchScope?.(backpatchScopeId);
-
-          enqueue(() => {
-            if (ssr.currentBackpatchScope === backpatchScopeId) {
-              ssr.exitBackpatchScope?.(backpatchScopeId);
-            }
-          });
-
+          enqueue(new BackpatchScopeData(null));
+          enqueue(ssr.emitScopePatches);
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
+          enqueue(new BackpatchScopeData(''));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -327,53 +332,53 @@ function processJSXNode(
   }
 }
 
+interface SsrAttrsOptions {
+  serializationCtx: SerializationContext;
+  styleScopedId: string | null;
+  backpatchId: string | null;
+  key?: string | null;
+}
+
 export function varPropsToSsrAttrs(
   varProps: Record<string, unknown>,
   constProps: Record<string, unknown> | null,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null,
-  key?: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(varProps, constProps, serializationCtx, true, styleScopedId, key);
+  return toSsrAttrs(varProps, constProps, false, options);
 }
 
 export function constPropsToSsrAttrs(
   constProps: Record<string, unknown> | null,
   varProps: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(constProps, varProps, serializationCtx, false, styleScopedId);
+  return toSsrAttrs(constProps, varProps, true, options);
 }
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
   anotherRecord: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
+  const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
+  let isBackpatched = false;
   for (const key in record) {
     let value = record[key];
     if (isJsxPropertyAnEventName(key)) {
@@ -408,7 +413,7 @@ export function toSsrAttrs(
           }
         }
       }
-      const eventValue = setEvent(serializationCtx, key, value);
+      const eventValue = setEvent(options.serializationCtx, key, value);
       if (eventValue) {
         ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
@@ -419,23 +424,29 @@ export function toSsrAttrs(
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
-        ssrAttrs.push(key, [value, styleScopedId]);
+        ssrAttrs.push(key, [value, options.styleScopedId]);
       } else {
         ssrAttrs.push(key, value);
       }
+
+      if (isConst && options.backpatchId != null && !isBackpatched) {
+        isBackpatched = true;
+        ssrAttrs.push(ELEMENT_BACKPATCH_ID, options.backpatchId);
+      }
+
       continue;
     }
 
     if (isPreventDefault(key)) {
-      addPreventDefaultEventToSerializationContext(serializationCtx, key);
+      addPreventDefaultEventToSerializationContext(options.serializationCtx, key);
     }
 
-    value = serializeAttribute(key, value, styleScopedId);
+    value = serializeAttribute(key, value, options.styleScopedId);
 
     ssrAttrs.push(key, value as string);
   }
-  if (key != null) {
-    ssrAttrs.push(ELEMENT_KEY, key);
+  if (options.key != null) {
+    ssrAttrs.push(ELEMENT_KEY, options.key);
   }
   return ssrAttrs;
 }

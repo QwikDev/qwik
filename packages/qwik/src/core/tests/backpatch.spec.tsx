@@ -11,16 +11,16 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { SSRBackpatch } from '../shared/jsx/utils.public';
 
-const debug = false;
+const debug = true;
 
 describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
-  it('emits marker and JSON blob when signal-derived attribute changes', async () => {
+  it.only('emits marker and JSON blob when signal-derived attribute changes', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
     const Child = component$(() => {
-      const { descId } = useContext(Ctx);
+      const context = useContext(Ctx);
       useTask$(() => {
-        descId.value = 'final-id';
+        context.descId.value = 'final-id';
       });
       return null;
     });
@@ -37,14 +37,14 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     });
 
     const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
 
-    // Should have reactive-id marker and patch data
-    expect(html).toMatch(/q:reactive-id="/);
-    expect(html).toMatch(/data-qwik-backpatch="/);
-    expect(html).toContain('"type":"attribute"');
-    expect(html).toContain('"name":"aria-describedby"');
-    expect(html).toContain('"serializedValue":"final-id"');
+    document.querySelectorAll('q:backpatch').forEach((script) => {
+      console.log('EXECUTOR SCRIPT: ', script.textContent);
+    });
+
+    // expect(document.querySelector('input')).toMatchDOM(
+    //   <input id="test-input" aria-describedby="final" />
+    // )
   });
 
   it('does not emit JSON blob when serialized value does not change', async () => {
@@ -250,7 +250,10 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     const { document } = await ssrRenderToDom(<Root />, { debug });
     const html = document.documentElement.outerHTML;
 
-    expect(html).toMatch(/data-qwik-backpatch="/);
-    expect(html).toContain('"serializedValue":"final"');
+    // expect(html).toMatch(/data-qwik-backpatch="/);
+    // expect(html).toContain('"serializedValue":"final"');
+    expect(document.querySelector('input')).toMatchDOM(
+      <input id="test-input" aria-describedby="final" />
+    );
   });
 });

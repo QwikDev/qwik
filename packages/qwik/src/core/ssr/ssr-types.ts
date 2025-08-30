@@ -20,12 +20,7 @@ export type SsrAttrValue = string | Signal<any> | boolean | object | null;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */
-export interface SsrBackpatch {
-  type: 'attribute';
-  ssrNodeId: string;
-  name: string;
-  serializedValue: string | true | null;
-}
+export type SsrBackpatchData = string | boolean | null;
 
 /** @internal */
 export interface StreamWriter {
@@ -112,9 +107,13 @@ export interface SSRContainer extends Container {
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
-  enterBackpatchScope?(scopeId: string): void;
-  exitBackpatchScope?(scopeId: string): void;
-  currentBackpatchScope?: string | null;
+  emitScopePatches(): void;
+
+  addBackpatchEntry(
+    ssrNodeId: string,
+    attrName: string,
+    serializedValue: string | boolean | null
+  ): void;
 }
 
 /** @public */

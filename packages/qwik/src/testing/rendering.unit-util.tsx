@@ -53,7 +53,7 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
 
 /** @public */
 export async function domRender(
@@ -188,6 +188,7 @@ export async function ssrRenderToDom(
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
           (vnode_getAttr(child, 'type') === 'qwik/state' ||
+            vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_EXECUTOR ||
             vnode_getAttr(child, 'id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {

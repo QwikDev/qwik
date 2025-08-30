@@ -1,0 +1,32 @@
+diff --git a/dist/es/shared/node-entry.js b/dist/es/shared/node-entry.js
+index fd13da8f79d3802130a76af0192563006c30d2b5..17d6453a05ec8c2a99332d2d7f1bddd608f3e73e 100644
+--- a/dist/es/shared/node-entry.js
++++ b/dist/es/shared/node-entry.js
+@@ -19339,7 +19339,7 @@ function getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry) {
+     const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
+     const manualChunkModulesByAlias = Object.create(null);
+     for (const [entry, alias] of manualChunkAliasByEntry) {
+-        addStaticDependenciesToManualChunk(entry, (manualChunkModulesByAlias[alias] ||= []), modulesInManualChunks);
++        (manualChunkModulesByAlias[alias] ??= []).push(entry);
+     }
+     const manualChunks = Object.entries(manualChunkModulesByAlias);
+     const chunkDefinitions = new Array(manualChunks.length);
+@@ -19349,18 +19349,6 @@ function getChunkDefinitionsFromManualChunks(manualChunkAliasByEntry) {
+     }
+     return { chunkDefinitions, modulesInManualChunks };
+ }
+-function addStaticDependenciesToManualChunk(entry, manualChunkModules, modulesInManualChunks) {
+-    const modulesToHandle = new Set([entry]);
+-    for (const module of modulesToHandle) {
+-        modulesInManualChunks.add(module);
+-        manualChunkModules.push(module);
+-        for (const dependency of module.dependencies) {
+-            if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
+-                modulesToHandle.add(dependency);
+-            }
+-        }
+-    }
+-}
+ function analyzeModuleGraph(entries) {
+     const dynamicEntryModules = new Set();
+     const awaitedDynamicEntryModules = new Set();

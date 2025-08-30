@@ -95,7 +95,7 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 /** @internal */
 export function _getQContainerElement(element: Element | VNode): Element | null {
   const qContainerElement: Element | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as Element)
+    ? (vnode_getDomParent(element, true) as Element)
     : element;
   return qContainerElement.closest(QContainerSelector);
 }
@@ -282,7 +282,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         if (isSlotProp(prop)) {
           const value = props[i + 1];
           if (typeof value == 'string') {
-            props[i + 1] = this.vNodeLocate(value);
+            const projection = this.vNodeLocate(value);
+            props[i + 1] = projection;
+            vnode_getProp(projection, QSlotParent, (id) => this.vNodeLocate(id));
           }
         }
       }

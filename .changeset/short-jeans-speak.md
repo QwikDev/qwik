@@ -2,4 +2,4 @@
 '@builder.io/qwik': patch
 ---
 
-unmount qwikify react root alongside with qwik component
+FIX: unmount qwikify react root alongside with qwik component

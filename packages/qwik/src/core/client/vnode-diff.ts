@@ -758,7 +758,9 @@ export const vnode_diff = (
     const vNode = (vNewNode || vCurrent) as ElementVNode;
 
     const element = vNode[ElementVNodeProps.element] as QElement;
-    element.vNode = new WeakRef(vNode);
+    if (!element.vNode) {
+      element.vNode = new WeakRef(vNode);
+    }
 
     needsQDispatchEventPatch =
       setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;

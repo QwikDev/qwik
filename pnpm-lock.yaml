@@ -202,8 +202,8 @@ importers:
         specifier: 5.43.1
         version: 5.43.1
       tmp:
-        specifier: 0.2.4
-        version: 0.2.4
+        specifier: 0.2.5
+        version: 0.2.5
       tree-kill:
         specifier: 1.2.2
         version: 1.2.2
@@ -570,8 +570,8 @@ importers:
         specifier: workspace:^
         version: 'link:'
       '@croct/json5-parser':
-        specifier: 0.1.1
-        version: 0.1.1
+        specifier: 0.2.0
+        version: 0.2.0
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
@@ -1074,8 +1074,8 @@ packages:
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
 
-  '@croct/json5-parser@0.1.1':
-    resolution: {integrity: sha512-7+yo8Kd5JJp+VF3bjYGXW0S1s3zOF6IiJczmQy1d+t/pFn8bo7kJcbzRP+C78kcqZoBW4gs5H/c7ZtsH5DDb7w==}
+  '@croct/json5-parser@0.2.0':
+    resolution: {integrity: sha512-bDFbKB5M/J9OIFc8nivlgRSln9zrweBOALA0BGC73jnB+5UyGD/aYj2sonAwEexKt6QDY2fW13tf3+nkiLi4CQ==}
 
   '@croct/json@2.1.0':
     resolution: {integrity: sha512-UrWfjNQVlBxN+OVcFwHmkjARMW55MBN04E9KfGac8ac8z1QnFVuiOOFtMWXCk3UwsyRqhsNaFoYLZC+xxqsVjQ==}
@@ -9598,8 +9598,8 @@ packages:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
     engines: {node: '>=0.6.0'}
 
-  tmp@0.2.4:
-    resolution: {integrity: sha512-UdiSoX6ypifLmrfQ/XfiawN6hkjSBpCjhKxxZcWlUUmoXLaCKQU0bx4HF/tdDK2uzRuchf1txGvrWBzYREssoQ==}
+  tmp@0.2.5:
+    resolution: {integrity: sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==}
     engines: {node: '>=14.14'}
 
   to-regex-range@5.0.1:
@@ -10845,7 +10845,7 @@ snapshots:
 
   '@colors/colors@1.6.0': {}
 
-  '@croct/json5-parser@0.1.1':
+  '@croct/json5-parser@0.2.0':
     dependencies:
       '@croct/json': 2.1.0
 
@@ -20245,13 +20245,13 @@ snapshots:
 
   tmp-promise@3.0.3:
     dependencies:
-      tmp: 0.2.4
+      tmp: 0.2.5
 
   tmp@0.0.33:
     dependencies:
       os-tmpdir: 1.0.2
 
-  tmp@0.2.4: {}
+  tmp@0.2.5: {}
 
   to-regex-range@5.0.1:
     dependencies:

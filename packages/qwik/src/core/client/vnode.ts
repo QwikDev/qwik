@@ -1770,7 +1770,9 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
 
 /** @internal */
 export const vnode_getProps = (vnode: VNode): unknown[] => {
-  return vnode[vnode_getPropStartIndex(vnode)] as unknown[];
+  const propsIndex = vnode_getPropStartIndex(vnode);
+  const props = vnode[propsIndex];
+  return !props ? (vnode[propsIndex] = []) : (vnode[propsIndex] as unknown[]);
 };
 
 export const vnode_getParent = (vnode: VNode): VNode | null => {
@@ -2135,7 +2137,7 @@ const VNodeArray = class VNode extends Array<any> {
       lastChild,
       element,
       elementName,
-      []
+      undefined
     ) as ElementVNode;
   }
 
@@ -2165,7 +2167,7 @@ const VNodeArray = class VNode extends Array<any> {
       nextSibling,
       firstChild,
       lastChild,
-      []
+      undefined
     ) as VirtualVNode;
   }
 

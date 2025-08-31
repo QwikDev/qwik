@@ -72,9 +72,10 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         // In the development server, we replace the getNotFound function
         // For static paths, we assign a static "Not Found" message.
         // This ensures consistency between development and production environments for specific URLs.
-        const notFoundHtml = isStaticPath(req.method || 'GET', url)
-          ? 'Not Found'
-          : getNotFound(url.pathname);
+        const notFoundHtml =
+          !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
+            ? 'Not Found'
+            : getNotFound(url.pathname);
         res.writeHead(404, {
           'Content-Type': 'text/html; charset=utf-8',
           'X-Not-Found': url.pathname,

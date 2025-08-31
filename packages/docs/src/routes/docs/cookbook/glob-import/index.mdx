@@ -38,17 +38,10 @@ But you can also pass in additional options like [`import`](https://vitejs.dev/g
 const metaGlobComponents: any = import.meta.glob('/src/components/*', {
   import: 'default',
   as: 'raw',
-  eager: true, // defaults to false
 });
 ```
 
 ## How to
-
-The problem with `import.meta.glob` in Qwik, is that it currently either works in development and doesn't in preview/production, or it works in preview/production but gets slower and slower in development as the number of imported files increases.
-
-The reason for this behavior, is that `import.meta.glob` with `eager.false` breaks the production bundle as it creates lazy-loadable chunks that Qwik doesn't know how to handle. On the other hand, `eager:true` seemingly fixes the issue as it allows Qwik to normally bundle the files, but it also slows down the development server - especially when you import a lot of heavy components with it.
-
-As a workaround for now, you can use the build time `isDev` boolean from `"@builder.io/qwik"`:
 
 <CodeSandbox src="/src/routes/demo/cookbook/glob-import/">
 ```tsx
@@ -62,10 +55,7 @@ import { isDev } from '@builder.io/qwik';
 
 const metaGlobComponents: Record<string, any> = import.meta.glob(
   '/src/examples/*',
-  {
-    import: 'default',
-    eager: isDev ? false : true,
-  }
+  { import: 'default' }
 );
 
 export default component$(() => {
@@ -83,11 +73,7 @@ export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
   const componentPath = `/src/examples/${name}.tsx`;
 
   useTask$(async () => {
-    MetaGlobComponent.value = isDev
-      ? await metaGlobComponents[componentPath]()
-      // We need to call `await metaGlobComponents[componentPath]()` in development as it is `eager:false`
-      : metaGlobComponents[componentPath];
-      // We need to directly access the `metaGlobComponents[componentPath]` expression in preview/production as it is `eager:true`
+    MetaGlobComponent.value = await metaGlobComponents[componentPath]();
   });
 
   return <>{MetaGlobComponent.value && <MetaGlobComponent.value />}</>;

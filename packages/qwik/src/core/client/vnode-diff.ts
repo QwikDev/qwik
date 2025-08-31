@@ -156,17 +156,15 @@ export const vnode_diff = (
   // When we descend into children, we need to skip advance() because we just descended.
   let shouldAdvance = true;
 
-  /**
-   * When we are rendering inside a projection we don't want to process child components. Child
-   * components will be processed only if the projection is re-projected with a `<Slot>`.
-   *
-   * Example: <Parent> <div> <Child/> </div> </Parent>
-   *
-   * In the above example, the `Child` component will not be processed because it is inside a
-   * projection. Only if the `<Parent>` projects its content with `<Slot>` will the `Child`
-   * component be processed.
-   */
-  // let inContentProjection = false;
+  const CONST_SUBSCRIPTION_DATA = new SubscriptionData({
+    $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+    $isConst$: true,
+  });
+
+  const NON_CONST_SUBSCRIPTION_DATA = new SubscriptionData({
+    $scopedStyleIdPrefix$: scopedStyleIdPrefix,
+    $isConst$: false,
+  });
   ////////////////////////////////
 
   diff(jsxNode, vStartNode);
@@ -648,16 +646,12 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          const signalData = new SubscriptionData({
-            $scopedStyleIdPrefix$: scopedStyleIdPrefix,
-            $isConst$: true,
-          });
           value = trackSignalAndAssignHost(
             value as Signal<unknown>,
             vNewNode as ElementVNode,
             key,
             container,
-            signalData
+            CONST_SUBSCRIPTION_DATA
           );
         }
 
@@ -838,11 +832,7 @@ export const vnode_diff = (
       }
 
       if (isSignal(value)) {
-        const signalData = new SubscriptionData({
-          $scopedStyleIdPrefix$: scopedStyleIdPrefix,
-          $isConst$: false,
-        });
-        value = trackSignalAndAssignHost(value, vnode, key, container, signalData);
+        value = trackSignalAndAssignHost(value, vnode, key, container, NON_CONST_SUBSCRIPTION_DATA);
       }
 
       vnode_setAttr(

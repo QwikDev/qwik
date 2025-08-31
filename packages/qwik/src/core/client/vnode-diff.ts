@@ -1288,20 +1288,39 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   if (srcEmpty || dstEmpty) {
     return true;
   }
-  let srcKeys = removePropsKeys(Object.keys(src), ['children', QBackRefs]);
-  let dstKeys = removePropsKeys(Object.keys(dst), ['children', QBackRefs]);
-  if (srcKeys.length !== dstKeys.length) {
+
+  const srcKeys = Object.keys(src);
+  const dstKeys = Object.keys(dst);
+
+  let srcLen = srcKeys.length;
+  let dstLen = dstKeys.length;
+
+  if ('children' in src) {
+    srcLen--;
+  }
+  if (QBackRefs in src) {
+    srcLen--;
+  }
+  if ('children' in dst) {
+    dstLen--;
+  }
+  if (QBackRefs in dst) {
+    dstLen--;
+  }
+
+  if (srcLen !== dstLen) {
     return true;
   }
-  srcKeys = srcKeys.sort();
-  dstKeys = dstKeys.sort();
-  for (let idx = 0; idx < srcKeys.length; idx++) {
-    const srcKey = srcKeys[idx];
-    const dstKey = dstKeys[idx];
-    if (srcKey !== dstKey || src[srcKey] !== dst[dstKey]) {
+
+  for (const key of srcKeys) {
+    if (key === 'children' || key === QBackRefs) {
+      continue;
+    }
+    if (!Object.prototype.hasOwnProperty.call(dst, key) || src[key] !== dst[key]) {
       return true;
     }
   }
+
   return false;
 }
 
@@ -1310,18 +1329,6 @@ function isPropsEmpty(props: Record<string, any>): boolean {
     return true;
   }
   return Object.keys(props).length === 0;
-}
-
-function removePropsKeys(keys: string[], propKeys: string[]): string[] {
-  for (let i = propKeys.length - 1; i >= 0; i--) {
-    const propKey = propKeys[i];
-    const propIdx = keys.indexOf(propKey);
-    if (propIdx !== -1) {
-      keys.splice(propIdx, 1);
-    }
-  }
-
-  return keys;
 }
 
 /**

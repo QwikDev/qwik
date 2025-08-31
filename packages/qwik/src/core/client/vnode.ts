@@ -216,7 +216,7 @@ export const vnode_newElement = (element: Element, elementName: string): Element
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
-  (element as QElement).vNode = new WeakRef(vnode);
+  (element as QElement).vNode = vnode;
   return vnode;
 };
 
@@ -235,7 +235,7 @@ export const vnode_newUnMaterializedElement = (element: Element): ElementVNode =
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
-  (element as QElement).vNode = new WeakRef(vnode);
+  (element as QElement).vNode = vnode;
   return vnode;
 };
 
@@ -684,7 +684,7 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   } else {
     refElement = id;
 
-    const vNode = (refElement as QElement).vNode?.deref();
+    const vNode = (refElement as QElement).vNode;
     if (vNode) {
       return vNode;
     }

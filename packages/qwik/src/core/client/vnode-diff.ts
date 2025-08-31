@@ -759,7 +759,7 @@ export const vnode_diff = (
 
     const element = vNode[ElementVNodeProps.element] as QElement;
     if (!element.vNode) {
-      element.vNode = new WeakRef(vNode);
+      element.vNode = vNode;
     }
 
     needsQDispatchEventPatch =

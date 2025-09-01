@@ -26,7 +26,6 @@ import {
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
-  ELEMENT_BACKPATCH_ID,
   ELEMENT_KEY,
   FLUSH_COMMENT,
   QDefaultSlot,
@@ -286,11 +285,9 @@ function processJSXNode(
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRBackpatch) {
-          enqueue(new BackpatchScopeData(false));
-          enqueue(ssr.emitScopePatches);
+          // SSRBackpatch is now a no-op since backpatching is automatic
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
-          enqueue(new BackpatchScopeData(true));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -378,7 +375,6 @@ export function toSsrAttrs(
   }
   const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
-  let isBackpatched = false;
   for (const key in record) {
     let value = record[key];
     if (isJsxPropertyAnEventName(key)) {
@@ -429,10 +425,7 @@ export function toSsrAttrs(
         ssrAttrs.push(key, value);
       }
 
-      if (isConst && options.isBackpatching && !isBackpatched) {
-        isBackpatched = true;
-        ssrAttrs.push(ELEMENT_BACKPATCH_ID, options.isBackpatching);
-      }
+      // Note: q:bid attribute injection is no longer needed with TreeWalker-based backpatching
 
       continue;
     }

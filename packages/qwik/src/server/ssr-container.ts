@@ -65,7 +65,6 @@ import {
   type SsrAttrKey,
   type SsrAttrValue,
   type SsrAttrs,
-  type SsrBackpatchData,
   type StreamWriter,
   type SymbolToChunkResolver,
   type ValueOrPromise,
@@ -198,7 +197,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private backpatchMap = new Map<
-    string,
+    number,
     {
       attrName: string;
       value: string | boolean | null;
@@ -223,7 +222,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
-  // One array, the number of props per backpatch entry
+  // Number of properties per backpatch entry - kept as constant for future extensibility
   private readonly $numBackpatchPropsPerPatch$ = 3;
 
   constructor(opts: Required<SSRRenderOptions>) {
@@ -262,7 +261,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     attrName: string,
     serializedValue: string | true | null
   ): void {
-    this.backpatchMap.set(ssrNodeId, {
+    // Treat ssrNodeId as element index (already depth-first from ISsrNode.id)
+    const elementIndex = parseInt(ssrNodeId, 10);
+    this.backpatchMap.set(elementIndex, {
       attrName,
       value: serializedValue,
     });
@@ -273,7 +274,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await _walkJSX(this, jsx, {
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
-      isBackpatching: false,
+      isBackpatching: true,
     });
     await this.closeContainer();
   }
@@ -624,6 +625,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
+        this.emitScopePatches();
         this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
@@ -822,11 +824,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitScopePatches(): void {
-    const patches: SsrBackpatchData[] = [];
+    const patches: (string | number | boolean | null)[] = [];
 
-    for (const [id, readData] of this.backpatchMap) {
+    for (const [elementIndex, readData] of this.backpatchMap) {
       const currentValue = readData.value;
-      patches.push(id, readData.attrName, currentValue);
+      patches.push(elementIndex, readData.attrName, currentValue);
     }
 
     this.backpatchMap.clear();
@@ -847,37 +849,38 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.isBackpatchExecutorEmitted) {
       return;
     }
+
     const scriptAttrs = [ELEMENT_BACKPATCH_EXECUTOR, ''];
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
     this.openElement('script', scriptAttrs);
+
+    // TreeWalker-based element selection
     this.write(
       `try {
       const scripts = document.querySelectorAll('script[type="${ELEMENT_BACKPATCH_DATA}"]');
-      
+      // Build depth-first list of all elements in the document once
+      const elements = [];
+      const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
+      for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
       for (let i = 0; i < scripts.length; i++) {
         const data = JSON.parse(scripts[i].textContent || '[]');
-        
         for (let j = 0; j < data.length; j += ${this.$numBackpatchPropsPerPatch$}) {
-          const id = data[j];
+          const idx = +data[j];
           const attr = data[j + 1];
           const value = data[j + 2];
-          
-          const element = document.querySelector('[q\\\\:bid="' + id + '"]');
-          if (!element) continue;
-          
-          if (value === null || value === false) {
-            element.removeAttribute(attr);
-          } else {
-            element.setAttribute(attr, value);
-          }
+          const el = elements[idx];
+          if (!el) continue;
+          if (value === null || value === false) el.removeAttribute(attr);
+          else el.setAttribute(attr, value === true ? '' : value);
         }
       }
     } catch (e) {
       console.error(e);
     }`
     );
+
     this.closeElement();
   }
 
@@ -1009,7 +1012,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             await _walkJSX(this, children, {
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
-              isBackpatching: false,
+              isBackpatching: true,
             });
             this.closeFragment();
           } else {

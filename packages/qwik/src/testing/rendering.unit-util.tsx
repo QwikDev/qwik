@@ -53,12 +53,7 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import {
-  DEBUG_TYPE,
-  ELEMENT_BACKPATCH_EXECUTOR,
-  QBackpatchExecutorSelector,
-  VirtualType,
-} from '../server/qwik-copy';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
 
 /** @public */
 export async function domRender(
@@ -269,11 +264,34 @@ export function emulateExecutionOfQwikFuncs(document: Document) {
 }
 
 export function emulateExecutionOfBackpatch(document: Document) {
-  const backpatchExecutorScripts = document.querySelectorAll(`[${QBackpatchExecutorSelector}]`);
+  // Ensure NodeFilter is available for TreeWalker
+  if (typeof NodeFilter === 'undefined') {
+    (globalThis as any).NodeFilter = {
+      SHOW_ELEMENT: 1,
+      SHOW_ALL: -1,
+      SHOW_ATTRIBUTE: 2,
+      SHOW_TEXT: 4,
+      SHOW_CDATA_SECTION: 8,
+      SHOW_ENTITY_REFERENCE: 16,
+      SHOW_ENTITY: 32,
+      SHOW_PROCESSING_INSTRUCTION: 64,
+      SHOW_COMMENT: 128,
+      SHOW_DOCUMENT: 256,
+      SHOW_DOCUMENT_TYPE: 512,
+      SHOW_DOCUMENT_FRAGMENT: 1024,
+      SHOW_NOTATION: 2048,
+    };
+  }
+
+  // Execute the actual Qwik backpatch executor scripts
+  const backpatchExecutorScripts = document.querySelectorAll(
+    'script[q\\:backpatch-executor], script[q-backpatch-executor]'
+  );
 
   for (const executorScript of backpatchExecutorScripts) {
     const code = executorScript.textContent || '';
     if (code) {
+      // Execute the actual script that Qwik generated
       eval(code);
     }
   }

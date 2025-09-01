@@ -21,9 +21,29 @@ Backpatching enables SSR-correct relationships (like `aria-*` attributes) betwee
 - **Headless/component libraries**: Consumers can place parts anywhere in the subtree, but parents still need final attributes (e.g., aria-* relationships).
 - **Attribute synchronization**: You need SSR output to reflect attribute values that become known only after children run.
 
-### Opt-in API
+### Automatic backpatching
 
-Wrap the region that may require attribute fixes with `SSRBackpatch`.
+Backpatching is now **automatic** and works without requiring the `SSRBackpatch` component. Qwik automatically detects when attributes need to be patched and handles it transparently.
+
+The `SSRBackpatch` component is still supported for backward compatibility but is no longer required. It can still be used to limit the number/placement of data scripts if needed for legacy or transition purposes.
+
+### Example
+
+```tsx
+// Backpatching now works automatically without SSRBackpatch
+<Field.Root>
+  <Field.Label />
+  <Field.Input />
+  <Field.Description />
+</Field.Root>
+
+// The aria-describedby attribute on <Field.Input> will be automatically
+// corrected even if <Field.Description> runs after the input was streamed.
+```
+
+### Legacy SSRBackpatch usage
+
+If you still want to use `SSRBackpatch` explicitly (for example, to control when data scripts are emitted), you can:
 
 ```tsx
 import { component$, SSRBackpatch, Slot } from '@qwik.dev/core';
@@ -39,28 +59,11 @@ export const FieldRoot = component$(() => {
 });
 ```
 
-Within this boundary, if a child updates a signal after an attribute was already streamed, Qwik will backpatch that attribute on the client with a small inline script. On CSR, `SSRBackpatch` is a no-op.
-
-### Example
-
-```tsx
-// Pseudo-structure showing ordering issues solved by backpatching
-<Field.Root>
-  <Field.Label />
-  <Field.Input />
-  <Field.Description />
-</Field.Root>
-
-// Without backpatching, <Field.Input> streamed first cannot know about
-// <Field.Description> yet, so aria-describedby would be stale on first paint.
-// Wrapping the subtree with <SSRBackpatch> ensures the attribute is corrected.
-```
-
 ### Limitations
 
 - **Attributes only**: Backpatching is currently limited to updating attributes. It does not change element children/text/structure.
 
 ### How it works (high level)
 
-During SSR, when a signal write would alter an attribute that has already been streamed inside an `SSRBackpatch` boundary, Qwik records the final value and emits a compact script to set/remove the attribute on the corresponding node. This runs immediately on page load and does not wake the Qwik runtime.
+During SSR, when a signal write would alter an attribute that has already been streamed, Qwik records the final value using depth-first element indexing and emits a compact script to set/remove the attribute on the corresponding node. This runs immediately on page load using TreeWalker-based element traversal and does not wake the Qwik runtime.
 

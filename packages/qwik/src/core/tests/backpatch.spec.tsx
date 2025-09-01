@@ -11,7 +11,6 @@ import { ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { SSRBackpatch } from '../shared/jsx/utils.public';
-import { ELEMENT_BACKPATCH_DATA } from '../shared/utils/markers';
 import { vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
 
@@ -40,29 +39,20 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       );
     });
 
-    // this is the id of the input node in the stack. If you change the structure of the test, you need to change this.
-    const ssrNodeId = '4';
-
     const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
     expect(vNode).toMatchVDOM(
       <Component>
-        {/* @ts-expect-error - q:bid is not a prop */}
-        <input aria-describedby="final-id" q:bid={ssrNodeId} />
+        <input aria-describedby="final-id" />
         <Component>
           <div>child</div>
         </Component>
-        <script
-          type={ELEMENT_BACKPATCH_DATA}
-        >{`["${ssrNodeId}","aria-describedby","final-id"]`}</script>
       </Component>
     );
 
     const backpatchedInput = document.querySelector('input');
 
-    expect(backpatchedInput).toMatchDOM(
-      `<input aria-describedby="final-id" q:bid="${ssrNodeId}" />`
-    );
+    expect(backpatchedInput).toMatchDOM(`<input aria-describedby="final-id" />`);
   });
 
   it('should not log a warning if we are backpatching', async () => {
@@ -131,5 +121,94 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     expect(logWarnSpy).toHaveBeenCalledTimes(0);
   });
 
-  // We discussed another test where the warning is shown, however we haven't ran into a use case where this would happen yet to reproduce. Maybe when the Backpatch component is not present? Would require a change in the scheduler.
+  it('auto mode without SSRBackpatch: parent attr reads child-updated signal', async () => {
+    const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-2');
+
+    const Child = component$(() => {
+      const context = useContext(Ctx);
+      useTask$(() => {
+        context.descId.value = 'final-id';
+      });
+      return <div>child</div>;
+    });
+
+    const Root = component$(() => {
+      const descId = useSignal('initial-id');
+      useContextProvider(Ctx, { descId });
+      return (
+        <div>
+          <input aria-describedby={descId.value} />
+          <Child />
+        </div>
+      );
+    });
+
+    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <input aria-describedby="final-id" />
+          <Component>
+            <div>child</div>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    const backpatchedInput = document.querySelector('input');
+    expect(backpatchedInput).toMatchDOM(`<input aria-describedby="final-id" />`);
+  });
+
+  it('nested components: multiple patches for different elements', async () => {
+    const Ctx = createContextId<{ inputId: Signal<string>; labelId: Signal<string> }>('bp-ctx-3');
+
+    const Label = component$(() => {
+      const context = useContext(Ctx);
+      useTask$(() => {
+        context.labelId.value = 'final-label-id';
+      });
+      return <label>Label</label>;
+    });
+
+    const Input = component$((props: { 'aria-labelledby': string; id: string }) => {
+      const context = useContext(Ctx);
+      useTask$(() => {
+        context.inputId.value = 'final-input-id';
+      });
+      return <input aria-labelledby={props['aria-labelledby']} id={props.id} />;
+    });
+
+    const Root = component$(() => {
+      const inputId = useSignal('initial-input-id');
+      const labelId = useSignal('initial-label-id');
+      useContextProvider(Ctx, { inputId, labelId });
+      return (
+        <div>
+          <Label />
+          <Input aria-labelledby={labelId.value} id={inputId.value} />
+        </div>
+      );
+    });
+
+    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <label>Label</label>
+          </Component>
+          <Component>
+            <input aria-labelledby="final-label-id" id="final-input-id" />
+          </Component>
+        </div>
+      </Component>
+    );
+
+    const backpatchedInput = document.querySelector('input');
+    expect(backpatchedInput).toMatchDOM(
+      `<input aria-labelledby="final-label-id" id="final-input-id" />`
+    );
+  });
 });

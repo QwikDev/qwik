@@ -222,8 +222,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
-  // Number of properties per backpatch entry - kept as constant for future extensibility
-  private readonly $numBackpatchPropsPerPatch$ = 3;
 
   constructor(opts: Required<SSRRenderOptions>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -826,9 +824,31 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   emitScopePatches(): void {
     const patches: (string | number | boolean | null)[] = [];
 
+    // Group patches by attribute + value for better compression
+    const groupedPatches = new Map<string, number[]>();
+
     for (const [elementIndex, readData] of this.backpatchMap) {
-      const currentValue = readData.value;
-      patches.push(elementIndex, readData.attrName, currentValue);
+      const key = `${readData.attrName}:${String(readData.value)}`;
+      if (!groupedPatches.has(key)) {
+        groupedPatches.set(key, []);
+      }
+      groupedPatches.get(key)!.push(elementIndex);
+    }
+
+    // Emit grouped patches: [attr, value, idx1, idx2, idx3, ...]
+    for (const [key, indices] of groupedPatches) {
+      const [attrName, valueStr] = key.split(':');
+      patches.push(
+        attrName,
+        valueStr === 'null'
+          ? null
+          : valueStr === 'true'
+            ? true
+            : valueStr === 'false'
+              ? false
+              : valueStr,
+        ...indices
+      );
     }
 
     this.backpatchMap.clear();
@@ -866,14 +886,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
       for (let i = 0; i < scripts.length; i++) {
         const data = JSON.parse(scripts[i].textContent || '[]');
-        for (let j = 0; j < data.length; j += ${this.$numBackpatchPropsPerPatch$}) {
-          const idx = +data[j];
-          const attr = data[j + 1];
-          const value = data[j + 2];
-          const el = elements[idx];
-          if (!el) continue;
-          if (value === null || value === false) el.removeAttribute(attr);
-          else el.setAttribute(attr, value === true ? '' : value);
+        for (let j = 0; j < data.length; ) {
+          const attr = data[j++];
+          const value = data[j++];
+          while (j < data.length && typeof data[j] === 'number') {
+            const idx = +data[j++];
+            const el = elements[idx];
+            if (!el) continue;
+            if (value === null || value === false) el.removeAttribute(attr);
+            else el.setAttribute(attr, value === true ? '' : value);
+          }
         }
       }
     } catch (e) {

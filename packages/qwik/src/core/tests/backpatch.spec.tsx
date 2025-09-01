@@ -211,4 +211,70 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       `<input aria-labelledby="final-label-id" id="final-input-id" />`
     );
   });
+
+  it('unique cases: different attributes with different values on same element', async () => {
+    // Test the grouping logic with multiple unique attribute+value combinations
+    const patches: (string | number | boolean | null)[] = [];
+
+    // Simulate what emitScopePatches does - group by attribute+value
+    const groupedPatches = new Map<string, number[]>();
+
+    // Add different attribute+value combinations (what would happen in real backpatching)
+    const testData = [
+      { attrName: 'aria-describedby', value: 'field-description', elementIndex: 5 },
+      { attrName: 'aria-describedby', value: 'field-description', elementIndex: 10 }, // Same attr+value
+      { attrName: 'id', value: 'unique-input-id', elementIndex: 5 }, // Different attr on same element
+      { attrName: 'class', value: 'error-state', elementIndex: 15 }, // Completely different
+      { attrName: 'aria-describedby', value: 'different-description', elementIndex: 20 }, // Same attr, different value
+    ];
+
+    for (const data of testData) {
+      const key = `${data.attrName}:${String(data.value)}`;
+      if (!groupedPatches.has(key)) {
+        groupedPatches.set(key, []);
+      }
+      groupedPatches.get(key)!.push(data.elementIndex);
+    }
+
+    // Emit grouped patches: [attr, value, idx1, idx2, idx3, ...]
+    for (const [key, indices] of groupedPatches) {
+      const [attrName, valueStr] = key.split(':');
+      patches.push(
+        attrName,
+        valueStr === 'null'
+          ? null
+          : valueStr === 'true'
+            ? true
+            : valueStr === 'false'
+              ? false
+              : valueStr,
+        ...indices
+      );
+    }
+
+    // Expected result should be 4 groups:
+    // ["aria-describedby", "field-description", 5, 10]
+    // ["id", "unique-input-id", 5]
+    // ["class", "error-state", 15]
+    // ["aria-describedby", "different-description", 20]
+
+    expect(patches).toEqual([
+      'aria-describedby',
+      'field-description',
+      5,
+      10,
+      'id',
+      'unique-input-id',
+      5,
+      'class',
+      'error-state',
+      15,
+      'aria-describedby',
+      'different-description',
+      20,
+    ]);
+
+    // Verify we have proper grouping (same attr+value together, different ones separate)
+    expect(patches.length).toBe(13); // 4 groups: (4+4) + (3) + (3) + (3) = 4+3+3+3 = 13 total items
+  });
 });

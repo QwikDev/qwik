@@ -823,8 +823,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitScopePatches(): void {
     const patches: (string | number | boolean | null)[] = [];
-
-    // Group patches by attribute + value for better compression
     const groupedPatches = new Map<string, number[]>();
 
     for (const [elementIndex, readData] of this.backpatchMap) {
@@ -835,20 +833,26 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       groupedPatches.get(key)!.push(elementIndex);
     }
 
-    // Emit grouped patches: [attr, value, idx1, idx2, idx3, ...]
+    // this groups multiple instances for more efficient encoding
     for (const [key, indices] of groupedPatches) {
       const [attrName, valueStr] = key.split(':');
-      patches.push(
-        attrName,
-        valueStr === 'null'
-          ? null
-          : valueStr === 'true'
-            ? true
-            : valueStr === 'false'
-              ? false
-              : valueStr,
-        ...indices
-      );
+
+      let value: string | boolean | null;
+      switch (valueStr) {
+        case 'null':
+          value = null;
+          break;
+        case 'true':
+          value = true;
+          break;
+        case 'false':
+          value = false;
+          break;
+        default:
+          value = valueStr;
+      }
+
+      patches.push(attrName, value, ...indices);
     }
 
     this.backpatchMap.clear();
@@ -876,11 +880,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.openElement('script', scriptAttrs);
 
-    // TreeWalker-based element selection
     this.write(
       `try {
       const scripts = document.querySelectorAll('script[type="${ELEMENT_BACKPATCH_DATA}"]');
-      // Build depth-first list of all elements in the document once
       const elements = [];
       const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
       for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
@@ -1199,11 +1201,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           } else {
             throw qError(QError.invalidRefValue, [currentFile]);
           }
-        }
-
-        if (key === 'q:bid') {
-          const lastNode = this.getOrCreateLastNode();
-          value = lastNode.id;
         }
 
         if (isSignal(value)) {

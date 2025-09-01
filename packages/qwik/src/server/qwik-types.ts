@@ -27,7 +27,6 @@ export type {
   SsrAttrs,
   SsrAttrKey,
   SsrAttrValue,
-  SsrBackpatchData,
   StreamWriter,
 } from '../core/ssr/ssr-types';
 export type { ResolvedManifest, SymbolMapper } from '../optimizer/src/types';

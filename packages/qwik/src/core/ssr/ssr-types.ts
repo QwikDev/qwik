@@ -20,9 +20,6 @@ export type SsrAttrValue = string | Signal<any> | boolean | object | null;
 export type SsrAttrs = Array<SsrAttrKey | SsrAttrValue>;
 
 /** @internal */
-export type SsrBackpatchData = string | number | boolean | null;
-
-/** @internal */
 export interface StreamWriter {
   write(chunk: string): void;
 }

@@ -54,6 +54,8 @@ import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
+import backpatchExecutorFile from '../backpatch-executor.ts?raw';
+import { transformSync } from 'esbuild';
 
 /** @public */
 export async function domRender(
@@ -264,7 +266,7 @@ export function emulateExecutionOfQwikFuncs(document: Document) {
 }
 
 export function emulateExecutionOfBackpatch(document: Document) {
-  // Ensure NodeFilter is available for TreeWalker
+  // treewalker needs NodeFilter
   if (typeof NodeFilter === 'undefined') {
     (globalThis as any).NodeFilter = {
       SHOW_ELEMENT: 1,
@@ -284,13 +286,7 @@ export function emulateExecutionOfBackpatch(document: Document) {
   }
 
   // we need esbuild to transpile from ts to js for the test environment
-  const esbuild = require('esbuild');
-  const fs = require('fs');
-  const path = require('path');
-  const tsPath = path.join(__dirname, '../backpatch-executor.ts');
-  const tsSource = fs.readFileSync(tsPath, 'utf8');
-
-  const result = esbuild.transformSync(tsSource, {
+  const result = transformSync(backpatchExecutorFile, {
     loader: 'ts',
     target: 'es2020',
     format: 'esm',
@@ -299,10 +295,7 @@ export function emulateExecutionOfBackpatch(document: Document) {
   });
 
   const code = `try {${result.code}} catch (e) { console.error(e); }`;
-
-  if (code) {
-    eval(code);
-  }
+  eval(code);
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

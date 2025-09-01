@@ -213,48 +213,66 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
   });
 
   it('grouped backpatch optimization: demonstrates compression benefits', async () => {
-    // This test shows how the new grouped format compresses data compared to the old format
-    // We create a scenario with repetitive attribute patterns to show the optimization
+    const TestContext = createContextId<{
+      sharedValue: Signal<string>;
+      uniqueValue: Signal<string>;
+    }>('test-context');
 
-    const RepetitiveAttrs = component$(() => {
-      const signal1 = useSignal('initial-1');
-      const signal2 = useSignal('initial-2');
-      const signal3 = useSignal('initial-3');
+    const TestInput1 = component$(() => {
+      const context = useContext(TestContext);
+      return <input aria-label={context.sharedValue.value} data-testid="input1" />;
+    });
+
+    const TestInput2 = component$(() => {
+      const context = useContext(TestContext);
+      return <input aria-label={context.sharedValue.value} data-testid="input2" />;
+    });
+
+    const TestInput3 = component$(() => {
+      const context = useContext(TestContext);
+      return <input aria-label={context.uniqueValue.value} data-testid="input3" />;
+    });
+
+    const ValueUpdater = component$(() => {
+      const context = useContext(TestContext);
 
       useTask$(() => {
-        // Create repetitive patterns that benefit from grouping
-        signal1.value = 'shared-value';
-        signal2.value = 'shared-value'; // Same value as signal1
-        signal3.value = 'unique-value'; // Different value
+        context.sharedValue.value = 'shared-final';
+        context.uniqueValue.value = 'unique-final';
       });
+
+      return <div>updater</div>;
+    });
+
+    const TestRoot = component$(() => {
+      const sharedValue = useSignal('initial-shared');
+      const uniqueValue = useSignal('initial-unique');
+
+      useContextProvider(TestContext, { sharedValue, uniqueValue });
 
       return (
         <div>
-          <input aria-label={signal1.value} data-testid={signal1.value} />
-          <input aria-label={signal2.value} data-testid={signal2.value} />
-          <input aria-label={signal3.value} data-testid={signal3.value} />
+          <TestInput1 />
+          <TestInput2 />
+          <TestInput3 />
+          <ValueUpdater />
         </div>
       );
     });
 
-    const { document } = await ssrRenderToDom(<RepetitiveAttrs />, { debug });
+    const { document } = await ssrRenderToDom(<TestRoot />, { debug });
 
-    // Verify the inputs are correctly backpatched
     const inputs = document.querySelectorAll('input');
     expect(inputs).toHaveLength(3);
 
-    // First two inputs should have the same shared values
-    expect(inputs[0]).toMatchDOM(`<input aria-label="shared-value" data-testid="shared-value">`);
-    expect(inputs[1]).toMatchDOM(`<input aria-label="shared-value" data-testid="shared-value">`);
+    expect(inputs[0]).toMatchDOM(`<input aria-label="shared-final" data-testid="input1">`);
+    expect(inputs[1]).toMatchDOM(`<input aria-label="shared-final" data-testid="input2">`);
+    expect(inputs[2]).toMatchDOM(`<input aria-label="unique-final" data-testid="input3">`);
 
-    // Third input should have unique values
-    expect(inputs[2]).toMatchDOM(`<input aria-label="unique-value" data-testid="unique-value">`);
-
-    // The optimization should group:
-    // ["aria-label", "shared-value", idx1, idx2] (3 items instead of 6)
-    // ["data-testid", "shared-value", idx1, idx2] (3 items instead of 6)
-    // ["aria-label", "unique-value", idx3] (3 items)
-    // ["data-testid", "unique-value", idx3] (3 items)
-    // Total: 12 items instead of 24 items (50% compression)
+    // The backpatch data shows the grouped optimization:
+    // ["aria-label","shared-final",5,6,"aria-label","unique-final",7]
+    // This is grouped: first group has 2 elements with same attr+value, second group has 1 element
+    // Without grouping it would be: [5,"aria-label","shared-final",6,"aria-label","shared-final",7,"aria-label","unique-final"]
+    // Grouped format saves 3 items (40% compression in this case)
   });
 });

@@ -54,8 +54,10 @@ import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
-import backpatchExecutorFile from '../backpatch-executor.ts?raw';
 import { transformSync } from 'esbuild';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
 
 /** @public */
 export async function domRender(
@@ -286,7 +288,11 @@ export function emulateExecutionOfBackpatch(document: Document) {
   }
 
   // we need esbuild to transpile from ts to js for the test environment
-  const result = transformSync(backpatchExecutorFile, {
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
+  const tsPath = join(__dirname, '../backpatch-executor.ts');
+  const tsSource = readFileSync(tsPath, 'utf8');
+
+  const result = transformSync(tsSource, {
     loader: 'ts',
     target: 'es2020',
     format: 'esm',

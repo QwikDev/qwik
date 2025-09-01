@@ -13,6 +13,8 @@ import {
 } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import { withLocale } from '@qwik.dev/core';
+import { setAsyncRequestStore, asyncRequestStore } from './async-request-store';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
@@ -27,12 +29,11 @@ export interface QwikRouterRun<T> {
   completion: Promise<unknown>;
 }
 
-let asyncStore: AsyncStore | undefined;
 import('node:async_hooks')
   .then((module) => {
     const AsyncLocalStorage = module.AsyncLocalStorage;
-    asyncStore = new AsyncLocalStorage<RequestEventInternal>();
-    globalThis.qcAsyncRequestStore = asyncStore;
+    const asyncStore = new AsyncLocalStorage<RequestEventInternal>();
+    setAsyncRequestStore(asyncStore);
   })
   .catch((err) => {
     console.warn(
@@ -63,9 +64,12 @@ export function runQwikRouter<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion: withLocale(
+      requestEv.locale(),
+      asyncRequestStore
+        ? () => asyncRequestStore!.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+        : () => runNext(requestEv, rebuildRouteInfo, resolve!)
+    ),
   };
 }
 

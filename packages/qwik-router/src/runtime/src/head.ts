@@ -13,6 +13,7 @@ import type {
   ActionInternal,
 } from './types';
 import { isPromise } from './utils';
+import { asyncRequestStore as hasAsyncStore } from '../../middleware/request-handler/async-request-store';
 
 export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
@@ -37,9 +38,10 @@ export const resolveHead = (
     }
     return data;
   }) as any as ResolveSyncValue;
+  // Qwik Core will also be using the async store if this is present
   const headProps: DocumentHeadProps = {
     head,
-    withLocale: (fn) => withLocale(locale, fn),
+    withLocale: hasAsyncStore ? (fn) => fn() : (fn) => withLocale(locale, fn),
     resolveValue: getData,
     ...routeLocation,
   };
@@ -50,7 +52,9 @@ export const resolveHead = (
       if (typeof contentModuleHead === 'function') {
         resolveDocumentHead(
           head,
-          withLocale(locale, () => contentModuleHead(headProps))
+          hasAsyncStore
+            ? contentModuleHead(headProps)
+            : withLocale(locale, () => contentModuleHead(headProps))
         );
       } else if (typeof contentModuleHead === 'object') {
         resolveDocumentHead(head, contentModuleHead);

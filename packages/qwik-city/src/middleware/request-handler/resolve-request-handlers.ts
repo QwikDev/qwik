@@ -450,7 +450,7 @@ function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
     if (
       forbidden &&
       laxProto &&
-      inputOrigin?.replace(/http(s)?/g, '') === origin.replace(/http(s)?/g, '')
+      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
     ) {
       forbidden = false;
     }

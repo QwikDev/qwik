@@ -283,17 +283,25 @@ export function emulateExecutionOfBackpatch(document: Document) {
     };
   }
 
-  // Execute the actual Qwik backpatch executor scripts
-  const backpatchExecutorScripts = document.querySelectorAll(
-    'script[q\\:backpatch-executor], script[q-backpatch-executor]'
-  );
+  // we need esbuild to transpile from ts to js for the test environment
+  const esbuild = require('esbuild');
+  const fs = require('fs');
+  const path = require('path');
+  const tsPath = path.join(__dirname, '../backpatch-executor.ts');
+  const tsSource = fs.readFileSync(tsPath, 'utf8');
 
-  for (const executorScript of backpatchExecutorScripts) {
-    const code = executorScript.textContent || '';
-    if (code) {
-      // Execute the actual script that Qwik generated
-      eval(code);
-    }
+  const result = esbuild.transformSync(tsSource, {
+    loader: 'ts',
+    target: 'es2020',
+    format: 'esm',
+    minify: false,
+    sourcemap: false,
+  });
+
+  const code = `try {${result.code}} catch (e) { console.error(e); }`;
+
+  if (code) {
+    eval(code);
   }
 }
 

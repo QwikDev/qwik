@@ -70,7 +70,7 @@ import {
   type ValueOrPromise,
 } from './qwik-types';
 
-import { getQwikLoaderScript } from './scripts';
+import { getQwikLoaderScript, getQwikBackpatchExecutorScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -880,36 +880,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.openElement('script', scriptAttrs);
 
-    this.write(
-      `try {
-      const executorScript = document.querySelector('script[q\\\\:backpatch-executor]');
-      if (executorScript) {
-        const container = executorScript.closest('[q\\\\:container]');
-        if (container) {
-          const script = container.querySelector('script[type="${ELEMENT_BACKPATCH_DATA}"]');
-          if (script) {
-            const data = JSON.parse(script.textContent || '[]');
-            const elements = [];
-            const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
-            for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
-            for (let j = 0; j < data.length; ) {
-              const attr = data[j++];
-              const value = data[j++];
-              while (j < data.length && typeof data[j] === 'number') {
-                const idx = +data[j++];
-                const el = elements[idx];
-                if (!el) continue;
-                if (value === null || value === false) el.removeAttribute(attr);
-                else el.setAttribute(attr, value === true ? '' : value);
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }`
-    );
+    const backpatchScript = getQwikBackpatchExecutorScript({ debug: isDev });
+    this.write(backpatchScript);
 
     this.closeElement();
   }

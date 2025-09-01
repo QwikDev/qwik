@@ -29,17 +29,22 @@ Backpatching automatically fixes these relationships by updating attributes afte
 ### Example
 
 ```tsx
-<>
-  <Field.Label />
-  <Field.Input />
-  <Field.Description />
-</>
-
-// Without backpatching, <Field.Input /> would never know about <Field.Description />, leading to incorrect accessibility relationships.
-
-// With backpatching, the aria-describedby attribute on <Field.Input> will be automatically
-// corrected even if <Field.Description> runs after the input was streamed.
+export const Field = component$(() => {
+  return (
+    <>
+      <Label />
+      {/* input has aria-describedby set to the id of the description */}
+      <Input />
+      {/* If the description component is not passed, it is a broken aria reference */}
+      <Description />
+    </>
+  )
+})
 ```
+
+- Without backpatching, `<Field.Input />` would never know about `<Field.Description />`, leading to incorrect accessibility relationships.
+
+- With backpatching, the aria-describedby attribute on `<Field.Input>` will be automatically corrected even if `<Field.Description>` runs after the input was streamed.
 
 ### Limitations
 

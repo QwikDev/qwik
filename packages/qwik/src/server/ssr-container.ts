@@ -882,21 +882,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     this.write(
       `try {
-      const scripts = document.querySelectorAll('script[type="${ELEMENT_BACKPATCH_DATA}"]');
-      const elements = [];
-      const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
-      for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
-      for (let i = 0; i < scripts.length; i++) {
-        const data = JSON.parse(scripts[i].textContent || '[]');
-        for (let j = 0; j < data.length; ) {
-          const attr = data[j++];
-          const value = data[j++];
-          while (j < data.length && typeof data[j] === 'number') {
-            const idx = +data[j++];
-            const el = elements[idx];
-            if (!el) continue;
-            if (value === null || value === false) el.removeAttribute(attr);
-            else el.setAttribute(attr, value === true ? '' : value);
+      const executorScript = document.querySelector('script[q\\\\:backpatch-executor]');
+      if (executorScript) {
+        const container = executorScript.closest('[q\\\\:container]');
+        if (container) {
+          const script = container.querySelector('script[type="${ELEMENT_BACKPATCH_DATA}"]');
+          if (script) {
+            const data = JSON.parse(script.textContent || '[]');
+            const elements = [];
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
+            for (let n = walker.currentNode; n; n = walker.nextNode()) elements.push(n);
+            for (let j = 0; j < data.length; ) {
+              const attr = data[j++];
+              const value = data[j++];
+              while (j < data.length && typeof data[j] === 'number') {
+                const idx = +data[j++];
+                const el = elements[idx];
+                if (!el) continue;
+                if (value === null || value === false) el.removeAttribute(attr);
+                else el.setAttribute(attr, value === true ? '' : value);
+              }
+            }
           }
         }
       }

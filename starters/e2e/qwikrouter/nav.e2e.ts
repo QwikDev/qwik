@@ -561,6 +561,12 @@ test.describe("nav", () => {
         expect(logCounter).toBe(0);
       }
     });
+
+    test("issue 6993 should trigger awaited navigation", async ({ page }) => {
+      await page.goto("/qwikrouter-test/issue6993/");
+      await page.waitForTimeout(100);
+      await expect(page).toHaveURL("/qwikrouter-test/issue6993/new-path/");
+    });
   }
 });
 

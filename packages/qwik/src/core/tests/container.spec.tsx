@@ -609,19 +609,17 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(
-            jsx.varProps as any,
-            jsx.constProps,
-            ssrContainer.serializationCtx,
-            null,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps as any,
-            jsx.varProps,
-            ssrContainer.serializationCtx,
-            null
-          )
+          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            backpatchId: null,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            backpatchId: null,
+          })
         );
       } else {
         ssrContainer.openFragment([]);

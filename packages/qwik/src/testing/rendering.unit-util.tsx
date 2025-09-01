@@ -53,7 +53,12 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
+import {
+  DEBUG_TYPE,
+  ELEMENT_BACKPATCH_EXECUTOR,
+  QBackpatchExecutorSelector,
+  VirtualType,
+} from '../server/qwik-copy';
 
 /** @public */
 export async function domRender(
@@ -136,6 +141,7 @@ export async function ssrRenderToDom(
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
+  emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
@@ -258,6 +264,17 @@ export function emulateExecutionOfQwikFuncs(document: Document) {
     code = code.replace(Q_FUNCS_PREFIX.replace('HASH', hash), '');
     if (code) {
       (document as any)[QFuncsPrefix + hash] = eval(code);
+    }
+  }
+}
+
+export function emulateExecutionOfBackpatch(document: Document) {
+  const backpatchExecutorScripts = document.querySelectorAll(`[${QBackpatchExecutorSelector}]`);
+
+  for (const executorScript of backpatchExecutorScripts) {
+    const code = executorScript.textContent || '';
+    if (code) {
+      eval(code);
     }
   }
 }

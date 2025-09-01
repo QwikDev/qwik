@@ -97,7 +97,6 @@ import {
   type VNodeData,
 } from './vnode-data';
 import { preloaderPost, preloaderPre } from './preload-impl';
-import backpatchExecutorStr from './backpatch-executor?raw';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -848,12 +847,37 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.isBackpatchExecutorEmitted) {
       return;
     }
-    const scriptAttrs = ['type', ELEMENT_BACKPATCH_EXECUTOR];
+    const scriptAttrs = [ELEMENT_BACKPATCH_EXECUTOR, ''];
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
     this.openElement('script', scriptAttrs);
-    this.write(backpatchExecutorStr);
+    this.write(
+      `try {
+      const scripts = document.querySelectorAll('script[type="${ELEMENT_BACKPATCH_DATA}"]');
+      
+      for (let i = 0; i < scripts.length; i++) {
+        const data = JSON.parse(scripts[i].textContent || '[]');
+        
+        for (let j = 0; j < data.length; j += ${this.$numBackpatchPropsPerPatch$}) {
+          const id = data[j];
+          const attr = data[j + 1];
+          const value = data[j + 2];
+          
+          const element = document.querySelector('[q\\\\:bid="' + id + '"]');
+          if (!element) continue;
+          
+          if (value === null || value === false) {
+            element.removeAttribute(attr);
+          } else {
+            element.setAttribute(attr, value);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }`
+    );
     this.closeElement();
   }
 

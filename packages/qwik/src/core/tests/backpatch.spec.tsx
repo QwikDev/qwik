@@ -5,11 +5,13 @@ import {
   useSignal,
   useTask$,
   type Signal,
+  Fragment as Component,
 } from '@qwik.dev/core';
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { SSRBackpatch } from '../shared/jsx/utils.public';
+import { ELEMENT_BACKPATCH_DATA } from '../shared/utils/markers';
 
 const debug = true;
 
@@ -22,7 +24,7 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       useTask$(() => {
         context.descId.value = 'final-id';
       });
-      return null;
+      return <div>child</div>;
     });
 
     const Root = component$(() => {
@@ -36,15 +38,29 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       );
     });
 
-    const { document } = await ssrRenderToDom(<Root />, { debug });
+    // this is the id of the input node in the stack. If you change the structure of the test, you need to change this.
+    const ssrNodeId = '4';
 
-    document.querySelectorAll('q:backpatch').forEach((script) => {
-      console.log('EXECUTOR SCRIPT: ', script.textContent);
-    });
+    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
-    // expect(document.querySelector('input')).toMatchDOM(
-    //   <input id="test-input" aria-describedby="final" />
-    // )
+    expect(vNode).toMatchVDOM(
+      <Component>
+        {/* @ts-expect-error - q:bid is not a prop */}
+        <input aria-describedby="final-id" q:bid={ssrNodeId} />
+        <Component>
+          <div>child</div>
+        </Component>
+        <script
+          type={ELEMENT_BACKPATCH_DATA}
+        >{`["${ssrNodeId}","aria-describedby","final-id"]`}</script>
+      </Component>
+    );
+
+    const backpatchedInput = document.querySelector('input');
+
+    expect(backpatchedInput).toMatchDOM(
+      `<input aria-describedby="final-id" q:bid="${ssrNodeId}" />`
+    );
   });
 
   it('does not emit JSON blob when serialized value does not change', async () => {
@@ -248,7 +264,7 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     });
 
     const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
+    // const html = document.documentElement.outerHTML;
 
     // expect(html).toMatch(/data-qwik-backpatch="/);
     // expect(html).toContain('"serializedValue":"final"');

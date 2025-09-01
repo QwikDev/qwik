@@ -259,7 +259,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     attrName: string,
     serializedValue: string | true | null
   ): void {
-    // Treat ssrNodeId as element index (already depth-first from ISsrNode.id)
+    // we want to always parse as decimal here
     const elementIndex = parseInt(ssrNodeId, 10);
     this.backpatchMap.set(elementIndex, {
       attrName,
@@ -623,7 +623,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
-        this.emitScopePatches();
+        this.emitPatchDataIfNeeded();
         this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
@@ -821,7 +821,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  emitScopePatches(): void {
+  emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
     const groupedPatches = new Map<string, number[]>();
 

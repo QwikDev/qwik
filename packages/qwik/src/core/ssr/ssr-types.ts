@@ -104,7 +104,7 @@ export interface SSRContainer extends Container {
 
   emitQwikLoaderAtTopIfNeeded(): void;
 
-  emitScopePatches(): void;
+  emitPatchDataIfNeeded(): void;
 
   addBackpatchEntry(
     ssrNodeId: string,

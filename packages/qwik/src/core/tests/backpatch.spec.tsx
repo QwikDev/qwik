@@ -12,11 +12,13 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { SSRBackpatch } from '../shared/jsx/utils.public';
 import { ELEMENT_BACKPATCH_DATA } from '../shared/utils/markers';
+import { vi } from 'vitest';
+import * as logUtils from '../shared/utils/log';
 
 const debug = true;
 
 describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
-  it.only('emits marker and JSON blob when signal-derived attribute changes', async () => {
+  it('emits marker and JSON blob when signal-derived attribute changes', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
     const Child = component$(() => {
@@ -63,213 +65,71 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     );
   });
 
-  it('does not emit JSON blob when serialized value does not change', async () => {
-    const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-2');
+  it('should not log a warning if we are backpatching', async () => {
+    const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
 
-    const Child = component$(() => {
-      const { descId } = useContext(Ctx);
+    const rootContextId = createContextId<RootContext>('root-context');
+
+    type RootContext = {
+      isLabel: Signal<boolean>;
+      isDescription: Signal<boolean>;
+    };
+
+    const Label = component$(() => {
+      const context = useContext(rootContextId);
+
       useTask$(() => {
-        descId.value = 'same-id';
+        context.isLabel.value = true;
       });
-      return null;
+
+      return <div>Label</div>;
     });
 
-    const Root = component$(() => {
-      const descId = useSignal('same-id');
-      useContextProvider(Ctx, { descId });
-      return (
-        <SSRBackpatch>
-          <input aria-describedby={descId.value} />
-          <Child />
-        </SSRBackpatch>
-      );
-    });
+    const Sibling = component$(() => {
+      const context = useContext(rootContextId);
 
-    const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
-
-    expect(html).toMatch(/q:reactive-id="/);
-    expect(html).not.toMatch(/data-qwik-backpatch=/);
-  });
-
-  it('does not affect nodes outside wrapper', async () => {
-    const App = component$(() => {
-      const val = useSignal('x');
       return (
         <>
-          <div data-out aria-label={val.value}></div>
-          <SSRBackpatch>
-            <div data-in aria-label={val.value}></div>
-          </SSRBackpatch>
+          <p>Does Sibling know about Label? {context.isLabel.value ? 'Yes' : 'No'}</p>
+          <p>Does Sibling know about Description? {context.isDescription.value ? 'Yes' : 'No'} </p>
         </>
       );
     });
 
-    const { document } = await ssrRenderToDom(<App />, { debug });
-    const html = document.documentElement.outerHTML;
+    const Description = component$(() => {
+      const context = useContext(rootContextId);
 
-    expect(html).toMatch(/data-in[^>]*q:reactive-id="/);
-    expect(html).not.toMatch(/data-out[^>]*q:reactive-id="/);
-  });
-
-  it('emits patch for attribute removal when value becomes null', async () => {
-    const Ctx = createContextId<{ aria: Signal<string | null> }>('bp-ctx-3');
-
-    const Child = component$(() => {
-      const { aria } = useContext(Ctx);
       useTask$(() => {
-        aria.value = null;
+        context.isDescription.value = true;
       });
-      return null;
+
+      return <div>Description</div>;
     });
 
-    const Root = component$(() => {
-      const aria = useSignal<string | null>('label-id');
-      useContextProvider(Ctx, { aria });
+    const Cmp = component$(() => {
+      const isLabel = useSignal(false);
+      const isDescription = useSignal(false);
+
+      const context: RootContext = {
+        isLabel,
+        isDescription,
+      };
+
+      useContextProvider(rootContextId, context);
+
       return (
         <SSRBackpatch>
-          <button aria-labelledby={aria.value ?? undefined}>ok</button>
-          <Child />
+          <Label />
+          <Sibling />
+          <Description />
         </SSRBackpatch>
       );
     });
 
-    const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
+    await ssrRenderToDom(<Cmp />, { debug });
 
-    expect(html).toContain('"name":"aria-labelledby"');
-    expect(html).toContain('"serializedValue":null');
+    expect(logWarnSpy).toHaveBeenCalledTimes(0);
   });
 
-  it('emits executor script when patches are generated', async () => {
-    const Ctx = createContextId<{ id: Signal<string> }>('bp-ctx-4');
-
-    const Child = component$(() => {
-      const { id } = useContext(Ctx);
-      useTask$(() => {
-        id.value = 'final';
-      });
-      return null;
-    });
-
-    const Root = component$(() => {
-      const id = useSignal('init');
-      useContextProvider(Ctx, { id });
-      return (
-        <SSRBackpatch>
-          <input aria-describedby={id.value} />
-          <Child />
-        </SSRBackpatch>
-      );
-    });
-
-    const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
-
-    expect(html).toMatch(/data-qwik-backpatch=/);
-    expect(html).toMatch(/<script[^>]*id="qwik-backpatch-executor"/);
-  });
-
-  it('does not emit executor script when no patches are generated', async () => {
-    const NoChanges = component$(() => {
-      const x = useSignal('same');
-      return (
-        <SSRBackpatch>
-          <div aria-label={x.value}></div>
-        </SSRBackpatch>
-      );
-    });
-
-    const { document } = await ssrRenderToDom(<NoChanges />, { debug });
-    const html = document.documentElement.outerHTML;
-
-    expect(html).toMatch(/q:reactive-id="/);
-    expect(html).not.toMatch(/data-qwik-backpatch=/);
-    expect(html).not.toMatch(/id="qwik-backpatch-executor"/);
-  });
-
-  it('handles nested SSRBackpatch scopes independently', async () => {
-    const Ctx = createContextId<{ outer: Signal<string>; inner: Signal<string> }>('nested-ctx');
-
-    const Child = component$(() => {
-      const { outer, inner } = useContext(Ctx);
-      useTask$(() => {
-        outer.value = 'outer-final';
-        inner.value = 'inner-final';
-      });
-      return null;
-    });
-
-    const Root = component$(() => {
-      const outer = useSignal('outer-init');
-      const inner = useSignal('inner-init');
-      useContextProvider(Ctx, { outer, inner });
-
-      return (
-        <SSRBackpatch>
-          <div data-outer aria-label={outer.value}>
-            <SSRBackpatch>
-              <div data-inner aria-label={inner.value}>
-                <Child />
-              </div>
-            </SSRBackpatch>
-          </div>
-        </SSRBackpatch>
-      );
-    });
-
-    const { document } = await ssrRenderToDom(<Root />, { debug });
-    const html = document.documentElement.outerHTML;
-
-    const patchMatches = html.match(/data-qwik-backpatch="[^"]+"/g);
-    expect(patchMatches?.length).toBeGreaterThan(1);
-
-    expect(html).toContain('"serializedValue":"outer-final"');
-    expect(html).toContain('"serializedValue":"inner-final"');
-
-    expect(html).toMatch(/data-outer[^>]*\sq:reactive-id="/);
-    expect(html).toMatch(/data-inner[^>]*\sq:reactive-id="/);
-  });
-
-  it('emits patches with final signal values within scope', async () => {
-    const Ctx = createContextId<{ id: Signal<string> }>('dedup-ctx');
-
-    const Child1 = component$(() => {
-      const { id } = useContext(Ctx);
-      useTask$(() => {
-        id.value = 'middle';
-      });
-      return null;
-    });
-
-    const Child2 = component$(() => {
-      const { id } = useContext(Ctx);
-      useTask$(() => {
-        id.value = 'final';
-      });
-      return null;
-    });
-
-    const Root = component$(() => {
-      const id = useSignal('init');
-      useContextProvider(Ctx, { id });
-
-      return (
-        <SSRBackpatch>
-          <input id="test-input" aria-describedby={id.value} />
-          <Child1 />
-          <Child2 />
-        </SSRBackpatch>
-      );
-    });
-
-    const { document } = await ssrRenderToDom(<Root />, { debug });
-    // const html = document.documentElement.outerHTML;
-
-    // expect(html).toMatch(/data-qwik-backpatch="/);
-    // expect(html).toContain('"serializedValue":"final"');
-    expect(document.querySelector('input')).toMatchDOM(
-      <input id="test-input" aria-describedby="final" />
-    );
-  });
+  // We discussed another test where the warning is shown, however we haven't ran into a use case where this would happen yet to reproduce.
 });

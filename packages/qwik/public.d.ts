@@ -54,7 +54,6 @@ export {
   Signal,
   SkipRender,
   Slot,
-  SSRBackpatch,
   sync$,
   TaskCtx,
   // TODO do we really want to export this?

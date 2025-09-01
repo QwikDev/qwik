@@ -23,11 +23,6 @@ export const SSRStreamBlock: FunctionComponent<{ children?: JSXOutput }> = (prop
 };
 
 /** @public */
-export const SSRBackpatch: FunctionComponent<{ children?: JSXOutput }> = (props) => {
-  return props.children;
-};
-
-/** @public */
 export type SSRStreamProps = {
   children: SSRStreamChildren;
 };

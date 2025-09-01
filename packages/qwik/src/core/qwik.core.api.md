@@ -1053,11 +1053,6 @@ export interface SnapshotState {
 }
 
 // @public (undocumented)
-export const SSRBackpatch: FunctionComponent<{
-    children?: JSXOutput;
-}>;
-
-// @public (undocumented)
 export const SSRComment: FunctionComponent<{
     data: string;
 }>;

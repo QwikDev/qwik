@@ -5,13 +5,7 @@ import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
-import {
-  SSRBackpatch,
-  SSRComment,
-  SSRRaw,
-  SSRStream,
-  type SSRStreamChildren,
-} from '../shared/jsx/utils.public';
+import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
@@ -284,10 +278,6 @@ function processJSXNode(
           isPromise(value) && enqueue(Promise);
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
-        } else if (type === SSRBackpatch) {
-          // SSRBackpatch is now a no-op since backpatching is automatic
-          const children = jsx.children as JSXOutput;
-          children != null && enqueue(children);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);

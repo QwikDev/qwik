@@ -55,7 +55,6 @@ export type { DomContainer } from './client/dom-container';
 // JSX Runtime
 //////////////////////////////////////////////////////////////////////////////////////////
 export {
-  SSRBackpatch,
   SSRStreamBlock,
   SSRRaw,
   SSRStream,

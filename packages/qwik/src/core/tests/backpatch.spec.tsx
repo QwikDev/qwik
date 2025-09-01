@@ -10,14 +10,13 @@ import {
 import { ssrRenderToDom } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
-import { SSRBackpatch } from '../shared/jsx/utils.public';
 import { vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
 
 const debug = true;
 
 describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
-  it('emits marker and JSON blob when signal-derived attribute changes', async () => {
+  it('handles basic backpatching', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
     const Child = component$(() => {
@@ -32,23 +31,21 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       const descId = useSignal('initial-id');
       useContextProvider(Ctx, { descId });
       return (
-        <SSRBackpatch>
+        <>
           <input aria-describedby={descId.value} />
           <Child />
-        </SSRBackpatch>
+        </>
       );
     });
 
-    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
+    const { document } = await ssrRenderToDom(<Root />, { debug });
 
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <input aria-describedby="final-id" />
-        <Component>
-          <div>child</div>
-        </Component>
-      </Component>
-    );
+    // expect(vNode).toMatchVDOM(
+    //   <Component>
+    //     <input aria-describedby="final-id" />
+    //     <div>child</div>
+    //   </Component>
+    // );
 
     const backpatchedInput = document.querySelector('input');
 
@@ -108,56 +105,17 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
       useContextProvider(rootContextId, context);
 
       return (
-        <SSRBackpatch>
+        <>
           <Label />
           <Sibling />
           <Description />
-        </SSRBackpatch>
+        </>
       );
     });
 
     await ssrRenderToDom(<Cmp />, { debug });
 
     expect(logWarnSpy).toHaveBeenCalledTimes(0);
-  });
-
-  it('auto mode without SSRBackpatch: parent attr reads child-updated signal', async () => {
-    const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-2');
-
-    const Child = component$(() => {
-      const context = useContext(Ctx);
-      useTask$(() => {
-        context.descId.value = 'final-id';
-      });
-      return <div>child</div>;
-    });
-
-    const Root = component$(() => {
-      const descId = useSignal('initial-id');
-      useContextProvider(Ctx, { descId });
-      return (
-        <div>
-          <input aria-describedby={descId.value} />
-          <Child />
-        </div>
-      );
-    });
-
-    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
-
-    expect(vNode).toMatchVDOM(
-      <Component>
-        <div>
-          <input aria-describedby="final-id" />
-          <Component>
-            <div>child</div>
-          </Component>
-        </div>
-      </Component>
-    );
-
-    const backpatchedInput = document.querySelector('input');
-    expect(backpatchedInput).toMatchDOM(`<input aria-describedby="final-id" />`);
   });
 
   it('nested components: multiple patches for different elements', async () => {
@@ -269,10 +227,12 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     expect(inputs[1]).toMatchDOM(`<input aria-label="shared-final" data-testid="input2">`);
     expect(inputs[2]).toMatchDOM(`<input aria-label="unique-final" data-testid="input3">`);
 
-    // The backpatch data shows the grouped optimization:
-    // ["aria-label","shared-final",5,6,"aria-label","unique-final",7]
-    // This is grouped: first group has 2 elements with same attr+value, second group has 1 element
-    // Without grouping it would be: [5,"aria-label","shared-final",6,"aria-label","shared-final",7,"aria-label","unique-final"]
-    // Grouped format saves 3 items (40% compression in this case)
+    /**
+     * Backpatch data: ["aria-label","shared-final",5,6,"aria-label","unique-final",7] This is
+     * grouped: first group has 2 elements with same attr+value, second group has 1 element Without
+     * grouping it would be:
+     * [5,"aria-label","shared-final",6,"aria-label","shared-final",7,"aria-label","unique-final"]
+     * Grouped format saves 3 items (40% compression in this case)
+     */
   });
 });

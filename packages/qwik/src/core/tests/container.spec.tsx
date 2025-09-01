@@ -612,13 +612,13 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
           varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
             serializationCtx: ssrContainer.serializationCtx,
             styleScopedId: null,
-            backpatchId: null,
+            isBackpatching: false,
             key: jsx.key,
           }),
           constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
             serializationCtx: ssrContainer.serializationCtx,
             styleScopedId: null,
-            backpatchId: null,
+            isBackpatching: false,
           })
         );
       } else {

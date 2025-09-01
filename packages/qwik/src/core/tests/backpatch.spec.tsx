@@ -131,5 +131,5 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     expect(logWarnSpy).toHaveBeenCalledTimes(0);
   });
 
-  // We discussed another test where the warning is shown, however we haven't ran into a use case where this would happen yet to reproduce.
+  // We discussed another test where the warning is shown, however we haven't ran into a use case where this would happen yet to reproduce. Maybe when the Backpatch component is not present? Would require a change in the scheduler.
 });

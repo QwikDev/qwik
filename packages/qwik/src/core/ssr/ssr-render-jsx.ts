@@ -57,7 +57,7 @@ class ParentComponentData {
 class MaybeAsyncSignal {}
 
 class BackpatchScopeData {
-  constructor(public $backpatchId$: string | null) {}
+  constructor(public $isBackpatching$: boolean) {}
 }
 
 type StackFn = () => ValueOrPromise<void>;
@@ -79,7 +79,7 @@ export async function _walkJSX(
   options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-    backpatchId: string | null;
+    isBackpatching: boolean;
   }
 ): Promise<void> {
   const stack: StackValue[] = [value];
@@ -100,7 +100,7 @@ export async function _walkJSX(
         await retryOnPromise(() => stack.push(trackFn()));
         continue;
       } else if (value instanceof BackpatchScopeData) {
-        options.backpatchId = value.$backpatchId$;
+        options.isBackpatching = value.$isBackpatching$;
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
@@ -113,7 +113,7 @@ export async function _walkJSX(
       processJSXNode(ssr, enqueue, value as JSXOutput, {
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
-        backpatchId: options.backpatchId,
+        isBackpatching: options.isBackpatching,
       });
     }
   };
@@ -127,7 +127,7 @@ function processJSXNode(
   options: {
     styleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-    backpatchId: string | null;
+    isBackpatching: boolean;
   }
 ) {
   // console.log('processJSXNode', value);
@@ -162,7 +162,7 @@ function processJSXNode(
           await _walkJSX(ssr, chunk as JSXOutput, {
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
-            backpatchId: options.backpatchId,
+            isBackpatching: options.isBackpatching,
           });
           ssr.commentNode(FLUSH_COMMENT);
         }
@@ -186,13 +186,13 @@ function processJSXNode(
           varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
-            backpatchId: options.backpatchId,
+            isBackpatching: options.isBackpatching,
             key: jsx.key,
           }),
           constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
-            backpatchId: options.backpatchId,
+            isBackpatching: options.isBackpatching,
           }),
           qwikInspectorAttrValue
         );
@@ -272,7 +272,7 @@ function processJSXNode(
                 await _walkJSX(ssr, chunk as JSXOutput, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
-                  backpatchId: options.backpatchId,
+                  isBackpatching: options.isBackpatching,
                 });
                 ssr.commentNode(FLUSH_COMMENT);
               },
@@ -286,11 +286,11 @@ function processJSXNode(
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRBackpatch) {
-          enqueue(new BackpatchScopeData(null));
+          enqueue(new BackpatchScopeData(true));
           enqueue(ssr.emitScopePatches);
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
-          enqueue(new BackpatchScopeData(''));
+          enqueue(new BackpatchScopeData(false));
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
@@ -335,7 +335,7 @@ function processJSXNode(
 interface SsrAttrsOptions {
   serializationCtx: SerializationContext;
   styleScopedId: string | null;
-  backpatchId: string | null;
+  isBackpatching: boolean;
   key?: string | null;
 }
 
@@ -429,9 +429,9 @@ export function toSsrAttrs(
         ssrAttrs.push(key, value);
       }
 
-      if (isConst && options.backpatchId != null && !isBackpatched) {
+      if (isConst && options.isBackpatching != null && !isBackpatched) {
         isBackpatched = true;
-        ssrAttrs.push(ELEMENT_BACKPATCH_ID, options.backpatchId);
+        ssrAttrs.push(ELEMENT_BACKPATCH_ID, options.isBackpatching);
       }
 
       continue;

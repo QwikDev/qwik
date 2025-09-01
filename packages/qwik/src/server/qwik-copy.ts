@@ -49,7 +49,6 @@ export {
   QTemplate,
   QVersionAttr,
   Q_PROPS_SEPARATOR,
-  ELEMENT_BACKPATCH_ID,
   ELEMENT_BACKPATCH_DATA,
   ELEMENT_BACKPATCH_EXECUTOR,
   QBackpatchExecutorSelector,

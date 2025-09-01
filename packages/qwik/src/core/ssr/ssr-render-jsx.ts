@@ -415,8 +415,6 @@ export function toSsrAttrs(
         ssrAttrs.push(key, value);
       }
 
-      // Note: q:bid attribute injection is no longer needed with TreeWalker-based backpatching
-
       continue;
     }
 

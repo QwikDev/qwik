@@ -7,5 +7,5 @@ export default component$(() => {
     nav("/qwikrouter-test/issue6993/new-path/");
   });
 
-  return <></>;
+  return <div></div>;
 });

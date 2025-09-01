@@ -14,6 +14,9 @@ import type {
 } from './types';
 
 export async function workerThread(sys: System) {
+  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
+  // TODO: remove this once we have vite environment API and no longer need the serializer separately
+  delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
@@ -42,6 +45,9 @@ export async function workerThread(sys: System) {
 }
 
 export async function createSingleThreadWorker(sys: System) {
+  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
+  // TODO: remove this once we have vite environment API and no longer need the serializer separately
+  delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 

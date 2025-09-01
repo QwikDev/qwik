@@ -2427,6 +2427,48 @@ describe.each([
     );
   });
 
+  it('should toggle text content projection', async () => {
+    const Parent = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button onClick$={() => (show.value = !show.value)}></button>
+          {show.value && (
+            <Parent>
+              <Slot />
+            </Parent>
+          )}
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp>content</Cmp>, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          {''}
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Projection ssr-required>content</Projection>
+            </Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#1630', async () => {
       const Child = component$(() => <b>CHILD</b>);

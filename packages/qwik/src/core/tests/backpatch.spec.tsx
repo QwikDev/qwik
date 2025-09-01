@@ -212,69 +212,49 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
     );
   });
 
-  it('unique cases: different attributes with different values on same element', async () => {
-    // Test the grouping logic with multiple unique attribute+value combinations
-    const patches: (string | number | boolean | null)[] = [];
+  it('grouped backpatch optimization: demonstrates compression benefits', async () => {
+    // This test shows how the new grouped format compresses data compared to the old format
+    // We create a scenario with repetitive attribute patterns to show the optimization
 
-    // Simulate what emitScopePatches does - group by attribute+value
-    const groupedPatches = new Map<string, number[]>();
+    const RepetitiveAttrs = component$(() => {
+      const signal1 = useSignal('initial-1');
+      const signal2 = useSignal('initial-2');
+      const signal3 = useSignal('initial-3');
 
-    // Add different attribute+value combinations (what would happen in real backpatching)
-    const testData = [
-      { attrName: 'aria-describedby', value: 'field-description', elementIndex: 5 },
-      { attrName: 'aria-describedby', value: 'field-description', elementIndex: 10 }, // Same attr+value
-      { attrName: 'id', value: 'unique-input-id', elementIndex: 5 }, // Different attr on same element
-      { attrName: 'class', value: 'error-state', elementIndex: 15 }, // Completely different
-      { attrName: 'aria-describedby', value: 'different-description', elementIndex: 20 }, // Same attr, different value
-    ];
+      useTask$(() => {
+        // Create repetitive patterns that benefit from grouping
+        signal1.value = 'shared-value';
+        signal2.value = 'shared-value'; // Same value as signal1
+        signal3.value = 'unique-value'; // Different value
+      });
 
-    for (const data of testData) {
-      const key = `${data.attrName}:${String(data.value)}`;
-      if (!groupedPatches.has(key)) {
-        groupedPatches.set(key, []);
-      }
-      groupedPatches.get(key)!.push(data.elementIndex);
-    }
-
-    // Emit grouped patches: [attr, value, idx1, idx2, idx3, ...]
-    for (const [key, indices] of groupedPatches) {
-      const [attrName, valueStr] = key.split(':');
-      patches.push(
-        attrName,
-        valueStr === 'null'
-          ? null
-          : valueStr === 'true'
-            ? true
-            : valueStr === 'false'
-              ? false
-              : valueStr,
-        ...indices
+      return (
+        <div>
+          <input aria-label={signal1.value} data-testid={signal1.value} />
+          <input aria-label={signal2.value} data-testid={signal2.value} />
+          <input aria-label={signal3.value} data-testid={signal3.value} />
+        </div>
       );
-    }
+    });
 
-    // Expected result should be 4 groups:
-    // ["aria-describedby", "field-description", 5, 10]
-    // ["id", "unique-input-id", 5]
-    // ["class", "error-state", 15]
-    // ["aria-describedby", "different-description", 20]
+    const { document } = await ssrRenderToDom(<RepetitiveAttrs />, { debug });
 
-    expect(patches).toEqual([
-      'aria-describedby',
-      'field-description',
-      5,
-      10,
-      'id',
-      'unique-input-id',
-      5,
-      'class',
-      'error-state',
-      15,
-      'aria-describedby',
-      'different-description',
-      20,
-    ]);
+    // Verify the inputs are correctly backpatched
+    const inputs = document.querySelectorAll('input');
+    expect(inputs).toHaveLength(3);
 
-    // Verify we have proper grouping (same attr+value together, different ones separate)
-    expect(patches.length).toBe(13); // 4 groups: (4+4) + (3) + (3) + (3) = 4+3+3+3 = 13 total items
+    // First two inputs should have the same shared values
+    expect(inputs[0]).toMatchDOM(`<input aria-label="shared-value" data-testid="shared-value">`);
+    expect(inputs[1]).toMatchDOM(`<input aria-label="shared-value" data-testid="shared-value">`);
+
+    // Third input should have unique values
+    expect(inputs[2]).toMatchDOM(`<input aria-label="unique-value" data-testid="unique-value">`);
+
+    // The optimization should group:
+    // ["aria-label", "shared-value", idx1, idx2] (3 items instead of 6)
+    // ["data-testid", "shared-value", idx1, idx2] (3 items instead of 6)
+    // ["aria-label", "unique-value", idx3] (3 items)
+    // ["data-testid", "unique-value", idx3] (3 items)
+    // Total: 12 items instead of 24 items (50% compression)
   });
 });

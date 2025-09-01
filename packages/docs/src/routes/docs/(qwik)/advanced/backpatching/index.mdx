@@ -29,22 +29,51 @@ Backpatching automatically fixes these relationships by updating attributes afte
 ### Example
 
 ```tsx
+const fieldContextId = createContextId<{ isDescription: Signal<boolean> }>('field-context');
+
 export const Field = component$(() => {
+  const isDescription = useSignal(false);
+
+  const context = {
+    isDescription,
+  }
+
+  useContextProvider(fieldContextId, context);
+
   return (
     <>
       <Label />
-      {/* input has aria-describedby set to the id of the description */}
       <Input />
-      {/* If the description component is not passed, it is a broken aria reference */}
+      {/* If the description component is not passed, it is a broken aria reference without backpatching, as the input would try to describe an element that does not exist */}
       <Description />
     </>
   )
 })
+
+export const Label = component$(() => {
+  return <label>Label</label>;
+});
+
+export const Input = component$(() => {
+  const context = useContext(fieldContextId);
+
+  return <input aria-describedby={context.isDescription.value ? "description" : undefined} />;
+});
+
+export const Description = component$(() => {
+  const context = useContext(fieldContextId);
+
+  useTask$(() => {
+    context.isDescription = true;
+  })
+
+  return <div id="description">Description</div>;
+});
 ```
 
-- Without backpatching, `<Field.Input />` would never know about `<Field.Description />`, leading to incorrect accessibility relationships.
+- Without backpatching, `<Input />` would never know about `<Description />`, leading to incorrect accessibility relationships.
 
-- With backpatching, the aria-describedby attribute on `<Field.Input>` will be automatically corrected even if `<Field.Description>` runs after the input was streamed.
+- With backpatching, the aria-describedby attribute on `<Input>` will be automatically corrected even if `<Description>` runs after the input was streamed.
 
 ### Limitations
 

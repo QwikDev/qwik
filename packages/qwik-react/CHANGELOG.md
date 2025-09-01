@@ -1,5 +1,12 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.9
+
+### Patch Changes
+
+- Updated dependencies [[`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579), [`569b4a6`](https://github.com/QwikDev/qwik/commit/569b4a6ed5e736dcb8d7595f1581523d4a33270e), [`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579), [`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579), [`569b4a6`](https://github.com/QwikDev/qwik/commit/569b4a6ed5e736dcb8d7595f1581523d4a33270e), [`0dbff0a`](https://github.com/QwikDev/qwik/commit/0dbff0aaf50e7f01d3010768a3a5407f54534172), [`16f5f84`](https://github.com/QwikDev/qwik/commit/16f5f84f38eb15f7d1bf433e12e8524d2b9a99ca), [`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579), [`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579), [`cd04424`](https://github.com/QwikDev/qwik/commit/cd04424c22c786d3644d9682f5b58b2d08577579)]:
+  - @qwik.dev/core@2.0.0-beta.9
+
 ## 2.0.0-beta.8
 
 ### Patch Changes

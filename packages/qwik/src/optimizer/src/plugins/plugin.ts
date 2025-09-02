@@ -23,6 +23,7 @@ import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isWin, parseId } from './vite-utils';
 import type { BundleGraphAdder } from '..';
 import { convertManifestToBundleGraph } from './bundle-graph';
+import type { ManualChunksOption } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -920,10 +921,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     }
   }
 
-  function manualChunks(
-    id: string,
-    { getModuleInfo }: Parameters<Extract<Rollup.OutputOptions['manualChunks'], Function>>[1]
-  ) {
+  const manualChunks: ManualChunksOption = (id: string, { getModuleInfo }) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -980,7 +978,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
 
     // The rest is non-qwik code. We let rollup handle it.
     return null;
-  }
+  };
 
   async function generateManifest(
     ctx: Rollup.PluginContext,

@@ -11,7 +11,6 @@ import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { QRL as QRL_2 } from './qrl.public';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
-import { ValueOrPromise as ValueOrPromise_2 } from '..';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -23,6 +22,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+    error: Error | null;
+    loading: boolean;
 }
 
 // @public (undocumented)
@@ -36,6 +37,8 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 //
 // @internal (undocumented)
 export interface ClientContainer extends Container {
+    // (undocumented)
+    $flushEpoch$: number;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)
@@ -58,8 +61,6 @@ export interface ClientContainer extends Container {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
-    // (undocumented)
-    renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -125,7 +126,6 @@ export interface CorePlatform {
     chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
-    nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
 
@@ -249,7 +249,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    handleError(err: any, host: HostElement): void;
+    handleError(err: any, host: HostElement | null): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -257,13 +257,9 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void> | null;
-    // (undocumented)
     resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
     rootVNode: _ElementVNode;
-    // (undocumented)
-    scheduleRender(): Promise<void>;
     // (undocumented)
     setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
     // (undocumented)
@@ -330,6 +326,11 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 // @internal (undocumented)
 export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignalImpl<any>;
 
+// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void;
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -340,6 +341,12 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
 export const _getContextContainer: () => ClientContainer | undefined;
@@ -367,10 +374,16 @@ export const getPlatform: () => CorePlatform;
 // @internal (undocumented)
 export function _getQContainerElement(element: Element | _VNode): Element | null;
 
+// @internal (undocumented)
+export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal (undocumented)
+export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
 
 // Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
@@ -434,8 +447,6 @@ export interface ISsrComponentFrame {
     scopedStyleIds: Set<string>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _isStore: (value: StoreTarget) => boolean;
 
@@ -447,8 +458,6 @@ export function _isStringifiable(value: unknown): value is _Stringifiable;
 // @internal (undocumented)
 export const _isTask: (value: any) => value is Task;
 
-// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
-//
 // @public
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>;
 export { jsx }
@@ -525,7 +534,7 @@ export const _mapApp_findIndx: <T>(array: (T | null)[], key: string, start: numb
 export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number) => T | null;
 
 // @internal (undocumented)
-export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number) => void;
+export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number, allowNullValue?: boolean) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
@@ -892,13 +901,11 @@ export interface ResourceResolved<T> {
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
+export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
+export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
@@ -926,6 +933,8 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     $currentUniqueId$: number;
     // (undocumented)
+    $flushEpoch$: number;
+    // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     $instanceHash$: string | null;
@@ -941,7 +950,7 @@ export abstract class _SharedContainer implements Container {
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
-    constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
+    constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string);
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
@@ -949,7 +958,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: HostElement): void;
+    abstract handleError(err: any, $host$: HostElement | null): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts

@@ -1,5 +1,19 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 handle falsy value as context value (by [@Varixo](https://github.com/Varixo) in [#7814](https://github.com/QwikDev/qwik/pull/7814))
+
+- Add explicit tag nesting rules for <picture> and <button> elements (by [@tzdesign](https://github.com/tzdesign) in [#7798](https://github.com/QwikDev/qwik/pull/7798))
+
+- 🐞🩹 reactivity after spreading props (by [@Varixo](https://github.com/Varixo) in [#7809](https://github.com/QwikDev/qwik/pull/7809))
+
+- 🐞🩹 handle falsy value for dangerouslySetInnerHTML (by [@Varixo](https://github.com/Varixo) in [#7810](https://github.com/QwikDev/qwik/pull/7810))
+
+## 2.0.0-beta.7
+
 ## 2.0.0-beta.6
 
 ### Minor Changes
@@ -393,7 +407,6 @@
 ### Minor Changes
 
 - ✨ Major improvements to prefetching with automatic bundle preloading (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
-
   - This removes the need for service workers, and instead utilize `modulepreload` link tags for better browser integration.
   - Improves initial load performance by including dynamic imports in the prefetch
   - Reduces complexity while maintaining similar (and even better) functionality
@@ -405,7 +418,6 @@
   ***
 
   ⚠️ **ATTENTION:**
-
   - **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
   - **Configure** your server to provide long caching headers.
 
@@ -553,7 +565,6 @@
 - Async functions in `useComputed` are deprecated. (by [@wmertens](https://github.com/wmertens) in [#7013](https://github.com/QwikDev/qwik/pull/7013))
 
   **Why?**
-
   - Qwik can't track used signals after the first await, which leads to subtle bugs.
   - When calculating the first time, it will see it's a promise and it will restart the render function.
   - Both `useTask` and `useResource` are available, without these problems.

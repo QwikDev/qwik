@@ -96,11 +96,11 @@ export const ssrNodeDocumentPosition = (a: ISsrNode, b: ISsrNode): -1 | 0 | 1 =>
   let bDepth = -1;
   while (a) {
     const ssrNode = (aSsrNodePath[++aDepth] = a);
-    a = ssrNode.parentSsrNode!;
+    a = ssrNode.parentComponent!;
   }
   while (b) {
     const ssrNode = (bSsrNodePath[++bDepth] = b);
-    b = ssrNode.parentSsrNode!;
+    b = ssrNode.parentComponent!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {

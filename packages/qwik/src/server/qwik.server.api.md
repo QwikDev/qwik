@@ -103,7 +103,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
-    // (undocumented)
     serverData?: Record<string, any>;
     snapshot?: boolean;
 }

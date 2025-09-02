@@ -113,6 +113,7 @@ Expression which should be lazy loaded
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [QRL](#qrl)&lt;T&gt;
@@ -134,6 +135,55 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 ```
 
 **Extends:** [ComputedSignal](#computedsignal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[error](#)
+
+</td><td>
+
+</td><td>
+
+Error \| null
+
+</td><td>
+
+The error that occurred while computing the signal.
+
+</td></tr>
+<tr><td>
+
+[loading](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Whether the signal is currently loading.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -181,6 +231,7 @@ number \| 'immutable'
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -313,6 +364,7 @@ onMount
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [Component](#component)&lt;PROPS&gt;
@@ -680,21 +732,6 @@ True of running on the server platform.
 </td></tr>
 <tr><td>
 
-[nextTick](#)
-
-</td><td>
-
-</td><td>
-
-(fn: () =&gt; any) =&gt; Promise&lt;any&gt;
-
-</td><td>
-
-Perform operation on next tick.
-
-</td></tr>
-<tr><td>
-
 [raf](#)
 
 </td><td>
@@ -822,6 +859,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
@@ -879,6 +917,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ComputedReturnType](#computedreturntype)&lt;T&gt;
@@ -960,6 +999,7 @@ The name of the context.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ContextId](#contextid)&lt;STATE&gt;
@@ -999,6 +1039,7 @@ SerializerArg&lt;T, S&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;
@@ -1280,6 +1321,7 @@ T
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 import("./qrl.public").[QRL](#qrl)&lt;T&gt;
@@ -1309,6 +1351,57 @@ force(): void;
 **Returns:**
 
 void
+
+## forceStoreEffects
+
+Force a store to recompute and schedule effects.
+
+```typescript
+forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+value
+
+</td><td>
+
+StoreTarget
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+prop
+
+</td><td>
+
+keyof StoreTarget
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
 ## Fragment
 
@@ -1375,6 +1468,7 @@ Element \| VNode
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 IClientContainer
@@ -1418,6 +1512,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -1504,6 +1599,7 @@ any[]
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;TYPE&gt;
@@ -1586,6 +1682,7 @@ A function that should have its first argument automatically `$`.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 ((qrl: FIRST, ...rest: REST) =&gt; RET)
@@ -1651,6 +1748,7 @@ any
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 value is [Signal](#signal)&lt;unknown&gt;
@@ -1718,6 +1816,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;T&gt;
@@ -1838,6 +1937,7 @@ unknown
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;T&gt;
@@ -2259,6 +2359,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -2309,6 +2410,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -3170,6 +3272,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;[RenderResult](#renderresult)&gt;
@@ -3440,6 +3543,7 @@ props
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -3914,6 +4018,7 @@ plt
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [CorePlatform](#coreplatform)
@@ -8365,6 +8470,7 @@ Function to extract.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [SyncQRL](#syncqrl)&lt;T&gt;
@@ -8580,6 +8686,7 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8619,6 +8726,7 @@ T
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8676,6 +8784,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
@@ -8731,6 +8840,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ComputedReturnType](#computedreturntype)&lt;T&gt;
@@ -8772,6 +8882,7 @@ value
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8912,6 +9023,7 @@ STATE
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -8988,6 +9100,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9040,6 +9153,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9092,6 +9206,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9186,6 +9301,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ResourceReturn](#resourcereturn)&lt;T&gt;
@@ -9274,6 +9390,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T \| undefined
@@ -9398,6 +9515,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 STATE
@@ -9506,6 +9624,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 UseStyles
@@ -9597,6 +9716,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [UseStylesScoped](#usestylesscoped)
@@ -9640,6 +9760,7 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9710,6 +9831,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9791,6 +9913,7 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T

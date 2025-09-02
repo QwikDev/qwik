@@ -10,7 +10,6 @@ import {
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
-  ChoreType,
   DEBUG_TYPE,
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -44,6 +43,7 @@ import {
   escapeHTML,
   isClassAttr,
   mapArray_get,
+  mapArray_has,
   mapArray_set,
   maybeThen,
   qError,
@@ -154,6 +154,7 @@ interface ElementFrame {
    */
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
+  currentFile: string | null;
 }
 
 const EMPTY_OBJ = {};
@@ -210,18 +211,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
   constructor(opts: Required<SSRRenderOptions>) {
-    super(
-      () => {
-        try {
-          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        } catch (e) {
-          this.handleError(e, null!);
-        }
-      },
-      () => null,
-      opts.renderOptions.serverData ?? EMPTY_OBJ,
-      opts.locale
-    );
+    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
@@ -247,7 +237,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: HostElement): void {
+  handleError(err: any, _$host$: null): void {
     throw err;
   }
 
@@ -263,10 +253,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     const ssrNode: ISsrNode = host as any;
     let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
     // Store the node which will store the context
     this.addRoot(ssrNode);
   }
@@ -275,20 +265,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let ssrNode: ISsrNode | null = host as any;
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
-      ssrNode = ssrNode.parentSsrNode;
+      ssrNode = ssrNode.parentComponent;
     }
     return undefined;
   }
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.parentSsrNode as ISsrNode | null;
+    return ssrNode.parentComponent as ISsrNode | null;
   }
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
@@ -358,6 +345,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
+    // create here for writeAttrs method to use it
+    const lastNode = this.getOrCreateLastNode();
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
@@ -368,7 +357,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
     this.write('>');
-    this.lastNode = null;
+
+    if (lastNode) {
+      lastNode.setTreeNonUpdatable();
+    }
     return innerHTML;
   }
 
@@ -444,6 +436,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
+
+    if (this.currentComponentNode) {
+      this.currentComponentNode.setTreeNonUpdatable();
+    }
     this.lastNode = null;
   }
 
@@ -495,7 +491,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.parentSsrNode || null;
+    this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -527,7 +523,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
         this.currentElementFrame!.depthFirstElementIdx + 1,
-        this.cleanupQueue
+        this.cleanupQueue,
+        this.currentElementFrame!.currentFile
       );
     }
     return this.lastNode!;
@@ -815,9 +812,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (qwikLoaderBundle) {
         // always emit the preload+import. It will probably be used at some point on the site
         qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
-        this.openElement('link', ['rel', 'modulepreload', 'href', qwikLoaderBundle]);
+        const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+        const nonce = this.renderOptions.serverData?.nonce;
+        if (nonce) {
+          linkAttrs.push('nonce', nonce);
+        }
+        this.openElement('link', linkAttrs);
         this.closeElement();
-        this.openElement('script', ['type', 'module', 'async', true, 'src', qwikLoaderBundle]);
+        const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
+        if (nonce) {
+          scriptAttrs.push('nonce', nonce);
+        }
+        this.openElement('script', scriptAttrs);
         this.closeElement();
       }
     }
@@ -1012,6 +1018,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       elementName,
       depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
+      currentFile: isDev ? currentFile || null : null,
     };
     this.currentElementFrame = frame;
     this.vNodeDatas.push(frame.vNodeData);
@@ -1089,9 +1096,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (key === dangerouslySetInnerHTML) {
-          innerHTML = String(value);
-          key = QContainerAttr;
-          value = QContainerValue.HTML;
+          if (value) {
+            innerHTML = String(value);
+            key = QContainerAttr;
+            value = QContainerValue.HTML;
+          }
           // we can skip this attribute for a style node
           // because we skip materializing the style node
           if (tag === 'style') {

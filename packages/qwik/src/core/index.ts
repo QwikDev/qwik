@@ -1,4 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////
+// Protect against duplicate imports
+//////////////////////////////////////////////////////////////////////////////////////////
+import { version } from './version';
+if ((globalThis as any).__qwik) {
+  console.error(
+    `==============================================\n` +
+      `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}. Verify external vs bundled imports etc. This can lead to issues due to duplicated shared structures.\n` +
+      `==============================================\n`
+  );
+}
+(globalThis as any).__qwik = version;
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './shared/component.public';
@@ -98,7 +111,7 @@ export type { SerializationStrategy } from './shared/types';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, unwrapStore } from './use/use-store.public';
+export { useStore, unwrapStore, forceStoreEffects } from './use/use-store.public';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';

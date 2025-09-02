@@ -20,12 +20,14 @@ import {
   _getContextContainer,
   _getContextElement,
   _getQContainerElement,
-  _UNINITIALIZED,
   _waitUntilRendered,
+  _UNINITIALIZED,
   SerializerSymbol,
   type _ElementVNode,
   type AsyncComputedReadonlySignal,
   type SerializationStrategy,
+  forceStoreEffects,
+  _hasStoreEffects,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
@@ -55,6 +57,7 @@ import type {
   ContentModule,
   ContentState,
   ContentStateInternal,
+  DocumentHeadValue,
   Editable,
   EndpointResponse,
   LoadedRoute,
@@ -83,20 +86,6 @@ export const QWIK_ROUTER_SCROLLER = '_qRouterScroller';
 
 /** @public */
 export interface QwikRouterProps {
-  // /**
-  //  * The QwikRouter component must have only two direct children: `<head>` and `<body>`, like the following example:
-  //  *
-  //  * ```tsx
-  //  * <QwikRouterProvider>
-  //  *   <head>
-  //  *     <meta charset="utf-8" />
-  //  *   </head>
-  //  *   <body lang="en"></body>
-  //  * </QwikRouterProvider>
-  //  * ```
-  //  */
-  // children?: [JSXNode, JSXNode];
-
   /**
    * Enable the ViewTransition API
    *
@@ -110,7 +99,7 @@ export interface QwikRouterProps {
 }
 
 /**
- * @deprecated Use `QwikRouterProps` instead. will be removed in V3
+ * @deprecated Use `QwikRouterProps` instead. Will be removed in v3.
  * @public
  */
 export type QwikCityProps = QwikRouterProps;
@@ -125,8 +114,13 @@ const preventNav: {
 // We need to use an object so we can write into it from qrls
 const internalState = { navCount: 0 };
 
-/** @public */
-export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+/**
+ * @public
+ * This hook initializes Qwik Router, providing the necessary context for it to work.
+ *
+ * This hook should be used once, at the root of your application.
+ */
+export const useQwikRouter = (props?: QwikRouterProps) => {
   useStyles$(`
     @layer qwik {
       @supports selector(html:active-view-transition-type(type)) {
@@ -150,6 +144,7 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   if (!urlEnv) {
     throw new Error(`Missing Qwik URL Env Data`);
   }
+  const serverHead = useServerData<DocumentHeadValue>('documentHead');
 
   if (isServer) {
     if (
@@ -163,15 +158,13 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
   }
 
   const url = new URL(urlEnv);
-  const routeLocation = useStore<MutableRouteLocation>(
-    {
-      url,
-      params: env.params,
-      isNavigating: false,
-      prevUrl: undefined,
-    },
-    { deep: false }
-  );
+  const routeLocationTarget: MutableRouteLocation = {
+    url,
+    params: env.params,
+    isNavigating: false,
+    prevUrl: undefined,
+  };
+  const routeLocation = useStore<MutableRouteLocation>(routeLocationTarget, { deep: false });
   const navResolver: { r?: () => void } = {};
   const container = _getContextContainer();
   const getSerializationStrategy = (loaderId: string): SerializationStrategy => {
@@ -217,7 +210,9 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
     replaceState: false,
     scroll: true,
   });
-  const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
+  const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
+    createDocumentHead(serverHead)
+  );
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
     menu: undefined,
@@ -475,24 +470,46 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
         if (navigation.dest.search && !!isSamePath(trackUrl, prevUrl)) {
           trackUrl.search = navigation.dest.search;
         }
-
+        let shouldForcePrevUrl = false;
+        let shouldForceUrl = false;
+        let shouldForceParams = false;
         // Update route location
         if (!isSamePath(trackUrl, prevUrl)) {
-          routeLocation.prevUrl = prevUrl;
+          if (_hasStoreEffects(routeLocation, 'prevUrl')) {
+            shouldForcePrevUrl = true;
+          }
+          routeLocationTarget.prevUrl = prevUrl;
         }
 
-        routeLocation.url = trackUrl;
-        routeLocation.params = { ...params };
+        if (routeLocationTarget.url !== trackUrl) {
+          if (_hasStoreEffects(routeLocation, 'url')) {
+            shouldForceUrl = true;
+          }
+          routeLocationTarget.url = trackUrl;
+        }
+
+        if (routeLocationTarget.params !== params) {
+          if (_hasStoreEffects(routeLocation, 'params')) {
+            shouldForceParams = true;
+          }
+          routeLocationTarget.params = params;
+        }
 
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(clientPageData!, routeLocation, contentModules, locale);
+        const resolvedHead = resolveHead(
+          clientPageData!,
+          routeLocation,
+          contentModules,
+          locale,
+          serverHead
+        );
 
         // Update content
         content.headings = pageModule.headings;
         content.menu = menu;
-        contentInternal.value = noSerialize(contentModules);
+        (contentInternal as any).untrackedValue = noSerialize(contentModules);
 
         // Update document head
         documentHead.links = resolvedHead.links;
@@ -718,11 +735,12 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
 
           const navigate = () => {
             clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
+            (contentInternal as any).force();
             return _waitUntilRendered(elm as Element);
           };
 
           const _waitNextPage = () => {
-            if (isServer || props.viewTransition === false) {
+            if (isServer || props?.viewTransition === false) {
               return navigate();
             } else {
               const viewTransition = startViewTransition({
@@ -745,6 +763,15 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
               callRestoreScrollOnDocument();
             }
 
+            if (shouldForcePrevUrl) {
+              forceStoreEffects(routeLocation, 'prevUrl');
+            }
+            if (shouldForceUrl) {
+              forceStoreEffects(routeLocation, 'url');
+            }
+            if (shouldForceParams) {
+              forceStoreEffects(routeLocation, 'params');
+            }
             routeLocation.isNavigating = false;
             navResolver.r?.();
           });
@@ -758,12 +785,16 @@ export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
       run();
     }
   });
+};
 
+/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component. */
+export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+  useQwikRouter(props);
   return <Slot />;
 });
 
 /**
- * @deprecated Use `QwikRouterProvider` instead. will be removed in V3
+ * @deprecated Use `useQwikRouter()` instead. Will be removed in v3.
  * @public
  */
 export const QwikCityProvider = QwikRouterProvider;
@@ -782,7 +813,7 @@ export interface QwikRouterMockProps {
 export type QwikCityMockProps = QwikRouterMockProps;
 
 /** @public */
-export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) => {
+const useQwikMockRouter = (props: QwikRouterMockProps) => {
   const urlEnv = props.url ?? 'http://localhost/';
   const url = new URL(urlEnv);
   const routeLocation = useStore<MutableRouteLocation>(
@@ -826,12 +857,16 @@ export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) =>
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
+};
 
+/** @public */
+export const QwikRouterMockProvider = component$<QwikRouterMockProps>((props) => {
+  useQwikMockRouter(props);
   return <Slot />;
 });
 
 /**
- * @deprecated Use `QwikRouterMockProvider` instead. Will be removed in V3
+ * @deprecated Use `useQwikMockRouter()` instead. Will be removed in V3
  * @public
  */
 export const QwikCityMockProvider = QwikRouterMockProvider;

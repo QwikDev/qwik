@@ -9,6 +9,7 @@ export { getTestPlatform } from './platform';
 export { domRender, ssrRenderToDom, emulateExecutionOfQwikFuncs } from './rendering.unit-util';
 export { walkJSX, vnode_fromJSX } from './vdom-diff.unit-util';
 export { trigger, ElementFixture } from './element-fixture';
+export { waitForDrain } from './util';
 
 // TODO get api-extractor to export this too
 interface CustomMatchers<R = unknown> {

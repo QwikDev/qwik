@@ -1,5 +1,23 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 Zod validator uses defined locale for the current request (by [@knoid](https://github.com/knoid) in [#7804](https://github.com/QwikDev/qwik/pull/7804))
+
+## 2.0.0-beta.7
+
+### Minor Changes
+
+- ✨ useQwikRouter() hook replaces QwikRouterProvider. This gives access to the context immediately and is slightly more efficient. (by [@wmertens](https://github.com/wmertens) in [#7731](https://github.com/QwikDev/qwik/pull/7731))
+
+- ✨ add `DocumentHeadTags` component and make the `head.styles` and `head.scripts` types more like the `head.meta` and `head.links` types. (by [@wmertens](https://github.com/wmertens) in [#7775](https://github.com/QwikDev/qwik/pull/7775))
+
+- ✨ `createRenderer()` wraps the `renderToStream()` function with Qwik Router types, for nicer `entry.ssr` files. (by [@wmertens](https://github.com/wmertens) in [#7770](https://github.com/QwikDev/qwik/pull/7770))
+
+- ✨ You can now put `documentHead` into the rendering functions as part of the `serverData` option. This is useful for passing title, meta tags, scripts, etc. to the `useDocumentHead()` hook from within the server. (by [@wmertens](https://github.com/wmertens) in [#7770](https://github.com/QwikDev/qwik/pull/7770))
+
 ## 2.0.0-beta.6
 
 ### Minor Changes

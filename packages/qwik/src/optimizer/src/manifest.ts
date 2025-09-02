@@ -1,4 +1,4 @@
-import type { OutputBundle } from 'rollup';
+import type { Rollup } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
@@ -396,7 +396,7 @@ export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: OutputBundle,
+  outputBundles: Rollup.OutputBundle,
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
   canonPath: (p: string) => string

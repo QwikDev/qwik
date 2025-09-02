@@ -168,6 +168,7 @@ export interface RenderOptions extends SerializeDocumentOptions {
    */
   containerTagName?: string;
   containerAttributes?: Record<string, string>;
+  /** Metadata that can be retrieved during SSR with `useServerData()`. */
   serverData?: Record<string, any>;
 }
 

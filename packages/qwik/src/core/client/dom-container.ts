@@ -3,8 +3,7 @@
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import { getPlatform } from '../shared/platform/platform';
-import { emitEvent, type QRLInternal } from '../shared/qrl/qrl-class';
+import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
@@ -38,7 +37,6 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
 import {
@@ -60,20 +58,21 @@ import {
 import {
   VNodeJournalOpCode,
   vnode_applyJournal,
-  vnode_getDOMChildNodes,
+  vnode_createErrorDiv,
   vnode_getDomParent,
+  vnode_getNextSibling,
   vnode_getParent,
   vnode_getProp,
   vnode_getProps,
   vnode_insertBefore,
+  vnode_isElementVNode,
   vnode_isVirtualVNode,
   vnode_locate,
-  vnode_newElement,
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { mapArray_get, mapArray_set } from './util-mapArray';
+import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -96,7 +95,7 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 /** @internal */
 export function _getQContainerElement(element: Element | VNode): Element | null {
   const qContainerElement: Element | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as Element)
+    ? (vnode_getDomParent(element, true) as Element)
     : element;
   return qContainerElement.closest(QContainerSelector);
 }
@@ -113,7 +112,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> | null = null;
   public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
@@ -124,12 +122,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
-  private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
     super(
-      () => this.scheduleRender(),
-      () => vnode_applyJournal(this.$journal$),
+      () => {
+        this.$flushEpoch$++;
+        vnode_applyJournal(this.$journal$);
+      },
       {},
       element.getAttribute(QLocaleAttr)!
     );
@@ -181,24 +180,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
-  handleError(err: any, host: HostElement): void {
+  handleError(err: any, host: HostElement | null): void {
     if (qDev && host) {
-      // Clean vdom
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
-        const errorDiv = document.createElement('errored-host');
-        if (err && err instanceof Error) {
-          (errorDiv as any).props = { error: err };
-        }
-        errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
-
-        const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
-
-        vnode_getDOMChildNodes(journal, vHost, true).forEach((child) => {
-          vnode_insertBefore(journal, vErrorDiv, child, null);
-        });
-        vnode_insertBefore(journal, vHost, vErrorDiv, null);
+        const vHostParent = vnode_getParent(vHost) as VirtualVNode | ElementVNode | undefined;
+        const vHostNextSibling = vnode_getNextSibling(vHost);
+        const vErrorDiv = vnode_createErrorDiv(document, vHost, err, journal);
+        // If the host is an element node, we need to insert the error div into its parent.
+        const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+        // If the host is different then we need to insert errored-host in the same position as the host.
+        const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+        vnode_insertBefore(journal, insertHost, vErrorDiv, insertBefore);
         vnode_applyJournal(journal);
       }
 
@@ -220,20 +214,17 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       this.setHostProp(host, QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
   }
 
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value as T;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
       host = this.getParentHost(host)!;
     }
@@ -282,33 +273,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return vnode_getProp(vNode, name, getObjectById);
   }
 
-  scheduleRender() {
-    this.$renderCount$++;
-    this.renderDone ||= getPlatform().nextTick(() => this.processChores());
-    return this.renderDone.finally(() =>
-      emitEvent('qrender', { instanceHash: this.$instanceHash$, renderCount: this.$renderCount$ })
-    );
-  }
-
-  private processChores() {
-    let renderCount = this.$renderCount$;
-    const result = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-    if (isPromise(result)) {
-      return result.then(async () => {
-        while (renderCount !== this.$renderCount$) {
-          renderCount = this.$renderCount$;
-          await this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        }
-        this.renderDone = null;
-      });
-    }
-    if (renderCount !== this.$renderCount$) {
-      this.processChores();
-      return;
-    }
-    this.renderDone = null;
-  }
-
   ensureProjectionResolved(vNode: VirtualVNode): void {
     if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
       vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
@@ -318,7 +282,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         if (isSlotProp(prop)) {
           const value = props[i + 1];
           if (typeof value == 'string') {
-            props[i + 1] = this.vNodeLocate(value);
+            const projection = this.vNodeLocate(value);
+            props[i + 1] = projection;
+            vnode_getProp(projection, QSlotParent, (id) => this.vNodeLocate(id));
           }
         }
       }

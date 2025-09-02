@@ -423,11 +423,11 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <Component ssr-required>
+        <Fragment>
+          <Component>
             <button data-selected id="button-0"></button>
           </Component>
-          <Component ssr-required>
+          <Component>
             <button id="button-1"></button>
           </Component>
         </Fragment>
@@ -438,11 +438,11 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <Component ssr-required>
+        <Fragment>
+          <Component>
             <button id="button-0"></button>
           </Component>
-          <Component ssr-required>
+          <Component>
             <button data-selected id="button-1"></button>
           </Component>
         </Fragment>

@@ -2342,6 +2342,133 @@ describe.each([
     );
   });
 
+  it('should locate slot parent in detached subtree', async () => {
+    const Projector = component$(() => {
+      return <Slot />;
+    });
+    const Child = component$((props: { state: any }) => {
+      return !props.state.disableNested && <Slot />;
+    });
+
+    const Parent = component$(() => {
+      const state = useStore({
+        count: 0,
+        disableNested: false,
+      });
+      return (
+        <>
+          <Child state={state}>
+            <Projector>
+              {state.count}
+              {state.count}
+            </Projector>
+          </Child>
+          <button id="toggle" onClick$={() => (state.disableNested = !state.disableNested)}>
+            Toggle
+          </button>
+          <button id="count" onClick$={() => state.count++}>
+            Count
+          </button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Component ssr-required>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
+                  <WrappedSignal ssr-required>{'0'}</WrappedSignal>
+                </Projection>
+              </Component>
+            </Projection>
+          </Component>
+          <button id="toggle">Toggle</button>
+          <button id="count">Count</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button[id="toggle"]', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required></Component>
+          <button id="toggle">Toggle</button>
+          <button id="count">Count</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button[id="count"]', 'click');
+    await trigger(document.body, 'button[id="toggle"]', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Component ssr-required>
+                <Projection ssr-required>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
+                  <WrappedSignal ssr-required>{'1'}</WrappedSignal>
+                </Projection>
+              </Component>
+            </Projection>
+          </Component>
+          <button id="toggle">Toggle</button>
+          <button id="count">Count</button>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should toggle text content projection', async () => {
+    const Parent = component$(() => {
+      return <Slot />;
+    });
+
+    const Cmp = component$(() => {
+      const show = useSignal(false);
+      return (
+        <>
+          <button onClick$={() => (show.value = !show.value)}></button>
+          {show.value && (
+            <Parent>
+              <Slot />
+            </Parent>
+          )}
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Cmp>content</Cmp>, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          {''}
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <Projection ssr-required>
+              <Projection ssr-required>content</Projection>
+            </Projection>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#1630', async () => {
       const Child = component$(() => <b>CHILD</b>);

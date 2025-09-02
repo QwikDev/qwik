@@ -25,6 +25,8 @@ export const enum TagNesting {
   PHRASING_ANY = /* ----------- */ 0b0000_0001_0000_0010,
   PHRASING_INSIDE_INPUT = /* -- */ 0b0000_0010_0000_0010,
   PHRASING_CONTAINER = /* ----- */ 0b0000_0100_0000_0010,
+  PICTURE = /* ---------------- */ 0b0000_1000_0000_0010,
+  BUTTON = /* ----------------- */ 0b0001_0000_0000_0010,
   /** Table related tags. */
   TABLE = /* ------------------ */ 0b0001_0000_0000_0000,
   TABLE_BODY = /* ------------- */ 0b0010_0000_0000_0000,
@@ -63,6 +65,10 @@ export const allowedContent = (state: TagNesting): [string, string | null] => {
     case TagNesting.PHRASING_INSIDE_INPUT:
     case TagNesting.PHRASING_CONTAINER:
       return ['phrasing content', '<a>, <b>, <img>, <input> ... (no <div>, <p> ...)'];
+    case TagNesting.PICTURE:
+      return ['picture content', '<source>, <img>'];
+    case TagNesting.BUTTON:
+      return ['button content', 'phrasing content except interactive elements'];
     case TagNesting.DOCUMENT:
       return ['document', '<html>'];
   }
@@ -107,6 +113,10 @@ export function isTagAllowed(state: number, tag: string): TagNesting {
       return isInPhrasing(tag, true);
     case TagNesting.PHRASING_INSIDE_INPUT:
       return isInPhrasing(tag, false);
+    case TagNesting.PICTURE:
+      return isInPicture(tag);
+    case TagNesting.BUTTON:
+      return isInButton(tag);
     case TagNesting.DOCUMENT:
       if (tag === 'html') {
         return TagNesting.HTML;
@@ -191,9 +201,12 @@ function isInAnything(text: string): TagNesting {
     case 'body':
       return TagNesting.NOT_ALLOWED;
     case 'button':
+      return TagNesting.BUTTON;
     case 'input':
     case 'textarea':
       return TagNesting.PHRASING_INSIDE_INPUT;
+    case 'picture':
+      return TagNesting.PICTURE;
 
     default:
       return TagNesting.ANYTHING;
@@ -243,12 +256,37 @@ function isInTableColGroup(text: string): TagNesting {
   }
 }
 
+function isInPicture(text: string): TagNesting {
+  switch (text) {
+    case 'source':
+      return TagNesting.EMPTY;
+    case 'img':
+      return TagNesting.EMPTY;
+    default:
+      return TagNesting.NOT_ALLOWED;
+  }
+}
+
+function isInButton(text: string): TagNesting {
+  switch (text) {
+    case 'button':
+    case 'input':
+    case 'textarea':
+    case 'select':
+    case 'a':
+      return TagNesting.NOT_ALLOWED;
+    case 'picture':
+      return TagNesting.PICTURE;
+    default:
+      return isInPhrasing(text, false);
+  }
+}
+
 function isInPhrasing(text: string, allowInput: boolean): TagNesting {
   switch (text) {
     case 'svg':
     case 'math':
       return TagNesting.PHRASING_CONTAINER;
-    case 'button':
     case 'input':
     case 'textarea':
       return allowInput ? TagNesting.PHRASING_INSIDE_INPUT : TagNesting.NOT_ALLOWED;
@@ -260,6 +298,7 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'bdi':
     case 'bdo':
     case 'br':
+    case 'button':
     case 'canvas':
     case 'cite':
     case 'code':
@@ -287,7 +326,6 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'object':
     case 'option':
     case 'output':
-    case 'picture':
     case 'progress':
     case 'q':
     case 'ruby':
@@ -310,6 +348,8 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
       return allowInput ? TagNesting.PHRASING_ANY : TagNesting.PHRASING_INSIDE_INPUT;
     case 'style':
       return TagNesting.TEXT;
+    case 'picture':
+      return TagNesting.PICTURE;
     default:
       return TagNesting.NOT_ALLOWED;
   }

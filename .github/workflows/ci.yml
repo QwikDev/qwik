@@ -592,7 +592,13 @@ jobs:
   test-unit:
     name: Unit Tests
     if: always() && needs.changes.outputs.build-unit == 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        settings:
+          - host: ubuntu-latest
+          - host: windows-latest
+
+    runs-on: ${{ matrix.settings.host }}
     needs:
       - changes
       - build-other-packages
@@ -771,6 +777,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - run: pnpm install --frozen-lockfile
+
+      - name: "Verify pnpm dedupe"
+        if: always()
+        run: pnpm dedupe --check
 
       - name: SyncPack Check
         if: always()

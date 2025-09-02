@@ -1,15 +1,15 @@
 import { qwikDebugToString } from '../../debug';
 import type { Container } from '../../shared/types';
-import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise } from '../../shared/utils/promises';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
-import { AsyncComputeQRL, ComputedSignalFlags, EffectSubscription } from '../types';
+import { AsyncComputeQRL, SerializationSignalFlags, EffectSubscription } from '../types';
 import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
 import type { NoSerialize } from '../../shared/utils/serialize-utils';
+import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 const log = (...args: any[]) =>
@@ -40,7 +40,7 @@ export class AsyncComputedSignalImpl<T>
   constructor(
     container: Container | null,
     fn: AsyncComputeQRL<T>,
-    flags: SignalFlags | ComputedSignalFlags = SignalFlags.INVALID
+    flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID
   ) {
     super(container, fn, flags);
   }
@@ -105,7 +105,7 @@ export class AsyncComputedSignalImpl<T>
 
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
+      return;
     }
     const computeQrl = this.$computeQrl$;
     throwIfQRLNotResolved(computeQrl);
@@ -140,6 +140,7 @@ export class AsyncComputedSignalImpl<T>
 
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
+      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue;
     }
     return didChange;

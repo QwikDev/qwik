@@ -934,13 +934,6 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       } else if (/qwik[\\/]dist[\\/]qwikloader\.js$/.test(id)) {
         return 'qwik-loader';
       }
-      // It is safer to return core and qwik-city to prevent breaking circular dependencies (those can lead to "Cannot Access XXX before initialization" errors)
-      if (/\/(qwik|core)\/dist\/core.*js$/.test(id)) {
-        return 'core';
-      }
-      if (/\/(qwik-city|router)\/lib\/index.qwik.*js$/.test(id)) {
-        return 'qwik-city';
-      }
     }
 
     const module = getModuleInfo(id);

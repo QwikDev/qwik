@@ -142,7 +142,7 @@ async function runNext(
   }
 
   try {
-    await _runNext();
+    return await _runNext();
   } finally {
     if (!requestEv.isDirty()) {
       resolve(null);

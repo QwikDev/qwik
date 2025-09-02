@@ -960,21 +960,21 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
           return chunkName;
         }
       }
-    }
 
-    // The id either points to a context file, inline component, or src .js/.ts util/helper file (or a barrel file but it will be tree-shaken by rollup)
-    // Making sure that we return a specific id for those files prevents rollup from bundling unrelated code together
-    if (module?.meta.qwikdeps?.length === 0) {
-      if (id.includes('node_modules')) {
-        const idx = id.lastIndexOf('node_modules');
-        if (idx >= 0) {
-          const relToNodeModules = id.slice(idx + 13);
-          return relToNodeModules;
+      // The id either points to a context file, inline component, or src .js/.ts util/helper file (or a barrel file but it will be tree-shaken by rollup)
+      // Making sure that we return a specific id for those files prevents rollup from bundling unrelated code together
+      if (module.meta.qwikdeps?.length === 0) {
+        if (id.includes('node_modules')) {
+          const idx = id.lastIndexOf('node_modules');
+          if (idx >= 0) {
+            const relToNodeModules = id.slice(idx + 13);
+            return relToNodeModules;
+          }
+        } else if (opts.srcDir && id.includes(opts.srcDir)) {
+          const path = getPath();
+          const relToSrcDir = normalizePath(path.relative(opts.srcDir, id));
+          return relToSrcDir;
         }
-      } else if (opts.srcDir && id.includes(opts.srcDir)) {
-        const path = getPath();
-        const relToSrcDir = normalizePath(path.relative(opts.srcDir, id));
-        return relToSrcDir;
       }
     }
 

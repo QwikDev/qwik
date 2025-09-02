@@ -336,7 +336,7 @@ export const createScheduler = (
           // We are running on the server.
           // On server we can't schedule task for a different host!
           // Server is SSR, and therefore scheduling for anything but the current host
-          // implies that things need to be re-run nad that is not supported because of streaming.
+          // implies that things need to be re-run and that is not supported because of streaming.
           const warningMessage = `A '${choreTypeToName(
             chore.$type$
           )}' chore was scheduled on a host element that has already been streamed to the client.

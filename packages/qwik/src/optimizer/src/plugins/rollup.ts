@@ -176,7 +176,11 @@ export function normalizeRollupOutputOptionsObject(
     } else {
       // Friendlier names in dev or preview with debug mode
       fileName = (chunkInfo) => {
-        if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
+        if (
+          chunkInfo.moduleIds?.some(
+            (id) => id.endsWith('core.prod.mjs') || id.endsWith('core.min.mjs')
+          )
+        ) {
           return 'build/core.js';
         }
         if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-city/lib/index.qwik.mjs'))) {

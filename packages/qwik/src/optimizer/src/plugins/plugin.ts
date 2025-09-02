@@ -23,6 +23,7 @@ import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isWin, parseId } from './vite-utils';
 import type { BundleGraphAdder } from '..';
 import { convertManifestToBundleGraph } from './bundle-graph';
+import type { ManualChunksOption } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -920,10 +921,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     }
   }
 
-  function manualChunks(
-    id: string,
-    { getModuleInfo }: Parameters<Extract<Rollup.OutputOptions['manualChunks'], Function>>[1]
-  ) {
+  const manualChunks: ManualChunksOption = (id: string, { getModuleInfo }) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -943,15 +941,37 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       const segment = module.meta.segment as SegmentAnalysis | undefined;
       if (segment) {
         const { hash } = segment;
+
+        // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash
         const chunkName =
           (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
         if (chunkName) {
+          // we group related segments together based on their common entry or Qwik Insights provided hash
+          // This not only applies to source files, but also qwik libraries files that are imported through node_modules
           return chunkName;
         }
       }
+
+      // The id either points to a context file, inline component, or src .js/.ts util/helper file (or a barrel file but it will be tree-shaken by rollup)
+      // Making sure that we return a specific id for those files prevents rollup from bundling unrelated code together
+      if (module.meta.qwikdeps?.length === 0) {
+        if (id.includes('node_modules')) {
+          const idx = id.lastIndexOf('node_modules');
+          if (idx >= 0) {
+            const relToNodeModules = id.slice(idx + 13);
+            return relToNodeModules;
+          }
+        } else if (opts.srcDir && id.includes(opts.srcDir)) {
+          const path = getPath();
+          const relToSrcDir = normalizePath(path.relative(opts.srcDir, id));
+          return relToSrcDir;
+        }
+      }
     }
+
+    // The rest is non-qwik code. We let rollup handle it.
     return null;
-  }
+  };
 
   async function generateManifest(
     ctx: Rollup.PluginContext,

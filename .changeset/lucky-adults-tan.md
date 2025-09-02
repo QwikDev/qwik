@@ -3,4 +3,4 @@
 '@builder.io/qwik': patch
 ---
 
-feat(cli): Add check-client command to verify bundle freshness
+CHORE: Add check-client command to verify bundle freshness

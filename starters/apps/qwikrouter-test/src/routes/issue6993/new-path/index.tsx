@@ -1,5 +1,5 @@
 import { component$ } from "@qwik.dev/core";
 
 export default component$(() => {
-  return <></>;
+  return <div>new path element</div>;
 });

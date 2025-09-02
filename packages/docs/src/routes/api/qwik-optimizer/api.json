@@ -543,20 +543,6 @@
       "mdFile": "core.qwikvite.md"
     },
     {
-      "name": "QwikViteDevResponse",
-      "id": "qwikvitedevresponse",
-      "hierarchy": [
-        {
-          "name": "QwikViteDevResponse",
-          "id": "qwikvitedevresponse"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface QwikViteDevResponse \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\\_qwikEnvData?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, any&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[\\_qwikRenderResolve?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; void\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
-      "mdFile": "core.qwikvitedevresponse.md"
-    },
-    {
       "name": "QwikVitePlugin",
       "id": "qwikviteplugin",
       "hierarchy": [

@@ -5,8 +5,7 @@ describe('qwikRouter plugin', () => {
   describe('defaultLoadersSerializationStrategy', () => {
     it('should set the defaultLoadersSerializationStrategy to "never" when not provided', async () => {
       const plugins = qwikRouter();
-
-      await expect((plugins[0] as any)?.config?.()).resolves.toMatchObject({
+      await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
         define: {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"never"',
         },
@@ -18,7 +17,7 @@ describe('qwikRouter plugin', () => {
         defaultLoadersSerializationStrategy: 'always',
       });
 
-      await expect((plugins[0] as any)?.config?.()).resolves.toMatchObject({
+      await expect((plugins[0] as any)?.config?.({}, { command: 'build' })).resolves.toMatchObject({
         define: {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': '"always"',
         },

@@ -133,7 +133,8 @@ async function runNext(
   }
 
   try {
-    return await _runNext();
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    return isValidURL(requestEv.originalUrl) ? await _runNext() : new ServerError(404, '');
   } finally {
     if (!requestEv.isDirty()) {
       resolve(null);

@@ -72,6 +72,15 @@ async function runNext(
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
+  try {
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    if (isValidURL(requestEv.originalUrl)) {
+      return await _runNext();
+    }
+  } catch {
+    return new ServerError(404, '');
+  }
+
   let rewriteAttempt = 1;
 
   async function _runNext() {
@@ -133,8 +142,7 @@ async function runNext(
   }
 
   try {
-    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
-    return isValidURL(requestEv.originalUrl) ? await _runNext() : new ServerError(404, '');
+    await _runNext();
   } finally {
     if (!requestEv.isDirty()) {
       resolve(null);

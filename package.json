@@ -164,7 +164,7 @@
     "typescript-eslint": "8.38.0",
     "undici": "*",
     "vfile": "6.0.3",
-    "vite": "7.1.3",
+    "vite": "7.1.4",
     "vite-imagetools": "7.1.0",
     "vite-plugin-dts": "3.9.1",
     "vite-tsconfig-paths": "5.1.4",

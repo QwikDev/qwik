@@ -74,9 +74,7 @@ async function runNext(
 ) {
   try {
     const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
-    if (isValidURL(requestEv.originalUrl)) {
-      return await _runNext();
-    }
+    isValidURL(requestEv.originalUrl);
   } catch {
     return new ServerError(404, '');
   }

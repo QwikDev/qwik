@@ -16,6 +16,8 @@ import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
 import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
 import { isServer } from '@builder.io/qwik';
+import { loadDependencies } from './worker/repl-dependencies-main';
+import { appBundleClient, appBundleSsr, appSsrHtml } from './worker/repl-builder';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);
@@ -189,15 +191,15 @@ const getDependencies = (input: ReplAppInput) => {
   return out;
 };
 
-export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore) => {
+export const sendUserUpdateToReplServer = async (input: ReplAppInput, store: ReplStore) => {
   if (isServer) {
     return;
   }
   if (input.version && store.serverWindow) {
-    const msg: ReplUpdateMessage = {
-      type: 'update',
-      clientId: store.clientId,
-      options: {
+    try {
+      // Load dependencies in main thread
+      const deps = getDependencies(input);
+      await loadDependencies({
         buildId: input.buildId,
         debug: input.debug,
         srcInputs: input.files,
@@ -207,13 +209,133 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         },
         version: input.version,
         serverUrl: store.serverUrl,
-        deps: getDependencies(input),
-      },
-    };
+        deps,
+      });
 
-    if (msg.options.srcInputs && msg.options.srcInputs.length > 0) {
-      // using JSON.stringify() to remove proxies
-      store.serverWindow.postMessage(JSON.stringify(msg));
+      // Create build result
+      const result: any = {
+        type: 'result',
+        clientId: store.clientId,
+        buildId: input.buildId,
+        html: '',
+        transformedModules: [],
+        clientBundles: [],
+        manifest: undefined,
+        ssrModules: [],
+        diagnostics: [],
+        events: [],
+      };
+
+      // Run build process in main thread
+      await appBundleClient(
+        {
+          buildId: input.buildId,
+          debug: input.debug,
+          srcInputs: input.files,
+          buildMode: input.buildMode as any,
+          entryStrategy: {
+            type: input.entryStrategy as any,
+          },
+          version: input.version,
+          serverUrl: store.serverUrl,
+          deps,
+        },
+        result
+      );
+
+      await appBundleSsr(
+        {
+          buildId: input.buildId,
+          debug: input.debug,
+          srcInputs: input.files,
+          buildMode: input.buildMode as any,
+          entryStrategy: {
+            type: input.entryStrategy as any,
+          },
+          version: input.version,
+          serverUrl: store.serverUrl,
+          deps,
+        },
+        result
+      );
+
+      await appSsrHtml(
+        {
+          buildId: input.buildId,
+          debug: input.debug,
+          srcInputs: input.files,
+          buildMode: input.buildMode as any,
+          entryStrategy: {
+            type: input.entryStrategy as any,
+          },
+          version: input.version,
+          serverUrl: store.serverUrl,
+          deps,
+        },
+        result
+      );
+
+      // Update the store with results
+      updateReplOutput(store, result);
+
+      // Send build results to service worker
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'update-build',
+          clientId: store.clientId,
+          buildId: input.buildId,
+          html: result.html,
+          clientBundles: result.clientBundles,
+          ssrModules: result.ssrModules,
+        });
+      }
+
+      // Send result to server window for iframe communication
+      const msg: ReplUpdateMessage = {
+        type: 'update',
+        clientId: store.clientId,
+        options: {
+          buildId: input.buildId,
+          debug: input.debug,
+          srcInputs: input.files,
+          buildMode: input.buildMode as any,
+          entryStrategy: {
+            type: input.entryStrategy as any,
+          },
+          version: input.version,
+          serverUrl: store.serverUrl,
+          deps,
+        },
+      };
+
+      if (msg.options.srcInputs && msg.options.srcInputs.length > 0) {
+        store.serverWindow.postMessage(JSON.stringify(msg));
+      }
+    } catch (e: any) {
+      console.error('Build error:', e);
+      const errorResult: any = {
+        type: 'result',
+        clientId: store.clientId,
+        buildId: input.buildId,
+        html: '',
+        transformedModules: [],
+        clientBundles: [],
+        manifest: undefined,
+        ssrModules: [],
+        diagnostics: [
+          {
+            scope: 'runtime',
+            message: String(e.stack || e),
+            category: 'error',
+            file: '',
+            highlights: [],
+            suggestions: null,
+            code: 'runtime error',
+          },
+        ],
+        events: [],
+      };
+      updateReplOutput(store, errorResult);
     }
   }
 };

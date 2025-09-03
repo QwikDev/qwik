@@ -1,13 +1,6 @@
 import { version as qwikVersion } from '@builder.io/qwik';
 import type { PkgUrls } from './types';
 
-import prettierPkgJson from 'prettier/package.json';
-import prettierParserHtml from '../../node_modules/prettier/plugins/html.js?raw-source';
-import prettierStandaloneJs from '../../node_modules/prettier/standalone.js?raw-source';
-
-import terserPkgJson from 'terser/package.json';
-import terserJs from '../../node_modules/terser/dist/bundle.min.js?raw-source';
-
 import qBuild from '../../node_modules/@builder.io/qwik/dist/build/index.d.ts?raw-source';
 import qCoreCjs from '../../node_modules/@builder.io/qwik/dist/core.cjs?raw-source';
 import qCoreDts from '../../node_modules/@builder.io/qwik/dist/core.d.ts?raw-source';
@@ -62,24 +55,5 @@ export const bundled: PkgUrls = {
     '/dist/qwikloader.js': qQwikLoaderJs,
     '/bindings/qwik.wasm.cjs': qWasmCjs,
     '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
-  },
-  prettier: {
-    version: prettierPkgJson.version,
-    '/plugins/html.js': prettierParserHtml,
-    '/standalone.js': prettierStandaloneJs,
-  },
-  // v4 of rollup uses wasm etc, need to figure out how to bundle that
-  rollup: {
-    version: ROLLUP_VERSION,
-    '/dist/rollup.browser.js': getNpmCdnUrl(
-      {},
-      'rollup',
-      ROLLUP_VERSION,
-      '/dist/rollup.browser.js'
-    ),
-  },
-  terser: {
-    version: terserPkgJson.version,
-    '/dist/bundle.min.js': terserJs,
   },
 };

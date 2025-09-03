@@ -323,6 +323,9 @@ importers:
       '@qwik.dev/partytown':
         specifier: 0.11.2
         version: 0.11.2
+      '@rollup/browser':
+        specifier: ^4.35.0
+        version: 4.50.0
       '@shikijs/colorized-brackets':
         specifier: 3.12.2
         version: 3.12.2
@@ -377,6 +380,9 @@ importers:
       magic-string:
         specifier: 0.30.17
         version: 0.30.17
+      memfs:
+        specifier: ^4.17.0
+        version: 4.34.0
       openai:
         specifier: 3.3.0
         version: 3.3.0
@@ -3281,6 +3287,9 @@ packages:
     resolution: {integrity: sha512-795y49CqBiKiwKAD+QBZlzlqEK275hVcazZ7wBPSfgC23L+vWuA7PJmMpgxojOucZHzYi5rAAQ+IP1I3BKVZxw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
+
+  '@rollup/browser@4.50.0':
+    resolution: {integrity: sha512-SENP0x9u6lHdRPdn/KzTAh6NEDGTk8npAEk7IVKTm9UD6Apzb/eli5/wvYyMt5pcqyaEmKuhq0l+K9+Ek7SXeg==}
 
   '@rollup/pluginutils@5.1.4':
     resolution: {integrity: sha512-USm05zrsFxYLPdWWq+K3STlWiT/3ELn3RcV5hJMghpeAIhxfsUIg6mt12CBJBInWMV4VneoV7SfGv8xIwo2qNQ==}
@@ -12873,6 +12882,10 @@ snapshots:
   '@qwik.dev/partytown@0.11.2':
     dependencies:
       dotenv: 16.5.0
+
+  '@rollup/browser@4.50.0':
+    dependencies:
+      '@types/estree': 1.0.8
 
   '@rollup/pluginutils@5.1.4(rollup@4.46.2)':
     dependencies:

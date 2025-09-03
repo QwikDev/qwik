@@ -59,5 +59,6 @@
     "test.unit": "vitest"
   },
   "type": "module",
-  "types": "./lib/index.d.ts"
+  "types": "./lib/index.d.ts",
+  "sideEffects": false
 }

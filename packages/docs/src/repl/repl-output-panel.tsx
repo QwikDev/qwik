@@ -159,7 +159,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             <div>
               <span class="code-block-info">HTML</span>
               <CodeBlock
-                language="markup"
+                language="html"
                 code={store.htmlResult.prettyHtml || store.htmlResult.rawHtml}
               />
             </div>
@@ -172,7 +172,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             {vdomTree.value ? (
               <div>
                 <span class="code-block-info">VNode Tree</span>
-                <CodeBlock language="markup" code={vdomTree.value} />
+                <CodeBlock language="html" code={vdomTree.value} />
               </div>
             ) : null}
           </div>

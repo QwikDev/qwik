@@ -1,0 +1,53 @@
+---
+title: 'Effortlessly optimize web fonts with fontless.'
+authors:
+  - 'Giorgio Boa'
+tags: ['Web development', 'Fontaine', 'Qwik']
+date: 'August 26, 2025'
+canonical: 'https://qwik.dev/blog/fontless'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { Image } from 'qwik-image';
+import firstMeeting from './first-meeting.webp';
+import secondMeeting from './second-meeting.webp';
+
+<ArticleBlock>
+
+<br/>
+<br/>
+
+## Zero-runtime CSS solution
+
+Zero-runtime CSS solution for Google Fonts, Bunny Fonts, and more. Reduce CLS and boost performance.<br/>
+Some time ago, we came across an impressive library called [Fontaine](https://github.com/unjs/fontaine), created and maintained by the talented [Daniel Roe](https://github.com/danielroe).
+
+The idea behind the library is to optimize the way [Nuxt](https://nuxt.com/) developers use fonts by providing a similar native font while the font files are being downloaded, 
+so when the switch to the actual font happens - the “glitch” will be minimal, and by that reducing the bad CLS score on google core web vitals.
+
+Out of curiosity, we attempted to integrate it into a Qwik project and noticed there could be an opportunity to make it framework agnostic.
+
+> After diving into the source code, we figured out pretty quickly that the core of the library is generic enough and can be adopted by all the frameworks powered by [Vite](https://vite.dev/).
+
+Motivated by this idea, we decided to join forces - the Nuxt and Qwik teams and to create an open-source library as a Vite plugin that will benefit all frameworks. 
+
+<br/>
+<Image class="mx-auto" src={firstMeeting} alt="First meeting between NUXT and QWIK ❤️" />
+<br/>
+
+Daniel Roe was super generous to provide the product of his hard work and to extract it into a generic mutual core and we had a wonderful time  collaborating  with him for the good of the JavaScript community.
+
+After a few weeks of hard work, [Damian Pumar](https://github.com/damianpumar) had the solution up and running in his local machine.<br/> 
+It was incredible to see how smooth the integration is with pretty much all the frameworks.<br/>
+
+<br/>
+<Image class="mx-auto" src={secondMeeting} alt="Second meeting between NUXT and QWIK 🍰" />
+<br/>
+
+We'd like to thank Daniel Roe, the Nuxt team and the [unjs](https://unjs.io/) project for helping us make this vision of making this brilliant work of Daniel on font optimization available for all frameworks.
+
+This is a great example of how the shared vision of “automatic optimization” for the web comes into fruition.
+
+Automatic font optimization? Yes, please! Say goodbye to CLS issues with Fontless. [Install it now](https://www.npmjs.com/package/fontless)!
+
+</ArticleBlock>

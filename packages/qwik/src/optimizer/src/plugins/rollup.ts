@@ -232,6 +232,12 @@ export function normalizeRollupOutputOptionsObject(
     outputOpts.exports = 'auto';
   }
 
+  /**
+   * Transitive imports must not be hoisted. Otherwise, the bundle-graph static imports will be
+   * incorrect; leading to over-preloading.
+   */
+  outputOpts.hoistTransitiveImports = false;
+
   return outputOpts;
 }
 

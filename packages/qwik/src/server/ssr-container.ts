@@ -272,7 +272,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     await _walkJSX(this, jsx, {
       currentStyleScoped: null,
       parentComponentFrame: this.getComponentFrame(),
-      isBackpatching: true,
     });
     await this.closeContainer();
   }
@@ -1014,7 +1013,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             await _walkJSX(this, children, {
               currentStyleScoped: scopedStyleId,
               parentComponentFrame: null,
-              isBackpatching: true,
             });
             this.closeFragment();
           } else {

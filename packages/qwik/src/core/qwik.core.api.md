@@ -1940,7 +1940,6 @@ export const _waitUntilRendered: (elm: Element) => Promise<void>;
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-    isBackpatching: boolean;
 }): Promise<void>;
 
 // @public

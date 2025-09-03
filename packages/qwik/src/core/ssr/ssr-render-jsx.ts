@@ -49,10 +49,6 @@ class ParentComponentData {
 }
 class MaybeAsyncSignal {}
 
-class BackpatchScopeData {
-  constructor(public $isBackpatching$: boolean) {}
-}
-
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
   | JSXOutput
@@ -62,7 +58,6 @@ type StackValue = ValueOrPromise<
   | ParentComponentData
   | AsyncGenerator
   | typeof MaybeAsyncSignal
-  | BackpatchScopeData
 >;
 
 /** @internal */
@@ -72,7 +67,6 @@ export async function _walkJSX(
   options: {
     currentStyleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-    isBackpatching: boolean;
   }
 ): Promise<void> {
   const stack: StackValue[] = [value];
@@ -92,9 +86,6 @@ export async function _walkJSX(
         const trackFn = stack.pop() as () => StackValue;
         await retryOnPromise(() => stack.push(trackFn()));
         continue;
-      } else if (value instanceof BackpatchScopeData) {
-        options.isBackpatching = value.$isBackpatching$;
-        continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
           stack.push(await (stack.pop() as Promise<JSXOutput>));
@@ -106,7 +97,6 @@ export async function _walkJSX(
       processJSXNode(ssr, enqueue, value as JSXOutput, {
         styleScoped: options.currentStyleScoped,
         parentComponentFrame: options.parentComponentFrame,
-        isBackpatching: options.isBackpatching,
       });
     }
   };
@@ -120,7 +110,6 @@ function processJSXNode(
   options: {
     styleScoped: string | null;
     parentComponentFrame: ISsrComponentFrame | null;
-    isBackpatching: boolean;
   }
 ) {
   // console.log('processJSXNode', value);
@@ -155,7 +144,6 @@ function processJSXNode(
           await _walkJSX(ssr, chunk as JSXOutput, {
             currentStyleScoped: options.styleScoped,
             parentComponentFrame: options.parentComponentFrame,
-            isBackpatching: options.isBackpatching,
           });
           ssr.commentNode(FLUSH_COMMENT);
         }
@@ -179,13 +167,11 @@ function processJSXNode(
           varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
-            isBackpatching: options.isBackpatching,
             key: jsx.key,
           }),
           constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
-            isBackpatching: options.isBackpatching,
           }),
           qwikInspectorAttrValue
         );
@@ -265,7 +251,6 @@ function processJSXNode(
                 await _walkJSX(ssr, chunk as JSXOutput, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
-                  isBackpatching: options.isBackpatching,
                 });
                 ssr.commentNode(FLUSH_COMMENT);
               },
@@ -322,7 +307,6 @@ function processJSXNode(
 interface SsrAttrsOptions {
   serializationCtx: SerializationContext;
   styleScopedId: string | null;
-  isBackpatching: boolean;
   key?: string | null;
 }
 

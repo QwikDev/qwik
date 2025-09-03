@@ -70,5 +70,6 @@
     "test.unit": "vitest",
     "test.watch": "vitest --watch"
   },
-  "type": "module"
+  "type": "module",
+  "sideEffects": false
 }

@@ -171,5 +171,6 @@
     "directory": "packages/qwik"
   },
   "type": "module",
-  "types": "./dist/core.d.ts"
+  "types": "./dist/core.d.ts",
+  "sideEffects": false
 }

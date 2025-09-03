@@ -65,5 +65,6 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./lib/types/index.qwik.d.ts"
+  "types": "./lib/types/index.qwik.d.ts",
+  "sideEffects": false
 }

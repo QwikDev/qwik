@@ -76,7 +76,12 @@ async function runNext(
     const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
     isValidURL(requestEv.originalUrl);
   } catch {
-    return new ServerError(404, '');
+    const status = 404;
+    const message = 'Resource Not Found';
+    requestEv.status(status);
+    const html = getErrorHtml(status, message);
+    requestEv.html(status, html);
+    return new ServerError(status, message);
   }
 
   let rewriteAttempt = 1;

@@ -36,5 +36,6 @@
     "build": "vite build --mode lib"
   },
   "type": "module",
-  "types": "./lib/types/index.d.ts"
+  "types": "./lib/types/index.d.ts",
+  "sideEffects": false
 }

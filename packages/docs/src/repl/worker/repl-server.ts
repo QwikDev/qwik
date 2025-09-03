@@ -96,6 +96,15 @@ export const initReplServer = (win: Window, doc: Document, nav: Navigator) => {
     nav.serviceWorker.addEventListener('message', receiveMessageFromSw);
     win.addEventListener('message', receiveMessageFromUserApp);
 
+    // Initialize the request worker
+    if (swRegistration && swRegistration.active) {
+      swRegistration.active.postMessage({
+        type: 'init-request-worker',
+        clientId: clientId,
+        workerUrl: new URL('/repl/repl-request-worker.js', win.location.origin).href,
+      });
+    }
+
     sendMessageToMain({ type: 'replready', clientId: clientId! });
   };
 

@@ -14,10 +14,10 @@ import type { ReplStore, ReplUpdateMessage, ReplMessage, ReplAppInput } from './
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
 import { updateReplOutput } from './repl-output-update';
-import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from './bundled';
+import { QWIK_PKG_NAME, bundled, getNpmCdnUrl } from '../bundler/bundled';
 import { isServer } from '@builder.io/qwik';
-import { loadDependencies } from './worker/repl-dependencies-main';
-import { appBundleClient, appBundleSsr, appSsrHtml } from './worker/repl-builder';
+import { loadDependencies } from '../bundler/repl-dependencies-main';
+import { appBundleClient, appBundleSsr, appSsrHtml } from '../bundler/repl-builder';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);

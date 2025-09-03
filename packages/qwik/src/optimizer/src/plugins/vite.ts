@@ -229,6 +229,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
             '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
             '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/backpatch': '@qwik.dev/core/backpatch',
             '@builder.io/qwik/cli': '@qwik.dev/core/cli',
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },

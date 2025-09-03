@@ -497,9 +497,7 @@ number
 
 </td><td>
 
-_(Optional)_ The minimum probability for a bundle to be added to the preload queue.
-
-Defaults to `0.35` (35% probability)
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -517,6 +515,8 @@ number
 _(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
 
 Defaults to `0.7` (70% probability)
+
+This makes sure that the most likely bundles are preloaded ahead of time.
 
 </td></tr>
 <tr><td>

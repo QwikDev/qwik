@@ -542,23 +542,6 @@
     "tags": "portfolio"
   },
   {
-    "title": "Home Page | Puzzled By C#",
-    "imgSrc": "/showcases/puzzledbycsharp_com_.webp",
-    "perf": {
-      "score": 0.93,
-      "lcpDisplay": "3.2 s",
-      "lcpScore": 0.74,
-      "clsScore": null,
-      "fcpDisplay": "1.7 s",
-      "fcpScore": 0.93,
-      "ttiDisplay": "3.2 s",
-      "ttiScore": 0.95,
-      "ttiTime": 3151.8226019740177
-    },
-    "href": "https://puzzledbycsharp.com/",
-    "tags": "site"
-  },
-  {
     "title": "Necati Koçlu - Front-end Developer",
     "imgSrc": "/showcases/necatikcl_dev_.webp",
     "perf": {
@@ -699,23 +682,6 @@
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
-  },
-  {
-    "title": "Anirban Das - Fullstack Developer & UX Designer",
-    "imgSrc": "/showcases/www_anirbandas_in_.webp",
-    "perf": {
-      "score": 0.93,
-      "lcpDisplay": "2.6 s",
-      "lcpScore": 0.88,
-      "clsScore": null,
-      "fcpDisplay": "2.6 s",
-      "fcpScore": 0.65,
-      "ttiDisplay": "2.6 s",
-      "ttiScore": 0.98,
-      "ttiTime": 2559.256468312007
-    },
-    "href": "https://www.anirbandas.in/",
-    "tags": "portfolio"
   },
   {
     "title": "Polaris: Developer Analytics",

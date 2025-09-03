@@ -23,8 +23,8 @@ test('qwikloader script', () => {
   const compressed = compress(Buffer.from(qwikLoader), { mode: 1, quality: 11 });
   expect([compressed.length, qwikLoader.length]).toMatchInlineSnapshot(`
     [
-      1426,
-      3117,
+      1417,
+      3100,
     ]
   `);
   expect(qwikLoader).toMatchInlineSnapshot(

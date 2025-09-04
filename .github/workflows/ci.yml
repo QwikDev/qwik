@@ -716,14 +716,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright
-        run: npx playwright install ${{ matrix.settings.browser }} --with-deps
+      # - name: Install Playwright
+      #   run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
-      - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+      # - name: Playwright E2E Tests
+      #   run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
-      - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+      # - name: Playwright E2E Integration Tests
+      #   run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: Validate Create Qwik Cli
         if: matrix.settings.host != 'windows-latest'

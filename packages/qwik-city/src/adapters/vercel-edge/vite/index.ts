@@ -74,7 +74,7 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       // https://vercel.com/docs/build-output-api/v3#vercel-primitives/edge-functions/configuration
       const vcConfigPath = join(serverOutDir, '.vc-config.json');
       const vcConfig = {
-        runtime: 'edge',
+        runtime: 'nodejs',
         entrypoint,
         envVarsInUse: opts.vcConfigEnvVarsInUse,
       };

@@ -33,7 +33,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
     try {
       // eslint-disable-next-line no-console
       console.log('request.url', request.url, process.env['VERCEL_URL']);
-      const url = new URL(request.url, process.env['VERCEL_URL']);
+      const url = new URL(request.url, 'https://' + process.env['VERCEL_URL']);
 
       if (isStaticPath(request.method, url)) {
         // known static path, let vercel handle it

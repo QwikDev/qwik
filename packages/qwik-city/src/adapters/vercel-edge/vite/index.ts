@@ -75,9 +75,8 @@ export function vercelEdgeAdapter(opts: VercelEdgeAdapterOptions = {}): any {
       const vcConfigPath = join(serverOutDir, '.vc-config.json');
       const vcConfig = {
         runtime: 'nodejs22.x',
-        entrypoint,
-        shouldAddHelpers: false,
-        envVarsInUse: opts.vcConfigEnvVarsInUse,
+        handler: entrypoint,
+        launcherType: 'Nodejs',
       };
       await fs.promises.writeFile(vcConfigPath, JSON.stringify(vcConfig, null, 2));
 

@@ -31,9 +31,7 @@ export function createQwikCity(opts: QwikCityVercelEdgeOptions) {
   }
   async function onVercelEdgeRequest(request: Request) {
     try {
-      // eslint-disable-next-line no-console
-      throw new Error('request.url  --- ' + request.url + ' --- ' + process.env['VERCEL_URL']);
-      const url = new URL(request.url, 'https://' + process.env['VERCEL_URL']);
+      const url = new URL(request.url, process.env['HOST']);
 
       if (isStaticPath(request.method, url)) {
         // known static path, let vercel handle it

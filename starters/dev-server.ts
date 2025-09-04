@@ -272,7 +272,7 @@ function removeDir(dir: string) {
       }
     });
     rmSync(dir);
-  } catch (e) {
+  } catch {
     /**/
   }
 }
@@ -353,6 +353,7 @@ function favicon(_: Request, res: Response) {
 }
 
 async function main() {
+  (globalThis as any).__qwik_test = true;
   await patchGlobalFetch();
 
   const partytownPath = resolve(

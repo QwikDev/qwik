@@ -1,18 +1,19 @@
-import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { qwikInsights } from '@builder.io/qwik-labs/vite';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
+import { partytownVite } from '@qwik.dev/partytown/utils';
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
+import shikiRehype from '@shikijs/rehype';
+import darkPlus from '@shikijs/themes/dark-plus';
+import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+import type { ShikiTransformer } from '@shikijs/types';
+import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
 import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import tailwindcss from '@tailwindcss/vite';
-import shikiRehype from '@shikijs/rehype';
-import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
-import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
-import type { ShikiTransformer } from '@shikijs/types';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -191,7 +192,7 @@ export default defineConfig(async () => {
             [
               shikiRehype,
               {
-                theme: 'dark-plus',
+                theme: darkPlus,
                 transformers: [
                   transformerMetaHighlight(),
                   transformerMetaWordHighlight(),

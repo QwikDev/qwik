@@ -327,13 +327,13 @@ importers:
         specifier: 3.12.2
         version: 3.12.2
       '@shikijs/langs':
-        specifier: ^3.12.2
+        specifier: 3.12.2
         version: 3.12.2
       '@shikijs/rehype':
         specifier: 3.12.2
         version: 3.12.2
       '@shikijs/themes':
-        specifier: ^3.12.2
+        specifier: 3.12.2
         version: 3.12.2
       '@shikijs/transformers':
         specifier: 3.12.2

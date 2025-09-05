@@ -68,6 +68,7 @@ export const Link = component$<LinkProps>((props) => {
   const preventDefault = clientNavPath
     ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
+          (window as any).__qwikPendingFallbackHref = target.href;
           event.preventDefault();
         }
       })
@@ -80,10 +81,12 @@ export const Link = component$<LinkProps>((props) => {
           if (elm.hasAttribute('q:nbs')) {
             // Allow bootstrapping into useNavigate.
             await nav(location.href, { type: 'popstate' });
+            delete (window as any).__qwikPendingFallbackHref;
           } else if (elm.href) {
             elm.setAttribute('aria-pressed', 'true');
             await nav(elm.href, { forceReload: reload, replaceState, scroll });
             elm.removeAttribute('aria-pressed');
+            delete (window as any).__qwikPendingFallbackHref;
           }
         }
       })

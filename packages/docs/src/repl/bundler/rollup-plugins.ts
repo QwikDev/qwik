@@ -48,9 +48,7 @@ export const replResolver = (
         id === '@builder.io/qwik/jsx-runtime' ||
         id === '@builder.io/qwik/jsx-dev-runtime'
       ) {
-        return options.buildMode === 'production'
-          ? '@qwik/dist/core.min.mjs'
-          : '@qwik/dist/core.mjs';
+        return '@qwik/dist/core.mjs';
       }
       if (id === '@builder.io/qwik/server') {
         return '@qwik/dist/server.mjs';

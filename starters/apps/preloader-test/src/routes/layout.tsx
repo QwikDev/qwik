@@ -65,10 +65,10 @@ export default component$(() => {
         <div class="container nav-container">
           <nav class="nav">
             <LinkCmp href="/">Home</LinkCmp>
-            <LinkCmp href="/form">Form</LinkCmp>
-            <LinkCmp href="/about">About</LinkCmp>
+            <LinkCmp href="/form/">Form</LinkCmp>
+            <LinkCmp href="/about/">About</LinkCmp>
             <LinkCmp
-              href="/counters"
+              href="/counters/"
               onQVisible$={() => console.log("visible")}
             >
               Counters

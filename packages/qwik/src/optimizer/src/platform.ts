@@ -62,9 +62,11 @@ export async function getSystem() {
     }
   }
 
-  sys.path = await sys.dynamicImport('node:path');
-  sys.cwd = () => process.cwd();
-  sys.os = process.platform;
+  if (['node', 'bun', 'deno'].includes(sysEnv)) {
+    sys.path = await sys.dynamicImport('node:path');
+    sys.cwd = () => process.cwd();
+    sys.os = process.platform;
+  }
 
   return sys;
 }

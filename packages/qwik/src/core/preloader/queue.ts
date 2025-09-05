@@ -15,6 +15,7 @@ export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
+const MPA_FALLBACK_THRESHOLD = 100;
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
@@ -203,7 +204,23 @@ export const adjustProbabilities = (
        * too.
        */
       let newInverseProbability: number;
-      if (probability === 1 || (probability >= 0.99 && depsCount < 100)) {
+
+      /**
+       * 100 deps to be preloaded at once would mean a ~10s delay on chrome 3G throttling.
+       *
+       * This can happen for Link components as they load all of the route bundles at once, but in
+       * this case we fallback to MPA.
+       *
+       * This should never happen for a normal component. But in case it happens, we set the limit
+       * based on MPA_FALLBACK_THRESHOLD + 1 === 101 (to ensure the fallback works), because if the
+       * user has to wait for 10s before anything happens it is possible that they try to click on
+       * something else, in which case we don't want to block reprioritization of this new event
+       * bundles for too long. (If browsers supported aborting modulepreloads, we wouldn't have to
+       * do this.)
+       *
+       * TODO: Set the limit to a number of kb instead of a number of bundles.
+       */
+      if (probability === 1 || (probability >= 0.99 && depsCount <= MPA_FALLBACK_THRESHOLD + 1)) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
@@ -217,6 +234,8 @@ export const adjustProbabilities = (
         dep.$factor$ = factor;
       }
 
+      dispatchMPAFallback();
+
       adjustProbabilities(depBundle, newInverseProbability, seen);
     }
   }
@@ -225,6 +244,7 @@ export const adjustProbabilities = (
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
+    // prioritize the event bundles first
     adjustProbabilities(bundle, inverseProbability);
   }
 };
@@ -267,3 +287,24 @@ if (isBrowser) {
     }
   });
 }
+
+/**
+ * On chrome 3G throttling, 10kb takes ~1s to download Bundles weight ~1kb on average, so 100
+ * bundles is ~100kb which takes ~10s to download.
+ *
+ * We want to fallback to MPA if more than 100 bundles are queued because MPA is always faster than
+ * ~10s (usually between 3-7s).
+ *
+ * Note: if the next route bundles have already been preloaded, the fallback won't be triggered.
+ *
+ * TODO: get total kb size and compare with 100kb instead of relying on the number of bundles.
+ */
+const dispatchMPAFallback = () => {
+  const nextRouteBundles = queue.filter((item) => item.$inverseProbability$ <= 0.1);
+  if (nextRouteBundles.length >= MPA_FALLBACK_THRESHOLD) {
+    const href = (window as any).__qwikPendingFallbackHref;
+    if (href) {
+      window.location.href = href;
+    }
+  }
+};

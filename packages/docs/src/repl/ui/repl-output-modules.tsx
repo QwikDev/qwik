@@ -1,6 +1,6 @@
 import { $, component$, createSignal, useSignal } from '@builder.io/qwik';
-import { CodeBlock } from '../components/code-block/code-block';
-import type { ReplModuleOutput } from './types';
+import { CodeBlock } from '../../components/code-block/code-block';
+import type { ReplModuleOutput } from '../types';
 const FILE_MODULE_DIV_ID = 'file-modules-client-modules';
 
 export const ReplOutputModules = component$(({ outputs, headerText }: ReplOutputModulesProps) => {

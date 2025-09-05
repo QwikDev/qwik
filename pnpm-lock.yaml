@@ -324,8 +324,8 @@ importers:
         specifier: 0.11.2
         version: 0.11.2
       '@rollup/browser':
-        specifier: ^4.35.0
-        version: 4.50.0
+        specifier: 4.35.0
+        version: 4.35.0
       '@shikijs/colorized-brackets':
         specifier: 3.12.2
         version: 3.12.2
@@ -380,9 +380,6 @@ importers:
       magic-string:
         specifier: 0.30.17
         version: 0.30.17
-      memfs:
-        specifier: ^4.17.0
-        version: 4.34.0
       openai:
         specifier: 3.3.0
         version: 3.3.0
@@ -3288,8 +3285,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  '@rollup/browser@4.50.0':
-    resolution: {integrity: sha512-SENP0x9u6lHdRPdn/KzTAh6NEDGTk8npAEk7IVKTm9UD6Apzb/eli5/wvYyMt5pcqyaEmKuhq0l+K9+Ek7SXeg==}
+  '@rollup/browser@4.35.0':
+    resolution: {integrity: sha512-u+7CgmLnCxbTbovB1kUpTVieDQ9rVJB0zKo8v8hx2AGG5cl/OvxGspx8R4sFRysqN4DgXXR84RPb3dkbxdvmwg==}
 
   '@rollup/pluginutils@5.1.4':
     resolution: {integrity: sha512-USm05zrsFxYLPdWWq+K3STlWiT/3ELn3RcV5hJMghpeAIhxfsUIg6mt12CBJBInWMV4VneoV7SfGv8xIwo2qNQ==}
@@ -3785,6 +3782,9 @@ packages:
 
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
+
+  '@types/estree@1.0.6':
+    resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -12883,9 +12883,9 @@ snapshots:
     dependencies:
       dotenv: 16.5.0
 
-  '@rollup/browser@4.50.0':
+  '@rollup/browser@4.35.0':
     dependencies:
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.6
 
   '@rollup/pluginutils@5.1.4(rollup@4.46.2)':
     dependencies:
@@ -13348,6 +13348,8 @@ snapshots:
   '@types/estree-jsx@1.0.5':
     dependencies:
       '@types/estree': 1.0.8
+
+  '@types/estree@1.0.6': {}
 
   '@types/estree@1.0.8': {}
 

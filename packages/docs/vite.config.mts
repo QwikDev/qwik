@@ -132,7 +132,7 @@ function overrideManualChunksForRepl(): Plugin {
   };
 }
 
-export default defineConfig(async () => {
+export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
     preview: {
@@ -221,6 +221,10 @@ export default defineConfig(async () => {
     ],
     optimizeDeps: {
       include: ['@docsearch/css'],
+      exclude: [
+        // optimizing breaks the wasm import
+        '@rollup/browser',
+      ],
     },
     build: {
       sourcemap: true,

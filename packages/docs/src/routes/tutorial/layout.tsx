@@ -1,7 +1,7 @@
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { useLocation } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/repl';
+import { Repl } from '../../repl/ui';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
@@ -30,7 +30,6 @@ export default component$(() => {
       app: t.app,
       prev: t.prev,
       next: t.next,
-      buildId: 0,
       buildMode: 'development',
       entryStrategy: 'segment',
       files: ensureDefaultFiles(t.app.problemInputs),

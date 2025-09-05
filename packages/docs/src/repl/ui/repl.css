@@ -169,6 +169,21 @@
   height: 100%;
 }
 
+.repl-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  background-color: var(--bg-color);
+  border-radius: 10px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .repl-spinner {
   position: absolute;
   top: 0;

@@ -1,11 +1,35 @@
-import type { Plugin } from 'rollup';
-import type { QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';
-import type { QwikWorkerGlobal } from './repl-service-worker';
+import type { Plugin } from '@rollup/browser';
 import type { MinifyOptions } from 'terser';
-import type { ReplInputOptions } from '../types';
-import { depResponse } from './repl-dependencies';
+import { minify } from 'terser';
+import type { PkgUrls, ReplInputOptions } from '../types';
+import { QWIK_PKG_NAME } from '../repl-constants';
 
-export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 'ssr'): Plugin => {
+export const definesPlugin = (defines: Record<string, string>): Plugin => {
+  return {
+    name: 'repl-defines',
+    transform(code) {
+      const regex = new RegExp(Object.keys(defines).join('|'), 'g');
+      if (!regex.test(code)) {
+        return null;
+      }
+      let didReplace = false;
+      const result = code.replace(regex, (matched) => {
+        if (defines[matched]) {
+          didReplace = true;
+          return defines[matched];
+        }
+        return matched;
+      });
+      return didReplace ? { code: result, map: null } : null;
+    },
+  };
+};
+
+export const replResolver = (
+  deps: PkgUrls,
+  options: Pick<ReplInputOptions, 'srcInputs' | 'buildMode'>,
+  target: 'client' | 'ssr'
+): Plugin => {
   const srcInputs = options.srcInputs;
   const resolveId = (id: string) => {
     return srcInputs.find((i) => i.path === id)?.path;
@@ -24,13 +48,18 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
         id === '@builder.io/qwik/jsx-runtime' ||
         id === '@builder.io/qwik/jsx-dev-runtime'
       ) {
-        return '\0qwikCore';
+        return options.buildMode === 'production'
+          ? '@qwik/dist/core.min.mjs'
+          : '@qwik/dist/core.mjs';
       }
       if (id === '@builder.io/qwik/server') {
-        return '\0qwikServer';
+        return '@qwik/dist/server.mjs';
       }
       if (id === '@builder.io/qwik/preloader') {
-        return '\0qwikPreloader';
+        return '@qwik/dist/preloader.mjs';
+      }
+      if (id === '@builder.io/qwik/qwikloader') {
+        return '@qwik/dist/qwikloader.js';
       }
       // Simple relative file resolution
       if (id.startsWith('./')) {
@@ -50,39 +79,25 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
       if (input && typeof input.code === 'string') {
         return input.code;
       }
-      if (buildMode === 'ssr') {
-        if (id === '\0qwikCore') {
-          return getRuntimeBundle('qwikCore');
-        }
-        if (id === '\0qwikServer') {
-          return getRuntimeBundle('qwikServer');
-        }
-      }
-      if (id === '\0qwikCore') {
-        if (options.buildMode === 'production') {
-          const rsp = await depResponse('@builder.io/qwik', '/core.min.mjs');
-          if (rsp) {
+      if (id.startsWith('@qwik/')) {
+        const path = id.slice(5);
+        const url = deps[QWIK_PKG_NAME][path];
+        if (url) {
+          const rsp = await fetch(url);
+          if (rsp.ok) {
             return rsp.text();
           }
         }
-
-        const rsp = await depResponse('@builder.io/qwik', '/core.mjs');
-        if (rsp) {
-          return rsp.text();
-        }
-        throw new Error(`Unable to load Qwik core`);
+        throw new Error(`Unable to load Qwik module: ${id}`);
       }
-      if (id === '\0qwikPreloader') {
-        const rsp = await depResponse('@builder.io/qwik', '/preloader.mjs');
-        if (rsp) {
-          return rsp.text();
-        }
-      }
-      // this id is unchanged because it's an entry point
       if (id === '@builder.io/qwik/qwikloader.js') {
-        const rsp = await depResponse('@builder.io/qwik', '/qwikloader.js');
-        if (rsp) {
-          return rsp.text();
+        // entry point, doesn't get resolved above somehow
+        const url = deps[QWIK_PKG_NAME]['/dist/qwikloader.js'];
+        if (url) {
+          const rsp = await fetch(url);
+          if (rsp.ok) {
+            return rsp.text();
+          }
         }
       }
       // We're the fallback, we know all the files
@@ -93,21 +108,7 @@ export const replResolver = (options: ReplInputOptions, buildMode: 'client' | 's
   };
 };
 
-const getRuntimeBundle = (runtimeBundle: string) => {
-  const runtimeApi = (self as any)[runtimeBundle];
-  if (!runtimeApi) {
-    throw new Error(`Unable to load Qwik runtime bundle "${runtimeBundle}"`);
-  }
-
-  const exportKeys = Object.keys(runtimeApi);
-  const code = `
-    const { ${exportKeys.join(', ')} } = self.${runtimeBundle};
-    export { ${exportKeys.join(', ')} };
-  `;
-  return code;
-};
-
-export const replCss = (options: ReplInputOptions): Plugin => {
+export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin => {
   const isStylesheet = (id: string) =>
     ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
       id.endsWith(`${ext}?inline`)
@@ -135,16 +136,16 @@ export const replCss = (options: ReplInputOptions): Plugin => {
   };
 };
 
-export const replMinify = (qwikRollupPluginOpts: QwikRollupPluginOptions): Plugin => {
+export const replMinify = (buildMode: ReplInputOptions['buildMode']): Plugin => {
   return {
     name: 'repl-minify',
 
     async generateBundle(_, bundle) {
-      if (qwikRollupPluginOpts.buildMode === 'production') {
+      if (buildMode === 'production') {
         for (const fileName in bundle) {
           const chunk = bundle[fileName];
           if (chunk.type === 'chunk') {
-            const result = await self.Terser?.minify(chunk.code, TERSER_OPTIONS);
+            const result = await minify(chunk.code, TERSER_OPTIONS);
             if (result) {
               chunk.code = result.code!;
             }
@@ -160,5 +161,3 @@ const TERSER_OPTIONS: MinifyOptions = {
   module: true,
   toplevel: true,
 };
-
-declare const self: QwikWorkerGlobal;

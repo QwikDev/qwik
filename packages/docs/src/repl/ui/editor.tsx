@@ -16,8 +16,8 @@ import {
   initMonacoEditor,
   updateMonacoEditor,
 } from './monaco';
-import type { ReplAppInput, ReplStore } from './types';
-import { GlobalStore } from '../context';
+import type { ReplAppInput, ReplStore } from '../types';
+import { GlobalStore } from '../../context';
 
 export const Editor = component$((props: EditorProps) => {
   const hostRef = useSignal<Element>();

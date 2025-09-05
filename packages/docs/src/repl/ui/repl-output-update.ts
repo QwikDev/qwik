@@ -1,4 +1,4 @@
-import type { ReplResult, ReplStore } from './types';
+import type { ReplResult, ReplStore } from '../types';
 
 // TODO fix useStore to recursively notify subscribers
 const deepUpdate = (prev: any, next: any) => {

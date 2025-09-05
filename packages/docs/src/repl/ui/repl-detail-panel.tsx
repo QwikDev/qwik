@@ -1,9 +1,10 @@
-import { QWIK_PKG_NAME, bundled } from './bundled';
+import { bundled } from '../bundler/bundled';
+import { QWIK_PKG_NAME } from '../repl-constants';
+import type { ReplAppInput, ReplStore } from '../types';
 import { ReplConsole } from './repl-console';
 import { ReplOptions } from './repl-options';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplAppInput, ReplStore } from './types';
 
 export const ReplDetailPanel = ({ input, store }: ReplDetailPanelProps) => {
   return (

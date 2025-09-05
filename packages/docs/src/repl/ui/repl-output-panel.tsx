@@ -1,10 +1,10 @@
 import { component$ } from '@builder.io/qwik';
-import { CodeBlock } from '../components/code-block/code-block';
+import { CodeBlock } from '../../components/code-block/code-block';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplAppInput, ReplStore } from './types';
+import type { ReplAppInput, ReplStore } from '../types';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;
@@ -84,20 +84,29 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             'output-app-active': store.selectedOutputPanel === 'app',
           }}
         >
-          {store.isLoading ? (
-            <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-              <circle
-                cx="50"
-                cy="50"
-                r="24"
-                stroke-width="4"
-                stroke-dasharray="37.69911184307752 37.69911184307752"
-                fill="none"
-                stroke-linecap="round"
-              />
-            </svg>
-          ) : null}
-          {store.serverUrl && <iframe class="repl-server" src={store.serverUrl} />}
+          {store.isLoading && (
+            <div class="repl-loading">
+              <svg class="repl-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="24"
+                  stroke-width="4"
+                  stroke-dasharray="37.69911184307752 37.69911184307752"
+                  fill="none"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+          )}
+          {store.reload > 0 && (
+            <iframe
+              key={store.reload}
+              class="repl-server"
+              src={`/repl/${store.replId}/`}
+              sandbox="allow-popups allow-modals allow-scripts allow-same-origin"
+            />
+          )}
         </div>
 
         {store.selectedOutputPanel === 'html' ? (

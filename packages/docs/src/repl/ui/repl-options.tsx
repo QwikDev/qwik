@@ -1,17 +1,8 @@
-import type { ReplAppInput } from './types';
+import type { ReplAppInput } from '../types';
 
 export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) => {
   return (
     <div class="output-detail detail-options">
-      <StoreOption
-        label="Entry Strategy"
-        inputProp="entryStrategy"
-        options={ENTRY_STRATEGY_OPTIONS}
-        input={input}
-      />
-
-      <StoreOption label="Mode" inputProp="buildMode" options={BUILD_MODE_OPTIONS} input={input} />
-
       <StoreOption
         label="Version"
         inputProp="version"
@@ -19,6 +10,15 @@ export const ReplOptions = ({ input, versions, qwikVersion }: ReplOptionsProps) 
         labels={{ bundled: qwikVersion }}
         input={input}
         isLoading={versions.length === 0}
+      />
+
+      <StoreOption label="Mode" inputProp="buildMode" options={BUILD_MODE_OPTIONS} input={input} />
+
+      <StoreOption
+        label="Entry Strategy"
+        inputProp="entryStrategy"
+        options={ENTRY_STRATEGY_OPTIONS}
+        input={input}
       />
 
       <StoreBoolean label="Debug" inputProp="debug" input={input} />

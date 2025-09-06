@@ -1,5 +1,5 @@
 import type { PropsOf, Component } from '@builder.io/qwik';
-import { CloseIcon } from '../components/svgs/close-icon';
+import { CloseIcon } from '../../components/svgs/close-icon';
 
 export const ReplTabButton: Component<ReplTabButtonProps> = (props) => {
   return (

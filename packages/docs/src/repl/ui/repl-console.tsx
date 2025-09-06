@@ -1,5 +1,5 @@
 import { component$, jsx } from '@builder.io/qwik';
-import type { ReplEvent, ReplStore } from './types';
+import type { ReplEvent, ReplStore } from '../types';
 
 export interface ReplConsoleProps {
   store: ReplStore;

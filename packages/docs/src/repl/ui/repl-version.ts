@@ -1,4 +1,5 @@
-import { QWIK_PKG_NAME, bundled } from './bundled';
+import { bundled } from '../bundler/bundled';
+import { QWIK_PKG_NAME } from '../repl-constants';
 
 const bundledVersion = bundled[QWIK_PKG_NAME].version;
 

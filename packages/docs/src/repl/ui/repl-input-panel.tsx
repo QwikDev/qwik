@@ -3,7 +3,7 @@ import { Editor } from './editor';
 import { ReplCommands } from './repl-commands';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplAppInput, ReplStore } from './types';
+import type { ReplAppInput, ReplStore } from '../types';
 
 export const ReplInputPanel = ({
   input,

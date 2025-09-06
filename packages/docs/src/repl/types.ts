@@ -94,6 +94,34 @@ export interface ReplMessageBase {
   clientId: string;
 }
 
+// SSR Worker message types
+export interface InitSSRMessage {
+  type: 'run-ssr';
+  replId: string;
+}
+
+export interface ExecuteSSRMessage {
+  type: 'execute-ssr';
+  buildId: number;
+  ssrModules: ReplModuleOutput[];
+  baseUrl: string;
+  manifest: QwikManifest | undefined;
+}
+
+export interface SSRResultMessage {
+  type: 'ssr-result';
+  buildId: number;
+  html: string;
+  events: ReplEvent[];
+}
+
+export interface SSRErrorMessage {
+  type: 'ssr-error';
+  buildId: number;
+  error: string;
+  stack?: string;
+}
+
 export type OutputPanel =
   | 'app'
   | 'html'

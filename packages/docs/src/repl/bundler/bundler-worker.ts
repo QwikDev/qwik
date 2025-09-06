@@ -1,8 +1,4 @@
 import { rollup, type OutputAsset, type OutputChunk } from '@rollup/browser';
-import * as prettierHtmlPlugin from 'prettier/plugins/html.js';
-import * as prettierTsxPlugin from 'prettier/plugins/typescript.js';
-// @ts-expect-error prettier/standalone has no types
-import prettier from 'prettier/standalone.mjs';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
 import { QWIK_PKG_NAME } from '../repl-constants';
@@ -110,8 +106,6 @@ const getOutput = (o: OutputChunk | OutputAsset) => {
   f.size = `${f.code.length} B`;
   return f;
 };
-
-const prettierPlugins = [prettierHtmlPlugin, prettierTsxPlugin];
 
 async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const { buildId } = message;
@@ -232,87 +226,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   result.ssrModules = ssrBundle.output.map(getOutput);
 
-  start = performance.now();
-  // Execute SSR to generate HTML
-  result.html = await executeSSR(result, `${baseUrl}build/`, result.manifest);
-  result.events.push({
-    start,
-    end: performance.now(),
-    kind: 'console-log',
-    scope: 'build',
-    message: [`SSR: ${(performance.now() - start).toFixed(2)}ms`],
-  });
-
-  // Format HTML - move this to the UI
-  if (buildMode !== 'production') {
-    try {
-      result.html = await prettier.format(result.html, {
-        parser: 'html',
-        plugins: prettierPlugins,
-      });
-    } catch (e) {
-      console.warn('HTML formatting failed:', e);
-    }
-  }
+  // SSR execution moved to separate SSR worker
+  result.html = '';
 
   return result;
-}
-
-async function executeSSR(result: ReplResult, base: string, manifest: any) {
-  // Create a blob URL for the SSR module
-  const ssrModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
-  if (!ssrModule || typeof ssrModule.code !== 'string') {
-    return;
-  }
-  const blob = new Blob([ssrModule.code], { type: 'application/javascript' });
-  const url = URL.createObjectURL(blob);
-
-  try {
-    const module = await import(/*@vite-ignore*/ url);
-    const server = module.default;
-
-    const render = typeof server === 'function' ? server : server?.render;
-    if (typeof render !== 'function') {
-      throw new Error('Server module does not export default render function');
-    }
-
-    const orig: Record<string, any> = {};
-
-    const wrapConsole = (kind: 'log' | 'warn' | 'error' | 'debug') => {
-      orig[kind] = console[kind];
-      console[kind] = (...args: any[]) => {
-        result.events.push({
-          kind: `console-${kind}` as any,
-          scope: 'ssr',
-          message: args.map((a) => String(a)),
-          start: performance.now(),
-        });
-        orig[kind](...args);
-      };
-    };
-    wrapConsole('log');
-    wrapConsole('warn');
-    wrapConsole('error');
-    wrapConsole('debug');
-
-    const ssrResult = await render({
-      base,
-      manifest,
-      prefetchStrategy: null,
-    }).catch((e: any) => {
-      console.error('SSR failed', e);
-      return {
-        html: `<html><h1>SSR Error</h1><pre><code>${String(e).replaceAll('<', '&lt;')}</code></pre></html>`,
-      };
-    });
-
-    console.log = orig.log;
-    console.warn = orig.warn;
-    console.error = orig.error;
-    console.debug = orig.debug;
-
-    return ssrResult.html;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
 }

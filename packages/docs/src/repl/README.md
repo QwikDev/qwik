@@ -18,16 +18,17 @@ The codebase keeps bundling and heavy work off the main thread by using a web wo
 
 ## Key directories & files
 
+- `repl-sw.ts` and `register-repl-sw.ts`
+  - Service worker script and registration helper. The script is actually served via the route `/src/routes/repl/repl-sw.js/entry.ts`, which becomes the served path `/repl/repl-sw.js`.
+
 - `bundler/`
   - `bundled.tsx` — provides the current development version of Qwik, so that the REPL can show the latest features, and it can work while developing offline.
   - `bundler-registry.ts` — maintains the per-version Qwik WebWorkers.
   - `bundler-worker.ts` — bundles and runs the REPL user code.
-  - `repl-instance.ts` — orchestration or single-instance logic for a REPL embed on a page.
-
-- `repl-sw.ts` and `register-repl-sw.ts`
-  - Service worker script and registration helper. The script is actually served via the route `/src/routes/repl/repl-sw.js/entry.ts`, which becomes the served path `/repl/repl-sw.js`.
+  - `repl-ssr-worker.ts` — executes the SSR bundle in a separate worker served from `/repl/`, so that the imports can be intercepted by the service worker.
 
 - `ui/`
+  - `repl-instance.ts` — orchestration or single-instance logic for a REPL embed on a page.
   - `editor.tsx`, `monaco.tsx` — Monaco editor wiring and editor UI glue.
   - `repl-*.tsx` — UI components for console, input/output panels, tabs, share URL, version display, etc.
 
@@ -44,9 +45,10 @@ The codebase keeps bundling and heavy work off the main thread by using a web wo
 - The iframe requests `/repl/[id]/`
 - The service worker intercepts and sends a message to the REPL instance
 - The REPL instance messages the bundler to bundle the user code
-- The bundler messages the REPL with the result
-- The REPL messages the service worker with the requested file
-- The service worker fullfils the request
+- The bundler messages the REPL instance with the result
+- The REPL instance then runs the SSR bundle in a separate worker, again with messages
+- The REPL instance messages the service worker with the requested file
+- The service worker fulfills the request
 
 ```mermaid
 flowchart TD
@@ -54,9 +56,12 @@ flowchart TD
   ServiceWorker["Service Worker (/repl/*)"]
   ReplInstance["REPL instance"]
   BundlerWorker["Bundler Worker"]
+  SSRWorker["SSR Worker"]
 
   ReplInstance -->|REPL user code| BundlerWorker
 	BundlerWorker -->|ReplResult| ReplInstance
+  ReplInstance -->|SSR bundled code| SSRWorker
+  SSRWorker -->|HTML result| ReplInstance
   ServiceWorker -->|message: fetch pathname| ReplInstance
   Iframe -->|HTTP request| ServiceWorker
   ReplInstance -->|file contents| ServiceWorker
@@ -72,5 +77,3 @@ pnpm docs.dev
 ```
 
 Then visit `/playground`.
-
-- Resource limits & sandboxing: Running arbitrary user code in the browser can be risky — ensure sandboxed iframes and timeouts/limits for executed code to avoid locking the page.

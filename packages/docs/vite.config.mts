@@ -11,9 +11,9 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
-import Inspect from 'vite-plugin-inspect';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -181,6 +181,7 @@ export default defineConfig(() => {
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
       rawSource(),
+      compiledStringPlugin(),
       qwikCity({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
@@ -214,7 +215,6 @@ export default defineConfig(() => {
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),
-      Inspect(),
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
       tailwindcss(),
       overrideManualChunksForRepl(),

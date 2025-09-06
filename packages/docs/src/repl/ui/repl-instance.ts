@@ -10,6 +10,10 @@ import type {
   InitSSRMessage,
   OutgoingMessage as SSROutgoingMessage,
 } from '../bundler/repl-ssr-worker';
+// @ts-expect-error - we don't have types for this yet
+import ssrWorkerStringPre from '../bundler/repl-ssr-worker?compiled-string';
+
+const ssrWorkerString = ssrWorkerStringPre.replace(/DO_NOT_TOUCH_IMPORT/g, 'import');
 
 let channel: BroadcastChannel;
 let registered = false;
@@ -181,6 +185,13 @@ export class ReplInstance {
       throw new Error(`Invalid REPL path ${path}`);
     }
     const [, , ssrFlag, filePath] = match;
+    /**
+     * We must serve the SSR worker string from /repl/ so that the import() inside the worker can be
+     * intercepted by our repl-sw.js
+     */
+    if (ssrFlag && filePath === 'repl-ssr-worker.js') {
+      return ssrWorkerString;
+    }
 
     const ssrPromise = this.ensureBuilt();
     // First wait only for the bundles
@@ -228,8 +239,13 @@ export class ReplInstance {
         return resolve({ html: errorHtml('No SSR module found', 'SSR') });
       }
 
-      // This is ../bundler/ssr-worker.ts but we need to go via an entry.ts
-      const ssrWorker = new Worker(`/repl/repl-ssr-worker.js`, { type: 'module' });
+      /**
+       * We could also serve it from /repl/ directly but then we need to special-case the repl-sw
+       * and then docs.dev mode wouldn't reload the worker
+       */
+      const ssrWorker = new Worker(`/repl/${this.replId}-ssr/repl-ssr-worker.js`, {
+        type: 'module',
+      });
 
       const initMessage: InitSSRMessage = {
         type: 'run-ssr',

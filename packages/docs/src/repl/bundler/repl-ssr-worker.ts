@@ -65,7 +65,8 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
 async function executeSSR(message: InitSSRMessage): Promise<{ html: string; events: any[] }> {
   const { baseUrl, manifest, entry } = message;
 
-  const module = await import(/* @vite-ignore */ `/repl/${replId}-ssr/${entry}`);
+  // @ts-expect-error - we prevent Vite from touching this import and replace it later
+  const module = await DO_NOT_TOUCH_IMPORT(`/repl/${replId}-ssr/${entry}`);
   const server = module.default;
 
   const render = typeof server === 'function' ? server : server?.render;

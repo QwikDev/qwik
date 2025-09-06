@@ -6,6 +6,10 @@ import { registerReplSW } from '../register-repl-sw';
 import type { RequestMessage, ResponseMessage } from '../repl-sw';
 import type { ReplAppInput, ReplResult, ReplStore } from '../types';
 import { updateReplOutput } from './repl-output-update';
+import type {
+  InitSSRMessage,
+  OutgoingMessage as SSROutgoingMessage,
+} from '../bundler/repl-ssr-worker';
 
 let channel: BroadcastChannel;
 let registered = false;
@@ -33,13 +37,12 @@ export class ReplInstance {
     };
   }
 
-  async ensureBuilt() {
+  private buildPromise: Promise<void> | null = null;
+  private bundlePromise: Promise<void> | null = null;
+  async _ensureBundled() {
     if (this.dirtyBundle && this.input.version) {
       // Notice when input changed during build by changing before
       this.dirtyBundle = false;
-      const showLoader = setTimeout(() => {
-        this.store.isLoading = true;
-      }, 400);
       if (!registered) {
         await registerReplSW();
         registered = true;
@@ -68,15 +71,44 @@ export class ReplInstance {
           isLoading: false,
         };
       });
-      clearTimeout(showLoader);
-
-      this.store.isLoading = false;
-      this.store.reload++;
 
       if (this.dirtyBundle) {
         setTimeout(() => this.ensureBuilt(), 50);
       }
     }
+  }
+
+  async _ensureSsr() {
+    if (this.lastResult) {
+      // We clear html when new SSR is needed
+      if (!this.lastResult.html) {
+        const ssrResult = await this.executeSSR(this.lastResult);
+        if (this.lastResult) {
+          this.lastResult.html = ssrResult.html;
+          if (ssrResult.events) {
+            this.lastResult.events.push(...ssrResult.events);
+          }
+        }
+      }
+      updateReplOutput(this.store, this.lastResult);
+    }
+  }
+
+  ensureBuilt() {
+    if (!this.buildPromise) {
+      const showLoader = setTimeout(() => {
+        this.store.isLoading = true;
+      }, 400);
+      this.bundlePromise = this._ensureBundled();
+      this.buildPromise = this.bundlePromise
+        .then(() => this._ensureSsr())
+        .finally(() => {
+          this.buildPromise = null;
+          clearTimeout(showLoader);
+          this.store.isLoading = false;
+        });
+    }
+    return this.buildPromise;
   }
 
   private async rebuild(): Promise<ReplResult> {
@@ -144,29 +176,99 @@ export class ReplInstance {
   };
 
   async getFile(path: string): Promise<string | null> {
-    await this.ensureBuilt();
+    const match = path.match(/\/repl\/([a-z0-9]+)(-ssr)?\/(.*)/);
+    if (!match) {
+      throw new Error(`Invalid REPL path ${path}`);
+    }
+    const [, , ssrFlag, filePath] = match;
 
+    const ssrPromise = this.ensureBuilt();
+    // First wait only for the bundles
+    await this.bundlePromise?.catch(() => {});
     if (!this.lastResult) {
       return null;
     }
 
-    // Remove the /repl/[id] prefix
-    const cleanPath = path.replace(/^\/repl\/[^/]+\//, '/');
-    if (cleanPath === '/index.html' || cleanPath === '/') {
-      return this.lastResult.html || '<html><body>No HTML generated</body></html>';
+    // Serve SSR modules at /server/* path
+    if (ssrFlag) {
+      // vite adds ?import to some imports, remove it for matching
+      const serverPath = filePath.replace(/\?import$/, '');
+      for (const module of this.lastResult.ssrModules) {
+        if (serverPath === module.path) {
+          return module.code;
+        }
+      }
+      return null;
     }
 
+    // Serve client bundles
     for (const bundle of this.lastResult.clientBundles) {
-      if (cleanPath === `/${bundle.path}`) {
+      if (filePath === bundle.path) {
         return bundle.code;
       }
     }
 
+    if (filePath === 'index.html' || filePath === '') {
+      // Here, also wait for SSR
+      await ssrPromise.catch(() => {});
+      return this.lastResult.html || errorHtml('No HTML generated', 'REPL');
+    }
+
     return null;
+  }
+
+  private async executeSSR(result: ReplResult): Promise<{ html: string; events?: any[] }> {
+    /**
+     * We perform SSR in a separate web worker to avoid polluting the main thread, and to prepare
+     * for routed apps, and to allow importing from the generated build with proxied import()
+     */
+    return new Promise((resolve, reject) => {
+      const entryModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
+      if (!entryModule || typeof entryModule.code !== 'string') {
+        return resolve({ html: errorHtml('No SSR module found', 'SSR') });
+      }
+
+      // This is ../bundler/ssr-worker.ts but we need to go via an entry.ts
+      const ssrWorker = new Worker(`/repl/repl-ssr-worker.js`, { type: 'module' });
+
+      const initMessage: InitSSRMessage = {
+        type: 'run-ssr',
+        replId: this.replId,
+        entry: entryModule.path,
+        baseUrl: `/repl/${this.replId}/build/`,
+        manifest: result.manifest,
+      };
+      ssrWorker.postMessage(initMessage);
+
+      ssrWorker.onmessage = (e: MessageEvent<SSROutgoingMessage>) => {
+        const { type } = e.data;
+
+        if (type === 'ssr-result') {
+          resolve({
+            html: e.data.html,
+            events: e.data.events,
+          });
+        } else if (type === 'ssr-error') {
+          resolve({ html: errorHtml(e.data.error, 'SSR') });
+        } else {
+          resolve({ html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR') });
+        }
+        ssrWorker.terminate();
+      };
+
+      ssrWorker.onerror = (error) => {
+        resolve({ html: errorHtml(error, 'SSR ') });
+        ssrWorker.terminate();
+      };
+    });
   }
 
   markDirty(): void {
     this.dirtyBundle = true;
     setTimeout(() => this.ensureBuilt(), 50);
   }
+}
+
+function errorHtml(error: any, type: string) {
+  return `<html><h1>${type} Error</h1><pre><code>${String(error).replaceAll('<', '&lt;')}</code></pre></html>`;
 }

@@ -31,7 +31,7 @@ export const replResolver = (
   target: 'client' | 'ssr'
 ): Plugin => {
   const srcInputs = options.srcInputs;
-  const resolveId = (id: string) => {
+  const getSrcPath = (id: string) => {
     return srcInputs.find((i) => i.path === id)?.path;
   };
 
@@ -39,8 +39,8 @@ export const replResolver = (
     name: 'repl-resolver',
 
     resolveId(id, importer) {
-      // Entry point
-      if (!importer) {
+      // Re-resolve
+      if (id.startsWith('@qwik/')) {
         return id;
       }
       if (
@@ -53,18 +53,23 @@ export const replResolver = (
       if (id === '@builder.io/qwik/server') {
         return '@qwik/dist/server.mjs';
       }
-      if (id === '@builder.io/qwik/preloader') {
+      if (id.includes('@builder.io/qwik/preloader')) {
         return '@qwik/dist/preloader.mjs';
       }
-      if (id === '@builder.io/qwik/qwikloader') {
+      if (id.includes('@builder.io/qwik/qwikloader')) {
         return '@qwik/dist/qwikloader.js';
       }
       // Simple relative file resolution
-      if (id.startsWith('./')) {
-        const extensions = ['', '.tsx', '.ts'];
-        id = id.slice(1);
+      if (/^[./]/.test(id)) {
+        const fileId =
+          id.startsWith('.') && importer
+            ? (importer.replace(/\/[^/]+$/, '') + '/' + id)
+                .replace(/\/\.\//g, '/')
+                .replace(/\/[^/]+\/\.\.\//g, '/')
+            : id;
+        const extensions = ['', '.tsx', '.ts', '.jsx', '.js'];
         for (const ext of extensions) {
-          const path = resolveId(id + ext);
+          const path = getSrcPath(fileId + ext);
           if (path) {
             return path;
           }
@@ -87,16 +92,6 @@ export const replResolver = (
           }
         }
         throw new Error(`Unable to load Qwik module: ${id}`);
-      }
-      if (id === '@builder.io/qwik/qwikloader.js') {
-        // entry point, doesn't get resolved above somehow
-        const url = deps[QWIK_PKG_NAME]['/dist/qwikloader.js'];
-        if (url) {
-          const rsp = await fetch(url);
-          if (rsp.ok) {
-            return rsp.text();
-          }
-        }
       }
       // We're the fallback, we know all the files
       if (/\.[jt]sx?$/.test(id)) {

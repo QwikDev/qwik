@@ -23,6 +23,10 @@ class Bundler {
   initWorker() {
     this.worker = new Worker(new URL('./bundler-worker', import.meta.url), { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
+    this.worker.addEventListener('error', (e: ErrorEvent) => {
+      console.error(`Bundler worker for ${this.version} failed`, e.message);
+      this.terminateWorker();
+    });
 
     const { version } = this;
     const message: InitMessage = {

@@ -269,7 +269,11 @@ export async function configureDevServer(
           });
 
           res.write(
-            END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
+            END_SSR_SCRIPT(
+              opts,
+              opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'),
+              opts.rootDir
+            )
           );
           res.end();
         } else {
@@ -435,10 +439,15 @@ function relativeURL(url: string, base: string) {
   return url;
 }
 
-const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDir: string) => {
+const DEV_QWIK_INSPECTOR = (
+  opts: NormalizedQwikPluginOptions['devTools'],
+  srcDir: string,
+  rootDir: string
+) => {
   const qwikdevtools = {
     hotKeys: opts.clickToSource ?? [],
     srcDir: new URL(srcDir + '/', 'http://local.local').href,
+    rootDir: rootDir,
   };
   return (
     `<script>
@@ -449,12 +458,12 @@ const DEV_QWIK_INSPECTOR = (opts: NormalizedQwikPluginOptions['devTools'], srcDi
   );
 };
 
-const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string) => `
+const END_SSR_SCRIPT = (opts: NormalizedQwikPluginOptions, srcDir: string, rootDir: string) => `
 <style>${VITE_ERROR_OVERLAY_STYLES}</style>
 <script type="module" src="/@vite/client"></script>
 ${errorHost}
 ${perfWarning}
-${DEV_QWIK_INSPECTOR(opts.devTools, srcDir)}
+${DEV_QWIK_INSPECTOR(opts.devTools, srcDir, rootDir)}
 `;
 
 function getViteDevIndexHtml(entryUrl: string, serverData: Record<string, any>) {

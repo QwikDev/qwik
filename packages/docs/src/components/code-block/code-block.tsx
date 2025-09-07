@@ -7,17 +7,17 @@ import {
   type QRL,
   type Signal,
 } from '@builder.io/qwik';
+
 import { CopyCode } from '../copy-code/copy-code-block';
 import styles from './code-block.css?inline';
-import { shikiInstance, SHIKI_THEME, type ShikiLangs } from './shiki-config';
+import { highlight } from './prismjs';
 import { format } from 'prettier/standalone';
 import parserHtml from 'prettier/plugins/html';
 import parserTs from 'prettier/plugins/typescript';
 import parserEstree from 'prettier/plugins/estree';
-
 interface CodeBlockProps {
   path?: string;
-  language?: ShikiLangs;
+  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
   code: string;
   format?: boolean;
   pathInView$?: QRL<(name: string) => void>;
@@ -36,8 +36,10 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
       ? /\.([cm]?[jt]sx?|json)$/.test(props.path)
         ? 'javascript'
         : props.path.endsWith('.html')
-          ? 'html'
-          : null
+          ? 'markup'
+          : props.path.endsWith('.css')
+            ? 'css'
+            : null
       : null);
 
   useStyles$(styles);
@@ -49,7 +51,7 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     if (formatSig.value) {
       try {
         // simple formatting for html and js
-        if (language === 'html') {
+        if (language === 'markup') {
           codeSig.value = await format(props.code, {
             parser: 'html',
             plugins: [parserHtml],
@@ -90,18 +92,14 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
   });
 
   const highlighted =
-    codeSig.value != null &&
-    shikiInstance.codeToHtml(codeSig.value, {
-      lang: language!,
-      theme: SHIKI_THEME,
-    });
+    codeSig.value != null && language ? highlight(codeSig.value, language) : codeSig.value;
   const className = `language-${language}`;
   return (
     <div class="relative">
       <pre class={className} ref={listSig}>
         {highlighted && <code class={className} dangerouslySetInnerHTML={highlighted} />}
       </pre>
-      {(language === 'html' || language === 'javascript') && (
+      {(language === 'markup' || language === 'javascript') && (
         <PrettierToggle bind:value={formatSig} />
       )}
       <CopyCode code={props.code} />

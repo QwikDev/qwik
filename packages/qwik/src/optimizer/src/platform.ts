@@ -61,12 +61,14 @@ export async function getSystem() {
       };
     }
   }
-  try {
-    sys.path = await sys.dynamicImport('node:path');
-    sys.cwd = () => process.cwd();
-    sys.os = process.platform;
-  } catch {
-    // ignore
+  if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
+    try {
+      sys.path = await sys.dynamicImport('node:path');
+      sys.cwd = () => process.cwd();
+      sys.os = process.platform;
+    } catch {
+      // ignore
+    }
   }
 
   return sys;

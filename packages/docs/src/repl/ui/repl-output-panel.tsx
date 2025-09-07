@@ -120,7 +120,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
         ) : null}
 
         {store.selectedOutputPanel === 'clientBundles' ? (
-          <ReplOutputModules headerText="/build/" outputs={store.clientBundles} />
+          <ReplOutputModules headerText="/dist/" outputs={store.clientBundles} />
         ) : null}
 
         {store.selectedOutputPanel === 'serverModules' ? (

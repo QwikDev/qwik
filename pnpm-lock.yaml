@@ -323,6 +323,9 @@ importers:
       '@qwik.dev/partytown':
         specifier: 0.11.2
         version: 0.11.2
+      '@rollup/browser':
+        specifier: 4.35.0
+        version: 4.35.0
       '@shikijs/colorized-brackets':
         specifier: 3.12.2
         version: 3.12.2
@@ -350,6 +353,9 @@ importers:
       '@types/leaflet':
         specifier: 1.9.20
         version: 1.9.20
+      '@types/prismjs':
+        specifier: 1.26.5
+        version: 1.26.5
       '@types/react':
         specifier: 18.3.3
         version: 18.3.3
@@ -386,6 +392,9 @@ importers:
       prism-themes:
         specifier: 1.9.0
         version: 1.9.0
+      prismjs:
+        specifier: 1.30.0
+        version: 1.30.0
       puppeteer:
         specifier: 22.13.1
         version: 22.13.1(typescript@5.4.5)
@@ -3282,6 +3291,9 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  '@rollup/browser@4.35.0':
+    resolution: {integrity: sha512-u+7CgmLnCxbTbovB1kUpTVieDQ9rVJB0zKo8v8hx2AGG5cl/OvxGspx8R4sFRysqN4DgXXR84RPb3dkbxdvmwg==}
+
   '@rollup/pluginutils@5.1.4':
     resolution: {integrity: sha512-USm05zrsFxYLPdWWq+K3STlWiT/3ELn3RcV5hJMghpeAIhxfsUIg6mt12CBJBInWMV4VneoV7SfGv8xIwo2qNQ==}
     engines: {node: '>=14.0.0'}
@@ -3777,6 +3789,9 @@ packages:
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
 
+  '@types/estree@1.0.6':
+    resolution: {integrity: sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==}
+
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -3854,6 +3869,9 @@ packages:
 
   '@types/prismjs@1.26.4':
     resolution: {integrity: sha512-rlAnzkW2sZOjbqZ743IHUhFcvzaGbqijwOu8QZnZCjfQzBqFE3s4lOTJEsxikImav9uzz/42I+O7YUs1mWgMlg==}
+
+  '@types/prismjs@1.26.5':
+    resolution: {integrity: sha512-AUZTa7hQ2KY5L7AmtSiqxlhWxb4ina0yd8hNbl4TWuqnv/pFP0nDMb3YrfSBf4hJVGLh2YEIBfKaBW/9UEl6IQ==}
 
   '@types/prompts@2.4.9':
     resolution: {integrity: sha512-qTxFi6Buiu8+50/+3DGIWLHM6QuWsEKugJnnP6iv2Mc4ncxE4A/OJkjuVOA+5X0X1S/nq5VJRa8Lu+nwcvbrKA==}
@@ -8556,6 +8574,10 @@ packages:
   prism-themes@1.9.0:
     resolution: {integrity: sha512-tX2AYsehKDw1EORwBps+WhBFKc2kxfoFpQAjxBndbZKr4fRmMkv47XN0BghC/K1qwodB1otbe4oF23vUTFDokw==}
 
+  prismjs@1.30.0:
+    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
+    engines: {node: '>=6'}
+
   proc-log@4.2.0:
     resolution: {integrity: sha512-g8+OnU/L2v+wyiVK+D5fA34J7EH8jZ8DDlvwhRCMxmMj7UCBvxiO1mGeN+36JXIKF4zevU4kRBd8lVgG9vLelA==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -12874,6 +12896,10 @@ snapshots:
     dependencies:
       dotenv: 16.5.0
 
+  '@rollup/browser@4.35.0':
+    dependencies:
+      '@types/estree': 1.0.6
+
   '@rollup/pluginutils@5.1.4(rollup@4.46.2)':
     dependencies:
       '@types/estree': 1.0.8
@@ -13336,6 +13362,8 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.8
 
+  '@types/estree@1.0.6': {}
+
   '@types/estree@1.0.8': {}
 
   '@types/express-serve-static-core@4.19.6':
@@ -13415,6 +13443,8 @@ snapshots:
   '@types/phoenix@1.6.6': {}
 
   '@types/prismjs@1.26.4': {}
+
+  '@types/prismjs@1.26.5': {}
 
   '@types/prompts@2.4.9':
     dependencies:
@@ -18942,6 +18972,8 @@ snapshots:
   printable-characters@1.0.42: {}
 
   prism-themes@1.9.0: {}
+
+  prismjs@1.30.0: {}
 
   proc-log@4.2.0: {}
 

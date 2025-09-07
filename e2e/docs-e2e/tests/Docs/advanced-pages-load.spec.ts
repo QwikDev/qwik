@@ -48,12 +48,12 @@ test('Advanced Vite page loads', async ({ page }) => {
 
 test('Advanced Routing page loads', async ({ page }) => {
   await page.goto('/docs/advanced/routing/');
-  await expect(page).toHaveTitle('Advanced Routing | Qwik City 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Advanced Routing | Qwik Router 📚 Qwik Documentation');
 });
 
 test('Advanced Plugins page loads', async ({ page }) => {
   await page.goto('/docs/advanced/plugins/');
-  await expect(page).toHaveTitle('Qwik Plugins | Qwik City 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Qwik Plugins | Qwik Router 📚 Qwik Documentation');
 });
 
 test('Advanced Request Handling page loads', async ({ page }) => {

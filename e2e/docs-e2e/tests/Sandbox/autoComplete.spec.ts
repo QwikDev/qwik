@@ -14,12 +14,12 @@ test.describe('Sandbox Auto-complete Example', () => {
     await expect(page.getByRole('button', { name: 'entry.server.tsx' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'root.tsx' })).toBeVisible();
 
-    const tabButtonsBottom = page.getByText('AppHTMLSymbolsClient');
+    const tabButtonsBottom = page.locator('.repl-tab-buttons-inner');
     await expect(tabButtonsBottom.getByRole('button')).toHaveCount(6);
 
     await expect(tabButtonsBottom.getByRole('button', { name: 'App' })).toBeVisible();
     await expect(tabButtonsBottom.getByRole('button', { name: 'HTML' })).toBeVisible();
-    await expect(tabButtonsBottom.getByRole('button', { name: 'Symbols' })).toBeVisible();
+    await expect(tabButtonsBottom.getByRole('button', { name: 'Segments' })).toBeVisible();
     await expect(tabButtonsBottom.getByRole('button', { name: 'Client Bundles' })).toBeVisible();
     await expect(tabButtonsBottom.getByRole('button', { name: 'SSR Module' })).toBeVisible();
     await expect(tabButtonsBottom.getByRole('button', { name: 'Diagnostics' })).toBeVisible();

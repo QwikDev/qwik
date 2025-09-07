@@ -278,3 +278,33 @@ pre[class*='language-'] > code[class*='language-'] {
   box-shadow: inset 5px 0 0 #f7d87c;
   z-index: 0;
 }
+
+/* Prettier Toggle Styles */
+.prettier-toggle {
+  cursor: pointer;
+  display: inline-block;
+  position: absolute;
+  top: 30px;
+  right: 9px;
+  z-index: 10;
+}
+
+.prettier-toggle span {
+  display: inline-block;
+  padding: 0px 4px;
+  background: #1e1e1e;
+  border: 1px solid #d4d4d4;
+  color: #d4d4d4;
+  font-weight: normal;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.prettier-toggle span.checked {
+  background: #264f78;
+  color: #ffffff;
+  font-weight: bold;
+}
+.prettier-toggle span.checked.error {
+  background: #db4c69;
+}

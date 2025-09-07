@@ -77,8 +77,10 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   }
 };
 
+let version: number[];
 async function loadOptimizer() {
   const qwikDeps = deps[QWIK_PKG_NAME];
+  version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
   const wasmLoader = await import(/* @vite-ignore */ qwikDeps['/bindings/qwik.wasm.mjs']);
 
   const wasmBuffer = await fetch(qwikDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
@@ -109,7 +111,14 @@ const getOutput = (o: OutputChunk | OutputAsset) => {
 
 async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const { buildId } = message;
-  const { srcInputs, buildMode, entryStrategy, replId, debug } = message.data;
+  const { srcInputs, buildMode, entryStrategy: _entryStrategy, replId, debug } = message.data;
+
+  // Handle the renamed entry strategy for older Qwik versions
+  const entryStrategy =
+    _entryStrategy?.type === 'segment' && version[0] < 2 && version[1] < 8
+      ? { type: 'hook' as 'segment' }
+      : _entryStrategy;
+
   let start = performance.now();
 
   const baseUrl = `/repl/${replId}/`;

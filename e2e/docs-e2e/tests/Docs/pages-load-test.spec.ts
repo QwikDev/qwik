@@ -38,12 +38,12 @@ test('docs page loads', async ({ page }) => {
 
   expect(componentsLinksOnPage).toStrictEqual(expectedComponentLinks);
 
-  const qwikCityLinksOnPage = await page
+  const qwikRouterLinksOnPage = await page
     .locator('#qwik-sidebar')
-    .locator('details:has(summary h5:text("Qwik City")) ul li a')
+    .locator('details:has(summary h5:text("Qwik Router")) ul li a')
     .allTextContents();
 
-  const expectedQwikCityLinks = [
+  const expectedQwikRouterLinks = [
     'Overview',
     'Routing',
     'Pages',
@@ -61,7 +61,7 @@ test('docs page loads', async ({ page }) => {
     'API reference',
   ];
 
-  expect(qwikCityLinksOnPage).toStrictEqual(expectedQwikCityLinks);
+  expect(qwikRouterLinksOnPage).toStrictEqual(expectedQwikRouterLinks);
 
   const cookbookLinksOnPage = await page
     .locator('#qwik-sidebar')
@@ -84,6 +84,7 @@ test('docs page loads', async ({ page }) => {
     'Theme Management',
     'Drag & Drop',
     'View Transition',
+    'Detect img tag onLoad',
   ];
 
   // if you are adding a new page to the cookbook, please add a new test for the page to load too
@@ -146,6 +147,7 @@ test('docs page loads', async ({ page }) => {
     'Self-Hosting',
     'Vercel Edge',
     'Static Site',
+    'GitHub Pages',
     'Azion',
   ];
 
@@ -166,6 +168,7 @@ test('docs page loads', async ({ page }) => {
     'Best Practices',
     'Bundle Optimization',
     'Env variables',
+    'Rewrites',
   ];
 
   expect(guidesLinksOnPage).toStrictEqual(expectedGuidesLinks);
@@ -217,12 +220,12 @@ test('docs page loads', async ({ page }) => {
 
   expect(referenceLinksOnPage).toStrictEqual(expectedReferenceLinks);
 
-  const qwikLabsLinksOnPage = await page
+  const ExperimentalLinksOnPage = await page
     .locator('#qwik-sidebar')
-    .locator('details:has(summary h5:text("Qwik Labs 🧪")) ul li a')
+    .locator('details:has(summary h5:text("Experimental 🧪")) ul li a')
     .allTextContents();
 
-  const expectedQwikLabsLinks = [
+  const expectedExperimentalLinks = [
     'Overview',
     'Insights',
     'Typed Routes',
@@ -230,7 +233,7 @@ test('docs page loads', async ({ page }) => {
     'usePreventNavigate',
   ];
 
-  expect(qwikLabsLinksOnPage).toStrictEqual(expectedQwikLabsLinks);
+  expect(ExperimentalLinksOnPage).toStrictEqual(expectedExperimentalLinks);
 
   const communityLinksOnPage = await page
     .locator('#qwik-sidebar')
@@ -249,7 +252,7 @@ test('getting started page loads', async ({ page }) => {
 
 test('Project Structure page loads', async ({ page }) => {
   await page.goto('/docs/project-structure/');
-  await expect(page).toHaveTitle('Project Structure | Qwik City 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('Project Structure | Qwik Router 📚 Qwik Documentation');
 });
 
 test('FAQ page loads', async ({ page }) => {

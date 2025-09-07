@@ -166,7 +166,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             {parsedState.value ? (
               <div>
                 <span class="code-block-info">Parsed State</span>
-                <CodeBlock language="clike" code={parsedState.value} />
+                <CodeBlock language="c" code={parsedState.value} />
               </div>
             ) : null}
             {vdomTree.value ? (

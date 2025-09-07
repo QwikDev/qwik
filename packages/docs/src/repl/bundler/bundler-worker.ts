@@ -196,7 +196,9 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     message: [`Client build: ${(performance.now() - start).toFixed(2)}ms`],
   });
 
-  result.clientBundles = clientBundle.output.map(getOutput);
+  result.clientBundles = clientBundle.output
+    .map(getOutput)
+    .sort((a, b) => a.path.localeCompare(b.path));
 
   start = performance.now();
   // Perform SSR bundle
@@ -233,7 +235,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     message: [`SSR build: ${(performance.now() - start).toFixed(2)}ms`],
   });
 
-  result.ssrModules = ssrBundle.output.map(getOutput);
+  result.ssrModules = ssrBundle.output.map(getOutput).sort((a, b) => a.path.localeCompare(b.path));
 
   // SSR execution moved to separate SSR worker
   result.html = '';

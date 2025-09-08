@@ -14,6 +14,7 @@ import {
   Resource,
   useComputed$,
   createComputed$,
+  useAsyncComputed$,
 } from "@builder.io/qwik";
 import { delay } from "../resource/resource";
 import {
@@ -138,6 +139,7 @@ export const SignalsChildren = component$(() => {
       <Issue4368 />
       <Issue4868 />
       <ManySignals />
+      <AsyncComputedTest />
     </div>
   );
 });
@@ -1275,5 +1277,35 @@ export const ManySignals = component$(() => {
       <div id="many-signals-result">{signals}</div>
       <div id="many-doubles-result">{doubles}</div>
     </>
+  );
+});
+
+export const AsyncComputedTest = component$(() => {
+  const count = useSignal(0);
+  const store = useStore({ multiplier: 2 });
+
+  const asyncComputed = useAsyncComputed$(async ({ track }) => {
+    await new Promise((r) => setTimeout(r, 10));
+    const c = track(count);
+    const m = track(() => store.multiplier);
+    // Simulate async operation
+    return Promise.resolve(c * m);
+  });
+
+  return (
+    <div>
+      <button id="async-computed-btn" onClick$={() => count.value++}>
+        Increment Count
+      </button>
+      <button
+        id="async-computed-multiplier-btn"
+        onClick$={() => store.multiplier++}
+      >
+        Increment Multiplier
+      </button>
+      <div id="async-computed-result">Result: {asyncComputed.value}</div>
+      <div id="async-computed-count">Count: {count.value}</div>
+      <div id="async-computed-multiplier">Multiplier: {store.multiplier}</div>
+    </div>
   );
 });

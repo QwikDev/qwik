@@ -563,6 +563,20 @@
       "mdFile": "qwik.correctedtoggleevent.md"
     },
     {
+      "name": "createAsyncComputed$",
+      "id": "createasynccomputed_",
+      "hierarchy": [
+        {
+          "name": "createAsyncComputed$",
+          "id": "createasynccomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Returns read-only signal that updates when signals used in the `AsyncComputedFn` change. Unlike useAsyncComputed$, this is not a hook and it always creates a new signal.\n\n\n```typescript\ncreateAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nAsyncComputedFn&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.createasynccomputed_.md"
+    },
+    {
       "name": "createComputed$",
       "id": "createcomputed_",
       "hierarchy": [
@@ -1774,7 +1788,7 @@
         }
       ],
       "kind": "Function",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class.ts. Leave this in your app for a while so it uninstalls existing service workers, but don't use it for new projects.\n> \n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    scope?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n    nonce?: string;\n}) => JSXNode<'script'>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;'script'&gt;",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> This is no longer needed as the preloading happens automatically in qrl-class.ts. Leave this in your app for a while so it uninstalls existing service workers, but don't use it for new projects.\n> \n\n\n```typescript\nPrefetchServiceWorker: (opts: {\n    base?: string;\n    scope?: string;\n    path?: string;\n    verbose?: boolean;\n    fetchBundleGraph?: boolean;\n    nonce?: string;\n}) => JSXNode<'script'>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ base?: string; scope?: string; path?: string; verbose?: boolean; fetchBundleGraph?: boolean; nonce?: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nJSXNode&lt;'script'&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/components/prefetch.ts",
       "mdFile": "qwik.prefetchserviceworker.md"
     },
@@ -3025,6 +3039,20 @@
       "mdFile": "qwik.unwrapstore.md"
     },
     {
+      "name": "useAsyncComputed$",
+      "id": "useasynccomputed_",
+      "hierarchy": [
+        {
+          "name": "useAsyncComputed$",
+          "id": "useasynccomputed_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Returns a computed signal which is calculated from the given async function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function can be asynchronous and receives a `track` function to observe changes.\n\n\n```typescript\nuseAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\nAsyncComputedFn&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
+      "mdFile": "qwik.useasynccomputed_.md"
+    },
+    {
       "name": "useComputed$",
       "id": "usecomputed_",
       "hierarchy": [
@@ -3034,7 +3062,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Returns a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\nAsync functions are deprecated because:\n\n- When calculating the first time, it will see it's a promise and it will restart the render function. - Qwik can't track used signals after the first await, which leads to subtle bugs. - Both `useTask$` and `useResource$` are available, without these problems.\n\nIn v2, async functions won't work.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
+      "content": "Returns a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects. If you need a version that accepts async functions, use `useAsyncComputed$`<!-- -->.\n\n\n```typescript\nuseComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[ComputedFn](#computedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[Signal](#signal)<!-- -->&lt;Awaited&lt;T&gt;&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-task.ts",
       "mdFile": "qwik.usecomputed_.md"
     },

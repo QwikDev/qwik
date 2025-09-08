@@ -567,6 +567,33 @@ test.describe("signals", () => {
       await expect(result).toHaveText("1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ");
       await expect(doubles).toHaveText("2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ");
     });
+
+    test("useAsyncComputed$", async ({ page }) => {
+      const countBtn = page.locator("#async-computed-btn");
+      const multiplierBtn = page.locator("#async-computed-multiplier-btn");
+      const result = page.locator("#async-computed-result");
+      const count = page.locator("#async-computed-count");
+      const multiplier = page.locator("#async-computed-multiplier");
+
+      await expect(result).toHaveText("Result: 0");
+      await expect(count).toHaveText("Count: 0");
+      await expect(multiplier).toHaveText("Multiplier: 2");
+
+      await countBtn.click();
+      await expect(result).toHaveText("Result: 2");
+      await expect(count).toHaveText("Count: 1");
+      await expect(multiplier).toHaveText("Multiplier: 2");
+
+      await multiplierBtn.click();
+      await expect(result).toHaveText("Result: 3");
+      await expect(count).toHaveText("Count: 1");
+      await expect(multiplier).toHaveText("Multiplier: 3");
+
+      await countBtn.click();
+      await expect(result).toHaveText("Result: 6");
+      await expect(count).toHaveText("Count: 2");
+      await expect(multiplier).toHaveText("Multiplier: 3");
+    });
   }
 
   tests();

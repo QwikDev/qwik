@@ -31,16 +31,10 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
   deepUpdate(store.clientBundles, result.clientBundles);
   deepUpdate(store.ssrModules, result.ssrModules);
 
-  if (
-    result.events.length !== store.events.length ||
-    result.events.some((ev, i) => ev?.start !== store.events[i]?.start)
-  ) {
-    store.events = result.events;
-  }
-
   if (result.diagnostics.length === 0) {
     if (result.html && store.html !== result.html) {
       store.html = result.html;
+      store.events = result.events;
       store.reload++;
     }
   }

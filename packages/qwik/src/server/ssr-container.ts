@@ -873,7 +873,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
 
-    const scriptAttrs = [ELEMENT_BACKPATCH_EXECUTOR, ''];
+    const scriptAttrs = ['type', ELEMENT_BACKPATCH_EXECUTOR];
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }

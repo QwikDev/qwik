@@ -51,8 +51,6 @@ export {
   Q_PROPS_SEPARATOR,
   ELEMENT_BACKPATCH_DATA,
   ELEMENT_BACKPATCH_EXECUTOR,
-  QBackpatchExecutorSelector,
-  QBackpatchIdSelector,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,

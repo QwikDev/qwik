@@ -5,11 +5,16 @@
  * same container and applying the patches to the DOM elements.
  */
 
-const executorScript = document.querySelector('script[q\\:backpatch-executor]');
+const BACKPATCH_EXECUTOR_SELECTOR = 'script[type="qwik/backpatch-executor"]';
+const BACKPATCH_DATA_SELECTOR = 'script[type="qwik/backpatch"]';
+
+const executorScript = document.querySelector(BACKPATCH_EXECUTOR_SELECTOR);
 if (executorScript) {
-  const container = executorScript.closest('[q\\:container]');
+  const container = executorScript.closest(
+    '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+  );
   if (container) {
-    const script = container.querySelector('script[type="qwik/backpatch"]');
+    const script = container.querySelector(BACKPATCH_DATA_SELECTOR);
     if (script) {
       const data = JSON.parse(script.textContent || '[]');
       const elements: Element[] = [];

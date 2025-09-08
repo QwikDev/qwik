@@ -14,8 +14,6 @@ export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QStylesAllSelector = QStyleSelector + ',' + QStyleSSelector;
-export const QBackpatchIdSelector = 'q\\:bid';
-export const QBackpatchExecutorSelector = 'q\\:backpatch-executor';
 export const QScopedStyle = 'q:sstyle';
 export const QCtxAttr = 'q:ctx';
 export const QBackRefs = 'q:brefs';
@@ -83,7 +81,7 @@ export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
-export const ELEMENT_BACKPATCH_EXECUTOR = 'q:backpatch-executor';
+export const ELEMENT_BACKPATCH_EXECUTOR = 'qwik/backpatch-executor';
 export const Q_PREFIX = 'q:';
 
 /** Non serializable markers - always begins with `:` character */

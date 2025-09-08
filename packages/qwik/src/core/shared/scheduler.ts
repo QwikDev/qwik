@@ -330,6 +330,9 @@ export const createScheduler = (
 
       if (!isUpdatable) {
         if (
+          // backpatching exceptions:
+          // - node prop is allowed because it is used to update the node property
+          // - recompute and schedule effects because it triggers effects (so node prop too)
           chore.$type$ !== ChoreType.NODE_PROP &&
           chore.$type$ !== ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS
         ) {

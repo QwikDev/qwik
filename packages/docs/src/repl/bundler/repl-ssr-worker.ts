@@ -1,6 +1,8 @@
 // SSR Worker - handles server-side rendering execution
 // MUST be served from /repl/ so that its imports are intercepted by the REPL service worker
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+// @ts-expect-error
+import listenerScript from './client-events-listener?compiled-string';
 
 // Worker message types
 interface MessageBase {
@@ -98,12 +100,10 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
     base: baseUrl,
     manifest,
     prefetchStrategy: null,
-  }).catch((e: any) => {
-    console.error('SSR failed', e);
-    return {
-      html: `<html><h1>SSR Error</h1><pre><code>${String(e).replaceAll('<', '&lt;')}</code></pre></html>`,
-    };
   });
+
+  // Inject the event listener script
+  ssrResult.html = ssrResult.html.replace('</body>', `<script>${listenerScript}</script></body>`);
 
   // Restore console methods
   console.log = orig.log;

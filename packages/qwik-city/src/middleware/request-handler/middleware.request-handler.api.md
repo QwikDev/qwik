@@ -100,7 +100,6 @@ export interface RequestEvent<PLATFORM = QwikCityPlatform> extends RequestEventC
 export interface RequestEventAction<PLATFORM = QwikCityPlatform> extends RequestEventCommon<PLATFORM> {
     // (undocumented)
     fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
-    // (undocumented)
     resolveValue: ResolveValue;
 }
 
@@ -149,7 +148,6 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform> extends Request
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform> extends RequestEventAction<PLATFORM> {
     // (undocumented)
     defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
-    // (undocumented)
     resolveValue: ResolveValue;
 }
 

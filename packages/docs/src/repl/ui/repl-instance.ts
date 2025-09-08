@@ -142,13 +142,12 @@ export class ReplInstance {
     const status = fileContent === null ? 404 : error ? 500 : 200;
     const statusText =
       status === 200 ? 'OK' : status === 404 ? 'Not Found' : 'Internal Server Error';
-    const headers: Record<string, string> =
-      status === 200
-        ? {
-            'Content-Type': this.getContentType(url),
-            'Cache-Control': 'no-store, no-cache, max-age=0',
-          }
-        : {};
+    const headers: Record<string, string> = {
+      'Cache-Control': 'no-store, no-cache, max-age=0',
+    };
+    if (status === 200) {
+      headers['Content-Type'] = this.getContentType(url);
+    }
 
     const message: ResponseMessage = {
       type: 'repl-response',
@@ -273,7 +272,7 @@ export class ReplInstance {
       };
 
       ssrWorker.onerror = (error) => {
-        resolve({ html: errorHtml(error, 'SSR ') });
+        resolve({ html: errorHtml('Worker failed to load', 'SSR ') });
         ssrWorker.terminate();
       };
     });

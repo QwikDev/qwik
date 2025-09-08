@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite';
+import { minify } from 'terser';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
 
@@ -55,8 +56,13 @@ export function compiledStringPlugin(): Plugin {
           if (!code!) {
             throw new Error(`Unable to load code for ${originalId}`);
           }
+          const minified = await minify(code);
+          if (!minified.code) {
+            throw new Error(`Unable to minify code for ${originalId}`);
+          }
+          const withoutExports = minified.code.replace('export{}', '').replace(/;+$/g, '');
           return {
-            code: `export default ${JSON.stringify(code)};`,
+            code: `export default ${JSON.stringify(withoutExports)};`,
             map: null,
           };
         }

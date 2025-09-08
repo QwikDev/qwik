@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
-import { ELEMENT_BACKPATCH_DATA, ELEMENT_BACKPATCH_EXECUTOR } from '../../server/qwik-copy';
+import { ELEMENT_BACKPATCH_DATA } from '../../server/qwik-copy';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -43,7 +43,6 @@ describe('SSR Backpatching', () => {
     const { document } = await ssrRenderToDom(<Root />, { debug });
 
     expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     const backpatchedInput = document.querySelector('input');
 
@@ -76,7 +75,6 @@ describe('SSR Backpatching', () => {
     const { document } = await ssrRenderToDom(<Root />, { debug });
 
     expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     expect(logWarnSpy).toHaveBeenCalledTimes(0);
   });
@@ -113,7 +111,6 @@ describe('SSR Backpatching', () => {
     const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
     expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     expect(vNode).toMatchVDOM(
       <Component>
@@ -176,7 +173,6 @@ describe('SSR Backpatching', () => {
     const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
     expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     expect(vNode).toMatchVDOM(
       <Component>
@@ -232,7 +228,6 @@ describe('SSR Backpatching', () => {
       const { document } = await ssrRenderToDom(<Root />, { debug });
 
       expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
       const backpatchedInput = document.querySelector('input');
 
@@ -264,7 +259,6 @@ describe('SSR Backpatching', () => {
       const { document } = await ssrRenderToDom(<Root />, { debug });
 
       expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
       const backpatchedInput = document.querySelector('input');
 
@@ -296,7 +290,6 @@ describe('SSR Backpatching', () => {
       const { document } = await ssrRenderToDom(<Root />, { debug });
 
       expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
       const backpatchedInput = document.querySelector('input');
 
@@ -330,7 +323,6 @@ describe('SSR Backpatching', () => {
       const { document } = await ssrRenderToDom(<Root />, { debug });
 
       expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
       const backpatchedInput = document.querySelector('input');
 
@@ -364,7 +356,6 @@ describe('SSR Backpatching', () => {
       const { document } = await ssrRenderToDom(<Root />, { debug });
 
       expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
-      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
       const backpatchedInput = document.querySelector('input');
 

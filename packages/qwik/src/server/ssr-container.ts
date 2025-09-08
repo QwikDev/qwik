@@ -12,7 +12,6 @@ import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
   DEBUG_TYPE,
   ELEMENT_BACKPATCH_DATA,
-  ELEMENT_BACKPATCH_EXECUTOR,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
@@ -849,7 +848,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
 
-    const scriptAttrs = ['type', ELEMENT_BACKPATCH_EXECUTOR];
+    const scriptAttrs = ['type', 'text/javascript'];
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }

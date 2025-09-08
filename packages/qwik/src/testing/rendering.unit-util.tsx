@@ -53,12 +53,7 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import {
-  DEBUG_TYPE,
-  ELEMENT_BACKPATCH_DATA,
-  ELEMENT_BACKPATCH_EXECUTOR,
-  VirtualType,
-} from '../server/qwik-copy';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import { transformSync } from 'esbuild';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -202,7 +197,6 @@ export async function ssrRenderToDom(
         ((vnode_getElementName(child) === 'script' &&
           (vnode_getAttr(child, 'type') === 'qwik/state' ||
             vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_DATA ||
-            vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_EXECUTOR ||
             vnode_getAttr(child, 'id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
@@ -310,7 +304,15 @@ export function emulateExecutionOfBackpatch(document: Document) {
   });
 
   const code = `try {${result.code}} catch (e) { console.error(e); }`;
-  eval(code);
+  const script = document.createElement('script');
+  document.body.appendChild(script);
+  (document as any).currentScript = script;
+  try {
+    eval(code);
+  } finally {
+    (document as any).currentScript = null;
+    document.body.removeChild(script);
+  }
 }
 
 function renderStyles(getStyles: () => Record<string, string | string[]>) {

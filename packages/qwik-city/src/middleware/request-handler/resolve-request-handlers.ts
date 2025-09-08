@@ -181,7 +181,6 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       requestEv.exit();
       return;
     }
-    let isAction = false;
     const { method } = requestEv;
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
@@ -195,44 +194,45 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
     }
 
     if (routeLoaders.length > 0) {
-      await Promise.all(routeLoaders.map(routeLoader));
-    }
-    function routeLoader(loader: LoaderInternal) {
-      const loaderId = loader.__id;
-      loaders[loaderId] = runValidators(
-        requestEv,
-        loader.__validators,
-        undefined, // data
-        isDev
-      )
-        .then((res) => {
-          if (res.success) {
-            if (isDev) {
-              return measure<Promise<unknown>>(
-                requestEv,
-                loader.__qrl.getSymbol().split('_', 1)[0],
-                () => loader.__qrl.call(requestEv, requestEv)
-              );
+      const resolvedLoadersPromises = routeLoaders.map((loader) => {
+        const loaderId = loader.__id;
+        loaders[loaderId] = runValidators(
+          requestEv,
+          loader.__validators,
+          undefined, // data
+          isDev
+        )
+          .then((res) => {
+            if (res.success) {
+              if (isDev) {
+                return measure<Promise<unknown>>(
+                  requestEv,
+                  loader.__qrl.getSymbol().split('_', 1)[0],
+                  () => loader.__qrl.call(requestEv, requestEv)
+                );
+              } else {
+                return loader.__qrl.call(requestEv, requestEv);
+              }
             } else {
-              return loader.__qrl.call(requestEv, requestEv);
+              return requestEv.fail(res.status ?? 500, res.error);
             }
-          } else {
-            return requestEv.fail(res.status ?? 500, res.error);
-          }
-        })
-        .then((resolvedLoader) => {
-          if (typeof resolvedLoader === 'function') {
-            loaders[loaderId] = resolvedLoader();
-          } else {
-            if (isDev) {
-              verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+          })
+          .then((resolvedLoader) => {
+            if (typeof resolvedLoader === 'function') {
+              loaders[loaderId] = resolvedLoader();
+            } else {
+              if (isDev) {
+                verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+              }
+              loaders[loaderId] = resolvedLoader;
             }
-            loaders[loaderId] = resolvedLoader;
-          }
-          return resolvedLoader;
-        });
+            return resolvedLoader;
+          });
 
-      return loaders[loaderId];
+        return loaders[loaderId];
+      });
+
+      await Promise.all(resolvedLoadersPromises);
     }
 
     if (method === 'POST') {
@@ -256,7 +256,6 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
           if (!result.success) {
             loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
-            //@ts-ignore
             const actionResolved = isDev
               ? await measure(requestEv, action.__qrl.getSymbol().split('_', 1)[0], () =>
                   action.__qrl.call(requestEv, result.data as JSONObject, requestEv)
@@ -265,17 +264,11 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
             if (isDev) {
               verifySerializable(qwikSerializer, actionResolved, action.__qrl);
             }
-
             loaders[selectedActionId] = actionResolved;
-            isAction = true;
           }
         }
       }
     }
-    if (routeLoaders.length > 0 && isAction) {
-      await Promise.all(routeLoaders.map(routeLoader));
-    }
-    isAction = false;
   };
 }
 

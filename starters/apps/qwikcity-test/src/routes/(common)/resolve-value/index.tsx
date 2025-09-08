@@ -1,24 +1,14 @@
 import { component$ } from "@builder.io/qwik";
 import {
-  routeAction$,
   Form,
-  routeLoader$,
-  zod$,
-  z,
   globalAction$,
+  routeAction$,
+  routeLoader$,
+  z,
+  zod$,
 } from "@builder.io/qwik-city";
 
 const useUser = routeLoader$(() => {
-  const user = {
-    firstName: "",
-    lastName: "",
-    test: 11,
-  };
-
-  return user;
-});
-
-const useUserGlobal = routeLoader$(() => {
   const user = {
     firstName: "",
     lastName: "",
@@ -44,11 +34,23 @@ export const useAddUser = routeAction$(
   }),
 );
 
+const useUserGlobal = globalAction$(() => {
+  const user = {
+    firstName: "",
+    lastName: "",
+    test: 11,
+  };
+
+  return user;
+});
+
 export const globalAction = globalAction$(
   async (data, requestEvent) => {
     const res = await requestEvent.resolveValue(useUserGlobal);
-    res.firstName = data.globalfirstName;
-    res.lastName = data.globallastName;
+    if (res) {
+      res.firstName = data.globalfirstName;
+      res.lastName = data.globallastName;
+    }
     return {
       success: true,
       userID: res,
@@ -91,9 +93,9 @@ export default component$(() => {
         </Form>
         {globalstate.value?.success && (
           <>
-            <p>User {globalstate.value.userID.firstName} added successfully</p>
-            <p>User {globalstate.value.userID.lastName} added successfully</p>
-            <p>User {globalstate.value.userID.test} added successfully</p>
+            <p>User {globalstate.value.userID?.firstName} added successfully</p>
+            <p>User {globalstate.value.userID?.lastName} added successfully</p>
+            <p>User {globalstate.value.userID?.test} added successfully</p>
           </>
         )}
       </div>

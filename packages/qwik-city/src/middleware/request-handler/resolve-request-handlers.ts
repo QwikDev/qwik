@@ -194,7 +194,7 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
     }
 
     if (routeLoaders.length > 0) {
-      const resolvedLoadersPromises = routeLoaders.map((loader) => {
+      const resolvedLoadersPromises = routeLoaders.map((loader: LoaderInternal) => {
         const loaderId = loader.__id;
         loaders[loaderId] = runValidators(
           requestEv,

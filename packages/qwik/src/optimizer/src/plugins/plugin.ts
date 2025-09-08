@@ -1,5 +1,6 @@
-/* eslint-disable no-console */
-import type { Rollup, Plugin, ViteDevServer, HmrContext } from 'vite';
+import type { ManualChunksOption } from 'rollup';
+import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/util/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import { createOptimizer } from '../optimizer';
@@ -7,23 +8,21 @@ import type {
   Diagnostic,
   EntryStrategy,
   GlobalInjections,
-  SegmentAnalysis,
   Optimizer,
   OptimizerOptions,
   OptimizerSystem,
   QwikManifest,
+  SegmentAnalysis,
+  ServerQwikManifest,
+  SmartEntryStrategy,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
   TransformOutput,
-  SmartEntryStrategy,
-  ServerQwikManifest,
 } from '../types';
+import { convertManifestToBundleGraph } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isWin, parseId } from './vite-utils';
-import type { BundleGraphAdder } from '..';
-import { convertManifestToBundleGraph } from './bundle-graph';
-import type { ManualChunksOption } from 'rollup';
 
 const REG_CTX_NAME = ['server'];
 
@@ -427,6 +426,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   let resolveIdCount = 0;
+  let doNotEdit = false;
   /**
    * This resolves virtual names and QRL segments/entries. All the rest falls through. We must
    * always return a value for QRL segments because they don't exist on disk.
@@ -445,6 +445,35 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0')) {
       return;
     }
+
+    // Intercept requests to open in editor
+    const editMatch = devServer && /^(.*)\?editor(:(\d+)(:\d+)?)?$/.exec(id);
+    if (editMatch) {
+      // Throttle so we don't open multiple times on re-resolve
+      if (!doNotEdit) {
+        doNotEdit = true;
+        setTimeout(() => (doNotEdit = false), 500);
+
+        const [, origId, location] = editMatch;
+        // Find the actual file on disk by asking vite to resolve it
+        const resolved = await ctx.resolve(origId, importerId);
+        if (resolved) {
+          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          if (file) {
+            const path = `${file}${location}`;
+            try {
+              console.warn(`Opening in editor: ${path}`);
+              const launchEditor = (await import('launch-editor')).default;
+              launchEditor(path);
+            } catch (e: any) {
+              console.error(`Failed to open editor: ${e.message}`);
+            }
+          }
+        }
+      }
+      return { id: `\0editor` };
+    }
+
     const count = resolveIdCount++;
     const isServer = getIsServer(resolveOpts);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
@@ -577,6 +606,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rollup.LoadResult> => {
+    if (id === '\0editor') {
+      // This doesn't get used, but we need to return something
+      return '"opening in editor"';
+    }
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
@@ -850,11 +883,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const debug = (...str: any[]) => {
     if (opts.debug) {
+      // eslint-disable-next-line no-console
       console.debug(`[QWIK PLUGIN: ${id}]`, ...str);
     }
   };
 
   const log = (...str: any[]) => {
+    // eslint-disable-next-line no-console
     console.log(`[QWIK PLUGIN: ${id}]`, ...str);
   };
 

@@ -1,10 +1,10 @@
 import { component$ } from '@builder.io/qwik';
 import { CodeBlock } from '../../components/code-block/code-block';
+import type { ReplAppInput, ReplStore } from '../types';
 import { ReplOutputModules } from './repl-output-modules';
 import { ReplOutputSymbols } from './repl-output-symbols';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
-import type { ReplAppInput, ReplStore } from '../types';
 
 export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProps) => {
   const diagnosticsLen = store.diagnostics.length + store.monacoDiagnostics.length;

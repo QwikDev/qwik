@@ -187,7 +187,7 @@
   "scripts": {
     "build": "cd src/runtime && vite build --mode lib"
   },
+  "sideEffects": false,
   "type": "module",
-  "types": "./lib/index.d.ts",
-  "sideEffects": false
+  "types": "./lib/index.d.ts"
 }

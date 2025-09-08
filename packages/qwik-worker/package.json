@@ -35,7 +35,7 @@
   "scripts": {
     "build": "vite build --mode lib"
   },
+  "sideEffects": false,
   "type": "module",
-  "types": "./lib/types/index.d.ts",
-  "sideEffects": false
+  "types": "./lib/types/index.d.ts"
 }

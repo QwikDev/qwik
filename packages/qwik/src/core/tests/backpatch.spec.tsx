@@ -12,11 +12,13 @@ import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import { vi } from 'vitest';
 import * as logUtils from '../shared/utils/log';
+import { ELEMENT_BACKPATCH_DATA, ELEMENT_BACKPATCH_EXECUTOR } from '../../server/qwik-copy';
 
-const debug = true;
+const debug = false; //true;
+Error.stackTraceLimit = 100;
 
-describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
-  it('handles basic backpatching', async () => {
+describe('SSR Backpatching', () => {
+  it('should handle basic backpatching', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
     const Child = component$(() => {
@@ -40,199 +42,333 @@ describe('SSR Backpatching (attributes only, wrapper-scoped)', () => {
 
     const { document } = await ssrRenderToDom(<Root />, { debug });
 
-    // expect(vNode).toMatchVDOM(
-    //   <Component>
-    //     <input aria-describedby="final-id" />
-    //     <div>child</div>
-    //   </Component>
-    // );
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     const backpatchedInput = document.querySelector('input');
 
-    expect(backpatchedInput).toMatchDOM(`<input aria-describedby="final-id" />`);
+    await expect(backpatchedInput).toMatchDOM(`<input aria-describedby="final-id" />`);
   });
 
-  it('should not log a warning if we are backpatching', async () => {
+  it('should not log a warning if backpatching is used', async () => {
     const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
+    const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');
 
-    const rootContextId = createContextId<RootContext>('root-context');
-
-    type RootContext = {
-      isLabel: Signal<boolean>;
-      isDescription: Signal<boolean>;
-    };
-
-    const Label = component$(() => {
-      const context = useContext(rootContextId);
-
+    const Child = component$(() => {
+      const context = useContext(Ctx);
       useTask$(() => {
-        context.isLabel.value = true;
+        context.descId.value = 'final-id';
       });
-
-      return <div>Label</div>;
+      return <div>child</div>;
     });
 
-    const Sibling = component$(() => {
-      const context = useContext(rootContextId);
-
+    const Root = component$(() => {
+      const descId = useSignal('initial-id');
+      useContextProvider(Ctx, { descId });
       return (
         <>
-          <p>Does Sibling know about Label? {context.isLabel.value ? 'Yes' : 'No'}</p>
-          <p>Does Sibling know about Description? {context.isDescription.value ? 'Yes' : 'No'} </p>
+          <input aria-describedby={descId.value} />
+          <Child />
         </>
       );
     });
 
-    const Description = component$(() => {
-      const context = useContext(rootContextId);
+    const { document } = await ssrRenderToDom(<Root />, { debug });
 
-      useTask$(() => {
-        context.isDescription.value = true;
-      });
-
-      return <div>Description</div>;
-    });
-
-    const Cmp = component$(() => {
-      const isLabel = useSignal(false);
-      const isDescription = useSignal(false);
-
-      const context: RootContext = {
-        isLabel,
-        isDescription,
-      };
-
-      useContextProvider(rootContextId, context);
-
-      return (
-        <>
-          <Label />
-          <Sibling />
-          <Description />
-        </>
-      );
-    });
-
-    await ssrRenderToDom(<Cmp />, { debug });
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
     expect(logWarnSpy).toHaveBeenCalledTimes(0);
   });
 
-  it('nested components: multiple patches for different elements', async () => {
-    const Ctx = createContextId<{ inputId: Signal<string>; labelId: Signal<string> }>('bp-ctx-3');
+  it('should apply multiple patches for the same element', async () => {
+    const Ctx = createContextId<{ id: Signal<string>; label: Signal<string> }>('ctx');
 
     const Label = component$(() => {
       const context = useContext(Ctx);
       useTask$(() => {
-        context.labelId.value = 'final-label-id';
+        context.label.value = 'final-label';
+        context.id.value = 'final-id';
       });
       return <label>Label</label>;
     });
 
-    const Input = component$((props: { 'aria-labelledby': string; id: string }) => {
+    const Input = component$(() => {
       const context = useContext(Ctx);
-      useTask$(() => {
-        context.inputId.value = 'final-input-id';
-      });
-      return <input aria-labelledby={props['aria-labelledby']} id={props.id} />;
+      return <input aria-labelledby={context.label.value} id={context.id.value} />;
     });
 
     const Root = component$(() => {
-      const inputId = useSignal('initial-input-id');
-      const labelId = useSignal('initial-label-id');
-      useContextProvider(Ctx, { inputId, labelId });
+      const id = useSignal('initial-id');
+      const label = useSignal('initial-label');
+      useContextProvider(Ctx, { id, label });
       return (
         <div>
+          <Input />
           <Label />
-          <Input aria-labelledby={labelId.value} id={inputId.value} />
         </div>
       );
     });
 
     const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
           <Component>
-            <label>Label</label>
+            <input aria-labelledby="final-label" id="final-id" />
           </Component>
           <Component>
-            <input aria-labelledby="final-label-id" id="final-input-id" />
+            <label>Label</label>
           </Component>
         </div>
       </Component>
     );
 
     const backpatchedInput = document.querySelector('input');
-    expect(backpatchedInput).toMatchDOM(
-      `<input aria-labelledby="final-label-id" id="final-input-id" />`
+    await expect(backpatchedInput).toMatchDOM(
+      `<input aria-labelledby="final-label" id="final-id" />`
     );
   });
 
-  it('grouped backpatch optimization: demonstrates compression benefits', async () => {
-    const TestContext = createContextId<{
-      sharedValue: Signal<string>;
-      uniqueValue: Signal<string>;
-    }>('test-context');
+  it('should apply multiple patches for different elements', async () => {
+    const Ctx = createContextId<{ id: Signal<string>; label: Signal<string> }>('ctx');
 
-    const TestInput1 = component$(() => {
-      const context = useContext(TestContext);
-      return <input aria-label={context.sharedValue.value} data-testid="input1" />;
-    });
-
-    const TestInput2 = component$(() => {
-      const context = useContext(TestContext);
-      return <input aria-label={context.sharedValue.value} data-testid="input2" />;
-    });
-
-    const TestInput3 = component$(() => {
-      const context = useContext(TestContext);
-      return <input aria-label={context.uniqueValue.value} data-testid="input3" />;
-    });
-
-    const ValueUpdater = component$(() => {
-      const context = useContext(TestContext);
-
+    const Child = component$(() => {
+      const context = useContext(Ctx);
       useTask$(() => {
-        context.sharedValue.value = 'shared-final';
-        context.uniqueValue.value = 'unique-final';
+        context.label.value = 'final-label';
+        context.id.value = 'final-id';
       });
-
-      return <div>updater</div>;
+      return <div>Child</div>;
     });
 
-    const TestRoot = component$(() => {
-      const sharedValue = useSignal('initial-shared');
-      const uniqueValue = useSignal('initial-unique');
+    const Label = component$(() => {
+      const context = useContext(Ctx);
+      return (
+        <label aria-labelledby={context.label.value} id={context.id.value}>
+          Label
+        </label>
+      );
+    });
 
-      useContextProvider(TestContext, { sharedValue, uniqueValue });
+    const Input = component$(() => {
+      const context = useContext(Ctx);
+      return <input aria-labelledby={context.label.value} id={context.id.value} />;
+    });
 
+    const Root = component$(() => {
+      const id = useSignal('initial-id');
+      const label = useSignal('initial-label');
+      useContextProvider(Ctx, { id, label });
       return (
         <div>
-          <TestInput1 />
-          <TestInput2 />
-          <TestInput3 />
-          <ValueUpdater />
+          <Input />
+          <Label />
+          <Child />
         </div>
       );
     });
 
-    const { document } = await ssrRenderToDom(<TestRoot />, { debug });
+    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
 
-    const inputs = document.querySelectorAll('input');
-    expect(inputs).toHaveLength(3);
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
 
-    expect(inputs[0]).toMatchDOM(`<input aria-label="shared-final" data-testid="input1">`);
-    expect(inputs[1]).toMatchDOM(`<input aria-label="shared-final" data-testid="input2">`);
-    expect(inputs[2]).toMatchDOM(`<input aria-label="unique-final" data-testid="input3">`);
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <input aria-labelledby="final-label" id="final-id" />
+          </Component>
+          <Component>
+            <label aria-labelledby="final-label" id="final-id">
+              Label
+            </label>
+          </Component>
+          <Component>
+            <div>Child</div>
+          </Component>
+        </div>
+      </Component>
+    );
 
-    /**
-     * Backpatch data: ["aria-label","shared-final",5,6,"aria-label","unique-final",7] This is
-     * grouped: first group has 2 elements with same attr+value, second group has 1 element Without
-     * grouping it would be:
-     * [5,"aria-label","shared-final",6,"aria-label","shared-final",7,"aria-label","unique-final"]
-     * Grouped format saves 3 items (40% compression in this case)
-     */
+    const backpatchedInput = document.querySelector('input');
+    await expect(backpatchedInput).toMatchDOM(
+      `<input aria-labelledby="final-label" id="final-id" />`
+    );
+    const backpatchedLabel = document.querySelector('label');
+    await expect(backpatchedLabel).toMatchDOM(
+      `<label aria-labelledby="final-label" id="final-id">Label</label>`
+    );
+  });
+
+  describe('removing attributes', () => {
+    it('should remove attribute if the value is undefined', async () => {
+      const Ctx = createContextId<{ descId: Signal<string | undefined> }>('bp-ctx-1');
+
+      const Child = component$(() => {
+        const context = useContext(Ctx);
+        useTask$(() => {
+          context.descId.value = undefined;
+        });
+        return <div>child</div>;
+      });
+
+      const Root = component$(() => {
+        const descId = useSignal<string | undefined>('initial-id');
+        useContextProvider(Ctx, { descId });
+        return (
+          <>
+            <input id="input-id" aria-describedby={descId.value} />
+            <Child />
+          </>
+        );
+      });
+
+      const { document } = await ssrRenderToDom(<Root />, { debug });
+
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
+      const backpatchedInput = document.querySelector('input');
+
+      await expect(backpatchedInput).toMatchDOM(`<input id="input-id" />`);
+    });
+
+    it('should remove attribute if the value is null', async () => {
+      const Ctx = createContextId<{ descId: Signal<string | null> }>('bp-ctx-1');
+
+      const Child = component$(() => {
+        const context = useContext(Ctx);
+        useTask$(() => {
+          context.descId.value = null;
+        });
+        return <div>child</div>;
+      });
+
+      const Root = component$(() => {
+        const descId = useSignal<string | null>('initial-id');
+        useContextProvider(Ctx, { descId });
+        return (
+          <>
+            <input id="input-id" aria-describedby={descId.value!} />
+            <Child />
+          </>
+        );
+      });
+
+      const { document } = await ssrRenderToDom(<Root />, { debug });
+
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
+      const backpatchedInput = document.querySelector('input');
+
+      await expect(backpatchedInput).toMatchDOM(`<input id="input-id" />`);
+    });
+
+    it('should remove attribute if the value is false', async () => {
+      const Ctx = createContextId<{ descId: Signal<boolean> }>('bp-ctx-1');
+
+      const Child = component$(() => {
+        const context = useContext(Ctx);
+        useTask$(() => {
+          context.descId.value = false;
+        });
+        return <div>child</div>;
+      });
+
+      const Root = component$(() => {
+        const descId = useSignal<boolean>(true);
+        useContextProvider(Ctx, { descId });
+        return (
+          <>
+            <input id="input-id" disabled={descId.value!} />
+            <Child />
+          </>
+        );
+      });
+
+      const { document } = await ssrRenderToDom(<Root />, { debug });
+
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
+      const backpatchedInput = document.querySelector('input');
+
+      await expect(backpatchedInput).toMatchDOM(`<input id="input-id" />`);
+    });
+  });
+
+  describe('adding attributes', () => {
+    it('should add attribute if the value was removed', async () => {
+      const Ctx = createContextId<{ descId: Signal<string | undefined> }>('bp-ctx-1');
+
+      const Child = component$(() => {
+        const context = useContext(Ctx);
+        useTask$(() => {
+          context.descId.value = 'final-id';
+        });
+        return <div>child</div>;
+      });
+
+      const Root = component$(() => {
+        const descId = useSignal<string | undefined>(undefined);
+        useContextProvider(Ctx, { descId });
+        return (
+          <>
+            <input id="input-id" aria-describedby={descId.value} />
+            <Child />
+          </>
+        );
+      });
+
+      const { document } = await ssrRenderToDom(<Root />, { debug });
+
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
+      const backpatchedInput = document.querySelector('input');
+
+      await expect(backpatchedInput).toMatchDOM(
+        `<input aria-describedby="final-id" id="input-id" />`
+      );
+    });
+
+    it('should add attribute if the value was false', async () => {
+      const Ctx = createContextId<{ descId: Signal<boolean> }>('bp-ctx-1');
+
+      const Child = component$(() => {
+        const context = useContext(Ctx);
+        useTask$(() => {
+          context.descId.value = true;
+        });
+        return <div>child</div>;
+      });
+
+      const Root = component$(() => {
+        const descId = useSignal<boolean>(false);
+        useContextProvider(Ctx, { descId });
+        return (
+          <>
+            <input id="input-id" disabled={descId.value!} />
+            <Child />
+          </>
+        );
+      });
+
+      const { document } = await ssrRenderToDom(<Root />, { debug });
+
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+      expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_EXECUTOR);
+
+      const backpatchedInput = document.querySelector('input');
+
+      await expect(backpatchedInput).toMatchDOM(`<input disabled="" id="input-id" />`);
+    });
   });
 });

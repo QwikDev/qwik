@@ -80,7 +80,12 @@ import {
   isSelfClosingTag,
   isTagAllowed,
 } from './tag-nesting';
-import { VNodeDataFlag, type RenderOptions, type RenderToStreamResult } from './types';
+import {
+  VNodeDataFlag,
+  type BackpatchEntry,
+  type RenderOptions,
+  type RenderToStreamResult,
+} from './types';
 import { createTimer } from './utils';
 import {
   CLOSE_FRAGMENT,
@@ -196,13 +201,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
-  private backpatchMap = new Map<
-    number,
-    {
-      attrName: string;
-      value: string | boolean | null;
-    }
-  >();
+  private backpatchMap = new Map<number, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -261,10 +260,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): void {
     // we want to always parse as decimal here
     const elementIndex = parseInt(ssrNodeId, 10);
-    this.backpatchMap.set(elementIndex, {
+    const entry: BackpatchEntry = {
       attrName,
       value: serializedValue,
-    });
+    };
+    const entries = this.backpatchMap.get(elementIndex) || [];
+    entries.push(entry);
+    this.backpatchMap.set(elementIndex, entries);
   }
 
   async render(jsx: JSXOutput) {
@@ -822,36 +824,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitPatchDataIfNeeded(): void {
     const patches: (string | number | boolean | null)[] = [];
-    const groupedPatches = new Map<string, number[]>();
-
-    for (const [elementIndex, readData] of this.backpatchMap) {
-      const key = `${readData.attrName}:${String(readData.value)}`;
-      if (!groupedPatches.has(key)) {
-        groupedPatches.set(key, []);
+    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+      for (const backpatchEntry of backpatchEntries) {
+        patches.push(elementIndex, backpatchEntry.attrName, backpatchEntry.value);
       }
-      groupedPatches.get(key)!.push(elementIndex);
-    }
-
-    // this groups multiple instances for more efficient encoding
-    for (const [key, indices] of groupedPatches) {
-      const [attrName, valueStr] = key.split(':');
-
-      let value: string | boolean | null;
-      switch (valueStr) {
-        case 'null':
-          value = null;
-          break;
-        case 'true':
-          value = true;
-          break;
-        case 'false':
-          value = false;
-          break;
-        default:
-          value = valueStr;
-      }
-
-      patches.push(attrName, value, ...indices);
     }
 
     this.backpatchMap.clear();

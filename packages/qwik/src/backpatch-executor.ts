@@ -17,30 +17,28 @@ if (executorScript) {
     const script = container.querySelector(BACKPATCH_DATA_SELECTOR);
     if (script) {
       const data = JSON.parse(script.textContent || '[]');
-      const elements: Element[] = [];
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
-      let n: Node | null = walker.currentNode;
-      while (n) {
-        elements.push(n as Element);
-        n = walker.nextNode();
-      }
+      let currentNode: Node | null = walker.currentNode;
+      let currentNodeIdx = 0;
+      for (let i = 0; i < data.length; i += 3) {
+        const elementIdx = data[i];
+        const attrName = data[i + 1];
+        let value = data[i + 2];
 
-      for (let j = 0; j < data.length; ) {
-        const attr = data[j++];
-        const value = data[j++];
+        while (currentNodeIdx < elementIdx) {
+          currentNode = walker.nextNode();
+          currentNodeIdx++;
+        }
 
-        while (j < data.length && typeof data[j] === 'number') {
-          const idx = +data[j++];
-          const el = elements[idx];
-          if (!el) {
-            continue;
+        const element = currentNode as Element;
+        if (value == null || value === false) {
+          element.removeAttribute(attrName);
+        } else {
+          if (typeof value === 'boolean') {
+            // only true value can be here
+            value = '';
           }
-
-          if (value === null || value === false) {
-            el.removeAttribute(attr);
-          } else {
-            el.setAttribute(attr, value === true ? '' : String(value));
-          }
+          element.setAttribute(attrName, value);
         }
       }
     }

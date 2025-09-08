@@ -53,7 +53,12 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, ELEMENT_BACKPATCH_EXECUTOR, VirtualType } from '../server/qwik-copy';
+import {
+  DEBUG_TYPE,
+  ELEMENT_BACKPATCH_DATA,
+  ELEMENT_BACKPATCH_EXECUTOR,
+  VirtualType,
+} from '../server/qwik-copy';
 import { transformSync } from 'esbuild';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -162,6 +167,9 @@ export async function ssrRenderToDom(
     for (let i = 0; i < funcs.length; i++) {
       console.log(('    ' + i + ':').substring(-4), funcs[i].toString());
     }
+    const backpatchData = container.element.querySelector('script[type="qwik/backpatch"]');
+    console.log('--------------- SERIALIZED BACKPATCH DATA ---------------');
+    console.log('    ' + backpatchData?.textContent || 'No backpatch data found');
     console.log('---------------------------------------------------------');
   }
   const containerVNode = opts.raw
@@ -193,6 +201,7 @@ export async function ssrRenderToDom(
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
           (vnode_getAttr(child, 'type') === 'qwik/state' ||
+            vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_DATA ||
             vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_EXECUTOR ||
             vnode_getAttr(child, 'id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')

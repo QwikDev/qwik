@@ -58,7 +58,7 @@
     "start": "vite --open --mode ssr",
     "test.unit": "vitest"
   },
+  "sideEffects": false,
   "type": "module",
-  "types": "./lib/index.d.ts",
-  "sideEffects": false
+  "types": "./lib/index.d.ts"
 }

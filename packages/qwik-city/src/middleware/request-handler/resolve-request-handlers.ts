@@ -193,45 +193,45 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
       }
     }
 
-    const resolvedLoadersPromises = routeLoaders.map((loader: LoaderInternal) => {
-      const loaderId = loader.__id;
-      loaders[loaderId] = runValidators(
-        requestEv,
-        loader.__validators,
-        undefined, // data
-        isDev
-      )
-        .then((res) => {
-          if (res.success) {
-            if (isDev) {
-              return measure<Promise<unknown>>(
-                requestEv,
-                loader.__qrl.getSymbol().split('_', 1)[0],
-                () => loader.__qrl.call(requestEv, requestEv)
-              );
+    if (routeLoaders.length > 0) {
+      const resolvedLoadersPromises = routeLoaders.map((loader) => {
+        const loaderId = loader.__id;
+        loaders[loaderId] = runValidators(
+          requestEv,
+          loader.__validators,
+          undefined, // data
+          isDev
+        )
+          .then((res) => {
+            if (res.success) {
+              if (isDev) {
+                return measure<Promise<unknown>>(
+                  requestEv,
+                  loader.__qrl.getSymbol().split('_', 1)[0],
+                  () => loader.__qrl.call(requestEv, requestEv)
+                );
+              } else {
+                return loader.__qrl.call(requestEv, requestEv);
+              }
             } else {
-              return loader.__qrl.call(requestEv, requestEv);
+              return requestEv.fail(res.status ?? 500, res.error);
             }
-          } else {
-            return requestEv.fail(res.status ?? 500, res.error);
-          }
-        })
-        .then((resolvedLoader) => {
-          if (typeof resolvedLoader === 'function') {
-            loaders[loaderId] = resolvedLoader();
-          } else {
-            if (isDev) {
-              verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+          })
+          .then((resolvedLoader) => {
+            if (typeof resolvedLoader === 'function') {
+              loaders[loaderId] = resolvedLoader();
+            } else {
+              if (isDev) {
+                verifySerializable(qwikSerializer, resolvedLoader, loader.__qrl);
+              }
+              loaders[loaderId] = resolvedLoader;
             }
-            loaders[loaderId] = resolvedLoader;
-          }
-          return resolvedLoader;
-        });
+            return resolvedLoader;
+          });
 
-      return loaders[loaderId];
-    });
+        return loaders[loaderId];
+      });
 
-    if (resolvedLoadersPromises.length > 0) {
       await Promise.all(resolvedLoadersPromises);
     }
 
@@ -268,9 +268,6 @@ export function actionsMiddleware(routeActions: ActionInternal[], routeLoaders: 
           }
         }
       }
-    }
-    if (resolvedLoadersPromises.length > 0) {
-      await Promise.all(resolvedLoadersPromises);
     }
   };
 }

@@ -14,7 +14,7 @@
     "typescript": "5.4.5",
     "typescript-eslint": "8.38.0",
     "undici": "*",
-    "vite": "7.1.3",
+    "vite": "7.1.4",
     "zod": "3.25.48"
   },
   "engines": {
@@ -58,6 +58,7 @@
     "start": "vite --open --mode ssr",
     "test.unit": "vitest"
   },
+  "sideEffects": false,
   "type": "module",
   "types": "./lib/index.d.ts"
 }

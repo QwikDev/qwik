@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
 import dtsPlugin from 'vite-plugin-dts';
-import { compiledStringPlugin } from './compiled-string-plugin';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
 
 export default defineConfig(() => {
   return {

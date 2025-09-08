@@ -6,6 +6,7 @@ import {
   useTask$,
   useVisibleTask$,
   $,
+  useOnWindow,
 } from '@builder.io/qwik';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
@@ -102,6 +103,21 @@ export const Repl = component$((props: ReplProps) => {
 
     store.instance?.markDirty();
   });
+
+  // Messages from ../bundler/client-events-listener.ts
+  useOnWindow(
+    'message',
+    $((event: MessageEvent) => {
+      if (
+        event.data &&
+        event.data.type === 'event' &&
+        event.data.replId === store.replId &&
+        event.data.event
+      ) {
+        store.events.push(event.data.event);
+      }
+    })
+  );
 
   return (
     <>

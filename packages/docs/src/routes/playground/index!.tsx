@@ -44,8 +44,8 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
-    track(() => store.files);
     track(() => store.version);
+    track(() => store.files.forEach((f) => f.code));
 
     if (isBrowser) {
       if (store.version) {

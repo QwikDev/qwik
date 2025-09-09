@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3621
+assertion_line: 3622
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -62,8 +61,9 @@ export const test_component_LUXeXe0DQrg = (_rawProps)=>{
         id: _wrapProp(_rawProps, "id")
     }, null, [
         /*#__PURE__*/ _jsxSplit("span", {
-            ..._getVarProps(rest)
-        }, _getConstProps(rest), [
+            ..._getVarProps(rest),
+            ..._getConstProps(rest)
+        }, null, [
             _wrapProp(_rawProps, "message"),
             " ",
             _wrapProp(_rawProps, "count")
@@ -75,7 +75,7 @@ export const test_component_LUXeXe0DQrg = (_rawProps)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;4BAAS;0BAAA;;YACD;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAK4B;;;;;;IACzB,MAAM,UAAU,SAAS;QAAE,SAAS;IAAE,GAAG;QAAE,UAAU;IAAM;IAC3D,QAAQ,OAAO;IACf,MAAM,YAAY,QAAQ,OAAO,GAAG;IACpC,qBACC,WAAC;QAAI,EAAE;;sBACN,UAAC;4BAAS;8BAAA;;;YACD;;;sBAET,WAAC;YAAI,OAAM;WAAW;;AAGzB\"}")
 /*
 {
   "origin": "test.tsx",

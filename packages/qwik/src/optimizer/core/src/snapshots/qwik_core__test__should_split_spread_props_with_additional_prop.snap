@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4453
+assertion_line: 4454
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -31,15 +30,15 @@ import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("div", {
-        ..._getVarProps(props)
+        ..._getVarProps(props),
+        ..._getConstProps(props)
     }, {
-        ..._getConstProps(props),
         test: "test"
     }, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,CAAC;IAC1B,qBACC,UAAC;wBAAQ;;0BAAA;QAAO,MAAK;;AAEvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,CAAC;IAC1B,qBACC,UAAC;wBAAQ;0BAAA;;QAAO,MAAK;;AAEvB\"}")
 /*
 {
   "origin": "test.tsx",

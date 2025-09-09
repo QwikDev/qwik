@@ -1211,6 +1211,7 @@ impl<'a> QwikTransform<'a> {
 				let should_runtime_sort = has_spread_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
+				let props_count = object.props.len();
 
 				for prop in object.props {
 					let mut name_token = false;
@@ -1527,9 +1528,12 @@ impl<'a> QwikTransform<'a> {
 								if spread_props_count > 1 {
 									// Add both spreads to var_props since they'll be combined
 									var_props.push(const_props_call_prop);
-								} else {
-									// Single spread or last spread - keep the original separation
+								} else if spread_props_count == props_count {
+									// Last spread - keep the original separation
 									const_props.push(const_props_call_prop);
+								} else {
+									// Single, not last spread
+									var_props.push(const_props_call_prop);
 								}
 							} else {
 								// If the spread is not an ident, we need to handle it like default spread

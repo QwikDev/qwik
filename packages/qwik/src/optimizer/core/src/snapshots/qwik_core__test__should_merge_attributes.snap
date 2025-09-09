@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4473
+assertion_line: 4600
 expression: output
 ---
 ==INPUT==
@@ -9,9 +9,7 @@ expression: output
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
-			return (
-				<div test="test" {...props}></div>
-			);
+			return <div {...props} class={[props.class, 'component']} />;
 		});
 		
 ============================= test.js ==
@@ -22,22 +20,28 @@ const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAIZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAEZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
+import { _fnSignal } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("div", {
-        test: "test",
         ..._getVarProps(props),
-        ..._getConstProps(props)
+        ..._getConstProps(props),
+        class: _fnSignal((p0)=>[
+                p0.class,
+                'component'
+            ], [
+            props
+        ], '[p0.class,"component"]')
     }, null, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG4B,CAAC;IAC1B,qBACC,UAAC;QAAI,MAAK;wBAAW;0BAAA;;AAEvB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAQ;0BAAA;QAAO,KAAK,kBAAE;gBAAC,GAAM,KAAK;gBAAE;aAAY;;;;AACzD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -54,7 +58,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     78,
-    151
+    159
   ],
   "paramNames": [
     "props"

@@ -3,4 +3,4 @@
 '@builder.io/qwik': patch
 ---
 
-follow version 2 to fix this ts error
+FIX: solve type error when using async _resolved function

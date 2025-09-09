@@ -258,7 +258,7 @@ jobs:
           - host: macos-13
             target: x86_64-apple-darwin
 
-          - host: macos-latest
+          - host: macos-13
             target: aarch64-apple-darwin
 
           - host: windows-latest
@@ -682,7 +682,7 @@ jobs:
           # too slow and flaky. Perhaps better in v2?
           # - host: ubuntu-latest
           #   browser: firefox
-          - host: macos-latest
+          - host: macos-13
             browser: webkit
           - host: windows-latest
             browser: chromium
@@ -720,11 +720,7 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        parallel: 
-        matrix:
-          - SHARD_INDEX: [1,2,3,4]
-            SHARD_TOTAL: 4   
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --shard=$SHARD_INDEX/$SHARD_TOTALs
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 4
 
       - name: Playwright E2E Integration Tests
         run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
@@ -747,7 +743,7 @@ jobs:
       matrix:
         settings:
           - host: ubuntu-latest
-          - host: macos-latest
+          - host: macos-13
           - host: windows-latest
 
     runs-on: ${{ matrix.settings.host }}

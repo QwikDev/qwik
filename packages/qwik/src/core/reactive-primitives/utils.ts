@@ -1,5 +1,6 @@
 import { isDomContainer } from '../client/dom-container';
-import { pad, qwikDebugToString } from '../debug';
+import { qwikDebugToString } from '../debug';
+import { preload } from '../preloader/queue';
 import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined } from '../shared/error/assert';
 import type { Props } from '../shared/jsx/jsx-runtime';
@@ -28,10 +29,13 @@ import {
   type StoreTarget,
 } from './types';
 
-const DEBUG = false;
+const DEBUG = true;
 
-// eslint-disable-next-line no-console
-const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
+const log = (...args: any[]) =>
+  console.warn(
+    'SIGNAL',
+    ...args.map((arg) => (arg && typeof arg === 'object' ? arg : qwikDebugToString(arg)))
+  );
 
 export const throwIfQRLNotResolved = (qrl: QRL) => {
   const resolved = qrl.resolved;
@@ -93,11 +97,14 @@ export const triggerEffects = (
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
+      DEBUG && log('schedule.consumer', consumer);
       const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
       assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
+        // preload(consumer.$qrl$?.$hash$, 1);
+        DEBUG && log('schedule.consumer.task', consumer);
         consumer.$flags$ |= TaskFlags.DIRTY;
-        DEBUG && log('schedule.consumer.task', pad('\n' + String(consumer), '  '));
+
         let choreType = ChoreType.TASK;
         if (consumer.$flags$ & TaskFlags.VISIBLE_TASK) {
           choreType = ChoreType.VISIBLE;
@@ -113,7 +120,6 @@ export const triggerEffects = (
             container.$scheduler$(ChoreType.QRL_RESOLVE, null, consumer.$computeQrl$);
           }
         }
-
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
         const host: HostElement = consumer as any;

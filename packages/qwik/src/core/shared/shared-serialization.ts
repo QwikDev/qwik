@@ -66,6 +66,15 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { isObject } from './utils/types';
+import { qwikDebugToString } from '../debug';
+
+const DEBUG = true;
+
+const log = (...args: any[]) =>
+  console.warn(
+    'SERIALIZATION',
+    ...args.map((arg) => (arg && typeof arg === 'object' ? arg : qwikDebugToString(arg)))
+  );
 
 /** Arrays/Objects are special-cased so their identifiers is a single digit. */
 const needsInflation = (typeId: TypeIds) =>
@@ -181,6 +190,7 @@ export const _eagerDeserializeArray = (
   for (let i = 0; i < data.length; i += 2) {
     out[i / 2] = deserializeData(container, data[i] as TypeIds, data[i + 1]);
   }
+  DEBUG && log('eager deserialized array', out);
   return out;
 };
 
@@ -260,6 +270,7 @@ const inflate = (
       break;
     }
     case TypeIds.Signal: {
+      console.log('new signal', data);
       const signal = target as SignalImpl<unknown>;
       const d = data as [unknown, ...EffectSubscription[]];
       signal.$untrackedValue$ = d[0];
@@ -267,6 +278,8 @@ const inflate = (
       break;
     }
     case TypeIds.WrappedSignal: {
+      console.log('new wrappedsignal', data);
+
       const signal = target as WrappedSignalImpl<unknown>;
       const d = data as [
         number,
@@ -287,6 +300,7 @@ const inflate = (
       break;
     }
     case TypeIds.AsyncComputedSignal: {
+      console.log('new asynccomputedsignal', data);
       const asyncComputed = target as AsyncComputedSignalImpl<unknown>;
       const d = data as [
         AsyncComputeQRL<unknown>,
@@ -314,6 +328,7 @@ const inflate = (
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
+      console.log('new computedsignal', data);
       const computed = target as ComputedSignalImpl<unknown>;
       const d = data as [QRLInternal<() => {}>, EffectSubscription[] | null, unknown?];
       computed.$computeQrl$ = d[0];

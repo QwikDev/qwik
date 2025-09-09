@@ -265,6 +265,7 @@ if (isBrowser) {
   // Get early hints from qwikloader
   document.addEventListener('qsymbol', (ev) => {
     const { symbol, href } = (ev as QwikSymbolEvent).detail;
+    console.log('queue.ts preload qsymbol symbol href', symbol, href);
     // the qrl class doesn't emit href, we don't need to preload
     if (href) {
       const hash = symbol.slice(symbol.lastIndexOf('_') + 1);

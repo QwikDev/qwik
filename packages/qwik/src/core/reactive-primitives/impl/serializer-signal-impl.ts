@@ -13,7 +13,7 @@ import {
 } from '../types';
 import { ComputedSignalImpl } from './computed-signal-impl';
 
-const DEBUG = false;
+const DEBUG = true;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SERIALIZER SIGNAL', ...args.map(qwikDebugToString));
 

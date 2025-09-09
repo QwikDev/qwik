@@ -11,7 +11,7 @@ import { setupSignalValueAccess } from './signal-impl';
 import type { NoSerialize } from '../../shared/utils/serialize-utils';
 import { ChoreType } from '../../shared/util-chore-type';
 
-const DEBUG = false;
+const DEBUG = true;
 const log = (...args: any[]) =>
   // eslint-disable-next-line no-console
   console.log('ASYNC COMPUTED SIGNAL', ...args.map(qwikDebugToString));

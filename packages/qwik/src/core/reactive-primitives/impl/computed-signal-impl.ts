@@ -13,7 +13,7 @@ import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from
 import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 
-const DEBUG = false;
+const DEBUG = true;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('COMPUTED SIGNAL', ...args.map(qwikDebugToString));
 

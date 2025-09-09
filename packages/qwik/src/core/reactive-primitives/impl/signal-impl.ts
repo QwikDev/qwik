@@ -14,7 +14,7 @@ import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 import { ChoreType } from '../../shared/util-chore-type';
 
-const DEBUG = false;
+const DEBUG = true;
 // eslint-disable-next-line no-console
 const log = (...args: any[]) => console.log('SIGNAL', ...args.map(qwikDebugToString));
 

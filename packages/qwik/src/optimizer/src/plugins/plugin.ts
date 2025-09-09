@@ -13,7 +13,6 @@ import type {
   QwikManifest,
   SegmentAnalysis,
   ServerQwikManifest,
-  SmartEntryStrategy,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
@@ -1015,15 +1014,15 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       }
     }
 
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    if (segment) {
-      const { hash } = segment;
-      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-      if (chunkName) {
-        return chunkName;
-      }
-    }
+    // const module = getModuleInfo(id)!;
+    // const segment = module.meta.segment as SegmentAnalysis | undefined;
+    // if (segment) {
+    //   const { hash } = segment;
+    //   const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+    //   if (chunkName) {
+    //     return chunkName;
+    //   }
+    // }
     return null;
   }
 

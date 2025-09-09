@@ -1,7 +1,7 @@
 /** Maintains the state for a REPL instance */
 
 import { isServer, unwrapStore } from '@builder.io/qwik';
-import { getBundler } from '../bundler';
+import { getBundler, ssrWorkerString } from '../bundler';
 import { registerReplSW } from '../register-repl-sw';
 import type { RequestMessage, ResponseMessage } from '../repl-sw';
 import type { ReplAppInput, ReplResult, ReplStore } from '../types';
@@ -10,10 +10,6 @@ import type {
   InitSSRMessage,
   OutgoingMessage as SSROutgoingMessage,
 } from '../bundler/repl-ssr-worker';
-// @ts-expect-error - we don't have types for this yet
-import ssrWorkerStringPre from '../bundler/repl-ssr-worker?compiled-string';
-
-const ssrWorkerString = ssrWorkerStringPre.replace(/DO_NOT_TOUCH_IMPORT/g, 'import');
 
 let channel: BroadcastChannel;
 let registered = false;

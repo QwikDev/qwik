@@ -103,6 +103,14 @@ export interface SSRContainer extends Container {
   emitPreloaderPre(): void;
 
   emitQwikLoaderAtTopIfNeeded(): void;
+
+  emitPatchDataIfNeeded(): void;
+
+  addBackpatchEntry(
+    ssrNodeId: string,
+    attrName: string,
+    serializedValue: string | boolean | null
+  ): void;
 }
 
 /** @public */

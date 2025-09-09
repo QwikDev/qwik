@@ -1,8 +1,6 @@
 // SSR Worker - handles server-side rendering execution
 // MUST be served from /repl/ so that its imports are intercepted by the REPL service worker
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
-// @ts-expect-error
-import listenerScript from './client-events-listener?compiled-string';
 
 // Worker message types
 interface MessageBase {
@@ -67,8 +65,8 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
 async function executeSSR(message: InitSSRMessage): Promise<{ html: string; events: any[] }> {
   const { baseUrl, manifest, entry } = message;
 
-  // @ts-expect-error - we prevent Vite from touching this import and replace it later
-  const module = await DO_NOT_TOUCH_IMPORT(`/repl/${replId}-ssr/${entry}`);
+  // We prevent Vite from touching this import() and replace it after bundling
+  const module = await (globalThis as any).DO_NOT_TOUCH_IMPORT(`/repl/${replId}-ssr/${entry}`);
   const server = module.default;
 
   const render = typeof server === 'function' ? server : server?.render;
@@ -103,7 +101,10 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   });
 
   // Inject the event listener script
-  ssrResult.html = ssrResult.html.replace('</body>', `<script>${listenerScript}</script></body>`);
+  ssrResult.html = ssrResult.html.replace(
+    '</body>',
+    `<script>${(globalThis as any).LISTENER_SCRIPT}</script></body>`
+  );
 
   // Restore console methods
   console.log = orig.log;

@@ -3,12 +3,7 @@ import { renderToStream } from '@builder.io/qwik/server';
 import Root from './root';
 
 // You can pass these as query parameters, as well as `preloadDebug`
-const preloaderSettings = [
-  'ssrPreloads',
-  'ssrPreloadProbability',
-  'maxBufferedPreloads',
-  'preloadProbability',
-] as const;
+const preloaderSettings = ['ssrPreloads', 'ssrPreloadProbability', 'maxIdlePreloads'] as const;
 
 export default function (opts: RenderToStreamOptions) {
   const { serverData } = opts;
@@ -34,10 +29,6 @@ export default function (opts: RenderToStreamOptions) {
     }
   }
   return renderToStream(<Root />, {
-    qwikLoader: {
-      // The docs can be long so make sure to intercept events before the end of the document.
-      position: 'top',
-    },
     ...opts,
     containerAttributes: {
       lang: 'en',

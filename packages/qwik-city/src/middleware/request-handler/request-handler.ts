@@ -1,6 +1,6 @@
 import type { Render } from '@builder.io/qwik/server';
 import { loadRoute } from '../../runtime/src/routing';
-import type { QwikCityPlan } from '../../runtime/src/types';
+import type { RebuildRouteInfoInternal, QwikCityPlan } from '../../runtime/src/types';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikCity, type QwikCityRun } from './user-response';
@@ -25,12 +25,33 @@ export async function requestHandler<T = unknown>(
     checkOrigin ?? true,
     render
   );
+
   if (routeAndHandlers) {
     const [route, requestHandlers] = routeAndHandlers;
+
+    const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+      const matchPathname = getRouteMatchPathname(url.pathname, qwikCityPlan.trailingSlash);
+      const routeAndHandlers = await loadRequestHandlers(
+        qwikCityPlan,
+        matchPathname,
+        serverRequestEv.request.method,
+        checkOrigin ?? true,
+        render
+      );
+
+      if (routeAndHandlers) {
+        const [loadedRoute, requestHandlers] = routeAndHandlers;
+        return { loadedRoute, requestHandlers };
+      } else {
+        return { loadedRoute: null, requestHandlers: [] };
+      }
+    };
+
     return runQwikCity(
       serverRequestEv,
       route,
       requestHandlers,
+      rebuildRouteInfo,
       qwikCityPlan.trailingSlash,
       qwikCityPlan.basePathname,
       qwikSerializer
@@ -43,7 +64,7 @@ async function loadRequestHandlers(
   qwikCityPlan: QwikCityPlan,
   pathname: string,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderFn: Render
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;

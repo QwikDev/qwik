@@ -22,7 +22,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     build: {
       emptyOutDir: false,
       copyPublicDir: false,
-      target: 'es2018',
+      target: 'es2020',
       lib: {
         entry: join(config.srcQwikDir, 'qwikloader.ts'),
         formats: ['es'],
@@ -31,7 +31,6 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       minify: false,
       outDir: config.distQwikPkgDir,
     },
-    // plugins: [debugTerserPlugin()],
   });
 
   // Read the debug version
@@ -47,6 +46,11 @@ export async function submoduleQwikLoader(config: BuildConfig) {
       keep_fargs: false,
       unsafe: true,
       passes: 2,
+    },
+    mangle: {
+      keep_fnames: false,
+      properties: false,
+      toplevel: true,
     },
     // uncomment this to understand the minified version better
     // format: { semicolons: false },

@@ -55,6 +55,6 @@ npm run build.server
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Discord](https://qwik.dev/chat)
 - [Vite](https://vitejs.dev/)
-- [Partytown](https://partytown.builder.io/)
+- [Partytown](https://partytown.qwik.dev/)
 - [Mitosis](https://github.com/BuilderIO/mitosis)
 - [Builder.io](https://www.builder.io/)

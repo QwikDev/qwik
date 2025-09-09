@@ -19,7 +19,6 @@ vite-error-overlay {
 
 vite-error-overlay::part(backdrop) {
   background: rgb(2 11 17 / 60%);
-  backdrop-filter: blur(20px) brightness(0.4) saturate(3);
 }
 
 vite-error-overlay::part(window) {

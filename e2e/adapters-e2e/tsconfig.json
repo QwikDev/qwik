@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "allowJs": true,
-    "target": "ES2017",
+    "target": "ES2020",
     "module": "ES2022",
     "lib": ["es2022", "DOM", "WebWorker", "DOM.Iterable"],
     "jsx": "react-jsx",

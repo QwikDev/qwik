@@ -1,11 +1,18 @@
+import fontlessImage from './blog/(articles)/fontless/fontless-hero.webp';
+import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
+
 export const authors: Record<string, { socialLink: string }> = {
   'The Qwik Team': { socialLink: 'https://bsky.app/profile/qwik.dev' },
-  'Jack Shelton': { socialLink: 'https://twitter.com/TheJackShelton' },
-  'Vishwas Gopinath': { socialLink: 'https://twitter.com/CodevolutionWeb' },
-  'Manu Mtz.-Almeida': { socialLink: 'https://twitter.com/manucorporat' },
-  'Steve Sewell': { socialLink: 'https://twitter.com/steve8708' },
-  'Yoav Ganbar': { socialLink: 'https://twitter.com/HamatoYogi' },
-  'Miško Hevery': { socialLink: 'https://twitter.com/mhevery' },
+  'Jack Shelton': { socialLink: 'https://x.com/TheJackShelton' },
+  'Vishwas Gopinath': { socialLink: 'https://x.com/CodevolutionWeb' },
+  'Manu Mtz.-Almeida': { socialLink: 'https://x.com/manucorporat' },
+  'Steve Sewell': { socialLink: 'https://x.com/steve8708' },
+  'Yoav Ganbar': { socialLink: 'https://x.com/HamatoYogi' },
+  'Miško Hevery': { socialLink: 'https://x.com/mhevery' },
+  'Maïeul Chevalier': { socialLink: 'https://x.com/maiieul' },
+  'Shai Reznik': { socialLink: 'https://x.com/shai_reznik' },
+  'Wout Mertens': { socialLink: 'https://x.com/woutmertens' },
+  'Giorgio Boa': { socialLink: 'https://github.com/gioboa' },
 };
 
 type BlogArticle = {
@@ -19,12 +26,26 @@ type BlogArticle = {
 
 export const blogArticles: BlogArticle[] = [
   {
+    title: 'Effortlessly optimize web fonts with fontless.',
+    image: fontlessImage,
+    path: '/blog/fontless/',
+    tags: ['Fontaine', 'Qwik'],
+    featuredTitlePosition: 'top',
+    readingTime: 2,
+  },
+  {
+    title: 'Introducing the Qwik Preloader',
+    image: preloaderImage,
+    path: '/blog/qwik-1-14-preloader/',
+    tags: ['Qwik'],
+    readingTime: 10,
+  },
+  {
     title: 'Moving Forward Together',
     image:
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F78b0d6ebdc154e2db77876ec00aef6f7',
     path: '/blog/qwik-next-leap/',
     tags: ['Web Development'],
-    featuredTitlePosition: 'top',
     readingTime: 3,
   },
   {

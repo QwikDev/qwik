@@ -71,6 +71,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -493,6 +494,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -556,6 +558,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [CookieValue](#cookievalue) \| null
@@ -614,6 +617,7 @@ any
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -653,6 +657,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 boolean
@@ -711,11 +716,18 @@ cookies
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Headers
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/cookie.ts)
+
+## pathname
+
+```typescript
+readonly pathname: string;
+```
 
 ## RedirectMessage
 
@@ -1020,6 +1032,29 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
 </td></tr>
 <tr><td>
 
+[originalUrl](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+URL
+
+</td><td>
+
+The original HTTP request URL.
+
+This property was introduced to support the rewrite feature.
+
+If rewrite is called, the url property will be changed to the rewritten url. while originalUrl will stay the same(e.g the url inserted to the address bar).
+
+If rewrite is never called as part of the request, the url property and the originalUrl are equal.
+
+</td></tr>
+<tr><td>
+
 [params](#)
 
 </td><td>
@@ -1312,6 +1347,25 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections
 </td></tr>
 <tr><td>
 
+[rewrite](#)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+(pathname: string) =&gt; [RewriteMessage](#rewritemessage)
+
+</td><td>
+
+When called, qwik-city will execute the path's matching route flow.
+
+The url in the browser will remain unchanged.
+
+</td></tr>
+<tr><td>
+
 [send](#)
 
 </td><td>
@@ -1462,6 +1516,76 @@ export interface ResolveValue
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/types.ts)
 
+## RewriteMessage
+
+```typescript
+export declare class RewriteMessage extends AbortMessage
+```
+
+**Extends:** [AbortMessage](#abortmessage)
+
+<table><thead><tr><th>
+
+Constructor
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[(constructor)(pathname)](#)
+
+</td><td>
+
+</td><td>
+
+Constructs a new instance of the `RewriteMessage` class
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[pathname](#rewritemessage-pathname)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/rewrite-handler.ts)
+
 ## ServerError
 
 ```typescript
@@ -1541,7 +1665,7 @@ number
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/error-handler.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/request-handler/server-error.ts)
 
 ## ServerRenderOptions
 
@@ -1576,13 +1700,13 @@ Description
 
 </td><td>
 
-boolean
+boolean \| 'lax-proto'
 
 </td><td>
 
 _(Optional)_ Protection against cross-site request forgery (CSRF) attacks.
 
-When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin.
+When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
 
 Be careful when disabling this option as it may lead to CSRF attacks.
 
@@ -1833,6 +1957,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void

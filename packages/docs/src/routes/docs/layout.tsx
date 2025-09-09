@@ -9,6 +9,8 @@ import { createBreadcrumbs, SideBar } from '../../components/sidebar/sidebar';
 import { GlobalStore } from '../../context';
 import styles from './docs.css?inline';
 
+export { useMarkdownItems } from '../../components/sidebar/sidebar';
+
 export default component$(() => {
   useStyles$(styles);
   const loc = useLocation();

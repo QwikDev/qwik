@@ -5,7 +5,7 @@
 - [Qwik on GitHub](https://github.com/QwikDev/qwik)
 - [@QwikDev](https://twitter.com/QwikDev)
 - [Vite](https://vitejs.dev/)
-- [Partytown](https://partytown.builder.io/)
+- [Partytown](https://partytown.qwik.dev/)
 - [Mitosis](https://github.com/BuilderIO/mitosis)
 - [Builder.io](https://www.builder.io/)
 

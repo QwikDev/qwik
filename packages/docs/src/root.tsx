@@ -45,6 +45,7 @@ export default component$(() => {
     headerMenuOpen: false,
     sideMenuOpen: false,
     theme: 'auto',
+    pkgManager: 'pnpm',
   });
 
   useContextProvider(GlobalStore, store);
@@ -76,5 +77,7 @@ export default component$(() => {
 
 export function collectSymbols() {
   (window as any).symbols = [];
-  document.addEventListener('qsymbol', (e) => (window as any).symbols.push((e as any).detail));
+  document.addEventListener('qsymbol', (e) =>
+    (window as any).symbols.push((e as any).detail.symbol)
+  );
 }

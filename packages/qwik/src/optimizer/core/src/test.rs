@@ -4596,13 +4596,30 @@ fn should_convert_rest_props() {
 }
 
 #[test]
-fn should_merge_attributes() {
+fn should_merge_attributes_with_spread_props() {
 	test_input!(TestInput {
 		code: r#"
 		import { component$ } from '@qwik.dev/core';
 
 		export default component$((props) => {
 			return <div {...props} class={[props.class, 'component']} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props_before_and_after() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} {...props} />;
 		});
 		"#
 		.to_string(),

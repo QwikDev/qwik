@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4512
+assertion_line: 4511
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -64,15 +65,14 @@ const i_DGk9xLyRokA = ()=>import("./test.tsx_test_component_button_onClick_DGk9x
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("button", {
         ..._getVarProps(props),
-        ..._getConstProps(props),
         onClick$: /*#__PURE__*/ qrl(i_DGk9xLyRokA, "test_component_button_onClick_DGk9xLyRokA", [
             props
         ])
-    }, null, null, 0, "u6_0");
+    }, _getConstProps(props), null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAW;0BAAA;QAAO,QAAQ;;;;AACnC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAW;QAAO,QAAQ;;;sBAAf;AACpB\"}")
 /*
 {
   "origin": "test.tsx",

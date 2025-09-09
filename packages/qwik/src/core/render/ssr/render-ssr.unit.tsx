@@ -1550,6 +1550,25 @@ test('issue 4283', async () => {
   );
 });
 
+test('AsyncResource', async () => {
+  await testSSR(
+    <body>
+      <ul>
+        <AsyncResource text="thing" delay={500} />
+      </ul>
+    </body>,
+    `<html q:container="paused" q:version="dev" q:render="ssr-dev" q:base="" q:manifest-hash="test">
+    <body>
+      <ul>
+        <!--qv q:id=0 q:key=sX:-->
+          <div class="cmp1"><!--qkssr-f--><span>1</span>;</div>
+        <!--/qv-->
+      </ul>
+    </body>
+  </html>`
+  );
+});
+
 // TODO
 // Merge props on host
 // - host events
@@ -1878,6 +1897,25 @@ export const DelayResource = component$((props: { text: string; delay: number })
   return (
     <div class="cmp">
       <Resource value={resource} onResolved={(value) => <span>{value}</span>} />
+    </div>
+  );
+});
+
+export const AsyncResource = component$((props: { text: string; delay: number }) => {
+  const resource = useResource$<string>(async ({ track }) => {
+    track(() => props.text);
+    await delay(props.delay);
+    return props.text;
+  });
+  return (
+    <div class="cmp1">
+      <Resource
+        value={resource}
+        onResolved={async () => <span>1</span>}
+        onRejected={async () => <span>1</span>}
+        onPending={async () => <span>1</span>}
+      />
+      ;
     </div>
   );
 });

@@ -1,4 +1,4 @@
-import { rollup, type OutputAsset, type OutputChunk } from '@rollup/browser';
+import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
 import { QWIK_PKG_NAME } from '../repl-constants';
@@ -20,6 +20,10 @@ export interface BundleMessage extends MessageBase {
   data: Omit<ReplInputOptions, 'version' | 'serverUrl'>;
 }
 
+export interface ReadyMessage extends MessageBase {
+  type: 'ready';
+}
+
 export interface ResultMessage extends MessageBase {
   type: 'result';
   buildId: number;
@@ -34,7 +38,7 @@ export interface ErrorMessage extends MessageBase {
 }
 
 type IncomingMessage = InitMessage | BundleMessage;
-export type OutgoingMessage = ResultMessage | ErrorMessage;
+export type OutgoingMessage = ReadyMessage | ResultMessage | ErrorMessage;
 
 let qwikOptimizer: typeof import('@builder.io/qwik/optimizer') | null = null;
 let binding: any = null;
@@ -158,7 +162,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     events: [] as any[],
   } as ReplResult;
 
-  const clientBuild = await rollup({
+  const clientBuild = await rolldown({
+    cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
     plugins: [
       definesPlugin(defines),
@@ -202,7 +207,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   start = performance.now();
   // Perform SSR bundle
-  const ssrBuild = await rollup({
+  const ssrBuild = await rolldown({
+    cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('entry.server.tsx'))?.path,
     plugins: [
       definesPlugin(defines),
@@ -242,3 +248,5 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   return result;
 }
+
+self.postMessage({ type: 'ready' } as ReadyMessage);

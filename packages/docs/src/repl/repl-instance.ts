@@ -1,15 +1,15 @@
 /** Maintains the state for a REPL instance */
 
 import { isServer, unwrapStore } from '@builder.io/qwik';
-import { getBundler, ssrWorkerString } from '../bundler';
-import { registerReplSW } from '../register-repl-sw';
-import type { RequestMessage, ResponseMessage } from '../repl-sw';
-import type { ReplAppInput, ReplResult, ReplStore } from '../types';
-import { updateReplOutput } from './repl-output-update';
+import { getBundler, ssrWorkerString } from './bundler';
+import { registerReplSW } from './register-repl-sw';
+import type { RequestMessage, ResponseMessage } from './repl-sw';
+import type { ReplAppInput, ReplResult, ReplStore } from './types';
+import { updateReplOutput } from './ui/repl-output-update';
 import type {
   InitSSRMessage,
   OutgoingMessage as SSROutgoingMessage,
-} from '../bundler/repl-ssr-worker';
+} from './bundler/repl-ssr-worker';
 
 let channel: BroadcastChannel;
 let registered = false;
@@ -102,10 +102,20 @@ export class ReplInstance {
       this.bundlePromise = this._ensureBundled();
       this.buildPromise = this.bundlePromise
         .then(() => this._ensureSsr())
+        .catch((e) => {
+          console.error(e);
+          this.lastResult!.html = errorHtml(e.message, 'Build');
+          updateReplOutput(this.store, this.lastResult!);
+        })
         .finally(() => {
           this.buildPromise = null;
           clearTimeout(showLoader);
           this.store.isLoading = false;
+          console.log(
+            this.lastResult!.events.filter((e) => e.scope === 'build')
+              .map((e) => e.message)
+              .join(' | ')
+          );
         });
     }
     return this.buildPromise;
@@ -140,6 +150,9 @@ export class ReplInstance {
       status === 200 ? 'OK' : status === 404 ? 'Not Found' : 'Internal Server Error';
     const headers: Record<string, string> = {
       'Cache-Control': 'no-store, no-cache, max-age=0',
+      // Needed for SharedArrayBuffer
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     };
     if (status === 200) {
       headers['Content-Type'] = this.getContentType(url);
@@ -242,29 +255,31 @@ export class ReplInstance {
         type: 'module',
       });
 
-      const initMessage: InitSSRMessage = {
-        type: 'run-ssr',
-        replId: this.replId,
-        entry: entryModule.path,
-        baseUrl: `/repl/${this.replId}/build/`,
-        manifest: result.manifest,
-      };
-      ssrWorker.postMessage(initMessage);
-
       ssrWorker.onmessage = (e: MessageEvent<SSROutgoingMessage>) => {
         const { type } = e.data;
 
-        if (type === 'ssr-result') {
+        if (type === 'ready') {
+          const initMessage: InitSSRMessage = {
+            type: 'run-ssr',
+            replId: this.replId,
+            entry: entryModule.path,
+            baseUrl: `/repl/${this.replId}/build/`,
+            manifest: result.manifest,
+          };
+          ssrWorker.postMessage(initMessage);
+        } else if (type === 'ssr-result') {
           resolve({
             html: e.data.html,
             events: e.data.events,
           });
+          ssrWorker.terminate();
         } else if (type === 'ssr-error') {
           resolve({ html: errorHtml(e.data.error, 'SSR') });
+          ssrWorker.terminate();
         } else {
           resolve({ html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR') });
+          ssrWorker.terminate();
         }
-        ssrWorker.terminate();
       };
 
       ssrWorker.onerror = (error) => {

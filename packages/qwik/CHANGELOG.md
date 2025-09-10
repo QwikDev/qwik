@@ -1,5 +1,39 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.9
+
+### Minor Changes
+
+- ✨ new async scheduler (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+- BREAKING: (slightly) Qwik will no longer scan all modules at build start to detect Qwik modules (which should be bundled into your server code). Instead, a much faster build-time check is done, and Qwik will tell you if you need to update your `ssr.noExternal` settings in your Vite config. (by [@wmertens](https://github.com/wmertens) in [#7784](https://github.com/QwikDev/qwik/pull/7784))
+
+- ✨ expose `loading` and `error` fields of async computed signal (by [@Varixo](https://github.com/Varixo) in [#7876](https://github.com/QwikDev/qwik/pull/7876))
+
+### Patch Changes
+
+- 🐞🩹 ignore diffing for deleted parent (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+- 🐞🩹 convert any destructured props to restProps helper (by [@Varixo](https://github.com/Varixo) in [#7880](https://github.com/QwikDev/qwik/pull/7880))
+
+- 🐞🩹 calling sync qrls should not go through scheduler (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+- ✨ add SSR backpatching (attributes-only) to ensure SSR/CSR parity for signal-driven attributes; limited to attribute updates (not OoO streaming) (by [@thejackshelton](https://github.com/thejackshelton) in [#7900](https://github.com/QwikDev/qwik/pull/7900))
+
+- 🐞🩹 avoid potential name conflicts with rest props (by [@Varixo](https://github.com/Varixo) in [#7880](https://github.com/QwikDev/qwik/pull/7880))
+
+- 🐞🩹 handling spread props on element node (by [@Varixo](https://github.com/Varixo) in [#7929](https://github.com/QwikDev/qwik/pull/7929))
+
+- 🐞🩹 finding parent dom element from projected content (by [@Varixo](https://github.com/Varixo) in [#7886](https://github.com/QwikDev/qwik/pull/7886))
+
+- 🐞🩹 calling document:onQInit qrls (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+- 🐞🩹 finding slot parent during scheduling chores (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+- 🐞🩹 resuming nested container in shadow root (by [@Varixo](https://github.com/Varixo) in [#7937](https://github.com/QwikDev/qwik/pull/7937))
+
+- 🐞🩹 computed signal recomputing and triggering effects (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
 ## 2.0.0-beta.8
 
 ### Patch Changes

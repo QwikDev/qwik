@@ -1075,15 +1075,19 @@ export const SSRStreamBlock: FunctionComponent<{
     children?: JSXOutput;
 }>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "SSRStreamChildren" is marked as @public, but its signature references "StreamWriter" which is marked as @internal
-//
 // @public (undocumented)
-export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: SSRStreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
 
 // @public (undocumented)
 export type SSRStreamProps = {
     children: SSRStreamChildren;
 };
+
+// @public (undocumented)
+export interface SSRStreamWriter {
+    // (undocumented)
+    write(chunk: JSXOutput): void;
+}
 
 // Warning: (ae-internal-missing-underscore) The name "StreamWriter" should be prefixed with an underscore because the declaration is marked as @internal
 //

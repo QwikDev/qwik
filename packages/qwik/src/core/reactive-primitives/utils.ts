@@ -121,21 +121,21 @@ export const triggerEffects = (
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-      } else if (isBrowser) {
-        if (property === EffectProperty.VNODE) {
+      } else if (property === EffectProperty.VNODE) {
+        if (isBrowser) {
           const host: HostElement = consumer;
           container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
-        } else {
-          const host: HostElement = consumer;
-          const effectData = effectSubscription[EffectSubscriptionProp.DATA];
-          if (effectData instanceof SubscriptionData) {
-            const data = effectData.data;
-            const payload: NodePropPayload = {
-              ...data,
-              $value$: signal as SignalImpl,
-            };
-            container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
-          }
+        }
+      } else {
+        const host: HostElement = consumer;
+        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        if (effectData instanceof SubscriptionData) {
+          const data = effectData.data;
+          const payload: NodePropPayload = {
+            ...data,
+            $value$: signal as SignalImpl,
+          };
+          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
         }
       }
     };

@@ -49,6 +49,7 @@ export {
   QTemplate,
   QVersionAttr,
   Q_PROPS_SEPARATOR,
+  ELEMENT_BACKPATCH_DATA,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,

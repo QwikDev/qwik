@@ -4500,11 +4500,11 @@ SSRStreamBlock: FunctionComponent<{
 ```typescript
 export type SSRStreamChildren =
   | AsyncGenerator<JSXChildren, void, any>
-  | ((stream: StreamWriter) => Promise<void>)
+  | ((stream: SSRStreamWriter) => Promise<void>)
   | (() => AsyncGenerator<JSXChildren, void, any>);
 ```
 
-**References:** [JSXChildren](#jsxchildren)
+**References:** [JSXChildren](#jsxchildren), [SSRStreamWriter](#ssrstreamwriter)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
 
@@ -4517,6 +4517,32 @@ export type SSRStreamProps = {
 ```
 
 **References:** [SSRStreamChildren](#ssrstreamchildren)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
+
+## SSRStreamWriter
+
+```typescript
+export interface SSRStreamWriter
+```
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[write(chunk)](#ssrstreamwriter-write)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
 
@@ -9919,3 +9945,39 @@ fn
 T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts)
+
+## write
+
+```typescript
+write(chunk: JSXOutput): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+chunk
+
+</td><td>
+
+[JSXOutput](#jsxoutput)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void

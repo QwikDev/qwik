@@ -248,7 +248,7 @@ function processJSXNode(
           if (isFunction(generator)) {
             value = generator({
               async write(chunk) {
-                await _walkJSX(ssr, chunk as JSXOutput, {
+                await _walkJSX(ssr, chunk, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });

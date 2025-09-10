@@ -240,5 +240,31 @@ describe('v2 ssr render', () => {
         </ul>
       );
     });
+
+    it('should render values from generator with stream from string', async () => {
+      const { vNode } = await ssrRenderToDom(
+        <ul>
+          <SSRStream>
+            {async function (stream: any) {
+              for (let i = 0; i < 5; i++) {
+                stream.write(<SSRRaw data={`<li>raw: ${i}</li>`} />);
+                await delay(10);
+              }
+            }}
+          </SSRStream>
+        </ul>,
+        { debug }
+      );
+
+      expect(vNode).toMatchVDOM(
+        <ul>
+          <li>raw: 0</li>
+          <li>raw: 1</li>
+          <li>raw: 2</li>
+          <li>raw: 3</li>
+          <li>raw: 4</li>
+        </ul>
+      );
+    });
   });
 });

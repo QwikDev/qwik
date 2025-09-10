@@ -133,8 +133,11 @@ class DeserializationHandler implements ProxyHandler<object> {
     this.$data$[idx] = undefined;
     this.$data$[idx + 1] = propValue;
 
-    /** We stored the reference, so now we can inflate, allowing cycles. */
-    if (typeId >= TypeIds.Error) {
+    /**
+     * We stored the reference, so now we can inflate, allowing cycles. Arrays are special-cased so
+     * their identifiers is a single digit.
+     */
+    if (typeId === TypeIds.Array || typeId >= TypeIds.Error) {
       propValue = inflate(container, propValue, typeId, value);
       Reflect.set(target, property, propValue);
       this.$data$[idx + 1] = propValue;
@@ -198,6 +201,12 @@ const inflate = (
     data = _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
+    case TypeIds.Array:
+      for (let i = 0; i < (target as any[]).length; i++) {
+        // read the value to trigger lazy deserialization
+        (target as any[])[i];
+      }
+      return target[SERIALIZER_PROXY_UNWRAP];
     case TypeIds.Object:
       // We use getters for making complex values lazy
       for (let i = 0; i < (data as any[]).length; i += 4) {
@@ -498,6 +507,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Number:
       return value as number;
     case TypeIds.Array:
+      // Wrap while inflating so we can handle cyclic references
       return wrapDeserializerProxy(container as any, value as any[]);
     case TypeIds.Object:
       return {};

@@ -1,4 +1,4 @@
-import { Slot, useSignal } from '@qwik.dev/core';
+import { Slot, useSignal, SSRStreamWriter } from '@qwik.dev/core';
 import { ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
@@ -245,7 +245,7 @@ describe('v2 ssr render', () => {
       const { vNode } = await ssrRenderToDom(
         <ul>
           <SSRStream>
-            {async function (stream: any) {
+            {async function (stream: SSRStreamWriter) {
               for (let i = 0; i < 5; i++) {
                 stream.write(<SSRRaw data={`<li>raw: ${i}</li>`} />);
                 await delay(10);

@@ -15,6 +15,9 @@ const bundlers = new Map<string, Bundler>();
 
 class Bundler {
   public worker: Worker | null = null;
+  private initP: Promise<void> | null = null;
+  private ready: (() => void) | null = null;
+
   timer: any = null;
   buildPromises = new Map<
     number,
@@ -28,25 +31,27 @@ class Bundler {
   }
 
   initWorker() {
+    this.initP = new Promise<void>((res) => (this.ready = res));
     this.worker = new Worker(new URL('./bundler-worker', import.meta.url), { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
     this.worker.addEventListener('error', (e: ErrorEvent) => {
       console.error(`Bundler worker for ${this.version} failed`, e.message);
       this.terminateWorker();
     });
-
-    const { version } = this;
-    const message: InitMessage = {
-      type: 'init',
-      version,
-      deps: getDeps(version),
-    };
-    this.worker.postMessage(message);
   }
 
   messageHandler = (e: MessageEvent<OutgoingMessage>) => {
     const { type } = e.data;
-    if (type === 'result' || type === 'error') {
+    if (type === 'ready') {
+      const { version } = this;
+      const message: InitMessage = {
+        type: 'init',
+        version,
+        deps: getDeps(version),
+      };
+      this.worker!.postMessage(message);
+      this.ready!();
+    } else if (type === 'result' || type === 'error') {
       const { buildId } = e.data;
       const promise = this.buildPromises.get(buildId);
       if (promise) {
@@ -75,15 +80,17 @@ class Bundler {
       this.initWorker();
     }
     this.keepAlive();
-    return new Promise((resolve, reject) => {
-      const buildId = this.nextBuildId++;
-      this.buildPromises.set(buildId, { resolve, reject });
-      const message: BundleMessage = {
-        type: 'bundle',
-        buildId,
-        data: options,
-      };
-      this.worker?.postMessage(message);
+    return this.initP!.then(() => {
+      return new Promise((resolve, reject) => {
+        const buildId = this.nextBuildId++;
+        this.buildPromises.set(buildId, { resolve, reject });
+        const message: BundleMessage = {
+          type: 'bundle',
+          buildId,
+          data: options,
+        };
+        this.worker?.postMessage(message);
+      });
     });
   }
 

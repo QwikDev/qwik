@@ -19,7 +19,7 @@
     "@mui/x-data-grid": "6.20.4",
     "@qwik-ui/headless": "0.6.7",
     "@qwik.dev/partytown": "0.11.2",
-    "@rollup/browser": "4.35.0",
+    "@rolldown/browser": "1.0.0-beta.36",
     "@shikijs/colorized-brackets": "3.12.2",
     "@shikijs/langs": "3.12.2",
     "@shikijs/rehype": "3.12.2",

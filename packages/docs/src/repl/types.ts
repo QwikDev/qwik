@@ -5,7 +5,7 @@ import type {
   QwikRollupPluginOptions,
   TransformModule,
 } from '@builder.io/qwik/optimizer';
-import type { ReplInstance } from './ui/repl-instance';
+import type { ReplInstance } from './repl-instance';
 
 export interface ReplAppInput {
   files: ReplModuleInput[];

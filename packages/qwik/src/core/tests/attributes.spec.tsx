@@ -533,6 +533,200 @@ describe.each([
     );
   });
 
+  describe('spread props', () => {
+    describe('class attribute from component props', () => {
+      it('should use class attribute from element', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div {...props} class={[props.class, 'component']} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test component"></div>
+            </Component>
+          </Component>
+        );
+      });
+
+      it('should use class attribute from props', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div class={[props.class, 'component']} {...props} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test"></div>
+            </Component>
+          </Component>
+        );
+      });
+    });
+
+    describe('class attribute without component props', () => {
+      it('should use class attribute from props', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div class="test component" {...props} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test"></div>
+            </Component>
+          </Component>
+        );
+      });
+
+      it('should use class attribute from element', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div {...props} class="test component" />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test component"></div>
+            </Component>
+          </Component>
+        );
+      });
+    });
+
+    it('should handle multiple spread component props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        return <div {...props} class="test component" {...props} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread component and element props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...props} class="test component" {...attrs} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test2"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...attrs} class="test component" {...props} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props before normal props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...attrs} {...props} class="test component" />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test component"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props after normal props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div class="test component" {...props} {...attrs} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test2"></div>
+          </Component>
+        </Component>
+      );
+    });
+  });
+
   describe('class attribute', () => {
     it('should render class attribute', async () => {
       const Cmp = component$(() => {

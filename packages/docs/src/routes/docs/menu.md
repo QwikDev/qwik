@@ -144,6 +144,7 @@
 - [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
 - [Content Security Policy](</docs/(qwikrouter)/advanced/content-security-policy/index.mdx>)
 - [Complex Forms](</docs/(qwikrouter)/advanced/complex-forms/index.mdx>)
+- [Backpatching](</docs/(qwik)/advanced/backpatching/index.mdx>)
 
 ## Reference
 

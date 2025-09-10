@@ -105,7 +105,7 @@ import {
   type StoreTarget,
 } from '../reactive-primitives/types';
 import { triggerEffects } from '../reactive-primitives/utils';
-import { type ISsrNode } from '../ssr/ssr-types';
+import { type ISsrNode, type SSRContainer } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
   Task,
@@ -311,10 +311,7 @@ export const createScheduler = (
     }
 
     const isServer = isServerPlatform();
-    const isClientOnly =
-      type === ChoreType.NODE_DIFF ||
-      type === ChoreType.NODE_PROP ||
-      type === ChoreType.QRL_RESOLVE;
+    const isClientOnly = type === ChoreType.NODE_DIFF || type === ChoreType.QRL_RESOLVE;
     if (isServer && isClientOnly) {
       DEBUG &&
         debugTrace(
@@ -328,6 +325,40 @@ export const createScheduler = (
       return chore;
     }
 
+    if (isServer && chore.$host$ && isSsrNode(chore.$host$)) {
+      const isUpdatable = !!(chore.$host$.flags & SsrNodeFlags.Updatable);
+
+      if (!isUpdatable) {
+        if (
+          // backpatching exceptions:
+          // - node prop is allowed because it is used to update the node property
+          // - recompute and schedule effects because it triggers effects (so node prop too)
+          chore.$type$ !== ChoreType.NODE_PROP &&
+          chore.$type$ !== ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS
+        ) {
+          // We are running on the server.
+          // On server we can't schedule task for a different host!
+          // Server is SSR, and therefore scheduling for anything but the current host
+          // implies that things need to be re-run and that is not supported because of streaming.
+          const warningMessage = `A '${choreTypeToName(
+            chore.$type$
+          )}' chore was scheduled on a host element that has already been streamed to the client.
+This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
+
+Problematic chore:
+  - Type: ${choreTypeToName(chore.$type$)}
+  - Host: ${chore.$host$.toString()}
+  - Nearest element location: ${chore.$host$.currentFile}
+
+This is often caused by modifying a signal in an already rendered component during SSR.`;
+          logWarn(warningMessage);
+          DEBUG &&
+            debugTrace('schedule.SKIPPED host is not updatable', chore, choreQueue, blockedChores);
+          return chore;
+        }
+      }
+    }
+
     const blockingChore = findBlockingChore(
       chore,
       choreQueue,
@@ -338,31 +369,6 @@ export const createScheduler = (
     if (blockingChore) {
       addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
-    }
-    if (isServer && chore.$host$ && isSsrNode(chore.$host$)) {
-      const isUpdatable = !!(chore.$host$.flags & SsrNodeFlags.Updatable);
-
-      if (!isUpdatable) {
-        // We are running on the server.
-        // On server we can't schedule task for a different host!
-        // Server is SSR, and therefore scheduling for anything but the current host
-        // implies that things need to be re-run nad that is not supported because of streaming.
-        const warningMessage = `A '${choreTypeToName(
-          chore.$type$
-        )}' chore was scheduled on a host element that has already been streamed to the client.
-This can lead to inconsistencies between Server-Side Rendering (SSR) and Client-Side Rendering (CSR).
-
-Problematic chore:
-  - Type: ${choreTypeToName(chore.$type$)}
-  - Host: ${chore.$host$.toString()}
-  - Nearest element location: ${chore.$host$.currentFile}
-
-This is often caused by modifying a signal in an already rendered component during SSR.`;
-        logWarn(warningMessage);
-        DEBUG &&
-          debugTrace('schedule.SKIPPED host is not updatable', chore, choreQueue, blockedChores);
-        return chore;
-      }
     }
     chore = sortedInsert(
       choreQueue,
@@ -677,13 +683,22 @@ This is often caused by modifying a signal in an already rendered component duri
             value,
             payload.$scopedStyleIdPrefix$
           );
-          if (isConst) {
-            const element = virtualNode[ElementVNodeProps.element] as Element;
-            journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
+          if (isServer) {
+            (container as SSRContainer).addBackpatchEntry(
+              (chore.$host$ as ISsrNode).id,
+              property,
+              serializedValue
+            );
+            returnValue = null;
           } else {
-            vnode_setAttr(journal, virtualNode, property, serializedValue);
+            if (isConst) {
+              const element = virtualNode[ElementVNodeProps.element] as Element;
+              journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
+            } else {
+              vnode_setAttr(journal, virtualNode, property, serializedValue);
+            }
+            returnValue = undefined as ValueOrPromise<ChoreReturnValue<ChoreType.NODE_PROP>>;
           }
-          returnValue = undefined as ValueOrPromise<ChoreReturnValue<ChoreType.NODE_PROP>>;
         }
         break;
       case ChoreType.QRL_RESOLVE: {

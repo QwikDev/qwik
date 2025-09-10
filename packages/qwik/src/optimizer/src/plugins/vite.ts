@@ -213,6 +213,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
             '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
             '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/backpatch': '@qwik.dev/core/backpatch',
             '@builder.io/qwik/cli': '@qwik.dev/core/cli',
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
@@ -631,23 +632,35 @@ async function checkExternals() {
     configResolved: (config) => {
       rootDir = config.root;
     },
+    // We check all SSR build lookups for external Qwik deps
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (source.startsWith('node:') || seen.has(source)) {
+        if (!options.ssr || /^([./]|node:|[^a-z])/.test(source) || seen.has(source)) {
+          return;
+        }
+        const packageName = (
+          source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]
+        ).split('?')[0];
+        if (seen.has(packageName)) {
           return;
         }
         // technically we should check for each importer, but this is ok
         seen.add(source);
-        const result = await this.resolve(source, importer, { ...options, skipSelf: true });
+        seen.add(packageName);
+        const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         if (result?.external) {
-          // For Qwik files, check if they should be externalized
-          if (await isQwikDep(source, importer ? path.dirname(importer) : rootDir)) {
+          // Qwik deps should not be external
+          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
             // TODO link to docs
             throw new Error(
-              `\n==============\n${source} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik.\nPlease add the package to "ssr.noExternal" in the Vite config. \n==============`
+              `\n==============\n${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik.\nPlease add the package to "ssr.noExternal" in the Vite config. \n==============`
             );
           }
+        }
+        if (packageName === source) {
+          // We already resolved it, so return that result
+          return result;
         }
       },
     },

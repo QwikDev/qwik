@@ -12,6 +12,11 @@ import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
 
 // @public
+export function getQwikBackpatchExecutorScript(opts?: {
+    debug?: boolean;
+}): string;
+
+// @public
 export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;

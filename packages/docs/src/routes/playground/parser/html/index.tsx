@@ -46,7 +46,7 @@ export default component$(() => {
 
       // Try to get Qwik container if available
       try {
-        const container = _getDomContainer(doc.documentElement);
+        const container = _getDomContainer(doc.body.firstElementChild!);
         if (container) {
           output += '// Qwik Container Found:\n';
           output += `- Container Type: ${container.qContainer}\n`;

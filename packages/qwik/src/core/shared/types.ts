@@ -9,6 +9,7 @@ export interface DeserializeContainer {
   element: HTMLElement | null;
   getSyncFn: (id: number) => (...args: unknown[]) => unknown;
   $state$?: unknown[];
+  $rawStateData$: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
   $initialQRLsIndexes$: Array<number> | null;

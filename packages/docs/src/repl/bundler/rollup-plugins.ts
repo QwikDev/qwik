@@ -35,29 +35,52 @@ export const replResolver = (
     return srcInputs.find((i) => i.path === id)?.path;
   };
 
-  return {
+  const getQwik = (id: string, external?: true) => {
+    const path = deps[QWIK_PKG_NAME][id];
+    if (!path) {
+      throw new Error(`Unknown Qwik path: ${id}`);
+    }
+    return {
+      id: `\0@qwik${id}`,
+      sideEffects: false,
+      // It would be nice to load qwik as external, but
+      // we import core and core/build so we need processing
+    };
+  };
+  const plugin: Plugin = {
     name: 'repl-resolver',
 
     resolveId(id, importer) {
-      // Re-resolve
-      if (id.startsWith('@qwik/')) {
+      // Assets and vite dev mode
+      if (id.startsWith('/assets/') || id.startsWith('/raw-fs/')) {
+        return { id: new URL(id, location.href).href, external: true };
+      }
+      if (id.startsWith('http')) {
+        return { id, external: true };
+      }
+      if (id.startsWith('\0@qwik/')) {
         return id;
       }
-      if (
-        id === '@builder.io/qwik' ||
-        id === '@builder.io/qwik/jsx-runtime' ||
-        id === '@builder.io/qwik/jsx-dev-runtime'
-      ) {
-        return '@qwik/dist/core.mjs';
-      }
-      if (id === '@builder.io/qwik/server') {
-        return '@qwik/dist/server.mjs';
-      }
-      if (id.includes('@builder.io/qwik/preloader')) {
-        return '@qwik/dist/preloader.mjs';
-      }
-      if (id.includes('@builder.io/qwik/qwikloader')) {
-        return '@qwik/dist/qwikloader.js';
+      const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
+      if (match) {
+        const pkgName = match[2];
+
+        if (pkgName === '/build') {
+          return `\0@qwik/build`;
+        }
+        if (!pkgName || pkgName === '/jsx-runtime' || pkgName === '/jsx-dev-runtime') {
+          return getQwik('/dist/core.mjs');
+        }
+        if (pkgName === '/server') {
+          return getQwik('/dist/server.mjs');
+        }
+        if (pkgName.includes('/preloader')) {
+          return getQwik('/dist/preloader.mjs');
+        }
+        if (pkgName.includes('/qwikloader')) {
+          // Special case, needs to be an entry point
+          return getQwik('/dist/qwikloader.js');
+        }
       }
       // Simple relative file resolution
       if (/^[./]/.test(id)) {
@@ -82,8 +105,18 @@ export const replResolver = (
       if (input && typeof input.code === 'string') {
         return input.code;
       }
-      if (id.startsWith('@qwik/')) {
-        const path = id.slice(5);
+      if (id.startsWith('\0@qwik/')) {
+        const path = id.slice('\0@qwik'.length);
+        if (path === '/build') {
+          // Virtual module for Qwik build
+          const isDev = options.buildMode === 'development';
+          const isServer = target === 'ssr';
+          return `
+            export const isDev = ${isDev};
+            export const isServer = ${isServer};
+            export const isClient = ${!isServer};
+          `;
+        }
         const url = deps[QWIK_PKG_NAME][path];
         if (url) {
           const rsp = await fetch(url);
@@ -91,7 +124,7 @@ export const replResolver = (
             return rsp.text();
           }
         }
-        throw new Error(`Unable to load Qwik module: ${id}`);
+        throw new Error(`Unable to load Qwik module: ${path}`);
       }
       // We're the fallback, we know all the files
       if (/\.[jt]sx?$/.test(id)) {
@@ -99,6 +132,7 @@ export const replResolver = (
       }
     },
   };
+  return plugin;
 };
 
 export const replCss = (options: Pick<ReplInputOptions, 'srcInputs'>): Plugin => {

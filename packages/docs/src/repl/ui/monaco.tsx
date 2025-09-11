@@ -4,11 +4,9 @@ import type MonacoTypes from 'monaco-editor';
 import type { EditorProps, EditorStore } from './editor';
 import type { ReplStore } from '../types';
 import { getColorPreference } from '../../components/theme-toggle/theme-toggle';
-import { bundled, getNpmCdnUrl } from '../bundler/bundled';
+import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
 import { isServer } from '@builder.io/qwik';
-// We cannot use this, it causes the repl to use imports
-// import { QWIK_REPL_DEPS_CACHE } from './worker/repl-constants';
-const QWIK_REPL_DEPS_CACHE = 'QwikReplDeps';
+import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -217,83 +215,87 @@ export const addQwikLibs = async (version: string) => {
   typescriptDefaults.addExtraLib(CLIENT_LIB);
 };
 
-const loadDeps = async (qwikVersion: string) => {
-  const [M, m, p] = qwikVersion.split('-')[0].split('.').map(Number);
-  const prefix =
-    qwikVersion === 'bundled' || M > 1 || (M == 1 && (m > 7 || (m == 7 && p >= 2)))
-      ? '/dist/'
-      : '/';
+const loadDeps = async (pkgVersion: string) => {
   const deps: NodeModuleDep[] = [
     // qwik
     {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}core.d.ts`,
+      pkgName: QWIK_PKG_NAME_V1,
+      pkgVersion,
+      pkgPath: `/dist/core.d.ts`,
       import: '',
     },
     // server API
     {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}server.d.ts`,
+      pkgName: QWIK_PKG_NAME_V1,
+      pkgVersion,
+      pkgPath: `/dist/server.d.ts`,
       import: '/server',
     },
     // build constants
     {
-      pkgName: '@builder.io/qwik',
-      pkgVersion: qwikVersion,
-      pkgPath: `${prefix}build/index.d.ts`,
+      pkgName: QWIK_PKG_NAME_V1,
+      pkgVersion,
+      pkgPath: `/dist/build/index.d.ts`,
+      import: '/build',
+    },
+    // qwik
+    {
+      pkgName: QWIK_PKG_NAME_V2,
+      pkgVersion,
+      pkgPath: `/dist/core.d.ts`,
+      import: '',
+    },
+    // server API
+    {
+      pkgName: QWIK_PKG_NAME_V2,
+      pkgVersion,
+      pkgPath: `/dist/server.d.ts`,
+      import: '/server',
+    },
+    // build constants
+    {
+      pkgName: QWIK_PKG_NAME_V2,
+      pkgVersion,
+      pkgPath: `/dist/build/index.d.ts`,
       import: '/build',
     },
   ];
 
-  const cache = await caches.open(QWIK_REPL_DEPS_CACHE);
+  const depUrls = getDeps(pkgVersion);
+  const toFetch: Record<string, Promise<string>> = {};
+  for (const dep of deps) {
+    let storedDep = monacoCtx.deps.find(
+      (d) =>
+        d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
+    );
+    if (!storedDep) {
+      storedDep = {
+        pkgName: dep.pkgName,
+        pkgVersion: dep.pkgVersion,
+        pkgPath: dep.pkgPath,
+        import: dep.import,
+      };
+      monacoCtx.deps.push(storedDep);
 
-  await Promise.all(
-    deps.map(async (dep) => {
-      let storedDep = monacoCtx.deps.find(
-        (d) =>
-          d.pkgName === dep.pkgName && d.pkgPath === dep.pkgPath && d.pkgVersion === dep.pkgVersion
-      );
-      if (!storedDep) {
-        storedDep = {
-          pkgName: dep.pkgName,
-          pkgVersion: dep.pkgVersion,
-          pkgPath: dep.pkgPath,
-          import: dep.import,
-        };
-        monacoCtx.deps.push(storedDep);
-
-        storedDep.promise = new Promise<void>((resolve, reject) => {
-          fetchDep(cache, dep).then((code) => {
-            storedDep!.code = code;
-            resolve();
-          }, reject);
-        });
+      const url = depUrls[dep.pkgName][dep.pkgPath];
+      if (!url) {
+        console.error(`Missing URL for ${dep.pkgName}${dep.pkgPath} (${dep.pkgVersion})`);
+        break;
       }
-      await storedDep.promise;
-    })
-  );
+      toFetch[url] ||= fetch(url).then((r) => r.text());
+      toFetch[url].then(
+        (code) => {
+          storedDep!.code = code;
+        },
+        (error) => {
+          console.error(error);
+        }
+      );
+    }
+  }
+  await Promise.all(Object.values(toFetch));
 
   return monacoCtx.deps;
-};
-
-const fetchDep = async (cache: Cache, dep: NodeModuleDep) => {
-  const url = getNpmCdnUrl(bundled, dep.pkgName, dep.pkgVersion, dep.pkgPath);
-  const req = new Request(url);
-  const cachedRes = await cache.match(req);
-  if (cachedRes) {
-    return cachedRes.text();
-  }
-  const fetchRes = await fetch(req);
-  if (fetchRes.ok) {
-    // dev mode uses / and prod bundles use data: urls
-    if (/^(http|\/)/.test(req.url) && !req.url.includes('localhost')) {
-      await cache.put(req, fetchRes.clone());
-    }
-    return fetchRes.text();
-  }
-  throw new Error(`Unable to fetch: ${url}`);
 };
 
 const getMonaco = async (): Promise<Monaco> => {
@@ -375,7 +377,6 @@ interface NodeModuleDep {
   import: string;
   pkgVersion: string;
   code?: string;
-  promise?: Promise<void>;
 }
 
 declare const require: any;

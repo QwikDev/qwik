@@ -277,6 +277,7 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    fallbackToMpa?: boolean;
     prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;

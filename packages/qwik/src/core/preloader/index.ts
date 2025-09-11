@@ -8,4 +8,4 @@
 
 // Short names for minification
 export { loadBundleGraph as l, parseBundleGraph as g } from './bundle-graph';
-export { preload as p, handleBundle as h } from './queue';
+export { preload as p, handleBundle as h, setMpaFallbackHref as f } from './queue';

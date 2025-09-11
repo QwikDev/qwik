@@ -14,6 +14,7 @@ export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
+let pendingHref: string | undefined;
 const queue: BundleImport[] = [];
 const MPA_FALLBACK_THRESHOLD = 100;
 
@@ -217,8 +218,6 @@ export const adjustProbabilities = (
        * something else, in which case we don't want to block reprioritization of this new event
        * bundles for too long. (If browsers supported aborting modulepreloads, we wouldn't have to
        * do this.)
-       *
-       * TODO: Set the limit to a number of kb instead of a number of bundles.
        */
       if (probability === 1 || (probability >= 0.99 && depsCount <= MPA_FALLBACK_THRESHOLD + 1)) {
         depsCount++;
@@ -234,7 +233,7 @@ export const adjustProbabilities = (
         dep.$factor$ = factor;
       }
 
-      dispatchMPAFallback();
+      fallbackToMpa();
 
       adjustProbabilities(depBundle, newInverseProbability, seen);
     }
@@ -296,15 +295,40 @@ if (isBrowser) {
  * ~10s (usually between 3-7s).
  *
  * Note: if the next route bundles have already been preloaded, the fallback won't be triggered.
- *
- * TODO: get total kb size and compare with 100kb instead of relying on the number of bundles.
  */
-const dispatchMPAFallback = () => {
+const fallbackToMpa = () => {
+  if (!pendingHref) {
+    return;
+  }
   const nextRouteBundles = queue.filter((item) => item.$inverseProbability$ <= 0.1);
   if (nextRouteBundles.length >= MPA_FALLBACK_THRESHOLD) {
-    const href = (window as any).__qwikPendingFallbackHref;
-    if (href) {
-      window.location.href = href;
+    if (pendingHref !== window.location.href) {
+      window.location.href = pendingHref;
+    }
+  }
+};
+
+/**
+ * Sets the MPA fallback href. When too many bundles are queued for preloading, the preloader will
+ * redirect to this href using the browser navigation.
+ *
+ * @param href - The target URL for MPA fallback. Should be an absolute URL string or null/undefined
+ *   to clear it.
+ * @returns Void
+ */
+export const setMpaFallbackHref = (href: string | null | undefined) => {
+  if (!href || typeof href !== 'string') {
+    pendingHref = undefined;
+    return;
+  }
+
+  try {
+    const url = new URL(href, window.location.origin);
+    pendingHref = url.href;
+  } catch (error) {
+    pendingHref = undefined;
+    if (config.$DEBUG$) {
+      console.warn('[Qwik Preloader] Invalid href provided to setSpaPendingHref:', href);
     }
   }
 };

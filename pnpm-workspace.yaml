@@ -8,6 +8,7 @@ engineStrict: true
 
 onlyBuiltDependencies:
   - '@parcel/watcher'
+  - '@rolldown/browser'
   - '@tailwindcss/oxide'
   - esbuild
   - netlify-cli

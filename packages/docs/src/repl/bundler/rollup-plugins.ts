@@ -1,4 +1,4 @@
-import type { Plugin } from '@rollup/browser';
+import type { Plugin } from '@rolldown/browser';
 import type { MinifyOptions } from 'terser';
 import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';

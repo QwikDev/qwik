@@ -682,7 +682,7 @@ jobs:
           # too slow and flaky. Perhaps better in v2?
           # - host: ubuntu-latest
           #   browser: firefox
-          - host: macos-latest
+          - host: macos-13
             browser: webkit
           - host: windows-latest
             browser: chromium
@@ -720,10 +720,10 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 20000 --retries 20 --workers 3
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 2
 
       - name: Validate Create Qwik Cli
         if: matrix.settings.host != 'windows-latest'
@@ -743,7 +743,8 @@ jobs:
       matrix:
         settings:
           - host: ubuntu-latest
-          - host: macos-latest
+          # Use the older macos for x86 testing + faster
+          - host: macos-13
           - host: windows-latest
 
     runs-on: ${{ matrix.settings.host }}

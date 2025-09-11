@@ -1,5 +1,7 @@
 /*
   Cache-Control: public, max-age=3600, s-maxage=3600;
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
 
 /assets/*
   ! Cache-Control

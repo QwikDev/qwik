@@ -128,6 +128,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const baseUrl = `/repl/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
+    'import.meta.env': JSON.stringify({}),
   };
 
   const onwarn = (warning: any) => {

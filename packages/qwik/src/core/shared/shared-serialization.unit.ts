@@ -706,39 +706,29 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.Store), async () => {
-      expect(await dump(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE)))
-        .toMatchInlineSnapshot(`
-          "
-          0 Store [
+      const store = createStore(
+        null,
+        { a: { b: true }, c: undefined as any },
+        StoreFlags.RECURSIVE
+      );
+      store.c = store; // circular ref
+      expect(await dump(store)).toMatchInlineSnapshot(`
+        "
+        0 Store [
+          Object [
+            String "a"
             Object [
-              String "a"
-              Object [
-                String "b"
-                Constant true
-              ]
+              String "b"
+              Constant true
             ]
-            Number 1
+            String "c"
+            RootRef 1
           ]
-          (36 chars)"
-        `);
-    });
-    it(title(TypeIds.StoreArray), async () => {
-      expect(await dump(createStore(null, [1, { b: true }, 3], StoreFlags.NONE)))
-        .toMatchInlineSnapshot(`
-          "
-          0 StoreArray [
-            Array [
-              Number 1
-              Object [
-                String "b"
-                Constant true
-              ]
-              Number 3
-            ]
-            Number 0
-          ]
-          (37 chars)"
-        `);
+          Number 1
+        ]
+        1 RootRef "0 0"
+        (54 chars)"
+      `);
     });
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
@@ -949,12 +939,19 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.SerializerSignal));
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {
-      const objs = await serialize(createStore(null, { a: { b: true } }, StoreFlags.RECURSIVE));
+      const storeSrc = createStore(
+        null,
+        { a: { b: true }, c: undefined as any },
+        StoreFlags.RECURSIVE
+      );
+      storeSrc.c = storeSrc; // circular ref
+
+      const objs = await serialize(storeSrc);
       const store = deserialize(objs)[0] as any;
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
+      expect(store).toHaveProperty('c', store);
     });
-    it.todo(title(TypeIds.StoreArray));
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));
     it.todo(title(TypeIds.PropsProxy));

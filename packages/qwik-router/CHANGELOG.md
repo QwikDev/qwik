@@ -1,5 +1,11 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.9
+
+### Patch Changes
+
+- 🐞🩹 trigger params change after navigation (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
 ## 2.0.0-beta.8
 
 ### Patch Changes

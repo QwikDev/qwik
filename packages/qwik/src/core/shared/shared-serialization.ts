@@ -57,6 +57,7 @@ import {
   type AllSignalFlags,
   type EffectProperty,
   type EffectSubscription,
+  StoreFlags,
 } from '../reactive-primitives/types';
 import { SubscriptionData, type NodePropData } from '../reactive-primitives/subscription-data';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -274,12 +275,10 @@ const inflate = (
       break;
     case TypeIds.Store:
     case TypeIds.StoreArray: {
-      const [value, flags, effects] = data as unknown[];
-      const store = getOrCreateStore(value as object, flags as number, container as DomContainer);
-      const storeHandler = getStoreHandler(store)!;
+      const [, flags, effects] = data as unknown[];
+      const storeHandler = getStoreHandler(target)!;
+      storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
-      target = store;
-
       break;
     }
     case TypeIds.Signal: {
@@ -554,8 +553,12 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store:
     case TypeIds.StoreArray:
-      // ignore allocate, we need to assign target while creating store
-      return null;
+      const storeValue = deserializeData(
+        container,
+        (value as any[])[0] as TypeIds,
+        (value as any[])[1]
+      );
+      return getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:

@@ -98,7 +98,7 @@ Below, only the `useComputed$` function will re-run on any `count.value` change:
 ```tsx title="Optimal Implementation"
 export default component$(() => {
   const count = useSignal(1);
-  const dobuleCount = useComputed$(() => count.value*2);
+  const doubleCount = useComputed$(() => count.value*2);
   return (
     <div>{doubleCount.value}</div>
   );

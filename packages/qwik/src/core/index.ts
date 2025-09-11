@@ -116,7 +116,16 @@ export type { ResourceProps, ResourceOptions } from './use/use-resource';
 export { useResource$, useResourceQrl, Resource } from './use/use-resource';
 export { useTask$, useTaskQrl } from './use/use-task';
 export { useVisibleTask$, useVisibleTaskQrl } from './use/use-task';
-export { useComputed$, useComputedQrl, createComputed$, createComputedQrl } from './use/use-task';
+export {
+  useComputed$,
+  useComputedQrl,
+  createComputed$,
+  createComputedQrl,
+  useAsyncComputed$,
+  useAsyncComputedQrl,
+  createAsyncComputed$,
+  createAsyncComputedQrl,
+} from './use/use-task';
 export { useErrorBoundary } from './use/use-error-boundary';
 export type { ErrorBoundaryStore } from './render/error-handling';
 

@@ -3,7 +3,7 @@ import { component$ } from '../component/component.public';
 import { useResource$ } from './use-resource';
 import { useSignal } from './use-signal';
 import { useStore } from './use-store.public';
-import { useTask$ } from './use-task';
+import { useAsyncComputed$, useTask$ } from './use-task';
 
 describe('types', () => {
   test('track', () => () => {
@@ -21,6 +21,13 @@ describe('types', () => {
         expectTypeOf(track(sig)).toEqualTypeOf<number>();
         expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
         expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+      });
+      useAsyncComputed$(({ track }) => {
+        expectTypeOf(track(store)).toEqualTypeOf(store);
+        expectTypeOf(track(sig)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => sig.value)).toEqualTypeOf<number>();
+        expectTypeOf(track(() => store.count)).toEqualTypeOf<number>();
+        return Promise.resolve(42);
       });
       return null;
     });

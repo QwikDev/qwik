@@ -42,6 +42,7 @@ export const TaskFlagsIsResource = 1 << 2;
 export const TaskFlagsIsComputed = 1 << 3;
 export const TaskFlagsIsDirty = 1 << 4;
 export const TaskFlagsIsCleanup = 1 << 5;
+export const TaskFlagsIsAsyncComputed = 1 << 6;
 
 // <docs markdown="../readme.md#Tracker">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -141,6 +142,9 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 /** @public */
 export type ComputedFn<T> = () => T;
+
+/** @public */
+export type AsyncComputedFn<T> = (ctx: TaskCtx) => ValueOrPromise<T>;
 
 /** @public */
 export type ResourceFn<T> = (ctx: ResourceCtx<unknown>) => ValueOrPromise<T>;
@@ -337,16 +341,8 @@ export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> =
  * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
  * and all components that read the signal will be re-rendered.
  *
- * The function must be synchronous and must not have any side effects.
- *
- * Async functions are deprecated because:
- *
- * - When calculating the first time, it will see it's a promise and it will restart the render
- *   function.
- * - Qwik can't track used signals after the first await, which leads to subtle bugs.
- * - Both `useTask$` and `useResource$` are available, without these problems.
- *
- * In v2, async functions won't work.
+ * The function must be synchronous and must not have any side effects. If you need a version that
+ * accepts async functions, use `useAsyncComputed$`.
  *
  * @public
  */
@@ -359,6 +355,60 @@ export const useComputed$ = implicit$FirstArg(useComputedQrl);
  * @public
  */
 export const createComputed$ = implicit$FirstArg(createComputedQrl);
+
+/** @internal */
+export const createAsyncComputedQrl = <T>(qrl: QRL<AsyncComputedFn<T>>): Signal<Awaited<T>> => {
+  assertQrl(qrl);
+  const iCtx = useInvokeContext();
+  const hostElement = iCtx.$hostElement$;
+  const containerState = iCtx.$renderCtx$.$static$.$containerState$;
+  const elCtx = getContext(hostElement, containerState);
+  const signal = _createSignal(
+    undefined as Awaited<T>,
+    containerState,
+    SIGNAL_UNASSIGNED | SIGNAL_IMMUTABLE,
+    undefined
+  );
+
+  const task = new Task(
+    TaskFlagsIsDirty | TaskFlagsIsTask | TaskFlagsIsComputed | TaskFlagsIsAsyncComputed,
+    // Async computed signals should update immediately
+    0,
+    elCtx.$element$,
+    qrl,
+    signal
+  );
+  qrl.$resolveLazy$(containerState.$containerEl$);
+  (elCtx.$tasks$ ||= []).push(task);
+
+  waitAndRun(iCtx, () => runAsyncComputed(task, containerState, iCtx.$renderCtx$));
+  return signal as ReadonlySignal<Awaited<T>>;
+};
+
+/** @internal */
+export const useAsyncComputedQrl = <T>(qrl: QRL<AsyncComputedFn<T>>): Signal<Awaited<T>> => {
+  return useConstant(() => createAsyncComputedQrl(qrl));
+};
+
+/**
+ * Returns a computed signal which is calculated from the given async function. A computed signal is
+ * a signal which is calculated from other signals. When the signals change, the computed signal is
+ * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
+ * and all components that read the signal will be re-rendered.
+ *
+ * The function can be asynchronous and receives a `track` function to observe changes.
+ *
+ * @public
+ */
+export const useAsyncComputed$ = implicit$FirstArg(useAsyncComputedQrl);
+
+/**
+ * Returns read-only signal that updates when signals used in the `AsyncComputedFn` change. Unlike
+ * useAsyncComputed$, this is not a hook and it always creates a new signal.
+ *
+ * @public
+ */
+export const createAsyncComputed$ = implicit$FirstArg(createAsyncComputedQrl);
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -510,12 +560,16 @@ export interface ResourceDescriptor<T>
 
 export interface ComputedDescriptor<T> extends DescriptorBase<ComputedFn<T>, Signal<T>> {}
 
+export interface AsyncComputedDescriptor<T>
+  extends DescriptorBase<AsyncComputedFn<T>, Signal<Awaited<T>>> {}
+
 export type SubscriberHost = QwikElement;
 
 export type SubscriberEffect =
   | TaskDescriptor
   | ResourceDescriptor<unknown>
-  | ComputedDescriptor<unknown>;
+  | ComputedDescriptor<unknown>
+  | AsyncComputedDescriptor<unknown>;
 
 export const isResourceTask = (task: SubscriberEffect): task is ResourceDescriptor<unknown> => {
   return (task.$flags$ & TaskFlagsIsResource) !== 0;
@@ -523,6 +577,12 @@ export const isResourceTask = (task: SubscriberEffect): task is ResourceDescript
 
 export const isComputedTask = (task: SubscriberEffect): task is ComputedDescriptor<unknown> => {
   return (task.$flags$ & TaskFlagsIsComputed) !== 0;
+};
+
+export const isAsyncComputedTask = (
+  task: SubscriberEffect
+): task is AsyncComputedDescriptor<unknown> => {
+  return (task.$flags$ & TaskFlagsIsAsyncComputed) !== 0;
 };
 export const runSubscriber = async (
   task: SubscriberEffect,
@@ -532,10 +592,12 @@ export const runSubscriber = async (
   assertEqual(!!(task.$flags$ & TaskFlagsIsDirty), true, 'Resource is not dirty', task);
   if (isResourceTask(task)) {
     return runResource(task, containerState, rCtx);
+  } else if (isAsyncComputedTask(task)) {
+    return runAsyncComputed(task as AsyncComputedDescriptor<unknown>, containerState, rCtx);
   } else if (isComputedTask(task)) {
-    return runComputed(task, containerState, rCtx);
+    return runComputed(task as ComputedDescriptor<unknown>, containerState, rCtx);
   } else {
-    return runTask(task, containerState, rCtx);
+    return runTask(task as TaskDescriptor, containerState, rCtx);
   }
 };
 
@@ -762,7 +824,7 @@ export const runComputed = (
       const result = taskFn();
       if (isPromise(result)) {
         const warningMessage =
-          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useTask$ or useResource$ instead.';
+          'useComputed$: Async functions in computed tasks are deprecated and will stop working in v2. Use useAsyncComputed$, useTask$ or useResource$ instead.';
         const stack = new Error(warningMessage).stack;
         if (!stack) {
           logOnceWarn(warningMessage);
@@ -771,6 +833,81 @@ export const runComputed = (
           logOnceWarn(lessScaryStack);
         }
 
+        return result.then(ok, fail);
+      } else {
+        ok(result);
+      }
+    });
+  } catch (reason) {
+    fail(reason);
+  }
+};
+
+export const runAsyncComputed = (
+  task: AsyncComputedDescriptor<unknown>,
+  containerState: ContainerState,
+  rCtx: RenderContext
+): ValueOrPromise<void> => {
+  assertSignal(task.$state$);
+  task.$flags$ &= ~TaskFlagsIsDirty;
+  cleanupTask(task);
+  const hostElement = task.$el$;
+  const iCtx = newInvokeContext(rCtx.$static$.$locale$, hostElement, undefined, ComputedEvent);
+  iCtx.$renderCtx$ = rCtx;
+
+  const { $subsManager$: subsManager } = containerState;
+  const taskFn = task.$qrl$.getFn(iCtx, () => {
+    subsManager.$clearSub$(task);
+  }) as AsyncComputedFn<unknown>;
+
+  const track: Tracker = (obj: (() => unknown) | object | Signal, prop?: string) => {
+    if (isFunction(obj)) {
+      const ctx = newInvokeContext();
+      ctx.$subscriber$ = [0, task];
+      return invoke(ctx, obj);
+    }
+    const manager = getSubscriptionManager(obj);
+    if (manager) {
+      manager.$addSub$([0, task], prop);
+    } else {
+      logErrorAndStop(codeToText(QError_trackUseStore), obj);
+    }
+    if (prop) {
+      return (obj as Record<string, unknown>)[prop];
+    } else if (isSignal(obj)) {
+      return obj.value;
+    } else {
+      return obj;
+    }
+  };
+
+  const cleanups: (() => void)[] = [];
+  task.$destroy$ = noSerialize(() => {
+    cleanups.forEach((fn) => fn());
+  });
+
+  const opts: TaskCtx = {
+    track,
+    cleanup(callback) {
+      cleanups.push(callback);
+    },
+  };
+
+  const ok = (returnValue: any) => {
+    untrack(() => {
+      const signal = task.$state$! as SignalInternal<unknown>;
+      signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
+      signal.untrackedValue = noSerialize(returnValue);
+      signal[QObjectManagerSymbol].$notifySubs$();
+    });
+  };
+  const fail = (reason: unknown) => {
+    handleError(reason, hostElement, rCtx);
+  };
+  try {
+    return maybeThen(task.$qrl$.$resolveLazy$(containerState.$containerEl$), () => {
+      const result = taskFn(opts);
+      if (isPromise(result)) {
         return result.then(ok, fail);
       } else {
         ok(result);

@@ -199,7 +199,7 @@ const inflate = (
     return target;
   }
   // restore the complex data, except for stores
-  if (typeId !== TypeIds.Store && typeId !== TypeIds.StoreArray && Array.isArray(data)) {
+  if (typeId !== TypeIds.Store && Array.isArray(data)) {
     data = _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
@@ -248,8 +248,7 @@ const inflate = (
     case TypeIds.Component:
       target[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
-    case TypeIds.Store:
-    case TypeIds.StoreArray: {
+    case TypeIds.Store: {
       const store = target as object;
       const storeTarget = getStoreTarget(store)!;
       // Our data is still raw, special case
@@ -543,8 +542,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new AsyncComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
-    case TypeIds.Store:
-    case TypeIds.StoreArray: {
+    case TypeIds.Store: {
       const data = value as any[];
       // We need to allocate the target first so we can create the proxy
       let targetTypeId = data[0] as TypeIds | undefined;
@@ -1210,7 +1208,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         while (out[out.length - 1] == null) {
           out.pop();
         }
-        output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
+        output(TypeIds.Store, out);
       }
     } else if (isSerializerObj(value)) {
       const result = value[SerializerSymbol](value);
@@ -1980,7 +1978,6 @@ export const enum TypeIds {
   AsyncComputedSignal,
   SerializerSignal,
   Store,
-  StoreArray,
   FormData,
   JSXNode,
   PropsProxy,
@@ -2018,7 +2015,6 @@ export const _typeIdNames = [
   'AsyncComputedSignal',
   'SerializerSignal',
   'Store',
-  'StoreArray',
   'FormData',
   'JSXNode',
   'PropsProxy',

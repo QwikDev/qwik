@@ -1,4 +1,3 @@
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 import {
@@ -12,7 +11,6 @@ import type { Http2ServerRequest } from 'node:http2';
 import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
-import type { QwikSerializer } from '../request-handler/types';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
@@ -23,12 +21,6 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
     console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
   }
-
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
 
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
@@ -50,7 +42,7 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         'server',
         opts.getClientConn
       );
-      const handled = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
         const err = await handled.completion;
         if (err) {
@@ -80,9 +72,10 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         // In the development server, we replace the getNotFound function
         // For static paths, we assign a static "Not Found" message.
         // This ensures consistency between development and production environments for specific URLs.
-        const notFoundHtml = isStaticPath(req.method || 'GET', url)
-          ? 'Not Found'
-          : getNotFound(url.pathname);
+        const notFoundHtml =
+          !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
+            ? 'Not Found'
+            : getNotFound(url.pathname);
         res.writeHead(404, {
           'Content-Type': 'text/html; charset=utf-8',
           'X-Not-Found': url.pathname,

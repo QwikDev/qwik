@@ -2,7 +2,7 @@ import type { Plugin } from '@rolldown/browser';
 import type { MinifyOptions } from 'terser';
 import { minify } from 'terser';
 import type { PkgUrls, ReplInputOptions } from '../types';
-import { QWIK_PKG_NAME } from '../repl-constants';
+import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 export const definesPlugin = (defines: Record<string, string>): Plugin => {
   return {
@@ -36,7 +36,7 @@ export const replResolver = (
   };
 
   const getQwik = (id: string, external?: true) => {
-    const path = deps[QWIK_PKG_NAME][id];
+    const path = deps[QWIK_PKG_NAME_V1][id];
     if (!path) {
       throw new Error(`Unknown Qwik path: ${id}`);
     }
@@ -78,8 +78,10 @@ export const replResolver = (
           return getQwik('/dist/preloader.mjs');
         }
         if (pkgName.includes('/qwikloader')) {
-          // Special case, needs to be an entry point
           return getQwik('/dist/qwikloader.js');
+        }
+        if (pkgName.includes('/handlers')) {
+          return getQwik('/handlers.mjs');
         }
       }
       // Simple relative file resolution
@@ -117,7 +119,7 @@ export const replResolver = (
             export const isClient = ${!isServer};
           `;
         }
-        const url = deps[QWIK_PKG_NAME][path];
+        const url = deps[QWIK_PKG_NAME_V1][path];
         if (url) {
           const rsp = await fetch(url);
           if (rsp.ok) {

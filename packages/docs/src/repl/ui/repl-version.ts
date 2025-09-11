@@ -1,7 +1,7 @@
 import { bundled } from '../bundler/bundled';
-import { QWIK_PKG_NAME } from '../repl-constants';
+import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
-const bundledVersion = bundled[QWIK_PKG_NAME].version;
+const bundledVersion = bundled[QWIK_PKG_NAME_V1].version;
 
 // The golden oldies
 const keepList = new Set('1.0.0,1.1.5,1.2.13,1.4.5'.split(','));
@@ -20,11 +20,11 @@ export const getReplVersion = async (version: string | undefined, offline: boole
     npmData = JSON.parse(localStorage.getItem(NPM_STORAGE_KEY)!);
     if (!offline && isExpiredNpmData(npmData)) {
       // fetch most recent NPM version data
-      console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_DATA}`);
-      const npmRsp = await fetch(QWIK_NPM_DATA);
-      npmData = await npmRsp.json();
-      npmData!.timestamp = Date.now();
-
+      console.debug(`Qwik REPL, fetch npm data: ${QWIK_NPM_V1_DATA}`);
+      const npmData = await fetch(QWIK_NPM_V1_DATA).then((r) => r.json());
+      npmData.timestamp = Date.now();
+      const v2Data = await fetch(QWIK_NPM_V2_DATA).then((r) => r.json());
+      npmData.versions.unshift(...v2Data.versions);
       localStorage.setItem(NPM_STORAGE_KEY, JSON.stringify(npmData));
     } else {
       console.debug(`Qwik REPL, using cached npm data`);
@@ -52,17 +52,9 @@ export const getReplVersion = async (version: string | undefined, offline: boole
       // always include "latest"
       return true;
     }
-    if (v.includes('-')) {
-      // filter out dev builds
-      return false;
-    }
     const parts = v.split('.');
-    if (parts.length !== 3) {
-      // invalid, must have 3 parts
-      return false;
-    }
-    if (isNaN(parts[2] as any)) {
-      // last part cannot have letters in it
+    if (!parts[2] || /-(dev|alpha)/.test(parts[2])) {
+      // exclude dev and alpha versions
       return false;
     }
     // mini-semver check, must be >= than 0.0.100
@@ -114,11 +106,11 @@ const isExpiredNpmData = (npmData: NpmData | null) => {
   return true;
 };
 
-const QWIK_NPM_DATA = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+const QWIK_NPM_V1_DATA = `https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik`;
+const QWIK_NPM_V2_DATA = `https://data.jsdelivr.com/v1/package/npm/@qwik.dev/core`;
 
 const NPM_STORAGE_KEY = `qwikNpmData`;
 
-// https://data.jsdelivr.com/v1/package/npm/@builder.io/qwik
 interface NpmData {
   tags: { latest: string; next: string };
   versions: string[];

@@ -10,6 +10,7 @@ import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Header } from '../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { EditIcon } from '../../components/svgs/edit-icon';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -167,9 +168,10 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+  setReplCorsHeaders(headers);
 };

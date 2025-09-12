@@ -720,10 +720,10 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 30000 --retries 20 --workers 1
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 2 --workers 1
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 2
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 3 --workers 2
 
       - name: Validate Create Qwik Cli
         if: matrix.settings.host != 'windows-latest'

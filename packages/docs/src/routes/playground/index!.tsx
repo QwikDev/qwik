@@ -8,6 +8,7 @@ import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { isBrowser } from '@builder.io/qwik';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -135,7 +136,5 @@ export const onGet: RequestHandler = ({ cacheControl, headers }) => {
     maxAge: 3600,
   });
 
-  // Needed for SharedArrayBuffer in the REPL
-  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+  setReplCorsHeaders(headers);
 };

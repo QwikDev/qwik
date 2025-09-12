@@ -5,7 +5,6 @@ import {
   useStylesScoped$,
   useVisibleTask$,
 } from "@qwik.dev/core";
-// @ts-ignore-next-line not sure why this is not working
 import styles from "./flower.css?inline";
 
 export default component$(() => {

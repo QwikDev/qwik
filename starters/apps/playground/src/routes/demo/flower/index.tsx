@@ -5,6 +5,7 @@ import {
   useStylesScoped$,
   useVisibleTask$,
 } from "@qwik.dev/core";
+// @ts-ignore-next-line not sure why this is not working
 import styles from "./flower.css?inline";
 
 export default component$(() => {
@@ -16,7 +17,6 @@ export default component$(() => {
     number: 20,
   });
 
-  // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(({ cleanup }) => {
     const timeout = setTimeout(() => (state.count = 1), 500);
     cleanup(() => clearTimeout(timeout));

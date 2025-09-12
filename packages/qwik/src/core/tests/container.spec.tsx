@@ -277,18 +277,6 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('StringSerializer, //////// ' + TypeIds.String, () => {
-      it('should serialize and deserialize', async () => {
-        const obj = '\u0010anything';
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-
-      it('should serialize and deserialize strings in array', async () => {
-        const obj = ['\b: backspace'];
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
     describe('VNodeSerializer, ///////// ' + TypeIds.VNode, () => {
       it.todo('should serialize and deserialize', async () => {
         ///

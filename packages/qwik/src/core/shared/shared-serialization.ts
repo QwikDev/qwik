@@ -67,6 +67,10 @@ import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-sig
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { isObject } from './utils/types';
 
+/** Arrays/Objects are special-cased so their identifiers is a single digit. */
+const needsInflation = (typeId: TypeIds) =>
+  typeId >= TypeIds.Error || typeId === TypeIds.Array || typeId === TypeIds.Object;
+
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
 type DeserializerProxy<T extends object = object> = T & { [SERIALIZER_PROXY_UNWRAP]: object };
@@ -122,7 +126,7 @@ class DeserializationHandler implements ProxyHandler<object> {
     const idx = i * 2;
     const typeId = this.$data$[idx] as number;
     const value = this.$data$[idx + 1];
-    if (typeId === undefined) {
+    if (typeId === TypeIds.Plain) {
       // The value is already cached
       return value;
     }
@@ -131,14 +135,11 @@ class DeserializationHandler implements ProxyHandler<object> {
     const propValue = allocate(container, typeId, value);
 
     Reflect.set(target, property, propValue);
-    this.$data$[idx] = undefined;
+    this.$data$[idx] = TypeIds.Plain;
     this.$data$[idx + 1] = propValue;
 
-    /**
-     * We stored the reference, so now we can inflate, allowing cycles. Arrays are special-cased so
-     * their identifiers is a single digit.
-     */
-    if (typeId === TypeIds.Array || typeId >= TypeIds.Error) {
+    /** We stored the reference, so now we can inflate, allowing cycles */
+    if (needsInflation(typeId)) {
       inflate(container, propValue, typeId, value);
     }
 
@@ -162,7 +163,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       return out;
     }
     const idx = i * 2;
-    this.$data$[idx] = undefined;
+    this.$data$[idx] = TypeIds.Plain;
     this.$data$[idx + 1] = value;
     return true;
   }
@@ -191,7 +192,7 @@ const inflate = (
   typeId: TypeIds,
   data: unknown
 ): void => {
-  if (typeId === undefined) {
+  if (typeId === TypeIds.Plain) {
     // Already processed
     return;
   }
@@ -458,7 +459,7 @@ const _constantNames = [
 ] as const;
 
 const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
-  if (typeId === undefined) {
+  if (typeId === TypeIds.Plain) {
     return value;
   }
   switch (typeId) {
@@ -478,8 +479,6 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return value;
     case TypeIds.Constant:
       return _constants[value as Constants];
-    case TypeIds.Number:
-      return value as number;
     case TypeIds.Array:
       // Wrap while inflating so we can handle cyclic references
       return wrapDeserializerProxy(container as any, value as any[]);
@@ -541,6 +540,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
         (value as any[])[0] as TypeIds,
         (value as any[])[1]
       );
+      (value as any[])[0] = TypeIds.Plain;
+      (value as any[])[1] = storeValue;
       return getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
@@ -554,8 +555,6 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new Set();
     case TypeIds.Map:
       return new Map();
-    case TypeIds.String:
-      return value as string;
     case TypeIds.Promise:
       let resolve!: (value: any) => void;
       let reject!: (error: any) => void;
@@ -1096,7 +1095,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       } else if (value === Number.MIN_SAFE_INTEGER) {
         output(TypeIds.Constant, Constants.MinSafeInt);
       } else {
-        output(TypeIds.Number, value);
+        output(TypeIds.Plain, value);
       }
     } else if (typeof value === 'object') {
       if (value === EMPTY_ARRAY) {
@@ -1118,7 +1117,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
         if (!outputAsRootRef(value)) {
-          output(TypeIds.String, value);
+          output(TypeIds.Plain, value);
         }
       }
     } else if (typeof value === 'undefined') {
@@ -1640,11 +1639,11 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
 }
 
 function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
-  if (typeId === undefined) {
+  if (typeId === TypeIds.Plain) {
     return value;
   }
   const propValue = allocate(container, typeId, value);
-  if (typeId >= TypeIds.Error) {
+  if (needsInflation(typeId)) {
     inflate(container, propValue, typeId, value);
   }
   return propValue;
@@ -1925,24 +1924,24 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
 const QRL_RUNTIME_CHUNK = 'mock-chunk';
 
 export const enum TypeIds {
+  Plain,
   RootRef,
   ForwardRef,
-  ForwardRefs,
   /** Undefined, null, true, false, NaN, +Inf, -Inf, Slot, Fragment */
   Constant,
-  Number,
-  String,
   Array,
+  Object,
   URL,
   Date,
   Regex,
   VNode,
+  /// ^ single-digit types ^
   RefVNode,
   BigInt,
   URLSearchParams,
-  /// All values below need inflation because they may have reference cycles
+  ForwardRefs,
+  /// All types below will be inflate()d
   Error,
-  Object,
   Promise,
   Set,
   Map,
@@ -1964,13 +1963,12 @@ export const enum TypeIds {
   SubscriptionData,
 }
 export const _typeIdNames = [
+  'Plain',
   'RootRef',
   'ForwardRef',
-  'ForwardRefs',
   'Constant',
-  'Number',
-  'String',
   'Array',
+  'Object',
   'URL',
   'Date',
   'Regex',
@@ -1978,8 +1976,8 @@ export const _typeIdNames = [
   'RefVNode',
   'BigInt',
   'URLSearchParams',
+  'ForwardRefs',
   'Error',
-  'Object',
   'Promise',
   'Set',
   'Map',
@@ -2070,11 +2068,15 @@ export const dumpState = (
     }
     const key = state[i];
     let value = state[++i];
-    if (key === undefined) {
-      hasRaw = true;
-      out.push(
-        `${RED}[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]${RESET} ${printRaw(value, `${prefix}  `)}`
-      );
+    if (key === TypeIds.Plain) {
+      const isRaw = typeof value !== 'number' && typeof value !== 'string';
+      if (isRaw) {
+        hasRaw = true;
+      }
+      const type = isRaw
+        ? `[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]`
+        : typeIdToName(key as TypeIds);
+      out.push(`${RED}${type}${RESET} ${printRaw(value, `${prefix}  `)}`);
     } else {
       if (key === TypeIds.Constant) {
         value = constantToName(value as Constants);

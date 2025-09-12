@@ -709,8 +709,8 @@ describe('shared-serialization', () => {
       const orig = { a: { b: true }, orig: undefined as any };
       orig.orig = orig;
       const store = createStore(null, orig, StoreFlags.RECURSIVE);
-      store.c = store; // circular ref
-      store.a.c = store;
+      (store as any).c = store; // circular ref
+      (store.a as any).c = store;
       expect(await dump([orig, store])).toMatchInlineSnapshot(`
         "
         0 Array [

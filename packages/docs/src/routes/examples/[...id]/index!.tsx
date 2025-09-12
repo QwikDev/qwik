@@ -9,6 +9,7 @@ import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 import { isBrowser } from '@builder.io/qwik';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -172,11 +173,12 @@ interface ExamplesStore extends ReplAppInput {
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+  setReplCorsHeaders(headers);
 };
 
 export const onStaticGenerate: StaticGenerateHandler = () => {

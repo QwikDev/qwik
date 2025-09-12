@@ -706,28 +706,35 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.Store), async () => {
-      const store = createStore(
-        null,
-        { a: { b: true }, c: undefined as any },
-        StoreFlags.RECURSIVE
-      );
+      const orig = { a: { b: true }, orig: undefined as any };
+      orig.orig = orig;
+      const store = createStore(null, orig, StoreFlags.RECURSIVE);
       store.c = store; // circular ref
-      expect(await dump(store)).toMatchInlineSnapshot(`
+      store.a.c = store;
+      expect(await dump([orig, store])).toMatchInlineSnapshot(`
         "
-        0 Store [
+        0 Array [
           Object [
             String "a"
             Object [
               String "b"
               Constant true
+              String "c"
+              Store [
+                RootRef 1
+                Number 1
+              ]
             ]
+            String "orig"
+            RootRef 1
             String "c"
             RootRef 1
           ]
-          Number 1
+          RootRef 2
         ]
         1 RootRef "0 0"
-        (54 chars)"
+        2 RootRef "0 0 1 3"
+        (97 chars)"
       `);
     });
     it.todo(title(TypeIds.FormData));
@@ -939,18 +946,23 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.SerializerSignal));
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {
-      const storeSrc = createStore(
-        null,
-        { a: { b: true }, c: undefined as any },
-        StoreFlags.RECURSIVE
-      );
+      const orig: any = { a: { b: true } };
+      orig.orig = orig;
+      const storeSrc = createStore<any>(null, orig, StoreFlags.RECURSIVE);
       storeSrc.c = storeSrc; // circular ref
+      orig.a.store = storeSrc;
 
-      const objs = await serialize(storeSrc);
-      const store = deserialize(objs)[0] as any;
+      const objs = await serialize(orig, storeSrc);
+      const [origRestored, store] = deserialize(objs) as any[];
       expect(store).toHaveProperty('a');
       expect(store.a).toHaveProperty('b', true);
       expect(store).toHaveProperty('c', store);
+      expect(origRestored.orig).toBe(origRestored);
+      expect(store.orig).toBe(store);
+      expect(origRestored.a.store).toBe(store);
+      expect(store.a.store).toBe(store);
+      store.orig.hello = 123;
+      expect((origRestored as any).hello).toBe(123);
     });
     it.todo(title(TypeIds.FormData));
     it.todo(title(TypeIds.JSXNode));

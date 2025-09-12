@@ -140,11 +140,10 @@ class DeserializationHandler implements ProxyHandler<object> {
      */
     if (typeId === TypeIds.Array || typeId >= TypeIds.Error) {
       propValue = inflate(container, propValue, typeId, value);
-      if (propValue !== this.$data$[idx + 1]) {
-        Reflect.set(target, property, propValue);
-        this.$data$[idx + 1] = propValue;
-      }
+      Reflect.set(target, property, propValue);
+      this.$data$[idx + 1] = propValue;
     }
+
     return propValue;
   }
 
@@ -198,8 +197,8 @@ const inflate = (
     // Already processed
     return target;
   }
-  // restore the complex data, except for stores
-  if (typeId !== TypeIds.Store && Array.isArray(data)) {
+  // Restore the complex data
+  if (Array.isArray(data)) {
     data = _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
@@ -210,7 +209,6 @@ const inflate = (
       }
       return target[SERIALIZER_PROXY_UNWRAP];
     case TypeIds.Object:
-      // We eagerly inflated the properties because cycles happen via direct refs
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];
@@ -249,25 +247,11 @@ const inflate = (
       target[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
     case TypeIds.Store: {
-      const store = target as object;
-      const storeTarget = getStoreTarget(store)!;
-      // Our data is still raw, special case
-      // We already allocated the target, now we need to inflate it
-      const rawData = data as any[];
-      let targetTypeId = rawData[0] as TypeIds | undefined;
-      if (targetTypeId !== undefined) {
-        let targetValue = rawData[1];
-        if (targetTypeId === TypeIds.RootRef) {
-          const offset = (targetValue as number) * 2;
-          targetTypeId = container.$rawStateData$[offset] as TypeIds | undefined;
-          targetValue = container.$rawStateData$[offset + 1];
-          container.$rawStateData$[offset] = undefined;
-          container.$rawStateData$[offset + 1] = storeTarget;
-        }
-        inflate(container, storeTarget, targetTypeId!, targetValue);
-      }
-      const flags = deserializeData(container, rawData[2], rawData[3]);
-      const effects = deserializeData(container, rawData[4], rawData[5]);
+      /**
+       * Note that cycles between stores and their targets can cause this inflation to happen on
+       * already inflated stores, but that's ok because the flags and effects are still the same
+       */
+      const [, flags, effects] = data as unknown[];
       const storeHandler = getStoreHandler(target)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
@@ -542,35 +526,22 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new AsyncComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
-    case TypeIds.Store: {
-      const data = value as any[];
-      // We need to allocate the target first so we can create the proxy
-      let targetTypeId = data[0] as TypeIds | undefined;
-      let targetValue = data[1];
-      let target: object;
-      // The store target can only be an object or an array, but it might be referenced
-      // and it might cycle back to the store itself, so we cannot inflate it
-      if (targetTypeId === TypeIds.RootRef) {
-        // The rootref can only be a direct index because the backrefs were already processed
-        targetTypeId = container.$rawStateData$[(targetValue as number) * 2] as TypeIds | undefined;
-        targetValue = container.$rawStateData$[(targetValue as number) * 2 + 1];
-        if (targetTypeId === undefined) {
-          // We already allocated the target
-          target = targetValue as object;
-          data[0] = undefined;
-          data[1] = target;
-        }
-      } else {
-        // TODO remove this check when we are confident
-        assertTrue(
-          targetTypeId === TypeIds.Object || targetTypeId === TypeIds.Array,
-          'store target has unsupported type ' + typeIdToName(targetTypeId!)
-        );
-      }
-      // If we don't have a target yet, allocate it now, we'll inflate and save it later
-      target ||= allocate(container, targetTypeId!, targetValue);
-      return getOrCreateStore(target, StoreFlags.NONE, container as DomContainer);
-    }
+    case TypeIds.Store:
+      /**
+       * We have a problem here: In theory, both the store and the target need to be present at
+       * allocate time before inflation can happen. However, that makes the code really complex.
+       * Instead, we deserialize the target here, which will already allocate and inflate this store
+       * if there is a cycle (because the original allocation for the store didn't complete yet).
+       * Because we have a map of target -> store, we will reuse the same store instance after
+       * target deserialization. So in that case, we will be running inflation twice on the same
+       * store, but that is not a problem, very little overhead and the code is way simpler.
+       */
+      const storeValue = deserializeData(
+        container,
+        (value as any[])[0] as TypeIds,
+        (value as any[])[1]
+      );
+      return getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
@@ -1694,7 +1665,6 @@ export function _createDeserializeContainer(
     $forwardRefs$: null,
     $initialQRLsIndexes$: null,
     $scheduler$: null,
-    $rawStateData$: stateData,
   };
   preprocessState(stateData, container);
   state = wrapDeserializerProxy(container as any, stateData);

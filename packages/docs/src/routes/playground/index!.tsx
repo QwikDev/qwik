@@ -129,9 +129,13 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+
+  // Needed for SharedArrayBuffer in the REPL
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
 };

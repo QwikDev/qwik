@@ -1673,7 +1673,7 @@ export function _createDeserializeContainer(
     $storeProxyMap$: new WeakMap(),
     element: null,
     $forwardRefs$: null,
-    $initialQRLsIndexes$: null,
+    $initialQRLs$: null,
     $scheduler$: null,
   };
   preprocessState(stateData, container);
@@ -1784,8 +1784,8 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
       container.$forwardRefs$ = data[i + 1] as number[];
     } else if (isPreloadQrlType(data[i] as TypeIds)) {
-      container.$initialQRLsIndexes$ ||= [];
-      container.$initialQRLsIndexes$.push(i / 2);
+      const qrl = data[i + 1] as string;
+      (container.$initialQRLs$ ||= []).push(qrl);
     }
   }
 }

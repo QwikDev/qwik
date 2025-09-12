@@ -103,7 +103,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             <iframe
               key={store.reload}
               class="repl-server"
-              src={`/repl/${store.replId}/`}
+              src={`/repl/client/${store.replId}/`}
               sandbox="allow-popups allow-modals allow-scripts allow-same-origin"
             />
           )}

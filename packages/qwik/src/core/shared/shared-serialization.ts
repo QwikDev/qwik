@@ -249,7 +249,10 @@ const inflate = (
     case TypeIds.Store: {
       /**
        * Note that cycles between stores and their targets can cause this inflation to happen on
-       * already inflated stores, but that's ok because the flags and effects are still the same
+       * already inflated stores, but that's ok because the flags and effects are still the same.
+       *
+       * Also note that we don't do anything with the innerstores we added during serialization,
+       * because they are already inflated in the first step of inflate().
        */
       const [, flags, effects] = data as unknown[];
       const storeHandler = getStoreHandler(target)!;
@@ -1175,7 +1178,17 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         const flags = storeHandler.$flags$;
         const effects = storeHandler.$effects$;
 
-        const out = [storeTarget, flags, effects];
+        // We need to retain the nested stores too, they won't be found from the target
+        const innerStores = [];
+        for (const prop in storeTarget) {
+          const propValue = (storeTarget as any)[prop];
+          const innerStore = $storeProxyMap$.get(propValue);
+          if (innerStore) {
+            innerStores.push(innerStore);
+          }
+        }
+
+        const out = [storeTarget, flags, effects, ...innerStores];
         while (out[out.length - 1] == null) {
           out.pop();
         }

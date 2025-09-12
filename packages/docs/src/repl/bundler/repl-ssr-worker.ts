@@ -67,12 +67,17 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   }
 };
 
+// Workaround so vite doesn't try to process this import
+const importFrom = (url: string) => {
+  return import(/*@vite-ignore*/ url);
+};
+
 async function executeSSR(message: InitSSRMessage): Promise<{ html: string; events: any[] }> {
   const { baseUrl, manifest, entry } = message;
   const start = performance.now();
 
   // We prevent Vite from touching this import() and replace it after bundling
-  const module = await (globalThis as any).DO_NOT_TOUCH_IMPORT(`/repl/${replId}-ssr/${entry}`);
+  const module = await importFrom(`/repl/ssr/${replId}/${entry}`);
   const server = module.default;
 
   const render = typeof server === 'function' ? server : server?.render;
@@ -105,12 +110,6 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
     manifest,
     prefetchStrategy: null,
   });
-
-  // Inject the event listener script
-  ssrResult.html = ssrResult.html.replace(
-    '</body>',
-    `<script>${(globalThis as any).LISTENER_SCRIPT}</script></body>`
-  );
 
   events.push({
     kind: 'console-log',

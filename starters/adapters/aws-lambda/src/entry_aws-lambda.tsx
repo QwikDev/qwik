@@ -7,8 +7,6 @@
  * - https://qwik.dev/docs/deployments/aws/
  *
  */
-import { manifest } from "@qwik-client-manifest";
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformAwsLambda,
@@ -21,11 +19,7 @@ declare global {
   interface QwikRouterPlatform extends PlatformAwsLambda {}
 }
 
-export const { handle } = createQwikRouter({
-  render,
-  qwikRouterConfig,
-  manifest,
-});
+export const { handle } = createQwikRouter({ render });
 
 export const qwikApp = serverless({ handle }, { binary: true });
 // handler is the default export for the lambda functions

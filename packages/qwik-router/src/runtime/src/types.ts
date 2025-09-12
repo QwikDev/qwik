@@ -6,6 +6,7 @@ import type {
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
+import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -17,6 +18,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
+import type { Q_ROUTE } from './constants';
 
 export type {
   Cookie,
@@ -81,6 +83,10 @@ export type RouteStateInternal = {
   scroll?: boolean;
 };
 
+export type RebuildRouteInfoInternal = (
+  url: URL
+) => Promise<{ loadedRoute: LoadedRoute | null; requestHandlers: RequestHandler<any>[] }>;
+
 /**
  * @param url - The URL that the user is trying to navigate to, or a number to indicate the user is
  *   trying to navigate back/forward in the application history. If it is missing, the event is sent
@@ -141,10 +147,7 @@ export interface DocumentHeadValue<
 > {
   /** Sets `document.title`. */
   readonly title?: string;
-  /**
-   * Used to manually set meta tags in the head. Additionally, the `data` property could be used to
-   * set arbitrary data which the `<head>` component could later use to generate `<meta>` tags.
-   */
+  /** Used to manually set meta tags in the head. */
   readonly meta?: readonly DocumentMeta[];
   /** Used to manually append `<link>` elements to the `<head>`. */
   readonly links?: readonly DocumentLink[];
@@ -166,50 +169,54 @@ export type ResolvedDocumentHead<
 > = Required<DocumentHeadValue<FrontMatter>>;
 
 /** @public */
-export interface DocumentMeta {
-  readonly content?: string;
-  readonly httpEquiv?: string;
-  readonly name?: string;
-  readonly property?: string;
-  readonly key?: string;
-  readonly itemprop?: string;
-  readonly media?: string;
-}
+export type DocumentMeta = QwikIntrinsicElements['meta'];
 
 /** @public */
-export interface DocumentLink {
-  as?: string;
-  crossorigin?: string;
-  disabled?: boolean;
-  href?: string;
-  hreflang?: string;
-  id?: string;
-  imagesizes?: string;
-  imagesrcset?: string;
-  integrity?: string;
-  media?: string;
-  prefetch?: string;
-  referrerpolicy?: string;
-  rel?: string;
-  sizes?: string;
-  title?: string;
-  type?: string;
-  key?: string;
-}
+export type DocumentLink = QwikIntrinsicElements['link'];
 
 /** @public */
-export interface DocumentStyle {
-  readonly style: string;
-  readonly props?: Readonly<QwikIntrinsicElements['style']>;
-  readonly key?: string;
-}
+export type DocumentStyle = Readonly<
+  (
+    | (Omit<QwikIntrinsicElements['style'], 'dangerouslySetInnerHTML'> & { props?: never })
+    | {
+        key?: string;
+        /**
+         * The props of the style element. @deprecated Prefer setting the properties directly
+         * instead of using this property.
+         */
+        props: Readonly<QwikIntrinsicElements['style']>;
+      }
+  ) &
+    (
+      | {
+          /** The inline style content. */
+          style?: string;
+          dangerouslySetInnerHTML?: never;
+        }
+      | { dangerouslySetInnerHTML?: string; style?: never }
+    )
+>;
 
-/** @beta */
-export interface DocumentScript {
-  readonly script?: string;
-  readonly props?: Readonly<QwikIntrinsicElements['script']>;
-  readonly key?: string;
-}
+/** @public */
+export type DocumentScript = (
+  | (Omit<QwikIntrinsicElements['script'], 'dangerouslySetInnerHTML'> & { props?: never })
+  | {
+      key?: string;
+      /**
+       * The props of the script element. @deprecated Prefer setting the properties directly instead
+       * of using this property.
+       */
+      props: Readonly<QwikIntrinsicElements['script']>;
+    }
+) &
+  (
+    | {
+        /** The inline script content. */
+        script?: string;
+        dangerouslySetInnerHTML?: never;
+      }
+    | { dangerouslySetInnerHTML?: string; script?: never }
+  );
 
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {
@@ -258,8 +265,20 @@ export type RouteData =
       routeBundleNames: string[],
     ];
 
+export const enum RouteDataProp {
+  RouteName,
+  Loaders,
+  OriginalPathname,
+  RouteBundleNames,
+}
+
 /** @public */
 export type MenuData = [pathname: string, menuLoader: MenuModuleLoader];
+
+export const enum MenuDataProp {
+  Pathname,
+  MenuLoader,
+}
 
 /**
  * @deprecated Use `QwikRouterConfig` instead. Will be removed in V3.
@@ -292,27 +311,30 @@ export type LoadedRoute = [
   routeBundleNames: string[] | undefined,
 ];
 
-export interface LoadedContent extends LoadedRoute {
-  pageModule: PageModule;
+export const enum LoadedRouteProp {
+  RouteName,
+  Params,
+  Mods,
+  Menu,
+  RouteBundleNames,
 }
-
-export type RequestHandlerBody<BODY> = BODY | string | number | boolean | undefined | null | void;
-
-export type RequestHandlerBodyFunction<BODY> = () =>
-  | RequestHandlerBody<BODY>
-  | Promise<RequestHandlerBody<BODY>>;
 
 export interface EndpointResponse {
   status: number;
   loaders: Record<string, unknown>;
+  loadersSerializationStrategy: Map<string, SerializationStrategy>;
   formData?: FormData;
   action?: string;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'status'> {
-  status: number;
+export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
   href: string;
   redirect?: string;
+  isRewrite?: boolean;
+}
+
+export interface LoaderData {
+  loaders: Record<string, unknown>;
 }
 
 /** @public */
@@ -329,6 +351,7 @@ export interface StaticGenerate {
 
 /** @deprecated Use `QwikRouterEnvData` instead. Will be removed in V3. */
 export type QwikCityEnvData = QwikRouterEnvData;
+/** @public */
 export interface QwikRouterEnvData {
   routeName: string;
   ev: RequestEvent;
@@ -336,6 +359,16 @@ export interface QwikRouterEnvData {
   response: EndpointResponse;
   loadedRoute: LoadedRoute | null;
 }
+
+/** @public The server data that is provided by Qwik Router during SSR rendering. It can be retrieved with `useServerData(key)` in the server, but it is not available in the client. */
+export type ServerData = {
+  url: string;
+  requestHeaders: Record<string, string>;
+  locale: string | undefined;
+  nonce: string | undefined;
+  containerAttributes: Record<string, string> & { [Q_ROUTE]: string };
+  qwikrouter: QwikRouterEnvData;
+};
 
 export interface SimpleURL {
   origin: string;
@@ -388,10 +421,10 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> =
   GetValidatorOutputType<VALIDATOR>;
 
 /** @public */
-export interface CommonLoaderActionOptions {
+export type ActionOptions = {
   readonly id?: string;
   readonly validation?: DataValidator[];
-}
+};
 
 /** @public */
 export type FailOfRest<REST extends readonly DataValidator[]> = REST extends readonly DataValidator<
@@ -632,7 +665,9 @@ export type ActionConstructorQRL = {
 
 /** @public */
 export type LoaderOptions = {
-  id?: string;
+  readonly id?: string;
+  readonly validation?: DataValidator[];
+  readonly serializationStrategy?: SerializationStrategy;
 };
 
 /** @public */
@@ -664,8 +699,6 @@ export type LoaderConstructorQRL = {
     ...rest: REST
   ): Loader<StrictUnion<OBJ | FailReturn<FailOfRest<REST>>>>;
 };
-
-export type LoaderStateHolder = Record<string, Signal<unknown>>;
 
 /** @public */
 export type ActionReturn<RETURN> = {
@@ -778,6 +811,7 @@ export interface LoaderInternal extends Loader<any> {
   __qrl: QRL<(event: RequestEventLoader) => ValueOrPromise<unknown>>;
   __id: string;
   __validators: DataValidator[] | undefined;
+  __serializationStrategy: SerializationStrategy;
   (): LoaderSignal<unknown>;
 }
 

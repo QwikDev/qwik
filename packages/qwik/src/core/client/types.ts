@@ -13,12 +13,13 @@ export interface ClientContainer extends Container {
   document: QDocument;
   element: ContainerElement;
   qContainer: string;
-  qBase: string;
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
-  renderDone: Promise<void> | null;
+  $forwardRefs$: Array<number> | null;
+  $initialQRLsIndexes$: Array<number> | null;
+  $flushEpoch$: number;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
@@ -53,10 +54,6 @@ export interface QDocument extends Document {
   qVNodeData: WeakMap<Element, string>;
 }
 
-export interface QNode extends Node {
-  qVNode?: VNode;
-}
-
 /**
  * Flags for VNode.
  *
@@ -80,10 +77,10 @@ export const enum VNodeFlags {
   Element /* ****************** */ = 0b00_000001,
   Virtual /* ****************** */ = 0b00_000010,
   ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000011,
+  Text /* ********************* */ = 0b00_000100,
   ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000101,
   TYPE_MASK /* **************** */ = 0b00_000111,
   INFLATED_TYPE_MASK /* ******* */ = 0b00_001111,
-  Text /* ********************* */ = 0b00_000100,
   /// Extra flag which marks if a node needs to be inflated.
   Inflated /* ***************** */ = 0b00_001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
@@ -99,8 +96,7 @@ export const enum VNodeFlags {
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************* */ = ~0b11_111111,
-  negated_mask /* ****** */ = 0b11_111111,
+  mask /* ************** */ = 0b11_111111,
   shift /* ************* */ = 8,
 }
 
@@ -132,7 +128,7 @@ export type ElementVNode = [
   Element, //////////////////// 6 - Element
   string | undefined, ///////// 7 - tag
   /// Props
-  ...(string | null)[], /////// 8 - attrs
+  (string | null)[], /////// 8 - attrs
 ] & { __brand__: 'ElementVNode' };
 
 export const enum TextVNodeProps {
@@ -169,7 +165,7 @@ export type VirtualVNode = [
   VNode | null, /////////////// 4 - First child
   VNode | null, /////////////// 5 - Last child
   /// Props
-  ...(string | null | boolean)[], /////// 6 - attrs
+  (string | null | boolean)[], /////// 6 - attrs
 ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 /** @internal */

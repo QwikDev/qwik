@@ -4,7 +4,8 @@ use crate::transform::create_synthetic_named_import;
 use crate::words::*;
 
 use anyhow::Error;
-use swc_atoms::JsWord;
+use std::collections::BTreeMap;
+use swc_atoms::Atom;
 use swc_common::comments::{SingleThreadedComments, SingleThreadedCommentsMap};
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
@@ -23,11 +24,12 @@ pub struct NewModuleCtx<'a> {
 	pub local_idents: &'a [Id],
 	pub scoped_idents: &'a [Id],
 	pub global: &'a GlobalCollect,
-	pub core_module: &'a JsWord,
+	pub core_module: &'a Atom,
 	pub need_transform: bool,
 	pub explicit_extensions: bool,
 	pub leading_comments: SingleThreadedCommentsMap,
 	pub trailing_comments: SingleThreadedCommentsMap,
+	pub extra_top_items: &'a BTreeMap<Id, ast::ModuleItem>,
 }
 
 pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComments), Error> {
@@ -35,7 +37,7 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 		ctx.leading_comments,
 		ctx.trailing_comments,
 	);
-	let max_cap = ctx.global.imports.len() + ctx.global.exports.len();
+	let max_cap = ctx.global.imports.len() + ctx.global.exports.len() + ctx.extra_top_items.len();
 	let mut module = ast::Module {
 		span: DUMMY_SP,
 		body: Vec::with_capacity(max_cap),
@@ -142,6 +144,8 @@ pub fn new_module(ctx: NewModuleCtx) -> Result<(ast::Module, SingleThreadedComme
 		ctx.expr
 	};
 
+	module.body.extend(ctx.extra_top_items.values().cloned());
+
 	module.body.push(create_named_export(expr, ctx.name));
 	Ok((module, comments))
 }
@@ -158,7 +162,7 @@ fn create_named_export(expr: Box<ast::Expr>, name: &str) -> ast::ModuleItem {
 				span: DUMMY_SP,
 				definite: false,
 				name: ast::Pat::Ident(ast::BindingIdent::from(ast::Ident::new(
-					JsWord::from(name),
+					Atom::from(name),
 					DUMMY_SP,
 					Default::default(),
 				))),

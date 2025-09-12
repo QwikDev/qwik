@@ -4,7 +4,7 @@ import type { Config as SVGOConfig } from 'svgo';
 import { optimize } from 'svgo';
 import type { PluginOption } from 'vite';
 import type { OutputFormat } from 'vite-imagetools';
-import { parseId } from '../../../../qwik/src/optimizer/src/plugins/plugin';
+import { parseId } from '../../../../qwik/src/optimizer/src/plugins/vite-utils';
 import type { QwikRouterVitePluginOptions } from './types';
 
 /** @public */
@@ -42,7 +42,7 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
           },
           defaultDirectives: (url) => {
             if (url.searchParams.has('jsx')) {
-              const { jsx, ...params } = Object.fromEntries(url.searchParams.entries());
+              const { jsx: _, ...params } = Object.fromEntries(url.searchParams.entries());
               return new URLSearchParams({
                 format: 'webp',
                 quality: '75',

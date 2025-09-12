@@ -1,9 +1,8 @@
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
-
-export type PromiseTree<T> = T | Promise<T> | Promise<T[]> | Array<PromiseTree<T>>;
 
 export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
@@ -33,15 +32,6 @@ export const maybeThen = <T, B>(
 ): ValueOrPromise<B> => {
   return isPromise(valueOrPromise)
     ? valueOrPromise.then(thenFn as any, shouldNotError)
-    : thenFn(valueOrPromise as any);
-};
-
-export const maybeThenPassError = <T, B>(
-  valueOrPromise: ValueOrPromise<T>,
-  thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
-): ValueOrPromise<B> => {
-  return isPromise(valueOrPromise)
-    ? valueOrPromise.then(thenFn as any)
     : thenFn(valueOrPromise as any);
 };
 
@@ -106,7 +96,7 @@ export const delay = (timeout: number) => {
   });
 };
 
-// Retries a function that throws a promise.
+/** Retries a function that throws a promise. */
 export function retryOnPromise<T>(
   fn: () => ValueOrPromise<T>,
   retryCount: number = 0
@@ -126,6 +116,10 @@ export function retryOnPromise<T>(
     }
     return result;
   } catch (e) {
+    if (isDev && isServer && e instanceof ReferenceError && e.message.includes('window')) {
+      e.message = 'It seems like you forgot to add "if (isBrowser) {...}" here:' + e.message;
+      throw e;
+    }
     return retryOrThrow(e);
   }
 }

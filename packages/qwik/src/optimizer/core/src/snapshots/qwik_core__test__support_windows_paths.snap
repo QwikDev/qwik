@@ -41,10 +41,11 @@ Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./apps.tsx_Greeter_component_0jjOvx068y0"), "Greeter_component_0jjOvx068y0"));
+const i_0jjOvx068y0 = ()=>import("./apps.tsx_Greeter_component_0jjOvx068y0");
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_0jjOvx068y0, "Greeter_component_0jjOvx068y0"));
 
 
-Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,wBAAU,yHAAwB\"}")
+Some("{\"version\":3,\"sources\":[\"C:\\\\users\\\\apps/components/apps/apps.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,wBAAU,gFAAwB\"}")
 == DIAGNOSTICS ==
 
 []

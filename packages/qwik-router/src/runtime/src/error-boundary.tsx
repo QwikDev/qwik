@@ -1,14 +1,25 @@
-import { component$, useErrorBoundary, Slot, type QRL } from '@qwik.dev/core';
+import { component$, useErrorBoundary, Slot, type QRL, useOnWindow, $ } from '@qwik.dev/core';
 
 /** @public */
 export interface ErrorBoundaryProps {
-  children: any;
-  fallback$: QRL<(ev: any) => any>;
+  fallback$?: QRL<(error: any) => any>;
 }
 
 /** @public */
 export const ErrorBoundary = component$((props: ErrorBoundaryProps) => {
   const store = useErrorBoundary();
 
-  return store.error === undefined ? <Slot /> : <>{props.fallback$(store.error)}</>;
+  useOnWindow(
+    'qerror',
+    $((e: CustomEvent) => {
+      // we are allowed to write to our "read-only" store
+      (store.error as any) = e.detail.error;
+    })
+  );
+
+  if (store.error && props.fallback$) {
+    return <>{props.fallback$(store.error)}</>;
+  }
+
+  return <Slot />;
 });

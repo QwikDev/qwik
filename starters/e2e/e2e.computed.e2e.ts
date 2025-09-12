@@ -108,7 +108,7 @@ test.describe("computed", () => {
     test.beforeEach(async ({ page }) => {
       const rerender = page.locator("#rerender");
       await rerender.click();
-      await page.waitForTimeout(100);
+      await expect(page.locator("#render-count")).toHaveText("Renders: 1");
     });
     tests();
   });

@@ -15,7 +15,6 @@ export default component$(() => {
     monacoInstance: undefined,
   });
 
-  // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(() => {
     const editor = monacoEditor.create(editorRef.value!, {
       value: 'Hello, world!',

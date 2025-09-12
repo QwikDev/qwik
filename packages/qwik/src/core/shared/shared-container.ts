@@ -1,11 +1,10 @@
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
-import type { EffectPropData } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { Scheduler } from './scheduler';
-import { createScheduler } from './scheduler';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import type { Signal } from '../reactive-primitives/signal.public';
+import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import { createScheduler, Scheduler } from './scheduler';
 import { createSerializationContext, type SerializationContext } from './shared-serialization';
 import type { Container, HostElement, ObjToProxyMap } from './types';
 
@@ -21,13 +20,10 @@ export abstract class _SharedContainer implements Container {
   $serverData$: Record<string, any>;
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
+  $buildBase$: string | null = null;
+  $flushEpoch$: number = 0;
 
-  constructor(
-    scheduleDrain: () => void,
-    journalFlush: () => void,
-    serverData: Record<string, any>,
-    locale: string
-  ) {
+  constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
@@ -36,28 +32,27 @@ export abstract class _SharedContainer implements Container {
       throw Error('Not implemented');
     };
 
-    this.$scheduler$ = createScheduler(this, scheduleDrain, journalFlush);
+    this.$scheduler$ = createScheduler(this, journalFlush);
   }
 
   trackSignalValue<T>(
     signal: Signal,
     subscriber: HostElement,
     property: string,
-    data: EffectPropData
+    data: SubscriptionData
   ): T {
     return trackSignalAndAssignHost(signal, subscriber, property, this, data);
   }
 
   serializationCtxFactory(
     NodeConstructor: {
-      new (...rest: any[]): { nodeType: number; id: string };
+      new (...rest: any[]): { __brand__: 'SsrNode' };
     } | null,
     DomRefConstructor: {
-      new (...rest: any[]): { $ssrNode$: ISsrNode };
+      new (...rest: any[]): { __brand__: 'DomRef' };
     } | null,
     symbolToChunkResolver: SymbolToChunkResolver,
-    writer?: StreamWriter,
-    prepVNodeData?: (vNode: any) => void
+    writer?: StreamWriter
   ): SerializationContext {
     return createSerializationContext(
       NodeConstructor,
@@ -66,13 +61,12 @@ export abstract class _SharedContainer implements Container {
       this.getHostProp.bind(this),
       this.setHostProp.bind(this),
       this.$storeProxyMap$,
-      writer,
-      prepVNodeData
+      writer
     );
   }
 
   abstract ensureProjectionResolved(host: HostElement): void;
-  abstract handleError(err: any, $host$: HostElement): void;
+  abstract handleError(err: any, $host$: HostElement | null): void;
   abstract getParentHost(host: HostElement): HostElement | null;
   abstract setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;

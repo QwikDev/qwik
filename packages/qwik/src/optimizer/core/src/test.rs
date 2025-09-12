@@ -2,6 +2,7 @@
 
 use super::*;
 use serde_json::to_string_pretty;
+use swc_atoms::Atom;
 
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
@@ -49,15 +50,15 @@ macro_rules! test_input {
 }
 
 fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
-	let strip_exports: Option<Vec<JsWord>> = input
+	let strip_exports: Option<Vec<Atom>> = input
 		.strip_exports
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let reg_ctx_name: Option<Vec<Atom>> = input
 		.reg_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let strip_ctx_name: Option<Vec<Atom>> = input
 		.strip_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
 
 	transform_modules(TransformModulesOptions {
 		src_dir: input.src_dir,
@@ -73,7 +74,6 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		transpile_jsx: input.transpile_jsx,
 		preserve_filenames: input.preserve_filenames,
 		explicit_extensions: input.explicit_extensions,
-		manual_chunks: input.manual_chunks,
 		entry_strategy: input.entry_strategy,
 		mode: input.mode,
 		scope: input.scope,
@@ -83,6 +83,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
+		// filler to maintain line offsets
 	})
 }
 
@@ -1328,7 +1329,7 @@ export const Lightweight = (props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-});
+};
 "#
 		.to_string(),
 		transpile_ts: true,
@@ -1751,12 +1752,12 @@ export const Child = component$(() => {
 });
 "#
 		.to_string(),
+		// filler to maintain line offsets
+		// this is a test for manual chunks
+		// which are no longer used in the optimizer
+		//
 		transpile_ts: true,
 		transpile_jsx: true,
-		manual_chunks: Some(HashMap::from_iter(vec![
-			("C5XE49Nqd3A".into(), "chunk_clicks".into()),
-			("elliVSnAiOQ".into(), "chunk_clicks".into()),
-		])),
 		entry_strategy: EntryStrategy::Smart,
 		..TestInput::default()
 	});
@@ -1845,7 +1846,7 @@ export const Parent = component$(() => {
 			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			dontRemoveThisClient();
+			dontRemoveThisDollar();
 		});
 		return [a,b];
 	})
@@ -3400,7 +3401,7 @@ export const Local = component$(() => {
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3482,7 +3483,7 @@ export const Greeter = component$(() => {
 		root_dir: None,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3522,7 +3523,7 @@ export const Greeter = component$(() => {
 			minify: MinifyMode::Simplify,
 			explicit_extensions: true,
 			mode: option.0,
-			manual_chunks: None,
+			// filler to maintain line offsets
 			entry_strategy: option.1,
 			transpile_ts: option.2,
 			transpile_jsx: option.2,
@@ -4271,6 +4272,364 @@ export const Cmp = component$(() => {
 }
 
 #[test]
+fn issue_7216_add_test() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@builder.io/qwik';
+export default component$((props) => {
+  return (<p 
+		onHi$={() => 'hi'} 
+		{...props.foo} 
+		onHello$={props.helloHandler$} 
+		{...props.rest} 
+		onVar$={props.onVarHandler$} 
+		onConst$={() => 'const'} 
+		asd={"1"}
+	/>);
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_store_expression() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useStore } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const panelStore = useStore(() => ({
+				active: 'Input',
+				list: PANELS,
+			}));
+
+			return (
+				<div
+					stuff={panelStore.active ? 'yes' : 'no'}
+					class={{
+						'too-long-to-wrap': true,
+						'examples-panel-input': panelStore.active === 'Input',
+						'examples-panel-output': panelStore.active === 'Output',
+						'examples-panel-console': panelStore.active === 'Console',
+					}}
+				/>
+			);
+		});
+		export const PANELS: ActivePanel[] = ['Examples', 'Input', 'Output', 'Console'];
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_var_template_string() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$ } from '@qwik.dev/core';
+		import { inlineTranslate } from 'translate-lib';
+
+		export default component$(() => {
+			const t = inlineTranslate();
+
+			const productTitle = useComputed$(() => {
+				return 'Test title';
+			});
+
+			return (
+				<img 
+					attr={t('home.imageAlt.founded-product:')}
+					alt={`${t('home.imageAlt.founded-product:')} ${productTitle.value}`} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_type_asserted_variables_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			return (
+				<div>
+					{(count as any).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_wrap_logical_expression_in_template() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+		export default component$(() => {
+			const count = useSignal(0);
+			const count2 = useSignal(0);
+			return (
+				<div>
+					{(count || count2).value}
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_wrap_ternary_function_operator_with_fn() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useSignal } from '@qwik.dev/core';
+
+
+		export default component$(() => {
+		const toggle = useSignal(true);
+		const t = (key: string) => key;
+		return (
+			<button
+				type="button"
+				title={
+				toggle.value !== ''
+					? t('app.message.exists@@there is a message for you')
+					: t('app.message.not_exists@@click to get a message!')
+				}
+			></button>
+		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props} test="test"></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div test="test" {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Foo } from './foo';
+
+		export default component$((props) => {
+			return (
+				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop4() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props: any) => {
+			return <button {...props} onClick$={() => props.onClick$()}></button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop5() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		function Hola(props: any) {
+			return <div {...props}></div>;
+		}
+
+		export default component$(() => {
+		return <Hola>
+			<div>1</div>
+			<div>2</div>
+		</Hola>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_generate_conflicting_props_identifiers() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
+
+		export default component$(({ color, ...props }) => {
+		useComputed$(() => color)
+
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		// important to use hoist entry strategy to test this case
+		// only in hoist mode there was an issue with conflicting props identifiers
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_convert_rest_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useTask$ } from '@qwik.dev/core'
+
+		export default component$<any>(({ ...props }) => {
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props_before_and_after() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} {...props} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn empty_fn_to_noop() {
 	test_input!(TestInput {
 		code: r#"
@@ -4331,7 +4690,6 @@ struct TestInput {
 	pub dev_path: Option<String>,
 	pub src_dir: String,
 	pub root_dir: Option<String>,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub entry_strategy: EntryStrategy,
 	pub minify: MinifyMode,
 	pub transpile_ts: bool,
@@ -4357,7 +4715,6 @@ impl TestInput {
 			src_dir: "/user/qwik/src/".to_string(),
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
-			manual_chunks: None,
 			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,
 			transpile_ts: false,

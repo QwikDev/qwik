@@ -10,8 +10,9 @@ import {
   $,
   sync$,
 } from '@qwik.dev/core';
+import { Modal } from '@qwik-ui/headless';
 import type { DocSearchHit, InternalDocSearchHit } from './types';
-import { type ButtonTranslations, DocSearchButton } from './doc-search-button';
+import { type ButtonTranslations } from './doc-search-button';
 import { DocSearchModal, type ModalTranslations } from './doc-search-modal';
 import styles from './doc-search.css?inline';
 
@@ -21,7 +22,6 @@ export type DocSearchTranslations = Partial<{
 }>;
 
 export type DocSearchState = {
-  isOpen: boolean;
   query: string;
   collections: {
     items: InternalDocSearchHit[];
@@ -34,8 +34,8 @@ export type DocSearchState = {
   status: 'idle' | 'loading' | 'stalled' | 'error';
   initialQuery?: string;
 };
-
 export interface DocSearchProps {
+  isOpen: Signal<boolean>;
   appId: string;
   apiKey: string;
   indexName: string;
@@ -55,12 +55,12 @@ export const AiResultOpenContext = createContextId<Signal<boolean>>('aiResultOpe
 
 export const DocSearch = component$((props: DocSearchProps) => {
   useStyles$(styles);
+
   const aiResultOpen = useSignal(false);
 
   useContextProvider(AiResultOpenContext, aiResultOpen);
 
   const state = useStore<DocSearchState>({
-    isOpen: false,
     initialQuery: '',
     query: '',
     collections: [],
@@ -73,7 +73,6 @@ export const DocSearch = component$((props: DocSearchProps) => {
   });
 
   const searchButtonRef = useSignal<Element>();
-
   return (
     <div
       class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
@@ -88,20 +87,20 @@ export const DocSearch = component$((props: DocSearchProps) => {
             // We check that no other DocSearch modal is showing before opening
             // another one.
             if (!document.body.classList.contains('DocSearch--active')) {
-              state.isOpen = true;
+              props.isOpen.value = true;
             }
           }
           if (
-            (event.key === 'Escape' && state.isOpen) ||
+            (event.key === 'Escape' && props.isOpen.value) ||
             // The `Cmd+K` shortcut both opens and closes the modal.
             (event.key === 'k' && (event.metaKey || event.ctrlKey)) ||
             // The `/` shortcut opens but doesn't close the modal because it's
             // a character.
-            (!isEditingContent(event) && event.key === '/' && !state.isOpen)
+            (!isEditingContent(event) && event.key === '/' && !props.isOpen.value)
           ) {
             event.preventDefault();
-            if (state.isOpen) {
-              state.isOpen = false;
+            if (props.isOpen.value) {
+              props.isOpen.value = false;
             } else if (!document.body.classList.contains('DocSearch--active')) {
               open();
             }
@@ -109,28 +108,27 @@ export const DocSearch = component$((props: DocSearchProps) => {
 
           if (searchButtonRef && searchButtonRef.value === document.activeElement) {
             if (/[a-zA-Z0-9]/.test(String.fromCharCode(event.keyCode))) {
-              state.isOpen = true;
+              props.isOpen.value = true;
               state.initialQuery = event.key;
             }
           }
         }),
       ]}
     >
-      <DocSearchButton
-        ref={searchButtonRef}
-        onClick$={() => {
-          state.isOpen = true;
-        }}
-      />
-      {state.isOpen && (
-        <DocSearchModal
-          aiResultOpen={aiResultOpen.value}
-          indexName={props.indexName}
-          apiKey={props.apiKey}
-          appId={props.appId}
-          state={state}
-        />
-      )}
+      <Modal.Root bind:show={props.isOpen}>
+        <Modal.Panel>
+          {props.isOpen.value && (
+            <DocSearchModal
+              isOpen={props.isOpen}
+              aiResultOpen={aiResultOpen.value}
+              indexName={props.indexName}
+              apiKey={props.apiKey}
+              appId={props.appId}
+              state={state}
+            />
+          )}
+        </Modal.Panel>
+      </Modal.Root>
     </div>
   );
 });

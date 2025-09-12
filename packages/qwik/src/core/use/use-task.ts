@@ -1,21 +1,21 @@
 import { getDomContainer } from '../client/dom-container';
-import { QError, qError } from '../shared/error/error';
-import { assertQrl, type QRLInternal } from '../shared/qrl/qrl-class';
+import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
+import { type Signal } from '../reactive-primitives/signal.public';
+import { type QRLInternal } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/scheduler';
 import { type Container, type HostElement } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
 import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
-import { noSerialize, type NoSerialize } from '../shared/utils/serialize-utils';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { EffectProperty, isSignal } from '../signal/signal';
-import { Subscriber, clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
-import { type Signal } from '../signal/signal.public';
-import { invoke, newInvokeContext } from './use-core';
+import { type NoSerialize } from '../shared/utils/serialize-utils';
+import { type ValueOrPromise } from '../shared/utils/types';
+import { newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
+import { cleanupFn, trackFn } from './utils/tracker';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -118,14 +118,14 @@ export interface Tracker {
 /** @public */
 export interface TaskCtx {
   track: Tracker;
-  cleanup(callback: () => void): void;
+  cleanup: (callback: () => void) => void;
 }
 
 /** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 /** @public */
-export interface DescriptorBase<T = unknown, B = unknown> extends Subscriber {
+export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $flags$: number;
   $index$: number;
   $el$: HostElement;
@@ -156,10 +156,9 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   // deleted and we need to be able to release the task subscriptions.
   set(task);
   const container = iCtx.$container$;
-  const promise = container.$scheduler$(ChoreType.TASK, task);
-  if (isPromise(promise)) {
-    // TODO: should we handle this differently?
-    promise.catch(() => {});
+  const result = runTask(task, container, iCtx.$hostElement$);
+  if (isPromise(result)) {
+    throw result;
   }
 };
 
@@ -172,50 +171,13 @@ export const runTask = (
   cleanupTask(task);
   const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
-  const taskFn = task.$qrl$.getFn(iCtx, () =>
-    clearSubscriberEffectDependencies(container, task)
-  ) as TaskFn;
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else {
-        throw qError(QError.trackObjectWithoutProp);
-      }
-    });
-  };
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-  let cleanupFns: (() => void)[] | null = null;
-  const cleanup = (fn: () => void) => {
-    if (typeof fn == 'function') {
-      if (!cleanupFns) {
-        cleanupFns = [];
-        task.$destroy$ = noSerialize(() => {
-          task.$destroy$ = null;
-          cleanupFns!.forEach((fn) => {
-            try {
-              fn();
-            } catch (err) {
-              handleError(err);
-            }
-          });
-        });
-      }
-      cleanupFns.push(fn);
-    }
-  };
+  const track = trackFn(task, container);
+  const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
 
   const taskApi: TaskCtx = { track, cleanup };
-  const result: ValueOrPromise<void> = safeCall(
+  return safeCall(
     () => taskFn(taskApi),
     cleanup,
     (err: unknown) => {
@@ -227,10 +189,7 @@ export const runTask = (
       }
     }
   );
-  return result;
 };
-
-export type TaskDescriptor = DescriptorBase<TaskFn>;
 
 export const cleanupTask = (task: Task) => {
   const destroy = task.$destroy$;
@@ -245,7 +204,7 @@ export const cleanupTask = (task: Task) => {
 };
 
 export class Task<T = unknown, B = T>
-  extends Subscriber
+  extends BackRef
   implements DescriptorBase<unknown, Signal<B> | ResourceReturnInternal<B>>
 {
   constructor(
@@ -259,7 +218,7 @@ export class Task<T = unknown, B = T>
     super();
   }
 }
-
+/** @internal */
 export const isTask = (value: any): value is Task => {
   return value instanceof Task;
 };

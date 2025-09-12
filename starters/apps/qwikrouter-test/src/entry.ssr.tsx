@@ -1,4 +1,3 @@
-import { manifest } from "@qwik-client-manifest";
 import {
   renderToStream,
   type RenderToStreamOptions,
@@ -7,8 +6,16 @@ import Root from "./root";
 
 export default function (opts: RenderToStreamOptions) {
   return renderToStream(<Root />, {
-    manifest,
     base: "/qwikrouter-test/build/",
     ...opts,
+    serverData: {
+      ...opts.serverData,
+      // ensure that documentHead injection works
+      documentHead: {
+        title: "Qwik Router Test",
+        meta: [{ name: "hello", content: "world" }],
+        scripts: [{ key: "hello", script: 'window.hello = "world";' }],
+      },
+    },
   });
 }

@@ -10,13 +10,13 @@ import qwikRouterMiddlewareNetlifyEdgeApiData from './qwik-router-middleware-net
 import qwikRouterMiddlewareNodeApiData from './qwik-router-middleware-node/api.json';
 import qwikRouterMiddlewareRequestHandlerApiData from './qwik-router-middleware-request-handler/api.json';
 import qwikRouterMiddlewareVercelEdgeApiData from './qwik-router-middleware-vercel-edge/api.json';
-import qwikRouterStaticApiData from './qwik-router-static/api.json';
+import qwikRouterSsgApiData from './qwik-router-ssg/api.json';
 import qwikRouterViteAzureSwaApiData from './qwik-router-vite-azure-swa/api.json';
 import qwikRouterViteCloudRunApiData from './qwik-router-vite-cloud-run/api.json';
 import qwikRouterViteCloudflarePagesApiData from './qwik-router-vite-cloudflare-pages/api.json';
 import qwikRouterViteNetlifyEdgeApiData from './qwik-router-vite-netlify-edge/api.json';
 import qwikRouterViteNodeServerApiData from './qwik-router-vite-node-server/api.json';
-import qwikRouterViteStaticApiData from './qwik-router-vite-static/api.json';
+import qwikRouterViteSsgApiData from './qwik-router-vite-ssg/api.json';
 import qwikRouterViteVercelApiData from './qwik-router-vite-vercel/api.json';
 import qwikRouterApiData from './qwik-router/api.json';
 import qwikServerApiData from './qwik-server/api.json';
@@ -35,13 +35,13 @@ const apiData = {
   'qwik-router-middleware-request-handler': qwikRouterMiddlewareRequestHandlerApiData,
   'qwik-router-middleware-vercel-edge': qwikRouterMiddlewareVercelEdgeApiData,
   'qwik-router-middleware-firebase': qwikRouterMiddlewareFirebaseApiData,
-  'qwik-router-static': qwikRouterStaticApiData,
+  'qwik-router-ssg': qwikRouterSsgApiData,
   'qwik-router-vite-azure-swa': qwikRouterViteAzureSwaApiData,
   'qwik-router-vite-cloud-run': qwikRouterViteCloudRunApiData,
   'qwik-router-vite-cloudflare-pages': qwikRouterViteCloudflarePagesApiData,
   'qwik-router-vite-node-server': qwikRouterViteNodeServerApiData,
   'qwik-router-vite-netlify-edge': qwikRouterViteNetlifyEdgeApiData,
-  'qwik-router-vite-static': qwikRouterViteStaticApiData,
+  'qwik-router-vite-ssg': qwikRouterViteSsgApiData,
   'qwik-router-vite-vercel': qwikRouterViteVercelApiData,
   'qwik-optimizer': qwikOptimizerApiData,
   'qwik-server': qwikServerApiData,
@@ -126,7 +126,7 @@ export const ApiMemberWrapper = component$(({ id, data, filters }: any) => {
       <h2
         data-icon={isCollapsed.value ? '→' : '↓'}
         class="section-title cursor-pointer"
-        onClick$={(e) => isCollapsed.value = !isCollapsed.value }
+        onClick$={() => isCollapsed.value = !isCollapsed.value }
       >
         <span>{data.id}</span>
       </h2>

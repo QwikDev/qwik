@@ -2,8 +2,7 @@ import { type QRL } from '../shared/qrl/qrl.public';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { useSequentialScope } from './use-sequential-scope';
-import { assertQrl } from '../shared/qrl/qrl-class';
-import { isPromise } from '../shared/utils/promises';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import { ComponentStylesPrefixContent } from '../shared/utils/markers';
 import { styleKey } from '../shared/utils/styles';
 
@@ -96,14 +95,14 @@ const _useStyles = (
   const host = iCtx.$hostElement$;
   set(styleId);
 
-  const value = styleQrl.$resolveLazy$(iCtx.$element$);
-  if (isPromise(value)) {
-    value.then((val) =>
-      iCtx.$container$.$appendStyle$(transform(val, styleId), styleId, host, scoped)
-    );
-    throw value;
+  if (styleQrl.resolved) {
+    iCtx.$container$.$appendStyle$(transform(styleQrl.resolved, styleId), styleId, host, scoped);
   } else {
-    iCtx.$container$.$appendStyle$(transform(value, styleId), styleId, host, scoped);
+    throw styleQrl
+      .resolve()
+      .then((val) =>
+        iCtx.$container$.$appendStyle$(transform(val, styleId), styleId, host, scoped)
+      );
   }
 
   return styleId;

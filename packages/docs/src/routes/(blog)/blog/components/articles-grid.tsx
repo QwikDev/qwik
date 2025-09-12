@@ -1,7 +1,7 @@
 import { Image } from 'qwik-image';
 import { blogArticles } from '../../data';
 import { ClockIcon } from '../icons/clock-icon';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const ArticlesGrid = component$(() => {
   return (
@@ -9,7 +9,7 @@ export const ArticlesGrid = component$(() => {
       {blogArticles.map((post, key) => (
         <article
           key={key}
-          class="group rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 cursor-pointer z-10"
+          class="group rounded-xl overflow-hidden shadow-xs hover:shadow-xl transition-shadow duration-300 cursor-pointer z-10"
         >
           <a href={post.path}>
             <div class="relative h-48 overflow-hidden">

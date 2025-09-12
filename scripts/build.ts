@@ -21,7 +21,7 @@ import { submoduleCore } from './submodule-core';
 import { submoduleInsights } from './submodule-insights';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
-import { submoduleQwikPrefetch } from './submodule-qwikprefetch';
+import { submoduleBackpatch } from './submodule-backpatch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
@@ -29,6 +29,7 @@ import { tsc, tscQwik, tscQwikRouter } from './tsc';
 import { tscDocs } from './tsc-docs';
 import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
 import { validateBuild } from './validate-build';
+import { submodulePreloader } from './submodule-preloader';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -67,11 +68,11 @@ export async function build(config: BuildConfig) {
       } else {
         emptyDir(config.distQwikPkgDir);
       }
-
+      await submodulePreloader(config);
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
-        submoduleQwikPrefetch(config),
+        submoduleBackpatch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),
@@ -82,7 +83,7 @@ export async function build(config: BuildConfig) {
     }
     if (config.qwik) {
       // server bundling must happen after the results from the others
-      // because it inlines the qwik loader and prefetch scripts
+      // because it inlines the qwik loader
       await Promise.all([submoduleServer(config), submoduleOptimizer(config)]);
     }
 
@@ -173,13 +174,12 @@ export async function build(config: BuildConfig) {
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),
         [join(config.srcQwikDir, 'optimizer')]: () => submoduleOptimizer(config),
-        [join(config.srcQwikDir, 'prefetch-service-worker')]: () => submoduleQwikPrefetch(config),
         [join(config.srcQwikDir, 'server')]: () => submoduleServer(config),
         [join(config.srcQwikRouterDir, 'runtime/src')]: () => buildQwikRouter(config),
       });
     }
   } catch (e: any) {
-    panic(String(e ? e.stack || e : 'Error'));
+    panic(e);
   }
 }
 

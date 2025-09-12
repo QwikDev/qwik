@@ -19,12 +19,12 @@ export const App = component$(() => {
       </p>
       <p class="congrats">
         Congratulations <a href="https://github.com/QwikDev/qwik">Qwik</a> with{" "}
-        <a href="https://partytown.builder.io/">Partytown</a> is working!
+        <a href="https://partytown.qwik.dev/">Partytown</a> is working!
       </p>
 
       <p>
         Expensive script running in{" "}
-        <a href="https://partytown.builder.io/">Partytown</a> is{" "}
+        <a href="https://partytown.qwik.dev/">Partytown</a> is{" "}
         {state.running ? (
           <span
             id="state"

@@ -213,8 +213,8 @@ describe.each([
       'Counter',
       'render',
       '1:task',
-      '1:resolved',
       '2:task',
+      '1:resolved',
       '2:resolved',
     ]);
     expect(vNode).toMatchVDOM(
@@ -365,6 +365,74 @@ describe.each([
         </Component>
       );
     });
+  });
+
+  it('should add event if only script tag is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return <script />;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+
+    expect((globalThis as any).counter).toBe(1);
+
+    (globalThis as any).counter = undefined;
+  });
+
+  it('should add script tag for visible task if only primitive child is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return 123;
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script[hidden]', ':document:qinit');
+    }
+
+    expect((globalThis as any).counter).toBe(1);
+
+    (globalThis as any).counter = undefined;
+  });
+
+  it('should merge events if only script tag is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return (
+        <script
+          document:onQInit$={() => {
+            (globalThis as any).counter++;
+          }}
+        />
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'script', ':document:qinit');
+
+    expect((globalThis as any).counter).toBe(
+      render === ssrRenderToDom
+        ? // visible + inline
+          2
+        : // TODO: is it correct?
+          // visible itself from scheduling it + inline + visible from triggering document:qinit
+          3
+    );
+
+    (globalThis as any).counter = undefined;
   });
 
   describe(render.name + ': queue', () => {

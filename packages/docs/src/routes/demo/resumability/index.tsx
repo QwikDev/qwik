@@ -47,7 +47,9 @@ export const HoverProvider = component$(() => {
             new CustomEvent('hover', {
               bubbles: true,
               detail: async (jsx: JSXOutput) => {
-                if (state.close) return;
+                if (state.close) {
+                  return;
+                }
                 state.currentTarget = e.target as HTMLElement;
                 state.close = noSerialize(await portal('popup', jsx));
               },

@@ -17,7 +17,7 @@
 - [Slots](</docs/(qwik)/components/slots/index.mdx>)
 - [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
 - [Styling](</docs/(qwik)/components/styles/index.mdx>)
-- [API Reference](</api/qwik/>)
+- [API Reference](/api/qwik/)
 
 ## Qwik Router
 
@@ -31,7 +31,8 @@
 - [Endpoints](</docs/(qwikrouter)/endpoints/index.mdx>)
 - [Middleware](</docs/(qwikrouter)/middleware/index.mdx>)
 - [server$](</docs/(qwikrouter)/server$/index.mdx>)
-- [Re-exporting loaders](/docs/(qwikrouter)/re-exporting-loaders/index.mdx)
+- [Error handling](</docs/(qwikrouter)/error-handling/index.mdx>)
+- [Re-exporting loaders](</docs/(qwikrouter)/re-exporting-loaders/index.mdx>)
 - [Caching](</docs/(qwikrouter)/caching/index.mdx>)
 - [HTML attributes](</docs/(qwikrouter)/html-attributes/index.mdx>)
 - [API reference](</docs/(qwikrouter)/api/index.mdx>)
@@ -52,6 +53,7 @@
 - [Sync events w state](/docs/cookbook/sync-events/index.mdx)
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
+- [View Transition](/docs/cookbook/view-transition/index.mdx)
 
 ## Integrations
 
@@ -96,8 +98,10 @@
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
+- [Self-Hosting](deployments/self-hosting/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
+- [Azion](deployments/azion/index.mdx)
 
 ## Guides
 
@@ -106,9 +110,11 @@
 - [SSG](</docs/(qwikrouter)/guides/static-site-generation/index.mdx>)
 - [Qwik Native Apps](</docs/(qwikrouter)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx>)
+- [Debugging](</docs/(qwikrouter)/guides/debugging/index.mdx>)
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikrouter)/guides/env-variables/index.mdx>)
+- [Rewrites](<docs/(qwikrouter)/guides/rewrites/index.mdx>)
 
 ## Concepts
 
@@ -138,6 +144,7 @@
 - [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
 - [Content Security Policy](</docs/(qwikrouter)/advanced/content-security-policy/index.mdx>)
 - [Complex Forms](</docs/(qwikrouter)/advanced/complex-forms/index.mdx>)
+- [Backpatching](</docs/(qwik)/advanced/backpatching/index.mdx>)
 
 ## Reference
 

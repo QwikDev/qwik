@@ -61,8 +61,8 @@ export const VNodeDataChar = {
   ID_CHAR: /* ********* */ '=',
   PROPS: /* ************** */ 62, // `>` - `q:props' - Component Props
   PROPS_CHAR: /* ****** */ '>',
-  SLOT_REF: /* *********** */ 63, // `?` - `q:sref` - Slot reference.
-  SLOT_REF_CHAR: /* *** */ '?',
+  SLOT_PARENT: /* ******** */ 63, // `?` - `q:sparent` - Slot parent.
+  SLOT_PARENT_CHAR: /*  */ '?',
   KEY: /* **************** */ 64, // `@` - `q:key` - Element key.
   KEY_CHAR: /* ******** */ '@',
   SEQ: /* **************** */ 91, // `[` - `q:seq' - Seq value from `useSequentialScope()`
@@ -73,8 +73,8 @@ export const VNodeDataChar = {
   CONTEXT_CHAR: /* **** */ ']',
   SEQ_IDX: /* ************ */ 94, // `^` - `q:seqIdx' - Sequential scope id
   SEQ_IDX_CHAR: /* **** */ '^',
-  SUBS: /* *************** */ 96, // '`' - `q:subs' - Effect dependencies/subscriptions
-  SUBS_CHAR: /* ******* */ '`',
+  BACK_REFS: /* ********** */ 96, // '`' - `q:brefs' - Effect dependencies/subscriptions
+  BACK_REFS_CHAR: /* ** */ '`',
   SEPARATOR: /* ********* */ 124, // `|` - Separator char to encode any key/value pairs.
   SEPARATOR_CHAR: /* ** */ '|',
   SLOT: /* ************** */ 126, // `~` - `q:slot' - Slot name

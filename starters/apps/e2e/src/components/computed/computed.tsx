@@ -9,6 +9,7 @@ export const ComputedRoot = component$(() => {
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
+      <span id="render-count">Renders: {rerender.value}</span>
       <ComputedBasic />
       <Issue3482 />
       <Issue3488 />

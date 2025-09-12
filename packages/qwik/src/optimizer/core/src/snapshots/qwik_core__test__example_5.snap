@@ -20,15 +20,16 @@ export const Header = component$(() => {
 ============================= test.tsx_Header_component_J4uyIhaBNR4.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+const i_i7ekvWH3674 = ()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674");
 export const Header_component_J4uyIhaBNR4 = ()=>{
     return <>
 			<div onClick={(ctx)=>console.log("1")}/>
-			<div onClick={/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_div_onClick_i7ekvWH3674"), "Header_component_div_onClick_i7ekvWH3674")}/>
+			<div onClick={/*#__PURE__*/ qrl(i_i7ekvWH3674, "Header_component_div_onClick_i7ekvWH3674")}/>
 		</>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAEiC;IAChC,SACG;GACD,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,GAAG,CAAC,OAAO;GAC1C,CAAC,IAAI,4IAAwC;EAC9C;AAEF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;4CAEiC;IAChC,SACG;GACD,CAAC,IAAI,SAAS,CAAC,MAAQ,QAAQ,GAAG,CAAC,OAAO;GAC1C,CAAC,IAAI,wFAAwC;EAC9C;AAEF\"}")
 /*
 {
   "origin": "test.tsx",
@@ -53,10 +54,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Header_component_J4uyIhaBNR4"), "Header_component_J4uyIhaBNR4"));
+const i_J4uyIhaBNR4 = ()=>import("./test.tsx_Header_component_J4uyIhaBNR4");
+export const Header = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_J4uyIhaBNR4, "Header_component_J4uyIhaBNR4"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,OAAO,MAAM,uBAAS,uHAOnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,uBAAS,+EAOnB\"}")
 ============================= test.tsx_Header_component_div_onClick_i7ekvWH3674.tsx (ENTRY POINT)==
 
 export const Header_component_div_onClick_i7ekvWH3674 = (ctx)=>console.log("2");
@@ -80,6 +82,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     171,
     196
+  ],
+  "paramNames": [
+    "ctx"
   ]
 }
 */

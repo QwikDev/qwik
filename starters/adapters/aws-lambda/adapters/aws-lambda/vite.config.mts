@@ -13,7 +13,7 @@ export default extendConfig(baseConfig, () => {
       minify: false,
       ssr: true,
       rollupOptions: {
-        input: ["./src/entry_aws-lambda.tsx", "@qwik-router-config"],
+        input: ["./src/entry_aws-lambda.tsx"],
       },
     },
     plugins: [nodeServerAdapter({ name: "aws-lambda" })],

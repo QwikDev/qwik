@@ -2,6 +2,7 @@ import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
 import { readPackageJson } from './package-json';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch';
 import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 
 /**
@@ -12,6 +13,7 @@ import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './u
  */
 export async function submoduleServer(config: BuildConfig) {
   const submodule = 'server';
+  console.log('🐰 start', submodule);
 
   const qwikDomPlugin = await bundleQwikDom(config);
   const qwikDomVersion = await getQwikDomVersion(config);
@@ -25,9 +27,11 @@ export async function submoduleServer(config: BuildConfig) {
     platform: 'node',
     target,
     external: [
-      /* no Node.js built-in externals allowed! */ '@qwik.dev/dom',
+      '@qwik.dev/dom',
       '@qwik.dev/core',
       '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      '@qwik-client-manifest',
     ],
   };
 
@@ -36,9 +40,42 @@ export async function submoduleServer(config: BuildConfig) {
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/server', config.distVersion) },
     outExtension: { '.js': '.mjs' },
-    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
+    plugins: [
+      // uncomment this if you want to find what imports what
+      // so you can make sure client isn't being imported
+      // {
+      //   name: 'spy-resolve',
+      //   setup(build) {
+      //     build.onResolve({ filter: /./ }, (args) => {
+      //       console.log('spy-resolve', args);
+      //       return undefined;
+      //     });
+      //   },
+      // },
+      {
+        // throws an error if files from src/core are loaded, except for some allowed imports
+        name: 'forbid-core',
+        setup(build) {
+          build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
+            if (
+              args.path.includes('util') ||
+              args.path.includes('shared') ||
+              // we allow building preloader into server builds
+              args.path.includes('preloader')
+            ) {
+              return null;
+            }
+            console.error('forbid-core', args);
+            throw new Error('Import of core files is not allowed in server builds.');
+          });
+        },
+      },
+      importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'),
+      qwikDomPlugin,
+    ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
+      ...(await inlineBackpatchScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
       'globalThis.IS_ESM': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
@@ -66,10 +103,16 @@ export async function submoduleServer(config: BuildConfig) {
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
+      ...(await inlineBackpatchScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'true',
       'globalThis.IS_ESM': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
+      // We need to get rid of the import.meta.env values
+      // Vite's base url
+      'import.meta.env.BASE_URL': 'globalThis.BASE_URL',
+      // Vite's devserver mode
+      'import.meta.env.DEV': 'false',
     },
   });
 
@@ -129,6 +172,9 @@ if (typeof require !== 'function' && typeof location !== 'undefined' && typeof n
         throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
       }
       return self.qwikBuild;
+    }
+    if (path === '@qwik-client-manifest') {
+      return {};
     }
     throw new Error('Unable to require() path "' + path + '" from a browser environment.');
   };

@@ -4,13 +4,6 @@ import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
 import { loadEnv } from 'vite';
-import {
-  NOT_FOUND_PATHS_ID,
-  RESOLVED_NOT_FOUND_PATHS_ID,
-  RESOLVED_STATIC_PATHS_ID,
-  STATIC_PATHS_ID,
-} from '../../adapters/shared/vite';
-import { postBuild } from '../../adapters/shared/vite/post-build';
 import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
 import { build } from '../build';
 import { createBuildContext, resetBuildContext } from '../context';
@@ -18,12 +11,10 @@ import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
-import {
-  generateServiceWorkerRegister,
-  prependManifestToServiceWorker,
-} from '../runtime-generation/generate-service-worker';
+import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { BuildContext } from '../types';
 import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
   QwikCityVitePluginOptions,
@@ -33,7 +24,7 @@ import type {
 import { validatePlugin } from './validate-plugin';
 
 const QWIK_SERIALIZER = '@qwik-serializer';
-const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
+export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
 const QWIK_ROUTER_SW_REGISTER = '@qwik-router-sw-register';
@@ -80,6 +71,12 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
     async config() {
       const updatedViteConfig: UserConfig = {
+        define: {
+          'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(
+            userOpts?.defaultLoadersSerializationStrategy || 'never'
+          ),
+          'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
+        },
         appType: 'custom',
         resolve: {
           alias: [
@@ -88,8 +85,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             { find: '@qwik-city-plan', replacement: QWIK_ROUTER_CONFIG_ID },
             { find: '@qwik-city-entries', replacement: QWIK_ROUTER_ENTRIES_ID },
             { find: '@qwik-city-sw-register', replacement: QWIK_ROUTER_SW_REGISTER },
-            { find: '@qwik-city-not-found-paths', replacement: '@qwik-router-not-found-paths' },
-            { find: '@qwik-city-static-paths', replacement: '@qwik-router-static-paths' },
           ],
         },
         optimizeDeps: {
@@ -132,6 +127,9 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+      qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
+        return getRouteImports(ctx!.routes, manifest);
+      });
 
       // @ts-ignore `format` removed in Vite 5
       if (config.ssr?.format === 'cjs') {
@@ -141,6 +139,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     configureServer(server) {
+      // this callback is run after the vite middlewares are registered
       return () => {
         if (!ctx) {
           throw new Error('configureServer: Missing ctx from configResolved');
@@ -169,24 +168,12 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           id: join(rootDir!, id),
           // user entries added in the routes, like src/routes/service-worker.ts
           // are added as dynamic imports to the qwik-router-config as a way to create
-          // a new entry point for the build. Ensure these are not treeshaked.
+          // a new entry point for the build. Ensure these are not treeshaken.
           moduleSideEffects: 'no-treeshake',
         };
       }
       if (id === QWIK_ROUTER_SW_REGISTER) {
         return join(rootDir!, id);
-      }
-      if (id === STATIC_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_STATIC_PATHS_ID,
-          external: true,
-        };
-      }
-      if (id === NOT_FOUND_PATHS_ID) {
-        return {
-          id: './' + RESOLVED_NOT_FOUND_PATHS_ID,
-          external: true,
-        };
       }
       return null;
     },
@@ -198,15 +185,15 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           return generateQwikRouterEntries(ctx);
         }
         const isSerializer = id.endsWith(QWIK_SERIALIZER);
-        const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
-        const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
-
         if (isSerializer) {
           return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
         }
+        const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
+        const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
           if (!ctx.isDevServer && ctx.isDirty) {
             await build(ctx);
+
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
               this.warn(d.message);
@@ -270,7 +257,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     generateBundle(_, bundles) {
-      // client bundles
+      // Turn entry and service worker chunks into entry points
       if (ctx?.target === 'client') {
         const entries = [...ctx.entries, ...ctx.serviceWorkers].map((entry) => {
           return {
@@ -297,81 +284,36 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr' && !ctx?.isDevServer) {
-          // ssr build
-          const manifest = qwikPlugin!.api.getManifest();
-          const clientOutDir = qwikPlugin!.api.getClientOutDir();
-
-          if (manifest && clientOutDir) {
-            const basePathRelDir = api.getBasePathname().replace(/^\/|\/$/, '');
-            const clientOutBaseDir = join(clientOutDir, basePathRelDir);
-            const insightsManifest = await qwikPlugin!.api.getInsightsManifest(clientOutDir);
-
-            for (const swEntry of ctx.serviceWorkers) {
-              try {
-                const swClientDistPath = join(clientOutBaseDir, swEntry.chunkFileName);
-                const swCode = await fs.promises.readFile(swClientDistPath, 'utf-8');
-                try {
-                  const swCodeUpdate = prependManifestToServiceWorker(
-                    ctx,
-                    manifest,
-                    insightsManifest?.prefetch || null,
-                    swCode
-                  );
-                  if (swCodeUpdate) {
-                    await fs.promises.mkdir(clientOutDir, { recursive: true });
-                    await fs.promises.writeFile(swClientDistPath, swCodeUpdate);
-                  }
-                } catch (e2) {
-                  console.error(e2);
-                }
-              } catch (e) {
-                // safe to ignore if a service-worker.js not found
-              }
-            }
-          }
-
-          if (outDir && clientOutDir) {
-            const assetsDir = qwikPlugin!.api.getAssetsDir();
-            const { staticPathsCode, notFoundPathsCode } = await postBuild(
-              clientOutDir,
-              assetsDir ? join(api.getBasePathname(), assetsDir) : api.getBasePathname(),
-              [],
-              ssrFormat,
-              false
-            );
-
-            await fs.promises.mkdir(outDir, { recursive: true });
-            const serverPackageJsonPath = join(outDir, 'package.json');
-
-            let packageJson = {};
-
-            // we want to keep the content of an existing file:
-            if (fs.existsSync(serverPackageJsonPath)) {
-              const content = await fs.promises.readFile(serverPackageJsonPath, 'utf-8');
-              const contentAsJson = JSON.parse(content);
-              packageJson = {
-                ...contentAsJson,
-              };
-            }
-
-            const ssrFormat2pkgTypeMap = {
-              cjs: 'commonjs',
-              esm: 'module',
-            };
-            packageJson = { ...packageJson, type: ssrFormat2pkgTypeMap[ssrFormat] || 'module' };
-            const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
-
-            await Promise.all([
-              fs.promises.writeFile(join(outDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
-              fs.promises.writeFile(join(outDir, RESOLVED_NOT_FOUND_PATHS_ID), notFoundPathsCode),
-              fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode),
-            ]);
-          }
+        if (ctx?.target === 'ssr' && !ctx?.isDevServer && outDir) {
+          await generateServerPackageJson(outDir, ssrFormat);
         }
       },
     },
   };
 
   return plugin;
+}
+
+async function generateServerPackageJson(outDir: string, ssrFormat: 'esm' | 'cjs') {
+  await fs.promises.mkdir(outDir, { recursive: true });
+  const serverPackageJsonPath = join(outDir, 'package.json');
+
+  let packageJson = {};
+
+  // we want to keep the content of an existing file:
+  if (fs.existsSync(serverPackageJsonPath)) {
+    const content = await fs.promises.readFile(serverPackageJsonPath, 'utf-8');
+    const contentAsJson = JSON.parse(content);
+    packageJson = {
+      ...contentAsJson,
+    };
+  }
+
+  packageJson = {
+    ...packageJson,
+    type: ssrFormat == 'cjs' ? 'commonjs' : 'module',
+  };
+  const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
+
+  await fs.promises.writeFile(serverPackageJsonPath, serverPackageJsonCode);
 }

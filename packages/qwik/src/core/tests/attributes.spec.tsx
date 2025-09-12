@@ -16,6 +16,8 @@ import {
   $,
   Slot,
 } from '@qwik.dev/core';
+import { QContainerAttr } from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -193,9 +195,12 @@ describe.each([
       });
       const { document } = await render(<Cmp />, { debug });
 
+      const qContainerAttr =
+        render === ssrRenderToDom ? { [QContainerAttr]: QContainerValue.TEXT } : {};
+
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
-          <textarea>123</textarea>
+          <textarea {...qContainerAttr}>123</textarea>
           <input value="123" />
         </div>
       );
@@ -207,7 +212,7 @@ describe.each([
 
       await expect(document.querySelector('div')).toMatchDOM(
         <div>
-          <textarea>abcd</textarea>
+          <textarea {...qContainerAttr}>abcd</textarea>
           <input value="abcd" />
         </div>
       );
@@ -418,11 +423,11 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <Component ssr-required>
+        <Fragment>
+          <Component>
             <button data-selected id="button-0"></button>
           </Component>
-          <Component ssr-required>
+          <Component>
             <button id="button-1"></button>
           </Component>
         </Fragment>
@@ -433,11 +438,11 @@ describe.each([
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <Component ssr-required>
+        <Fragment>
+          <Component>
             <button id="button-0"></button>
           </Component>
-          <Component ssr-required>
+          <Component>
             <button data-selected id="button-1"></button>
           </Component>
         </Fragment>
@@ -526,6 +531,200 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  describe('spread props', () => {
+    describe('class attribute from component props', () => {
+      it('should use class attribute from element', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div {...props} class={[props.class, 'component']} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test component"></div>
+            </Component>
+          </Component>
+        );
+      });
+
+      it('should use class attribute from props', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div class={[props.class, 'component']} {...props} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test"></div>
+            </Component>
+          </Component>
+        );
+      });
+    });
+
+    describe('class attribute without component props', () => {
+      it('should use class attribute from props', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div class="test component" {...props} />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test"></div>
+            </Component>
+          </Component>
+        );
+      });
+
+      it('should use class attribute from element', async () => {
+        const Cmp = component$((props: PropsOf<'div'>) => {
+          return <div {...props} class="test component" />;
+        });
+
+        const Parent = component$(() => {
+          return <Cmp class="test" />;
+        });
+
+        const { vNode } = await render(<Parent />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <Component>
+              <div class="test component"></div>
+            </Component>
+          </Component>
+        );
+      });
+    });
+
+    it('should handle multiple spread component props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        return <div {...props} class="test component" {...props} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread component and element props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...props} class="test component" {...attrs} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test2"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...attrs} class="test component" {...props} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props before normal props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div {...attrs} {...props} class="test component" />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test component"></div>
+          </Component>
+        </Component>
+      );
+    });
+
+    it('should handle multiple spread element and component props after normal props', async () => {
+      const Cmp = component$((props: PropsOf<'div'>) => {
+        const attrs: Record<string, any> = {
+          class: 'test2',
+        };
+        return <div class="test component" {...props} {...attrs} />;
+      });
+
+      const Parent = component$(() => {
+        return <Cmp class="test" />;
+      });
+
+      const { vNode } = await render(<Parent />, { debug });
+
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <Component>
+            <div class="test2"></div>
+          </Component>
+        </Component>
+      );
+    });
   });
 
   describe('class attribute', () => {

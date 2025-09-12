@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .docs.api h1:not(.overview) {
   font-size: 2rem;
 }
@@ -58,10 +60,15 @@
 [data-theme="dark"] .docs.api table {
   box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
 }
-.docs.api thead tr {
-  background: rgb(1 31 51);
-  color: white;
+.docs.api article thead tr {
+  background: #f6f6f6;
   text-align: left;
+}
+.docs.api article thead tr p {
+  font-weight: bold;
+}
+[data-theme="dark"] .docs.api thead tr {
+  background: #373737;
 }
 .docs.api thead th,
 .docs.api tbody tr td {

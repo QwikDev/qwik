@@ -29,10 +29,9 @@ use words::BUILDER_IO_QWIK;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::Path;
 use std::str;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
@@ -61,27 +60,26 @@ pub struct TransformModulesOptions {
 	pub transpile_jsx: bool,
 	pub preserve_filenames: bool,
 	pub entry_strategy: EntryStrategy,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub explicit_extensions: bool,
 	pub mode: EmitMode,
 	pub scope: Option<String>,
 
 	pub core_module: Option<String>,
-	pub strip_exports: Option<Vec<JsWord>>,
-	pub strip_ctx_name: Option<Vec<JsWord>>,
+	pub strip_exports: Option<Vec<Atom>>,
+	pub strip_ctx_name: Option<Vec<Atom>>,
 	pub strip_event_handlers: bool,
-	pub reg_ctx_name: Option<Vec<JsWord>>,
+	pub reg_ctx_name: Option<Vec<Atom>>,
 	pub is_server: Option<bool>,
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
 	let core_module = config
 		.core_module
-		.map_or(BUILDER_IO_QWIK.clone(), |s| s.into());
+		.map_or_else(|| BUILDER_IO_QWIK.clone(), |s| s.into());
 	let src_dir = std::path::Path::new(&config.src_dir);
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
-	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
+	let entry_policy = &*parse_entry_strategy(&config.entry_strategy);
 
 	let iterator = config.input.iter();
 

@@ -1,12 +1,22 @@
 // verify that ../qwik/dist/core.d.ts exists or run `pnpm run build.core` in the root directory
 // Also make sure that the repl-sw.js file is present, for dev mode
 // we need it for development and for the REPL
-import fs from 'fs';
-import path from 'path';
-import { spawnSync } from 'child_process';
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+let __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isWindows = process.platform === 'win32';
+if (isWindows && __dirname.startsWith('/')) {
+  // in Windows __dirname starts with a / causing errors
+  // before
+  //  /C:/Users/{location stuff}/qwik/packages/docs
+  __dirname = __dirname.substring(1);
+  // after
+  // C:/Users/{location stuff}/qwik/packages/docs
+}
 const qwikPkgDir = path.join(__dirname, '..', 'qwik', 'dist');
 
 if (!fs.existsSync(path.join(qwikPkgDir, 'core-internal.d.ts'))) {

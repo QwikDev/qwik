@@ -5,10 +5,17 @@ import {
   useSignal,
   Fragment as Component,
   Fragment,
-  Fragment as Signal,
   type JSXOutput,
 } from '@qwik.dev/core';
-import { HTML_NS, MATH_NS, SVG_NS } from '../shared/utils/markers';
+import {
+  HTML_NS,
+  MATH_NS,
+  QContainerAttr,
+  SVG_NS,
+  XLINK_NS,
+  XML_NS,
+} from '../shared/utils/markers';
+import { QContainerValue } from '../shared/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -38,7 +45,7 @@ describe.each([
       );
       await expect(container.document.querySelector('svg')).toMatchDOM(
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="ka">
-          <fegaussianblur></fegaussianblur>
+          <feGaussianBlur></feGaussianBlur>
           <circle cx="50" cy="50" r="50"></circle>
         </svg>
       );
@@ -117,6 +124,66 @@ describe.each([
 
       await expect(container.document.body.querySelector('button')).toMatchDOM(<button></button>);
     });
+
+    it('should rerender svg nested children', async () => {
+      const SvgComp = component$((props: { show: boolean }) => {
+        return (
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+            <defs>
+              {props.show && (
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1px" />
+                  <stop offset="100%" style="stop-color:#0000ff;stop-opacity:1px" />
+                </linearGradient>
+              )}
+            </defs>
+          </svg>
+        );
+      });
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <button onClick$={() => (show.value = !show.value)}>
+            <SvgComp show={show.value} />
+          </button>
+        );
+      });
+      const { vNode, container } = await render(<Parent />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+                <defs></defs>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
+
+      await trigger(container.element, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Component>
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" key="0">
+                <defs>
+                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1px" />
+                    <stop offset="100%" style="stop-color:#0000ff;stop-opacity:1px" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </Component>
+          </button>
+        </Component>
+      );
+
+      expect(
+        container.document.querySelector('svg')?.querySelector('linearGradient')?.namespaceURI
+      ).toEqual(SVG_NS);
+    });
+
     it('should rerender svg child elements', async () => {
       const SvgComp = component$((props: { child: JSXOutput }) => {
         return (
@@ -145,9 +212,7 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <Fragment></Fragment>
-                </Signal>
+                <Fragment ssr-required></Fragment>
               </svg>
             </Component>
           </button>
@@ -166,9 +231,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
-                </Signal>
+                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
               </svg>
             </Component>
           </button>
@@ -193,9 +256,7 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Signal>
-                  <Fragment></Fragment>
-                </Signal>
+                <Fragment></Fragment>
               </svg>
             </Component>
           </button>
@@ -278,19 +339,57 @@ describe.each([
         );
       });
       const { vNode, document } = await render(<SvgComp />, { debug });
+      const qContainerAttr = { [QContainerAttr]: QContainerValue.HTML };
       expect(vNode).toMatchVDOM(
         <Component>
-          {/* @ts-ignore-next-line */}
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" q:container="html"></svg>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...qContainerAttr}></svg>
         </Component>
       );
       await expect(document.querySelector('svg')).toMatchDOM(
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...qContainerAttr}>
           <circle cx="50" cy="50" r="50" />
           <path d="M10 10" />
           <path d="M20 20" />
         </svg>
       );
+    });
+
+    describe('xlink and xml namespaces', () => {
+      it('should render xlink:href and xml:lang', async () => {
+        const SvgComp = component$(() => {
+          return (
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use xlink:href="#logo-c"></use>
+                </mask>
+              </g>
+              <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          );
+        });
+        const { vNode, document } = await render(<SvgComp />, { debug });
+        expect(vNode).toMatchVDOM(
+          <Component>
+            <svg xmlns="http://www.w3.org/2000/svg" xlink:href="http://www.w3.org/1999/xlink">
+              <g>
+                <mask id="logo-d" fill="#fff">
+                  <use xlink:href="#logo-c"></use>
+                </mask>
+              </g>
+              <text xml:lang="en-US">This is some English text</text>
+            </svg>
+          </Component>
+        );
+
+        const useElement = document.querySelector('use');
+        const xLinkHref = useElement?.attributes.getNamedItem('xlink:href');
+        expect(xLinkHref?.namespaceURI).toEqual(XLINK_NS);
+
+        const textElement = document.querySelector('text');
+        const xmlLang = textElement?.attributes.getNamedItem('xml:lang');
+        expect(xmlLang?.namespaceURI).toEqual(XML_NS);
+      });
     });
   });
 

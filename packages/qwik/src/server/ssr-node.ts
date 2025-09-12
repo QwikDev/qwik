@@ -1,14 +1,22 @@
-import { _isJSXNode as isJSXNode, type JSXNode, _EMPTY_ARRAY } from '@qwik.dev/core';
+import {
+  _isJSXNode as isJSXNode,
+  type JSXNode,
+  _EMPTY_ARRAY,
+  _EFFECT_BACK_REF,
+} from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,
   mapApp_remove,
   mapArray_get,
   mapArray_set,
+  mapArray_has,
   ELEMENT_SEQ,
   QSlot,
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
+  QBackRefs,
+  SsrNodeFlags,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -21,40 +29,41 @@ import type { VNodeData } from './vnode-data';
  * Once deserialized the client, they will be turned to ElementVNodes.
  */
 export class SsrNode implements ISsrNode {
-  __brand__!: 'HostElement';
-
-  static ELEMENT_NODE = 1 as const;
-  static TEXT_NODE = 3 as const;
-  static DOCUMENT_NODE = 9 as const;
-  static DOCUMENT_FRAGMENT_NODE = 11 as const;
-
-  /** @param nodeType - Node type: ELEMENT_NODE, TEXT_NODE, DOCUMENT_NODE */
-  public nodeType: SsrNodeType;
+  __brand__ = 'SsrNode' as const;
 
   /**
    * ID which the deserialize will use to retrieve the node.
    *
-   * @param refId - Unique id for the node.
+   * @param id - Unique id for the node.
    */
   public id: string;
+  public flags: SsrNodeFlags;
+
+  public children: ISsrNode[] | null = null;
+  private attrs: SsrAttrs;
 
   /** Local props which don't serialize; */
-  private locals: SsrAttrs | null = null;
-  public currentComponentNode: ISsrNode | null;
-  public childrenVNodeData: VNodeData[] | null = null;
+  private localProps: SsrAttrs | null = null;
+
+  get [_EFFECT_BACK_REF]() {
+    return this.getProp(QBackRefs);
+  }
 
   constructor(
-    currentComponentNode: ISsrNode | null,
-    nodeType: SsrNodeType,
+    public parentComponent: ISsrNode | null,
     id: string,
-    private attrs: SsrAttrs,
+    private attributesIndex: number,
     private cleanupQueue: CleanupQueue,
-    public vnodeData: VNodeData
+    public vnodeData: VNodeData,
+    public currentFile: string | null
   ) {
-    this.currentComponentNode = currentComponentNode;
-    this.currentComponentNode?.addChildVNodeData(this.vnodeData);
-    this.nodeType = nodeType;
     this.id = id;
+    this.flags = SsrNodeFlags.Updatable;
+    this.attrs =
+      this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as SsrAttrs) : _EMPTY_ARRAY;
+
+    this.parentComponent?.addChild(this);
+
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
     }
@@ -62,10 +71,10 @@ export class SsrNode implements ISsrNode {
 
   setProp(name: string, value: any): void {
     if (this.attrs === _EMPTY_ARRAY) {
-      this.attrs = [];
+      this.setEmptyArrayAsVNodeDataAttributes();
     }
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      mapArray_set(this.locals || (this.locals = []), name, value, 0);
+      mapArray_set(this.localProps || (this.localProps = []), name, value, 0);
     } else {
       mapArray_set(this.attrs, name, value, 0);
     }
@@ -76,9 +85,23 @@ export class SsrNode implements ISsrNode {
     }
   }
 
+  private setEmptyArrayAsVNodeDataAttributes() {
+    if (this.attributesIndex >= 0) {
+      this.vnodeData[this.attributesIndex] = [];
+      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
+    } else {
+      // we need to insert a new empty array at index 1
+      // this can be inefficient, but it is only done once per node and probably not often
+      const newAttributesIndex = this.vnodeData.length > 1 ? 1 : 0;
+      this.vnodeData.splice(newAttributesIndex, 0, []);
+      this.attributesIndex = newAttributesIndex;
+      this.attrs = this.vnodeData[this.attributesIndex] as SsrAttrs;
+    }
+  }
+
   getProp(name: string): any {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      return this.locals ? mapArray_get(this.locals, name, 0) : null;
+      return this.localProps ? mapArray_get(this.localProps, name, 0) : null;
     } else {
       return mapArray_get(this.attrs, name, 0);
     }
@@ -86,42 +109,54 @@ export class SsrNode implements ISsrNode {
 
   removeProp(name: string): void {
     if (name.startsWith(NON_SERIALIZABLE_MARKER_PREFIX)) {
-      if (this.locals) {
-        mapApp_remove(this.locals, name, 0);
+      if (this.localProps) {
+        mapApp_remove(this.localProps, name, 0);
       }
     } else {
       mapApp_remove(this.attrs, name, 0);
     }
   }
 
-  addChildVNodeData(child: VNodeData): void {
-    if (!this.childrenVNodeData) {
-      this.childrenVNodeData = [];
+  addChild(child: ISsrNode): void {
+    if (!this.children) {
+      this.children = [];
     }
-    this.childrenVNodeData.push(child);
+    this.children.push(child);
+  }
+
+  setTreeNonUpdatable(): void {
+    this.flags &= ~SsrNodeFlags.Updatable;
+    if (this.children) {
+      for (const child of this.children) {
+        (child as SsrNode).setTreeNonUpdatable();
+      }
+    }
   }
 
   toString(): string {
-    let stringifiedAttrs = '';
-    for (let i = 0; i < this.attrs.length; i += 2) {
-      const key = this.attrs[i];
-      const value = this.attrs[i + 1];
-      stringifiedAttrs += `${key}=`;
-      stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
-      if (i < this.attrs.length - 2) {
-        stringifiedAttrs += ', ';
+    if (isDev) {
+      let stringifiedAttrs = '';
+      for (let i = 0; i < this.attrs.length; i += 2) {
+        const key = this.attrs[i];
+        const value = this.attrs[i + 1];
+        stringifiedAttrs += `${key}=`;
+        stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+        if (i < this.attrs.length - 2) {
+          stringifiedAttrs += ', ';
+        }
       }
+      return `<SSRNode id="${this.id}" ${stringifiedAttrs} />`;
+    } else {
+      return `<SSRNode id="${this.id}" />`;
     }
-    return `SSRNode [<${this.id}> ${stringifiedAttrs}]`;
   }
 }
 
 /** A ref to a DOM element */
 export class DomRef {
+  __brand__ = 'DomRef' as const;
   constructor(public $ssrNode$: ISsrNode) {}
 }
-
-export type SsrNodeType = 1 | 3 | 9 | 11;
 
 export class SsrComponentFrame implements ISsrComponentFrame {
   public slots = [];
@@ -186,15 +221,13 @@ export class SsrComponentFrame implements ISsrComponentFrame {
   }
 
   hasSlot(slotName: string): boolean {
-    return mapArray_get(this.slots, slotName, 0) !== null;
+    return mapArray_has(this.slots, slotName, 0);
   }
 
   consumeChildrenForSlot(projectionNode: ISsrNode, slotName: string): JSXChildren | null {
     const children = mapApp_remove(this.slots, slotName, 0);
-    if (children !== null) {
-      this.componentNode.setProp(slotName, projectionNode.id);
-      projectionNode.setProp(QSlotParent, this.componentNode.id);
-    }
+    this.componentNode.setProp(slotName, projectionNode.id);
+    projectionNode.setProp(QSlotParent, this.componentNode.id);
     return children;
   }
 

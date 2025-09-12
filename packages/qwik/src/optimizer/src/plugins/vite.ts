@@ -1,21 +1,16 @@
-import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
   GlobalInjections,
-  InsightManifest,
   Optimizer,
   OptimizerOptions,
-  OptimizerSystem,
-  Path,
-  QwikBundleGraph,
   QwikManifest,
   TransformModule,
 } from '../types';
-import { versions } from '../versions';
+import { type BundleGraphAdder } from './bundle-graph';
 import { getImageSizeServer } from './image-size-server';
 import {
-  CLIENT_OUT_DIR,
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
   QWIK_CORE_ID,
@@ -23,20 +18,17 @@ import {
   QWIK_CORE_SERVER,
   QWIK_JSX_DEV_RUNTIME_ID,
   QWIK_JSX_RUNTIME_ID,
-  Q_MANIFEST_FILENAME,
-  SSR_OUT_DIR,
   TRANSFORM_REGEX,
-  createPlugin,
-  parseId,
+  createQwikPlugin,
   type ExperimentalFeatures,
   type NormalizedQwikPluginOptions,
   type QwikBuildMode,
   type QwikBuildTarget,
-  type QwikPackages,
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
+import { parseId } from './vite-utils';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -60,7 +52,6 @@ type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], F
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let isClientDevOnly = false;
   let clientDevInput: undefined | string = undefined;
-  let tmpClientManifestPath: undefined | string = undefined;
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
@@ -74,35 +65,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
+  const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
-  const qwikPlugin = createPlugin(qwikViteOpts.optimizerOptions);
+  const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
 
-  async function loadQwikInsights(clientOutDir = ''): Promise<InsightManifest | null> {
-    const sys = qwikPlugin.getSys();
-    const cwdRelativePath = absolutePathAwareJoin(
-      sys.path,
-      rootDir || '.',
-      clientOutDir,
-      'q-insights.json'
-    );
-    const path = absolutePathAwareJoin(sys.path, process.cwd(), cwdRelativePath);
-    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    if (fs.existsSync(path)) {
-      qwikPlugin.log('Reading Qwik Insight data from: ' + cwdRelativePath);
-      return JSON.parse(await fs.promises.readFile(path, 'utf-8')) as InsightManifest;
-    }
-    return null;
-  }
+  const bundleGraphAdders = new Set<BundleGraphAdder>();
 
   const api: QwikVitePluginApi = {
     getOptimizer: () => qwikPlugin.getOptimizer(),
     getOptions: () => qwikPlugin.getOptions(),
     getManifest: () => manifestInput,
-    getInsightsManifest: (clientOutDir = '') => loadQwikInsights(clientOutDir!),
     getRootDir: () => qwikPlugin.getOptions().rootDir,
     getClientOutDir: () => clientOutDir,
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
+    registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -117,7 +94,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async config(viteConfig, viteEnv) {
       await qwikPlugin.init();
 
-      const sys = qwikPlugin.getSys();
       const path = qwikPlugin.getPath();
 
       let target: QwikBuildTarget;
@@ -158,9 +134,18 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           qwikViteOpts.entryStrategy = { type: 'inline' };
         }
       }
-
-      const shouldFindVendors =
-        !qwikViteOpts.disableVendorScan && (target !== 'lib' || viteCommand === 'serve');
+      // Special case: build.ssr can be the input for the ssr build
+      const ssrInput =
+        target === 'ssr'
+          ? typeof viteConfig.build?.ssr === 'string'
+            ? viteConfig.build.ssr
+            : qwikViteOpts.ssr?.input
+          : undefined;
+      const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
+      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      if (input && typeof input === 'string') {
+        input = [input];
+      }
       viteAssetsDir = viteConfig.build?.assetsDir;
       const useAssetsDir = target === 'client' && !!viteAssetsDir && viteAssetsDir !== '_astro';
       const pluginOpts: QwikPluginOptions = {
@@ -175,106 +160,36 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         resolveQwikBuild: true,
         transformedModuleOutput: qwikViteOpts.transformedModuleOutput,
         outDir: viteConfig.build?.outDir,
+        ssrOutDir: qwikViteOpts.ssr?.outDir || viteConfig.build?.outDir,
+        clientOutDir:
+          qwikViteOpts.client?.outDir ||
+          // When ssr is true, this is probably an adapter build and not where the client build is
+          (viteConfig.build?.ssr ? undefined : viteConfig.build?.outDir),
         assetsDir: useAssetsDir ? viteAssetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
         lint: qwikViteOpts.lint,
         experimental: qwikViteOpts.experimental,
+        input,
+        manifestInput: qwikViteOpts.ssr?.manifestInput,
+        manifestOutput: qwikViteOpts.client?.manifestOutput,
       };
-      if (!qwikViteOpts.csr) {
-        if (target === 'ssr') {
-          // ssr
-          if (typeof viteConfig.build?.ssr === 'string') {
-            // from --ssr flag user config
-            // entry.server.ts (express/cloudflare/netlify)
-            pluginOpts.input = viteConfig.build.ssr;
-          } else if (typeof qwikViteOpts.ssr?.input === 'string') {
-            // entry.ssr.tsx input (exports render())
-            pluginOpts.input = qwikViteOpts.ssr.input;
-          }
 
-          if (qwikViteOpts.ssr?.outDir) {
-            pluginOpts.outDir = qwikViteOpts.ssr.outDir;
-          }
-          pluginOpts.manifestInput = qwikViteOpts.ssr?.manifestInput;
-        } else if (target === 'client') {
-          // client
-          pluginOpts.input = qwikViteOpts.client?.input;
-          if (qwikViteOpts.client?.outDir) {
-            pluginOpts.outDir = qwikViteOpts.client.outDir;
-          }
-          pluginOpts.manifestOutput = qwikViteOpts.client?.manifestOutput;
-        } else {
-          if (typeof viteConfig.build?.lib === 'object') {
-            pluginOpts.input = viteConfig.build?.lib.entry;
-          }
-        }
-        if (sys.env === 'node') {
-          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+      const opts = await qwikPlugin.normalizeOptions(pluginOpts);
+      input ||= opts.input;
 
-          try {
-            const rootDir = pluginOpts.rootDir ?? sys.cwd();
-            const packageJsonPath = sys.path.join(rootDir, 'package.json');
-            const pkgString = await fs.promises.readFile(packageJsonPath, 'utf-8');
-
-            try {
-              const data = JSON.parse(pkgString);
-
-              if (typeof data.name === 'string') {
-                pluginOpts.scope = data.name;
-              }
-            } catch (e) {
-              console.error(e);
-            }
-          } catch {
-            // error reading package.json from Node.js fs, ok to ignore
-          }
-
-          // In a Node.js environment, create a path to a q-manifest.json file within the
-          // OS tmp directory. This path should always be the same for both client and ssr.
-          // Client build will write to this path, and SSR will read from it. For this reason,
-          // the Client build should always start and finish before the SSR build.
-          const nodeOs: typeof import('os') = await sys.dynamicImport('node:os');
-
-          // Additionally, we add a suffix to scope the file to the current application so that
-          // different applications can be run in parallel without generating conflicts.
-          const scopeSuffix = pluginOpts.scope ? `-${pluginOpts.scope.replace(/\//g, '--')}` : '';
-
-          tmpClientManifestPath = path.join(
-            nodeOs.tmpdir(),
-            `vite-plugin-qwik-q-manifest${scopeSuffix}.json`
-          );
-
-          if (target === 'ssr' && !pluginOpts.manifestInput) {
-            // This is a SSR build so we should load the client build's manifest
-            // so it can be used as the manifestInput of the SSR build
-            try {
-              const clientManifestStr = await fs.promises.readFile(tmpClientManifestPath, 'utf-8');
-              pluginOpts.manifestInput = JSON.parse(clientManifestStr);
-            } catch {
-              // ignore
-            }
-          }
-        }
-      }
-
-      const opts = qwikPlugin.normalizeOptions(pluginOpts);
-      manifestInput = pluginOpts.manifestInput || null;
+      manifestInput = opts.manifestInput;
       srcDir = opts.srcDir;
       rootDir = opts.rootDir;
 
       if (!qwikViteOpts.csr) {
-        clientOutDir = qwikPlugin.normalizePath(
-          sys.path.resolve(opts.rootDir, qwikViteOpts.client?.outDir || CLIENT_OUT_DIR)
-        );
+        clientOutDir = opts.clientOutDir;
 
         clientPublicOutDir = viteConfig.base
           ? path.join(clientOutDir, viteConfig.base)
           : clientOutDir;
 
-        ssrOutDir = qwikPlugin.normalizePath(
-          sys.path.resolve(opts.rootDir, qwikViteOpts.ssr?.outDir || SSR_OUT_DIR)
-        );
+        ssrOutDir = opts.ssrOutDir;
 
         if (typeof qwikViteOpts.client?.devInput === 'string') {
           clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
@@ -288,8 +203,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         clientDevInput = qwikPlugin.normalizePath(clientDevInput);
       }
 
-      const vendorRoots = shouldFindVendors ? await findQwikRoots(sys, sys.cwd()) : [];
-      const vendorIds = vendorRoots.map((v) => v.id);
       const isDevelopment = buildMode === 'development';
       const qDevKey = 'globalThis.qDev';
       const qTestKey = 'globalThis.qTest';
@@ -301,26 +214,22 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const updatedViteConfig: UserConfig = {
         ssr: {
-          noExternal: [
-            QWIK_CORE_ID,
-            QWIK_CORE_INTERNAL_ID,
-            QWIK_CORE_SERVER,
-            QWIK_BUILD_ID,
-            ...vendorIds,
-          ],
+          noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
         },
         envPrefix: ['VITE_', 'PUBLIC_'],
         resolve: {
-          dedupe: [...DEDUPE, ...vendorIds],
+          dedupe: [...DEDUPE],
           conditions: buildMode === 'production' && target === 'client' ? ['min'] : [],
           alias: {
             '@builder.io/qwik': '@qwik.dev/core',
             '@builder.io/qwik/build': '@qwik.dev/core/build',
             '@builder.io/qwik/server': '@qwik.dev/core/server',
+            '@builder.io/qwik/preloader': '@qwik.dev/core/preloader',
             '@builder.io/qwik/jsx-runtime': '@qwik.dev/core/jsx-runtime',
             '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
             '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
             '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/backpatch': '@qwik.dev/core/backpatch',
             '@builder.io/qwik/cli': '@qwik.dev/core/cli',
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
@@ -343,8 +252,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
-            // Sadly we can't specify **/*.qwik.*, so we need to specify each one
-            ...vendorIds,
             // v1 imports, they are removed during transform but vite doesn't know that
             '@builder.io/qwik',
             '@builder.io/qwik-city',
@@ -356,10 +263,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             exclude: [/./],
           },
           rollupOptions: {
+            /**
+             * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
+             * to impact the build time.
+             * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
+             */
+            maxParallelFileOps: 1,
+            // This will amend the existing input
+            input,
             output: {
               manualChunks: qwikPlugin.manualChunks,
             },
-          },
+            // temporary fix for rolldown-vite types
+          } as BuildOptions['rollupOptions'],
         },
         define: {
           [qDevKey]: qDev,
@@ -379,12 +295,11 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         updatedViteConfig.build!.outDir = buildOutputDir;
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
-          input: opts.input,
+          ...updatedViteConfig.build!.rollupOptions,
           output: normalizeRollupOutputOptions(
-            opts,
+            qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
-            qwikPlugin.manualChunks,
             buildOutputDir
           ),
           preserveEntrySignatures: 'exports-only',
@@ -402,7 +317,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             updatedViteConfig.publicDir = false;
             updatedViteConfig.build!.ssr = true;
             if (viteConfig.build?.minify == null && buildMode === 'production') {
-              updatedViteConfig.build!.minify = 'esbuild';
+              updatedViteConfig.build!.minify = true;
             }
           }
         } else if (opts.target === 'client') {
@@ -442,28 +357,25 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
-        throw new Error(`Vite's config.base must begin and end with /`);
-      }
-      const sys = qwikPlugin.getSys();
-      if (sys.env === 'node' && !qwikViteOpts.entryStrategy) {
-        try {
-          const entryStrategy = await loadQwikInsights(
-            !qwikViteOpts.csr ? qwikViteOpts.client?.outDir : undefined
-          );
-          if (entryStrategy) {
-            qwikViteOpts.entryStrategy = entryStrategy;
-          }
-        } catch {
-          // ok to ignore
+        // TODO v2: make this an error
+        console.error(
+          `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
+        );
+        if (!basePathname.endsWith('/')) {
+          basePathname += '/';
         }
       }
       const useSourcemap = !!config.build.sourcemap;
       if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
         qwikPlugin.setSourceMapSupport(true);
       }
+      // Ensure that the final settings are applied
+      qwikPlugin.normalizeOptions(qwikViteOpts);
     },
 
     async buildStart() {
+      injections.length = 0;
+
       // Using vite.resolveId to check file if exist
       // for example input might be virtual file
       const resolver = this.resolve.bind(this);
@@ -525,7 +437,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       }
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
-  };
+  } as const satisfies VitePlugin<QwikVitePluginApi>;
 
   const vitePluginPost: VitePlugin<never> = {
     name: 'vite-plugin-qwik-post',
@@ -538,7 +450,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
         if (opts.target === 'client') {
           // client build
-          const outputAnalyzer = qwikPlugin.createOutputAnalyzer(rollupBundle);
 
           for (const [fileName, b] of Object.entries(rollupBundle)) {
             if (b.type === 'asset') {
@@ -565,7 +476,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                 }
               } else {
                 const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont) {
+                if (selectedFont && !disableFontPreload) {
                   injections.unshift({
                     tag: 'link',
                     location: 'head',
@@ -582,66 +493,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
 
-          for (const i of injections) {
-            outputAnalyzer.addInjection(i);
-          }
-
-          const optimizer = qwikPlugin.getOptimizer();
-          const manifest = await outputAnalyzer.generateManifest();
-          manifest.platform = {
-            ...versions,
-            vite: '',
-            rollup: this.meta?.rollupVersion || '',
-            env: optimizer.sys.env,
-            os: optimizer.sys.os,
-          };
-          if (optimizer.sys.env === 'node') {
-            manifest.platform.node = process.versions.node;
-          }
-
-          const clientManifestStr = JSON.stringify(manifest, null, 2);
-          this.emitFile({
-            type: 'asset',
-            fileName: Q_MANIFEST_FILENAME,
-            source: clientManifestStr,
+          await qwikPlugin.generateManifest(this, rollupBundle, bundleGraphAdders, {
+            injections,
+            platform: { vite: '' },
           });
-          const assetsDir = qwikPlugin.getOptions().assetsDir || '';
-          const useAssetsDir = !!assetsDir && assetsDir !== '_astro';
-          const sys = qwikPlugin.getSys();
-          this.emitFile({
-            type: 'asset',
-            fileName: sys.path.join(
-              useAssetsDir ? assetsDir : '',
-              'build',
-              `q-bundle-graph-${manifest.manifestHash}.json`
-            ),
-            source: JSON.stringify(convertManifestToBundleGraph(manifest)),
-          });
-          const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-          const workerScriptPath = (await this.resolve('@qwik.dev/core/qwik-prefetch.js'))!.id;
-          const workerScript = await fs.promises.readFile(workerScriptPath, 'utf-8');
-          const qwikPrefetchServiceWorkerFile = 'qwik-prefetch-service-worker.js';
-          this.emitFile({
-            type: 'asset',
-            fileName: useAssetsDir
-              ? sys.path.join(assetsDir, 'build', qwikPrefetchServiceWorkerFile)
-              : qwikPrefetchServiceWorkerFile,
-            source: workerScript,
-          });
-
-          if (typeof opts.manifestOutput === 'function') {
-            await opts.manifestOutput(manifest);
-          }
-
-          if (typeof opts.transformedModuleOutput === 'function') {
-            await opts.transformedModuleOutput(qwikPlugin.getTransformedOutputs());
-          }
-
-          if (tmpClientManifestPath && sys.env === 'node') {
-            // Client build should write the manifest to a tmp dir
-            const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-            await fs.promises.writeFile(tmpClientManifestPath, clientManifestStr);
-          }
         }
       },
     },
@@ -652,7 +507,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // ssr build
 
         const sys = qwikPlugin.getSys();
-        if (sys.env === 'node') {
+        if (sys.env === 'node' || sys.env === 'bun') {
           const outputs = Object.keys(rollupBundle);
 
           // In order to simplify executing the server script with a common script
@@ -701,7 +556,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);
-      const devSsrServer = 'devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true;
+      const devSsrServer =
+        !qwikViteOpts.csr && ('devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true);
       const imageDevTools =
         qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
           ? qwikViteOpts.devTools.imageDevTools
@@ -711,7 +567,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
       }
 
-      if (!qwikViteOpts.csr) {
+      if (devSsrServer) {
         const plugin = async () => {
           const opts = qwikPlugin.getOptions();
           const sys = qwikPlugin.getSys();
@@ -723,14 +579,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             sys,
             path,
             isClientDevOnly,
-            clientDevInput,
-            devSsrServer
+            clientDevInput
           );
         };
-        // TODO: Removed the "__qwikCityNew" condition in V3
+        // TODO: Remove the "__qwikCityNew" condition in V3
         const isNEW =
           (globalThis as any).__qwikRouterNew === true ||
-          (globalThis as any).__qwikCityNew === true;
+          (globalThis as any).__qwikCityNew === true ||
+          // related to this issue https://github.com/QwikDev/qwik/issues/7600
+          // FIX: the @qwik-handlers aren't properly handled in dev mode for library projects
+          server.config.build.lib;
+
         if (isNEW) {
           return plugin;
         } else {
@@ -778,9 +637,101 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         return false;
       }
     },
-  };
+  } as const satisfies VitePlugin<QwikVitePluginApi>;
 
-  return [vitePluginPre, vitePluginPost];
+  return [vitePluginPre, vitePluginPost, checkExternals()];
+}
+
+/**
+ * This plugin checks for external dependencies that should be included in the server bundle,
+ * because they use Qwik. If they are not included, the optimizer won't process them, and there will
+ * be two instances of Qwik Core loaded.
+ */
+async function checkExternals() {
+  let fs: typeof import('fs').promises;
+  let path: typeof import('path');
+  try {
+    fs = await import('node:fs').then((m) => m.promises);
+    path = await import('node:path');
+  } catch {
+    // We can't do anything if we can't import fs and path
+    return;
+  }
+  const seen: Set<string> = new Set();
+  let rootDir: string;
+  const core2 = '@qwik-dev/core';
+  const core1 = '@builder.io/qwik';
+  async function isQwikDep(dep: string, dir: string) {
+    while (dir) {
+      const pkg = path.join(dir, 'node_modules', dep, 'package.json');
+      try {
+        await fs.access(pkg);
+        const data = await fs.readFile(pkg, {
+          encoding: 'utf-8',
+        });
+        // any mention of lowercase qwik in the package.json is enough
+        const json = JSON.parse(data);
+        if (
+          json.qwik ||
+          json.dependencies?.[core2] ||
+          json.peerDependencies?.[core2] ||
+          json.dependencies?.[core1] ||
+          json.peerDependencies?.[core1]
+        ) {
+          return true;
+        }
+        return false;
+      } catch {
+        //empty
+      }
+      const nextRoot = path.dirname(dir);
+      if (nextRoot === dir) {
+        break;
+      }
+      dir = nextRoot;
+    }
+    return false;
+  }
+
+  return {
+    name: 'checkQwikExternals',
+    enforce: 'pre',
+    configResolved: (config) => {
+      rootDir = config.root;
+    },
+    // We check all SSR build lookups for external Qwik deps
+    resolveId: {
+      order: 'pre',
+      async handler(source, importer, options) {
+        if (!options.ssr || /^([./]|node:|[^a-z])/.test(source) || seen.has(source)) {
+          return;
+        }
+        const packageName = (
+          source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]
+        ).split('?')[0];
+        if (seen.has(packageName)) {
+          return;
+        }
+        // technically we should check for each importer, but this is ok
+        seen.add(source);
+        seen.add(packageName);
+        const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
+        if (result?.external) {
+          // Qwik deps should not be external
+          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
+            // TODO link to docs
+            throw new Error(
+              `\n==============\n${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik.\nPlease add the package to "ssr.noExternal" in the Vite config. \n==============`
+            );
+          }
+        }
+        if (packageName === source) {
+          // We already resolved it, so return that result
+          return result;
+        }
+      },
+    },
+  } as const satisfies VitePlugin<never>;
 }
 
 const ANSI_COLOR = {
@@ -841,90 +792,6 @@ export async function render(document, rootNode, opts) {
   }
 }`;
 }
-
-async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
-  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-  let root = parent;
-  while (root) {
-    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
-    try {
-      await fs.promises.access(pkg);
-      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
-      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
-      return fs.promises.realpath(pkg);
-    } catch {
-      //empty
-    }
-    const nextRoot = sys.path.dirname(root);
-    if (nextRoot === root) {
-      break;
-    }
-    root = nextRoot;
-  }
-  return undefined;
-}
-
-const findQwikRoots = async (
-  sys: OptimizerSystem,
-  packageJsonDir: string
-): Promise<QwikPackages[]> => {
-  const paths = new Map<string, string>();
-  if (sys.env === 'node') {
-    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-    let prevPackageJsonDir: string | undefined;
-    do {
-      try {
-        const data = await fs.promises.readFile(sys.path.join(packageJsonDir, 'package.json'), {
-          encoding: 'utf-8',
-        });
-
-        try {
-          const packageJson = JSON.parse(data);
-          const dependencies = packageJson['dependencies'];
-          const devDependencies = packageJson['devDependencies'];
-
-          const packages: string[] = [];
-          if (typeof dependencies === 'object') {
-            packages.push(...Object.keys(dependencies));
-          }
-          if (typeof devDependencies === 'object') {
-            packages.push(...Object.keys(devDependencies));
-          }
-
-          const basedir = sys.cwd();
-          await Promise.all(
-            packages.map(async (id) => {
-              const pkgJsonPath = await findDepPkgJsonPath(sys, id, basedir);
-              if (pkgJsonPath) {
-                const pkgJsonContent = await fs.promises.readFile(pkgJsonPath, 'utf-8');
-                const pkgJson = JSON.parse(pkgJsonContent);
-                const qwikPath = pkgJson['qwik'];
-                if (!qwikPath) {
-                  return;
-                }
-                // Support multiple paths
-                const allPaths = Array.isArray(qwikPath) ? qwikPath : [qwikPath];
-                for (const p of allPaths) {
-                  paths.set(
-                    await fs.promises.realpath(sys.path.resolve(sys.path.dirname(pkgJsonPath), p)),
-                    id
-                  );
-                }
-              }
-            })
-          );
-        } catch (e) {
-          console.error(e);
-        }
-      } catch (e) {
-        // ignore errors if package.json not found
-      }
-      prevPackageJsonDir = packageJsonDir;
-      packageJsonDir = sys.path.dirname(packageJsonDir);
-    } while (packageJsonDir !== prevPackageJsonDir);
-  }
-  return Array.from(paths).map(([path, id]) => ({ path, id }));
-};
 
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
@@ -1019,6 +886,15 @@ interface QwikVitePluginCommonOptions {
    * to be stable between releases
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
+
+  /**
+   * Disables automatic preloading of font assets (WOFF/WOFF2/TTF) found in the build output. When
+   * enabled, the plugin will not add `<link rel="preload">` tags for font files in the document
+   * head.
+   *
+   * Disabling may impact Cumulative Layout Shift (CLS) metrics.
+   */
+  disableFontPreload?: boolean;
 }
 
 interface QwikVitePluginCSROptions extends QwikVitePluginCommonOptions {
@@ -1114,11 +990,11 @@ export interface QwikVitePluginApi {
   getOptimizer: () => Optimizer | null;
   getOptions: () => NormalizedQwikPluginOptions;
   getManifest: () => QwikManifest | null;
-  getInsightsManifest: (clientOutDir?: string | null) => Promise<InsightManifest | null>;
   getRootDir: () => string | null;
   getClientOutDir: () => string | null;
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
+  registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }
 
 /**
@@ -1135,103 +1011,4 @@ export type QwikVitePlugin = P<QwikVitePluginApi> & {
 export interface QwikViteDevResponse {
   _qwikEnvData?: Record<string, any>;
   _qwikRenderResolve?: () => void;
-}
-
-/**
- * Joins path segments together and normalizes the resulting path, taking into account absolute
- * paths.
- */
-function absolutePathAwareJoin(path: Path, ...segments: string[]): string {
-  for (let i = segments.length - 1; i >= 0; --i) {
-    const segment = segments[i];
-    if (segment.startsWith(path.sep) || segment.indexOf(path.delimiter) !== -1) {
-      segments.splice(0, i);
-      break;
-    }
-  }
-  return path.join(...segments);
-}
-
-export function convertManifestToBundleGraph(manifest: QwikManifest): QwikBundleGraph {
-  const bundleGraph: QwikBundleGraph = [];
-  const graph = manifest.bundles;
-  if (!graph) {
-    return [];
-  }
-  const names = Object.keys(graph).sort();
-  const map = new Map<string, { index: number; deps: Set<string> }>();
-  const clearTransitiveDeps = (parentDeps: Set<string>, seen: Set<string>, bundleName: string) => {
-    const bundle = graph[bundleName];
-    if (!bundle) {
-      // external dependency
-      return;
-    }
-    for (const dep of bundle.imports || []) {
-      if (parentDeps.has(dep)) {
-        parentDeps.delete(dep);
-      }
-      if (!seen.has(dep)) {
-        seen.add(dep);
-        clearTransitiveDeps(parentDeps, seen, dep);
-      }
-    }
-  };
-  for (const bundleName of names) {
-    const bundle = graph[bundleName];
-    const index = bundleGraph.length;
-    const deps = new Set(bundle.imports);
-    for (const depName of deps) {
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      clearTransitiveDeps(deps, new Set(), depName);
-    }
-    let didAdd = false;
-    for (const depName of bundle.dynamicImports || []) {
-      // If we dynamically import a qrl segment that is not a handler, we'll probably need it soon
-      const dep = graph[depName];
-      if (!graph[depName]) {
-        // external dependency
-        continue;
-      }
-      if (dep.isTask) {
-        if (!didAdd) {
-          deps.add('<dynamic>');
-          didAdd = true;
-        }
-        deps.add(depName);
-      }
-    }
-    map.set(bundleName, { index, deps });
-    bundleGraph.push(bundleName);
-    while (index + deps.size >= bundleGraph.length) {
-      bundleGraph.push(null!);
-    }
-  }
-  // Second pass to to update dependency pointers
-  for (const bundleName of names) {
-    const bundle = map.get(bundleName);
-    if (!bundle) {
-      console.warn(`Bundle ${bundleName} not found in the bundle graph.`);
-      continue;
-    }
-    // eslint-disable-next-line prefer-const
-    let { index, deps } = bundle;
-    index++;
-    for (const depName of deps) {
-      if (depName === '<dynamic>') {
-        bundleGraph[index++] = -1;
-        continue;
-      }
-      const dep = map.get(depName);
-      if (!dep) {
-        console.warn(`Dependency ${depName} of ${bundleName} not found in the bundle graph.`);
-        continue;
-      }
-      const depIndex = dep.index;
-      bundleGraph[index++] = depIndex;
-    }
-  }
-  return bundleGraph;
 }

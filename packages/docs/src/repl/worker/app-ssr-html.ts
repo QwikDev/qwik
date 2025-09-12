@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { RenderOptions, RenderToStringResult } from '@qwik.dev/core/server';
 import type { ReplInputOptions, ReplResult } from '../types';
 import type { QwikWorkerGlobal } from './repl-service-worker';
@@ -66,11 +65,13 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   };
 
   const appUrl = `/repl/` + result.clientId + `/`;
+  (globalThis as any).BASE_URL = appUrl;
   const baseUrl = appUrl + `build/`;
   const ssrResult = await render({
     base: baseUrl,
     manifest: result.manifest,
     prefetchStrategy: null as any,
+    preloader: options.preloader ? { debug: true } : false,
   }).catch((e) => {
     console.error('SSR failed', e);
     return {
@@ -83,7 +84,7 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
   console.error = error;
   console.debug = debug;
 
-  result.html = ssrResult.html;
+  result.htmlResult.rawHtml = ssrResult.html;
 
   result.events.push({
     kind: 'pause',
@@ -95,12 +96,12 @@ export const appSsrHtml = async (options: ReplInputOptions, cache: Cache, result
 
   if (options.buildMode !== 'production') {
     try {
-      const html = await self.prettier?.format(result.html, {
+      const html = await self.prettier?.format(result.htmlResult.rawHtml, {
         parser: 'html',
         plugins: self.prettierPlugins,
       });
       if (html) {
-        result.html = html;
+        result.htmlResult.prettyHtml = html;
       }
     } catch (e) {
       console.error(e);

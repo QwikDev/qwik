@@ -31,10 +31,11 @@ export const App2 = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js"), "App2_component_3yveMqbQ3Fs"));
+const i_3yveMqbQ3Fs = ()=>import("./test.tsx_App2_component_3yveMqbQ3Fs.js");
+export const App2 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_3yveMqbQ3Fs, "App2_component_3yveMqbQ3Fs"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,qBAAO,sHAgBjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,qBAAO,6EAgBjB\"}")
 ============================= test.tsx_App2_component_3yveMqbQ3Fs.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Resource", () => {
   test("should handle the resource correctly", async ({ page }) => {
-    await page.goto("/qwikcity-test/issue7254/");
+    await page.goto("/qwikrouter-test/issue7254/");
 
     await page.getByText("Data: hello Bar");
 

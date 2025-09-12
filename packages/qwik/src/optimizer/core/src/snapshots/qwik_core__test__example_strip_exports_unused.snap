@@ -27,13 +27,14 @@ export default component$(()=> {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAEZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;aAIa;;;AASb,6BAAe,6EAEZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=>{

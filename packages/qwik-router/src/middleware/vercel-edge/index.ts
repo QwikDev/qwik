@@ -1,12 +1,15 @@
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
-import { mergeHeadersCookies, requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  getNotFound,
+  isStaticPath,
+  mergeHeadersCookies,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import type { QwikSerializer } from '../request-handler/types';
 
 // @qwik.dev/router/middleware/vercel-edge
@@ -20,10 +23,8 @@ const BASE_URL = 'BASE_URL';
 /** @public */
 export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   const qwikSerializer: QwikSerializer = {
     _deserialize,

@@ -7,7 +7,7 @@ import {
   zod$,
 } from "@qwik.dev/router";
 import type {
-  CommonLoaderActionOptions,
+  ActionOptions,
   JSONObject,
   RequestEventAction,
   ValidatorErrorType,
@@ -67,13 +67,13 @@ export const useLoader = routeLoader$(() => {
 
 export const useAction1 = routeAction$(actionQrl, {
   validation: [typedDataValidator, dataValidator],
-} as CommonLoaderActionOptions);
+} as ActionOptions);
 export const useAction2 = routeAction$(actionQrl, {
   validation: [typedDataValidator],
-} as CommonLoaderActionOptions);
+} as ActionOptions);
 export const useAction3 = routeAction$(actionQrl, {
   validation: [dataValidator],
-} as CommonLoaderActionOptions);
+} as ActionOptions);
 export const useAction4 = routeAction$(
   actionQrl,
   typedDataValidator,

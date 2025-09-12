@@ -2,6 +2,7 @@ export {
   getQwikLoaderScript,
   getQwikPrefetchWorkerScript,
   setServerPlatform,
+  PreloaderOptions,
   Render,
   RenderOptions,
   RenderResult,

@@ -1,6 +1,6 @@
 /** @file Public APIs for the SSR */
 import {
-  _EffectData as EffectData,
+  _SubscriptionData as SubscriptionData,
   _SharedContainer,
   _jsxSorted,
   _jsxSplit,
@@ -9,20 +9,21 @@ import {
 } from '@qwik.dev/core';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
-import { applyPrefetchImplementation2 } from './prefetch-implementation';
-import { getPrefetchResources } from './prefetch-strategy';
 import {
   DEBUG_TYPE,
+  ELEMENT_BACKPATCH_DATA,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBackRefs,
   QBaseAttr,
   QContainerAttr,
   QContainerValue,
   QCtxAttr,
+  QError,
   QInstanceAttr,
   QLocaleAttr,
   QManifestHashAttr,
@@ -31,7 +32,6 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QTemplate,
   QVersionAttr,
@@ -44,13 +44,11 @@ import {
   escapeHTML,
   isClassAttr,
   mapArray_get,
+  mapArray_has,
   mapArray_set,
   maybeThen,
-  serializeAttribute,
-  QSubscribers,
-  QError,
   qError,
-  ChoreType,
+  serializeAttribute,
 } from './qwik-copy';
 import {
   type ContextId,
@@ -62,6 +60,7 @@ import {
   type JSXNodeInternal,
   type JSXOutput,
   type SerializationContext,
+  type SignalImpl,
   type SsrAttrKey,
   type SsrAttrValue,
   type SsrAttrs,
@@ -69,6 +68,8 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
+
+import { getQwikLoaderScript, getQwikBackpatchExecutorScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -80,15 +81,15 @@ import {
 } from './tag-nesting';
 import {
   VNodeDataFlag,
-  type PrefetchResource,
+  type BackpatchEntry,
   type RenderOptions,
   type RenderToStreamResult,
 } from './types';
 import { createTimer } from './utils';
 import {
   CLOSE_FRAGMENT,
-  WRITE_ELEMENT_ATTRS,
   OPEN_FRAGMENT,
+  WRITE_ELEMENT_ATTRS,
   encodeAsAlphanumeric,
   vNodeData_addTextSize,
   vNodeData_closeFragment,
@@ -98,7 +99,7 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import { getQwikLoaderScript } from './scripts';
+import { preloaderPost, preloaderPre } from './preload-impl';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -127,9 +128,6 @@ export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
       manifest: {
         manifestHash: 'dev',
         mapping: {},
-        bundles: {},
-        symbols: {},
-        version: 'dev-mode',
       },
     },
     renderOptions: opts.renderOptions,
@@ -163,6 +161,7 @@ interface ElementFrame {
    */
   depthFirstElementIdx: number;
   vNodeData: VNodeData;
+  currentFile: string | null;
 }
 
 const EMPTY_OBJ = {};
@@ -175,13 +174,12 @@ export type CleanupQueue = any[][];
 
 class SSRContainer extends _SharedContainer implements ISSRContainer {
   public tag: string;
+  public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
-  public buildBase: string;
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
-  public prefetchResources: PrefetchResource[] = [];
   public serializationCtx: SerializationContext;
   /**
    * We use this to append additional nodes in the head node
@@ -197,9 +195,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
+
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
+  private isBackpatchExecutorEmitted = false;
+  private backpatchMap = new Map<number, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -219,19 +220,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
+
   constructor(opts: Required<SSRRenderOptions>) {
-    super(
-      () => {
-        try {
-          return this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        } catch (e) {
-          this.handleError(e, null!);
-        }
-      },
-      () => null,
-      opts.renderOptions.serverData ?? EMPTY_OBJ,
-      opts.locale
-    );
+    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];
@@ -241,14 +232,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       SsrNode,
       DomRef,
       this.symbolToChunkResolver,
-      opts.writer,
-      (vNodeData: VNodeData) => this.addVNodeToSerializationRoots(vNodeData)
+      opts.writer
     );
     this.renderTimer = createTimer();
     this.tag = opts.tagName;
+    this.isHtml = opts.tagName === 'html';
     this.writer = opts.writer;
     this.timing = opts.timing;
-    this.buildBase = opts.buildBase;
+    this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
 
@@ -257,8 +248,24 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: HostElement): void {
+  handleError(err: any, _$host$: null): void {
     throw err;
+  }
+
+  addBackpatchEntry(
+    ssrNodeId: string,
+    attrName: string,
+    serializedValue: string | true | null
+  ): void {
+    // we want to always parse as decimal here
+    const elementIndex = parseInt(ssrNodeId, 10);
+    const entry: BackpatchEntry = {
+      attrName,
+      value: serializedValue,
+    };
+    const entries = this.backpatchMap.get(elementIndex) || [];
+    entries.push(entry);
+    this.backpatchMap.set(elementIndex, entries);
   }
 
   async render(jsx: JSXOutput) {
@@ -273,10 +280,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
     const ssrNode: ISsrNode = host as any;
     let ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       ssrNode.setProp(QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
     // Store the node which will store the context
     this.addRoot(ssrNode);
   }
@@ -285,20 +292,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     let ssrNode: ISsrNode | null = host as any;
     while (ssrNode) {
       const ctx: Array<string | unknown> = ssrNode.getProp(QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
-      ssrNode = ssrNode.currentComponentNode;
+      ssrNode = ssrNode.parentComponent;
     }
     return undefined;
   }
 
   getParentHost(host: HostElement): HostElement | null {
     const ssrNode: ISsrNode = host as any;
-    return ssrNode.currentComponentNode as ISsrNode | null;
+    return ssrNode.parentComponent as ISsrNode | null;
   }
 
   setHostProp<T>(host: ISsrNode, name: string, value: T): void {
@@ -326,7 +330,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     containerAttributes[QRuntimeAttr] = '2';
     containerAttributes[QVersionAttr] = this.$version$ ?? 'dev';
     containerAttributes[QRenderAttr] = (qRender ? qRender + '-' : '') + (isDev ? 'ssr-dev' : 'ssr');
-    containerAttributes[QBaseAttr] = this.buildBase || '';
+    containerAttributes[QBaseAttr] = this.$buildBase$ || '';
     containerAttributes[QLocaleAttr] = this.$locale$;
     containerAttributes[QManifestHashAttr] = this.resolvedManifest.manifest.manifestHash;
     containerAttributes[QInstanceAttr] = this.$instanceHash$;
@@ -368,6 +372,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     vNodeData_openElement(this.currentElementFrame!.vNodeData);
     this.write('<');
     this.write(elementName);
+    // create here for writeAttrs method to use it
+    const lastNode = this.getOrCreateLastNode();
     if (varAttrs) {
       innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
@@ -378,7 +384,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
     this.write('>');
-    this.lastNode = null;
+
+    if (lastNode) {
+      lastNode.setTreeNonUpdatable();
+    }
     return innerHTML;
   }
 
@@ -447,19 +456,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openFragment(attrs: SsrAttrs) {
     this.lastNode = null;
     vNodeData_openFragment(this.currentElementFrame!.vNodeData, attrs);
+    // create SSRNode and add it as component child to serialize its vnode data
+    this.getOrCreateLastNode();
   }
 
   /** Writes closing data to vNodeData for fragment boundaries */
   closeFragment() {
     vNodeData_closeFragment(this.currentElementFrame!.vNodeData);
-    this.lastNode = null;
-  }
 
-  addCurrentElementFrameAsComponentChild() {
-    const vNode = this.currentElementFrame?.vNodeData;
-    if (vNode) {
-      this.currentComponentNode?.addChildVNodeData(vNode);
+    if (this.currentComponentNode) {
+      this.currentComponentNode.setTreeNonUpdatable();
     }
+    this.lastNode = null;
   }
 
   openProjection(attrs: SsrAttrs) {
@@ -483,7 +491,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Writes opening data to vNodeData for component boundaries */
   openComponent(attrs: SsrAttrs) {
     this.openFragment(attrs);
-    this.currentComponentNode = this.getLastNode();
+    this.currentComponentNode = this.getOrCreateLastNode();
     this.componentStack.push(new SsrComponentFrame(this.currentComponentNode));
   }
 
@@ -510,7 +518,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const componentFrame = this.componentStack.pop()!;
     componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
     this.closeFragment();
-    this.currentComponentNode = this.currentComponentNode?.currentComponentNode || null;
+    this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -535,14 +543,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$addRoot$(obj);
   }
 
-  getLastNode(): ISsrNode {
+  getOrCreateLastNode(): ISsrNode {
     if (!this.lastNode) {
       this.lastNode = vNodeData_createSsrNodeReference(
         this.currentComponentNode,
         this.currentElementFrame!.vNodeData,
         // we start at -1, so we need to add +1
         this.currentElementFrame!.depthFirstElementIdx + 1,
-        this.cleanupQueue
+        this.cleanupQueue,
+        this.currentElementFrame!.currentFile
       );
     }
     return this.lastNode!;
@@ -612,8 +621,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       maybeThen(this.emitStateData(), () => {
         this.$noMoreRoots$ = true;
         this.emitVNodeData();
-        this.emitPrefetchResourcesData();
+        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
+        this.emitPatchDataIfNeeded();
+        this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -717,6 +728,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       for (let i = 0; i < fragmentAttrs.length; ) {
         const key = fragmentAttrs[i++] as string;
         let value = fragmentAttrs[i++] as string;
+        let encodeValue = false;
         // if (key !== DEBUG_TYPE) continue;
         if (typeof value !== 'string') {
           const rootId = addRoot(value);
@@ -739,10 +751,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           case ELEMENT_PROPS:
             write(VNodeDataChar.PROPS_CHAR);
             break;
-          case QSlotRef:
-            write(VNodeDataChar.SLOT_REF_CHAR);
-            break;
           case ELEMENT_KEY:
+            encodeValue = true;
             write(VNodeDataChar.KEY_CHAR);
             break;
           case ELEMENT_SEQ:
@@ -751,8 +761,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           case ELEMENT_SEQ_IDX:
             write(VNodeDataChar.SEQ_IDX_CHAR);
             break;
-          case QSubscribers:
-            write(VNodeDataChar.SUBS_CHAR);
+          case QBackRefs:
+            write(VNodeDataChar.BACK_REFS_CHAR);
+            break;
+          case QSlotParent:
+            write(VNodeDataChar.SLOT_PARENT_CHAR);
             break;
           // Skipping `\` character for now because it is used for escaping.
           case QCtxAttr:
@@ -766,56 +779,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             write(key);
             write(VNodeDataChar.SEPARATOR_CHAR);
         }
-        write(value);
+        const encodedValue = encodeValue ? encodeURI(value) : value;
+        const isEncoded = encodeValue ? encodedValue !== value : false;
+        if (isEncoded) {
+          // add separator only before and after the encoded value
+          write(VNodeDataChar.SEPARATOR_CHAR);
+          write(encodedValue);
+          write(VNodeDataChar.SEPARATOR_CHAR);
+        } else {
+          write(value);
+        }
       }
     }
 
     this.closeElement();
-  }
-
-  /** This adds the vnode's data to the serialization roots */
-  addVNodeToSerializationRoots(vNodeData: VNodeData) {
-    const vNodeAttrsStack: SsrAttrs[] = [];
-    const flag = vNodeData[0];
-    if (flag !== VNodeDataFlag.NONE) {
-      if (flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE)) {
-        let fragmentAttrs: SsrAttrs | null = null;
-        let depth = 0;
-        for (let i = 1; i < vNodeData.length; i++) {
-          const value = vNodeData[i];
-          if (Array.isArray(value)) {
-            vNodeAttrsStack.push(fragmentAttrs!);
-            fragmentAttrs = value;
-          } else if (value === OPEN_FRAGMENT) {
-            depth++;
-          } else if (value === CLOSE_FRAGMENT) {
-            // write out fragment attributes
-            if (fragmentAttrs) {
-              for (let i = 1; i < fragmentAttrs.length; i += 2) {
-                const value = fragmentAttrs[i] as string;
-                if (typeof value !== 'string') {
-                  fragmentAttrs[i] = String(this.addRoot(value));
-                }
-              }
-              fragmentAttrs = vNodeAttrsStack.pop()!;
-            }
-            depth--;
-          }
-        }
-
-        while (depth-- > 0) {
-          if (fragmentAttrs) {
-            for (let i = 0; i < fragmentAttrs.length; i++) {
-              const value = fragmentAttrs[i] as string;
-              if (typeof value !== 'string') {
-                fragmentAttrs[i] = String(this.addRoot(value));
-              }
-            }
-            fragmentAttrs = vNodeAttrsStack.pop()!;
-          }
-        }
-      }
-    }
   }
 
   private emitStateData(): ValueOrPromise<void> {
@@ -823,8 +800,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       return;
     }
     this.openElement('script', ['type', 'qwik/state']);
-    return maybeThen(this.serializationCtx.$breakCircularDepsAndAwaitPromises$(), () => {
-      this.serializationCtx.$serialize$();
+    return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeElement();
     });
   }
@@ -845,28 +821,51 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
-  private emitPrefetchResourcesData() {
-    const qrls = Array.from(this.serializationCtx.$eventQrls$);
-    if (this.renderOptions.prefetchStrategy !== null && qrls.length) {
-      // skip prefetch implementation if prefetchStrategy === null
-      const prefetchResources = getPrefetchResources(
-        qrls,
-        this.renderOptions,
-        this.resolvedManifest
-      );
-      if (prefetchResources.length > 0) {
-        applyPrefetchImplementation2(this, this.renderOptions.prefetchStrategy, prefetchResources);
-        this.prefetchResources = prefetchResources;
+  emitPatchDataIfNeeded(): void {
+    const patches: (string | number | boolean | null)[] = [];
+    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+      for (const backpatchEntry of backpatchEntries) {
+        patches.push(elementIndex, backpatchEntry.attrName, backpatchEntry.value);
       }
     }
+
+    this.backpatchMap.clear();
+
+    if (patches.length > 0) {
+      this.isBackpatchExecutorEmitted = true;
+      const scriptAttrs = ['type', ELEMENT_BACKPATCH_DATA];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write(JSON.stringify(patches));
+      this.closeElement();
+    }
+  }
+
+  private emitExecutorIfNeeded(): void {
+    if (!this.isBackpatchExecutorEmitted) {
+      return;
+    }
+
+    const scriptAttrs = ['type', 'text/javascript'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+    }
+    this.openElement('script', scriptAttrs);
+
+    const backpatchScript = getQwikBackpatchExecutorScript({ debug: isDev });
+    this.write(backpatchScript);
+
+    this.closeElement();
+  }
+
+  emitPreloaderPre() {
+    preloaderPre(this, this.renderOptions.preloader, this.renderOptions.serverData?.nonce);
   }
 
   isStatic(): boolean {
     return this.serializationCtx.$eventQrls$.size === 0;
-  }
-
-  private getQwikLoaderPositionMode() {
-    return this.renderOptions.qwikLoader?.position ?? 'bottom';
   }
 
   private getQwikLoaderIncludeMode() {
@@ -874,70 +873,64 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitQwikLoaderAtTopIfNeeded() {
-    const positionMode = this.getQwikLoaderPositionMode();
-    if (positionMode === 'top') {
-      const includeMode = this.getQwikLoaderIncludeMode();
-      const includeLoader = includeMode !== 'never';
-      if (includeLoader) {
-        this.emitQwikLoader();
-
-        // Assume there will be at least click handlers
-        this.emitQwikEvents(['"click"'], {
-          includeLoader: true,
-          includeNonce: false,
-        });
+    const includeMode = this.getQwikLoaderIncludeMode();
+    const includeLoader = includeMode !== 'never';
+    if (includeLoader) {
+      let qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
+      if (qwikLoaderBundle) {
+        // always emit the preload+import. It will probably be used at some point on the site
+        qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
+        const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+        const nonce = this.renderOptions.serverData?.nonce;
+        if (nonce) {
+          linkAttrs.push('nonce', nonce);
+        }
+        this.openElement('link', linkAttrs);
+        this.closeElement();
+        const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
+        if (nonce) {
+          scriptAttrs.push('nonce', nonce);
+        }
+        this.openElement('script', scriptAttrs);
+        this.closeElement();
       }
     }
   }
 
   private emitQwikLoaderAtBottomIfNeeded() {
-    const positionMode = this.getQwikLoaderPositionMode();
-    let includeLoader = true;
-
-    if (positionMode === 'bottom') {
+    const qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
+    if (!qwikLoaderBundle) {
+      /** We didn't emit the preload+import, so we need to emit the script in the html as a fallback */
       const needLoader = !this.isStatic();
       const includeMode = this.getQwikLoaderIncludeMode();
-      includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
+      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
       if (includeLoader) {
-        this.emitQwikLoader();
+        const qwikLoaderScript = getQwikLoaderScript({
+          debug: this.renderOptions.debug,
+        });
+        // async allows executing while the DOM is being handled
+        const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
+        const nonce = this.renderOptions.serverData?.nonce;
+        if (nonce) {
+          scriptAttrs.push('nonce', nonce);
+        }
+        this.openElement('script', scriptAttrs);
+        this.write(qwikLoaderScript);
+        this.closeElement();
       }
     }
 
-    // always emit qwik events regardless of position
-    this.emitQwikEvents(
-      Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)),
-      {
-        includeLoader,
-        includeNonce: true,
-      }
-    );
+    // emit the used events so the loader can subscribe to them
+    this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
   }
 
-  private emitQwikLoader() {
-    const qwikLoaderScript = getQwikLoaderScript({
-      debug: this.renderOptions.debug,
-    });
-    const scriptAttrs = ['id', 'qwikloader'];
-    if (this.renderOptions.serverData?.nonce) {
-      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-    }
-    this.openElement('script', scriptAttrs);
-    this.write(qwikLoaderScript);
-    this.closeElement();
-  }
-
-  private emitQwikEvents(
-    eventNames: string[],
-    opts: { includeNonce: boolean; includeLoader: boolean }
-  ) {
+  private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs: SsrAttrs = [];
-      if (this.renderOptions.serverData?.nonce && opts.includeNonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-      }
+      const scriptAttrs = this.renderOptions.serverData?.nonce
+        ? ['nonce', this.renderOptions.serverData.nonce]
+        : null;
       this.openElement('script', scriptAttrs);
-      this.write(opts.includeLoader ? `window.qwikevents` : `(window.qwikevents||=[])`);
-      this.write('.push(');
+      this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();
@@ -949,7 +942,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {
-        this.openElement(QTemplate, ['style', 'display:none'], null);
+        this.openElement(QTemplate, ['hidden', true, 'aria-hidden', 'true'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
         let ssrComponentFrame: ISsrComponentFrame | null = null;
@@ -987,7 +980,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
                 ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
                 : [QSlotParent, ssrComponentNode!.id]
             );
-            const lastNode = this.getLastNode();
+            const lastNode = this.getOrCreateLastNode();
             if (lastNode.vnodeData) {
               lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
             }
@@ -1093,6 +1086,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       elementName,
       depthFirstElementIdx,
       vNodeData: [VNodeDataFlag.NONE],
+      currentFile: isDev ? currentFile || null : null,
     };
     this.currentElementFrame = frame;
     this.vNodeDatas.push(frame.vNodeData);
@@ -1146,9 +1140,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (key === 'ref') {
-          const lastNode = this.getLastNode();
+          const lastNode = this.getOrCreateLastNode();
           if (isSignal(value)) {
-            value.value = new DomRef(lastNode);
+            (value as SignalImpl<unknown>).$untrackedValue$ = new DomRef(lastNode);
             continue;
           } else if (typeof value === 'function') {
             value(new DomRef(lastNode));
@@ -1161,18 +1155,21 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
 
         if (isSignal(value)) {
-          const lastNode = this.getLastNode();
-          const signalData = new EffectData({
+          const lastNode = this.getOrCreateLastNode();
+          const signalData = new SubscriptionData({
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });
+
           value = this.trackSignalValue(value, lastNode, key, signalData);
         }
 
         if (key === dangerouslySetInnerHTML) {
-          innerHTML = String(value);
-          key = QContainerAttr;
-          value = QContainerValue.HTML;
+          if (value) {
+            innerHTML = String(value);
+            key = QContainerAttr;
+            value = QContainerValue.HTML;
+          }
           // we can skip this attribute for a style node
           // because we skip materializing the style node
           if (tag === 'style') {

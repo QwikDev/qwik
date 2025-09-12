@@ -18,10 +18,11 @@ export const Greeter = component$(() => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q"), "Greeter_component_n7HuG2hhU0Q"));
+const i_n7HuG2hhU0Q = ()=>import("./test.tsx_Greeter_component_n7HuG2hhU0Q");
+export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_n7HuG2hhU0Q, "Greeter_component_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAIA,OAAO,MAAM,wBAAU,yHAEpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,wBAAU,gFAEpB\"}")
 ============================= test.tsx_Greeter_component_n7HuG2hhU0Q.js (ENTRY POINT)==
 
 import json from "./foo.json" with {

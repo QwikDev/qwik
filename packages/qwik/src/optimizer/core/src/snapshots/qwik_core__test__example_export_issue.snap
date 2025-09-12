@@ -31,15 +31,17 @@ export default App;
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
-export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Root_component_royhjYaCbYE"), "Root_component_royhjYaCbYE"));
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+const i_royhjYaCbYE = ()=>import("./test.tsx_Root_component_royhjYaCbYE");
+const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+export const Root = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_royhjYaCbYE, "Root_component_royhjYaCbYE"));
 const Other = 12;
 export { Other as App };
 export default App;
 export { App as _auto_App };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,mHAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAGA,MAAM,oBAAM;AAOZ,OAAO,MAAM,qBAAO,6EAIjB;AAEH,MAAM,QAAQ;AACd,SAAS,SAAS,GAAG,GAAG;AAExB,eAAe,IAAI\"}")
 ============================= test.tsx_Root_component_royhjYaCbYE.js (ENTRY POINT)==
 
 import { _auto_App as App } from "./test";
@@ -67,6 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     148,
     192
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

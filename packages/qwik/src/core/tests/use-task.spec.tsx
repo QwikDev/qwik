@@ -2,7 +2,9 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Signal,
+  Slot,
   component$,
+  isServer,
   useSignal,
   useStore,
   useTask$,
@@ -12,7 +14,7 @@ import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/c
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
-import { WrappedSignal } from '../signal/signal';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -55,7 +57,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'render', 'task', 'resolved']);
+    expect(log).toEqual(['Counter', 'task', 'resolved', 'Counter', 'render']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -131,7 +133,16 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'render', '1:task', '1:resolved', '2:task', '2:resolved']);
+    expect(log).toEqual([
+      'Counter',
+      '1:task',
+      '1:resolved',
+      'Counter',
+      '2:task',
+      '2:resolved',
+      'Counter', //
+      'render',
+    ]);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -180,7 +191,7 @@ describe.each([
     it('should rerun on track derived signal', async () => {
       const Counter = component$(() => {
         const countRaw = useStore({ count: 10 });
-        const count = new WrappedSignal(
+        const count = new WrappedSignalImpl(
           null,
           (o: any, prop: string) => o[prop],
           [countRaw, 'count'],
@@ -217,6 +228,33 @@ describe.each([
         useTask$(({ track }) => {
           const count = track(store, 'count');
           store.double = 2 * count;
+        });
+        return <button onClick$={() => store.count++}>{store.double}</button>;
+      });
+
+      const { vNode, document } = await render(<Counter />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>2</Signal>
+          </button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            <Signal ssr-required>4</Signal>
+          </button>
+        </Component>
+      );
+    });
+    it('should track store', async () => {
+      const Counter = component$(() => {
+        const store = useStore({ count: 1, double: 0 });
+        useTask$(({ track }) => {
+          const storeCounter = track(store);
+          store.double = 2 * storeCounter.count;
         });
         return <button onClick$={() => store.count++}>{store.double}</button>;
       });
@@ -295,6 +333,47 @@ describe.each([
         'Child of "A" (2)', // toggle
       ]);
     });
+
+    it('should not rerun on track if the value is not a signal', async () => {
+      (globalThis as any).counter = 0;
+      const OtpBase = component$((props: any) => {
+        useTask$(({ track }) => {
+          track(() => props.disabled);
+          (globalThis as any).counter++;
+        });
+
+        return (
+          <div>
+            <Slot />
+          </div>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const isDisabled = useSignal(false);
+
+        const OtpRoot = (props: any) => {
+          return <OtpBase {...props}>{props.children}</OtpBase>;
+        };
+        return (
+          <>
+            <OtpRoot disabled={isDisabled.value} />
+
+            <button type="button" onClick$={() => (isDisabled.value = !isDisabled.value)}>
+              Disable OTP
+            </button>
+          </>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'button', 'click');
+      expect((globalThis as any).counter).toBe(5);
+      (globalThis as any).counter = undefined;
+    });
   });
   describe('queue', () => {
     it('should execute dependant tasks', async () => {
@@ -320,7 +399,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['Counter', 'quadruple', 'double', 'quadruple']);
+      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -359,7 +438,7 @@ describe.each([
       const { vNode, document } = await render(<Counter />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['Counter: 0', 'task: 0'] : ['Counter: 0', 'task: 0', 'cleanup: 0']
+        isCSR ? ['task: 0', 'Counter: 0'] : ['task: 0', 'Counter: 0', 'cleanup: 0']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -416,7 +495,7 @@ describe.each([
       const { vNode, document } = await render(<Parent />, { debug });
       // console.log('log', log);
       expect((globalThis as any).log).toEqual(
-        isCSR ? ['Child', 'task:'] : ['Child', 'task:', 'cleanup:']
+        isCSR ? ['task:', 'Child'] : ['task:', 'Child', 'cleanup:']
       );
       expect(vNode).toMatchVDOM(
         <Component>
@@ -439,7 +518,7 @@ describe.each([
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
 
-      expect((globalThis as any).log).toEqual(['Child', 'task:']);
+      expect((globalThis as any).log).toEqual(['task:', 'Child']);
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -508,6 +587,7 @@ describe.each([
         // async microtasks run, task 1 queues a delay
         'inside.1',
         '2b',
+        'render',
         // task 3 runs sync and attaches to the promise
         '3a',
         // microtasks run
@@ -774,13 +854,85 @@ describe.each([
       ]);
 
       useTask$(({ track }) => {
-        track(() => sort.value);
-        table.value = table.value.sort((a, b) => a[sort.value] - b[sort.value]).slice();
+        const key = track(sort);
+        table.value = table.value.sort((a, b) => a[key] - b[key]).slice();
       });
 
-      return table.value.map((row) => row.size).join(' ');
+      return (
+        <>
+          <span>{table.value.map((row) => row.size).join(' ')}</span>
+          <button onClick$={() => (sort.value = sort.value === 'id' ? 'size' : 'id')}>Sort</button>
+        </>
+      );
     });
-    const { vNode } = await render(<Cmp />, { debug });
-    expect(vNode).toMatchVDOM(<Component>1 2 3 4 7 8 9</Component>);
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>1 2 3 4 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>4 3 2 1 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <span>1 2 3 4 7 8 9</span>
+          <button>Sort</button>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('catch the ', async () => {
+    const error = new Error('HANDLE ME');
+    const Cmp = component$(() => {
+      useTask$(() => {
+        if (isServer) {
+          document.body;
+        }
+      });
+
+      return <div>1</div>;
+    });
+    try {
+      await render(
+        <ErrorProvider>
+          <Cmp />
+        </ErrorProvider>,
+        { debug }
+      );
+    } catch (e: unknown) {
+      expect((e as Error).message).toBeTruthy;
+    }
+    const Cmp1 = component$(() => {
+      useTask$(() => {
+        throw error;
+      });
+
+      return <div>1</div>;
+    });
+    try {
+      await render(
+        <ErrorProvider>
+          <Cmp1 />
+        </ErrorProvider>,
+        { debug }
+      );
+    } catch (error) {
+      expect((error as Error).message).toBe('HANDLE ME');
+    }
   });
 });

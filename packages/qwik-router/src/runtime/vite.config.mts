@@ -13,7 +13,12 @@ export default defineConfig(() => {
       },
       minify: false,
       rollupOptions: {
-        external: ['zod', '@qwik-router-sw-register', '@qwik-router-config'],
+        external: [
+          'zod',
+          '@qwik-router-sw-register',
+          '@qwik-router-config',
+          '@qwik.dev/core/preloader',
+        ],
       },
     },
     plugins: [qwikVite()],

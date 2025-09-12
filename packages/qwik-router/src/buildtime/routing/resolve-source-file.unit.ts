@@ -40,7 +40,6 @@ test('resolveLayout', () => {
       routesDir: '',
       serverPluginsDir: '',
       basePathname: '/',
-      trailingSlash: false,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,
@@ -49,6 +48,7 @@ test('resolveLayout', () => {
       mdx: {},
       platform: {},
       rewriteRoutes: [],
+      defaultLoadersSerializationStrategy: 'never',
     };
     const sourceFile: RouteSourceFile = {
       ...getSourceFile(c.fileName)!,

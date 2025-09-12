@@ -8,36 +8,19 @@ All starters are based on `starters/apps/base`, including the `package.json` and
 
 Here are steps to try out the CLI in a local environment.
 
-1. Build CLI:
+1. Build the CLI:
 
-   ```
-   # pnpm build.cli
-   ```
+```zsh
+pnpm build.cli
+```
 
-1. Run CLI:
+2. Run the CLI:
 
-   ```
-   # node ./packages/create-qwik/dist/create-qwik.cjs
-   💫 Let's create a Qwik project 💫
+```zsh
+pnpm cli.qwik
+```
 
-   ✔ Project name … todo-express
-   ✔ Select a starter › Todo
-   ✔ Select a server › Express
-
-   ⭐️ Success! Project saved in todo-express directory
-
-   📟 Next steps:
-   cd todo-express
-   npm install
-   npm start
-   ```
-
-1. Change to generated location
-   ```
-   cd todo-express
-   npm install
-   npm start
-   ```
+> If you want to test the CLI on consumer repository, you can `pnpm link.dist` on the qwik monorepo, then `pnpm link --global @qwik.dev/core` on the consumer project, and finally run the CLI from there.
 
 ## Publishing `create-qwik` CLI Package
 

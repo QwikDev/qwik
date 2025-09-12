@@ -19,5 +19,12 @@
   },
   "platform": {
     "apiRuntime": "node:18"
+  },
+  "responseOverrides": {
+    "build/**/*.js": {
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
   }
 }

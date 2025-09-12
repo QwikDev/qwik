@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
   $,
   component$,
@@ -28,7 +27,10 @@ export const Repl = component$((props: ReplProps) => {
       clientId: Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
         .toString(36)
         .toLowerCase(),
-      html: '',
+      htmlResult: {
+        rawHtml: '',
+        prettyHtml: '',
+      },
       transformedModules: [],
       clientBundles: [],
       ssrModules: [],
@@ -106,6 +108,7 @@ export const Repl = component$((props: ReplProps) => {
     track(() => input.files);
     track(() => input.version);
     track(() => input.debug);
+    track(() => input.preloader);
     track(() => store.serverWindow);
 
     sendUserUpdateToReplServer(input, store);
@@ -182,6 +185,8 @@ const getDependencies = (input: ReplAppInput) => {
       `${prefix}server.cjs`,
       `/bindings/qwik.wasm.cjs`,
       `/bindings/qwik_wasm_bg.wasm`,
+      `${prefix}qwikloader.js`,
+      `${prefix}preloader.mjs`,
     ]) {
       bundles[p] = getNpmCdnUrl(bundled, QWIK_PKG_NAME, input.version, p);
     }
@@ -208,6 +213,7 @@ export const sendUserUpdateToReplServer = (input: ReplAppInput, store: ReplStore
         version: input.version,
         serverUrl: store.serverUrl,
         deps: getDependencies(input),
+        preloader: !!input.preloader,
       },
     };
 

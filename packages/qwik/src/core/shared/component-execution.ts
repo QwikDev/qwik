@@ -1,13 +1,20 @@
 import { isDev } from '@qwik.dev/core/build';
+import { vnode_isVNode } from '../client/vnode';
+import { Slot } from '../shared/jsx/slot.public';
+import { isSignal } from '../reactive-primitives/utils';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
+import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { isQrl, type QRLInternal } from './qrl/qrl-class';
 import { Fragment, JSXNodeImpl, _jsxSorted, isJSXNode, type Props } from './jsx/jsx-runtime';
 import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
-import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
-import { type EventQRL, type UseOnMap } from '../use/use-on';
+import type { QRLInternal } from './qrl/qrl-class';
+import { isQrl } from './qrl/qrl-utils';
+import type { Container, HostElement } from './types';
 import { EMPTY_OBJ } from './utils/flyweight';
+import { logWarn } from './utils/log';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ_IDX,
@@ -17,13 +24,10 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import type { ValueOrPromise } from './utils/types';
-import type { Container, HostElement } from './types';
-import { logWarn } from './utils/log';
-import { EffectProperty, isSignal } from '../signal/signal';
-import { vnode_isVNode } from '../client/vnode';
-import { clearVNodeEffectDependencies } from '../signal/signal-subscriber';
-import { Slot } from '../shared/jsx/slot.public';
+import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import { EffectProperty } from '../reactive-primitives/types';
+import { EventNameJSXScope } from './utils/event-names';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -49,18 +53,25 @@ import { Slot } from '../shared/jsx/slot.public';
 export const executeComponent = (
   container: Container,
   renderHost: HostElement,
-  subscriptionHost: HostElement,
+  subscriptionHost: HostElement | null,
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
   props: Props | null
 ): ValueOrPromise<JSXOutput> => {
-  const iCtx = newInvokeContext(container.$locale$, subscriptionHost, undefined, RenderEvent);
-  iCtx.$effectSubscriber$ = [subscriptionHost, EffectProperty.COMPONENT];
-  iCtx.$container$ = container;
+  const iCtx = newInvokeContext(
+    container.$locale$,
+    subscriptionHost || undefined,
+    undefined,
+    RenderEvent
+  );
+  if (subscriptionHost) {
+    iCtx.$effectSubscriber$ = getSubscriber(subscriptionHost, EffectProperty.COMPONENT);
+    iCtx.$container$ = container;
+  }
   let componentFn: (props: unknown) => ValueOrPromise<JSXOutput>;
   container.ensureProjectionResolved(renderHost);
   let isInlineComponent = false;
   if (componentQRL === null) {
-    componentQRL = componentQRL || container.getHostProp(renderHost, OnRenderProp)!;
+    componentQRL = container.getHostProp(renderHost, OnRenderProp)!;
     assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
@@ -88,13 +99,10 @@ export const executeComponent = (
         if (!isInlineComponent) {
           container.setHostProp(renderHost, ELEMENT_SEQ_IDX, null);
           container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
-          if (container.getHostProp(renderHost, ELEMENT_PROPS) !== props) {
-            container.setHostProp(renderHost, ELEMENT_PROPS, props);
-          }
         }
 
         if (vnode_isVNode(renderHost)) {
-          clearVNodeEffectDependencies(container, renderHost);
+          clearAllEffects(container, renderHost);
         }
 
         return componentFn(props);
@@ -109,9 +117,12 @@ export const executeComponent = (
       (err) => {
         if (isPromise(err) && retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
           return err.then(() =>
-            executeComponentWithPromiseExceptionRetry(retryCount++)
+            executeComponentWithPromiseExceptionRetry(++retryCount)
           ) as Promise<JSXOutput>;
         } else {
+          if (retryCount >= MAX_RETRY_ON_PROMISE_COUNT) {
+            throw new Error(`Max retry count of component execution reached`);
+          }
           throw err;
         }
       }
@@ -120,63 +131,67 @@ export const executeComponent = (
 };
 
 /**
- * Stores the JSX output of the last execution of the component.
+ * Adds `useOn` events to the JSX output.
  *
- * Component can execute multiple times because:
- *
- * - Component can have multiple tasks
- * - Tasks can track signals
- * - Task A can change signal which causes Task B to rerun.
- *
- * So when executing a component we only care about its last JSX Output.
+ * @param jsx The JSX output to modify.
+ * @param useOnEvents The `useOn` events to add.
+ * @returns The modified JSX output.
  */
-
 function addUseOnEvents(
   jsx: JSXOutput,
   useOnEvents: UseOnMap
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
-  const jsxElement = findFirstStringJSX(jsx);
+  const jsxElement = findFirstElementNode(jsx);
   let jsxResult = jsx;
+  const qVisibleEvent = 'onQvisible$';
   return maybeThen(jsxElement, (jsxElement) => {
-    let isInvisibleComponent = false;
-    if (!jsxElement) {
-      /**
-       * We did not find any jsx node with a string tag. This means that we should append:
-       *
-       * ```html
-       * <script type="placeholder" hidden on-document:qinit="..."></script>
-       * ```
-       *
-       * This is needed because use on events should have a node to attach them to.
-       */
-      isInvisibleComponent = true;
-    }
+    // headless components are components that don't render a real DOM element
+    const isHeadless = !jsxElement;
+    // placeholder element is a <script> element that is used to add events to the document or window
+    let placeholderElement: JSXNodeInternal<string> | null = null;
     for (const key in useOnEvents) {
       if (Object.prototype.hasOwnProperty.call(useOnEvents, key)) {
-        if (isInvisibleComponent) {
-          if (key === 'onQvisible$') {
-            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(jsxResult);
-            jsxResult = jsx;
-            if (jsxElement) {
-              addUseOnEvent(jsxElement, 'document:onQinit$', useOnEvents[key]);
+        let targetElement = jsxElement;
+        let eventKey = key;
+
+        if (isHeadless) {
+          // if the component is headless, we need to add the event to the placeholder element
+          if (
+            key === qVisibleEvent ||
+            key.startsWith(EventNameJSXScope.document) ||
+            key.startsWith(EventNameJSXScope.window)
+          ) {
+            if (!placeholderElement) {
+              const [createdElement, newJsx] = injectPlaceholderElement(jsxResult);
+              jsxResult = newJsx;
+              placeholderElement = createdElement;
             }
-          } else if (key.startsWith('document:') || key.startsWith('window:')) {
-            const [jsxElement, jsx] = addScriptNodeForInvisibleComponents(jsxResult);
-            jsxResult = jsx;
-            if (jsxElement) {
-              addUseOnEvent(jsxElement, key, useOnEvents[key]);
+            targetElement = placeholderElement;
+          } else {
+            if (isDev) {
+              logWarn(
+                'You are trying to add an event "' +
+                  key +
+                  '" using `useOn` hook, ' +
+                  'but a node to which you can add an event is not found. ' +
+                  'Please make sure that the component has a valid element node. '
+              );
             }
-          } else if (isDev) {
+            continue;
+          }
+        }
+        if (targetElement) {
+          if (targetElement.type === 'script' && key === qVisibleEvent) {
+            eventKey = 'document:onQInit$';
             logWarn(
               'You are trying to add an event "' +
                 key +
-                '" using `useOn` hook, ' +
+                '" using `useVisibleTask$` hook, ' +
                 'but a node to which you can add an event is not found. ' +
-                'Please make sure that the component has a valid element node. '
+                'Using document:onQInit$ instead.'
             );
           }
-        } else if (jsxElement) {
-          addUseOnEvent(jsxElement, key, useOnEvents[key]);
+          addUseOnEvent(targetElement, eventKey, useOnEvents[key]);
         }
       }
     }
@@ -184,6 +199,13 @@ function addUseOnEvents(
   });
 }
 
+/**
+ * Adds an event to the JSX element.
+ *
+ * @param jsxElement The JSX element to add the event to.
+ * @param key The event name.
+ * @param value The event value.
+ */
 function addUseOnEvent(
   jsxElement: JSXNodeInternal,
   key: string,
@@ -203,7 +225,13 @@ function addUseOnEvent(
   props[key] = propValue;
 }
 
-function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<string> | null> {
+/**
+ * Finds the first element node in the JSX output.
+ *
+ * @param jsx The JSX output to search.
+ * @returns The first element node or null if no element node is found.
+ */
+function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<string> | null> {
   const queue: any[] = [jsx];
   while (queue.length) {
     const jsx = queue.shift();
@@ -212,50 +240,79 @@ function findFirstStringJSX(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<stri
         return jsx as JSXNodeInternal<string>;
       }
       queue.push(jsx.children);
-    } else if (Array.isArray(jsx)) {
+    } else if (isArray(jsx)) {
       queue.push(...jsx);
     } else if (isPromise(jsx)) {
       return maybeThen<JSXOutput, JSXNodeInternal<string> | null>(jsx, (jsx) =>
-        findFirstStringJSX(jsx)
+        findFirstElementNode(jsx)
       );
     } else if (isSignal(jsx)) {
-      return findFirstStringJSX(untrack(() => jsx.value as JSXOutput));
+      return findFirstElementNode(untrack(() => jsx.value as JSXOutput));
     }
   }
   return null;
 }
 
-function addScriptNodeForInvisibleComponents(
+/**
+ * Injects a placeholder <script> element into the JSX output.
+ *
+ * This is necessary for headless components (components that don't render a real DOM element) to
+ * have an anchor point for `useOn` event listeners that target the document or window.
+ *
+ * @param jsx The JSX output to modify.
+ * @returns A tuple containing the created placeholder element and the modified JSX output.
+ */
+function injectPlaceholderElement(
   jsx: JSXOutput
 ): [JSXNodeInternal<string> | null, JSXOutput | null] {
+  // For regular JSX nodes, we can append the placeholder to its children.
   if (isJSXNode(jsx)) {
-    const jsxElement = new JSXNodeImpl(
-      'script',
-      {},
-      {
-        type: 'placeholder',
-        hidden: '',
-      },
-      null,
-      3
-    );
+    const placeholder = createPlaceholderScriptNode();
+    // For slots, we can't add children, so we wrap them in a fragment.
     if (jsx.type === Slot) {
-      return [jsxElement, _jsxSorted(Fragment, null, null, [jsx, jsxElement], 0, null)];
+      return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
     }
 
     if (jsx.children == null) {
-      jsx.children = jsxElement;
-    } else if (Array.isArray(jsx.children)) {
-      jsx.children.push(jsxElement);
+      jsx.children = placeholder;
+    } else if (isArray(jsx.children)) {
+      jsx.children.push(placeholder);
     } else {
-      jsx.children = [jsx.children, jsxElement];
+      jsx.children = [jsx.children, placeholder];
     }
-    return [jsxElement, jsx];
-  } else if (Array.isArray(jsx) && jsx.length) {
-    // get first element
-    const [jsxElement, _] = addScriptNodeForInvisibleComponents(jsx[0]);
-    return [jsxElement, jsx];
+    return [placeholder, jsx];
   }
 
-  return [null, null];
+  // For primitives, we can't add children, so we wrap them in a fragment.
+  if (isPrimitive(jsx)) {
+    const placeholder = createPlaceholderScriptNode();
+    return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
+  }
+
+  // For an array of nodes, we inject the placeholder into the first element.
+  if (isArray(jsx) && jsx.length > 0) {
+    const [createdElement, _] = injectPlaceholderElement(jsx[0]);
+    return [createdElement, jsx];
+  }
+
+  // For anything else we do nothing.
+  return [null, jsx];
+}
+
+/**
+ * Creates a <script> element with a placeholder type.
+ *
+ * @returns A <script> element with a placeholder type.
+ */
+function createPlaceholderScriptNode(): JSXNodeInternal<string> {
+  return new JSXNodeImpl(
+    'script',
+    {},
+    {
+      type: 'placeholder',
+      hidden: '',
+    },
+    null,
+    3
+  );
 }

@@ -8,7 +8,8 @@ contributors:
   - uceumice
   - Benny-Nottonson
   - mrhoodz
-updated_at: '2023-10-03T18:53:59Z'
+  - extrordinaire
+updated_at: '2025-06-21T22:03:36.397Z'
 created_at: '2023-04-28T22:00:03Z'
 ---
 
@@ -21,25 +22,29 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 To get started, install the `@modular-forms/qwik` package:
 
+>⚠️ Warning:  
+>Make sure to install @modular-forms/qwik as a devDependency, since it only runs at build/SSR time.
+>Putting it in your regular dependencies will trigger Vite plugin errors.
+
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm install @modular-forms/qwik
+pnpm add -D @modular-forms/qwik
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npm install @modular-forms/qwik
+npm install -D @modular-forms/qwik
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn add @modular-forms/qwik
+yarn add -D @modular-forms/qwik
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bun install @modular-forms/qwik
+bun install -D @modular-forms/qwik
 ```
 </span>
 </PackageManagerTabs>

@@ -1,10 +1,13 @@
 import {
   component$,
+  createContextId,
   event$,
   isServer,
   jsx,
   SkipRender,
   Slot,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -12,6 +15,7 @@ import {
   type JSXOutput,
   type PropsOf,
   type QRL,
+  type Signal,
 } from "@qwik.dev/core";
 import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
@@ -103,6 +107,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue4455 />
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
+      <RerenderOnce />
     </>
   );
 });
@@ -960,3 +965,33 @@ export const DynamicButton = component$<any>(
     );
   },
 );
+
+const globalObj = ["foo", "bar"];
+const LogsProvider = createContextId<any[]>("logs");
+
+const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
+  ({ obj, foo }) => {
+    const logs = useContext(LogsProvider);
+    logs.push("render Cmp", obj, foo.value);
+    return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
+  },
+);
+
+export const RerenderOnce = component$(() => {
+  const foo = useSignal(0);
+  const logs: any[] = [];
+  useContextProvider(LogsProvider, logs);
+  return (
+    <div>
+      <button
+        id="rerender-once-button"
+        onClick$={() => {
+          foo.value === 0 ? (foo.value = 1) : (foo.value = 0);
+        }}
+      >
+        click
+      </button>
+      <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});

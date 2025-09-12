@@ -15,7 +15,7 @@ import styles from './code-block.css?inline';
 import { CopyCode } from '../copy-code/copy-code-block';
 interface CodeBlockProps {
   path?: string;
-  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx';
+  language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx' | 'clike';
   code: string;
   pathInView$?: QRL<(name: string) => void>;
   observerRootId?: string;

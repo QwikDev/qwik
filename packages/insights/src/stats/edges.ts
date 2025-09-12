@@ -110,11 +110,15 @@ export function computeSymbolGraph(rows: SymbolPairs[], details?: SymbolDetail[]
   function fixNames(row: SymbolPairs) {
     row.to = row.to.split('_').pop()!;
     row.from = row.from == null ? null : row.from.split('_').pop()!;
-    if (row.from === 'hW') row.from = null;
+    if (row.from === 'hW') {
+      row.from = null;
+    }
   }
 
   function getSymbol(name: string | null): Symbol {
-    if (name === null) return rootSymbol;
+    if (name === null) {
+      return rootSymbol;
+    }
     let symbol = symbolMap.get(name);
     if (!symbol) {
       const detail = detailMap.get(name);
@@ -160,7 +164,6 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
       // TODO(misko): This algorithm for computing weights is not perfect because
       // it only takes the most frequent path into account.
       // A better approach would be to sum weights along all paths.
-      // eslint-disable-next-line for-direction
       for (let i = edgePath.length - 1; 0 <= i; i--) {
         const edge = edgePath[i];
         const symbolIdx = symbolVectorIdxMap.get(edge.from);
@@ -171,7 +174,9 @@ export function computeSymbolVectors(symbols: Symbol[]): SymbolVectors {
       }
     }
 
-    if (alreadyVisited.has(symbol)) return;
+    if (alreadyVisited.has(symbol)) {
+      return;
+    }
     alreadyVisited.add(symbol);
 
     symbol.children.forEach((edge) => {

@@ -25,10 +25,11 @@ export const App = component$((props: Stuff) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0.js"), "App_component_ckEPmXZlub0"));
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0.js");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,oHAUhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAUhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
@@ -66,6 +67,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     88,
     283
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

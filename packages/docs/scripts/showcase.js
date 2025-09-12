@@ -23,7 +23,7 @@ async function captureMultipleScreenshots() {
     try {
       const data = fs.readFileSync(OUTPUT_JSON, 'utf8');
       existingJson = JSON.parse(data);
-    } catch (e) {
+    } catch {
       // ignore
     }
 
@@ -91,6 +91,14 @@ async function captureMultipleScreenshots() {
         const lcpScore =
           pagespeedOutput?.lighthouseResult?.audits?.['largest-contentful-paint']?.score;
 
+        const loadExpMetrics = pagespeedOutput.loadingExperience?.metrics;
+        // ms score of the 75th percentile of the page users
+        const inpMs = loadExpMetrics?.INTERACTION_TO_NEXT_PAINT?.percentile;
+        // no unit, less than 0.1 is good
+        const clsScore = loadExpMetrics?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile / 100;
+        // not core but interesting
+        const ttfbMs = loadExpMetrics?.EXPERIMENTAL_TIME_TO_FIRST_BYTE?.percentile;
+
         const ttiDisplay = pagespeedOutput?.lighthouseResult?.audits?.interactive?.displayValue;
         const ttiScore = pagespeedOutput?.lighthouseResult?.audits?.interactive?.score;
 
@@ -99,6 +107,9 @@ async function captureMultipleScreenshots() {
         const score = pagespeedOutput?.lighthouseResult?.categories?.performance?.score;
         const perf = {
           score,
+          inpMs,
+          clsScore,
+          ttfbMs,
           fcpDisplay,
           fcpScore,
           lcpDisplay,

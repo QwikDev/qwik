@@ -1,23 +1,28 @@
-import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl } from '../shared/qrl/qrl-class';
-import { type QRL } from '../shared/qrl/qrl.public';
 import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
+import { isServerPlatform } from '../shared/platform/platform';
+import { assertQrl } from '../shared/qrl/qrl-utils';
+import { type QRL } from '../shared/qrl/qrl.public';
 import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
 import { Task, TaskFlags, cleanupTask, type DescriptorBase, type Tracker } from './use-task';
 
 import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
-import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { delay, isPromise, safeCall } from '../shared/utils/promises';
-import { isFunction, isObject } from '../shared/utils/types';
-import { StoreFlags, createStore, getStoreTarget, unwrapStore } from '../signal/store';
-import { useSequentialScope } from './use-sequential-scope';
-import { EffectProperty, isSignal } from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
-import { clearSubscriberEffectDependencies } from '../signal/signal-subscriber';
-import { ResourceEvent } from '../shared/utils/markers';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
+import {
+  createStore,
+  forceStoreEffects,
+  getStoreTarget,
+  unwrapStore,
+} from '../reactive-primitives/impl/store';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { StoreFlags } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
 import { assertDefined } from '../shared/error/assert';
-import { noSerialize } from '../shared/utils/serialize-utils';
-import { ChoreType } from '../shared/scheduler';
+import type { JSXOutput } from '../shared/jsx/types/jsx-node';
+import { ResourceEvent } from '../shared/utils/markers';
+import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
+import { isObject } from '../shared/utils/types';
+import { useSequentialScope } from './use-sequential-scope';
+import { cleanupFn, trackFn } from './utils/tracker';
 
 const DEBUG: boolean = false;
 
@@ -105,8 +110,8 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  container.$scheduler$(ChoreType.TASK, task);
   set(resource);
+  runResource(task, container, el);
 
   return resource;
 };
@@ -184,11 +189,11 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
 
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
-  if (isResourceReturn(resource) && resource.value) {
+  if (isResourceReturn(resource)) {
+    // create a subscription for the resource._state changes
+    const state = resource._state;
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      // create a subscription for the resource._state changes
-      const state = resource._state;
       DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
 
       if (state === 'pending' && props.onPending) {
@@ -203,7 +208,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
         }
       }
     }
-    return resource.value.then(
+    return untrack(() => resource.value).then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
     );
@@ -213,15 +218,11 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       useBindInvokeContext(props.onRejected)
     );
   } else if (isSignal(resource)) {
-    return Promise.resolve(resource.value).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    const value = retryOnPromise(() => resource.value);
+    const promise = isPromise(value) ? value : Promise.resolve(value);
+    return promise.then(useBindInvokeContext(props.onResolved));
   } else {
-    return Promise.resolve(resource as T).then(
-      useBindInvokeContext(props.onResolved),
-      useBindInvokeContext(props.onRejected)
-    );
+    return Promise.resolve(resource as T).then(useBindInvokeContext(props.onResolved));
   }
 }
 
@@ -229,7 +230,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
   const resource: ResourceReturnInternal<T> = {
     __brand: 'resource',
     value: undefined as never,
-    loading: isServerPlatform() ? false : true,
+    loading: !isServerPlatform(),
     _resolved: undefined as never,
     _error: undefined as never,
     _state: 'pending',
@@ -250,10 +251,6 @@ export const createResourceReturn = <T>(
   return createStore(container, result, StoreFlags.RECURSIVE);
 };
 
-export const getInternalResource = <T>(resource: ResourceReturn<T>): ResourceReturnInternal<T> => {
-  return getStoreTarget(resource) as any;
-};
-
 export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
 };
@@ -272,7 +269,7 @@ export const runResource = <T>(
   const iCtx = newInvokeContext(container.$locale$, host, undefined, ResourceEvent);
   iCtx.$container$ = container;
 
-  const taskFn = task.$qrl$.getFn(iCtx, () => clearSubscriberEffectDependencies(container, task));
+  const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task));
 
   const resource = task.$state$;
   assertDefined(
@@ -281,46 +278,15 @@ export const runResource = <T>(
     task
   );
 
-  const track: Tracker = (obj: (() => unknown) | object | Signal<unknown>, prop?: string) => {
-    const ctx = newInvokeContext();
-    ctx.$effectSubscriber$ = [task, EffectProperty.COMPONENT];
-    ctx.$container$ = container;
-    return invoke(ctx, () => {
-      if (isFunction(obj)) {
-        return obj();
-      }
-      if (prop) {
-        return (obj as Record<string, unknown>)[prop];
-      } else if (isSignal(obj)) {
-        return obj.value;
-      } else {
-        return obj;
-      }
-    });
-  };
-
-  const handleError = (reason: unknown) => container.handleError(reason, host);
-
-  const cleanups: (() => void)[] = [];
-  task.$destroy$ = noSerialize(() => {
-    cleanups.forEach((fn) => {
-      try {
-        fn();
-      } catch (err) {
-        handleError(err);
-      }
-    });
-    done = true;
-  });
+  const track = trackFn(task, container);
+  const [cleanup, cleanups] = cleanupFn(task, (reason: unknown) =>
+    container.handleError(reason, host)
+  );
 
   const resourceTarget = unwrapStore(resource);
   const opts: ResourceCtx<T> = {
     track,
-    cleanup(fn) {
-      if (typeof fn === 'function') {
-        cleanups.push(fn);
-      }
-    },
+    cleanup,
     cache(policy) {
       let milliseconds = 0;
       if (policy === 'immutable') {
@@ -342,17 +308,21 @@ export const runResource = <T>(
       done = true;
       if (resolved) {
         done = true;
-        resource.loading = false;
-        resource._state = 'resolved';
-        resource._resolved = value as T;
-        resource._error = undefined;
+        resourceTarget.loading = false;
+        resourceTarget._state = 'resolved';
+        resourceTarget._resolved = value as T;
+        resourceTarget._error = undefined;
         resolve(value as T);
       } else {
         done = true;
-        resource.loading = false;
-        resource._state = 'rejected';
-        resource._error = value as Error;
+        resourceTarget.loading = false;
+        resourceTarget._state = 'rejected';
+        resourceTarget._error = value as Error;
         reject(value as Error);
+      }
+
+      if (!isServerPlatform()) {
+        forceStoreEffects(resource, '_state');
       }
       return true;
     }
@@ -371,19 +341,19 @@ export const runResource = <T>(
   });
 
   // Execute mutation inside empty invocation
+  // TODO: is it right? why we need to invoke inside context and trigger effects?
   invoke(iCtx, () => {
     // console.log('RESOURCE.pending: ');
     resource._state = 'pending';
     resource.loading = !isServerPlatform();
-    const promise = (resource.value = new Promise((r, re) => {
+    resource.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
-    }));
-    promise.catch(ignoreErrorToPreventNodeFromCrashing);
+    });
   });
 
   const promise: ValueOrPromise<void> = safeCall(
-    () => Promise.resolve(taskFn(opts)),
+    () => taskFn(opts),
     (value) => {
       setState(true, value);
     },
@@ -408,9 +378,4 @@ export const runResource = <T>(
     ]);
   }
   return promise;
-};
-
-const ignoreErrorToPreventNodeFromCrashing = (err: unknown) => {
-  // ignore error to prevent node from crashing
-  // node will crash in promise is rejected and no one is listening to the rejection.
 };

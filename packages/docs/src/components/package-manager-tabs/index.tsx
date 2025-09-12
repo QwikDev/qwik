@@ -1,15 +1,13 @@
 import { Tabs } from '@qwik-ui/headless';
-import { $, Slot, component$, useContext, useSignal, type PropsOf } from '@qwik.dev/core';
-import { GlobalStore } from '~/context';
+import { $, Slot, component$, useSignal, type PropsOf } from '@qwik.dev/core';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
 type PkgManagers = (typeof pkgManagers)[number];
 
 export default component$(() => {
-  const globalStore = useContext(GlobalStore);
   const selectedPkgManagersSig = useSignal<PkgManagers>('pnpm');
 
-  const activeClass = `${globalStore.theme === 'light' ? 'bg-gray-300 text-black' : 'bg-slate-800 text-white'}`;
+  const activeClass = `font-bold bg-(--color-tab-active-bg) text-(--color-tab-active-text)`;
 
   return (
     <Tabs.Root
@@ -21,7 +19,7 @@ export default component$(() => {
       <Tabs.List>
         <Tabs.Tab
           tabId="pnpm"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'pnpm' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'pnpm' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <PnpmIcon />
@@ -30,7 +28,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="npm"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'npm' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'npm' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <NpmIcon />
@@ -39,7 +37,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="yarn"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'yarn' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'yarn' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <YarnIcon />
@@ -48,7 +46,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="bun"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'bun' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'bun' ? activeClass : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <BunIcon />
@@ -98,7 +96,7 @@ const CopyButton = component$(() => {
   return (
     <button
       onClick$={copyToClipboard$}
-      class="px-5 rounded absolute right-0 top-0 text-white h-full group"
+      class="px-5 rounded-sm absolute right-0 top-0 text-white h-full group"
       aria-label={isClickedSig.value ? 'Copied to clipboard' : 'Copy to clipboard'}
       title={isClickedSig.value ? 'Copied!' : 'Copy to clipboard'}
     >

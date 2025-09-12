@@ -1,6 +1,7 @@
 import { qDev, qRuntimeQrl } from '../utils/qdev';
 import type { QRLDev } from './qrl';
-import { SYNC_QRL, createQRL } from './qrl-class';
+import { createQRL } from './qrl-class';
+import { SYNC_QRL } from './qrl-utils';
 
 // We use `unknown` instead of `never` when it's not a function so we allow assigning QRL<function> to QRL<any>
 export type QrlArgs<T> = T extends (...args: infer ARGS) => any ? ARGS : unknown[];

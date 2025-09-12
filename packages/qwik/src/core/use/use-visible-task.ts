@@ -1,8 +1,9 @@
 import type { EventHandler } from '../shared/jsx/types/jsx-qwik-attributes';
 import { isServerPlatform } from '../shared/platform/platform';
-import { assertQrl, createQRL } from '../shared/qrl/qrl-class';
+import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
 import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';
@@ -41,7 +42,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   set(task);
   useRunTask(task, eagerness);
   if (!isServerPlatform()) {
-    qrl.$resolveLazy$(iCtx.$element$);
+    (qrl as QRLInternal).resolve(iCtx.$element$);
     iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
   }
 };
@@ -57,6 +58,5 @@ export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefine
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
-  const taskHandler = createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
-  return taskHandler;
+  return createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
 };

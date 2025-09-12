@@ -4,7 +4,7 @@ import "./global.css";
 
 export default () => {
   return (
-    <html>
+    <>
       <head>
         <meta charset="utf-8" />
         <title>Qwik Blank App</title>
@@ -13,6 +13,6 @@ export default () => {
       <body>
         <App />
       </body>
-    </html>
+    </>
   );
 };

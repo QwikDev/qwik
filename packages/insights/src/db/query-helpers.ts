@@ -64,7 +64,7 @@ export function delayBucketField(bucket: number): VectorKeys<`delayCount`> {
 }
 
 function pad(value: number): VectorKeys<''> {
-  return value < 10 ? '0' + value : (String(value) as any);
+  return value < 10 ? (('0' + value) as '00') : (String(value) as any);
 }
 
 export function createEdgeRow({

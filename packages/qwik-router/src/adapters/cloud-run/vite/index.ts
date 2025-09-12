@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
 
 /** @public */
@@ -24,4 +24,4 @@ export function cloudRunAdapter(opts: CloudRunAdapterOptions = {}): any {
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {}
 
 /** @public */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

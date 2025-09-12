@@ -3,29 +3,21 @@ import { assertDefined } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  ComputedEvent,
-  QLocaleAttr,
-  RenderEvent,
-  ResourceEvent,
-  TaskEvent,
-} from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
 import { seal } from '../shared/utils/qdev';
-import { isArray } from '../shared/utils/types';
+import { isArray, isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ContainerElement } from '../client/types';
-import {
-  WrappedSignal,
-  type EffectPropData,
-  type EffectSubscriptions,
-  type EffectSubscriptionsProp,
-} from '../signal/signal';
-import type { Signal } from '../signal/signal.public';
+import { type ClientContainer, type ContainerElement } from '../client/types';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
+import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { ChoreType } from '../shared/util-chore-type';
 
 declare const document: QwikDocument;
 
@@ -36,24 +28,11 @@ export interface SimplifiedServerRequestEvent<T = unknown> {
   request: Request;
 }
 
-export interface StyleAppend {
-  styleId: string;
-  content: string | null;
-}
-
-// Simplified version of `ServerRequestEvent` from `@qwik.dev/router` package.
-export interface ServerRequestEvent<T = unknown> {
-  url: URL;
-  locale: string | undefined;
-  request: Request;
-}
-
 export type PossibleEvents =
   | Event
   | SimplifiedServerRequestEvent
   | typeof TaskEvent
   | typeof RenderEvent
-  | typeof ComputedEvent
   | typeof ResourceEvent;
 
 export interface RenderInvokeContext extends InvokeContext {
@@ -80,14 +59,13 @@ export interface InvokeContext {
   $event$: PossibleEvents | undefined;
   /** The QRL function we're currently executing */
   $qrl$: QRL | undefined;
-  $effectSubscriber$: EffectSubscriptions | undefined;
+  $effectSubscriber$: EffectSubscription | undefined;
   $locale$: string | undefined;
   $container$: Container | undefined;
 }
 
 let _context: InvokeContext | undefined;
 
-/** @public */
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
   if (!_context) {
     const context = typeof document !== 'undefined' && document && document.__q_context__;
@@ -110,6 +88,7 @@ export const getInvokeContext = (): InvokeContext => {
   return ctx;
 };
 
+/** @internal */
 export const useInvokeContext = (): RenderInvokeContext => {
   const ctx = tryGetInvokeContext();
   if (!ctx || ctx.$event$ !== RenderEvent) {
@@ -162,25 +141,12 @@ export function invokeApply<FN extends (...args: any) => any>(
   return returnValue;
 }
 
-export const waitAndRun = (ctx: RenderInvokeContext, callback: () => unknown) => {
-  const waitOn = ctx.$waitOn$;
-  if (waitOn.length === 0) {
-    const result = callback();
-    if (isPromise(result)) {
-      waitOn.push(result);
-    }
-  } else {
-    waitOn.push(Promise.all(waitOn).then(callback));
-  }
-};
-
 export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
   const domContainer = getDomContainer(element);
-  const container = domContainer.element;
-  const vNode = container ? vnode_locate(domContainer.rootVNode, element) : undefined;
-  const locale = container?.getAttribute(QLocaleAttr) || undefined;
+  const hostElement = vnode_locate(domContainer.rootVNode, element);
+  const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, vNode, element, event, url);
+  return newInvokeContext(locale, hostElement, element, event, url);
 };
 
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
@@ -193,7 +159,7 @@ export const newInvokeContext = (
 ): InvokeContext => {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
-    locale || (typeof event === 'object' && event && 'locale' in event ? event.locale : undefined);
+    locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $i$: 0,
@@ -231,22 +197,20 @@ const trackInvocation = /*#__PURE__*/ newInvokeContext(
  * @param property `true` - subscriber is component `false` - subscriber is VNode `string` -
  *   subscriber is property
  * @param container
+ * @param data - Additional subscription data
  * @returns
  */
 export const trackSignal = <T>(
   fn: () => T,
-  subscriber: EffectSubscriptions[EffectSubscriptionsProp.EFFECT],
-  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  subscriber: EffectSubscription[EffectSubscriptionProp.CONSUMER],
+  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
   container: Container,
-  data?: EffectPropData
+  data?: SubscriptionData
 ): T => {
   const previousSubscriber = trackInvocation.$effectSubscriber$;
   const previousContainer = trackInvocation.$container$;
   try {
-    trackInvocation.$effectSubscriber$ = [subscriber, property];
-    if (data) {
-      trackInvocation.$effectSubscriber$.push(data);
-    }
+    trackInvocation.$effectSubscriber$ = getSubscriber(subscriber, property, data);
     trackInvocation.$container$ = container;
     return invoke(trackInvocation, fn);
   } finally {
@@ -258,11 +222,11 @@ export const trackSignal = <T>(
 export const trackSignalAndAssignHost = (
   value: Signal,
   host: HostElement,
-  property: EffectSubscriptions[EffectSubscriptionsProp.PROPERTY],
+  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
   container: Container,
-  data?: EffectPropData
+  data?: SubscriptionData
 ) => {
-  if (value instanceof WrappedSignal && value.$hostElement$ !== host && host) {
+  if (value instanceof WrappedSignalImpl && value.$hostElement$ !== host && host) {
     value.$hostElement$ = host;
   }
   return trackSignal(() => value.value, host, property, container, data);
@@ -299,16 +263,41 @@ export const _getContextEvent = (): unknown => {
 };
 
 /** @internal */
+export const _getContextContainer = (): ClientContainer | undefined => {
+  const iCtx = tryGetInvokeContext();
+  if (iCtx) {
+    return iCtx.$container$ as ClientContainer;
+  }
+};
+
+/** @internal */
 export const _jsxBranch = <T>(input?: T) => {
   return input;
 };
 
 /** @internal */
 export const _waitUntilRendered = (elm: Element) => {
-  const containerEl = _getQContainerElement(elm);
-  if (!containerEl) {
+  const container = (_getQContainerElement(elm) as ContainerElement | undefined)?.qContainer;
+  if (!container) {
     return Promise.resolve();
   }
-  const container = (containerEl as ContainerElement).qContainer;
-  return container?.renderDone ?? Promise.resolve();
+
+  // Multi-cycle idle: loop WAIT_FOR_QUEUE until the flush epoch stays stable
+  // across an extra microtask, which signals that no new work re-scheduled.
+  return (async () => {
+    for (;;) {
+      await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+
+      const firstEpoch = container.$flushEpoch$ || 0;
+      // Give a microtask for any immediate follow-up scheduling to enqueue
+      await Promise.resolve();
+      const secondEpoch = container.$flushEpoch$ || 0;
+
+      // If no epoch change occurred during and after WAIT_FOR_QUEUE, we are idle.
+      if (firstEpoch === secondEpoch) {
+        return;
+      }
+      // Continue loop if epoch advanced, meaning more work flushed.
+    }
+  })();
 };

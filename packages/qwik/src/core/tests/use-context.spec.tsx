@@ -26,7 +26,7 @@ import {
   trigger,
 } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import type { Signal } from '../signal/signal.public';
+import type { Signal } from '../reactive-primitives/signal.public';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 
@@ -69,9 +69,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Component ssr-required>
-          <span>
-            <WrappedSignal>CONTEXT_VALUE</WrappedSignal>
-          </span>
+          <span>CONTEXT_VALUE</span>
         </Component>
       </Component>
     );
@@ -93,9 +91,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Component ssr-required>
-          <span>
-            <WrappedSignal ssr-required>CONTEXT_VALUE</WrappedSignal>
-          </span>
+          <span>CONTEXT_VALUE</span>
         </Component>
       </Component>
     );
@@ -200,6 +196,51 @@ describe.each([
     }
   });
 
+  it('should find context with falsy value', async () => {
+    const ctxIf = createContextId<any>('if');
+    const ctxIf2 = createContextId<any>('if2');
+    const ctxIf3 = createContextId<any>('if3');
+
+    const Child = component$(() => {
+      const value = useContext(ctxIf);
+      const value2 = useContext(ctxIf2);
+      const value3 = useContext(ctxIf3);
+      return (
+        <>
+          {value}
+          {value2}
+          {value3}
+        </>
+      );
+    });
+
+    const Cmp = component$(() => {
+      useContextProvider(ctxIf, '');
+      useContextProvider(ctxIf2, false);
+      useContextProvider(ctxIf3, null);
+      return (
+        <div>
+          <Child />
+        </div>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              {''}
+              {''}
+              {''}
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {
@@ -251,11 +292,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
+                      <p>1</p>
                       <p>
-                        <WrappedSignal ssr-required>1</WrappedSignal>
-                      </p>
-                      <p>
-                        <Awaited>0</Awaited>
+                        <Awaited ssr-required>0</Awaited>
                       </p>
                       <p>
                         <WrappedSignal ssr-required>0</WrappedSignal>
@@ -279,9 +318,7 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>
-                        <WrappedSignal ssr-required>1</WrappedSignal>
-                      </p>
+                      <p>1</p>
                       <p>
                         <Awaited ssr-required>2</Awaited>
                       </p>
@@ -352,7 +389,7 @@ describe.each([
                 <Component ssr-required>
                   <div id="issue-5270-div">
                     {'Ctx: '}
-                    <WrappedSignal>{'hello'}</WrappedSignal>
+                    {'hello'}
                   </div>
                 </Component>
               </Projection>

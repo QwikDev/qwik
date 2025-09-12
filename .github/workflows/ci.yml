@@ -173,7 +173,7 @@ jobs:
           path: |
             packages/insights/dist
             packages/insights/.netlify
-          key: ${{ hashfiles('others-key.txt', 'packages/qwik-insights/**/*') }}
+          key: ${{ hashfiles('others-key.txt', 'packages/insights/**/*') }}
       - name: 'check cache: unit tests'
         id: cache-unit
         uses: actions/cache/restore@v4
@@ -272,6 +272,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy,rustfmt
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -569,7 +571,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - name: Build Qwik Docs
-        run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
+        run: pnpm build --tsc-docs && pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 
       - name: Save Docs Artifacts
         uses: actions/upload-artifact@v4
@@ -590,7 +592,13 @@ jobs:
   test-unit:
     name: Unit Tests
     if: always() && needs.changes.outputs.build-unit == 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        settings:
+          - host: ubuntu-latest
+          - host: windows-latest
+
+    runs-on: ${{ matrix.settings.host }}
     needs:
       - changes
       - build-other-packages
@@ -695,6 +703,9 @@ jobs:
       - name: Playwright E2E Tests
         run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
+      - name: Playwright E2E Integration Tests
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+
       # RE-ENABBLE THIS AFTER qwik.dev/ packages are published
       # - name: Validate Create Qwik Cli
       # if: matrix.settings.host != 'windows-latest'
@@ -766,6 +777,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - run: pnpm install --frozen-lockfile
+
+      - name: "Verify pnpm dedupe"
+        if: always()
+        run: pnpm dedupe --check
 
       - name: SyncPack Check
         if: always()

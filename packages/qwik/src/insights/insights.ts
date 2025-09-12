@@ -1,6 +1,7 @@
-import { component$, sync$ } from '@qwik.dev/core';
+import { component$, isDev, sync$ } from '@qwik.dev/core';
 import { jsx } from '@qwik.dev/core/jsx-runtime';
 
+/** @public */
 export interface InsightsPayload {
   /** Qwik version */
   qVersion: string;
@@ -28,6 +29,7 @@ export interface InsightsPayload {
   symbols: InsightSymbol[];
 }
 
+/** @public */
 export interface InsightSymbol {
   /** Symbol name */
   symbol: string;
@@ -51,6 +53,7 @@ export interface InsightSymbol {
   interaction: boolean;
 }
 
+/** @public */
 export interface InsightsError {
   /** Manifest Hash of the container. */
   manifestHash: string;
@@ -77,64 +80,43 @@ interface QSymbolDetail {
   symbol: string;
 }
 
+// Injected by the vite plugin
+// eslint-disable-next-line no-var
+declare var __QI_KEY__: string;
+// eslint-disable-next-line no-var
+declare var __QI_URL__: string;
+
 // We use a self-invoking function to minify the code, renaming long globals and attributes
 // the qwik optimizer only minifies somewhat, so put all var declarations in the same line
-const insightsPing = sync$(() =>
-  ((
-    window: QwikSymbolTrackerWindow,
-    document,
-    location,
-    navigator,
-    performance,
-    round,
-    JSON_stringify
-  ) => {
+/** @internal */
+export const insightsPing = sync$(() =>
+  ((w: QwikSymbolTrackerWindow, d, l, n, p, r, S) => {
     /* eslint-disable no-var -- better minification */
     var publicApiKey = __QI_KEY__,
       postUrl = __QI_URL__,
-      getAttribute_s = 'getAttribute' as const,
-      querySelector_s = 'querySelector' as const,
-      manifest_s = 'manifest' as const,
-      manifest_hash_s = `${manifest_s}-hash` as const,
-      manifestHash_s = `${manifest_s}Hash` as const,
-      version_s = 'version' as const,
-      publicApiKey_s = 'publicApiKey' as const,
-      sendBeacon_s = 'sendBeacon' as const,
-      symbol_s = 'symbol' as const,
-      length_s = 'length' as const,
-      addEventListener_s = 'addEventListener' as const,
-      route_s = 'route' as const,
-      error_s = 'error' as const,
-      stack_s = 'stack' as const,
-      message_s = 'message' as const,
-      symbols_s = `${symbol_s}s` as const,
-      qVersion =
-        document[querySelector_s](`[q\\:${version_s}]`)?.[getAttribute_s](`q:${version_s}`) ||
-        'unknown',
+      qVersion = d.querySelector(`[q\\:version]`)?.getAttribute(`q:version`) || 'unknown',
       manifestHash =
-        document[querySelector_s](`[q\\:${manifest_hash_s}]`)?.[getAttribute_s](
-          `q:${manifest_hash_s}`
-        ) || 'dev',
+        d.querySelector(`[q\\:manifest-hash]`)?.getAttribute(`q:manifest-hash`) || 'dev',
       qSymbols: InsightSymbol[] = [],
       existingSymbols: Set<string> = new Set(),
       flushSymbolIndex: number = 0,
       lastReqTime: number = 0,
       timeoutID: ReturnType<typeof setTimeout> | undefined,
-      qRouteChangeTime = performance.now(),
-      qRouteEl = document[querySelector_s](`[q\\:${route_s}]`),
+      qRouteChangeTime = p.now(),
+      qRouteEl = d.querySelector(`[q\\:route]`),
       flush = () => {
         timeoutID = undefined;
-        if (qSymbols[length_s] > flushSymbolIndex) {
+        if (qSymbols.length > flushSymbolIndex) {
           var payload = {
             qVersion,
-            [publicApiKey_s]: publicApiKey,
-            [manifestHash_s]: manifestHash,
+            publicApiKey,
+            manifestHash,
             previousSymbol:
-              flushSymbolIndex == 0 ? undefined : qSymbols[flushSymbolIndex - 1][symbol_s],
-            [symbols_s]: qSymbols.slice(flushSymbolIndex),
+              flushSymbolIndex == 0 ? undefined : qSymbols[flushSymbolIndex - 1].symbol,
+            symbols: qSymbols.slice(flushSymbolIndex),
           } satisfies InsightsPayload;
-          navigator[sendBeacon_s](postUrl, JSON_stringify(payload));
-          flushSymbolIndex = qSymbols[length_s];
+          n.sendBeacon(postUrl, S(payload));
+          flushSymbolIndex = qSymbols.length;
         }
       },
       debounceFlush = () => {
@@ -142,89 +124,82 @@ const insightsPing = sync$(() =>
         timeoutID = setTimeout(flush, 1000);
       };
 
-    window.qSymbolTracker = {
-      [symbols_s]: qSymbols,
-      [publicApiKey_s]: publicApiKey,
+    w.qSymbolTracker = {
+      symbols: qSymbols,
+      publicApiKey,
     };
     if (qRouteEl) {
       new MutationObserver((mutations) => {
-        var mutation = mutations.find((m) => m.attributeName === `q:${route_s}`);
+        var mutation = mutations.find((m) => m.attributeName === `q:route`);
         if (mutation) {
-          qRouteChangeTime = performance.now();
+          qRouteChangeTime = p.now();
         }
       }).observe(qRouteEl, { attributes: true });
     }
-    document[addEventListener_s](
-      'visibilitychange',
-      () => document.visibilityState === 'hidden' && flush()
-    );
-    document[addEventListener_s](`q${symbol_s}`, (_event) => {
+    d.addEventListener('visibilitychange', () => d.visibilityState === 'hidden' && flush());
+    d.addEventListener(`qsymbol`, (_event) => {
       var event = _event as CustomEvent<QSymbolDetail>,
         detail = event.detail,
         symbolRequestTime = detail.reqTime,
         symbolDeliveredTime = event.timeStamp,
-        symbol = detail[symbol_s];
+        symbol = detail.symbol;
       if (!existingSymbols.has(symbol)) {
         existingSymbols.add(symbol);
-        var route = qRouteEl?.[getAttribute_s](`q:${route_s}`) || '/';
+        var route = qRouteEl?.getAttribute(`q:route`) || '/';
         qSymbols.push({
-          [symbol_s]: symbol,
-          [route_s]: route,
-          delay: round(0 - lastReqTime + symbolRequestTime),
-          latency: round(symbolDeliveredTime - symbolRequestTime),
-          timeline: round(0 - qRouteChangeTime + symbolRequestTime),
+          symbol,
+          route,
+          delay: r(0 - lastReqTime + symbolRequestTime),
+          latency: r(symbolDeliveredTime - symbolRequestTime),
+          timeline: r(0 - qRouteChangeTime + symbolRequestTime),
           interaction: !!detail.element,
         });
         lastReqTime = symbolDeliveredTime;
         debounceFlush();
       }
     });
-    window[addEventListener_s](error_s, (event: ErrorEvent) => {
-      var error = event[error_s];
+    w.addEventListener('error', (event: ErrorEvent) => {
+      var error = event.error;
       if (!(error && typeof error === 'object')) {
         return;
       }
       var payload = {
-        url: `${location}`,
-        [manifestHash_s]: manifestHash,
+        url: `${l}`,
+        manifestHash,
         timestamp: new Date().getTime(),
         source: event.filename,
         line: event.lineno,
         column: event.colno,
-        [message_s]: event[message_s],
-        [error_s]: message_s in error ? (error as Error)[message_s] : `${error}`,
-        [stack_s]: stack_s in error ? (error as Error)[stack_s] || '' : '',
+        message: event.message,
+        error: 'message' in error ? (error as Error).message : `${error}`,
+        stack: 'stack' in error ? (error as Error).stack || '' : '',
       } satisfies InsightsError;
-      navigator[sendBeacon_s](`${postUrl}${error_s}/`, JSON_stringify(payload));
+      n.sendBeacon(`${postUrl}error/`, S(payload));
     });
   })(window as any, document, location, navigator, performance, Math.round, JSON.stringify)
 );
-
-// We don't add window. to save some bytes
-declare var __QI_KEY__: string;
-declare var __QI_URL__: string;
 
 /**
  * @beta
  * @experimental
  */
-export const Insights = component$<{ publicApiKey: string; postUrl?: string }>(
-  ({ publicApiKey, postUrl }) => {
-    if (!__EXPERIMENTAL__.insights) {
-      throw new Error(
-        'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
-      );
-    }
-    if (!publicApiKey) {
-      return null;
-    }
-
-    return (
-      // the script will set the variables before the qinit event
-      /* @__PURE__ */ jsx('script', {
-        'document:onQInit$': insightsPing,
-        dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(publicApiKey)};__QI_URL__=${JSON.stringify(postUrl || `https://insights.qwik.dev/api/v1/${publicApiKey}/post/`)}`,
-      })
+export const Insights = component$(() => {
+  if (!__EXPERIMENTAL__.insights) {
+    throw new Error(
+      'Insights is experimental and must be enabled with `experimental: ["insights"]` in the `qwikVite` plugin.'
     );
   }
-);
+  const key = (globalThis as any).__QI_KEY__;
+  const url = (globalThis as any).__QI_URL__;
+  if (!key || !url) {
+    if (!isDev) {
+      console.warn('<Insights />: no config from qwikInsights plugin, skipping...');
+    }
+    return null;
+  }
+  return /* @__PURE__ */ jsx('script', {
+    'document:onQInit$': insightsPing,
+    // We must pass the vite injected variables via window because sync$ code doesn't get replaced by the vite plugin
+    dangerouslySetInnerHTML: `__QI_KEY__=${JSON.stringify(key)};__QI_URL__=${JSON.stringify(url)}`,
+  });
+});

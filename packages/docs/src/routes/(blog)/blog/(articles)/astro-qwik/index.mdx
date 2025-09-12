@@ -1,6 +1,7 @@
 ---
 title: 'Astro + Qwik: Houston, we have Resumability!'
-authorName: 'Jack Shelton'
+authors:
+  - Jack Shelton
 tags: ['Qwik']
 date: 'November 8, 2023'
 canonical: 'https://www.builder.io/blog/astro-qwik'
@@ -90,7 +91,7 @@ For example, here's how we use a Qwik counter component in Astro.
 **counter.tsx**
 
 ```tsx
-import { component$, useSignal } from "@builder.io/qwik";
+import { component$, useSignal } from "@qwik.dev/core";
 
 export const Counter = component$(() => {
   const counter = useSignal(0);

@@ -15,10 +15,11 @@ import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { TypeIds } from '../shared/shared-serialization';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { createComputed$, createSignal } from '../signal/signal.public';
+import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
+import { SignalFlags } from '../reactive-primitives/types';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -108,12 +109,12 @@ describe('serializer v2', () => {
 
     describe('node references', () => {
       // doesn't use the vnode so not serialized
-      it.skip('should retrieve element', async () => {
+      it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
           ssr.openElement('span', ['id', 'myId']);
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           ssr.addRoot({ someProp: node });
           ssr.textNode('Hello');
           ssr.openElement('b', ['id', 'child']);
@@ -132,7 +133,7 @@ describe('serializer v2', () => {
           ssr.textNode('Greetings');
           ssr.textNode(' ');
           ssr.textNode('World');
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           expect(node.id).toBe('2C');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
@@ -153,7 +154,7 @@ describe('serializer v2', () => {
           ssr.textNode(' '); // 2B
           ssr.openFragment([]); // 2C
           ssr.textNode('World'); // 2CA
-          const node = ssr.getLastNode();
+          const node = ssr.getOrCreateLastNode();
           expect(node.id).toBe('2CA');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
@@ -310,8 +311,14 @@ describe('serializer v2', () => {
 
     describe('ErrorSerializer, ///////// ' + TypeIds.Error, () => {
       it('should serialize and deserialize', async () => {
-        const obj = Object.assign(new Error('MyError'), { extra: 'property' });
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
+        const date = new Date();
+        const obj = Object.assign(new Error('MyError'), {
+          extra: { foo: ['bar', { hi: true }], bar: date },
+        });
+        const result = (await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0);
+        expect(result.message).toEqual(obj.message);
+        expect(result.extra.foo).toEqual(['bar', { hi: true }]);
+        expect(result.extra.bar).toEqual(date);
       });
     });
 
@@ -458,7 +465,7 @@ describe('serializer v2', () => {
         });
         const got = container.$getObjectById$(0);
         expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
-        expect(got.$invalid$).toBe(true);
+        expect(!!(got.$flags$ & SignalFlags.INVALID)).toBe(true);
         expect(got.value).toBe('test!');
       });
     });
@@ -505,7 +512,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, SsrNode.DOCUMENT_NODE, '', [], [], [] as any);
+        const obj = new SsrNode(null, '', -1, [], [] as any, null);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });
@@ -602,19 +609,15 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(
-            jsx.varProps as any,
-            jsx.constProps,
-            ssrContainer.serializationCtx,
-            null,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps as any,
-            jsx.varProps,
-            ssrContainer.serializationCtx,
-            null
-          )
+          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+          })
         );
       } else {
         ssrContainer.openFragment([]);

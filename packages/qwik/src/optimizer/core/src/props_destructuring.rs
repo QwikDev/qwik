@@ -5,7 +5,6 @@ use crate::collector::{new_ident_from_id, GlobalCollect, Id};
 use crate::is_const::is_const_expr;
 use crate::words::*;
 use swc_atoms::Atom;
-use swc_atoms::JsWord;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
@@ -15,13 +14,13 @@ struct PropsDestructuring<'a> {
 	component_ident: Option<Id>,
 	pub identifiers: HashMap<Id, ast::Expr>,
 	pub global_collect: &'a mut GlobalCollect,
-	pub core_module: &'a JsWord,
+	pub core_module: &'a Atom,
 }
 
 pub fn transform_props_destructuring(
 	program: &mut ast::Program,
 	global_collect: &mut GlobalCollect,
-	core_module: &JsWord,
+	core_module: &Atom,
 ) {
 	program.visit_mut_with(&mut PropsDestructuring {
 		component_ident: global_collect.get_imported_local(&COMPONENT, core_module),
@@ -56,13 +55,13 @@ enum TransformInit {
 impl<'a> PropsDestructuring<'a> {
 	fn transform_component_props(&mut self, arrow: &mut ast::ArrowExpr) {
 		if let Some(ast::Pat::Object(obj)) = arrow.params.first() {
-			let new_ident = private_ident!("props");
-			if let Some((rest_id, local)) =
+			let new_ident = private_ident!("_rawProps");
+			if let Some((rest_id_opt, local)) =
 				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
 			{
-				if let Some(rest_id) = rest_id {
+				if let Some(rest_id) = rest_id_opt {
 					let omit_fn = self.global_collect.import(&_REST_PROPS, self.core_module);
-					let omit = local.iter().map(|(_, id, _)| id.clone()).collect();
+					let omit: Vec<Atom> = local.iter().map(|(_, id, _)| id.clone()).collect();
 					transform_rest(
 						arrow,
 						&omit_fn,
@@ -300,7 +299,7 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 	}
 }
 
-type TransformPatReturn = (Option<Id>, Vec<(Id, JsWord, ast::Expr)>);
+type TransformPatReturn = (Option<Id>, Vec<(Id, Atom, ast::Expr)>);
 fn transform_pat(
 	new_ident: ast::Expr,
 	obj: &ast::ObjectPat,
@@ -413,9 +412,10 @@ fn transform_pat(
 			}
 		}
 	}
-	if skip || local.is_empty() {
+	if skip {
 		return None;
 	}
+	// Allow case with only rest binding (no local fields)
 	Some((rest_id, local))
 }
 
@@ -424,9 +424,32 @@ fn transform_rest(
 	omit_fn: &Id,
 	rest_id: &Id,
 	props_expr: ast::Expr,
-	omit: Vec<JsWord>,
+	omit: Vec<Atom>,
 ) {
-	let new_stmt = create_omit_props(omit_fn, rest_id, props_expr, omit);
+	let new_stmt = if omit.is_empty() {
+		// const rest = _restProps(rawProps);
+		ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+			kind: ast::VarDeclKind::Const,
+			decls: vec![ast::VarDeclarator {
+				definite: false,
+				span: DUMMY_SP,
+				init: Some(Box::new(ast::Expr::Call(ast::CallExpr {
+					callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+						omit_fn,
+					)))),
+					args: vec![ast::ExprOrSpread {
+						spread: None,
+						expr: Box::new(props_expr),
+					}],
+					..Default::default()
+				}))),
+				name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(rest_id))),
+			}],
+			..Default::default()
+		})))
+	} else {
+		create_omit_props(omit_fn, rest_id, props_expr, omit)
+	};
 	match &mut arrow.body {
 		box ast::BlockStmtOrExpr::BlockStmt(block) => {
 			block.stmts.insert(0, new_stmt);
@@ -444,7 +467,7 @@ fn create_omit_props(
 	omit_fn: &Id,
 	rest_id: &Id,
 	props_expr: ast::Expr,
-	omit: Vec<JsWord>,
+	omit: Vec<Atom>,
 ) -> ast::Stmt {
 	ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		kind: ast::VarDeclKind::Const,

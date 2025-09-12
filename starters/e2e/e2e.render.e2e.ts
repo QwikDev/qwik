@@ -12,7 +12,7 @@ test.describe("render", () => {
     });
   });
 
-  function tests() {
+  function tests(isClient: boolean) {
     test("should load", async ({ page }) => {
       const button = page.locator("button#increment");
       const text = page.locator("#rerenders");
@@ -28,31 +28,31 @@ test.describe("render", () => {
 
       const attributes = page.locator("#attributes");
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass("⚡️unvb18-1 even stable0");
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 odd stable0");
+      await expect(attributes).toHaveClass("⚡️unvb18-1 odd stable0");
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
+      await expect(attributes).toHaveClass("⚡️unvb18-1");
       await expect(attributes).not.toHaveAttribute("aria-hidden");
       await expect(attributes).not.toHaveAttribute("preventdefault:click");
 
       await increment.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1");
+      await expect(attributes).toHaveClass("⚡️unvb18-1");
       await expect(attributes).not.toHaveAttribute("aria-hidden");
       await expect(attributes).not.toHaveAttribute("preventdefault:click");
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass("⭐️unvb18-1 even stable0");
+      await expect(attributes).toHaveClass("⚡️unvb18-1 even stable0");
       await expect(attributes).toHaveAttribute("aria-hidden", "true");
       await expect(attributes).toHaveAttribute("preventdefault:click", "");
     });
@@ -115,7 +115,7 @@ test.describe("render", () => {
       await expect(renders2).toHaveText("1");
       await expect(message3).toHaveText("Count 1");
       await expect(message3).toHaveAttribute("aria-count", "1");
-      await expect(renders3).toHaveText("2");
+      await expect(renders3).toHaveText("1");
 
       await button.click();
 
@@ -125,7 +125,7 @@ test.describe("render", () => {
       await expect(renders2).toHaveText("1");
       await expect(message3).toHaveText("Count 2");
       await expect(message3).toHaveAttribute("aria-count", "2");
-      await expect(renders3).toHaveText("3");
+      await expect(renders3).toHaveText("1");
     });
 
     test("issue2563", async ({ page }) => {
@@ -486,9 +486,23 @@ test.describe("render", () => {
       await button.click();
       await expect(tag).toHaveAttribute("data-v", "bar");
     });
+
+    test("should rerender child once", async ({ page }) => {
+      const button = page.locator("#rerender-once-button");
+      const rerenderOnceChild = page.locator("#rerender-once-child");
+      await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');
+      await button.click();
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1]',
+      );
+      await button.click();
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
+      );
+    });
   }
 
-  tests();
+  tests(false);
 
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
@@ -498,8 +512,9 @@ test.describe("render", () => {
       await expect(page.locator("#rerenderCount")).toHaveText(
         `Render ${Number(v) + 1}`,
       );
+      await page.waitForLoadState("networkidle");
     });
-    tests();
+    tests(true);
   });
 
   test("pr3475", async ({ page }) => {

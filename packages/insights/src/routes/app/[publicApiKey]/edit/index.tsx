@@ -67,7 +67,6 @@ export const useAddUserAction = routeAction$(
 
 export default component$(() => {
   // const form = useFormLoader();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loginForm, { Form: ModularForm, Field }] = useForm<ApplicationForm>({
     loader: useFormLoader(),
     action: useFormAction(),

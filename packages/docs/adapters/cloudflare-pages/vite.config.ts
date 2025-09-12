@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ['src/entry.cloudflare-pages.tsx', '@qwik-router-config'],
+        input: ['src/entry.cloudflare-pages.tsx'],
       },
       minify: false,
     },
@@ -18,7 +18,7 @@ export default extendConfig(baseConfig, () => {
           exclude: ['/demo/*', '/shop/*'],
           origin:
             (process.env.CF_PAGES_BRANCH !== 'main' ? process.env.CF_PAGES_URL : null) ??
-            'https://qwik.builder.io',
+            'https://qwik.dev',
         },
       }),
     ],

@@ -10,6 +10,7 @@
     cursor: pointer;
     z-index: 999999;
   }
+
   #qwik-inspector-info-popup {
     position: fixed;
     bottom: 10px;
@@ -28,13 +29,16 @@
     z-index: 999999;
     contain: layout;
   }
+
   #qwik-inspector-info-popup p {
     margin: 0px;
   }
+
   @-webkit-keyframes fadeOut {
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
     }
@@ -44,6 +48,7 @@
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
       visibility: hidden;
@@ -145,14 +150,19 @@
     globalThis.qwikOpenInEditor = function (path) {
       const isWindows = navigator.platform.includes('Win');
       const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      if (resolvedURL.origin === origin) {
-        const params = new URLSearchParams();
-        const prefix = isWindows ? srcDir : '';
-        params.set('file', prefix + resolvedURL.pathname);
-        fetch('/__open-in-editor?' + params.toString());
-      } else {
-        location.href = resolvedURL.href;
+      let filePath =
+        resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
+          ? resolvedURL.pathname.slice(1)
+          : resolvedURL.pathname.startsWith('/@fs/')
+            ? resolvedURL.pathname.slice(isWindows ? 5 : 4)
+            : resolvedURL.pathname;
+      if (filePath.startsWith('/src/')) {
+        const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');
+        filePath = prefix + filePath.slice(4);
       }
+      const params = new URLSearchParams();
+      params.set('file', filePath);
+      fetch('/__open-in-editor?' + params.toString());
     };
     document.addEventListener(
       'contextmenu',

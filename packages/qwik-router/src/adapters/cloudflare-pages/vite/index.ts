@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs from 'node:fs';
 import { join, relative } from 'node:path';
 import { normalizePathSlash } from '../../../utils/fs';
@@ -85,4 +85,4 @@ export interface CloudflarePagesAdapterOptions extends ServerAdapterOptions {
 }
 
 /** @public */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

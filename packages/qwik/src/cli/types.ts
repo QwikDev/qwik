@@ -70,6 +70,8 @@ export interface IntegrationPackageJson {
   scripts?: { [k: string]: string };
   dependencies?: { [k: string]: string };
   devDependencies?: { [k: string]: string };
+  peerDependencies?: { [k: string]: string };
+  optionalDependencies?: { [k: string]: string };
   engines?: { node: string };
   private?: boolean;
   files?: string[];

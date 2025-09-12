@@ -69,21 +69,23 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "Foo_component_HTDRsvUbLiE"), {
+const i_HTDRsvUbLiE = ()=>import("./test.tsx_Foo_component_HTDRsvUbLiE");
+export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"), {
     tagName: "my-foo"
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHA0BhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EA0BhB;IACF,SAAS;AACV,GAAG\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
+const i_DvU6FitWglY = ()=>import("./test.tsx_Foo_component_1_DvU6FitWglY");
 export const Foo_component_HTDRsvUbLiE = ()=>{
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_1_DvU6FitWglY"), "Foo_component_1_DvU6FitWglY");
+    return /*#__PURE__*/ qrl(i_DvU6FitWglY, "Foo_component_1_DvU6FitWglY");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yCAG8B;IAE7B;AAwBD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG8B;IAE7B;AAwBD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -134,27 +136,38 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
+const i_1q0Sgr8te3g = ()=>import("./test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g");
+const i_5VNik61PZOM = ()=>import("./test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM");
+const i_CwneoGpmTZI = ()=>import("./test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI");
+const i_Em1LspK7JVg = ()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg");
+const i_H10xZtD0e7w = ()=>import("./test.tsx_Foo_component_handler_H10xZtD0e7w");
+const i_IoAsJW8vYJc = ()=>import("./test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc");
+const i_M48DYiidSJw = ()=>import("./test.tsx_Foo_component_div_onClick_M48DYiidSJw");
+const i_Zip7mifsjRY = ()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY");
+const i_cPEH970JbEY = ()=>import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY");
+const i_pyHnxab17ms = ()=>import("./test.tsx_Foo_component_div_custom_pyHnxab17ms");
+const i_rwFFtFiVuKc = ()=>import("./test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc");
 export const Foo_component_1_DvU6FitWglY = ()=>{
-    const handler = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_handler_H10xZtD0e7w"), "Foo_component_handler_H10xZtD0e7w");
+    const handler = /*#__PURE__*/ qrl(i_H10xZtD0e7w, "Foo_component_handler_H10xZtD0e7w");
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onClick_M48DYiidSJw"), "Foo_component_div_onClick_M48DYiidSJw"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_rwFFtFiVuKc"), "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
-        onDocumentScroll$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"), "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
-        "on-cLick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_on_cLick_IoAsJW8vYJc"), "Foo_component_div_on_cLick_IoAsJW8vYJc"),
-        "onDocument-sCroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_sCroll_5VNik61PZOM"), "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
-        "onDocument-scroLL$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"), "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
-        "host:onClick$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onClick_cPEH970JbEY"), "Foo_component_div_host_onClick_cPEH970JbEY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"), "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
-        "host:onDocumentScroll$": /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"), "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
+        onClick$: /*#__PURE__*/ qrl(i_M48DYiidSJw, "Foo_component_div_onClick_M48DYiidSJw"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(i_rwFFtFiVuKc, "Foo_component_div_onDocumentScroll_rwFFtFiVuKc"),
+        onDocumentScroll$: /*#__PURE__*/ qrl(i_CwneoGpmTZI, "Foo_component_div_onDocumentScroll_1_CwneoGpmTZI"),
+        "on-cLick$": /*#__PURE__*/ qrl(i_IoAsJW8vYJc, "Foo_component_div_on_cLick_IoAsJW8vYJc"),
+        "onDocument-sCroll$": /*#__PURE__*/ qrl(i_5VNik61PZOM, "Foo_component_div_onDocument_sCroll_5VNik61PZOM"),
+        "onDocument-scroLL$": /*#__PURE__*/ qrl(i_1q0Sgr8te3g, "Foo_component_div_onDocument_scroLL_1q0Sgr8te3g"),
+        "host:onClick$": /*#__PURE__*/ qrl(i_cPEH970JbEY, "Foo_component_div_host_onClick_cPEH970JbEY"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(i_Zip7mifsjRY, "Foo_component_div_host_onDocumentScroll_Zip7mifsjRY"),
+        "host:onDocumentScroll$": /*#__PURE__*/ qrl(i_Em1LspK7JVg, "Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg"),
         onKeyup$: handler,
         "onDocument:keyup$": handler,
         "onWindow:keyup$": handler,
-        custom$: /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_custom_pyHnxab17ms"), "Foo_component_div_custom_pyHnxab17ms")
+        custom$: /*#__PURE__*/ qrl(i_pyHnxab17ms, "Foo_component_div_custom_pyHnxab17ms")
     }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,QAAQ;QACR,iBAAiB;QACjB,iBAAiB;QAEjB,WAAS;QACT,oBAAkB;QAClB,oBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,UAAU;QAbX,qBAcoB;QAdpB,mBAekB;QAEjB,OAAO;;AAGV\"}")
 /*
 {
   "origin": "test.tsx",

@@ -1,5 +1,6 @@
 import {
   Fragment as Component,
+  Fragment as Signal,
   component$,
   createContextId,
   useContext,
@@ -229,6 +230,39 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <div></div>
+      </Component>
+    );
+  });
+
+  it('should track element ref', async () => {
+    const Cmp = component$(() => {
+      const element = useSignal<HTMLDivElement>();
+      const signal = useSignal(0);
+
+      useVisibleTask$(({ track }) => {
+        track(element);
+        signal.value++;
+      });
+
+      return (
+        <div>
+          <div ref={element}>Test</div>
+          {signal.value}
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'div', 'qvisible');
+    }
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Test</div>
+          <Signal ssr-required>1</Signal>
+        </div>
       </Component>
     );
   });

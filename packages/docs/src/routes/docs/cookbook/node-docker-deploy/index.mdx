@@ -59,6 +59,11 @@ FROM base as final
 
 # Use production node environment by default.
 ENV NODE_ENV production
+
+# Pay attention to set the correct origin and port for the application.
+# This is used by the application to determine the origin of requests.
+# If you don't set this, the application will default to http://localhost:3000
+# If you set a wrong origin, the application may not work correctly, for example routeAction$ will not work
 ENV ORIGIN https://example.com
 
 # Run the application as a non-root user.

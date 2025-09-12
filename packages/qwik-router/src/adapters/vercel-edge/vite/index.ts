@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
 import { getParentDir, type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
@@ -140,4 +140,4 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
 }
 
 /** @public */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

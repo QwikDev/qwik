@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import { useTaskQrl } from './use-task';
+import { useTaskQrl, type TaskFn } from './use-task';
 
 // <docs markdown="../readme.md#useTask">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -62,4 +62,5 @@ import { useTaskQrl } from './use-task';
  * @see `Tracker`
  */
 // </docs>
-export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl);
+// We need to cast to help out the api extractor
+export const useTask$ = /*#__PURE__*/ implicit$FirstArg(useTaskQrl) as (fn: TaskFn) => void;

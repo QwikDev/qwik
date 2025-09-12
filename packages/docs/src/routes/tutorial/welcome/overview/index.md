@@ -4,7 +4,7 @@ title: Welcome to Qwik Tutorials
 
 ### Welcome to Qwik!
 
-Qwik is a front-end framework for building [**resumable**](/docs/(qwik)/concepts/resumable/index.mdx) applications that start-up **instantly** on the client. Qwik achieves this by focusing on its philosophy of **downloading and executing only the code that is strictly necessary** to perform the user-triggered action. Qwik is a fine-grained lazy-loading framework representing a fundamentally new approach to building web applications.
+Qwik is a front-end framework for building [**resumable**](</docs/(qwik)/concepts/resumable/index.mdx>) applications that start-up **instantly** on the client. Qwik achieves this by focusing on its philosophy of **downloading and executing only the code that is strictly necessary** to perform the user-triggered action. Qwik is a fine-grained lazy-loading framework representing a fundamentally new approach to building web applications.
 
 ### Qwik Tutorials
 

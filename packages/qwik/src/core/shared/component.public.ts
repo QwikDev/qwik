@@ -7,11 +7,11 @@ import type {
   QRLEventHandlerMulti,
 } from './jsx/types/jsx-qwik-attributes';
 import type { FunctionComponent } from './jsx/types/jsx-node';
-import { _CONST_PROPS, _VAR_PROPS, _jsxSorted, _jsxSplit } from '../internal';
+import { _jsxSplit } from '../internal';
 import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
-import { assertQrl } from './qrl/qrl-class';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
+import { assertQrl } from './qrl/qrl-utils';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -212,8 +212,3 @@ export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Compone
 
 /** @public */
 export type OnRenderFn<PROPS> = (props: PROPS) => JSXOutput;
-
-export interface RenderFactoryOutput<PROPS> {
-  renderQRL: QRL<OnRenderFn<PROPS>>;
-  waitOn: any[];
-}

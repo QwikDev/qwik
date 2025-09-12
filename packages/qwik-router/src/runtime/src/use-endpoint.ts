@@ -4,19 +4,26 @@ import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { prefetchSymbols } from './client-navigate';
 
+const MAX_Q_DATA_RETRY_COUNT = 3;
+
 export const loadClientData = async (
   url: URL,
   element: unknown,
   opts?: {
     action?: RouteActionValue;
+    loaderIds?: string[];
     clearCache?: boolean;
     prefetchSymbols?: boolean;
     isPrefetch?: boolean;
-  }
-) => {
+  },
+  retryCount: number = 0
+): Promise<ClientPageData | undefined> => {
   const pagePathname = url.pathname;
   const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch, opts?.action);
+  const clientDataPath = getClientDataPath(pagePathname, pageSearch, {
+    actionId: opts?.action?.id,
+    loaderIds: opts?.loaderIds,
+  });
   let qData: Promise<ClientPageData | undefined> | undefined;
   if (!opts?.action) {
     qData = CLIENT_DATA_CACHE.get(clientDataPath);
@@ -28,11 +35,17 @@ export const loadClientData = async (
   let resolveFn: () => void | undefined;
 
   if (!qData) {
-    const fetchOptions = getFetchOptions(opts?.action);
+    const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache);
     if (opts?.action) {
       opts.action.data = undefined;
     }
     qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
+      if (rsp.status === 404 && opts?.loaderIds && retryCount < MAX_Q_DATA_RETRY_COUNT) {
+        // retry if the q-data.json is not found with all options
+        // we want to retry with all the loaders
+        opts.loaderIds = undefined;
+        return loadClientData(url, element, opts, retryCount + 1);
+      }
       if (rsp.redirected) {
         const redirectedURL = new URL(rsp.url);
         const isQData = redirectedURL.pathname.endsWith('/q-data.json');
@@ -88,16 +101,22 @@ export const loadClientData = async (
   });
 };
 
-const getFetchOptions = (action: RouteActionValue | undefined): RequestInit => {
+const getFetchOptions = (
+  action: RouteActionValue | undefined,
+  noCache: boolean | undefined
+): RequestInit | undefined => {
   const actionData = action?.data;
   if (!actionData) {
-    return {
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-      },
-    };
+    if (noCache) {
+      return {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+      };
+    }
+    return undefined;
   }
   if (actionData instanceof FormData) {
     return {
@@ -109,7 +128,7 @@ const getFetchOptions = (action: RouteActionValue | undefined): RequestInit => {
       method: 'POST',
       body: JSON.stringify(actionData),
       headers: {
-        'Content-Type': 'application/json, charset=UTF-8',
+        'Content-Type': 'application/json; charset=UTF-8',
       },
     };
   }

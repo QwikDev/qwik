@@ -14,7 +14,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
 import { advanceToNextTimerAndFlush } from '../../testing/element-fixture';
-import { getStoreHandler } from '../signal/store';
+import { getStoreHandler } from '../reactive-primitives/impl/store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -682,9 +682,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component>
         <Fragment>
-          <div key="0">
-            <Signal>0</Signal>
-          </div>
+          <div key="0">0</div>
         </Fragment>
       </Component>
     );
@@ -926,18 +924,18 @@ describe.each([
     );
 
     const storeHandler = getStoreHandler((globalThis as any).store);
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
 
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(2);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(2);
     await trigger(document.body, 'button', 'click');
-    expect(storeHandler?.$effects$?.message).toHaveLength(3);
+    expect(storeHandler?.$effects$?.get('message')).toHaveLength(3);
 
     expect(vNode).toMatchVDOM(
       <Component>
@@ -1038,7 +1036,7 @@ describe.each([
       vi.useFakeTimers({
         toFake: ['setInterval', 'clearInterval'],
       });
-      const { vNode, document } = await render(<Cmp />, { debug });
+      const { vNode, document, container } = await render(<Cmp />, { debug });
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', 'qvisible');
       }
@@ -1056,7 +1054,7 @@ describe.each([
           </Fragment>
         </Component>
       );
-      await advanceToNextTimerAndFlush();
+      await advanceToNextTimerAndFlush(container);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -1071,7 +1069,7 @@ describe.each([
           </Fragment>
         </Component>
       );
-      await advanceToNextTimerAndFlush();
+      await advanceToNextTimerAndFlush(container);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>

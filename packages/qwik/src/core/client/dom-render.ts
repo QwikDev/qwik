@@ -1,6 +1,6 @@
 import type { FunctionComponent, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
-import { ChoreType } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
@@ -43,7 +43,7 @@ export const render = async (
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
   container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
-  await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   return {
     cleanup: () => {
       cleanup(container, container.rootVNode);

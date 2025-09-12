@@ -120,14 +120,24 @@
 import { isDev } from '@qwik.dev/core/build';
 import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import {
+  DEBUG_TYPE,
+  QContainerValue,
+  VirtualType,
+  VirtualTypeName,
+  type QElement,
+} from '../shared/types';
 import { isText } from '../shared/utils/element';
 import {
+  dangerouslySetInnerHTML,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  Q_PROPS_SEPARATOR,
   QContainerAttr,
   QContainerAttrEnd,
   QContainerIsland,
@@ -138,38 +148,34 @@ import {
   QScopedStyle,
   QSlot,
   QSlotParent,
-  QSlotRef,
   QStyle,
   QStylesAllSelector,
-  QSubscribers,
-  Q_PROPS_SEPARATOR,
-  dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
-import { DEBUG_TYPE, QContainerValue, VirtualType, VirtualTypeName } from '../shared/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
+import { mapApp_findIndx, mapArray_get, mapArray_set } from './util-mapArray';
 import {
-  ElementVNodeProps,
-  TextVNodeProps,
-  VNodeFlags,
-  VNodeFlagsIndex,
-  VNodeProps,
-  VirtualVNodeProps,
   type ClientContainer,
   type ContainerElement,
   type ElementVNode,
+  ElementVNodeProps,
   type QDocument,
   type TextVNode,
-  type VNode,
+  TextVNodeProps,
   type VirtualVNode,
+  VirtualVNodeProps,
+  type VNode,
+  VNodeFlags,
+  VNodeFlagsIndex,
+  VNodeProps,
 } from './types';
 import {
   vnode_getDomChildrenWithCorrectNamespacesToInsert,
   vnode_getElementNamespaceFlags,
 } from './vnode-namespace';
-import { escapeHTML } from '../shared/utils/character-escaping';
-import { QError, qError } from '../shared/error/error';
+import { mergeMaps } from '../shared/utils/maps';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -210,6 +216,7 @@ export const vnode_newElement = (element: Element, elementName: string): Element
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
+  (element as QElement).vNode = new WeakRef(vnode);
   return vnode;
 };
 
@@ -228,6 +235,7 @@ export const vnode_newUnMaterializedElement = (element: Element): ElementVNode =
   assertTrue(vnode_isElementVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of ElementVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of ElementVNode.');
+  (element as QElement).vNode = new WeakRef(vnode);
   return vnode;
 };
 
@@ -309,6 +317,7 @@ export const vnode_isElementOrVirtualVNode = (
   return (flag & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0;
 };
 
+/** @internal */
 export const vnode_isMaterialized = (vNode: VNode): boolean => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
@@ -319,16 +328,27 @@ export const vnode_isMaterialized = (vNode: VNode): boolean => {
   );
 };
 
+/** @internal */
 export const vnode_isTextVNode = (vNode: VNode): vNode is TextVNode => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
   return (flag & VNodeFlags.Text) === VNodeFlags.Text;
 };
 
+/** @internal */
 export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
   assertDefined(vNode, 'Missing vNode');
   const flag = (vNode as VNode)[VNodeProps.flags];
   return (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual;
+};
+
+export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
+  assertDefined(vNode, 'Missing vNode');
+  const flag = (vNode as VNode)[VNodeProps.flags];
+  return (
+    (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual &&
+    vnode_getProp(vNode as VirtualVNode, QSlot, null) !== null
+  );
 };
 
 const ensureTextVNode = (vNode: VNode): TextVNode => {
@@ -367,6 +387,7 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
   return '<unknown>';
 };
 
+/** @internal */
 export const vnode_ensureElementInflated = (vnode: VNode) => {
   const flags = vnode[VNodeProps.flags];
   if ((flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
@@ -374,6 +395,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
     elementVNode[VNodeProps.flags] ^= VNodeFlags.Inflated;
     const element = elementVNode[ElementVNodeProps.element];
     const attributes = element.attributes;
+    const props = vnode_getProps(elementVNode);
     for (let idx = 0; idx < attributes.length; idx++) {
       const attr = attributes[idx];
       const key = attr.name;
@@ -383,23 +405,13 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         break;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
-          mapArray_set(
-            elementVNode as string[],
-            dangerouslySetInnerHTML,
-            element.innerHTML,
-            ElementVNodeProps.PROPS_OFFSET
-          );
+          mapArray_set(props, dangerouslySetInnerHTML, element.innerHTML, 0);
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
-          mapArray_set(
-            elementVNode as string[],
-            'value',
-            element.value,
-            ElementVNodeProps.PROPS_OFFSET
-          );
+          mapArray_set(props, 'value', element.value, 0);
         }
       } else if (!key.startsWith('on:')) {
         const value = attr.value;
-        mapArray_set(elementVNode as string[], key, value, ElementVNodeProps.PROPS_OFFSET);
+        mapArray_set(props, key, value, 0);
       }
     }
   }
@@ -408,7 +420,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
 /** Walks the VNode tree and materialize it using `vnode_getFirstChild`. */
 export function vnode_walkVNode(
   vNode: VNode,
-  callback?: (vNode: VNode, vParent: VNode | null) => void
+  callback?: (vNode: VNode, vParent: VNode | null) => boolean | void
 ): void {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
@@ -418,7 +430,9 @@ export function vnode_walkVNode(
   }
   let vParent: VNode | null = null;
   do {
-    callback?.(vCursor, vParent);
+    if (callback?.(vCursor, vParent)) {
+      return;
+    }
     const vFirstChild = vnode_getFirstChild(vCursor);
     if (vFirstChild) {
       vCursor = vFirstChild;
@@ -609,7 +623,8 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode[VNodeProps.flags];
   if ((flags & VNodeFlags.Inflated) === 0) {
-    const parentNode = vnode_getDomParent(vnode)!;
+    const parentNode = vnode_getDomParent(vnode);
+    assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode[TextVNodeProps.node] as Text;
     const doc = parentNode.ownerDocument;
     // Walk the previous siblings and inflate them.
@@ -668,6 +683,11 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     refElement = qVNodeRefs.get(elementOffset)!;
   } else {
     refElement = id;
+
+    const vNode = (refElement as QElement).vNode?.deref();
+    if (vNode) {
+      return vNode;
+    }
   }
   assertDefined(refElement, 'Missing refElement.');
   if (!vnode_isVNode(refElement)) {
@@ -772,6 +792,26 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
   return length;
 };
 
+export const vnode_createErrorDiv = (
+  document: Document,
+  host: VNode,
+  err: Error,
+  journal: VNodeJournal
+) => {
+  const errorDiv = document.createElement('errored-host');
+  if (err && err instanceof Error) {
+    (errorDiv as any).props = { error: err };
+  }
+  errorDiv.setAttribute('q:key', '_error_');
+
+  const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
+
+  vnode_getDOMChildNodes(journal, host, true).forEach((child) => {
+    vnode_insertBefore(journal, vErrorDiv, child, null);
+  });
+  return vErrorDiv;
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_journalToString = (journal: VNodeJournal): string => {
@@ -781,22 +821,25 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
 
   function stringify(...args: any[]) {
     lines.push(
-      '  ' +
-        args
-          .map((arg) => {
-            if (typeof arg === 'string') {
-              return arg;
-            } else if (arg && isHtmlElement(arg)) {
-              const html = arg.outerHTML;
-              const idx = html.indexOf('>');
-              return '\n    ' + (idx > 0 ? html.substring(0, idx + 1) : html);
-            } else if (arg && isText(arg)) {
-              return JSON.stringify(arg.nodeValue);
-            } else {
-              return String(arg);
-            }
-          })
-          .join(' ')
+      args
+        .map((arg) => {
+          if (typeof arg === 'string') {
+            return arg;
+          } else if (arg && isHtmlElement(arg)) {
+            const html = arg.outerHTML;
+            const hasChildNodes = !!arg.firstElementChild;
+            const idx = html.indexOf('>');
+            const lastIdx = html.lastIndexOf('<');
+            return idx > 0 && hasChildNodes
+              ? html.substring(0, idx + 1) + '...' + html.substring(lastIdx)
+              : html;
+          } else if (arg && isText(arg)) {
+            return JSON.stringify(arg.nodeValue);
+          } else {
+            return String(arg);
+          }
+        })
+        .join(' ')
     );
   }
 
@@ -804,30 +847,45 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
     const op = journal[idx++] as VNodeJournalOpCode;
     switch (op) {
       case VNodeJournalOpCode.SetText:
-        stringify('SetText', journal[idx++], journal[idx++]);
+        stringify('SetText');
+        stringify('  ', journal[idx++]);
+        stringify('   -->', journal[idx++]);
         break;
       case VNodeJournalOpCode.SetAttribute:
-        stringify('SetAttribute', journal[idx++], journal[idx++], journal[idx++]);
+        stringify('SetAttribute');
+        stringify('  ', journal[idx++]);
+        stringify('   key', journal[idx++]);
+        stringify('   val', journal[idx++]);
         break;
       case VNodeJournalOpCode.HoistStyles:
         stringify('HoistStyles');
         break;
-      case VNodeJournalOpCode.Remove:
-        stringify('Remove', journal[idx++]);
+      case VNodeJournalOpCode.Remove: {
+        stringify('Remove');
+        const parent = journal[idx++];
+        stringify('  ', parent);
         let nodeToRemove: any;
         while (idx < length && typeof (nodeToRemove = journal[idx]) !== 'number') {
-          stringify('  ', nodeToRemove);
+          stringify('   -->', nodeToRemove);
           idx++;
         }
         break;
-      case VNodeJournalOpCode.Insert:
-        stringify('Insert', journal[idx++], journal[idx++]);
+      }
+      case VNodeJournalOpCode.Insert: {
+        stringify('Insert');
+        const parent = journal[idx++];
+        const insertBefore = journal[idx++];
+        stringify('  ', parent);
         let newChild: any;
         while (idx < length && typeof (newChild = journal[idx]) !== 'number') {
-          stringify('  ', newChild);
+          stringify('   -->', newChild);
           idx++;
         }
+        if (insertBefore) {
+          stringify('      ', insertBefore);
+        }
         break;
+      }
     }
   }
   lines.push('END JOURNAL');
@@ -891,9 +949,10 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
         } else if (key === 'value' && key in element) {
-          (element as any).value = escapeHTML(String(value));
+          (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
+          element.setAttribute(QContainerAttr, QContainerValue.HTML);
         } else {
           if (value == null || value === false) {
             element.removeAttribute(key);
@@ -934,77 +993,6 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const mapApp_findIndx = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): number => {
-  assertTrue(start % 2 === 0, 'Expecting even number.');
-  let bottom = (start as number) >> 1;
-  let top = (elementVNode.length - 2) >> 1;
-  while (bottom <= top) {
-    const mid = bottom + ((top - bottom) >> 1);
-    const midKey = elementVNode[mid << 1] as string;
-    if (midKey === key) {
-      return mid << 1;
-    }
-    if (midKey < key) {
-      bottom = mid + 1;
-    } else {
-      top = mid - 1;
-    }
-  }
-  return (bottom << 1) ^ -1;
-};
-
-export const mapArray_set = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  value: T | null,
-  start: number
-) => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
-  if (indx >= 0) {
-    if (value == null) {
-      elementVNode.splice(indx, 2);
-    } else {
-      elementVNode[indx + 1] = value;
-    }
-  } else if (value != null) {
-    elementVNode.splice(indx ^ -1, 0, key as any, value);
-  }
-};
-
-export const mapApp_remove = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): T | null => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
-  let value: T | null = null;
-  if (indx >= 0) {
-    value = elementVNode[indx + 1];
-    elementVNode.splice(indx, 2);
-    return value;
-  }
-  return value;
-};
-
-export const mapArray_get = <T>(
-  elementVNode: (T | null)[],
-  key: string,
-  start: number
-): T | null => {
-  const indx = mapApp_findIndx(elementVNode, key, start);
-  if (indx >= 0) {
-    return elementVNode[indx + 1] as T | null;
-  } else {
-    return null;
-  }
-};
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
 export const vnode_insertBefore = (
   journal: VNodeJournal,
   parent: ElementVNode | VirtualVNode,
@@ -1015,57 +1003,126 @@ export const vnode_insertBefore = (
   if (vnode_isElementVNode(parent)) {
     ensureMaterialized(parent);
   }
-  let adjustedInsertBefore: VNode | null = null;
-  if (insertBefore == null) {
-    if (vnode_isVirtualVNode(parent)) {
-      // If `insertBefore` is null, than we need to insert at the end of the list.
-      // Well, not quite. If the parent is a virtual node, our "last node" is not the same
-      // as the DOM "last node". So in that case we need to look for the "next node" from
-      // our parent.
-
-      adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
+  const newChildCurrentParent = newChild[VNodeProps.parent];
+  if (newChild === insertBefore) {
+    // invalid insertBefore. We can't insert before self reference
+    // prevent infinity loop and putting self reference to next sibling
+    if (newChildCurrentParent) {
+      // early return, as the newChild is already in the tree and we are already in the correct position
+      return;
+    } else {
+      // if the newChild is not in the tree, than we insert it at the end of the list
+      insertBefore = null;
     }
-  } else if (vnode_isVirtualVNode(insertBefore)) {
-    // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
-    adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
-  } else {
-    adjustedInsertBefore = insertBefore;
   }
-  adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
-  // If `insertBefore` is null, than we need to insert at the end of the list.
-  // Well, not quite. If the parent is a virtual node, our "last node" is not the same
-  // as the DOM "last node". So in that case we need to look for the "next node" from
-  // our parent.
-  // const shouldWeUseParentVirtual = insertBefore == null && vnode_isVirtualVNode(parent);
-  // const insertBeforeNode = shouldWeUseParentVirtual
-  //   ? vnode_getDomSibling(parent, true)
-  //   : insertBefore;
-  const domParentVNode = vnode_getDomParentVNode(parent);
+
+  /**
+   * Find the parent node and the dom children with the correct namespaces before we unlink the
+   * previous node. If we don't do this, we will end up with situations where we inflate text nodes
+   * from shared text node not correctly.
+   *
+   * Example:
+   *
+   * ```
+   * <Component>
+   *   <Projection>a</Projection>
+   *   <Projection>b</Projection>
+   * </Component>
+   * ```
+   *
+   * Projection nodes are virtual nodes, so they don't have a dom parent. They will be written to
+   * the q:template element if not visible at the start. Inside the q:template element, the
+   * projection nodes will be streamed as single text node "ab". We need to split it, but if we
+   * unlink the previous or next sibling, we don't know that after "a" node is "b". So we need to
+   * find children first (and inflate them).
+   */
+  const domParentVNode = vnode_getDomParentVNode(parent, false);
   const parentNode = domParentVNode && domParentVNode[ElementVNodeProps.element];
-  if (parentNode) {
-    const domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
+  let domChildren: (Element | Text)[] | null = null;
+  if (domParentVNode) {
+    domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
       journal,
       domParentVNode,
       newChild
     );
-    domChildren.length &&
+  }
+
+  /**
+   * Ensure that the previous node is unlinked.
+   *
+   * We need to do it before finding the adjustedInsertBefore. The problem is when you try to render
+   * the same projection multiple times in the same node but under different conditions. We reuse
+   * projection nodes, so when this happens, we can end up with a situation where the node is
+   * inserted before node above it.
+   *
+   * Example:
+   *
+   * ```
+   * <>
+   *   {props.toggle && <Slot />}
+   *   {!props.toggle && (
+   *     <>
+   *       <Slot />
+   *     </>
+   *   )}
+   * </>
+   * ```
+   *
+   * Projected content:
+   *
+   * ```
+   * <h1>Test</h1>
+   * <p>Test content</p>
+   * ```
+   *
+   * If we don't unlink the previous node, we will end up at some point with the following:
+   *
+   * ```
+   * <h1>Test</h1>
+   * <p>Test content</p> // <-- inserted before the first h1
+   * <h1>Test</h1> // <-- to remove, but still in the tree
+   * <p>Test content</p> // <-- to remove
+   * ```
+   */
+  if (
+    newChildCurrentParent &&
+    (newChild[VNodeProps.previousSibling] ||
+      newChild[VNodeProps.nextSibling] ||
+      newChildCurrentParent !== parent)
+  ) {
+    vnode_remove(journal, newChildCurrentParent, newChild, false);
+  }
+
+  const parentIsDeleted = parent[VNodeProps.flags] & VNodeFlags.Deleted;
+
+  // if the parent is deleted, then we don't need to insert the new child
+  if (!parentIsDeleted) {
+    let adjustedInsertBefore: VNode | null = null;
+    if (insertBefore == null) {
+      if (vnode_isVirtualVNode(parent)) {
+        // If `insertBefore` is null, than we need to insert at the end of the list.
+        // Well, not quite. If the parent is a virtual node, our "last node" is not the same
+        // as the DOM "last node". So in that case we need to look for the "next node" from
+        // our parent.
+        adjustedInsertBefore = vnode_getDomSibling(parent, true, false);
+      }
+    } else if (vnode_isVirtualVNode(insertBefore)) {
+      // If the `insertBefore` is virtual, than we need to descend into the virtual and find e actual
+      adjustedInsertBefore = vnode_getDomSibling(insertBefore, true, true);
+    } else {
+      adjustedInsertBefore = insertBefore;
+    }
+    adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
+
+    // Here we know the insertBefore node
+    if (domChildren && domChildren.length) {
       journal.push(
         VNodeJournalOpCode.Insert,
         parentNode,
         vnode_getNode(adjustedInsertBefore),
         ...domChildren
       );
-  }
-
-  // ensure that the previous node is unlinked.
-  const newChildCurrentParent = newChild[VNodeProps.parent];
-  if (
-    newChildCurrentParent &&
-    (newChild[VNodeProps.previousSibling] ||
-      newChild[VNodeProps.nextSibling] ||
-      (vnode_isElementVNode(newChildCurrentParent) && newChildCurrentParent !== parent))
-  ) {
-    vnode_remove(journal, newChildCurrentParent, newChild, false);
+    }
   }
 
   // link newChild into the previous/next list
@@ -1086,16 +1143,30 @@ export const vnode_insertBefore = (
   newChild[VNodeProps.previousSibling] = vPrevious;
   newChild[VNodeProps.nextSibling] = vNext;
   newChild[VNodeProps.parent] = parent;
+  if (parentIsDeleted) {
+    // if the parent is deleted, then the new child is also deleted
+    newChild[VNodeProps.flags] |= VNodeFlags.Deleted;
+  }
 };
 
-export const vnode_getDomParent = (vnode: VNode): Element | Text | null => {
-  vnode = vnode_getDomParentVNode(vnode) as VNode;
+export const vnode_getDomParent = (
+  vnode: VNode,
+  includeProjection = true
+): Element | Text | null => {
+  vnode = vnode_getDomParentVNode(vnode, includeProjection) as VNode;
   return (vnode && vnode[ElementVNodeProps.element]) as Element | Text | null;
 };
 
-export const vnode_getDomParentVNode = (vnode: VNode): ElementVNode | null => {
+export const vnode_getDomParentVNode = (
+  vnode: VNode,
+  includeProjection = true
+): ElementVNode | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode = vnode[VNodeProps.parent]!;
+    vnode =
+      vnode[VNodeProps.parent] ||
+      (includeProjection
+        ? vnode_getProp(vnode, QSlotParent, (id) => (vnode_isVNode(id) ? id : null))
+        : null)!;
   }
   return vnode;
 };
@@ -1110,6 +1181,18 @@ export const vnode_remove = (
   if (vnode_isTextVNode(vToRemove)) {
     vnode_ensureTextInflated(journal, vToRemove);
   }
+
+  if (removeDOM) {
+    const domParent = vnode_getDomParent(vParent, false);
+    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
+    if (isInnerHTMLParent) {
+      // ignore children, as they are inserted via innerHTML
+      return;
+    }
+    const children = vnode_getDOMChildNodes(journal, vToRemove);
+    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
+  }
+
   const vPrevious = vToRemove[VNodeProps.previousSibling];
   const vNext = vToRemove[VNodeProps.nextSibling];
   if (vPrevious) {
@@ -1124,16 +1207,6 @@ export const vnode_remove = (
   }
   vToRemove[VNodeProps.previousSibling] = null;
   vToRemove[VNodeProps.nextSibling] = null;
-  if (removeDOM) {
-    const domParent = vnode_getDomParent(vParent);
-    const isInnerHTMLParent = vnode_getAttr(vParent, dangerouslySetInnerHTML);
-    if (isInnerHTMLParent) {
-      // ignore children, as they are inserted via innerHTML
-      return;
-    }
-    const children = vnode_getDOMChildNodes(journal, vToRemove);
-    domParent && children.length && journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
-  }
 };
 
 export const vnode_queryDomNodes = (
@@ -1175,26 +1248,16 @@ export const vnode_truncate = (
   vParent[ElementVNodeProps.lastChild] = vPrevious;
 };
 
-export const vnode_isChildOf = (vParent: VNode, vChild: VNode): boolean => {
-  let vNode = vChild;
-  while (vNode) {
-    if (vNode === vParent) {
-      return true;
-    }
-    vNode = vnode_getParent(vNode)!;
-  }
-  return false;
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_getElementName = (vnode: ElementVNode): string => {
   const elementVNode = ensureElementVNode(vnode);
   let elementName = elementVNode[ElementVNodeProps.elementName];
   if (elementName === undefined) {
-    elementName = elementVNode[ElementVNodeProps.elementName] =
-      elementVNode[ElementVNodeProps.element].nodeName.toLowerCase();
-    elementVNode[VNodeProps.flags] |= vnode_getElementNamespaceFlags(elementName);
+    const element = elementVNode[ElementVNodeProps.element];
+    const nodeName = fastNodeName(element)!.toLowerCase();
+    elementName = elementVNode[ElementVNodeProps.elementName] = nodeName;
+    elementVNode[VNodeProps.flags] |= vnode_getElementNamespaceFlags(element);
   }
   return elementName;
 };
@@ -1214,6 +1277,7 @@ export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text:
   journal.push(VNodeJournalOpCode.SetText, textNode, (textVNode[TextVNodeProps.text] = text));
 };
 
+/** @internal */
 export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   if (vnode_isTextVNode(vnode)) {
     return null;
@@ -1225,7 +1289,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
   return vFirstChild;
 };
 
-export const vnode_materialize = (vNode: ElementVNode) => {
+const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode[ElementVNodeProps.element];
   const firstChild = fastFirstChild(element);
   const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
@@ -1405,6 +1469,22 @@ const fastFirstChild = (node: Node | null): Node | null => {
   return node;
 };
 
+let _fastNamespaceURI: ((this: Element) => string | null) | null = null;
+export const fastNamespaceURI = (element: Element): string | null => {
+  if (!_fastNamespaceURI) {
+    _fastNamespaceURI = fastGetter<typeof _fastNamespaceURI>(element, 'namespaceURI')!;
+  }
+  return _fastNamespaceURI.call(element);
+};
+
+let _fastNodeName: ((this: Element) => string | null) | null = null;
+export const fastNodeName = (element: Element): string | null => {
+  if (!_fastNodeName) {
+    _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
+  }
+  return _fastNodeName.call(element);
+};
+
 const fastGetter = <T>(prototype: any, name: string): T => {
   let getter: any;
   while (prototype && !(getter = Object.getOwnPropertyDescriptor(prototype, name)?.get)) {
@@ -1477,8 +1557,11 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
         const id = consumeValue();
         container.$setRawState$(parseInt(id), vParent);
         isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
-      } else if (peek() === VNodeDataChar.SUBS) {
-        vnode_setProp(vParent, QSubscribers, consumeValue());
+      } else if (peek() === VNodeDataChar.BACK_REFS) {
+        if (!container) {
+          container = getDomContainer(vParent[ElementVNodeProps.element]);
+        }
+        setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
       } else {
         // prevent infinity loop if there are some characters outside the range
         consumeValue();
@@ -1489,23 +1572,43 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
   return vFirstChild;
 };
 
+function setEffectBackRefFromVNodeData(
+  vParent: VNode,
+  value: string | number,
+  container: ClientContainer
+) {
+  const deserializedSubMap = container.$getObjectById$(value);
+  if (!(vParent as any)[_EFFECT_BACK_REF]) {
+    Object.defineProperty(vParent, _EFFECT_BACK_REF, {
+      value: deserializedSubMap,
+    });
+  } else {
+    const subMap = (vParent as any)[_EFFECT_BACK_REF] as Map<string, any>;
+    mergeMaps(subMap, deserializedSubMap);
+  }
+}
+
 const processVNodeData = (
   vData: string,
   callback: (
     peek: () => number,
     consumeValue: () => string,
     consume: () => number,
+    getChar: (idx: number) => number,
     nextToConsumeIdx: number
   ) => void
 ) => {
   let nextToConsumeIdx = 0;
   let ch = 0;
   let peekCh = 0;
+  const getChar = (idx: number) => {
+    return idx < vData.length ? vData.charCodeAt(idx) : 0;
+  };
   const peek = () => {
     if (peekCh !== 0) {
       return peekCh;
     } else {
-      return (peekCh = nextToConsumeIdx < vData.length ? vData.charCodeAt(nextToConsumeIdx) : 0);
+      return (peekCh = getChar(nextToConsumeIdx));
     }
   };
   const consume = () => {
@@ -1530,10 +1633,11 @@ const processVNodeData = (
   };
 
   while (peek() !== 0) {
-    callback(peek, consumeValue, consume, nextToConsumeIdx);
+    callback(peek, consumeValue, consume, getChar, nextToConsumeIdx);
   }
 };
 
+/** @internal */
 export const vnode_getNextSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.nextSibling];
 };
@@ -1542,13 +1646,15 @@ export const vnode_getPreviousSibling = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.previousSibling];
 };
 
+/** @internal */
 export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
     const keys: string[] = [];
-    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; i = i + 2) {
-      const key = vnode[i] as string;
+    const props = vnode_getProps(vnode);
+    for (let i = 0; i < props.length; i = i + 2) {
+      const key = props[i] as string;
       if (!key.startsWith(Q_PROPS_SEPARATOR)) {
         keys.push(key);
       }
@@ -1567,21 +1673,22 @@ export const vnode_setAttr = (
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    const idx = mapApp_findIndx(vnode as string[], key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    const idx = mapApp_findIndx(props, key, 0);
 
     if (idx >= 0) {
-      if (vnode[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
+      if (props[idx + 1] != value && (type & VNodeFlags.Element) !== 0) {
         // Values are different, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
         journal && journal.push(VNodeJournalOpCode.SetAttribute, element, key, value);
       }
       if (value == null) {
-        vnode.splice(idx, 2);
+        props.splice(idx, 2);
       } else {
-        vnode[idx + 1] = value;
+        props[idx + 1] = value;
       }
     } else if (value != null) {
-      vnode.splice(idx ^ -1, 0, key, value);
+      props.splice(idx ^ -1, 0, key, value);
       if ((type & VNodeFlags.Element) !== 0) {
         // New value, update DOM
         const element = vnode[ElementVNodeProps.element] as Element;
@@ -1591,11 +1698,13 @@ export const vnode_setAttr = (
   }
 };
 
+/** @internal */
 export const vnode_getAttr = (vnode: VNode, key: string): string | null => {
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     vnode_ensureElementInflated(vnode);
-    return mapArray_get(vnode as string[], key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    return mapArray_get(props as string[], key, 0);
   }
   return null;
 };
@@ -1608,11 +1717,12 @@ export const vnode_getProp = <T>(
   const type = vnode[VNodeProps.flags];
   if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
     type & VNodeFlags.Element && vnode_ensureElementInflated(vnode);
-    const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
+    const props = vnode_getProps(vnode);
+    const idx = mapApp_findIndx(props as any, key, 0);
     if (idx >= 0) {
-      let value = vnode[idx + 1] as any;
+      let value = props[idx + 1] as any;
       if (typeof value === 'string' && getObject) {
-        vnode[idx + 1] = value = getObject(value);
+        props[idx + 1] = value = getObject(value);
       }
       return value;
     }
@@ -1622,14 +1732,16 @@ export const vnode_getProp = <T>(
 
 export const vnode_setProp = (vnode: VirtualVNode | ElementVNode, key: string, value: unknown) => {
   ensureElementOrVirtualVNode(vnode);
-  const idx = mapApp_findIndx(vnode as any, key, vnode_getPropStartIndex(vnode));
+  const props = vnode_getProps(vnode);
+  const idx = mapApp_findIndx(props, key, 0);
   if (idx >= 0) {
-    vnode[idx + 1] = value as any;
+    props[idx + 1] = value as any;
   } else if (value != null) {
-    vnode.splice(idx ^ -1, 0, key, value as any);
+    props.splice(idx ^ -1, 0, key, value as any);
   }
 };
 
+/** @internal */
 export const vnode_getPropStartIndex = (vnode: VNode): number => {
   const type = vnode[VNodeProps.flags] & VNodeFlags.TYPE_MASK;
   if (type === VNodeFlags.Element) {
@@ -1640,20 +1752,44 @@ export const vnode_getPropStartIndex = (vnode: VNode): number => {
   throw qError(QError.invalidVNodeType, [type]);
 };
 
-export const vnode_propsToRecord = (vnode: VNode): Record<string, unknown> => {
-  const props: Record<string, unknown> = {};
-  if (!vnode_isTextVNode(vnode)) {
-    for (let i = vnode_getPropStartIndex(vnode); i < vnode.length; ) {
-      const key = vnode[i++] as string;
-      const value = vnode[i++];
-      props[key] = value;
-    }
-  }
-  return props;
+/** @internal */
+export const vnode_getProps = (vnode: VNode): unknown[] => {
+  return vnode[vnode_getPropStartIndex(vnode)] as unknown[];
 };
 
 export const vnode_getParent = (vnode: VNode): VNode | null => {
   return vnode[VNodeProps.parent] || null;
+};
+
+export const vnode_isDescendantOf = (
+  vnode: VNode,
+  ancestor: VNode,
+  rootVNode: ElementVNode | null
+): boolean => {
+  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode, rootVNode);
+  while (parent) {
+    if (parent === ancestor) {
+      return true;
+    }
+    parent = vnode_getParentOrProjectionParent(parent, rootVNode);
+  }
+  return false;
+};
+
+export const vnode_getParentOrProjectionParent = (
+  vnode: VNode,
+  rootVNode: ElementVNode | null
+): VNode | null => {
+  if (rootVNode) {
+    const parentProjection: VNode | null = vnode_getProp(vnode, QSlotParent, (id) =>
+      vnode_locate(rootVNode, id)
+    );
+    if (parentProjection) {
+      // This is a projection, so we need to check the parent of the projection
+      return parentProjection;
+    }
+  }
+  return vnode_getParent(vnode);
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
@@ -1667,12 +1803,14 @@ export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
   return vnode[TextVNodeProps.node]!;
 };
 
+/** @internal */
 export function vnode_toString(
   this: VNode | null,
   depth: number = 20,
   offset: string = '',
   materialize: boolean = false,
-  siblings = false
+  siblings = false,
+  colorize: boolean = true
 ): string {
   let vnode = this;
   if (depth === 0) {
@@ -1685,6 +1823,8 @@ export function vnode_toString(
     return 'undefined';
   }
   const strings: string[] = [];
+  const NAME_COL_PREFIX = '\x1b[34m';
+  const NAME_COL_SUFFIX = '\x1b[0m';
   do {
     if (vnode_isTextVNode(vnode)) {
       strings.push(qwikDebugToString(vnode_getText(vnode)));
@@ -1698,12 +1838,16 @@ export function vnode_toString(
         }
       });
       const name =
-        VirtualTypeName[vnode_getAttr(vnode, DEBUG_TYPE) || VirtualType.Virtual] ||
-        VirtualTypeName[VirtualType.Virtual];
+        (colorize ? NAME_COL_PREFIX : '') +
+        (VirtualTypeName[vnode_getAttr(vnode, DEBUG_TYPE) || VirtualType.Virtual] ||
+          VirtualTypeName[VirtualType.Virtual]) +
+        (colorize ? NAME_COL_SUFFIX : '');
       strings.push('<' + name + attrs.join('') + '>');
       const child = vnode_getFirstChild(vnode);
       child &&
-        strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
+        strings.push(
+          '  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true, colorize)
+        );
       strings.push('</' + name + '>');
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
@@ -1731,7 +1875,9 @@ export function vnode_toString(
       if (vnode_isMaterialized(vnode) || materialize) {
         const child = vnode_getFirstChild(vnode);
         child &&
-          strings.push('  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true));
+          strings.push(
+            '  ' + vnode_toString.call(child, depth - 1, offset + '  ', true, true, colorize)
+          );
       } else {
         strings.push('  <!-- not materialized --!>');
       }
@@ -1759,7 +1905,7 @@ function materializeFromVNodeData(
 
   const addVNode = (node: VNode) => {
     node[VNodeProps.flags] =
-      (node[VNodeProps.flags] & VNodeFlagsIndex.negated_mask) | (idx << VNodeFlagsIndex.shift);
+      (node[VNodeProps.flags] & VNodeFlagsIndex.mask) | (idx << VNodeFlagsIndex.shift);
     idx++;
     vLast && (vLast[VNodeProps.nextSibling] = node);
     node[VNodeProps.previousSibling] = vLast;
@@ -1774,20 +1920,20 @@ function materializeFromVNodeData(
   let combinedText: string | null = null;
   let container: ClientContainer | null = null;
 
-  processVNodeData(vData, (peek, consumeValue, consume, nextToConsumeIdx) => {
+  processVNodeData(vData, (peek, consumeValue, consume, getChar, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
-      while (!isElement(child)) {
+      while (
+        !isElement(child) ||
+        // We pretend that style element's don't exist as they can get moved out.
+        // skip over style elements, as those need to be moved to the head
+        // and are not included in the counts.
+        isQStyleElement(child)
+      ) {
         child = fastNextSibling(child);
         if (!child) {
           throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
         }
-      }
-      // We pretend that style element's don't exist as they can get moved out.
-      while (isQStyleElement(child)) {
-        // skip over style elements, as those need to be moved to the head
-        // and are not included in the counts.
-        child = fastNextSibling(child);
       }
       combinedText = null;
       previousTextNode = null;
@@ -1814,16 +1960,28 @@ function materializeFromVNodeData(
       isDev && vnode_setAttr(null, vParent, ELEMENT_ID, id);
     } else if (peek() === VNodeDataChar.PROPS) {
       vnode_setAttr(null, vParent, ELEMENT_PROPS, consumeValue());
-    } else if (peek() === VNodeDataChar.SLOT_REF) {
-      vnode_setAttr(null, vParent, QSlotRef, consumeValue());
     } else if (peek() === VNodeDataChar.KEY) {
-      vnode_setAttr(null, vParent, ELEMENT_KEY, consumeValue());
+      const isEscapedValue = getChar(nextToConsumeIdx + 1) === VNodeDataChar.SEPARATOR;
+      let value;
+      if (isEscapedValue) {
+        consume();
+        value = decodeURI(consumeValue());
+        consume();
+      } else {
+        value = consumeValue();
+      }
+      vnode_setAttr(null, vParent, ELEMENT_KEY, value);
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {
       vnode_setAttr(null, vParent, ELEMENT_SEQ_IDX, consumeValue());
-    } else if (peek() === VNodeDataChar.SUBS) {
-      vnode_setProp(vParent, QSubscribers, consumeValue());
+    } else if (peek() === VNodeDataChar.BACK_REFS) {
+      if (!container) {
+        container = getDomContainer(element);
+      }
+      setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
+    } else if (peek() === VNodeDataChar.SLOT_PARENT) {
+      vnode_setProp(vParent, QSlotParent, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vnode_setAttr(null, vParent, QCtxAttr, consumeValue());
     } else if (peek() === VNodeDataChar.OPEN) {
@@ -1848,6 +2006,10 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SLOT) {
       vnode_setAttr(null, vParent, QSlot, consumeValue());
     } else {
+      // skip over style elements in front of text nodes, where text node is the first child (except the style node)
+      while (isQStyleElement(child)) {
+        child = fastNextSibling(child);
+      }
       const textNode =
         child && fastNodeType(child) === /* Node.TEXT_NODE */ 3 ? (child as Text) : null;
       // must be alphanumeric
@@ -1896,7 +2058,7 @@ const isElement = (node: any): node is Element =>
  * parents.
  *
  * However, if during traversal we encounter a projection, than we have to follow the projection,
- * and nod weth the projection component is further away (it is the parent's parent of the
+ * and node with the projection component is further away (it is the parent's parent of the
  * projection's)
  *
  * So in general we have to go up as many parent components as there are projections nestings.
@@ -1907,7 +2069,7 @@ const isElement = (node: any): node is Element =>
  * - And so on.
  *
  * @param vHost
- * @param getObjectById
+ * @param rootVNode
  * @returns
  */
 export const vnode_getProjectionParentComponent = (
@@ -1937,7 +2099,7 @@ export const vnode_getProjectionParentComponent = (
   return vHost as VirtualVNode | null;
 };
 
-const VNodeArray = class VNode extends Array {
+const VNodeArray = class VNode extends Array<any> {
   static createElement(
     flags: VNodeFlags,
     parent: VNode | null,
@@ -1948,9 +2110,17 @@ const VNodeArray = class VNode extends Array {
     element: Element,
     elementName: string | undefined
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild, element, elementName);
-    return vnode;
+    return new VNode(
+      flags,
+      parent,
+      previousSibling,
+      nextSibling,
+      firstChild,
+      lastChild,
+      element,
+      elementName,
+      []
+    ) as ElementVNode;
   }
 
   static createText(
@@ -1961,9 +2131,7 @@ const VNodeArray = class VNode extends Array {
     textNode: Text | null,
     text: string | undefined
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(textNode, text);
-    return vnode;
+    return new VNode(flags, parent, previousSibling, nextSibling, textNode, text) as TextVNode;
   }
 
   static createVirtual(
@@ -1974,19 +2142,25 @@ const VNodeArray = class VNode extends Array {
     firstChild: VNode | null,
     lastChild: VNode | null
   ) {
-    const vnode = new VNode(flags, parent, previousSibling, nextSibling) as any;
-    vnode.push(firstChild, lastChild);
-    return vnode;
+    return new VNode(
+      flags,
+      parent,
+      previousSibling,
+      nextSibling,
+      firstChild,
+      lastChild,
+      []
+    ) as VirtualVNode;
   }
 
   constructor(
     flags: VNodeFlags,
     parent: VNode | null,
     previousSibling: VNode | null | undefined,
-    nextSibling: VNode | null | undefined
+    nextSibling: VNode | null | undefined,
+    ...rest: (VNode | Element | Text | string | null | undefined)[]
   ) {
-    super();
-    this.push(flags, parent, previousSibling, nextSibling);
+    super(flags, parent, previousSibling, nextSibling, ...rest);
     if (isDev) {
       this.toString = vnode_toString;
     }

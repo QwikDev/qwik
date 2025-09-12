@@ -44,10 +44,13 @@ export async function runV2Migration(app: AppCommand) {
       [['qwikCityPlan', 'qwikRouterConfig']],
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );
+    replaceImportInFiles([['jsxs', 'jsx']], '@builder.io/qwik/jsx-runtime');
 
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
     replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
+    // jsx-runtime contains re-exports from "core"
+    replacePackage('@builder.io/qwik/jsx-runtime', '@qwik.dev/core');
     // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above
     replacePackage('@builder.io/qwik', '@qwik.dev/core');
 

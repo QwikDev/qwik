@@ -30,27 +30,27 @@ import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { useSignal } from '@qwik.dev/core';
-export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
+export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
     let fromLocal = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", {
-        computed: _fnSignal((p0, p1)=>p0 + p1.fromProps, [
-            fromLocal,
-            props
-        ], "p0+p1.fromProps"),
+        computed: _fnSignal((p0, p1)=>p1 + p0.fromProps, [
+            _rawProps,
+            fromLocal
+        ], "p1+p0.fromProps"),
         local: fromLocal,
         props: _fnSignal((p0, p1)=>({
-                props: p1.fromProps,
-                local: p0
+                props: p0.fromProps,
+                local: p1
             }), [
-            fromLocal,
-            props
-        ], "{props:p1.fromProps,local:p0}"),
+            _rawProps,
+            fromLocal
+        ], "{props:p0.fromProps,local:p1}"),
         "props-only": _fnSignal((p0)=>({
                 props: p0.fromProps
             }), [
-            props
+            _rawProps
         ], "{props:p0.fromProps}"),
-        "props-wrap": _wrapProp(props, "fromProps")
+        "props-wrap": _wrapProp(_rawProps, "fromProps")
     }, null, null, 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 

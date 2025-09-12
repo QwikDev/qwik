@@ -3,8 +3,8 @@ import { isNode } from './element';
 import { isPromise } from './promises';
 import { isArray, isFunction, isObject, isSerializableObject } from './types';
 import { canSerialize } from '../shared-serialization';
-import { isSignal } from '../../signal/signal';
-import { unwrapStore } from '../../signal/store';
+import { isSignal } from '../../reactive-primitives/utils';
+import { unwrapStore } from '../../reactive-primitives/impl/store';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -68,7 +68,7 @@ const _verifySerializable = <T>(
       case 'number':
         return value;
     }
-    let message = '';
+    let message: string;
     if (preMessage) {
       message = preMessage;
     } else {
@@ -90,7 +90,6 @@ const _verifySerializable = <T>(
   return value;
 };
 const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
-const weakSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
 export const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
@@ -99,12 +98,12 @@ export const shouldSerialize = (obj: unknown): boolean => {
   return true;
 };
 
-export const fastSkipSerialize = (obj: object): boolean => {
-  return noSerializeSet.has(obj);
-};
-
-export const fastWeakSerialize = (obj: object): boolean => {
-  return weakSerializeSet.has(obj);
+export const fastSkipSerialize = (obj: object | Function): boolean => {
+  return (
+    obj &&
+    (isObject(obj) || typeof obj === 'function') &&
+    (NoSerializeSymbol in obj || noSerializeSet.has(obj))
+  );
 };
 
 /**
@@ -136,14 +135,34 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  */
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
-  if (input != null) {
+  // only add supported values to the noSerializeSet, prevent console errors
+  if ((isObject(input) && input !== null) || typeof input === 'function') {
     noSerializeSet.add(input);
   }
   return input as any;
 };
 
-/** @internal */
-export const _weakSerialize = <T extends object>(input: T): Partial<T> => {
-  weakSerializeSet.add(input);
-  return input as any;
-};
+/**
+ * If an object has this property, it will not be serialized. Use this on prototypes to avoid having
+ * to call `noSerialize()` on every object.
+ *
+ * @public
+ */
+export const NoSerializeSymbol = Symbol('noSerialize');
+/**
+ * If an object has this property as a function, it will be called with the object and should return
+ * a serializable value.
+ *
+ * This can be used to clean up, integrate with other libraries, etc.
+ *
+ * The type your object should conform to is:
+ *
+ * ```ts
+ * {
+ *   [SerializerSymbol]: (this: YourType, toSerialize: YourType) => YourSerializableType;
+ * }
+ * ```
+ *
+ * @public
+ */
+export const SerializerSymbol = Symbol('serialize');

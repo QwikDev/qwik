@@ -1,23 +1,4 @@
 /** @public */
-export class ServerError<T = Record<any, any>> extends Error {
-  constructor(
-    public status: number,
-    public data: T
-  ) {
-    super();
-  }
-}
-
-export class ErrorResponse extends Error {
-  constructor(
-    public status: number,
-    message?: string
-  ) {
-    super(message);
-  }
-}
-
-/** @public */
 export function getErrorHtml(status: number, e: any) {
   let message = 'Server Error';
 

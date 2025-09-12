@@ -1,41 +1,45 @@
 import { isDev } from '@qwik.dev/core/build';
+import { _run } from '../client/queue-qrl';
 import { isQwikComponent } from '../shared/component.public';
-import { createQRL, isQrl, type QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
-import { trackSignalAndAssignHost } from '../use/use-core';
+import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import type { QRL } from '../shared/qrl/qrl.public';
+import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
+import {
+  getEventNameFromJsxEvent,
+  isJsxPropertyAnEventName,
+  isPreventDefault,
+  jsxEventToHtmlAttribute,
+} from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
+  QSlotParent,
   qwikInspectorAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
-import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import {
-  convertEventNameFromJsxPropToHtmlAttr,
-  getEventNameFromJsxProp,
-  isJsxPropertyAnEventName,
-  isPreventDefault,
-} from '../shared/utils/event-names';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
+import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
-import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
-import { DEBUG_TYPE, VirtualType } from '../shared/types';
-import { WrappedSignal, EffectProperty, isSignal } from '../signal/signal';
+import { serializeAttribute } from '../shared/utils/styles';
+import { isFunction, type ValueOrPromise } from '../shared/utils/types';
+import { isSignal } from '../reactive-primitives/utils';
+import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { qInspector } from '../shared/utils/qdev';
-import { serializeAttribute } from '../shared/utils/styles';
-import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-import { queueQRL } from '../client/queue-qrl';
+import { isQrl } from '../shared/qrl/qrl-utils';
+import { EffectProperty } from '../reactive-primitives/types';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 class ParentComponentData {
   constructor(
@@ -43,9 +47,17 @@ class ParentComponentData {
     public $componentFrame$: ISsrComponentFrame | null
   ) {}
 }
+class MaybeAsyncSignal {}
+
 type StackFn = () => ValueOrPromise<void>;
 type StackValue = ValueOrPromise<
-  JSXOutput | StackFn | Promise<JSXOutput> | typeof Promise | ParentComponentData | AsyncGenerator
+  | JSXOutput
+  | StackFn
+  | Promise<JSXOutput>
+  | typeof Promise
+  | ParentComponentData
+  | AsyncGenerator
+  | typeof MaybeAsyncSignal
 >;
 
 /** @internal */
@@ -65,6 +77,14 @@ export async function _walkJSX(
       if (value instanceof ParentComponentData) {
         options.currentStyleScoped = value.$scopedStyle$;
         options.parentComponentFrame = value.$componentFrame$;
+        continue;
+      } else if (value === MaybeAsyncSignal) {
+        // It could be an async signal, but it is not resolved yet, we need to wait for it.
+        // We could do that in the processJSXNode,
+        // but it will mean that we need to await it there, and it will return a promise.
+        // We probably want to avoid creating a promise for all jsx nodes.
+        const trackFn = stack.pop() as () => StackValue;
+        await retryOnPromise(() => stack.push(trackFn()));
         continue;
       } else if (typeof value === 'function') {
         if (value === Promise) {
@@ -108,9 +128,10 @@ function processJSXNode(
       }
     } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
-      const signalNode = ssr.getLastNode();
+      const signalNode = ssr.getOrCreateLastNode();
       enqueue(ssr.closeFragment);
-      enqueue(trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(() => trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(MaybeAsyncSignal);
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);
       enqueue(ssr.closeFragment);
@@ -143,19 +164,15 @@ function processJSXNode(
 
         const innerHTML = ssr.openElement(
           type,
-          varPropsToSsrAttrs(
-            jsx.varProps,
-            jsx.constProps,
-            ssr.serializationCtx,
-            options.styleScoped,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps,
-            jsx.varProps,
-            ssr.serializationCtx,
-            options.styleScoped
-          ),
+          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+          }),
           qwikInspectorAttrValue
         );
         if (innerHTML) {
@@ -165,10 +182,15 @@ function processJSXNode(
         enqueue(ssr.closeElement);
 
         if (type === 'head') {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
           enqueue(ssr.additionalHeadNodes);
-          enqueue(ssr.emitQwikLoaderAtTopIfNeeded);
         } else if (type === 'body') {
           enqueue(ssr.additionalBodyNodes);
+        } else if (!ssr.isHtml && !(ssr as any)._didAddQwikLoader) {
+          ssr.emitQwikLoaderAtTopIfNeeded();
+          ssr.emitPreloaderPre();
+          (ssr as any)._didAddQwikLoader = true;
         }
 
         const children = jsx.children as JSXOutput;
@@ -180,7 +202,6 @@ function processJSXNode(
             attrs = [DEBUG_TYPE, VirtualType.Fragment, ...attrs]; // Add debug info.
           }
           ssr.openFragment(attrs);
-          ssr.addCurrentElementFrameAsComponentChild();
           enqueue(ssr.closeFragment);
           // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
@@ -191,10 +212,10 @@ function processJSXNode(
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
             const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];
-            projectionAttrs.push(':', compId);
+            projectionAttrs.push(QSlotParent, compId);
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
-            const node = ssr.getLastNode();
+            const node = ssr.getOrCreateLastNode();
             const slotName = getSlotName(host, jsx, ssr);
             projectionAttrs.push(QSlot, slotName);
 
@@ -227,7 +248,7 @@ function processJSXNode(
           if (isFunction(generator)) {
             value = generator({
               async write(chunk) {
-                await _walkJSX(ssr, chunk as JSXOutput, {
+                await _walkJSX(ssr, chunk, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
@@ -245,7 +266,7 @@ function processJSXNode(
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an array for props, we always modify props for a component
           ssr.openComponent(isDev ? [DEBUG_TYPE, VirtualType.Component] : []);
-          const host = ssr.getLastNode();
+          const host = ssr.getOrCreateLastNode();
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,
@@ -268,7 +289,7 @@ function processJSXNode(
               : inlineComponentProps
           );
           enqueue(ssr.closeFragment);
-          const component = ssr.getComponentFrame(0)!;
+          const component = ssr.getComponentFrame(0);
           const jsxOutput = applyInlineComponent(
             ssr,
             component && component.componentNode,
@@ -283,52 +304,50 @@ function processJSXNode(
   }
 }
 
+interface SsrAttrsOptions {
+  serializationCtx: SerializationContext;
+  styleScopedId: string | null;
+  key?: string | null;
+}
+
 export function varPropsToSsrAttrs(
   varProps: Record<string, unknown>,
   constProps: Record<string, unknown> | null,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null,
-  key?: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(varProps, constProps, serializationCtx, true, styleScopedId, key);
+  return toSsrAttrs(varProps, constProps, false, options);
 }
 
 export function constPropsToSsrAttrs(
   constProps: Record<string, unknown> | null,
   varProps: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(constProps, varProps, serializationCtx, false, styleScopedId);
+  return toSsrAttrs(constProps, varProps, true, options);
 }
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
   anotherRecord: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
+  const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     let value = record[key];
@@ -364,9 +383,9 @@ export function toSsrAttrs(
           }
         }
       }
-      const eventValue = setEvent(serializationCtx, key, value);
+      const eventValue = setEvent(options.serializationCtx, key, value);
       if (eventValue) {
-        ssrAttrs.push(convertEventNameFromJsxPropToHtmlAttr(key), eventValue);
+        ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
       continue;
     }
@@ -375,23 +394,24 @@ export function toSsrAttrs(
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
-        ssrAttrs.push(key, [value, styleScopedId]);
+        ssrAttrs.push(key, [value, options.styleScopedId]);
       } else {
         ssrAttrs.push(key, value);
       }
+
       continue;
     }
 
     if (isPreventDefault(key)) {
-      addPreventDefaultEventToSerializationContext(serializationCtx, key);
+      addPreventDefaultEventToSerializationContext(options.serializationCtx, key);
     }
 
-    value = serializeAttribute(key, value, styleScopedId);
+    value = serializeAttribute(key, value, options.styleScopedId);
 
     ssrAttrs.push(key, value as string);
   }
-  if (key != null) {
-    ssrAttrs.push(ELEMENT_KEY, key);
+  if (options.key != null) {
+    ssrAttrs.push(ELEMENT_KEY, options.key);
   }
   return ssrAttrs;
 }
@@ -445,7 +465,7 @@ function setEvent(
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
     if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
-      qrl = createQRL(null, '_run', queueQRL, null, null, [qrl]);
+      qrl = createQRL(null, '_run', _run, null, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);
   };
@@ -477,7 +497,7 @@ function addQwikEventToSerializationContext(
   key: string,
   qrl: QRL
 ) {
-  const eventName = getEventNameFromJsxProp(key);
+  const eventName = getEventNameFromJsxEvent(key);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
     serializationCtx.$eventQrls$.add(qrl);
@@ -499,7 +519,7 @@ function getSlotName(host: ISsrNode, jsx: JSXNodeInternal, ssr: SSRContainer): s
   const constProps = jsx.constProps;
   if (constProps && typeof constProps == 'object' && 'name' in constProps) {
     const constValue = constProps.name;
-    if (constValue instanceof WrappedSignal) {
+    if (constValue instanceof WrappedSignalImpl) {
       return trackSignalAndAssignHost(constValue, host, EffectProperty.COMPONENT, ssr);
     }
   }

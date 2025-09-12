@@ -295,14 +295,15 @@ export function processVNodeData(document: Document) {
         const shadowRootContainer = node as Element | null;
         const shadowRoot = shadowRootContainer?.shadowRoot;
         if (shadowRoot) {
+          const firstShadowRootChild = firstChild(shadowRoot)!;
           walkContainer(
             // we need to create a new walker for the shadow root
             document.createTreeWalker(
-              shadowRoot,
+              firstShadowRootChild,
               0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
             ),
             null,
-            firstChild(shadowRoot),
+            firstShadowRootChild,
             null,
             '',
             null!,

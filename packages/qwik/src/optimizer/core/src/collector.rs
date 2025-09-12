@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use swc_atoms::{js_word, JsWord};
+use swc_atoms::{atom, Atom};
 use swc_common::{Span, SyntaxContext, DUMMY_SP};
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
@@ -12,7 +12,7 @@ macro_rules! id {
 	};
 }
 
-pub type Id = (JsWord, SyntaxContext);
+pub type Id = (Atom, SyntaxContext);
 
 pub fn new_ident_from_id(id: &Id) -> ast::Ident {
 	ast::Ident::new(id.0.clone(), DUMMY_SP, id.1)
@@ -27,8 +27,8 @@ pub enum ImportKind {
 
 #[derive(Clone)]
 pub struct Import {
-	pub source: JsWord,
-	pub specifier: JsWord,
+	pub source: Atom,
+	pub specifier: Atom,
 	pub kind: ImportKind,
 	pub synthetic: bool,
 	pub asserts: Option<Box<ast::ObjectLit>>,
@@ -37,10 +37,10 @@ pub struct Import {
 pub struct GlobalCollect {
 	pub synthetic: Vec<(Id, Import)>,
 	pub imports: HashMap<Id, Import>,
-	pub exports: HashMap<Id, Option<JsWord>>,
+	pub exports: HashMap<Id, Option<Atom>>,
 	pub root: HashMap<Id, Span>,
 
-	rev_imports: HashMap<(JsWord, JsWord), Id>,
+	rev_imports: HashMap<(Atom, Atom), Id>,
 	in_export_decl: bool,
 }
 
@@ -60,7 +60,7 @@ pub fn global_collect(program: &ast::Program) -> GlobalCollect {
 }
 
 impl GlobalCollect {
-	pub fn get_imported_local(&self, specifier: &JsWord, source: &JsWord) -> Option<Id> {
+	pub fn get_imported_local(&self, specifier: &Atom, source: &Atom) -> Option<Id> {
 		self.imports
 			.iter()
 			.find(|(_, import)| &import.specifier == specifier && &import.source == source)
@@ -80,7 +80,7 @@ impl GlobalCollect {
 		false
 	}
 
-	pub fn import(&mut self, specifier: &JsWord, source: &JsWord) -> Id {
+	pub fn import(&mut self, specifier: &Atom, source: &Atom) -> Id {
 		self.rev_imports
 			.get(&(specifier.clone(), source.clone()))
 			.cloned()
@@ -114,7 +114,7 @@ impl GlobalCollect {
 		self.imports.insert(local, import);
 	}
 
-	pub fn add_export(&mut self, local: Id, exported: Option<JsWord>) -> bool {
+	pub fn add_export(&mut self, local: Id, exported: Option<Atom>) -> bool {
 		if let std::collections::hash_map::Entry::Vacant(e) = self.exports.entry(local) {
 			e.insert(exported);
 			true
@@ -177,7 +177,7 @@ impl Visit for GlobalCollect {
 						id!(default.local),
 						Import {
 							source: node.src.value.clone(),
-							specifier: js_word!("default"),
+							specifier: atom!("default"),
 							kind: ImportKind::Default,
 							synthetic: false,
 							asserts: node.with.clone(),
@@ -223,7 +223,7 @@ impl Visit for GlobalCollect {
 				ast::ExportSpecifier::Default(default) => {
 					self.exports
 						.entry(id!(default.exported))
-						.or_insert(Some(js_word!("default")));
+						.or_insert(Some(atom!("default")));
 				}
 				ast::ExportSpecifier::Namespace(namespace) => {
 					if let ast::ModuleExportName::Ident(ident) = &namespace.name {
@@ -264,12 +264,12 @@ impl Visit for GlobalCollect {
 		match &node.decl {
 			ast::DefaultDecl::Class(class) => {
 				if let Some(ident) = &class.ident {
-					self.add_export(id!(ident), Some(js_word!("default")));
+					self.add_export(id!(ident), Some(atom!("default")));
 				}
 			}
 			ast::DefaultDecl::Fn(func) => {
 				if let Some(ident) = &func.ident {
-					self.add_export(id!(ident), Some(js_word!("default")));
+					self.add_export(id!(ident), Some(atom!("default")));
 				}
 			}
 			_ => {

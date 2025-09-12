@@ -65,6 +65,7 @@ const App_component_ckEPmXZlub0 = ()=>{
         global: globalThing,
         globalAccess: globalThing.thing,
         globalComputed: globalThing.thing + 'stuff',
+        noInline: signal.value(),
         noInline2: signal.value + unknown(),
         noInline3: mutable(signal),
         noInline4: signal.value + dep
@@ -88,16 +89,13 @@ const App_component_ckEPmXZlub0 = ()=>{
         ], 'p0.address.city.name?"true":"false"'),
         dep: dep,
         depAccess: dep.thing,
-        depComputed: dep.thing + 'stuff',
-        noInline: _fnSignal((p0)=>p0.value(), [
-            signal
-        ], "p0.value()")
+        depComputed: dep.thing + 'stuff'
     }, null, 3, "u6_0");
 };
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,WAAC;QAmBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAIpC,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;QAElD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;QAOzB,QAAQ,kBAAE,GAAO,KAAK;;;;AAMzB;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;AAC3B,SAAQ,GAAG,QAAO,QAAQ;kCAEI;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC,WAAC;QAmBA,QAAQ;QACR,cAAc,YAAY,KAAK;QAC/B,gBAAgB,YAAY,KAAK,GAAG;QAGpC,UAAU,OAAO,KAAK;QACtB,WAAW,OAAO,KAAK,GAAG;QAC1B,WAAW,QAAQ;QACnB,WAAW,OAAO,KAAK,GAAG;;QA1B1B,YAAW;QACX,aAAa,CAAC,IAAI,CAAC;QACnB,cAAc;QACd,eAAe;QACf,YAAY,CAAC,IAAI,EAAE,IAAI;QACvB,aAAa,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;QAEpD,QAAQ;QACR,WAAW,YAAE;QACb,mBAAmB,kBAAE,KAAK,GAAO,KAAK;;;QAEtC,KAAK,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;QAC9B,aAAa,kBAAE,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;QAElD,KAAK;QACL,WAAW,IAAI,KAAK;QACpB,aAAa,IAAI,KAAK,GAAG;;AAa5B;AAlCA,OAAO,MAAM,oBAAM,+FAkChB\"}")
 == DIAGNOSTICS ==
 
 []

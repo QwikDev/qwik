@@ -21,10 +21,11 @@ export const App = Component((props) => {
 
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_NuXFTHRjvXE"), "App_Component_NuXFTHRjvXE"));
+const i_NuXFTHRjvXE = ()=>import("./test.tsx_App_Component_NuXFTHRjvXE");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_NuXFTHRjvXE, "App_Component_NuXFTHRjvXE"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,oBAAM,iHAMhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAMhB\"}")
 ============================= test.tsx_App_Component_1_A08tXHb9pEk.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -54,6 +55,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     183,
     220
+  ],
+  "captureNames": [
+    "state"
   ]
 }
 */
@@ -61,17 +65,18 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { qrl } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
+const i_A08tXHb9pEk = ()=>import("./test.tsx_App_Component_1_A08tXHb9pEk");
 export const App_Component_NuXFTHRjvXE = (props)=>{
     const state = useStore({
         thing: 0
     });
-    return /*#__PURE__*/ qrl(()=>import("./test.tsx_App_Component_1_A08tXHb9pEk"), "App_Component_1_A08tXHb9pEk", [
+    return /*#__PURE__*/ qrl(i_A08tXHb9pEk, "App_Component_1_A08tXHb9pEk", [
         state
     ]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;yCAG6B,CAAC;IAC7B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;yCAG6B,CAAC;IAC7B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAEhC;;;AAGD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -89,6 +94,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     115,
     224
+  ],
+  "paramNames": [
+    "props"
   ]
 }
 */

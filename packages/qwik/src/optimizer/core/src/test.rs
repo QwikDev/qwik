@@ -1843,10 +1843,10 @@ export const Parent = component$(() => {
 	serverStuff$(async () => {
 		// should be removed too
 		const a = $(() => {
-			// from $(), should not be removed
+			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			// from clien$(), should not be removed
+			dontRemoveThisDollar();
 		});
 		return [a,b];
 	})
@@ -1854,7 +1854,7 @@ export const Parent = component$(() => {
 	serverLoader$(handler);
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -1949,7 +1949,7 @@ export const Parent = component$(() => {
 	});
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -4625,6 +4625,35 @@ fn should_merge_attributes_with_spread_props_before_and_after() {
 		.to_string(),
 		transpile_ts: true,
 		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn empty_fn_to_noop() {
+	test_input!(TestInput {
+		code: r#"
+		import { isServer } from '@builder.io/qwik/build';
+		import { component$ } from '@builder.io/qwik';
+		export const Cmp0 = component$(() => {
+			return undefined;
+		 });
+		export const Cmp1 = component$(() => {
+			if (!isServer) {
+				return <div>hello</div>;
+			}
+		});
+		export const Cmp2 = component$(function(_unused) {
+			if (isServer) {
+				return;
+			}
+			return <div>hello</div>;
+		});
+		export const Cmp3 = component$(function() { });
+		"#
+		.to_string(),
+		mode: EmitMode::Prod,
+		is_server: Some(true),
 		..TestInput::default()
 	});
 }

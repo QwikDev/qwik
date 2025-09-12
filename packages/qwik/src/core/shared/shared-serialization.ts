@@ -140,7 +140,6 @@ class DeserializationHandler implements ProxyHandler<object> {
      */
     if (typeId === TypeIds.Array || typeId >= TypeIds.Error) {
       inflate(container, propValue, typeId, value);
-      Reflect.set(target, property, propValue);
     }
 
     return propValue;
@@ -188,7 +187,7 @@ const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 
 const inflate = (
   container: DeserializeContainer,
-  target: any,
+  target: unknown,
   typeId: TypeIds,
   data: unknown
 ): void => {
@@ -206,17 +205,17 @@ const inflate = (
         // read the value to trigger lazy deserialization
         (target as any[])[i];
       }
-      return target[SERIALIZER_PROXY_UNWRAP];
+      break;
     case TypeIds.Object:
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];
-        target[key] = value;
+        (target as Record<string, unknown>)[key] = value;
       }
       break;
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
-      inflateQRL(container, target);
+      inflateQRL(container, target as QRLInternal<any>);
       break;
     case TypeIds.Task:
       const task = target as Task;
@@ -240,10 +239,10 @@ const inflate = (
         resource._error = result as Error;
         resource._state = 'rejected';
       }
-      getStoreHandler(target)!.$effects$ = effects;
+      getStoreHandler(target as object)!.$effects$ = effects;
       break;
     case TypeIds.Component:
-      target[SERIALIZABLE_STATE][0] = (data as any[])[0];
+      (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
     case TypeIds.Store: {
       /**
@@ -254,7 +253,7 @@ const inflate = (
        * because they are already inflated in the first step of inflate().
        */
       const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(target)!;
+      const storeHandler = getStoreHandler(target as object)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
       break;
@@ -340,10 +339,10 @@ const inflate = (
       break;
     }
     case TypeIds.Error: {
-      const d = data as unknown[];
-      target.message = d[0];
+      const d = data as string[];
+      (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {
-        target[d[i] as string] = d[i + 1];
+        (target as any)[d[i]] = d[i + 1];
       }
       break;
     }
@@ -415,7 +414,6 @@ const inflate = (
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
-  return target;
 };
 
 export const _constants = [

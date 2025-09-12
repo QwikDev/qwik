@@ -1,5 +1,12 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.10
+
+### Patch Changes
+
+- Updated dependencies [[`68ca2ef`](https://github.com/QwikDev/qwik/commit/68ca2ef1ba73c2d12cbb98196675b105bdd2531e)]:
+  - @qwik.dev/core@2.0.0-beta.10
+
 ## 2.0.0-beta.9
 
 ### Patch Changes

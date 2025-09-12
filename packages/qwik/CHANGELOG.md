@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.10
+
+### Patch Changes
+
+- 🐞🩹 resuming shadow dom container with multiple root children (by [@Varixo](https://github.com/Varixo) in [#7943](https://github.com/QwikDev/qwik/pull/7943))
+
 ## 2.0.0-beta.9
 
 ### Minor Changes

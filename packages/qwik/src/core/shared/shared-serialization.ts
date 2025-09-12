@@ -128,7 +128,7 @@ class DeserializationHandler implements ProxyHandler<object> {
     }
 
     const container = this.$container$;
-    let propValue = allocate(container, typeId, value);
+    const propValue = allocate(container, typeId, value);
 
     Reflect.set(target, property, propValue);
     this.$data$[idx] = undefined;
@@ -139,9 +139,8 @@ class DeserializationHandler implements ProxyHandler<object> {
      * their identifiers is a single digit.
      */
     if (typeId === TypeIds.Array || typeId >= TypeIds.Error) {
-      propValue = inflate(container, propValue, typeId, value);
+      inflate(container, propValue, typeId, value);
       Reflect.set(target, property, propValue);
-      this.$data$[idx + 1] = propValue;
     }
 
     return propValue;
@@ -192,10 +191,10 @@ const inflate = (
   target: any,
   typeId: TypeIds,
   data: unknown
-): unknown => {
+): void => {
   if (typeId === undefined) {
     // Already processed
-    return target;
+    return;
   }
   // Restore the complex data
   if (Array.isArray(data)) {
@@ -1646,9 +1645,9 @@ function deserializeData(container: DeserializeContainer, typeId: number, value:
   if (typeId === undefined) {
     return value;
   }
-  let propValue = allocate(container, typeId, value);
+  const propValue = allocate(container, typeId, value);
   if (typeId >= TypeIds.Error) {
-    propValue = inflate(container, propValue, typeId, value);
+    inflate(container, propValue, typeId, value);
   }
   return propValue;
 }

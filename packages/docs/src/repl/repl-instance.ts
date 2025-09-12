@@ -1,7 +1,7 @@
 /** Maintains the state for a REPL instance */
 
 import { isServer, unwrapStore } from '@builder.io/qwik';
-import { getBundler, ssrWorkerString } from './bundler';
+import { getBundler } from './bundler';
 import { registerReplSW } from './register-repl-sw';
 import type { RequestMessage, ResponseMessage } from './repl-sw';
 import type { ReplAppInput, ReplResult, ReplStore } from './types';
@@ -10,6 +10,8 @@ import type {
   InitSSRMessage,
   OutgoingMessage as SSROutgoingMessage,
 } from './bundler/repl-ssr-worker';
+import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
+import listenerScript from './bundler/client-events-listener?compiled-string';
 
 let channel: BroadcastChannel;
 let registered = false;
@@ -172,34 +174,37 @@ export class ReplInstance {
   };
 
   getContentType = (url: string): string => {
-    if (url.endsWith('.js')) {
-      return 'application/javascript';
-    }
-    if (url.endsWith('.css')) {
-      return 'text/css';
-    }
-    if (url.endsWith('.json')) {
-      return 'application/json';
-    }
-    if (url.endsWith('.html') || url.endsWith('/')) {
+    const noQuery = url.split('?')[0];
+    if (noQuery.endsWith('/')) {
       return 'text/html';
+    }
+    const ext = noQuery.split('.').pop()?.toLowerCase();
+    if (ext) {
+      switch (ext) {
+        case 'js':
+        case 'mjs':
+        case 'cjs':
+          return 'application/javascript';
+        case 'json':
+          return 'application/json';
+        case 'css':
+          return 'text/css';
+        case 'html':
+        case 'htm':
+          return 'text/html';
+        case 'svg':
+          return 'image/svg+xml';
+      }
     }
     return 'text/plain';
   };
 
   async getFile(path: string): Promise<string | null> {
-    const match = path.match(/\/repl\/([a-z0-9]+)(-ssr)?\/(.*)/);
+    const match = path.match(/\/repl\/(client|ssr)\/([a-z0-9]+)\/(.*)/);
     if (!match) {
       throw new Error(`Invalid REPL path ${path}`);
     }
-    const [, , ssrFlag, filePath] = match;
-    /**
-     * We must serve the SSR worker string from /repl/ so that the import() inside the worker can be
-     * intercepted by our repl-sw.js
-     */
-    if (ssrFlag && filePath === 'repl-ssr-worker.js') {
-      return ssrWorkerString;
-    }
+    const [, target, , filePath] = match;
 
     const ssrPromise = this.ensureBuilt();
     // First wait only for the bundles
@@ -209,7 +214,7 @@ export class ReplInstance {
     }
 
     // Serve SSR modules at /server/* path
-    if (ssrFlag) {
+    if (target === 'ssr') {
       // vite adds ?import to some imports, remove it for matching
       const serverPath = filePath.replace(/\?import$/, '');
       for (const module of this.lastResult.ssrModules) {
@@ -230,7 +235,11 @@ export class ReplInstance {
     if (filePath === 'index.html' || filePath === '') {
       // Here, also wait for SSR
       await ssrPromise.catch(() => {});
-      return this.lastResult.html || errorHtml('No HTML generated', 'REPL');
+      if (this.lastResult.html) {
+        // Inject the event listener script
+        return this.lastResult.html + `<script>${listenerScript}</script>`;
+      }
+      return errorHtml('No HTML generated', 'REPL');
     }
 
     return null;
@@ -247,13 +256,8 @@ export class ReplInstance {
         return resolve({ html: errorHtml('No SSR module found', 'SSR') });
       }
 
-      /**
-       * We could also serve it from /repl/ directly but then we need to special-case the repl-sw
-       * and then docs.dev mode wouldn't reload the worker
-       */
-      const ssrWorker = new Worker(`/repl/${this.replId}-ssr/repl-ssr-worker.js`, {
-        type: 'module',
-      });
+      // Start from /repl so repl-sw can intercept the requests
+      const ssrWorker = new Worker(`/repl${ssrWorkerUrl}`, { type: 'module' });
 
       ssrWorker.onmessage = (e: MessageEvent<SSROutgoingMessage>) => {
         const { type } = e.data;
@@ -263,7 +267,7 @@ export class ReplInstance {
             type: 'run-ssr',
             replId: this.replId,
             entry: entryModule.path,
-            baseUrl: `/repl/${this.replId}/build/`,
+            baseUrl: `/repl/client/${this.replId}/build/`,
             manifest: result.manifest,
           };
           ssrWorker.postMessage(initMessage);

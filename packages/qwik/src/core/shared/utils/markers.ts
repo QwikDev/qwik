@@ -80,6 +80,7 @@ export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
+export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
 export const Q_PREFIX = 'q:';
 
 /** Non serializable markers - always begins with `:` character */

@@ -240,4 +240,9 @@ export const enum VNodeDataFlag {
   SERIALIZE = 16,
 }
 
+export type BackpatchEntry = {
+  attrName: string;
+  value: string | boolean | null;
+};
+
 export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

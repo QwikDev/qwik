@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.9",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -141,6 +141,8 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
+    "./backpatch-executor.js": "./dist/backpatch-executor.js",
+    "./backpatch-executor.debug.js": "./dist/backpatch-executor.debug.js",
     "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",

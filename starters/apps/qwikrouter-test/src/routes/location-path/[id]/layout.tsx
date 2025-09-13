@@ -10,6 +10,7 @@ export default component$(() => {
       // should not happen
       throw new Error("id is undefined");
     }
+    // eslint-disable-next-line no-console
     console.log("location path id", id);
   });
   return (

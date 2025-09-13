@@ -57,6 +57,7 @@ import {
   type AllSignalFlags,
   type EffectProperty,
   type EffectSubscription,
+  StoreFlags,
 } from '../reactive-primitives/types';
 import { SubscriptionData, type NodePropData } from '../reactive-primitives/subscription-data';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -65,6 +66,10 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { isObject } from './utils/types';
+
+/** Arrays/Objects are special-cased so their identifiers is a single digit. */
+const needsInflation = (typeId: TypeIds) =>
+  typeId >= TypeIds.Error || typeId === TypeIds.Array || typeId === TypeIds.Object;
 
 const deserializedProxyMap = new WeakMap<object, unknown[]>();
 
@@ -121,21 +126,22 @@ class DeserializationHandler implements ProxyHandler<object> {
     const idx = i * 2;
     const typeId = this.$data$[idx] as number;
     const value = this.$data$[idx + 1];
-    if (typeId === undefined) {
+    if (typeId === TypeIds.Plain) {
       // The value is already cached
       return value;
     }
 
     const container = this.$container$;
-    let propValue = allocate(container, typeId, value);
-    /** We stored the reference, so now we can inflate, allowing cycles. */
-    if (typeId >= TypeIds.Error) {
-      propValue = inflate(container, propValue, typeId, value);
-    }
+    const propValue = allocate(container, typeId, value);
 
     Reflect.set(target, property, propValue);
-    this.$data$[idx] = undefined;
+    this.$data$[idx] = TypeIds.Plain;
     this.$data$[idx + 1] = propValue;
+
+    /** We stored the reference, so now we can inflate, allowing cycles */
+    if (needsInflation(typeId)) {
+      inflate(container, propValue, typeId, value);
+    }
 
     return propValue;
   }
@@ -157,7 +163,7 @@ class DeserializationHandler implements ProxyHandler<object> {
       return out;
     }
     const idx = i * 2;
-    this.$data$[idx] = undefined;
+    this.$data$[idx] = TypeIds.Plain;
     this.$data$[idx + 1] = value;
     return true;
   }
@@ -182,56 +188,35 @@ const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 
 const inflate = (
   container: DeserializeContainer,
-  target: any,
+  target: unknown,
   typeId: TypeIds,
   data: unknown
-): unknown => {
-  if (typeId === undefined) {
+): void => {
+  if (typeId === TypeIds.Plain) {
     // Already processed
-    return target;
+    return;
   }
-  // restore the complex data, except for plain objects
-  if (typeId !== TypeIds.Object && Array.isArray(data)) {
+  // Restore the complex data
+  if (Array.isArray(data)) {
     data = _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
+    case TypeIds.Array:
+      for (let i = 0; i < (target as any[]).length; i++) {
+        // read the value to trigger lazy deserialization
+        (target as any[])[i];
+      }
+      break;
     case TypeIds.Object:
-      // We use getters for making complex values lazy
-      for (let i = 0; i < (data as any[]).length; i += 4) {
-        const key = deserializeData(
-          container,
-          (data as any[])[i] as TypeIds,
-          (data as any[])[i + 1]
-        );
-        const valType = (data as TypeIds[])[i + 2];
-        const valData = (data as any[])[i + 3];
-        if (valType === TypeIds.RootRef || valType >= TypeIds.Error) {
-          Object.defineProperty(target, key, {
-            get() {
-              const value = deserializeData(container, valType, valData);
-              // after first deserialize, we can replace the Object.defineProperty with the value
-              target[key] = value;
-              return value;
-            },
-            set(value: unknown) {
-              Object.defineProperty(target, key, {
-                value,
-                writable: true,
-                enumerable: true,
-                configurable: true,
-              });
-            },
-            enumerable: true,
-            configurable: true,
-          });
-        } else {
-          target[key] = deserializeData(container, valType, valData);
-        }
+      for (let i = 0; i < (data as any[]).length; i += 2) {
+        const key = (data as string[])[i];
+        const value = (data as unknown[])[i + 1];
+        (target as Record<string, unknown>)[key] = value;
       }
       break;
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
-      inflateQRL(container, target);
+      inflateQRL(container, target as QRLInternal<any>);
       break;
     case TypeIds.Task:
       const task = target as Task;
@@ -255,19 +240,23 @@ const inflate = (
         resource._error = result as Error;
         resource._state = 'rejected';
       }
-      getStoreHandler(target)!.$effects$ = effects;
+      getStoreHandler(target as object)!.$effects$ = effects;
       break;
     case TypeIds.Component:
-      target[SERIALIZABLE_STATE][0] = (data as any[])[0];
+      (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
-    case TypeIds.Store:
-    case TypeIds.StoreArray: {
-      const [value, flags, effects] = data as unknown[];
-      const store = getOrCreateStore(value as object, flags as number, container as DomContainer);
-      const storeHandler = getStoreHandler(store)!;
+    case TypeIds.Store: {
+      /**
+       * Note that cycles between stores and their targets can cause this inflation to happen on
+       * already inflated stores, but that's ok because the flags and effects are still the same.
+       *
+       * Also note that we don't do anything with the innerstores we added during serialization,
+       * because they are already inflated in the first step of inflate().
+       */
+      const [, flags, effects] = data as unknown[];
+      const storeHandler = getStoreHandler(target as object)!;
+      storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
-      target = store;
-
       break;
     }
     case TypeIds.Signal: {
@@ -351,10 +340,10 @@ const inflate = (
       break;
     }
     case TypeIds.Error: {
-      const d = data as unknown[];
-      target.message = d[0];
+      const d = data as string[];
+      (target as Error).message = d[0] as string;
       for (let i = 1; i < d.length; i += 2) {
-        target[d[i] as string] = d[i + 1];
+        (target as any)[d[i]] = d[i + 1];
       }
       break;
     }
@@ -426,7 +415,6 @@ const inflate = (
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
-  return target;
 };
 
 export const _constants = [
@@ -471,9 +459,8 @@ const _constantNames = [
 ] as const;
 
 const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
-  if (value === undefined) {
-    // When a value was already processed, the result is stored in type
-    return typeId;
+  if (typeId === TypeIds.Plain) {
+    return value;
   }
   switch (typeId) {
     case TypeIds.RootRef:
@@ -492,9 +479,8 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return value;
     case TypeIds.Constant:
       return _constants[value as Constants];
-    case TypeIds.Number:
-      return value as number;
     case TypeIds.Array:
+      // Wrap while inflating so we can handle cyclic references
       return wrapDeserializerProxy(container as any, value as any[]);
     case TypeIds.Object:
       return {};
@@ -540,9 +526,23 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
     case TypeIds.Store:
-    case TypeIds.StoreArray:
-      // ignore allocate, we need to assign target while creating store
-      return null;
+      /**
+       * We have a problem here: In theory, both the store and the target need to be present at
+       * allocate time before inflation can happen. However, that makes the code really complex.
+       * Instead, we deserialize the target here, which will already allocate and inflate this store
+       * if there is a cycle (because the original allocation for the store didn't complete yet).
+       * Because we have a map of target -> store, we will reuse the same store instance after
+       * target deserialization. So in that case, we will be running inflation twice on the same
+       * store, but that is not a problem, very little overhead and the code is way simpler.
+       */
+      const storeValue = deserializeData(
+        container,
+        (value as any[])[0] as TypeIds,
+        (value as any[])[1]
+      );
+      (value as any[])[0] = TypeIds.Plain;
+      (value as any[])[1] = storeValue;
+      return getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:
@@ -555,8 +555,6 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
       return new Set();
     case TypeIds.Map:
       return new Map();
-    case TypeIds.String:
-      return value as string;
     case TypeIds.Promise:
       let resolve!: (value: any) => void;
       let reject!: (error: any) => void;
@@ -1097,7 +1095,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
       } else if (value === Number.MIN_SAFE_INTEGER) {
         output(TypeIds.Constant, Constants.MinSafeInt);
       } else {
-        output(TypeIds.Number, value);
+        output(TypeIds.Plain, value);
       }
     } else if (typeof value === 'object') {
       if (value === EMPTY_ARRAY) {
@@ -1119,7 +1117,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
         if (!outputAsRootRef(value)) {
-          output(TypeIds.String, value);
+          output(TypeIds.Plain, value);
         }
       }
     } else if (typeof value === 'undefined') {
@@ -1176,13 +1174,13 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         const flags = storeHandler.$flags$;
         const effects = storeHandler.$effects$;
 
+        // We need to retain the nested stores too, they won't be found from the target
         const innerStores = [];
         for (const prop in storeTarget) {
           const propValue = (storeTarget as any)[prop];
-          if ($storeProxyMap$.has(propValue)) {
-            const innerStore = $storeProxyMap$.get(propValue);
+          const innerStore = $storeProxyMap$.get(propValue);
+          if (innerStore) {
             innerStores.push(innerStore);
-            serializationContext.$addRoot$(innerStore);
           }
         }
 
@@ -1190,7 +1188,7 @@ async function serialize(serializationContext: SerializationContext): Promise<vo
         while (out[out.length - 1] == null) {
           out.pop();
         }
-        output(Array.isArray(storeTarget) ? TypeIds.StoreArray : TypeIds.Store, out);
+        output(TypeIds.Store, out);
       }
     } else if (isSerializerObj(value)) {
       const result = value[SerializerSymbol](value);
@@ -1641,12 +1639,12 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
 }
 
 function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
-  if (typeId === undefined) {
+  if (typeId === TypeIds.Plain) {
     return value;
   }
-  let propValue = allocate(container, typeId, value);
-  if (typeId >= TypeIds.Error) {
-    propValue = inflate(container, propValue, typeId, value);
+  const propValue = allocate(container, typeId, value);
+  if (needsInflation(typeId)) {
+    inflate(container, propValue, typeId, value);
   }
   return propValue;
 }
@@ -1674,7 +1672,7 @@ export function _createDeserializeContainer(
     $storeProxyMap$: new WeakMap(),
     element: null,
     $forwardRefs$: null,
-    $initialQRLsIndexes$: null,
+    $initialQRLs$: null,
     $scheduler$: null,
   };
   preprocessState(stateData, container);
@@ -1785,8 +1783,8 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
       container.$forwardRefs$ = data[i + 1] as number[];
     } else if (isPreloadQrlType(data[i] as TypeIds)) {
-      container.$initialQRLsIndexes$ ||= [];
-      container.$initialQRLsIndexes$.push(i / 2);
+      const qrl = data[i + 1] as string;
+      (container.$initialQRLs$ ||= []).push(qrl);
     }
   }
 }
@@ -1926,24 +1924,24 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
 const QRL_RUNTIME_CHUNK = 'mock-chunk';
 
 export const enum TypeIds {
+  Plain,
   RootRef,
   ForwardRef,
-  ForwardRefs,
   /** Undefined, null, true, false, NaN, +Inf, -Inf, Slot, Fragment */
   Constant,
-  Number,
-  String,
   Array,
+  Object,
   URL,
   Date,
   Regex,
   VNode,
+  /// ^ single-digit types ^
   RefVNode,
   BigInt,
   URLSearchParams,
-  /// All values below need inflation because they may have reference cycles
+  ForwardRefs,
+  /// All types below will be inflate()d
   Error,
-  Object,
   Promise,
   Set,
   Map,
@@ -1959,20 +1957,18 @@ export const enum TypeIds {
   AsyncComputedSignal,
   SerializerSignal,
   Store,
-  StoreArray,
   FormData,
   JSXNode,
   PropsProxy,
   SubscriptionData,
 }
 export const _typeIdNames = [
+  'Plain',
   'RootRef',
   'ForwardRef',
-  'ForwardRefs',
   'Constant',
-  'Number',
-  'String',
   'Array',
+  'Object',
   'URL',
   'Date',
   'Regex',
@@ -1980,8 +1976,8 @@ export const _typeIdNames = [
   'RefVNode',
   'BigInt',
   'URLSearchParams',
+  'ForwardRefs',
   'Error',
-  'Object',
   'Promise',
   'Set',
   'Map',
@@ -1997,7 +1993,6 @@ export const _typeIdNames = [
   'AsyncComputedSignal',
   'SerializerSignal',
   'Store',
-  'StoreArray',
   'FormData',
   'JSXNode',
   'PropsProxy',
@@ -2073,11 +2068,15 @@ export const dumpState = (
     }
     const key = state[i];
     let value = state[++i];
-    if (key === undefined) {
-      hasRaw = true;
-      out.push(
-        `${RED}[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]${RESET} ${printRaw(value, `${prefix}  `)}`
-      );
+    if (key === TypeIds.Plain) {
+      const isRaw = typeof value !== 'number' && typeof value !== 'string';
+      if (isRaw) {
+        hasRaw = true;
+      }
+      const type = isRaw
+        ? `[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]`
+        : typeIdToName(key as TypeIds);
+      out.push(`${RED}${type}${RESET} ${printRaw(value, `${prefix}  `)}`);
     } else {
       if (key === TypeIds.Constant) {
         value = constantToName(value as Constants);

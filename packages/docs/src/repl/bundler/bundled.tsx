@@ -7,7 +7,7 @@ import qCoreMinMjs from '../../../node_modules/@qwik.dev/core/dist/core.min.mjs?
 import qCoreMjs from '../../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
 import qOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
 import qPreloaderMjs from '../../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
-import qHandlersMjs from '../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
+import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
 // we use the debug version for the repl so it's understandable
 import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';

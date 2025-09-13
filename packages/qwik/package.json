@@ -9,6 +9,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "csstype": "^3.1.3",
+    "launch-editor": "^2.11.1",
     "rollup": ">= ^4.44.0"
   },
   "devDependencies": {
@@ -202,10 +203,10 @@
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
   },
+  "sideEffects": false,
   "scripts": {
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
   "type": "module",
-  "types": "./public.d.ts",
-  "sideEffects": false
+  "types": "./public.d.ts"
 }

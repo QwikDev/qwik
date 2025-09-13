@@ -3,6 +3,7 @@
 import type { ReplInputOptions, ReplResult } from '../types';
 import { getDeps } from './bundled';
 import type { InitMessage, BundleMessage, OutgoingMessage } from './bundler-worker';
+import bundlerWorkerUrl from './bundler-worker?worker&url';
 
 import ssrWorkerStringPre from './repl-ssr-worker?compiled-string';
 import listenerScript from './client-events-listener?compiled-string';
@@ -32,7 +33,8 @@ class Bundler {
 
   initWorker() {
     this.initP = new Promise<void>((res) => (this.ready = res));
-    this.worker = new Worker(new URL('./bundler-worker', import.meta.url), { type: 'module' });
+    // Start from /repl so repl-sw can add COEP headers
+    this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
     this.worker.addEventListener('error', (e: ErrorEvent) => {
       console.error(`Bundler worker for ${this.version} failed`, e.message);

@@ -10,6 +10,7 @@ import { Repl } from '../../repl/ui';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import styles from './tutorial.css?inline';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -167,9 +168,10 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+  setReplCorsHeaders(headers);
 };

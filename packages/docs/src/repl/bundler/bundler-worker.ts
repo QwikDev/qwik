@@ -125,7 +125,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   let start = performance.now();
 
-  const baseUrl = `/repl/${replId}/`;
+  const baseUrl = `/repl/client/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
     'import.meta.env': JSON.stringify({}),

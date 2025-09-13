@@ -1,5 +1,5 @@
 import type { MockDocumentOptions, MockWindow } from './types';
-import qwikDom from '@qwik.dev/dom';
+import domino from 'domino';
 import { normalizeUrl } from './util';
 const domino = qwikDom as any;
 
@@ -25,7 +25,7 @@ export function mockAttachShadow(el: Element) {
  * @public
  */
 export function createDocument(opts?: MockDocumentOptions) {
-  const doc = qwikDom.createDocument(opts?.html);
+  const doc = domino.createDocument(opts?.html);
   ensureGlobals(doc, opts);
   return doc;
 }

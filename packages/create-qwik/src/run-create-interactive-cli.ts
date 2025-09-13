@@ -53,6 +53,12 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
 
   const backgroundInstall = backgroundInstallDeps(pkgManager, baseApp);
 
+  const cancelProcess = async () => {
+    await backgroundInstall.abort();
+    cancel('Operation cancelled.');
+    process.exit(0);
+  };
+
   log.info(`Creating new project in ${bgBlue(' ' + outDir + ' ')} ... 🐇`);
 
   let removeExistingOutDirPromise: Promise<void | void[]> | null = null;
@@ -70,8 +76,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
     });
 
     if (isCancel(existingOutDirAnswer) || existingOutDirAnswer === 'exit') {
-      cancel('Operation cancelled.');
-      process.exit(0);
+      return await cancelProcess();
     }
 
     if (existingOutDirAnswer === 'replace') {
@@ -86,8 +91,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(starterIdAnswer)) {
-    cancel('Operation cancelled.');
-    process.exit(0);
+    return await cancelProcess();
   }
 
   const starterId = starterIdAnswer as string;
@@ -98,8 +102,7 @@ export async function runCreateInteractiveCli(): Promise<CreateAppResult> {
   });
 
   if (isCancel(runDepInstallAnswer)) {
-    cancel('Operation cancelled.');
-    process.exit(0);
+    return await cancelProcess();
   }
 
   const gitInitAnswer = await confirm({

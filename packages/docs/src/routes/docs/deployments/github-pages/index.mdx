@@ -1,0 +1,155 @@
+---
+title: GitHub Pages
+contributors:
+  - gioboa
+updated_at: '2025-08-29T00:00:00Z'
+created_at: '2025-08-29T00:00:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# GitHub Pages With Static Site Adapter
+
+Qwik's Static Site adapter helps to generate static html files which can be easily deployed to GitHub Pages.
+
+## Installation
+
+To integrate the `static-site` adapter, use the `add` command:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add static
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add static
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add static
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add static
+```
+</span>
+</PackageManagerTabs>
+
+Above command will create a directory at project root named `adapters/static/vite.config.ts` with the below code.
+
+```ts title="adapters/static/vite.config.ts"
+import { staticAdapter } from "@builder.io/qwik-city/adapters/static/vite";
+import { extendConfig } from '@builder.io/qwik-city/vite';
+import baseConfig from '../../vite.config';
+
+export default extendConfig(baseConfig, () => {
+  return {
+    build: {
+      ssr: true,
+      rollupOptions: {
+        input: ['@qwik-city-plan'],
+      },
+    },
+    plugins: [
+      staticAdapter({
+        origin: 'https://yoursite.qwik.dev',
+      }),
+    ],
+  };
+});
+```
+
+> Remember to change the `origin` in this file to your domain.
+
+In the main `vite.config.ts` you should add the base property and set the value with the name of your repository.
+
+```ts
+export default defineConfig(({ command, mode }): UserConfig => {
+  return {
+    base: '/github-repository-name/',
+    [...]
+  }
+});
+```
+
+## Automated Deployment to GitHub Pages with GitHub Actions
+
+GitHub Actions enables automated deployment of your site to GitHub Pages upon code changes.<br/>
+To enable this feature, configure your repository settings as follows:
+- Navigate to GitHub Pages Settings: Access your repository's GitHub Pages settings by visiting the /settings/pages path within your repository.<br/>
+For example: https://github.com/your-github-username/github-repository/settings/pages.
+- Configure Deployment Source: Under the "Source" section, select "GitHub Actions" as the deployment source.<br/>
+This instructs GitHub Pages to use a GitHub Actions workflow for deployments.
+
+## Add The GitHub Action 
+
+Here's an example:
+
+```yml
+# FILE: .github/workflows/deploy.yml
+# ==========================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: 'main'
+
+jobs:
+  build_site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.15.0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.7.0
+          cache: 'pnpm'
+
+      - run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: build
+        run: |
+          pnpm run build
+
+      - name: Upload Artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist/github-repository-name/'
+
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+This GitHub Actions workflow automates the process of building and deploying a website to GitHub Pages.<br/>
+It triggers upon pushes to the main branch, ensuring the site is updated with the latest changes.<br/>
+The workflow first builds the website using pnpm, then uploads the generated files as an artifact.<br/>
+Finally, it deploys the artifact to GitHub Pages, making the site live.

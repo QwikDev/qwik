@@ -211,6 +211,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           }
         }
       }
+
       return null;
     },
 

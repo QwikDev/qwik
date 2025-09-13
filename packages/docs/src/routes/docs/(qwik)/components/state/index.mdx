@@ -224,6 +224,7 @@ export default component$(() => {
 In Qwik, there are two ways to create computed values, each with a different use case (in order of preference):
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
+  There is also `useAsyncComputed$()` which is similar to `useComputed$()` but allows the computed function to be asynchronous.
 
 2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
@@ -265,6 +266,10 @@ export default component$(() => {
 When using `useComputed$()` with `noSerialize()`, the computed value will not be sent to the client. This means that the value will be recalculated on the client when it is needed.
 
 You can use this to instantiate a custom class.
+
+### `useAsyncComputed$()`
+
+`useAsyncComputed$()` is similar to `useComputed$()`, but it allows the computed function to be asynchronous. It returns a signal that has the result of the async function.If you read it before the async function has completed, it will stop execution and re-run the reading function when the async function is resolved.
 
 ### `useResource$()`
 

@@ -85,7 +85,7 @@ export default component$(() => {
       <main class="main container">
         <Slot />
       </main>
-      {/* workaround: invisible Link to ensure qwik city context inclusion */}
+      {/* workaround: invisible Link to ensure qwik Router context inclusion */}
       <Link href="/" />
     </div>
   );

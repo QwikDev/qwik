@@ -40,6 +40,12 @@
 
 ## 2.0.0-alpha.0
 
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
 ## 1.15.0
 
 ### Patch Changes

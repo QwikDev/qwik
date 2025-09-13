@@ -1,7 +1,7 @@
 {
   "description": "Vercel Edge Functions",
   "scripts": {
-    "build.server": "vite build -c adapters/vercel-edge/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/vercel-edge/vite.config.mts",
     "deploy": "vercel deploy"
   },
   "devDependencies": {

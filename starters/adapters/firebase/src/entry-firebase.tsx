@@ -14,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformFirebase {}
+  type QwikRouterPlatform = PlatformFirebase;
 }
 
 export default createQwikRouter({ render });

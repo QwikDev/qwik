@@ -16,7 +16,7 @@ import "source-map-support/register";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformAwsLambda {}
+  type QwikRouterPlatform = PlatformAwsLambda;
 }
 
 export const { handle } = createQwikRouter({ render });

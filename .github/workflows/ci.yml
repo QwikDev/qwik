@@ -920,9 +920,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  ############ TRIGGER QWIKCITY E2E TEST ############
+  ############ TRIGGER QWIKKROUTER E2E TEST ############
   trigger-qwikrouter-e2e:
-    name: Trigger Qwik City E2E
+    name: Trigger Qwik Router E2E
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/upcoming'
 

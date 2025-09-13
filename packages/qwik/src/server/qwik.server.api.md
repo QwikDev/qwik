@@ -81,6 +81,7 @@ export interface PrefetchStrategy {
 export interface PreloaderOptions {
     debug?: boolean;
     maxIdlePreloads?: number;
+    // @deprecated (undocumented)
     preloadProbability?: number;
     ssrPreloadProbability?: number;
     ssrPreloads?: number;

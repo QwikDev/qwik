@@ -57,7 +57,7 @@ Thankfully, using a service worker isn't the only way we can prefetch and cache 
 
 ## What's new: a better way to "buffer" javascript bundles
 
-In Qwik 1.14, we've transitioned away from using a service worker in favor of a solution leveraging [`<link rel="modulepreload">`](<https://devdocs.io/html/attributes/rel/modulepreload>) as the new default. 
+In Qwik 1.14, we've transitioned away from using a service worker in favor of a solution leveraging [`<link rel="modulepreload">`](https://devdocs.io/html/reference/attributes/rel/modulepreload) as the new default. 
 
 The solution consists of a small script called the "Qwik Preloader". Once it is downloaded on the client, it adds the `<link rel="modulepreload" href="my-bundle.js#segment123456">` to the html `<head>`, which tells the browser to preload and buffer the corresponding JavaScript bundles.
 

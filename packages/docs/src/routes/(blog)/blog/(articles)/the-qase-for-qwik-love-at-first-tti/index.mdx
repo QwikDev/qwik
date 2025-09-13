@@ -261,7 +261,7 @@ This is the result:
 
 > **For demo purposes, I’m not going to go into how to start a Qwik project. For more info on getting started with Qwik,** [**check out the Qwik docs**](https://qwik.dev/) **or our** [**Stackblitz Qwik Starter**](https://stackblitz.com/)**.**
 
-What we’ve done is create a simple counter component inside a [QwikCity](https://qwik.dev/qwikcity/overview/) project, which is the meta-framework for Qwik. Basically, it’s like SvelteKit for Svelte, or [SolidStart](https://start.solidjs.com/getting-started/what-is-solidstart) for Solid. It is generally in charge of routing and the build.
+What we’ve done is create a simple counter component inside a [Qwik Router](https://qwik.dev/qwikrouter/overview/) project, which is the meta-framework for Qwik. Basically, it’s like SvelteKit for Svelte, or [SolidStart](https://start.solidjs.com/getting-started/what-is-solidstart) for Solid. It is generally in charge of routing and the build.
 
 If you're coming from React (or Solid), you can see that a lot of the above looks familiar. As Qwik uses JSX, you should feel right at home. A [signal](https://qwik.dev/docs/components/state/#usesignal) is a reactive piece of state, similar to [Solid.js signals](https://www.solidjs.com/tutorial/introduction_signals), which consists of an object with a single property (`signal.value`) that when changed will update any component that uses it. Similarly, `useStore` is almost the same as a signal but accepts an object as a parameter, that then becomes reactive.
 
@@ -281,7 +281,7 @@ If we go back to our counter example, devtools shows this in action:
 
 What’s happening there?
 
-While on the `Network` pane of devtools, I’ve selected only to show JS requests. At first, it shows two files: `client` and `enb.mjs`. Those are files from [Vite](https://vitejs.dev/); our dev server, which also powers Qwik and QwikCity. To hide those files so we can get to the actual JS that a production build would serve, we can filter any path that has Vite in it. After I’ve hidden all Vite-related files, I hit refresh again (with `cmd + R`), then…no JavaScript is downloaded!! 🤯
+While on the `Network` pane of devtools, I’ve selected only to show JS requests. At first, it shows two files: `client` and `enb.mjs`. Those are files from [Vite](https://vitejs.dev/); our dev server, which also powers Qwik and Qwik Router. To hide those files so we can get to the actual JS that a production build would serve, we can filter any path that has Vite in it. After I’ve hidden all Vite-related files, I hit refresh again (with `cmd + R`), then…no JavaScript is downloaded!! 🤯
 
 Then, when I go on to click the **Increment** button, the real magic happens! Two files get downloaded, and the button actually works and increments our count. The beauty of it is that now there’s no need to load that JS again! Qwik has divided the code into separate files, which can be loaded as needed.
 
@@ -432,6 +432,6 @@ Other than that, there are more features to Qwik:
 *   You can [leverage the entire React ecosystem](https://www.youtube.com/watch?v=IGIPBAWRw_M&amp;t=174s) within Qwik
 *   DX: Click to go to component source code, and more on the way!
 
-Qwik and QwikCity are still in beta, but the community is starting to blossom. **It’s never been more straightforward to build fast web apps than it is with Qwik. So what are you waiting for? Give it a try, the team is looking for more feedback** 🙂.
+Qwik and Qwik Router are still in beta, but the community is starting to blossom. **It’s never been more straightforward to build fast web apps than it is with Qwik. So what are you waiting for? Give it a try, the team is looking for more feedback** 🙂.
 
 </ArticleBlock>

@@ -1,7 +1,7 @@
 {
   "description": "Static Site Generator",
   "scripts": {
-    "build.server": "vite build -c adapters/ssg/vite.config.mts"
+    "build.server": "qwik check-client src dist && vite build -c adapters/ssg/vite.config.mts"
   },
   "__qwik__": {
     "priority": 10,

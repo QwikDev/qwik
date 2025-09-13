@@ -271,9 +271,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             maxParallelFileOps: 1,
             // This will amend the existing input
             input,
-            output: {
-              manualChunks: qwikPlugin.manualChunks,
-            },
             // temporary fix for rolldown-vite types
           } as BuildOptions['rollupOptions'],
         },

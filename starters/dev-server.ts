@@ -53,7 +53,13 @@ Error.stackTraceLimit = 1000;
 const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
-    const url = new URL(req.url, address);
+    let url;
+    try {
+      url = new URL(req.url, address);
+    } catch {
+      res.status(404).send();
+      return;
+    }
     if (existsSync(url.pathname)) {
       const relPath = relative(startersAppsDir, url.pathname);
       if (!relPath.startsWith(".")) {

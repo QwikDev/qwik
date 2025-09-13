@@ -84,7 +84,7 @@ Short answer, no!
 
 In other UI frameworks, a hydration directive, such as `client:only` or `client:load`, would be needed for interactivity. However, these are not needed with Qwik because there is no hydration!
 
-When using Qwik inside a meta-framework like Astro or Qwik City, components are loaded on the server, prefetched in a separate thread, and "resumed" on the client.
+When using Qwik inside a meta-framework like Astro or Qwik Router, components are loaded on the server, prefetched in a separate thread, and "resumed" on the client.
 
 For example, here's how we use a Qwik counter component in Astro.
 
@@ -118,7 +118,7 @@ import { Counter } from "../components/counter";
 
 ### Does resumability work?
 
-Yes! We can lazily execute code on interaction, just like using Qwik with Qwik City.
+Yes! We can lazily execute code on interaction, just like using Qwik with Qwik Router.
 
 <video muted loop autoplay>
   <source src="https://cdn.builder.io/o/assets%2FYJIGb4i01jvw0SRdL5Bt%2F7be046307ece4278a81789e386737813%2Fcompressed?apiKey=YJIGb4i01jvw0SRdL5Bt&token=7be046307ece4278a81789e386737813&alt=media&optimized=true" type="video/mp4"/>

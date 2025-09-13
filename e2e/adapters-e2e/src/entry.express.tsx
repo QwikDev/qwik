@@ -21,7 +21,7 @@ const buildDir = join(distDir, 'build');
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
 
-// Create the Qwik City Node middleware
+// Create the Router Node middleware
 const { router, notFound } = createQwikRouter({
   render,
   // getOrigin(req) {
@@ -46,10 +46,10 @@ const app = express();
 app.use(`/build`, express.static(buildDir, { immutable: true, maxAge: '1y' }));
 app.use(express.static(distDir, { redirect: false }));
 
-// Use Qwik City's page and endpoint request handler
+// Use Router's page and endpoint request handler
 app.use(router);
 
-// Use Qwik City's 404 handler
+// Use Router's 404 handler
 app.use(notFound);
 
 // Start the express server

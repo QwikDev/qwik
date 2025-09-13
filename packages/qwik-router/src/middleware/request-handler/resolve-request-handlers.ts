@@ -69,10 +69,10 @@ export const resolveRequestHandlers = (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
     ) {
-      requestHandlers.unshift(csrfCheckMiddleware);
-
       if (checkOrigin === 'lax-proto') {
-        requestHandlers.push(csrfLaxProtoCheckMiddleware);
+        requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
+      } else {
+        requestHandlers.unshift(csrfCheckMiddleware);
       }
     }
     if (isPageRoute) {
@@ -487,8 +487,7 @@ function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
     if (
       forbidden &&
       laxProto &&
-      origin.startsWith('https://') &&
-      inputOrigin?.slice(4) === origin.slice(5)
+      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
     ) {
       forbidden = false;
     }

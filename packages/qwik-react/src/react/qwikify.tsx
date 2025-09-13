@@ -80,6 +80,16 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
       }
     });
 
+    useTask$(({ track, cleanup }) => {
+      track(signal);
+
+      if (isBrowser) {
+        cleanup(() => {
+          internalState.value?.root?.unmount();
+        });
+      }
+    });
+
     if (isServer && !isClientOnly) {
       const jsx = renderFromServer(
         TagName,

@@ -1,3 +1,4 @@
+import { JsonParser, JsonObjectNode } from '@croct/json5-parser';
 import fs from 'node:fs';
 import { extname, join } from 'node:path';
 import type { FsUpdates, UpdateAppOptions } from '../types';
@@ -28,8 +29,8 @@ export async function mergeIntegrationDir(
 
         if (destName === 'package.json') {
           await mergePackageJsons(fileUpdates, srcChildPath, destRootPath);
-        } else if (destName === 'settings.json') {
-          await mergeJsons(fileUpdates, srcChildPath, finalDestPath);
+        } else if (destDir.endsWith('.vscode') && destName === 'settings.json') {
+          await mergeVSCodeSettings(fileUpdates, srcChildPath, finalDestPath);
         } else if (destName === 'README.md') {
           await mergeReadmes(fileUpdates, srcChildPath, finalDestPath);
         } else if (
@@ -110,16 +111,19 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
   }
 }
 
-async function mergeJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeVSCodeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
-    const srcPkgJson = JSON.parse(srcContent);
-    const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
-    Object.assign(srcPkgJson, destPkgJson);
+    const srcPkgJson = JsonParser.parse(srcContent, JsonObjectNode);
+    const destPkgJson = JsonParser.parse(
+      await fs.promises.readFile(destPath, 'utf-8'),
+      JsonObjectNode
+    );
+    destPkgJson.merge(srcPkgJson);
 
     fileUpdates.files.push({
       path: destPath,
-      content: JSON.stringify(srcPkgJson, null, 2) + '\n',
+      content: destPkgJson.toString() + '\n',
       type: 'modify',
     });
   } catch (e) {

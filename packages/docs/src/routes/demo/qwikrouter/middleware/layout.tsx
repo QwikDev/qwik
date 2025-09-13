@@ -5,7 +5,7 @@ export const onRequest: RequestHandler = async ({ next }) => {
     await next();
   } catch (error: any) {
     if (error?.message === 'ERROR: Demonstration of an error response.') {
-      return await next();
+      throw error;
     } else if (
       error &&
       typeof error === 'object' &&

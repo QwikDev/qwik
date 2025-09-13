@@ -52,5 +52,6 @@
     "docs": [
       "https://qwik.dev/docs/getting-started/"
     ]
-  }
+  },
+  "sideEffects": false
 }

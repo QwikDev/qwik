@@ -1,7 +1,7 @@
 {
   "description": "Bun server",
   "scripts": {
-    "build.server": "vite build -c adapters/bun/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/bun/vite.config.mts",
     "serve": "bun server/entry.bun.js"
   },
   "__qwik__": {

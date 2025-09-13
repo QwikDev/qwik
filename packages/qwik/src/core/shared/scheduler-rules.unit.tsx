@@ -5,8 +5,7 @@ import { addBlockedChore, type Chore } from './scheduler';
 import { Task, TaskFlags } from '../use/use-task';
 import { ELEMENT_SEQ, QSlotParent } from './utils/markers';
 import type { Container } from './types';
-import { VNodeProps } from '../client/types';
-import { vnode_newVirtual, vnode_setProp } from '../client/vnode';
+import { vnode_newVirtual } from '../client/vnode';
 import { $, type QRL } from './qrl/qrl.public';
 import { createQRL } from './qrl/qrl-class';
 
@@ -211,9 +210,9 @@ describe('findBlockingChore', () => {
   describe('COMPONENT and NODE_DIFF blocking VISIBLE', () => {
     const parentVNode = vnode_newVirtual();
     const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
+    childVNode.parent = parentVNode;
     const siblingVNode = vnode_newVirtual();
-    siblingVNode[VNodeProps.parent] = parentVNode;
+    siblingVNode.parent = parentVNode;
 
     const container = createMockContainer(new Map());
 
@@ -515,7 +514,7 @@ describe('findBlockingChore', () => {
   describe('Ancestor blocking', () => {
     const parentVNode = vnode_newVirtual();
     const childVNode = vnode_newVirtual();
-    childVNode[VNodeProps.parent] = parentVNode;
+    childVNode.parent = parentVNode;
     const unrelatedVNode = vnode_newVirtual();
     const container = createMockContainer(new Map());
     const ancestorChore = createMockChore(ChoreType.NODE_DIFF, parentVNode);
@@ -629,9 +628,9 @@ describe('findBlockingChore', () => {
     it('should block if an ancestor is projection parent', () => {
       const parentProjectionVNode = vnode_newVirtual();
       const childProjectionVNode = vnode_newVirtual();
-      parentProjectionVNode[VNodeProps.parent] = rootVNode;
-      vnode_setProp(parentProjectionVNode, '', childProjectionVNode);
-      vnode_setProp(childProjectionVNode, QSlotParent, parentProjectionVNode);
+      parentProjectionVNode.parent = rootVNode;
+      parentProjectionVNode.setProp('', childProjectionVNode);
+      childProjectionVNode.setProp(QSlotParent, parentProjectionVNode);
       const ancestorProjectionChore = createMockChore(ChoreType.COMPONENT, parentProjectionVNode);
       const descendantProjectionChore = createMockChore(ChoreType.COMPONENT, childProjectionVNode);
       const choreQueue = [ancestorProjectionChore];
@@ -654,7 +653,7 @@ describe('findBlockingChoreForVisible', () => {
   const host2 = { el: 'host2' };
   const parentVNode = vnode_newVirtual();
   const childVNode = vnode_newVirtual();
-  childVNode[VNodeProps.parent] = parentVNode;
+  childVNode.parent = parentVNode;
   const unrelatedVNode = vnode_newVirtual();
 
   const container = createMockContainer(new Map());
@@ -791,9 +790,9 @@ describe('findBlockingChoreForVisible', () => {
     const childVNode = vnode_newVirtual();
     const grandchildVNode = vnode_newVirtual();
 
-    parentVNode[VNodeProps.parent] = grandparentVNode;
-    childVNode[VNodeProps.parent] = parentVNode;
-    grandchildVNode[VNodeProps.parent] = childVNode;
+    parentVNode.parent = grandparentVNode;
+    childVNode.parent = parentVNode;
+    grandchildVNode.parent = childVNode;
 
     const container = createMockContainer(new Map());
 
@@ -896,8 +895,8 @@ describe('findBlockingChoreForVisible', () => {
     it.skip('should handle circular parent references gracefully', () => {
       const vnode1 = vnode_newVirtual();
       const vnode2 = vnode_newVirtual();
-      vnode1[VNodeProps.parent] = vnode2;
-      vnode2[VNodeProps.parent] = vnode1; // Circular reference
+      vnode1.parent = vnode2;
+      vnode2.parent = vnode1; // Circular reference
 
       const blockingChore = createMockChore(ChoreType.NODE_DIFF, vnode2);
       const runningChores = new Set<Chore>([blockingChore]);

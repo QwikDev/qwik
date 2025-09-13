@@ -81,15 +81,8 @@
  */
 
 import { type DomContainer } from '../client/dom-container';
-import {
-  ElementVNodeProps,
-  VNodeFlags,
-  VNodeProps,
-  type ClientContainer,
-  type ElementVNode,
-  type VirtualVNode,
-} from '../client/types';
-import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
+import { VNodeFlags, type ClientContainer } from '../client/types';
+import { VNodeJournalOpCode, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -137,6 +130,7 @@ import { createNextTick } from './platform/next-tick';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { isSsrNode } from '../reactive-primitives/subscriber';
 import { logWarn } from './utils/log';
+import type { ElementVNode, VirtualVNode } from '../client/vnode-impl';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -692,10 +686,10 @@ This is often caused by modifying a signal in an already rendered component duri
             returnValue = null;
           } else {
             if (isConst) {
-              const element = virtualNode[ElementVNodeProps.element] as Element;
+              const element = virtualNode.element;
               journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
             } else {
-              vnode_setAttr(journal, virtualNode, property, serializedValue);
+              virtualNode.setAttr(property, serializedValue, journal);
             }
             returnValue = undefined as ValueOrPromise<ChoreReturnValue<ChoreType.NODE_PROP>>;
           }
@@ -892,11 +886,7 @@ const toNumber = (value: number | string): number => {
 };
 
 function vNodeAlreadyDeleted(chore: Chore): boolean {
-  return !!(
-    chore.$host$ &&
-    vnode_isVNode(chore.$host$) &&
-    chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
-  );
+  return !!(chore.$host$ && vnode_isVNode(chore.$host$) && chore.$host$.flags & VNodeFlags.Deleted);
 }
 
 export function addBlockedChore(

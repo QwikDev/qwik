@@ -42,13 +42,9 @@ import type { ContextId } from '../use/use-context';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
-  VNodeProps,
   type ContainerElement,
-  type ElementVNode,
   type ClientContainer as IClientContainer,
   type QDocument,
-  type VNode,
-  type VirtualVNode,
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
@@ -58,16 +54,16 @@ import {
   vnode_getDomParent,
   vnode_getNextSibling,
   vnode_getParent,
-  vnode_getProp,
   vnode_getProps,
   vnode_insertBefore,
   vnode_isElementVNode,
+  vnode_isVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newUnMaterializedElement,
-  vnode_setProp,
   type VNodeJournal,
 } from './vnode';
+import type { ElementVNode, VirtualVNode, VNode } from './vnode-impl';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -89,7 +85,7 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 
 /** @internal */
 export function _getQContainerElement(element: Element | VNode): Element | null {
-  const qContainerElement: Element | null = Array.isArray(element)
+  const qContainerElement: Element | null = vnode_isVNode(element)
     ? (vnode_getDomParent(element, true) as Element)
     : element;
   return qContainerElement.closest(QContainerSelector);
@@ -230,13 +226,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     let vNode = vnode_getParent(host as any);
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
-        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
+        if (vNode.getProp(OnRenderProp, null) !== null) {
           return vNode as any as HostElement;
         }
         vNode =
           vnode_getParent(vNode) ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vnode_getProp<VNode>(vNode, QSlotParent, this.vNodeLocate);
+          vNode.getProp<VNode>(QSlotParent, this.vNodeLocate);
       } else {
         vNode = vnode_getParent(vNode);
       }
@@ -246,7 +242,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const vNode: VirtualVNode = host as any;
-    vnode_setProp(vNode, name, value);
+    vNode.setProp(name, value);
   }
 
   getHostProp<T>(host: HostElement, name: string): T | null {
@@ -265,12 +261,12 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         getObjectById = parseInt;
         break;
     }
-    return vnode_getProp(vNode, name, getObjectById);
+    return vNode.getProp(name, getObjectById);
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
-    if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
-      vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
+    if ((vNode.flags & VNodeFlags.Resolved) === 0) {
+      vNode.flags |= VNodeFlags.Resolved;
       const props = vnode_getProps(vNode);
       for (let i = 0; i < props.length; i = i + 2) {
         const prop = props[i] as string;
@@ -279,7 +275,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
           if (typeof value == 'string') {
             const projection = this.vNodeLocate(value);
             props[i + 1] = projection;
-            vnode_getProp(projection, QSlotParent, (id) => this.vNodeLocate(id));
+            (projection as VirtualVNode).getProp(QSlotParent, (id) => this.vNodeLocate(id));
           }
         }
       }

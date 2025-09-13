@@ -1,6 +1,6 @@
 import { isSignal } from './reactive-primitives/utils';
 // ^ keep this first to avoid circular dependency breaking class extend
-import { vnode_getProp, vnode_isVNode } from './client/vnode';
+import { vnode_isVNode } from './client/vnode';
 import { ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 import { isStore } from './reactive-primitives/impl/store';
 import { WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
@@ -34,7 +34,7 @@ export function qwikDebugToString(value: any): any {
       stringifyPath.push(value);
       if (Array.isArray(value)) {
         if (vnode_isVNode(value)) {
-          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+          return '(' + value.getProp(DEBUG_TYPE, null) + ')';
         } else {
           return value.map(qwikDebugToString);
         }

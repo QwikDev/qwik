@@ -1845,6 +1845,8 @@ export abstract class _VNode {
     // (undocumented)
     getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null;
     // (undocumented)
+    getSlotParent(): _VNode | null;
+    // (undocumented)
     nextSibling: _VNode | null | undefined;
     // (undocumented)
     parent: _ElementVNode | _VirtualVNode | null | undefined;
@@ -1856,6 +1858,8 @@ export abstract class _VNode {
     setAttr(key: string, value: string | null | boolean, journal: VNodeJournal | null): void;
     // (undocumented)
     setProp(key: string, value: any): void;
+    // (undocumented)
+    slotParent: _VNode | null;
     // (undocumented)
     toString(): string;
 }

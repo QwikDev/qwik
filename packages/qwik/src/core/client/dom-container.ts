@@ -25,7 +25,6 @@ import {
   QLocaleAttr,
   QManifestHashAttr,
   QScopedStyle,
-  QSlotParent,
   QStyle,
   QStyleSelector,
   Q_PROPS_SEPARATOR,
@@ -232,7 +231,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         vNode =
           vnode_getParent(vNode) ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vNode.getProp<VNode>(QSlotParent, this.vNodeLocate);
+          vNode.getSlotParent();
       } else {
         vNode = vnode_getParent(vNode);
       }
@@ -275,7 +274,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
           if (typeof value == 'string') {
             const projection = this.vNodeLocate(value);
             props[i + 1] = projection;
-            (projection as VirtualVNode).getProp(QSlotParent, (id) => this.vNodeLocate(id));
+            projection.getSlotParent();
           }
         }
       }

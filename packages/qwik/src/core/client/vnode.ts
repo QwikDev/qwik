@@ -147,7 +147,6 @@ import {
   QIgnoreEnd,
   QScopedStyle,
   QSlot,
-  QSlotParent,
   QStyle,
   QStylesAllSelector,
 } from '../shared/utils/markers';
@@ -1150,11 +1149,7 @@ export const vnode_getDomParentVNode = (
   includeProjection = true
 ): ElementVNode | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode =
-      vnode.parent ||
-      (includeProjection
-        ? vnode.getProp(QSlotParent, (id) => (vnode_isVNode(id) ? id : null))
-        : null)!;
+    vnode = vnode.parent || (includeProjection ? vnode.getSlotParent() : null)!;
   }
   return vnode;
 };
@@ -1672,38 +1667,27 @@ export const vnode_getProps = (vnode: ElementVNode | VirtualVNode): unknown[] =>
 };
 
 export const vnode_getParent = (vnode: VNode): VNode | null => {
-  return vnode.parent || null;
+  return vnode.parent!;
 };
 
-export const vnode_isDescendantOf = (
-  vnode: VNode,
-  ancestor: VNode,
-  rootVNode: ElementVNode | null
-): boolean => {
-  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode, rootVNode);
+export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
+  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode);
   while (parent) {
     if (parent === ancestor) {
       return true;
     }
-    parent = vnode_getParentOrProjectionParent(parent, rootVNode);
+    parent = vnode_getParentOrProjectionParent(parent);
   }
   return false;
 };
 
-export const vnode_getParentOrProjectionParent = (
-  vnode: VNode,
-  rootVNode: ElementVNode | null
-): VNode | null => {
-  if (rootVNode) {
-    const parentProjection: VNode | null = vnode.getProp(QSlotParent, (id) =>
-      vnode_locate(rootVNode, id)
-    );
-    if (parentProjection) {
-      // This is a projection, so we need to check the parent of the projection
-      return parentProjection;
-    }
+export const vnode_getParentOrProjectionParent = (vnode: VNode): VNode | null => {
+  const parentProjection: VNode | null = vnode.slotParent;
+  if (parentProjection) {
+    // This is a projection, so we need to check the parent of the projection
+    return parentProjection;
   }
-  return vnode_getParent(vnode);
+  return vnode.parent;
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {
@@ -1894,7 +1878,10 @@ function materializeFromVNodeData(
       }
       setEffectBackRefFromVNodeData(vParent, consumeValue(), container);
     } else if (peek() === VNodeDataChar.SLOT_PARENT) {
-      vParent.setProp(QSlotParent, consumeValue());
+      if (!container) {
+        container = getDomContainer(element);
+      }
+      vParent.slotParent = vnode_locate(container!.rootVNode, consumeValue());
     } else if (peek() === VNodeDataChar.CONTEXT) {
       vParent.setAttr(QCtxAttr, consumeValue(), null);
     } else if (peek() === VNodeDataChar.OPEN) {
@@ -1995,9 +1982,7 @@ export const vnode_getProjectionParentComponent = (
       vHost &&
       (vnode_isVirtualVNode(vHost) ? vHost.getProp(OnRenderProp, null) === null : true)
     ) {
-      const qSlotParent = vHost.getProp<VNode | null>(QSlotParent, (id) =>
-        vnode_locate(rootVNode, id)
-      );
+      const qSlotParent = vHost.getSlotParent();
       const vProjectionParent = vnode_isVirtualVNode(vHost) && qSlotParent;
       if (vProjectionParent) {
         // We found a projection, so we need to go up one more level.

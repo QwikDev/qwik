@@ -26,7 +26,6 @@ import {
   QContainerAttr,
   QDefaultSlot,
   QSlot,
-  QSlotParent,
   QBackRefs,
   QTemplate,
   Q_PREFIX,
@@ -450,7 +449,7 @@ export const vnode_diff = (
       isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.Projection);
       isDev && (vNewNode as VirtualVNode).setProp('q:code', 'expectProjection');
       (vNewNode as VirtualVNode).setProp(QSlot, slotName);
-      (vNewNode as VirtualVNode).setProp(QSlotParent, vParent);
+      (vNewNode as VirtualVNode).slotParent = vParent;
       (vParent as VirtualVNode).setProp(slotName, vNewNode);
     }
   }
@@ -1404,9 +1403,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
              */
             if (vNode.flags & VNodeFlags.Virtual) {
               // The QSlotParent is used to find the slot parent during scheduling
-              (vNode as VirtualVNode).getProp<string>(QSlotParent, (id) =>
-                vnode_locate(container.rootVNode, id)
-              );
+              vNode.getSlotParent();
             }
           });
           return;

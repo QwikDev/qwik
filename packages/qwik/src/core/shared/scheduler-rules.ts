@@ -29,8 +29,8 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
-    match: (blocked, blocking, container) =>
-      isDescendant(blocked, blocking, container) || isDescendant(blocking, blocked, container),
+    match: (blocked, blocking) =>
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
   // COMPONENT blocks VISIBLE on same host
   // if the blocked chore is a child of the blocking chore
@@ -38,8 +38,8 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
-    match: (blocked, blocking, container) =>
-      isDescendant(blocked, blocking, container) || isDescendant(blocking, blocked, container),
+    match: (blocked, blocking) =>
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
 ];
 
@@ -103,17 +103,13 @@ const BLOCKING_RULES: BlockingRule[] = [
   },
 ];
 
-function isDescendant(descendantChore: Chore, ancestorChore: Chore, container: Container): boolean {
+function isDescendant(descendantChore: Chore, ancestorChore: Chore): boolean {
   const descendantHost = descendantChore.$host$;
   const ancestorHost = ancestorChore.$host$;
   if (!vnode_isVNode(descendantHost) || !vnode_isVNode(ancestorHost)) {
     return false;
   }
-  return vnode_isDescendantOf(
-    descendantHost,
-    ancestorHost,
-    (container as ClientContainer).rootVNode
-  );
+  return vnode_isDescendantOf(descendantHost, ancestorHost);
 }
 
 function isSameHost(a: Chore, b: Chore): boolean {
@@ -134,7 +130,7 @@ function findBlockingChoreInQueue(
     if (candidate.$type$ >= ChoreType.VISIBLE || candidate.$type$ === ChoreType.TASK) {
       continue;
     }
-    if (isDescendant(chore, candidate, container)) {
+    if (isDescendant(chore, candidate)) {
       return candidate;
     }
   }
@@ -152,22 +148,14 @@ export function findBlockingChore(
   if (blockingChoreInChoreQueue) {
     return blockingChoreInChoreQueue;
   }
-  const blockingChoreInBlockedChores = findBlockingChoreInQueue(
-    chore,
-    Array.from(blockedChores),
-    container
-  );
-  if (blockingChoreInBlockedChores) {
-    return blockingChoreInBlockedChores;
-  }
-  const blockingChoreInRunningChores = findBlockingChoreInQueue(
-    chore,
-    Array.from(runningChores),
-    container
-  );
-  if (blockingChoreInRunningChores) {
-    return blockingChoreInRunningChores;
-  }
+  // const blockingChoreInBlockedChores = findBlockingChoreInQueue(
+  //   chore,
+  //   Array.from(blockedChores),
+  //   container
+  // );
+  // if (blockingChoreInBlockedChores) {
+  //   return blockingChoreInBlockedChores;
+  // }
 
   for (const rule of BLOCKING_RULES) {
     if (chore.$type$ !== rule.blockedType) {

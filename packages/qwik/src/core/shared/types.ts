@@ -1,8 +1,8 @@
 import type { ContextId } from '../use/use-context';
-import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './serdes/index';
+import type { VNode } from '../client/vnode-impl';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;

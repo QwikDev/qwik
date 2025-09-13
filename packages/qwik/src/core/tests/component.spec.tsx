@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_getParent, vnode_getProp, vnode_locate } from '../client/vnode';
+import { vnode_getParent, vnode_locate } from '../client/vnode';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -2287,7 +2287,7 @@ describe.each([
     );
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
-    expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+    expect(vnode_getParent(h1Element)!.getProp(OnRenderProp, null)).toBeNull();
   });
 
   it('should reuse the same props instance when props are changing', async () => {

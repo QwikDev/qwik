@@ -4,9 +4,10 @@ import {
   vnode_getNextSibling,
   vnode_newUnMaterializedElement,
 } from '../client/vnode';
-import type { ContainerElement, ElementVNode, QDocument } from '../client/types';
+import type { ContainerElement, QDocument } from '../client/types';
 import { vnode_documentPosition } from './scheduler-document-position';
 import { createDocument } from '@qwik.dev/dom';
+import type { ElementVNode } from '../client/vnode-impl';
 
 describe('vnode_documentPosition', () => {
   let parent: ContainerElement;

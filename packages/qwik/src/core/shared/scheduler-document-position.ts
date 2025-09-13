@@ -1,10 +1,5 @@
-import { VNodeProps, type ElementVNode, type VNode } from '../client/types';
-import {
-  vnode_getNextSibling,
-  vnode_getPreviousSibling,
-  vnode_getProp,
-  vnode_locate,
-} from '../client/vnode';
+import { vnode_getNextSibling, vnode_getPreviousSibling, vnode_locate } from '../client/vnode';
+import type { ElementVNode, VNode } from '../client/vnode-impl';
 import type { ISsrNode } from '../ssr/ssr-types';
 import { QSlotParent } from './utils/markers';
 
@@ -32,13 +27,13 @@ export const vnode_documentPosition = (
   let bDepth = -1;
   while (a) {
     const vNode = (aVNodePath[++aDepth] = a);
-    a = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(a, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+    a = (vNode.parent ||
+      (rootVNode && a.getProp(QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
   }
   while (b) {
     const vNode = (bVNodePath[++bDepth] = b);
-    b = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+    b = (vNode.parent ||
+      (rootVNode && b.getProp(QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {
@@ -64,7 +59,7 @@ export const vnode_documentPosition = (
           return -1;
         }
       } while (cursor);
-      if (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))) {
+      if (rootVNode && b.getProp(QSlotParent, (id) => vnode_locate(rootVNode, id))) {
         // The "b" node is a projection, so we need to set it after "a" node,
         // because the "a" node could be a context provider.
         return -1;

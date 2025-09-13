@@ -15,7 +15,6 @@ import type {
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
-  vnode_getAttr,
   vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
@@ -31,8 +30,6 @@ import {
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
-  vnode_setAttr,
-  vnode_setProp,
   type VNodeJournal,
 } from '../core/client/vnode';
 
@@ -54,8 +51,8 @@ import {
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
 import { prettyHtml } from './html';
-import type { VNode } from '../core/client/types';
 import { QContainerValue } from '../core/shared/types';
+import type { ElementVNode, VirtualVNode, VNode } from '../core/client/vnode-impl';
 
 expect.extend({
   toMatchVDOM(
@@ -188,8 +185,8 @@ function diffJsxVNode(
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
       let receivedValue =
-        vnode_getAttr(received, prop) ||
-        vnode_getAttr(received, propLowerCased) ||
+        received.getAttr(prop) ||
+        received.getAttr(propLowerCased) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -390,9 +387,9 @@ function shouldSkip(vNode: _VNode | null) {
     const tag = vnode_getElementName(vNode);
     if (
       tag === 'script' &&
-      (vnode_getAttr(vNode, 'type') === 'qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'x-qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'qwik/state')
+      (vNode.getAttr('type') === 'qwik/vnode' ||
+        vNode.getAttr('type') === 'x-qwik/vnode' ||
+        vNode.getAttr('type') === 'qwik/state')
     ) {
       return true;
     }
@@ -467,16 +464,16 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       for (const key in props) {
         if (Object.prototype.hasOwnProperty.call(props, key)) {
           if (key.startsWith(HANDLER_PREFIX) || isJsxPropertyAnEventName(key)) {
-            vnode_setProp(child, key, props[key]);
+            child.setProp(key, props[key]);
           } else {
-            vnode_setAttr(journal, child, key, String(props[key]));
+            child.setAttr(key, String(props[key]), journal);
           }
         }
       }
       if (jsx.key != null) {
-        vnode_setAttr(journal, child, ELEMENT_KEY, String(jsx.key));
+        child.setAttr(ELEMENT_KEY, String(jsx.key), journal);
       }
-      vParent = child;
+      vParent = child as ElementVNode | VirtualVNode;
     },
     leave: (_jsx) => {
       vParent = vnode_getParent(vParent) as any;

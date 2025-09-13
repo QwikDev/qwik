@@ -8,16 +8,17 @@ export {
 export { _run } from './client/queue-qrl';
 export type {
   ContainerElement as _ContainerElement,
-  ElementVNode as _ElementVNode,
   QDocument as _QDocument,
+  VNodeFlags as _VNodeFlags,
+} from './client/types';
+export type {
+  ElementVNode as _ElementVNode,
   TextVNode as _TextVNode,
   VirtualVNode as _VirtualVNode,
   VNode as _VNode,
-  VNodeFlags as _VNodeFlags,
-} from './client/types';
+} from './client/vnode-impl';
 export {
   vnode_toString as _vnode_toString,
-  vnode_getPropStartIndex as _vnode_getPropStartIndex,
   vnode_getProps as _vnode_getProps,
   vnode_isTextVNode as _vnode_isTextVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
@@ -26,7 +27,6 @@ export {
   vnode_getNextSibling as _vnode_getNextSibling,
   vnode_ensureElementInflated as _vnode_ensureElementInflated,
   vnode_getAttrKeys as _vnode_getAttrKeys,
-  vnode_getAttr as _vnode_getAttr,
 } from './client/vnode';
 export {
   mapApp_findIndx as _mapApp_findIndx,

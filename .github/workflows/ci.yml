@@ -713,8 +713,7 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
-          mkdir -p packages/qwik-react/lib/
-          mv artifact-qwikreact/* packages/qwik-react/lib/
+          mv artifact-qwikreact/* packages/qwik-react/
 
       - run: pnpm install --frozen-lockfile
 

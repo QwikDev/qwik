@@ -264,6 +264,24 @@ importers:
         specifier: 4.1.5
         version: 4.1.5
 
+  e2e/qwik-react-e2e:
+    devDependencies:
+      '@builder.io/qwik-react':
+        specifier: workspace:^
+        version: link:../../packages/qwik-react
+      '@types/react':
+        specifier: 18.3.3
+        version: 18.3.3
+      '@types/react-dom':
+        specifier: 18.3.0
+        version: 18.3.0
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
+
   packages/create-qwik:
     devDependencies:
       '@clack/prompts':

@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformNode {}
+  type QwikRouterPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located

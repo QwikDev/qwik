@@ -14,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformNetlify {}
+  type QwikRouterPlatform = PlatformNetlify;
 }
 
 export default createQwikRouter({ render });

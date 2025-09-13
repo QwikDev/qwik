@@ -268,6 +268,7 @@ export function rawSource(): Plugin {
   let isDev: boolean = false;
   let doSourceMap: boolean = false;
   const extToMime = {
+    mjs: 'application/javascript',
     js: 'application/javascript',
     css: 'text/css',
     html: 'text/html',
@@ -287,7 +288,7 @@ export function rawSource(): Plugin {
       // Vite still processes /@fs urls, so we need to run our own static server
       server.middlewares.use((req, res, next) => {
         if (req.url!.startsWith('/@raw-fs')) {
-          const filePath = req.url!.slice('/@raw-fs'.length);
+          const filePath = req.url!.slice('/@raw-fs'.length).split('?')[0];
           if (existsSync(filePath)) {
             const ext = filePath.split('.').pop()! as keyof typeof extToMime;
             const contentType = extToMime[ext] || 'application/octet-stream';

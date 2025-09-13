@@ -1,12 +1,12 @@
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import type { RequestHandler } from '@qwik.dev/router';
 import { useLocation } from '@qwik.dev/router';
-import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
 import tutorialSections, { type TutorialApp } from '@tutorial-data';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { EditIcon } from '../../components/svgs/edit-icon';
-import { Repl } from '../../repl/repl';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
+import { Repl } from '../../repl/ui';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
 import styles from './tutorial.css?inline';
@@ -30,7 +30,6 @@ export default component$(() => {
       app: t.app,
       prev: t.prev,
       next: t.next,
-      buildId: 0,
       buildMode: 'development',
       entryStrategy: 'segment',
       files: ensureDefaultFiles(t.app.problemInputs),

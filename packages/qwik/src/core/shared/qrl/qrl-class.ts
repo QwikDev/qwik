@@ -182,6 +182,7 @@ export const createQRL = <TYPE>(
 
         if (isBrowser && chunk) {
           /** We run the QRL, so now the probability of the chunk is 100% */
+          console.log('qrl-class.ts runQRL preload 1', chunk);
           preload(chunk, 1);
         }
 
@@ -257,11 +258,13 @@ export const createQRL = <TYPE>(
   if (qDev) {
     seal(qrl);
   }
+
   if (isBrowser && symbol) {
     /**
      * Preloading the symbol instead of the chunk allows us to get probabilities for the bundle
      * based on its contents.
      */
+    console.log('qrl-class.ts createQRL preload 0.8', chunk);
     preload(symbol, 0.8);
   }
   return qrl;

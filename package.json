@@ -245,6 +245,7 @@
     "test.e2e.integrations.webkit": "playwright test e2e/adapters-e2e/tests --project=webkit --config e2e/adapters-e2e/playwright.config.ts",
     "test.e2e.webkit": "playwright test starters --browser=webkit --config starters/playwright.config.ts",
     "test.e2e.qwik-react.chromium": "playwright test e2e/qwik-react-e2e/tests --project=chromium --config e2e/qwik-react-e2e/playwright.config.ts",
+    "test.e2e.qwik-react.webkit": "playwright test e2e/qwik-react-e2e/tests --project=webkit --config e2e/qwik-react-e2e/playwright.config.ts",
     "test.rust": "make test",
     "test.rust.update": "make test-update",
     "test.unit": "vitest packages",

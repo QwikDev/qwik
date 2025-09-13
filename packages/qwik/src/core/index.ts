@@ -61,7 +61,12 @@ export {
   SSRComment,
   SkipRender,
 } from './shared/jsx/utils.public';
-export type { SSRStreamProps, SSRHintProps, SSRStreamChildren } from './shared/jsx/utils.public';
+export type {
+  SSRStreamProps,
+  SSRHintProps,
+  SSRStreamChildren,
+  SSRStreamWriter,
+} from './shared/jsx/utils.public';
 export { Slot } from './shared/jsx/slot.public';
 export {
   Fragment,

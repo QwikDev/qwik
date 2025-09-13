@@ -1200,9 +1200,50 @@ impl<'a> QwikTransform<'a> {
 					.cloned()
 					.collect();
 
+				let props = object.props;
+				let last_spread_index = props
+					.iter()
+					.rposition(|p| matches!(p, ast::PropOrSpread::Spread(_)));
+				let has_var_prop_after_last_spread = if let Some(index) = last_spread_index {
+					props[index + 1..].iter().any(|prop| {
+						if let ast::PropOrSpread::Prop(box ast::Prop::Shorthand(node)) = prop {
+							if node.sym == *CHILDREN {
+								return false;
+							}
+						}
+						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) = prop {
+							let key_word = match node.key {
+								ast::PropName::Ident(ref ident) => Some(ident.sym.clone()),
+								ast::PropName::Str(ref s) => Some(s.value.clone()),
+								_ => None,
+							};
+
+							if let Some(key_word) = key_word {
+								if key_word == *CHILDREN {
+									return false;
+								}
+							}
+						}
+						if let ast::PropOrSpread::Spread(_) = prop {
+							return true;
+						}
+						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(node)) = prop {
+							if is_const_expr(
+								&node.value,
+								&self.options.global_collect,
+								Some(&const_idents),
+							) {
+								return false;
+							}
+						}
+						true
+					})
+				} else {
+					false
+				};
+
 				// Do we have spread arguments?
-				let mut spread_props_count = object
-					.props
+				let mut spread_props_count = props
 					.iter()
 					.filter(|prop| !matches!(prop, ast::PropOrSpread::Prop(_)))
 					.count();
@@ -1212,7 +1253,7 @@ impl<'a> QwikTransform<'a> {
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
 
-				for prop in object.props {
+				for prop in props.into_iter() {
 					let mut name_token = false;
 					// If we have spread props, all the props that come before it are variable even if they're static
 					let maybe_const_props = if spread_props_count > 0 {
@@ -1509,9 +1550,6 @@ impl<'a> QwikTransform<'a> {
 								let (_, var_props_call, const_props_call, _, _) =
 									self.handle_jsx_props_obj_spread(&spread);
 
-								// If there are more spreads after it,
-								// both _getVarProps and _getConstProps should be spread into the same props object
-
 								let var_props_call_prop =
 									ast::PropOrSpread::Spread(ast::SpreadElement {
 										expr: var_props_call.expr,
@@ -1524,11 +1562,13 @@ impl<'a> QwikTransform<'a> {
 									});
 
 								var_props.push(var_props_call_prop);
-								if spread_props_count > 1 {
+								if spread_props_count > 1 || has_var_prop_after_last_spread {
 									// Add both spreads to var_props since they'll be combined
+									// or props after the last spread are var props
 									var_props.push(const_props_call_prop);
 								} else {
 									// Single spread or last spread - keep the original separation
+									// Props after the last spread are const props
 									const_props.push(const_props_call_prop);
 								}
 							} else {

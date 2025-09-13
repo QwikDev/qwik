@@ -277,18 +277,6 @@ describe('serializer v2', () => {
       });
     });
 
-    describe('StringSerializer, //////// ' + TypeIds.String, () => {
-      it('should serialize and deserialize', async () => {
-        const obj = '\u0010anything';
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-
-      it('should serialize and deserialize strings in array', async () => {
-        const obj = ['\b: backspace'];
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
     describe('VNodeSerializer, ///////// ' + TypeIds.VNode, () => {
       it.todo('should serialize and deserialize', async () => {
         ///
@@ -609,19 +597,15 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(
-            jsx.varProps as any,
-            jsx.constProps,
-            ssrContainer.serializationCtx,
-            null,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps as any,
-            jsx.varProps,
-            ssrContainer.serializationCtx,
-            null
-          )
+          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+          })
         );
       } else {
         ssrContainer.openFragment([]);

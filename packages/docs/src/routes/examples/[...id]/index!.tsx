@@ -11,9 +11,9 @@ import type { PathParams, RequestHandler, StaticGenerateHandler } from '@qwik.de
 import { useLocation, type DocumentHead } from '@qwik.dev/router';
 import { Header } from '../../../components/header/header';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
-import { Repl } from '../../../repl/repl';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
 import type { ReplAppInput } from '../../../repl/types';
+import { Repl } from '../../../repl/ui';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
 import styles from './examples.css?inline';
 
 export default component$(() => {
@@ -29,7 +29,6 @@ export default component$(() => {
     const app = getExampleApp(loc.params.id);
     const initStore: ExamplesStore = {
       appId: app ? app.id : '',
-      buildId: 0,
       buildMode: 'development',
       entryStrategy: 'segment',
       files: app?.inputs || [],
@@ -72,7 +71,6 @@ export default component$(() => {
   });
 
   useTask$(({ track }) => {
-    track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
     track(() => store.files);

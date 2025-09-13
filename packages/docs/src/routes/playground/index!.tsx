@@ -11,9 +11,9 @@ import {
 import type { DocumentHead, RequestHandler } from '@qwik.dev/router';
 import { Header } from '../../components/header/header';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { Repl } from '../../repl/repl';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
 import type { ReplAppInput } from '../../repl/types';
+import { Repl } from '../../repl/ui';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import styles from './playground.css?inline';
 
 export default component$(() => {
@@ -21,7 +21,6 @@ export default component$(() => {
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
-      buildId: 0,
       files: playgroundApp.inputs,
       version: '',
       buildMode: 'development',
@@ -50,7 +49,6 @@ export default component$(() => {
   });
 
   useTask$(({ track }) => {
-    track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
     track(() => store.files);

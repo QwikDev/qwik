@@ -206,5 +206,6 @@
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
   "type": "module",
-  "types": "./public.d.ts"
+  "types": "./public.d.ts",
+  "sideEffects": false
 }

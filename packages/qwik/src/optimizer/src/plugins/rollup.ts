@@ -160,10 +160,10 @@ const getChunkFileName = (
   } else {
     // Friendlier names in dev or preview with debug mode
     return (chunkInfo: Rollup.PreRenderedChunk) => {
-      if (chunkInfo.moduleIds?.some((id) => id.endsWith('core.prod.mjs'))) {
+      if (chunkInfo.moduleIds?.some((id) => /core\.(prod|min)\.mjs$/.test(id))) {
         return `${prefix}build/core.js`;
       }
-      if (chunkInfo.moduleIds?.some((id) => id.endsWith('qwik-router/lib/index.qwik.mjs'))) {
+      if (chunkInfo.moduleIds?.some((id) => /qwik-router\/lib\/index\.qwik\.mjs$/.test(id))) {
         return `${prefix}build/qwik-router.js`;
       }
 

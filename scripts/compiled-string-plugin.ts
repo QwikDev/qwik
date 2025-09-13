@@ -2,48 +2,66 @@ import type { Plugin } from 'vite';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
 
+/** This returns the source code of a module after transforming */
 export function compiledStringPlugin(): Plugin {
+  let devServer: any;
   return {
     name: 'compiled-string-plugin',
+    enforce: 'pre',
 
-    resolveId(id) {
-      // Keep the full id if it has our query param
-      if (isCompiledStringId(id)) {
-        return id;
-      }
-      return null;
+    configureServer(server) {
+      devServer = server;
     },
 
-    async load(id) {
-      if (isCompiledStringId(id)) {
-        // Extract the actual file path without the query parameter
-        const filePath = id.split('?')[0];
+    resolveId: {
+      order: 'pre',
+      async handler(id, importer, options) {
+        if (isCompiledStringId(id)) {
+          const cleanId = id.replace(/([?&])compiled-string/, '$1').replace(/[?&]$/, '');
+          const resolved = await this.resolve(cleanId, importer, { skipSelf: true });
+          if (resolved) {
+            return `virtual:compiled-string:${resolved.id}`;
+          }
+        } else if (id.startsWith('virtual:compiled-string:')) {
+          return id;
+        }
+        return null;
+      },
+    },
 
-        try {
-          // Let Rollup load the file content with side effects explicitly preserved
+    load: {
+      order: 'pre',
+      async handler(id) {
+        if (id.startsWith('virtual:compiled-string:')) {
+          const originalId = id.slice('virtual:compiled-string:'.length);
+
           const result = await this.load({
-            id: filePath,
-            moduleSideEffects: true, // Explicitly mark as having side effects
+            id: originalId,
+            moduleSideEffects: true,
           });
 
-          if (!result) {
-            throw new Error(`Failed to load file: ${filePath}`);
+          let code: string;
+          if (result && 'code' in result && result.code) {
+            // If this.load provides code, use it
+            code = result.code;
+          } else if (devServer) {
+            // in dev mode, you need to use the dev server to transform the request
+            const transformResult = await devServer.transformRequest(originalId);
+            if (transformResult && transformResult.code) {
+              code = transformResult.code;
+            }
+            this.addWatchFile(originalId);
           }
-
-          // The code already contains the "// @preserve-side-effects" comment
-          // which should help preserve side effects, but we'll ensure the resulting
-          // string maintains that marker
-
+          if (!code!) {
+            throw new Error(`Unable to load code for ${originalId}`);
+          }
           return {
-            code: `export default ${JSON.stringify(result.code)};`,
+            code: `export default ${JSON.stringify(code)};`,
             map: null,
           };
-        } catch (error) {
-          console.error(`Error processing ${filePath}:`, error);
-          return null;
         }
-      }
-      return null;
+        return null;
+      },
     },
   };
 }

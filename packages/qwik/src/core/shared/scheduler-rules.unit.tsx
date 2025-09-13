@@ -3,7 +3,7 @@ import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rule
 import { ChoreType } from './util-chore-type';
 import { addBlockedChore, type Chore } from './scheduler';
 import { Task, TaskFlags } from '../use/use-task';
-import { ELEMENT_SEQ, QSlotParent } from './utils/markers';
+import { ELEMENT_SEQ } from './utils/markers';
 import type { Container } from './types';
 import { vnode_newVirtual } from '../client/vnode';
 import { $, type QRL } from './qrl/qrl.public';
@@ -630,7 +630,7 @@ describe('findBlockingChore', () => {
       const childProjectionVNode = vnode_newVirtual();
       parentProjectionVNode.parent = rootVNode;
       parentProjectionVNode.setProp('', childProjectionVNode);
-      childProjectionVNode.setProp(QSlotParent, parentProjectionVNode);
+      childProjectionVNode.slotParent = parentProjectionVNode;
       const ancestorProjectionChore = createMockChore(ChoreType.COMPONENT, parentProjectionVNode);
       const descendantProjectionChore = createMockChore(ChoreType.COMPONENT, childProjectionVNode);
       const choreQueue = [ancestorProjectionChore];

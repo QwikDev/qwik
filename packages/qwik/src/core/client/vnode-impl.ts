@@ -10,10 +10,15 @@ import {
 /** @internal */
 export abstract class VNode {
   props: (string | null | boolean)[] | null = null;
+  slotParent: VNode | null = null;
+
+  getSlotParent(): VNode | null {
+    return this.slotParent;
+  }
 
   constructor(
     public flags: VNodeFlags,
-    public parent: ElementVNode | VirtualVNode | null | undefined,
+    public parent: ElementVNode | VirtualVNode | null,
     public previousSibling: VNode | null | undefined,
     public nextSibling: VNode | null | undefined
   ) {}
@@ -22,9 +27,9 @@ export abstract class VNode {
     const type = this.flags;
     if ((type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0) {
       type & VNodeFlags.Element && vnode_ensureElementInflated(this);
+      this.props ||= [];
       const idx = mapApp_findIndx(this.props as any, key, 0);
       if (idx >= 0) {
-        this.props ||= [];
         let value = this.props[idx + 1] as any;
         if (typeof value === 'string' && getObject) {
           this.props[idx + 1] = value = getObject(value);
@@ -90,7 +95,7 @@ export abstract class VNode {
 export class TextVNode extends VNode {
   constructor(
     flags: VNodeFlags,
-    parent: ElementVNode | VirtualVNode | null | undefined,
+    parent: ElementVNode | VirtualVNode | null,
     previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     public textNode: Text | null,
@@ -104,7 +109,7 @@ export class TextVNode extends VNode {
 export class VirtualVNode extends VNode {
   constructor(
     flags: VNodeFlags,
-    parent: ElementVNode | VirtualVNode | null | undefined,
+    parent: ElementVNode | VirtualVNode | null,
     previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     public firstChild: VNode | null | undefined,
@@ -118,7 +123,7 @@ export class VirtualVNode extends VNode {
 export class ElementVNode extends VirtualVNode {
   constructor(
     flags: VNodeFlags,
-    parent: ElementVNode | VirtualVNode | null | undefined,
+    parent: ElementVNode | VirtualVNode | null,
     previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
     firstChild: VNode | null | undefined,

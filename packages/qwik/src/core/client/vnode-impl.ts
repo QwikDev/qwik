@@ -1,4 +1,5 @@
 import { VNodeFlags } from './types';
+import { Chore } from '../shared/scheduler';
 import { mapApp_findIndx, mapArray_get } from './util-mapArray';
 import {
   vnode_ensureElementInflated,
@@ -11,6 +12,8 @@ import {
 export abstract class VNode {
   props: (string | null | boolean)[] | null = null;
   slotParent: VNode | null = null;
+  chores: Set<Chore> | null = null;
+  blockedChores: Set<Chore> | null = null;
 
   getSlotParent(): VNode | null {
     return this.slotParent;

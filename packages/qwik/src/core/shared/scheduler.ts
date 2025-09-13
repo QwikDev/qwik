@@ -460,6 +460,9 @@ This is often caused by modifying a signal in an already rendered component duri
             addBlockedChore(blockedChore, blockingChore, blockedChores);
           } else {
             blockedChores.delete(blockedChore);
+            if (vnode_isVNode(blockedChore.$host$)) {
+              blockedChore.$host$.blockedChores?.delete(blockedChore);
+            }
             sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
             blockedChoresScheduled = true;
           }
@@ -488,6 +491,9 @@ This is often caused by modifying a signal in an already rendered component duri
         ) {
           // skip deleted chore
           DEBUG && debugTrace('skip chore', chore, choreQueue, blockedChores);
+          if (vnode_isVNode(chore.$host$)) {
+            chore.$host$.chores?.delete(chore);
+          }
           continue;
         }
 
@@ -564,6 +570,9 @@ This is often caused by modifying a signal in an already rendered component duri
     chore.$state$ = ChoreState.DONE;
     chore.$returnValue$ = value;
     chore.$resolve$?.(value);
+    if (vnode_isVNode(chore.$host$)) {
+      chore.$host$.chores?.delete(chore);
+    }
     DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
   }
 
@@ -865,6 +874,9 @@ This is often caused by modifying a signal in an already rendered component duri
     if (idx < 0) {
       /// 2. Insert the chore into the queue.
       sortedArray.splice(~idx, 0, value);
+      if (vnode_isVNode(value.$host$)) {
+        (value.$host$.chores || (value.$host$.chores = new Set())).add(value);
+      }
       return value;
     }
 
@@ -904,6 +916,9 @@ export function addBlockedChore(
   blockingChore.$blockedChores$ ||= [];
   blockingChore.$blockedChores$.push(blockedChore);
   blockedChores.add(blockedChore);
+  if (vnode_isVNode(blockedChore.$host$)) {
+    (blockedChore.$host$.blockedChores ||= new Set()).add(blockedChore);
+  }
 }
 
 function choreTypeToName(type: ChoreType): string {

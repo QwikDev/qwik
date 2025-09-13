@@ -14,6 +14,7 @@ import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 import type { ReplAppInput } from '../../../repl/types';
 import { Repl } from '../../../repl/ui';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
+import { setReplCorsHeaders } from '~/utils/utils';
 import styles from './examples.css?inline';
 
 export default component$(() => {
@@ -73,9 +74,8 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
-    track(() => store.files);
     track(() => store.version);
-    track(() => store.preloader);
+    track(() => store.files.forEach((f) => f.code));
 
     if (isBrowser) {
       if (store.version) {
@@ -179,11 +179,12 @@ interface ExamplesStore extends ReplAppInput {
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+  setReplCorsHeaders(headers);
 };
 
 export const onStaticGenerate: StaticGenerateHandler = () => {

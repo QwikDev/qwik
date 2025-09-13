@@ -2,7 +2,7 @@ import { component$, useComputed$ } from '@qwik.dev/core';
 import { CodeBlock } from '../../components/code-block/code-block';
 import type { ReplAppInput, ReplStore } from '../types';
 import { ReplOutputModules } from './repl-output-modules';
-import { ReplOutputSymbols } from './repl-output-symbols';
+import { ReplOutputSymbols } from './repl-output-segments';
 import { ReplTabButton } from './repl-tab-button';
 import { ReplTabButtons } from './repl-tab-buttons';
 import {
@@ -159,7 +159,7 @@ export const ReplOutputPanel = component$(({ input, store }: ReplOutputPanelProp
             <iframe
               key={store.reload}
               class="repl-server"
-              src={`/repl/${store.replId}/`}
+              src={`/repl/client/${store.replId}/`}
               sandbox="allow-popups allow-modals allow-scripts allow-same-origin"
             />
           )}

@@ -9,7 +9,7 @@ export default defineConfig({
     lib: {
       entry: 'src/routes/repl/repl-sw.js/entry.ts',
       formats: ['cjs'],
-      fileName: 'repl-sw',
+      fileName: () => 'repl-sw.js',
     },
   },
   clearScreen: false,

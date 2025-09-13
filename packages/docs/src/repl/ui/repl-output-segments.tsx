@@ -14,7 +14,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">Symbols</div>
+        <div class="file-tree-header">Segments</div>
         <div class="file-tree-items">
           {segments.map((o, i) => (
             <div key={o.path}>

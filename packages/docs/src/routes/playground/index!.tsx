@@ -15,6 +15,7 @@ import type { ReplAppInput } from '../../repl/types';
 import { Repl } from '../../repl/ui';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import styles from './playground.css?inline';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -51,8 +52,8 @@ export default component$(() => {
   useTask$(({ track }) => {
     track(() => store.buildMode);
     track(() => store.entryStrategy);
-    track(() => store.files);
     track(() => store.version);
+    track(() => store.files.forEach((f) => f.code));
 
     if (isBrowser) {
       if (store.version) {
@@ -136,9 +137,11 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+
+  setReplCorsHeaders(headers);
 };

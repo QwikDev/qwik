@@ -139,13 +139,17 @@ export default defineConfig(() => {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
       exclude: [
         // optimizing breaks the wasm import
-        '@rollup/browser',
+        '@rolldown/browser',
       ],
     },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
       },
+    },
+    define: {
+      // The rolldown deps use this
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
       alias: [
@@ -165,6 +169,8 @@ export default defineConfig(() => {
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
       ],
+      // Make sure to get the browser version of @rolldown/browser
+      conditions: ['browser', 'worker', 'import', 'default'],
     },
     ssr: {
       noExternal: [
@@ -182,6 +188,9 @@ export default defineConfig(() => {
         '@modular-forms/qwik',
         '@qwik-ui/headless',
       ],
+      resolve: {
+        conditions: ['import', 'worker', 'default'],
+      },
     },
 
     plugins: [
@@ -241,9 +250,17 @@ export default defineConfig(() => {
         external: ['@docsearch/css'],
       },
     },
+    worker: {
+      format: 'es',
+    },
     clearScreen: false,
     server: {
       port: 3000,
+      // Needed for the REPL SharedArrayBuffer
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
     },
   };
 });

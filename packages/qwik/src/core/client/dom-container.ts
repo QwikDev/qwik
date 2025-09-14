@@ -51,8 +51,6 @@ import {
   vnode_applyJournal,
   vnode_createErrorDiv,
   vnode_getDomParent,
-  vnode_getNextSibling,
-  vnode_getParent,
   vnode_getProps,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -170,13 +168,13 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
-  handleError(err: any, host: HostElement | null): void {
+  handleError(err: any, host: VNode | null): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
         const journal: VNodeJournal = [];
-        const vHostParent = vnode_getParent(vHost) as VirtualVNode | ElementVNode | undefined;
-        const vHostNextSibling = vnode_getNextSibling(vHost);
+        const vHostParent = vHost.parent;
+        const vHostNextSibling = vHost.nextSibling as VNode | null;
         const vErrorDiv = vnode_createErrorDiv(document, vHost, err, journal);
         // If the host is an element node, we need to insert the error div into its parent.
         const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
@@ -202,7 +200,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     errorStore.error = err;
   }
 
-  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
+  setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
     let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
     if (ctx == null) {
       this.setHostProp(host, QCtxAttr, (ctx = []));
@@ -210,7 +208,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     mapArray_set(ctx, context.id, value, 0, true);
   }
 
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
+  resolveContext<T>(host: VNode, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
       if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
@@ -221,19 +219,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return undefined;
   }
 
-  getParentHost(host: HostElement): HostElement | null {
-    let vNode = vnode_getParent(host as any);
+  getParentHost(host: VNode): VNode | null {
+    let vNode: VNode | null = host.parent;
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
         if (vNode.getProp(OnRenderProp, null) !== null) {
-          return vNode as any as HostElement;
+          return vNode;
         }
         vNode =
-          vnode_getParent(vNode) ||
+          vNode.parent ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vNode.getSlotParent();
+          vNode.slotParent;
       } else {
-        vNode = vnode_getParent(vNode);
+        vNode = vNode.parent;
       }
     }
     return null;

@@ -24,7 +24,6 @@ export {
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_getFirstChild as _vnode_getFirstChild,
   vnode_isMaterialized as _vnode_isMaterialized,
-  vnode_getNextSibling as _vnode_getNextSibling,
   vnode_ensureElementInflated as _vnode_ensureElementInflated,
   vnode_getAttrKeys as _vnode_getAttrKeys,
 } from './client/vnode';

@@ -1,4 +1,3 @@
-import { vnode_getNextSibling, vnode_getPreviousSibling } from '../client/vnode';
 import type { VNode } from '../client/vnode-impl';
 import type { ISsrNode } from '../ssr/ssr-types';
 
@@ -37,16 +36,16 @@ export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
       bDepth--;
     } else {
       // We found a difference so we need to scan nodes at this level.
-      let cursor: VNode | null = b;
+      let cursor: VNode | null | undefined = b;
       do {
-        cursor = vnode_getNextSibling(cursor);
+        cursor = cursor.nextSibling;
         if (cursor === a) {
           return 1;
         }
       } while (cursor);
       cursor = b;
       do {
-        cursor = vnode_getPreviousSibling(cursor);
+        cursor = cursor.previousSibling;
         if (cursor === a) {
           return -1;
         }

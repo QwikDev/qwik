@@ -17,8 +17,6 @@ import { expect } from 'vitest';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_getParent,
   vnode_getVNodeForChildNode,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -202,7 +200,7 @@ export async function ssrRenderToDom(
         break;
       }
       childrenToMove.push(child);
-      child = vnode_getNextSibling(child);
+      child = child.nextSibling as VNode | null;
     }
 
     // Set the container vnode as a parent of the fragment
@@ -337,7 +335,7 @@ function getHostVNode(vElement: _VNode | null) {
     if (vElement.getAttr(OnRenderProp) != null) {
       return vElement as _VirtualVNode;
     }
-    vElement = vnode_getParent(vElement);
+    vElement = vElement.parent;
   }
   return vElement;
 }

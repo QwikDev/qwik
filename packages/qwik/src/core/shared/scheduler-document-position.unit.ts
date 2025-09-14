@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import {
-  vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_newUnMaterializedElement,
-} from '../client/vnode';
+import { vnode_getFirstChild, vnode_newUnMaterializedElement } from '../client/vnode';
 import type { ContainerElement, QDocument } from '../client/types';
 import { vnode_documentPosition } from './scheduler-document-position';
 import { createDocument } from '@qwik.dev/dom';
@@ -29,7 +25,7 @@ describe('vnode_documentPosition', () => {
   it('should compare two elements', () => {
     parent.innerHTML = '<b></b><i></i>';
     const b = vnode_getFirstChild(vParent) as ElementVNode;
-    const i = vnode_getNextSibling(b) as ElementVNode;
+    const i = b.nextSibling as ElementVNode;
     expect(vnode_documentPosition(b, i)).toBe(-1);
     expect(vnode_documentPosition(i, b)).toBe(1);
   });
@@ -37,7 +33,7 @@ describe('vnode_documentPosition', () => {
     parent.innerHTML = 'AB';
     document.qVNodeData.set(parent, '{B}{B}');
     const a = vnode_getFirstChild(vParent) as ElementVNode;
-    const b = vnode_getNextSibling(a) as ElementVNode;
+    const b = a.nextSibling as ElementVNode;
     expect(vnode_documentPosition(a, b)).toBe(-1);
     expect(vnode_documentPosition(b, a)).toBe(1);
   });
@@ -46,7 +42,7 @@ describe('vnode_documentPosition', () => {
     document.qVNodeData.set(parent, '{{B}}{B}');
     const a = vnode_getFirstChild(vParent) as ElementVNode;
     const a2 = vnode_getFirstChild(a) as ElementVNode;
-    const b = vnode_getNextSibling(a) as ElementVNode;
+    const b = a.nextSibling as ElementVNode;
     expect(vnode_documentPosition(a2, b)).toBe(-1);
     expect(vnode_documentPosition(b, a2)).toBe(1);
   });

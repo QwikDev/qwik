@@ -17,8 +17,6 @@ import {
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_getParent,
   vnode_isElementVNode,
   vnode_isTextVNode,
   type VNodeJournal,
@@ -147,7 +145,7 @@ function vnode_cloneElementWithNamespace(
 
       // We need to check if the parent is a foreignObject element
       // and get a new namespace data.
-      const vCursorParent = vnode_getParent(vCursor);
+      const vCursorParent = vCursor.parent;
       // For the first vNode parentNode is not parent from vNode tree, but parent from DOM tree
       // this is because vNode is not moved yet.
       // rootElement is null only for the first vNode
@@ -206,24 +204,24 @@ function vnode_cloneElementWithNamespace(
       return rootElement;
     }
     // Out of children, go to next sibling
-    const vNextSibling = vnode_getNextSibling(vCursor);
+    const vNextSibling = vCursor.nextSibling as VNode | null;
     if (vNextSibling) {
       vCursor = vNextSibling;
       continue;
     }
     // Out of siblings, go to parent
-    vParent = vnode_getParent(vCursor);
+    vParent = vCursor.parent;
     while (vParent) {
       if (vParent === elementVNode) {
         // We are back where we started, we are done.
         return rootElement;
       }
-      const vNextParentSibling = vnode_getNextSibling(vParent);
+      const vNextParentSibling = vParent.nextSibling as VNode | null;
       if (vNextParentSibling) {
         vCursor = vNextParentSibling;
         return rootElement;
       }
-      vParent = vnode_getParent(vParent);
+      vParent = vParent.parent;
     }
     if (vParent == null) {
       // We are done.

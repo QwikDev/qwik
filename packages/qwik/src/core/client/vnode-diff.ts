@@ -51,9 +51,7 @@ import {
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
   vnode_getNode,
-  vnode_getParent,
   vnode_getProjectionParentComponent,
   vnode_getProps,
   vnode_getText,
@@ -270,22 +268,22 @@ export const vnode_diff = (
   /**
    * Advance the `vCurrent` to the next sibling.
    *
-   * Normally this is just `vCurrent = vnode_getNextSibling(vCurrent)`. However, this gets
-   * complicated if `retrieveChildWithKey` was called, because then we are consuming nodes out of
-   * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
+   * Normally this is just `vCurrent = vCurrent.nextSibling`. However, this gets complicated if
+   * `retrieveChildWithKey` was called, because then we are consuming nodes out of order and can't
+   * rely on `nextSibling` and instead we need to go by `vSiblings`.
    */
   function peekNextSibling() {
     // If we don't have a `vNewNode`, than that means we just reconciled the current node.
     // So advance it.
-    return vCurrent ? vnode_getNextSibling(vCurrent) : null;
+    return vCurrent ? (vCurrent.nextSibling as VNode | null) : null;
   }
 
   /**
    * Advance the `vCurrent` to the next sibling.
    *
-   * Normally this is just `vCurrent = vnode_getNextSibling(vCurrent)`. However, this gets
-   * complicated if `retrieveChildWithKey` was called, because then we are consuming nodes out of
-   * order and can't rely on `vnode_getNextSibling` and instead we need to go by `vSiblings`.
+   * Normally this is just `vCurrent = vCurrent.nextSibling`. However, this gets complicated if
+   * `retrieveChildWithKey` was called, because then we are consuming nodes out of order and can't
+   * rely on `nextSibling` and instead we need to go by `vSiblings`.
    */
   function advanceToNextSibling() {
     vCurrent = peekNextSibling();
@@ -534,7 +532,7 @@ export const vnode_diff = (
       let vChild: VNode | null = vFirstChild;
       while (vChild) {
         cleanup(container, vChild);
-        vChild = vnode_getNextSibling(vChild);
+        vChild = vChild.nextSibling as VNode | null;
       }
       vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
@@ -547,7 +545,7 @@ export const vnode_diff = (
       while (vCurrent) {
         const toRemove = vCurrent;
         advanceToNextSibling();
-        if (vParent === vnode_getParent(toRemove)) {
+        if (vParent === toRemove.parent) {
           cleanup(container, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
@@ -708,7 +706,7 @@ export const vnode_diff = (
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
-      // The complication is that once we start taking nodes out of order we can't use `vnode_getNextSibling`
+      // The complication is that once we start taking nodes out of order we can't use `nextSibling`
       vNewNode = retrieveChildWithKey(elementName, jsxKey);
       if (vNewNode === null) {
         // No existing node with key exists, just create a new one.
@@ -962,7 +960,7 @@ export const vnode_diff = (
             vSiblings.set(name + ':' + vKey, vNode);
           }
         }
-        vNode = vnode_getNextSibling(vNode);
+        vNode = vNode.nextSibling as VNode | null;
       }
     } else {
       if (key === null) {
@@ -1129,7 +1127,7 @@ export const vnode_diff = (
               ) === null
             : true)
         ) {
-          componentHost = vnode_getParent(componentHost);
+          componentHost = componentHost.parent;
         }
 
         const jsxOutput = executeComponent(
@@ -1370,7 +1368,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
               let projectionChild = vnode_getFirstChild(projection);
               while (projectionChild) {
                 cleanup(container, projectionChild);
-                projectionChild = vnode_getNextSibling(projectionChild);
+                projectionChild = projectionChild.nextSibling as VNode | null;
               }
 
               cleanupStaleUnclaimedProjection(container.$journal$, projection);
@@ -1403,7 +1401,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
              */
             if (vNode.flags & VNodeFlags.Virtual) {
               // The QSlotParent is used to find the slot parent during scheduling
-              vNode.getSlotParent();
+              vNode.slotParent;
             }
           });
           return;
@@ -1418,25 +1416,25 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
       return;
     }
     // Out of children, go to next sibling
-    const vNextSibling = vnode_getNextSibling(vCursor);
+    const vNextSibling = vCursor.nextSibling as VNode | null;
     if (vNextSibling) {
       vCursor = vNextSibling;
       continue;
     }
 
     // Out of siblings, go to parent
-    vParent = vnode_getParent(vCursor);
+    vParent = vCursor.parent;
     while (vParent) {
       if (vParent === vNode) {
         // We are back where we started, we are done.
         return;
       }
-      const vNextParentSibling = vnode_getNextSibling(vParent);
+      const vNextParentSibling = vParent.nextSibling as VNode | null;
       if (vNextParentSibling) {
         vCursor = vNextParentSibling;
         break;
       }
-      vParent = vnode_getParent(vParent);
+      vParent = vParent.parent;
     }
     if (vParent == null) {
       // We are done.
@@ -1448,7 +1446,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
 function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
-  const projectionParent = vnode_getParent(projection);
+  const projectionParent = projection.parent;
   if (projectionParent) {
     const projectionParentType = projectionParent.flags;
     if (

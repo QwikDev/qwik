@@ -19,6 +19,7 @@ import { ELEMENT_SEQ, QContainerAttr } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT } from './utils/promises';
 import * as nextTick from './platform/next-tick';
 import type { ElementVNode, VirtualVNode, VNode } from '../client/vnode-impl';
+import { ChoreArray } from '../client/chore-array';
 
 declare global {
   let testLog: string[];
@@ -40,7 +41,7 @@ describe('scheduler', () => {
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
   let handleError: (err: any, host: HostElement | null) => void;
-  let choreQueue: Chore[];
+  let choreQueue: ChoreArray;
   let blockedChores: Set<Chore>;
   let runningChores: Set<Chore>;
 
@@ -55,7 +56,7 @@ describe('scheduler', () => {
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
     handleError = container.handleError = vi.fn();
-    choreQueue = [];
+    choreQueue = new ChoreArray();
     blockedChores = new Set();
     runningChores = new Set();
     scheduler = createScheduler(
@@ -278,7 +279,16 @@ describe('scheduler', () => {
       document = createDocument();
       document.body.setAttribute(QContainerAttr, 'paused');
       const container = getDomContainer(document.body);
-      scheduler = createScheduler(container, () => testLog.push('journalFlush'));
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      scheduler = createScheduler(
+        container,
+        () => testLog.push('journalFlush'),
+        choreQueue,
+        blockedChores,
+        runningChores
+      );
       document.body.innerHTML = '<a></a><b></b>';
       vnode_newUnMaterializedElement(document.body);
       vBHost1 = vnode_newVirtual();

@@ -277,12 +277,16 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
-export class _ElementVNode extends _VirtualVNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null | undefined, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
+export class _ElementVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
     // (undocumented)
     element: Element;
     // (undocumented)
     elementName: string | undefined;
+    // (undocumented)
+    firstChild: _VNode | null | undefined;
+    // (undocumented)
+    lastChild: _VNode | null | undefined;
 }
 
 // @internal (undocumented)
@@ -1657,7 +1661,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
 export class _TextVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null | undefined, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
     // (undocumented)
     text: string | undefined;
     // (undocumented)
@@ -1825,7 +1829,7 @@ export const version: string;
 
 // @internal (undocumented)
 export class _VirtualVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null | undefined, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
     // (undocumented)
     firstChild: _VNode | null | undefined;
     // (undocumented)
@@ -1837,7 +1841,13 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 
 // @internal (undocumented)
 export abstract class _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null | undefined, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
+    // (undocumented)
+    blockedChores: ChoreArray | null;
+    // Warning: (ae-forgotten-export) The symbol "ChoreArray" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    chores: ChoreArray | null;
     // (undocumented)
     flags: _VNodeFlags;
     // (undocumented)
@@ -1849,7 +1859,7 @@ export abstract class _VNode {
     // (undocumented)
     nextSibling: _VNode | null | undefined;
     // (undocumented)
-    parent: _ElementVNode | _VirtualVNode | null | undefined;
+    parent: _ElementVNode | _VirtualVNode | null;
     // (undocumented)
     previousSibling: _VNode | null | undefined;
     // (undocumented)

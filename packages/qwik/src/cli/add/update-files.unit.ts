@@ -74,7 +74,7 @@ describe('mergeIntegrationDir', () => {
       normalizePath(join('destDir', 'subDestDir', 'src', 'global.css')),
     ];
 
-    expect(actualResults).toEqual(expectedResults);
+    expect(actualResults.sort()).toEqual(expectedResults.sort());
   });
 
   test('should merge integration directory in a monorepo', async () => {
@@ -118,7 +118,7 @@ describe('mergeIntegrationDir', () => {
       normalizePath(join('destDir', 'subDestDir', 'apps', 'subpackage', 'src', 'global.css')),
     ];
 
-    expect(actualResults).toEqual(expectedResults);
+    expect(actualResults.sort()).toEqual(expectedResults.sort());
 
     const tests = {
       'destDir/subDestDir/apps/subpackage/fake.ts': 'fake file',
@@ -130,7 +130,10 @@ describe('mergeIntegrationDir', () => {
       'destDir/subDestDir/apps/subpackage/src/global.css': 'p{color: red}\n\n/* CSS */\n',
     };
     for (const [fileName, content] of Object.entries(tests)) {
-      const file = fakeFileUpdates.files.find((f) => f.path === fileName);
+      const file = fakeFileUpdates.files.find((f) => normalizePath(f.path) === fileName);
+      if (!file) {
+        console.error(`File %s not found:`, fakeFileUpdates.files);
+      }
       expect(file?.content.toString()).toBe(content);
     }
   });

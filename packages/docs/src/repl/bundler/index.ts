@@ -5,13 +5,6 @@ import { getDeps } from './bundled';
 import type { InitMessage, BundleMessage, OutgoingMessage } from './bundler-worker';
 import bundlerWorkerUrl from './bundler-worker?worker&url';
 
-import ssrWorkerStringPre from './repl-ssr-worker?compiled-string';
-import listenerScript from './client-events-listener?compiled-string';
-
-export const ssrWorkerString = ssrWorkerStringPre
-  .replace(/globalThis\.DO_NOT_TOUCH_IMPORT/g, 'import')
-  .replace('globalThis.LISTENER_SCRIPT', JSON.stringify(listenerScript));
-
 const bundlers = new Map<string, Bundler>();
 
 class Bundler {

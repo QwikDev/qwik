@@ -241,13 +241,11 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getHostProp<T>(host: HostElement, name: string): T | null;
     // (undocumented)
-    getParentHost(host: HostElement): HostElement | null;
+    getParentHost(host: _VNode): _VNode | null;
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    handleError(err: any, host: HostElement | null): void;
+    handleError(err: any, host: _VNode | null): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -255,11 +253,13 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
-    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    setContext<T>(host: _VNode, context: ContextId<T>, value: T): void;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
@@ -1882,9 +1882,6 @@ export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => strin
 
 // @internal (undocumented)
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
-
-// @internal (undocumented)
-export const _vnode_getNextSibling: (vnode: _VNode) => _VNode | null;
 
 // @internal (undocumented)
 export const _vnode_getProps: (vnode: _ElementVNode | _VirtualVNode) => unknown[];

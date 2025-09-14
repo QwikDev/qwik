@@ -18,10 +18,8 @@ import {
   vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
   vnode_getNode,
   vnode_getNodeTypeName,
-  vnode_getParent,
   vnode_getText,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -95,7 +93,7 @@ const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
   do {
-    maybeParent = vnode_getParent(vNode);
+    maybeParent = vNode.parent;
     if (maybeParent) {
       vNode = maybeParent;
     }
@@ -328,14 +326,14 @@ function getVNodeChildren(container: _ContainerElement, vNode: _VNode): _VNode[]
             mergedText += vnodeText;
           }
         }
-        child = vnode_getNextSibling(child);
+        child = child.nextSibling as VNode | null;
         continue;
       }
       pushMergedTextIfNeeded();
 
       children.push(child);
     }
-    child = vnode_getNextSibling(child);
+    child = child.nextSibling as VNode | null;
   }
   pushMergedTextIfNeeded();
   return children;
@@ -365,7 +363,7 @@ export function vnodeToHTML(vNode: _VNode | null, pad: string = ''): string {
           .split('\n')
           .join('\n' + pad)
     );
-    while (shouldSkip((vNode = vnode_getNextSibling(vNode!)))) {
+    while (shouldSkip((vNode = vNode!.nextSibling as VNode | null))) {
       // skip
     }
   }
@@ -476,7 +474,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       vParent = child as ElementVNode | VirtualVNode;
     },
     leave: (_jsx) => {
-      vParent = vnode_getParent(vParent) as any;
+      vParent = vParent.parent as any;
     },
     text: (value) => {
       vnode_insertBefore(

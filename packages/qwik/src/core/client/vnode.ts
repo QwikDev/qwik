@@ -434,24 +434,24 @@ export function vnode_walkVNode(
       return;
     }
     // Out of children, go to next sibling
-    const vNextSibling = vnode_getNextSibling(vCursor);
+    const vNextSibling = vCursor.nextSibling as VNode | null;
     if (vNextSibling) {
       vCursor = vNextSibling;
       continue;
     }
     // Out of siblings, go to parent
-    vParent = vnode_getParent(vCursor);
+    vParent = vCursor.parent;
     while (vParent) {
       if (vParent === vNode) {
         // We are back where we started, we are done.
         return;
       }
-      const vNextParentSibling = vnode_getNextSibling(vParent);
+      const vNextParentSibling = vParent.nextSibling as VNode | null;
       if (vNextParentSibling) {
         vCursor = vNextParentSibling;
         break;
       }
-      vParent = vnode_getParent(vParent);
+      vParent = vParent.parent;
     }
     if (vParent == null) {
       // We are done.
@@ -507,7 +507,7 @@ export function vnode_getDOMChildNodes(
         ? vnode_getDOMChildNodes(journal, vNode, true, childNodes as (ElementVNode | TextVNode)[])
         : vnode_getDOMChildNodes(journal, vNode, false, childNodes as (Element | Text)[]);
     }
-    vNode = vnode_getNextSibling(vNode);
+    vNode = vNode.nextSibling as VNode | null;
   }
   return childNodes;
 }
@@ -728,7 +728,7 @@ const vnode_getChildWithIdx = (vNode: VNode, childIdx: number): VNode => {
   let child = vnode_getFirstChild(vNode);
   assertDefined(child, 'Missing child.');
   while (child.flags >>> VNodeFlagsIndex.shift !== childIdx) {
-    child = vnode_getNextSibling(child);
+    child = child.nextSibling as VNode | null;
     assertDefined(child, 'Missing child.');
   }
   return child;
@@ -744,7 +744,7 @@ export const vnode_getVNodeForChildNode = (
   assertDefined(child, 'Missing child.');
   while (child && (child instanceof ElementVNode ? child.element !== childElement : true)) {
     if (vnode_isVirtualVNode(child)) {
-      const next = vnode_getNextSibling(child);
+      const next = child.nextSibling as VNode | null;
       const firstChild = vnode_getFirstChild(child);
       if (firstChild) {
         next && vNodeStack.push(next);
@@ -753,7 +753,7 @@ export const vnode_getVNodeForChildNode = (
         child = next || (vNodeStack.length ? vNodeStack.pop()! : null);
       }
     } else {
-      const next = vnode_getNextSibling(child);
+      const next = child.nextSibling as VNode | null;
       if (next) {
         child = next;
       } else {
@@ -1149,7 +1149,7 @@ export const vnode_getDomParentVNode = (
   includeProjection = true
 ): ElementVNode | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
-    vnode = vnode.parent || (includeProjection ? vnode.getSlotParent() : null)!;
+    vnode = vnode.parent || (includeProjection ? vnode.slotParent : null)!;
   }
   return vnode;
 };
@@ -1160,7 +1160,7 @@ export const vnode_remove = (
   vToRemove: VNode,
   removeDOM: boolean
 ) => {
-  assertEqual(vParent, vnode_getParent(vToRemove), 'Parent mismatch.');
+  assertEqual(vParent, vToRemove.parent, 'Parent mismatch.');
   if (vnode_isTextVNode(vToRemove)) {
     vnode_ensureTextInflated(journal, vToRemove);
   }
@@ -1208,7 +1208,7 @@ export const vnode_queryDomNodes = (
     let child = vnode_getFirstChild(vNode);
     while (child) {
       vnode_queryDomNodes(child, selector, cb);
-      child = vnode_getNextSibling(child);
+      child = child.nextSibling as VNode | null;
     }
   }
 };
@@ -1666,10 +1666,6 @@ export const vnode_getProps = (vnode: ElementVNode | VirtualVNode): unknown[] =>
   return vnode.props;
 };
 
-export const vnode_getParent = (vnode: VNode): VNode | null => {
-  return vnode.parent;
-};
-
 export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
   let parent: VNode | null = vnode_getParentOrProjectionParent(vnode);
   while (parent) {
@@ -1781,7 +1777,7 @@ export function vnode_toString(
       }
       strings.push('</' + tag + '>');
     }
-    vnode = (siblings && vnode_getNextSibling(vnode)) || null;
+    vnode = (siblings && vnode.nextSibling) || null;
   } while (vnode);
   return strings.join('\n' + offset);
 }
@@ -1988,10 +1984,10 @@ export const vnode_getProjectionParentComponent = (
         // We found a projection, so we need to go up one more level.
         projectionDepth++;
       }
-      vHost = vProjectionParent || vnode_getParent(vHost)!;
+      vHost = vProjectionParent || vHost.parent!;
     }
     if (projectionDepth > 0) {
-      vHost = vnode_getParent(vHost)!;
+      vHost = vHost.parent!;
     }
   }
   return vHost as VirtualVNode | null;

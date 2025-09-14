@@ -5,7 +5,7 @@
   "author": "",
   "devDependencies": {
     "@playwright/test": "1.50.1",
-    "@types/node": "20.19.0"
+    "@types/node": "24.2.1"
   },
   "keywords": [],
   "license": "ISC",

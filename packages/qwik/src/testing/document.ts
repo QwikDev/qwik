@@ -1,7 +1,6 @@
 import type { MockDocumentOptions, MockWindow } from './types';
 import domino from 'domino';
 import { normalizeUrl } from './util';
-const domino = qwikDom as any;
 
 export function mockAttachShadow(el: Element) {
   if (typeof (el as any).attachShadow !== 'function') {
@@ -92,7 +91,7 @@ const noop = () => {};
 
 const QWIK_DOC = Symbol();
 
-class MockShadowRoot extends domino.impl.DocumentFragment {
+class MockShadowRoot extends (domino as any).impl.DocumentFragment {
   nodeType = 11; // DOCUMENT_FRAGMENT_NODE
   host: Element;
 

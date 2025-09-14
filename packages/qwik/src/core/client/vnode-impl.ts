@@ -1,5 +1,4 @@
 import { VNodeFlags } from './types';
-import { Chore } from '../shared/scheduler';
 import { mapApp_findIndx, mapArray_get } from './util-mapArray';
 import {
   vnode_ensureElementInflated,
@@ -7,13 +6,16 @@ import {
   VNodeJournalOpCode,
   type VNodeJournal,
 } from './vnode';
+import type { ChoreArray } from './chore-array';
 
 /** @internal */
 export abstract class VNode {
   props: (string | null | boolean)[] | null = null;
   slotParent: VNode | null = null;
-  chores: Set<Chore> | null = null;
-  blockedChores: Set<Chore> | null = null;
+  // scheduled chores for this vnode
+  chores: ChoreArray | null = null;
+  // blocked chores for this vnode
+  blockedChores: ChoreArray | null = null;
 
   getSlotParent(): VNode | null {
     return this.slotParent;
@@ -123,17 +125,17 @@ export class VirtualVNode extends VNode {
 }
 
 /** @internal */
-export class ElementVNode extends VirtualVNode {
+export class ElementVNode extends VNode {
   constructor(
     flags: VNodeFlags,
     parent: ElementVNode | VirtualVNode | null,
     previousSibling: VNode | null | undefined,
     nextSibling: VNode | null | undefined,
-    firstChild: VNode | null | undefined,
-    lastChild: VNode | null | undefined,
+    public firstChild: VNode | null | undefined,
+    public lastChild: VNode | null | undefined,
     public element: Element,
     public elementName: string | undefined
   ) {
-    super(flags, parent, previousSibling, nextSibling, firstChild, lastChild);
+    super(flags, parent, previousSibling, nextSibling);
   }
 }

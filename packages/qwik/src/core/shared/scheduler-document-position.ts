@@ -1,5 +1,5 @@
 import { vnode_getNextSibling, vnode_getPreviousSibling } from '../client/vnode';
-import type { ElementVNode, VNode } from '../client/vnode-impl';
+import type { VNode } from '../client/vnode-impl';
 import type { ISsrNode } from '../ssr/ssr-types';
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_documentPosition`.
@@ -10,14 +10,9 @@ const bVNodePath: VNode[] = [];
  *
  * @param a VNode to compare
  * @param b VNode to compare
- * @param rootVNode - Root VNode of a container
  * @returns -1 if `a` is before `b`, 0 if `a` is the same as `b`, 1 if `a` is after `b`.
  */
-export const vnode_documentPosition = (
-  a: VNode,
-  b: VNode,
-  rootVNode: ElementVNode | null
-): -1 | 0 | 1 => {
+export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   if (a === b) {
     return 0;
   }

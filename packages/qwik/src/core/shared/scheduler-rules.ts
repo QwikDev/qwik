@@ -11,6 +11,7 @@ import { ChoreType } from './util-chore-type';
 import { ELEMENT_SEQ } from './utils/markers';
 import { isNumber } from './utils/types';
 import type { VNode } from '../client/vnode-impl';
+import type { ChoreArray } from '../client/chore-array';
 
 type BlockingRule = {
   blockedType: ChoreType;
@@ -154,7 +155,7 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
 
 export function findBlockingChore(
   chore: Chore,
-  choreQueue: Chore[],
+  choreQueue: ChoreArray,
   blockedChores: Set<Chore>,
   runningChores: Set<Chore>,
   container: Container

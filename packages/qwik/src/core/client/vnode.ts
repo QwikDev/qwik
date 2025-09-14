@@ -1667,7 +1667,7 @@ export const vnode_getProps = (vnode: ElementVNode | VirtualVNode): unknown[] =>
 };
 
 export const vnode_getParent = (vnode: VNode): VNode | null => {
-  return vnode.parent!;
+  return vnode.parent;
 };
 
 export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {

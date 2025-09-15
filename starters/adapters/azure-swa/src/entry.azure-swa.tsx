@@ -14,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformAzure {}
+  type QwikRouterPlatform = PlatformAzure;
 }
 
 export default createQwikRouter({ render });

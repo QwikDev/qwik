@@ -22,7 +22,7 @@ export async function submoduleQwikLoader(config: BuildConfig) {
     build: {
       emptyOutDir: false,
       copyPublicDir: false,
-      target: 'es2018',
+      target: 'es2020',
       lib: {
         entry: join(config.srcQwikDir, 'qwikloader.ts'),
         formats: ['es'],

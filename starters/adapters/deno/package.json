@@ -1,7 +1,7 @@
 {
   "description": "Deno server",
   "scripts": {
-    "build.server": "vite build -c adapters/deno/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/deno/vite.config.mts",
     "serve": "deno run --allow-net --allow-read --allow-env server/entry.deno.js"
   },
   "__qwik__": {

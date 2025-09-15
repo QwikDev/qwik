@@ -2,7 +2,7 @@ import { getClientDataPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
-import { prefetchSymbols } from './client-navigate';
+import { preloadRouteBundles } from './client-navigate';
 
 const MAX_Q_DATA_RETRY_COUNT = 3;
 
@@ -13,7 +13,7 @@ export const loadClientData = async (
     action?: RouteActionValue;
     loaderIds?: string[];
     clearCache?: boolean;
-    prefetchSymbols?: boolean;
+    preloadRouteBundles?: boolean;
     isPrefetch?: boolean;
   },
   retryCount: number = 0
@@ -29,8 +29,8 @@ export const loadClientData = async (
     qData = CLIENT_DATA_CACHE.get(clientDataPath);
   }
 
-  if (opts?.prefetchSymbols !== false) {
-    prefetchSymbols(pagePathname);
+  if (opts?.preloadRouteBundles !== false) {
+    preloadRouteBundles(pagePathname, 0.8);
   }
   let resolveFn: () => void | undefined;
 

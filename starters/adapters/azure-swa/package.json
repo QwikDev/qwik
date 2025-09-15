@@ -1,7 +1,7 @@
 {
   "description": "Azure Static Web Apps",
   "scripts": {
-    "build.server": "vite build -c adapters/azure-swa/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/azure-swa/vite.config.mts",
     "serve": "swa start"
   },
   "devDependencies": {

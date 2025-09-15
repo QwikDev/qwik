@@ -119,9 +119,9 @@ export const useResourceQrl = <T>(
 /** @public */
 export interface ResourceProps<T> {
   readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
-  onResolved: (value: T) => JSXOutput;
-  onPending?: () => JSXOutput;
-  onRejected?: (reason: Error) => JSXOutput;
+  onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
+  onPending?: () => JSXOutput | Promise<JSXOutput>;
+  onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
 }
 
 // <docs markdown="../readme.md#useResource">

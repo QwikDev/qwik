@@ -454,6 +454,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   let resolveIdCount = 0;
+  let doNotEdit = false;
   /**
    * This resolves virtual names and QRL segments/entries. All the rest falls through. We must
    * always return a value for QRL segments because they don't exist on disk.
@@ -472,6 +473,35 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (id.startsWith('\0')) {
       return;
     }
+
+    // Intercept requests to open in editor
+    const editMatch = devServer && /^(.*)\?editor(:(\d+)(:\d+)?)?$/.exec(id);
+    if (editMatch) {
+      // Throttle so we don't open multiple times on re-resolve
+      if (!doNotEdit) {
+        doNotEdit = true;
+        setTimeout(() => (doNotEdit = false), 500);
+
+        const [, origId, location] = editMatch;
+        // Find the actual file on disk by asking vite to resolve it
+        const resolved = await ctx.resolve(origId, importerId);
+        if (resolved) {
+          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          if (file) {
+            const path = `${file}${location}`;
+            try {
+              console.warn(`Opening in editor: ${path}`);
+              const launchEditor = (await import('launch-editor')).default;
+              launchEditor(path);
+            } catch (e: any) {
+              console.error(`Failed to open editor: ${e.message}`);
+            }
+          }
+        }
+      }
+      return { id: `\0editor` };
+    }
+
     const count = resolveIdCount++;
     const isServer = getIsServer(resolveOpts);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
@@ -626,6 +656,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rollup.LoadResult> => {
+    if (id === '\0editor') {
+      // This doesn't get used, but we need to return something
+      return '"opening in editor"';
+    }
     if (id.startsWith('\0') || id.startsWith('/@fs/')) {
       return;
     }
@@ -822,9 +856,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // unchanged imports are not missing in our internal transform cache
       // This can happen in the repl when the plugin is re-initialized
       // and possibly in other places
-      for (const id of deps.values()) {
-        await ctx.load({ id });
-      }
+      // NOTE: this should be Promise.all to avoid deadlocks
+      await Promise.all([...deps.values()].map((id) => ctx.load({ id })));
 
       ctx.addWatchFile(id);
 
@@ -891,12 +924,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       for (const bundle of Object.values(manifest.bundles)) {
         if (bundle.origins) {
-          bundle.origins = bundle.origins
-            .map((abs) => {
-              const relPath = path.relative(opts.rootDir, abs);
-              return normalizePath(relPath);
-            })
-            .sort();
+          bundle.origins = bundle.origins.sort();
         }
       }
 
@@ -992,10 +1020,7 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
     }
   }
 
-  function manualChunks(
-    id: string,
-    { getModuleInfo }: Parameters<Extract<Rollup.OutputOptions['manualChunks'], Function>>[1]
-  ) {
+  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build
@@ -1015,17 +1040,42 @@ export const manifest = ${JSON.stringify(serverManifest)};\n`;
       }
     }
 
-    const module = getModuleInfo(id)!;
-    const segment = module.meta.segment as SegmentAnalysis | undefined;
-    if (segment) {
-      const { hash } = segment;
-      const chunkName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-      if (chunkName) {
-        return chunkName;
+    const module = getModuleInfo(id);
+    if (module) {
+      const segment = module.meta.segment as SegmentAnalysis | undefined;
+      if (segment) {
+        const { hash } = segment;
+
+        // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash
+        const chunkName =
+          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+        if (chunkName) {
+          // we group related segments together based on their common entry or Qwik Insights provided hash
+          // This not only applies to source files, but also qwik libraries files that are imported through node_modules
+          return chunkName;
+        }
+      }
+
+      // The id either points to a context file, inline component, or src .js/.ts util/helper file (or a barrel file but it will be tree-shaken by rollup)
+      // Making sure that we return a specific id for those files prevents rollup from bundling unrelated code together
+      if (module.meta.qwikdeps?.length === 0) {
+        if (id.includes('node_modules')) {
+          const idx = id.lastIndexOf('node_modules');
+          if (idx >= 0) {
+            const relToNodeModules = id.slice(idx + 13);
+            return relToNodeModules;
+          }
+        } else if (opts.srcDir && id.includes(opts.srcDir)) {
+          const path = getPath();
+          const relToSrcDir = normalizePath(path.relative(opts.srcDir, id));
+          return relToSrcDir;
+        }
       }
     }
+
+    // The rest is non-qwik code. We let rollup handle it.
     return null;
-  }
+  };
 
   async function generateManifest(
     ctx: Rollup.PluginContext,

@@ -51,7 +51,6 @@ import {
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNode,
   vnode_getProjectionParentComponent,
   vnode_getProps,
   vnode_getText,
@@ -453,7 +452,7 @@ export const vnode_diff = (
   }
 
   function expectSlot() {
-    const vHost = vnode_getProjectionParentComponent(vParent, container.rootVNode);
+    const vHost = vnode_getProjectionParentComponent(vParent);
 
     const slotNameKey = getSlotNameKey(vHost);
     // console.log('expectSlot', JSON.stringify(slotNameKey));
@@ -668,15 +667,16 @@ export const vnode_diff = (
     }
     const key = jsx.key;
     if (key) {
-      element.setAttribute(ELEMENT_KEY, key);
       (vNewNode as ElementVNode).setProp(ELEMENT_KEY, key);
     }
 
     // append class attribute if styleScopedId exists and there is no class attribute
-    const classAttributeExists =
-      hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
-    if (!classAttributeExists && scopedStyleIdPrefix) {
-      element.setAttribute('class', scopedStyleIdPrefix);
+    if (scopedStyleIdPrefix) {
+      const classAttributeExists =
+        hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+      if (!classAttributeExists) {
+        element.setAttribute('class', scopedStyleIdPrefix);
+      }
     }
 
     vnode_insertBefore(journal, vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
@@ -693,7 +693,7 @@ export const vnode_diff = (
 
     const element = container.document.createElementNS(elementNamespace, elementName);
     vNewNode = vnode_newElement(element, elementName);
-    (vNewNode as ElementVNode).flags |= elementNamespaceFlag;
+    vNewNode.flags |= elementNamespaceFlag;
     return element;
   }
 
@@ -702,7 +702,6 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    const currentFile = getFileLocationFromJsx(jsx.dev);
     if (!isSameElementName || jsxKey !== getKey(vCurrent)) {
       // So we have a key and it does not match the current node.
       // We need to do a forward search to find it.
@@ -735,13 +734,14 @@ export const vnode_diff = (
     }
     const vNode = (vNewNode || vCurrent) as ElementVNode;
 
-    const element = (vNode as ElementVNode).element as QElement;
+    const element = vNode.element as QElement;
     if (!element.vNode) {
       element.vNode = vNode;
     }
 
     needsQDispatchEventPatch =
-      setBulkProps(vNode, jsxAttrs, currentFile) || needsQDispatchEventPatch;
+      setBulkProps(vNode, jsxAttrs, (isDev && getFileLocationFromJsx(jsx.dev)) || null) ||
+      needsQDispatchEventPatch;
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
       if (!element.qDispatchEvent) {
@@ -749,8 +749,8 @@ export const vnode_diff = (
           const eventName = event.type;
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
-            (vNode as ElementVNode).getProp<QRL>(eventProp, null),
-            (vNode as ElementVNode).getProp<QRL>(HANDLER_PREFIX + eventProp, null),
+            vNode.getProp<QRL>(eventProp, null),
+            vNode.getProp<QRL>(HANDLER_PREFIX + eventProp, null),
           ];
           let returnValue = false;
           qrls.flat(2).forEach((qrl) => {
@@ -778,7 +778,7 @@ export const vnode_diff = (
   function setBulkProps(
     vnode: ElementVNode,
     srcAttrs: ClientAttrs,
-    currentFile?: string | null
+    currentFile: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
@@ -792,12 +792,12 @@ export const vnode_diff = (
 
     const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
-        (vnode as ElementVNode).setProp(key, value);
+        vnode.setProp(key, value);
         return;
       }
 
       if (key === 'ref') {
-        const element = vnode_getNode(vnode) as Element;
+        const element = vnode.element;
         if (isSignal(value)) {
           value.value = element;
           return;
@@ -815,7 +815,7 @@ export const vnode_diff = (
         value = trackSignalAndAssignHost(value, vnode, key, container, NON_CONST_SUBSCRIPTION_DATA);
       }
 
-      (vnode as ElementVNode).setAttr(
+      vnode.setAttr(
         key,
         value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
         journal
@@ -1059,8 +1059,12 @@ export const vnode_diff = (
           ELEMENT_PROPS,
           container.$getObjectById$
         );
-        const propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
-        shouldRender = shouldRender || propsAreDifferent;
+        let propsAreDifferent = false;
+        if (!shouldRender) {
+          propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
+          shouldRender = shouldRender || propsAreDifferent;
+        }
+
         if (shouldRender) {
           if (propsAreDifferent) {
             if (vNodeProps) {

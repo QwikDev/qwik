@@ -1968,17 +1968,14 @@ const isElement = (node: any): node is Element =>
  * @param rootVNode
  * @returns
  */
-export const vnode_getProjectionParentComponent = (
-  vHost: VNode,
-  rootVNode: ElementVNode
-): VirtualVNode | null => {
+export const vnode_getProjectionParentComponent = (vHost: VNode): VirtualVNode | null => {
   let projectionDepth = 1;
   while (projectionDepth--) {
     while (
       vHost &&
       (vnode_isVirtualVNode(vHost) ? vHost.getProp(OnRenderProp, null) === null : true)
     ) {
-      const qSlotParent = vHost.getSlotParent();
+      const qSlotParent = vHost.slotParent;
       const vProjectionParent = vnode_isVirtualVNode(vHost) && qSlotParent;
       if (vProjectionParent) {
         // We found a projection, so we need to go up one more level.

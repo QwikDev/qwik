@@ -7,26 +7,26 @@ import {
   type VNodeJournal,
 } from './vnode';
 import type { ChoreArray } from './chore-array';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
+import { BackRef } from '../reactive-primitives/cleanup';
 
 /** @internal */
-export abstract class VNode {
-  props: (string | null | boolean)[] | null = null;
+export abstract class VNode extends BackRef {
+  props: unknown[] | null = null;
   slotParent: VNode | null = null;
   // scheduled chores for this vnode
   chores: ChoreArray | null = null;
   // blocked chores for this vnode
   blockedChores: ChoreArray | null = null;
 
-  getSlotParent(): VNode | null {
-    return this.slotParent;
-  }
-
   constructor(
     public flags: VNodeFlags,
     public parent: ElementVNode | VirtualVNode | null,
     public previousSibling: VNode | null | undefined,
     public nextSibling: VNode | null | undefined
-  ) {}
+  ) {
+    super();
+  }
 
   getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null {
     const type = this.flags;

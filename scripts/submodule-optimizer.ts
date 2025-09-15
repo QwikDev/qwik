@@ -31,6 +31,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: false,
       platform: 'node',
       target,
+      external: ['launch-editor'],
     };
 
     const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);

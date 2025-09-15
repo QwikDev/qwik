@@ -23,6 +23,10 @@ function matchRoutePart(
   pathIdx: number,
   pathLength: number
 ): PathParams | null {
+  if (path.startsWith('/build/')) {
+    return null;
+  }
+
   let params: PathParams | null = null;
   while (routeIdx < routeLength) {
     const routeCh = route.charCodeAt(routeIdx++);

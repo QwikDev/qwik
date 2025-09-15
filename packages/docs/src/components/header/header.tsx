@@ -1,4 +1,11 @@
-import { component$, useContext, useStyles$, useSignal, type PropsOf } from '@qwik.dev/core';
+import {
+  component$,
+  useContext,
+  useStyles$,
+  useSignal,
+  useVisibleTask$,
+  type PropsOf,
+} from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
@@ -11,6 +18,7 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import { ThemeToggle } from '../theme-toggle/theme-toggle';
 import styles from './header.css?inline';
+import { getPkgManagerPreference } from '../package-manager-tabs';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -32,6 +40,10 @@ export const Header = component$(() => {
   const shouldActivate = useSignal(false);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().url.pathname;
+
+  useVisibleTask$(() => {
+    globalStore.pkgManager = getPkgManagerPreference();
+  });
 
   return (
     <>

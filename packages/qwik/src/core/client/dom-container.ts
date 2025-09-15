@@ -272,7 +272,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
           if (typeof value == 'string') {
             const projection = this.vNodeLocate(value);
             props[i + 1] = projection;
-            projection.getSlotParent();
           }
         }
       }

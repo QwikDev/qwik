@@ -1839,8 +1839,10 @@ export class _VirtualVNode extends _VNode {
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
+// Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export abstract class _VNode {
+export abstract class _VNode extends BackRef {
     constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
     // (undocumented)
     blockedChores: ChoreArray | null;
@@ -1855,15 +1857,13 @@ export abstract class _VNode {
     // (undocumented)
     getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null;
     // (undocumented)
-    getSlotParent(): _VNode | null;
-    // (undocumented)
     nextSibling: _VNode | null | undefined;
     // (undocumented)
     parent: _ElementVNode | _VirtualVNode | null;
     // (undocumented)
     previousSibling: _VNode | null | undefined;
     // (undocumented)
-    props: (string | null | boolean)[] | null;
+    props: unknown[] | null;
     // (undocumented)
     setAttr(key: string, value: string | null | boolean, journal: VNodeJournal | null): void;
     // (undocumented)

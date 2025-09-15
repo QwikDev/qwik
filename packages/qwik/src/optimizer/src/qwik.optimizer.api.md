@@ -293,6 +293,8 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // @internal (undocumented)
+    _oldDevSsrServer: () => boolean | undefined;
     // (undocumented)
     registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }

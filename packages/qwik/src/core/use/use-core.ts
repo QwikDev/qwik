@@ -17,6 +17,7 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { ChoreType } from '../shared/util-chore-type';
 
 declare const document: QwikDocument;
 
@@ -276,10 +277,27 @@ export const _jsxBranch = <T>(input?: T) => {
 
 /** @internal */
 export const _waitUntilRendered = (elm: Element) => {
-  const containerEl = _getQContainerElement(elm);
-  if (!containerEl) {
+  const container = (_getQContainerElement(elm) as ContainerElement | undefined)?.qContainer;
+  if (!container) {
     return Promise.resolve();
   }
-  const container = (containerEl as ContainerElement).qContainer;
-  return container?.renderDone ?? Promise.resolve();
+
+  // Multi-cycle idle: loop WAIT_FOR_QUEUE until the flush epoch stays stable
+  // across an extra microtask, which signals that no new work re-scheduled.
+  return (async () => {
+    for (;;) {
+      await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+
+      const firstEpoch = container.$flushEpoch$ || 0;
+      // Give a microtask for any immediate follow-up scheduling to enqueue
+      await Promise.resolve();
+      const secondEpoch = container.$flushEpoch$ || 0;
+
+      // If no epoch change occurred during and after WAIT_FOR_QUEUE, we are idle.
+      if (firstEpoch === secondEpoch) {
+        return;
+      }
+      // Continue loop if epoch advanced, meaning more work flushed.
+    }
+  })();
 };

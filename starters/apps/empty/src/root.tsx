@@ -1,32 +1,35 @@
-import { component$, isDev } from "@qwik.dev/core";
-import { QwikRouterProvider, RouterOutlet } from "@qwik.dev/router";
-import { RouterHead } from "./components/router-head/router-head";
+import { component$ } from "@qwik.dev/core";
+import {
+  DocumentHeadTags,
+  RouterOutlet,
+  useLocation,
+  useQwikRouter,
+} from "@qwik.dev/router";
 
 import "./global.css";
 
 export default component$(() => {
+  useQwikRouter();
+  const { url } = useLocation();
+
   /**
-   * The root of a QwikRouter site always start with the <QwikRouterProvider> component,
-   * immediately followed by the document's <head> and <body>.
-   *
-   * Don't remove the `<head>` and `<body>` elements.
+   * This is the root of a QwikRouter site. It contains the document's `<head>` and `<body>`. You can adjust them as you see fit.
    */
 
   return (
-    <QwikRouterProvider>
+    <>
       <head>
         <meta charset="utf-8" />
-        {!isDev && (
-          <link
-            rel="manifest"
-            href={`${import.meta.env.BASE_URL}manifest.json`}
-          />
-        )}
-        <RouterHead />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        <DocumentHeadTags />
+
+        <link rel="canonical" href={url.href} />
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });

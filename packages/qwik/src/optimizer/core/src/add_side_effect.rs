@@ -4,14 +4,14 @@ use std::path::Path;
 use crate::collector::GlobalCollect;
 use crate::parse::PathData;
 use path_slash::PathBufExt;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::{VisitMut, VisitMutWith};
 
 pub struct SideEffectVisitor<'a> {
 	global_collector: &'a GlobalCollect,
-	imports: HashSet<JsWord>,
+	imports: HashSet<Atom>,
 	path_data: &'a PathData,
 	src_dir: &'a Path,
 }

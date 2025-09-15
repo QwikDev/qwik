@@ -1,5 +1,3 @@
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
@@ -8,6 +6,8 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import {
   _TextEncoderStream_polyfill,
+  getNotFound,
+  isStaticPath,
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
@@ -17,17 +17,14 @@ import {
 /** @public */
 export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   try {
     // https://developers.cloudflare.com/workers/configuration/compatibility-dates/#streams-constructors
     // this will throw if CF compatibility_date < 2022-11-30
     new globalThis.TextEncoderStream();
-  } catch (e) {
-    // @ts-ignore
+  } catch {
     globalThis.TextEncoderStream = _TextEncoderStream_polyfill;
   }
   const qwikSerializer = { _deserialize, _serialize, _verifySerializable };

@@ -29,6 +29,7 @@ export type {
   PreventNavigateCallback,
   QwikCityPlan,
   QwikRouterConfig,
+  QwikRouterEnvData,
   RequestEvent,
   RequestEventAction,
   RequestEventBase,
@@ -39,12 +40,14 @@ export type {
   RouteData,
   RouteLocation,
   RouteNavigate,
+  ServerData,
   StaticGenerate,
   StaticGenerateHandler,
   ValidatorErrorKeyDotNotation,
   ValidatorErrorType,
   ZodConstructor,
 } from './types';
+export type { Q_ROUTE } from './constants';
 
 export { ErrorBoundary } from './error-boundary';
 export { Link, type LinkProps } from './link-component';
@@ -55,6 +58,7 @@ export {
   QwikCityProvider,
   QwikRouterMockProvider,
   QwikRouterProvider,
+  useQwikRouter,
   type QwikCityMockProps,
   type QwikCityProps,
   type QwikRouterMockProps,
@@ -107,3 +111,11 @@ export type {
   TypedDataValidator,
   ValidatorReturn,
 } from './types';
+
+export {
+  createRenderer,
+  type RendererOptions,
+  type RendererOutputOptions,
+} from './create-renderer';
+
+export { DocumentHeadTags } from './document-head-tags-component';

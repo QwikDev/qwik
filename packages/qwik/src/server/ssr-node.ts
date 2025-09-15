@@ -16,6 +16,7 @@ import {
   QDefaultSlot,
   NON_SERIALIZABLE_MARKER_PREFIX,
   QBackRefs,
+  SsrNodeFlags,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -36,8 +37,8 @@ export class SsrNode implements ISsrNode {
    * @param id - Unique id for the node.
    */
   public id: string;
+  public flags: SsrNodeFlags;
 
-  public parentSsrNode: ISsrNode | null;
   public children: ISsrNode[] | null = null;
   private attrs: SsrAttrs;
 
@@ -49,17 +50,20 @@ export class SsrNode implements ISsrNode {
   }
 
   constructor(
-    parentSsrNode: ISsrNode | null,
+    public parentComponent: ISsrNode | null,
     id: string,
     private attributesIndex: number,
     private cleanupQueue: CleanupQueue,
-    public vnodeData: VNodeData
+    public vnodeData: VNodeData,
+    public currentFile: string | null
   ) {
-    this.parentSsrNode = parentSsrNode;
-    this.parentSsrNode?.addChild(this);
     this.id = id;
+    this.flags = SsrNodeFlags.Updatable;
     this.attrs =
       this.attributesIndex >= 0 ? (this.vnodeData[this.attributesIndex] as SsrAttrs) : _EMPTY_ARRAY;
+
+    this.parentComponent?.addChild(this);
+
     if (isDev && id.indexOf('undefined') != -1) {
       throw new Error(`Invalid SSR node id: ${id}`);
     }
@@ -120,18 +124,31 @@ export class SsrNode implements ISsrNode {
     this.children.push(child);
   }
 
-  toString(): string {
-    let stringifiedAttrs = '';
-    for (let i = 0; i < this.attrs.length; i += 2) {
-      const key = this.attrs[i];
-      const value = this.attrs[i + 1];
-      stringifiedAttrs += `${key}=`;
-      stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
-      if (i < this.attrs.length - 2) {
-        stringifiedAttrs += ', ';
+  setTreeNonUpdatable(): void {
+    this.flags &= ~SsrNodeFlags.Updatable;
+    if (this.children) {
+      for (const child of this.children) {
+        (child as SsrNode).setTreeNonUpdatable();
       }
     }
-    return `SSRNode [<${this.id}> ${stringifiedAttrs}]`;
+  }
+
+  toString(): string {
+    if (isDev) {
+      let stringifiedAttrs = '';
+      for (let i = 0; i < this.attrs.length; i += 2) {
+        const key = this.attrs[i];
+        const value = this.attrs[i + 1];
+        stringifiedAttrs += `${key}=`;
+        stringifiedAttrs += `${typeof value === 'string' || typeof value === 'number' ? JSON.stringify(value) : '*'}`;
+        if (i < this.attrs.length - 2) {
+          stringifiedAttrs += ', ';
+        }
+      }
+      return `<SSRNode id="${this.id}" ${stringifiedAttrs} />`;
+    } else {
+      return `<SSRNode id="${this.id}" />`;
+    }
   }
 }
 

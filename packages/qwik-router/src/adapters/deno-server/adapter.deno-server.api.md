@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 
 // @beta (undocumented)
 export function denoServerAdapter(opts?: DenoServerAdapterOptions): any;
@@ -16,7 +16,7 @@ export interface DenoServerAdapterOptions extends ServerAdapterOptions {
     name?: string;
 }
 
-export { StaticGenerateRenderOptions }
+export { SsgRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

@@ -1,5 +1,5 @@
 ---
-title: 'Introducing Qwik City Server Functions'
+title: 'Introducing Qwik Router Server Functions'
 authors:
   - 'Manu Mtz.-Almeida'
 tags: ['Qwik']
@@ -55,7 +55,7 @@ export default component$(() => {
 
 One of the core ideas of Qwik is to run your app on the server and continue its execution on the browser when the user interacts. While Qwik was designed from the ground up to be a Server-Side Rendered (SSR) and Single-Page Application (SPA) technology, **it doesn't distinguish between server and browser**, ie, it treats all code equally, all code might run in the server or the browser.
 
-That's where [Qwik City](https://qwik.dev/qwikcity/overview/) enters the scene, a meta framework built on top of the resumability capabilities of Qwik to bring routing and data-fetching patterns. Qwik City is to Qwik, what NextJS is to React, Sveltekit is to Svelte or Solid Start is to Solid.
+That's where [Qwik Router](https://qwik.dev/qwikrouter/overview/) enters the scene, a meta framework built on top of the resumability capabilities of Qwik to bring routing and data-fetching patterns. Qwik Router is to Qwik, what NextJS is to React, Sveltekit is to Svelte or Solid Start is to Solid.
 
 ## Data fetching ecosystem
 
@@ -63,17 +63,17 @@ In this great tweet from [Theo](https://twitter.com/t3dotgg) (CEO of [ping.gg](h
 
 - Different teams/companies: [GraphQL](https://graphql.org/) / REST
 - Same team: [tRPC](https://trpc.io/) / GraphQL
-- **Same team using typescript: tRPC / Qwik City**
+- **Same team using typescript: tRPC / Qwik Router**
 
-tRPC hits the sweet spot for most web apps! This is exactly the problem that Qwik City **server functions** solve.
+tRPC hits the sweet spot for most web apps! This is exactly the problem that Qwik Router **server functions** solve.
 
-In the context of Qwik City, the problem becomes a little bit more complicated than hitting an HTTP endpoint, reactivity, validation, streaming, avoiding request waterfalls, caching, and the list goes on. That’s why this is a problem that’s worth solving at the meta-framework level!
+In the context of Qwik Router, the problem becomes a little bit more complicated than hitting an HTTP endpoint, reactivity, validation, streaming, avoiding request waterfalls, caching, and the list goes on. That’s why this is a problem that’s worth solving at the meta-framework level!
 
 ## Introducing Qwik `loader$()`
 
 Qwik's Data Loader solves the issue of quickly fetching data to be displayed in the HTML. It helps to ensure that the data is available in a timely manner. This helps to improve the user experience and reduce loading times.
 
-Qwik City goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
+Qwik Router goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
 
 ```tsx
 import { loader$ } from '@builder.io/qwik-city';
@@ -273,7 +273,7 @@ Form actions, such as RESTful APIs, receive data from external sources, such as 
 
 However, the developer usually neglects this diligence because the lack of validation is usually not a problem until YouAreUnderAttackt™️.
 
-Qwik City Actions put validation and type safety together to enjoy the benefits and boost security.
+Qwik Router Actions put validation and type safety together to enjoy the benefits and boost security.
 
 By default, actions come with built-in support for [Zod](https://zod.dev/), a _TypeScript-first schema validation with static type inference_.
 
@@ -304,7 +304,7 @@ You can also see the [source code on Github](https://github.com/manucorporat/pro
 
 We're thrilled to ship these features following all the iterative feedback, and we can't thank the community enough for all the help.
 
-A lot of work has been put into this release as we are honing in `v1` for Qwik and Qwik City.
+A lot of work has been put into this release as we are honing in `v1` for Qwik and Qwik Router.
 
 If you have any feedback, we’d love to hear it!
 

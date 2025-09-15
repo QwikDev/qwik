@@ -1,5 +1,13 @@
 # create-qwik
 
+## 2.0.0-beta.9
+
+## 2.0.0-beta.8
+
+## 2.0.0-beta.7
+
+## 2.0.0-beta.6
+
 ## 2.0.0-beta.5
 
 ## 2.0.0-beta.4
@@ -31,6 +39,24 @@
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
+
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 fix up TypeScript compatibility in the localize starter (by [@FDiskas](https://github.com/FDiskas) in [#7617](https://github.com/QwikDev/qwik/pull/7617))
+
+## 1.15.0
+
+### Patch Changes
+
+- 🐞🩹 fix up vercel starter config (by [@cmbartschat](https://github.com/cmbartschat) in [#7663](https://github.com/QwikDev/qwik/pull/7663))
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
 
 ## 1.14.1
 

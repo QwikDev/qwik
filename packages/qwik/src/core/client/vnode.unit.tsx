@@ -3,13 +3,16 @@ import { createDocument } from '../../testing/document';
 
 import { Fragment } from '@qwik.dev/core';
 import '../../testing/vdom-diff.unit-util';
-import type {
-  ContainerElement,
-  ElementVNode,
-  QDocument,
-  TextVNode,
-  VNode,
-  VirtualVNode,
+import {
+  ElementVNodeProps,
+  VNodeFlags,
+  VNodeProps,
+  type ContainerElement,
+  type ElementVNode,
+  type QDocument,
+  type TextVNode,
+  type VNode,
+  type VirtualVNode,
 } from './types';
 import {
   vnode_applyJournal,
@@ -26,6 +29,7 @@ import {
   vnode_remove,
   vnode_setAttr,
   vnode_setText,
+  vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
 
@@ -2774,4 +2778,410 @@ describe('vnode', () => {
       });
     });
   });
+
+  describe('parentIsDeleted logic', () => {
+    let parent: ContainerElement;
+    let document: QDocument;
+    let vParent: ElementVNode;
+    let journal: VNodeJournal;
+    let vChild1: ElementVNode;
+    let vChild2: ElementVNode;
+    let vVirtual: VirtualVNode;
+
+    beforeEach(() => {
+      document = createDocument() as QDocument;
+      document.qVNodeData = new WeakMap();
+      parent = document.createElement('test') as ContainerElement;
+      parent.qVNodeRefs = new Map();
+      vParent = vnode_newUnMaterializedElement(parent);
+      journal = [];
+
+      // Create test vnodes
+      vChild1 = vnode_newElement(document.createElement('div'), 'div');
+      vChild2 = vnode_newElement(document.createElement('span'), 'span');
+      vVirtual = vnode_newVirtual();
+    });
+
+    afterEach(() => {
+      parent = null!;
+      document = null!;
+      vParent = null!;
+      vChild1 = null!;
+      vChild2 = null!;
+      vVirtual = null!;
+    });
+
+    describe('vnode_insertBefore with deleted parent', () => {
+      it('should skip DOM insertion when parent is deleted', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Try to insert child into deleted parent
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Verify child is linked into tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.parent]).toBe(vParent);
+
+        // Verify child is marked as deleted (inherited from parent)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(0);
+      });
+
+      it('should skip DOM insertion but maintain tree structure for virtual parent', () => {
+        // Mark virtual parent and its tree as deleted
+        markVNodeTreeAsDeleted(vVirtual);
+
+        // Try to insert child into deleted virtual parent
+        vnode_insertBefore(journal, vVirtual, vChild1, null);
+
+        // Verify child is linked into tree structure
+        expect(vVirtual[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.parent]).toBe(vVirtual);
+
+        // Verify child is marked as deleted (inherited from parent)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(0);
+      });
+
+      it('should handle insertion between existing children when parent is deleted', () => {
+        // Set up existing children
+        vnode_insertBefore(journal, vParent, vChild1, null);
+        vnode_insertBefore(journal, vParent, vChild2, null);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        const journalOperations = journal.length;
+
+        // Create new child to insert between existing ones
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vNewChild, vChild2);
+
+        // Verify correct tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.nextSibling]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.previousSibling]).toBe(vChild1);
+        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild2);
+        expect(vChild2[VNodeProps.previousSibling]).toBe(vNewChild);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild2);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no additional DOM insertion journal entries
+        expect(journal.length).toBe(journalOperations);
+      });
+
+      it('should handle insertion at end when parent is deleted', () => {
+        // Set up existing child
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Create new child to insert at end
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vNewChild, null);
+
+        // Verify correct tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.nextSibling]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.previousSibling]).toBe(vChild1);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vNewChild);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle insertion at beginning when parent is deleted', () => {
+        // Set up existing child
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Create new child to insert at beginning
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vNewChild, vChild1);
+
+        // Verify correct tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild1);
+        expect(vChild1[VNodeProps.previousSibling]).toBe(vNewChild);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle text node insertion when parent is deleted', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Create text vnode
+        const vText = vnode_newText(document.createTextNode('test'), 'test');
+        vnode_insertBefore(journal, vParent, vText, null);
+
+        // Verify text node is linked into tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vText);
+        expect(vText[VNodeProps.parent]).toBe(vParent);
+
+        // Verify text node is marked as deleted (inherited from parent)
+        expect(vText[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(0);
+      });
+
+      it('should handle virtual node insertion when parent is deleted', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Create virtual vnode
+        const vNewVirtual = vnode_newVirtual();
+        vnode_insertBefore(journal, vParent, vNewVirtual, null);
+
+        // Verify virtual node is linked into tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewVirtual);
+        expect(vNewVirtual[VNodeProps.parent]).toBe(vParent);
+
+        // Verify virtual node is marked as deleted (inherited from parent)
+        expect(vNewVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(0);
+      });
+
+      it('should handle complex nested structure when parent is deleted', () => {
+        // Create nested structure
+        vnode_insertBefore(journal, vParent, vChild1, null);
+        vnode_insertBefore(journal, vChild1, vVirtual, null);
+        vnode_insertBefore(journal, vVirtual, vChild2, null);
+
+        // Mark parent and its entire tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Create new child to insert into the nested structure
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vVirtual, vNewChild, vChild2);
+
+        // Verify correct tree structure
+        expect(vVirtual[ElementVNodeProps.firstChild]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild2);
+        expect(vChild2[VNodeProps.previousSibling]).toBe(vNewChild);
+        expect(vVirtual[ElementVNodeProps.lastChild]).toBe(vChild2);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify existing children are also marked as deleted (from tree traversal)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle insertion when parent becomes deleted during operation', () => {
+        // Set up initial structure
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Create new child
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+
+        // Mark parent and its tree as deleted AFTER initial setup but BEFORE new insertion
+        markVNodeTreeAsDeleted(vParent);
+
+        const journalOperations = journal.length;
+
+        // Try to insert new child
+        vnode_insertBefore(journal, vParent, vNewChild, vChild1);
+
+        // Verify correct tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild1);
+        expect(vChild1[VNodeProps.previousSibling]).toBe(vNewChild);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(journalOperations);
+      });
+
+      it('should handle multiple insertions into deleted parent', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Insert multiple children
+        vnode_insertBefore(journal, vParent, vChild1, null);
+        vnode_insertBefore(journal, vParent, vChild2, null);
+        const vChild3 = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vChild3, null);
+
+        // Verify all children are linked correctly
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.nextSibling]).toBe(vChild2);
+        expect(vChild2[VNodeProps.nextSibling]).toBe(vChild3);
+        expect(vChild3[VNodeProps.previousSibling]).toBe(vChild2);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild3);
+
+        // Verify all children are marked as deleted (inherited from parent)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild3[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify no DOM insertion journal entries
+        expect(journal.length).toBe(0);
+      });
+
+      it('should handle insertion with null insertBefore when parent is deleted', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Insert child with null insertBefore (insert at end)
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Verify child is linked correctly
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.previousSibling]).toBe(null);
+        expect(vChild1[VNodeProps.nextSibling]).toBe(null);
+
+        // Verify child is marked as deleted (inherited from parent)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle insertion with virtual insertBefore when parent is deleted', () => {
+        // Set up virtual node as insertBefore reference
+        vnode_insertBefore(journal, vParent, vVirtual, null);
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Insert new child before virtual node
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vNewChild, vVirtual);
+
+        // Verify correct tree structure
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
+        expect(vNewChild[VNodeProps.nextSibling]).toBe(vVirtual);
+        expect(vVirtual[VNodeProps.previousSibling]).toBe(vNewChild);
+        expect(vVirtual[VNodeProps.nextSibling]).toBe(vChild1);
+        expect(vChild1[VNodeProps.previousSibling]).toBe(vVirtual);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+    });
+
+    describe('edge cases and error conditions', () => {
+      it('should handle insertion when child already has a parent', () => {
+        // Set up child with existing parent
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Try to insert child1 again (should unlink and relink)
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Verify child is still properly linked
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.parent]).toBe(vParent);
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle insertion when insertBefore is the same as newChild', () => {
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Try to insert child before itself (invalid operation)
+        vnode_insertBefore(journal, vParent, vChild1, vChild1);
+
+        // Should handle gracefully - child should be at the end
+        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
+        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+        expect(vChild1[VNodeProps.previousSibling]).toBe(null);
+        expect(vChild1[VNodeProps.nextSibling]).toBe(null);
+      });
+
+      it('should handle insertion when parent is not deleted initially but becomes deleted', () => {
+        // Insert child normally first
+        vnode_insertBefore(journal, vParent, vChild1, null);
+
+        // Verify child is not deleted initially
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+
+        // Mark parent and its tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Insert another child
+        vnode_insertBefore(journal, vParent, vChild2, null);
+
+        // Verify new child is marked as deleted (inherited from parent)
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Verify existing child is also marked as deleted (from tree traversal)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should demonstrate that marking parent as deleted affects the entire tree', () => {
+        // Set up existing children
+        vnode_insertBefore(journal, vParent, vChild1, null);
+        vnode_insertBefore(journal, vParent, vChild2, null);
+
+        // Verify children are not deleted initially
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+
+        // Mark parent and its entire tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Verify existing children are now marked as deleted (from tree traversal)
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+
+        // Only new children inserted after parent is marked as deleted get the deleted flag
+        const vNewChild = vnode_newElement(document.createElement('p'), 'p');
+        vnode_insertBefore(journal, vParent, vNewChild, null);
+        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+
+      it('should handle nested tree deletion correctly', () => {
+        // Create nested structure
+        vnode_insertBefore(journal, vParent, vChild1, null);
+        vnode_insertBefore(journal, vChild1, vVirtual, null);
+        vnode_insertBefore(journal, vVirtual, vChild2, null);
+
+        // Verify no nodes are deleted initially
+        expect(vParent[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+
+        // Mark parent and its entire tree as deleted
+        markVNodeTreeAsDeleted(vParent);
+
+        // Verify all nodes in the tree are marked as deleted
+        expect(vParent[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+      });
+    });
+  });
 });
+
+function markVNodeTreeAsDeleted(vNode: VNode) {
+  // simulate the cleanup traversal from vnode_diff
+  vnode_walkVNode(vNode, (vChild) => {
+    vChild[VNodeProps.flags] |= VNodeFlags.Deleted;
+  });
+}

@@ -8,7 +8,6 @@ import {
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
 import type { AsyncComputedReturnType } from '../use/use-async-computed';
-
 export { isSignal } from './utils';
 
 /** @public */
@@ -18,9 +17,10 @@ export interface ReadonlySignal<T = unknown> {
 
 /** @public */
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
-  // TODO: enable later this, after the scheduler changes for "streaming" signals values
-  // loading: boolean;
-  // error: Error | null;
+  /** Whether the signal is currently loading. */
+  loading: boolean;
+  /** The error that occurred while computing the signal. */
+  error: Error | null;
 }
 
 /**

@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/firebase/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformFirebase,
@@ -15,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformFirebase {}
+  type QwikRouterPlatform = PlatformFirebase;
 }
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });

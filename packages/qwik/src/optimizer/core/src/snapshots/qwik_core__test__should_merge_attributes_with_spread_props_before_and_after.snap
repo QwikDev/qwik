@@ -1,0 +1,71 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4617
+expression: output
+---
+==INPUT==
+
+
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} {...props} />;
+		});
+		
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGE,6BAAe,6EAEZ\"}")
+============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+export const test_component_LUXeXe0DQrg = (props)=>{
+    return /*#__PURE__*/ _jsxSplit("div", {
+        ..._getVarProps(props),
+        ..._getConstProps(props),
+        class: _fnSignal((p0)=>[
+                p0.class,
+                'component'
+            ], [
+            props
+        ], '[p0.class,"component"]'),
+        ..._getVarProps(props)
+    }, _getConstProps(props), null, 0, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAQ;0BAAA;QAAO,KAAK,kBAAE;gBAAC,GAAM,KAAK;gBAAE;aAAY;;;wBAAM;sBAAA;AAC/D\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_LUXeXe0DQrg",
+  "entry": null,
+  "displayName": "test.tsx_test_component",
+  "hash": "LUXeXe0DQrg",
+  "canonicalFilename": "test.tsx_test_component_LUXeXe0DQrg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    170
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

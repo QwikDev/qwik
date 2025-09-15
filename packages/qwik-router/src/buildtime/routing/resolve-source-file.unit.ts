@@ -40,7 +40,6 @@ test('resolveLayout', () => {
       routesDir: '',
       serverPluginsDir: '',
       basePathname: '/',
-      trailingSlash: false,
       mdxPlugins: {
         remarkGfm: true,
         rehypeSyntaxHighlight: true,

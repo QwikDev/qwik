@@ -1,7 +1,7 @@
 {
   "description": "Firebase",
   "scripts": {
-    "build.server": "vite build -c adapters/firebase/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/firebase/vite.config.mts",
     "serve": "qwik build && firebase emulators:start",
     "deploy": "firebase deploy"
   },

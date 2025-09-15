@@ -115,7 +115,7 @@ test.describe("render", () => {
       await expect(renders2).toHaveText("1");
       await expect(message3).toHaveText("Count 1");
       await expect(message3).toHaveAttribute("aria-count", "1");
-      await expect(renders3).toHaveText("2");
+      await expect(renders3).toHaveText("1");
 
       await button.click();
 
@@ -125,7 +125,7 @@ test.describe("render", () => {
       await expect(renders2).toHaveText("1");
       await expect(message3).toHaveText("Count 2");
       await expect(message3).toHaveAttribute("aria-count", "2");
-      await expect(renders3).toHaveText("3");
+      await expect(renders3).toHaveText("1");
     });
 
     test("issue2563", async ({ page }) => {
@@ -489,29 +489,16 @@ test.describe("render", () => {
 
     test("should rerender child once", async ({ page }) => {
       const button = page.locator("#rerender-once-button");
-      expect(await page.locator("#rerender-once-child").innerHTML()).toEqual(
-        '["render Cmp","foo",0]',
+      const rerenderOnceChild = page.locator("#rerender-once-child");
+      await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');
+      await button.click();
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1]',
       );
       await button.click();
-      if (isClient) {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","foo",0,"render Cmp","bar",1]',
-        );
-      } else {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","bar",1]',
-        );
-      }
-      await button.click();
-      if (isClient) {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
-        );
-      } else {
-        await expect(page.locator("#rerender-once-child")).toHaveText(
-          '["render Cmp","bar",1,"render Cmp","foo",0]',
-        );
-      }
+      await expect(rerenderOnceChild).toHaveText(
+        '["render Cmp","foo",0,"render Cmp","bar",1,"render Cmp","foo",0]',
+      );
     });
   }
 
@@ -525,6 +512,7 @@ test.describe("render", () => {
       await expect(page.locator("#rerenderCount")).toHaveText(
         `Render ${Number(v) + 1}`,
       );
+      await page.waitForLoadState("networkidle");
     });
     tests(true);
   });

@@ -2,6 +2,7 @@
 title: Cookbook | Glob Import with import.meta.glob
 contributors:
   - maiieul
+  - gioboa
 ---
 
 import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
@@ -29,16 +30,15 @@ As written in the Vite documentation, `import.meta.glob` comes with a few featur
 By default you can simply use pattern matching to specify which files should be imported from which folder:
 
 ```tsx
-const metaGlobComponents: any = import.meta.glob('/src/components/*');
+const metaGlobComponents: Record<string, any> = await import.meta.glob('/src/components/*');
 ```
 
-But you can also pass in additional options like [`import`](https://vitejs.dev/guide/features#named-imports), [`as`](https://vitejs.dev/guide/features#glob-import-as), or `eager`:
+But you can also pass in additional options like [`import`](https://vitejs.dev/guide/features#named-imports), [`query`](https://vite.dev/guide/features.html#custom-queries):
 
 ```tsx
-const metaGlobComponents: any = import.meta.glob('/src/components/*', {
+const metaGlobComponents: Record<string, any> = await import.meta.glob('/src/components/*', {
   import: 'default',
-  as: 'raw',
-  eager: true, // defaults to false
+  query: '?raw',
 });
 ```
 

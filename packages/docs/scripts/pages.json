@@ -130,10 +130,6 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://puzzledbycsharp.com/",
-    "tags": "site"
-  },
-  {
     "href": "https://necatikcl.dev/",
     "tags": "personal",
     "size": "large"
@@ -166,14 +162,6 @@
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
-  },
-  {
-    "href": "https://radixstream.com/",
-    "tags": "site"
-  },
-  {
-    "href": "https://www.anirbandas.in/",
-    "tags": "portfolio"
   },
   {
     "href": "https://getpolaris.ai/",

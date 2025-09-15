@@ -17,6 +17,6 @@
     }
   },
   "devDependencies": {
-    "@auth/qwik": "0.5.4"
+    "@auth/qwik": "0.8.0"
   }
 }

@@ -54,6 +54,7 @@
 - [Theme Management](/docs/cookbook/theme-management/index.mdx)
 - [Drag & Drop](/docs/cookbook/drag&drop/index.mdx)
 - [View Transition](/docs/cookbook/view-transition/index.mdx)
+- [Detect img tag onLoad](/docs/cookbook/detect-img-tag-onload/index.mdx)
 
 ## Integrations
 
@@ -98,8 +99,11 @@
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)
 - [Node](deployments/node/index.mdx)
+- [Self-Hosting](deployments/self-hosting/index.mdx)
 - [Vercel Edge](deployments/vercel-edge/index.mdx)
 - [Static Site](deployments/static/index.mdx)
+- [GitHub Pages](deployments/github-pages/index.mdx)
+- [Azion](deployments/azion/index.mdx)
 
 ## Guides
 
@@ -108,6 +112,7 @@
 - [SSG](</docs/(qwikrouter)/guides/static-site-generation/index.mdx>)
 - [Qwik Native Apps](</docs/(qwikrouter)/guides/capacitor/index.mdx>)
 - [React Cheat Sheet](</docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx>)
+- [Debugging](</docs/(qwikrouter)/guides/debugging/index.mdx>)
 - [Best Practices](</docs/(qwikrouter)/guides/best-practices/index.mdx>)
 - [Bundle Optimization](</docs/(qwikrouter)/guides/bundle/index.mdx>)
 - [Env variables](</docs/(qwikrouter)/guides/env-variables/index.mdx>)
@@ -141,6 +146,7 @@
 - [ESLint-Rules](</docs/(qwik)/advanced/eslint/index.mdx>)
 - [Content Security Policy](</docs/(qwikrouter)/advanced/content-security-policy/index.mdx>)
 - [Complex Forms](</docs/(qwikrouter)/advanced/complex-forms/index.mdx>)
+- [Backpatching](</docs/(qwik)/advanced/backpatching/index.mdx>)
 
 ## Reference
 

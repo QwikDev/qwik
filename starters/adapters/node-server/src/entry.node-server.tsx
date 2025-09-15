@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/node/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import { createQwikRouter } from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
@@ -18,7 +17,6 @@ const PORT = process.env.PORT ?? 3004;
 // Create the Qwik Router express middleware
 const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikRouterConfig,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

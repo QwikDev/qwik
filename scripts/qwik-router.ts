@@ -21,7 +21,7 @@ export async function buildQwikRouter(config: BuildConfig) {
     buildAdapterNodeServerVite(config),
     buildAdapterNetlifyEdgeVite(config),
     buildAdapterSharedVite(config),
-    buildAdapterStaticVite(config),
+    buildAdapterSsgVite(config),
     buildAdapterVercelEdgeVite(config),
     buildMiddlewareCloudflarePages(config),
     buildMiddlewareNetlifyEdge(config),
@@ -33,9 +33,9 @@ export async function buildQwikRouter(config: BuildConfig) {
     buildMiddlewareRequestHandler(config),
     buildMiddlewareVercelEdge(config),
     buildMiddlewareFirebase(config),
-    buildStatic(config),
-    buildStaticNode(config),
-    buildStaticDeno(config),
+    buildSsg(config),
+    buildSsgNode(config),
+    buildSsgDeno(config),
   ]);
 
   await buildRuntime(config);
@@ -83,6 +83,7 @@ async function buildVite(config: BuildConfig) {
     'vite-imagetools',
     'svgo',
     '@qwik.dev/core',
+    '@qwik.dev/router/middleware/request-handler',
   ];
 
   const swRegisterPath = join(config.srcQwikRouterDir, 'runtime', 'src', 'sw-register.ts');
@@ -167,7 +168,7 @@ async function buildServiceWorker(config: BuildConfig) {
 async function buildAdapterAzureSwaVite(config: BuildConfig) {
   const entryPoints = [join(config.srcQwikRouterDir, 'adapters', 'azure-swa', 'vite', 'index.ts')];
 
-  const external = ['vite', 'fs', 'path', '@qwik.dev/router/static'];
+  const external = ['vite', 'fs', 'path', '@qwik.dev/router/ssg'];
 
   await build({
     entryPoints,
@@ -377,7 +378,7 @@ async function buildAdapterSharedVite(config: BuildConfig) {
     format: 'esm',
     external: ADAPTER_EXTERNALS,
     plugins: [
-      resolveStatic('../../../static/index.mjs'),
+      resolveSsg('../../../ssg/index.mjs'),
       resolveRequestHandler('../../../middleware/request-handler/index.mjs'),
     ],
   });
@@ -391,35 +392,35 @@ async function buildAdapterSharedVite(config: BuildConfig) {
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
     plugins: [
-      resolveStatic('../../../static/index.cjs'),
+      resolveSsg('../../../ssg/index.cjs'),
       resolveRequestHandler('../../../middleware/request-handler/index.cjs'),
     ],
   });
 }
 
-async function buildAdapterStaticVite(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikRouterDir, 'adapters', 'static', 'vite', 'index.ts')];
+async function buildAdapterSsgVite(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikRouterDir, 'adapters', 'ssg', 'vite', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'adapters', 'static', 'vite', 'index.mjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'adapters', 'ssg', 'vite', 'index.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'esm',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveStatic('../../../static/index.mjs')],
+    plugins: [resolveSsg('../../../ssg/index.mjs')],
   });
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'adapters', 'static', 'vite', 'index.cjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'adapters', 'ssg', 'vite', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
     format: 'cjs',
     external: ADAPTER_EXTERNALS,
-    plugins: [resolveStatic('../../../static/index.cjs')],
+    plugins: [resolveSsg('../../../ssg/index.cjs')],
   });
 }
 
@@ -623,12 +624,12 @@ async function buildMiddlewareFirebase(config: BuildConfig) {
   });
 }
 
-async function buildStatic(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikRouterDir, 'static', 'index.ts')];
+async function buildSsg(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikRouterDir, 'ssg', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'static', 'index.mjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'ssg', 'index.mjs'),
     bundle: true,
     platform: 'neutral',
     format: 'esm',
@@ -636,7 +637,7 @@ async function buildStatic(config: BuildConfig) {
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'static', 'index.cjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'ssg', 'index.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -644,12 +645,12 @@ async function buildStatic(config: BuildConfig) {
   });
 }
 
-async function buildStaticDeno(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikRouterDir, 'static', 'deno', 'index.ts')];
+async function buildSsgDeno(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikRouterDir, 'ssg', 'deno', 'index.ts')];
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'static', 'deno.mjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'ssg', 'deno.mjs'),
     bundle: true,
     platform: 'neutral',
     format: 'esm',
@@ -657,8 +658,8 @@ async function buildStaticDeno(config: BuildConfig) {
   });
 }
 
-async function buildStaticNode(config: BuildConfig) {
-  const entryPoints = [join(config.srcQwikRouterDir, 'static', 'node', 'index.ts')];
+async function buildSsgNode(config: BuildConfig) {
+  const entryPoints = [join(config.srcQwikRouterDir, 'ssg', 'node', 'index.ts')];
 
   const external = [
     '@qwik.dev/core',
@@ -679,7 +680,7 @@ async function buildStaticNode(config: BuildConfig) {
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'static', 'node.mjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'ssg', 'node.mjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -690,7 +691,7 @@ async function buildStaticNode(config: BuildConfig) {
 
   await build({
     entryPoints,
-    outfile: join(config.distQwikRouterPkgDir, 'static', 'node.cjs'),
+    outfile: join(config.distQwikRouterPkgDir, 'ssg', 'node.cjs'),
     bundle: true,
     platform: 'node',
     target: nodeTarget,
@@ -704,8 +705,8 @@ function resolveRequestHandler(path: string) {
   return importPath(/middleware\/request-handler/, path);
 }
 
-function resolveStatic(path: string) {
-  return importPath(/static$/, path);
+function resolveSsg(path: string) {
+  return importPath(/ssg$/, path);
 }
 
 function resolveAdapterShared(path: string) {
@@ -720,7 +721,7 @@ const ADAPTER_EXTERNALS = [
   '@qwik.dev/core/server',
   '@qwik.dev/core/optimizer',
   '@qwik.dev/router',
-  '@qwik.dev/router/static',
+  '@qwik.dev/router/ssg',
   '@qwik.dev/router/middleware/request-handler',
 ];
 
@@ -729,8 +730,6 @@ const MIDDLEWARE_EXTERNALS = [
   '@qwik.dev/core/optimizer',
   '@qwik.dev/core/server',
   '@qwik.dev/router',
-  '@qwik.dev/router/static',
+  '@qwik.dev/router/ssg',
   '@qwik-router-config',
-  '@qwik-router-not-found-paths',
-  '@qwik-router-static-paths',
 ];

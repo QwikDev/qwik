@@ -12,6 +12,7 @@ import type { VNodeData } from '../../server/vnode-data';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { QRL } from '../shared/qrl/qrl.public';
+import type { SsrNodeFlags } from '../shared/types';
 import type { ResourceReturnInternal } from '../use/use-resource';
 
 export type SsrAttrKey = string;
@@ -25,12 +26,15 @@ export interface StreamWriter {
 
 export interface ISsrNode {
   id: string;
-  parentSsrNode: ISsrNode | null;
-  vnodeData?: VNodeData;
+  flags: SsrNodeFlags;
+  parentComponent: ISsrNode | null;
+  vnodeData: VNodeData;
+  currentFile: string | null;
   setProp(name: string, value: any): void;
   getProp(name: string): any;
   removeProp(name: string): void;
   addChild(child: ISsrNode): void;
+  setTreeNonUpdatable(): void;
 }
 
 /** @internal */
@@ -99,6 +103,14 @@ export interface SSRContainer extends Container {
   emitPreloaderPre(): void;
 
   emitQwikLoaderAtTopIfNeeded(): void;
+
+  emitPatchDataIfNeeded(): void;
+
+  addBackpatchEntry(
+    ssrNodeId: string,
+    attrName: string,
+    serializedValue: string | boolean | null
+  ): void;
 }
 
 /** @public */

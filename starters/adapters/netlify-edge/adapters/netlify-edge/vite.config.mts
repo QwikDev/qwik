@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.netlify-edge.tsx", "@qwik-router-config"],
+        input: ["src/entry.netlify-edge.tsx"],
       },
       outDir: ".netlify/edge-functions/entry.netlify-edge",
     },

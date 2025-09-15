@@ -1036,7 +1036,7 @@ describe.each([
       vi.useFakeTimers({
         toFake: ['setInterval', 'clearInterval'],
       });
-      const { vNode, document } = await render(<Cmp />, { debug });
+      const { vNode, document, container } = await render(<Cmp />, { debug });
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', 'qvisible');
       }
@@ -1054,7 +1054,7 @@ describe.each([
           </Fragment>
         </Component>
       );
-      await advanceToNextTimerAndFlush();
+      await advanceToNextTimerAndFlush(container);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
@@ -1069,7 +1069,7 @@ describe.each([
           </Fragment>
         </Component>
       );
-      await advanceToNextTimerAndFlush();
+      await advanceToNextTimerAndFlush(container);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>

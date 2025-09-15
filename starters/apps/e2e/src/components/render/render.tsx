@@ -1,10 +1,13 @@
 import {
   component$,
+  createContextId,
   event$,
   isServer,
   jsx,
   SkipRender,
   Slot,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useStylesScoped$,
@@ -12,8 +15,9 @@ import {
   type JSXOutput,
   type PropsOf,
   type QRL,
+  type Signal,
 } from "@qwik.dev/core";
-import { h, SSRComment, SSRRaw, type Signal } from "@qwik.dev/core/internal";
+import { h, SSRComment, SSRRaw } from "@qwik.dev/core/internal";
 import { delay } from "../streaming/demo";
 
 export const Render = component$(() => {
@@ -963,11 +967,11 @@ export const DynamicButton = component$<any>(
 );
 
 const globalObj = ["foo", "bar"];
-
-let logs: any[] = [];
+const LogsProvider = createContextId<any[]>("logs");
 
 const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
   ({ obj, foo }) => {
+    const logs = useContext(LogsProvider);
     logs.push("render Cmp", obj, foo.value);
     return <span id="rerender-once-child">{JSON.stringify(logs)}</span>;
   },
@@ -975,7 +979,8 @@ const RerenderOnceChild = component$<{ obj: string; foo: Signal<number> }>(
 
 export const RerenderOnce = component$(() => {
   const foo = useSignal(0);
-  logs = [];
+  const logs: any[] = [];
+  useContextProvider(LogsProvider, logs);
   return (
     <div>
       <button

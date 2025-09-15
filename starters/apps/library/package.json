@@ -43,7 +43,7 @@
     "np": "^8.0.4",
     "prettier": "latest",
     "typescript": "latest",
-    "vite": "^4.5.2",
+    "vite": "latest",
     "vite-tsconfig-paths": "^4.2.1"
   },
   "__qwik__": {
@@ -52,5 +52,6 @@
     "docs": [
       "https://qwik.dev/docs/getting-started/"
     ]
-  }
+  },
+  "sideEffects": false
 }

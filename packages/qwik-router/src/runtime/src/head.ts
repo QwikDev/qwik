@@ -18,9 +18,10 @@ export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
-  locale: string
+  locale: string,
+  defaults?: DocumentHeadValue
 ) => {
-  const head = createDocumentHead();
+  const head = createDocumentHead(defaults);
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
     if (loaderOrAction.__brand === 'server_loader') {
@@ -75,11 +76,12 @@ const resolveDocumentHead = (
 };
 
 const mergeArray = (
-  existingArr: { key?: string }[],
-  newArr: readonly { key?: string }[] | undefined
+  existingArr: { key?: string | number | null }[],
+  newArr: readonly { key?: string | number | null }[] | undefined
 ) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
+      // items with the same string key are replaced
       if (typeof newItem.key === 'string') {
         const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
         if (existingIndex > -1) {
@@ -92,11 +94,11 @@ const mergeArray = (
   }
 };
 
-export const createDocumentHead = (): ResolvedDocumentHead => ({
-  title: '',
-  meta: [],
-  links: [],
-  styles: [],
-  scripts: [],
-  frontmatter: {},
+export const createDocumentHead = (defaults?: DocumentHeadValue): ResolvedDocumentHead => ({
+  title: defaults?.title || '',
+  meta: [...(defaults?.meta || [])],
+  links: [...(defaults?.links || [])],
+  styles: [...(defaults?.styles || [])],
+  scripts: [...(defaults?.scripts || [])],
+  frontmatter: { ...defaults?.frontmatter },
 });

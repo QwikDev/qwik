@@ -35,12 +35,6 @@ Perform operation on next request-animation-frame.
 
 @param fn - The function to call when the next animation frame is ready.
 
-# `CorePlatform.nextTick`
-
-Perform operation on next tick.
-
-@param fn - The function to call when the tick is ready.
-
 # `CorePlatform.chunkForSymbol`
 
 Retrieve chunk name for the symbol.

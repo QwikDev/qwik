@@ -4,7 +4,7 @@ import { StoreFlags } from '../reactive-primitives/types';
 import { invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 
-export { unwrapStore } from '../reactive-primitives/impl/store';
+export { unwrapStore, forceStoreEffects } from '../reactive-primitives/impl/store';
 
 /** @public */
 export interface UseStoreOptions {

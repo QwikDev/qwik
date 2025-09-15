@@ -8,14 +8,12 @@
  * - https://docs.deno.com/runtime/tutorials/http_server
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import { createQwikRouter } from "@qwik.dev/router/middleware/deno";
 import render from "./entry.ssr";
 
 // Create the Qwik Router Deno middleware
 const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikRouterConfig,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

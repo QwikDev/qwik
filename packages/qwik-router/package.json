@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.9",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -200,6 +200,7 @@
   "scripts": {
     "build": "cd src/runtime && vite build --mode lib"
   },
+  "sideEffects": false,
   "type": "module",
   "types": "./lib/index.d.ts"
 }

@@ -115,7 +115,14 @@ export const getImageSizeServer = (
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
       const path: typeof import('path') = await sys.dynamicImport('node:path');
 
-      const url = new URL(req.url!, 'http://localhost:3000/');
+      let url;
+      try {
+        url = new URL(req.url!, 'http://localhost:3000/');
+      } catch {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
       if (req.method === 'GET' && url.pathname === '/__image_info') {
         const imageURL = url.searchParams.get('url');
         res.setHeader('content-type', 'application/json');

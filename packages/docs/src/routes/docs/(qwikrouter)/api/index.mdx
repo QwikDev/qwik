@@ -318,6 +318,19 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
 
+## List all routes with qwikRouterConfig.routes
+
+The `qwikRouterConfig.routes` property is used to retrieve the route list of your application.
+
+```tsx
+import qwikRouterConfig from '@qwik-router-config';
+
+const routes = qwikRouterConfig.routes;
+for (const route of routes) {
+	// your logic here
+}
+```
+
 ## `useQwikRouter()`
 
 The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent), `useLocation()` and `<RouterOutlet />`.

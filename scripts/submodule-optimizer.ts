@@ -25,7 +25,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       target: target,
       minify: !config.dev, // Minify in production builds
       rollupOptions: {
-        external: ['node:fs', 'node:path'],
+        external: ['node:fs', 'node:path', 'launch-editor'],
       },
       lib: {
         entry: entryPoint,

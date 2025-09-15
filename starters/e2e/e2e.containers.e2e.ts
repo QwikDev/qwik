@@ -28,8 +28,21 @@ test.describe("container", () => {
     await expect(anchor).toHaveText("2 / 3");
   });
 
-  test("should handle shadow-dom counter", async ({ page }) => {
-    const shadowHost = page.locator("[q\\:shadowroot]");
+  test("should handle shadow-dom counter loaded from resource", async ({
+    page,
+  }) => {
+    const shadowHost = page.locator("#shadow-dom-resource[q\\:shadowroot]");
+    const anchor = shadowHost.locator("a");
+
+    await expect(anchor).toHaveText("1 / 1");
+    await anchor.click();
+    await expect(anchor).toHaveText("2 / 3");
+  });
+
+  test("should handle shadow-dom counter loaded from stream", async ({
+    page,
+  }) => {
+    const shadowHost = page.locator("#shadow-dom-stream[q\\:shadowroot]");
     const anchor = shadowHost.locator("a");
 
     await expect(anchor).toHaveText("1 / 1");

@@ -1,7 +1,7 @@
 {
   "description": "Google Cloud Run server",
   "scripts": {
-    "build.server": "vite build -c adapters/cloud-run/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/cloud-run/vite.config.mts",
     "deploy": "gcloud run deploy my-cloud-run-app --source ."
   },
   "__qwik__": {

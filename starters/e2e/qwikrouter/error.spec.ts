@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { test } from "@playwright/test";
 
-test.describe("Qwik City Error boundary", () => {
+test.describe("Qwik Router Error boundary", () => {
   test("should catch error", async ({ page }) => {
     await page.goto("/qwikrouter-test/error");
 

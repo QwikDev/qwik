@@ -41,8 +41,6 @@ export interface ClientContainer extends Container {
     $flushEpoch$: number;
     // (undocumented)
     $forwardRefs$: Array<number> | null;
-    // (undocumented)
-    $initialQRLsIndexes$: Array<number> | null;
     // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -218,7 +216,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     // (undocumented)
-    $initialQRLsIndexes$: Array<number> | null;
+    $initialQRLs$: Array<string> | null;
     // (undocumented)
     $instanceHash$: string;
     // (undocumented)
@@ -873,11 +871,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXOutput;
+    onPending?: () => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXOutput;
+    onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onResolved: (value: T) => JSXOutput;
+    onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }

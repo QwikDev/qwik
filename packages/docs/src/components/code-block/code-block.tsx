@@ -1,29 +1,77 @@
-import { component$, useStyles$, type QRL, useVisibleTask$, useSignal } from '@qwik.dev/core';
-import prismjs from 'prismjs';
-// Set to global so that prism language plugins can find it.
-const _global =
-  (typeof globalThis !== 'undefined' && globalThis) ||
-  (typeof global !== 'undefined' && global) ||
-  (typeof self !== 'undefined' && self) ||
-  (typeof this !== 'undefined' && this) ||
-  (typeof window !== 'undefined' && window);
-(_global as any).PRISM = prismjs;
-import 'prismjs/components/prism-jsx'; // needs PRISM global
-import 'prismjs/components/prism-tsx'; // needs PRISM global
-
-import styles from './code-block.css?inline';
+import {
+  component$,
+  useSignal,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+  type QRL,
+  type Signal,
+} from '@qwik.dev/core';
+import parserEstree from 'prettier/plugins/estree';
+import parserHtml from 'prettier/plugins/html';
+import parserTs from 'prettier/plugins/typescript';
+import { format } from 'prettier/standalone';
 import { CopyCode } from '../copy-code/copy-code-block';
+import styles from './code-block.css?inline';
+import { highlight } from './prismjs';
+
 interface CodeBlockProps {
   path?: string;
   language?: 'markup' | 'css' | 'javascript' | 'json' | 'jsx' | 'tsx' | 'clike';
   code: string;
+  format?: boolean;
   pathInView$?: QRL<(name: string) => void>;
   observerRootId?: string;
 }
 
 export const CodeBlock = component$((props: CodeBlockProps) => {
   const listSig = useSignal<Element>();
+  const codeSig = useSignal<string | null>(props.format ? null : props.code);
+  const formatSig = useSignal(!!props.format);
+  const formatError = useSignal<string>();
+
+  const language =
+    props.language ||
+    (props.path
+      ? /\.([cm]?[jt]sx?|json)$/.test(props.path)
+        ? 'javascript'
+        : props.path.endsWith('.html')
+          ? 'markup'
+          : props.path.endsWith('.css')
+            ? 'css'
+            : null
+      : null);
+
   useStyles$(styles);
+
+  useTask$(async ({ track }) => {
+    track(() => props.code);
+    track(formatSig);
+
+    if (formatSig.value) {
+      try {
+        // simple formatting for html and js
+        if (language === 'markup') {
+          codeSig.value = await format(props.code, {
+            parser: 'html',
+            plugins: [parserHtml],
+            htmlWhitespaceSensitivity: 'ignore',
+          });
+        } else if (language === 'javascript') {
+          codeSig.value = await format(props.code, {
+            parser: 'typescript',
+            plugins: [parserTs, parserEstree],
+          });
+        }
+        formatError.value = undefined;
+      } catch (e: any) {
+        formatError.value = e.message;
+        codeSig.value = props.code;
+      }
+    } else {
+      codeSig.value = props.code;
+    }
+  });
 
   useVisibleTask$(async () => {
     const { pathInView$, path, observerRootId } = props;
@@ -43,30 +91,33 @@ export const CodeBlock = component$((props: CodeBlockProps) => {
     }
   });
 
-  let language = props.language;
-  if (!language && props.path && props.code) {
-    const ext = props.path.split('.').pop();
-    language =
-      ext === 'js' || ext === 'json'
-        ? 'javascript'
-        : ext === 'html'
-          ? 'markup'
-          : ext === 'css'
-            ? 'css'
-            : undefined;
-  }
+  const highlighted =
+    codeSig.value != null && language ? highlight(codeSig.value, language) : codeSig.value;
+  const className = `language-${language}`;
+  return (
+    <div class="relative">
+      <pre class={className} ref={listSig}>
+        {highlighted && <code class={className} dangerouslySetInnerHTML={highlighted} />}
+      </pre>
+      {(language === 'markup' || language === 'javascript') && (
+        <PrettierToggle bind:value={formatSig} />
+      )}
+      <CopyCode code={props.code} />
+    </div>
+  );
+});
 
-  if (language && prismjs.languages[language]) {
-    const highlighted = prismjs.highlight(props.code, prismjs.languages[language], language);
-    const className = `language-${language}`;
-    return (
-      <div class="relative">
-        <pre class={className} ref={listSig}>
-          <code class={className} dangerouslySetInnerHTML={highlighted} />
-        </pre>
-        <CopyCode code={props.code} />
-      </div>
-    );
-  }
-  return null;
+const PrettierToggle = component$((props: { 'bind:value': Signal<boolean>; error?: string }) => {
+  return (
+    <label
+      class="prettier-toggle"
+      title={`Toggle Prettier ${props.error ? `\n${props.error}` : ''}`}
+      aria-label="Toggle Prettier"
+    >
+      <input type="checkbox" bind:checked={props['bind:value']} style="display: none;" />
+      <span class={[props['bind:value'].value ? 'checked' : '', props.error ? 'error' : '']}>
+        P
+      </span>
+    </label>
+  );
 });

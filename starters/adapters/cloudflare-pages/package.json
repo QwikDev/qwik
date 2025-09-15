@@ -1,7 +1,7 @@
 {
   "description": "Cloudflare Pages",
   "scripts": {
-    "build.server": "vite build -c adapters/cloudflare-pages/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/cloudflare-pages/vite.config.mts",
     "deploy": "wrangler pages deploy ./dist",
     "serve": "wrangler pages dev ./dist --compatibility-flags=nodejs_als"
   },

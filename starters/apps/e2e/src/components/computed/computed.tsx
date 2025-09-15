@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { component$, useComputed$, useSignal, useTask$ } from "@qwik.dev/core";
 
 export const ComputedRoot = component$(() => {

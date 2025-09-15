@@ -1577,14 +1577,30 @@ function setEffectBackRefFromVNodeData(
   value: string | number,
   container: ClientContainer
 ) {
-  const deserializedSubMap = container.$getObjectById$(value);
   if (!(vParent as any)[_EFFECT_BACK_REF]) {
+    // get data lazily
+    // this is because effects back refs can point to vnodes which are not yet materialized
+    // (are after the current vnode)
     Object.defineProperty(vParent, _EFFECT_BACK_REF, {
-      value: deserializedSubMap,
+      get() {
+        const subMap = container.$getObjectById$(value);
+        (vParent as any)[_EFFECT_BACK_REF] = subMap;
+        return subMap;
+      },
+      set(value: unknown) {
+        Object.defineProperty(vParent, _EFFECT_BACK_REF, {
+          value,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
+      },
+      enumerable: true,
+      configurable: true,
     });
   } else {
-    const subMap = (vParent as any)[_EFFECT_BACK_REF] as Map<string, any>;
-    mergeMaps(subMap, deserializedSubMap);
+    const subMap = (vParent as any)[_EFFECT_BACK_REF];
+    mergeMaps(subMap, container.$getObjectById$(value));
   }
 }
 

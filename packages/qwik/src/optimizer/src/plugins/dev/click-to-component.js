@@ -85,10 +85,17 @@ if (typeof document !== 'undefined') {
           const target = findContainer(event.target);
           if (target) {
             event.preventDefault();
+            event.stopPropagation();
             const inspectUrl = target.getAttribute(inspectAttribute);
             if (inspectUrl !== 'false') {
               body.style.setProperty('cursor', 'progress');
-              globalThis.qwikOpenInEditor(inspectUrl);
+              const match = inspectUrl.match(/^(.*?)(:\d+(:\d+)?)?$/);
+              if (match) {
+                const [, filePath, location] = match;
+                fetch(`${filePath}?editor${location}`).then(() => {
+                  body.style.removeProperty('cursor');
+                });
+              }
             }
           }
         }
@@ -96,24 +103,6 @@ if (typeof document !== 'undefined') {
       { capture: true }
     );
 
-    // TODO use the vite dev URLs and translate in resolveId + use launch-editor from NPM
-    globalThis.qwikOpenInEditor = function (path) {
-      const isWindows = navigator.platform.includes('Win');
-      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      let filePath =
-        resolvedURL.protocol === 'file:' && resolvedURL.pathname.startsWith('/')
-          ? resolvedURL.pathname.slice(1)
-          : resolvedURL.pathname.startsWith('/@fs/')
-            ? resolvedURL.pathname.slice(isWindows ? 5 : 4)
-            : resolvedURL.pathname;
-      if (filePath.startsWith('/src/')) {
-        const prefix = isWindows ? srcDir : srcDir.replace('http://local.local', '');
-        filePath = prefix + filePath.slice(4);
-      }
-      const params = new URLSearchParams();
-      params.set('file', filePath);
-      fetch('/__open-in-editor?' + params.toString());
-    };
     document.addEventListener(
       'contextmenu',
       (event) => {

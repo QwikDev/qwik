@@ -14,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformCloudflarePages {}
+  type QwikRouterPlatform = PlatformCloudflarePages;
 }
 
 const fetch = createQwikRouter({ render });

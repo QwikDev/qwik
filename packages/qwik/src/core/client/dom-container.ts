@@ -1,11 +1,11 @@
 /** @file Public APIs for the SSR */
 
+// @ts-expect-error we don't have types for the preloader
+import { p as preload } from '@qwik.dev/core/preloader';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
 import {
   getObjectById,
@@ -21,21 +21,21 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBackRefs,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
   QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
   QScopedStyle,
   QSlotParent,
   QStyle,
   QStyleSelector,
-  QBackRefs,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
-  QLocaleAttr,
-  QManifestHashAttr,
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
@@ -55,6 +55,7 @@ import {
   type VNode,
   type VirtualVNode,
 } from './types';
+import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
   VNodeJournalOpCode,
   vnode_applyJournal,
@@ -72,7 +73,6 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -117,7 +117,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
-  public $initialQRLsIndexes$: Array<number> | null = null;
+  public $initialQRLs$: Array<string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $stateData$: unknown[];
@@ -359,15 +359,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
    * ```
    */
   private $scheduleInitialQRLs$(): void {
-    if (this.$initialQRLsIndexes$) {
-      for (const index of this.$initialQRLsIndexes$) {
-        this.$scheduler$(
-          ChoreType.QRL_RESOLVE,
-          null,
-          this.$getObjectById$(index) as QRLInternal<(...args: unknown[]) => unknown>
-        );
+    if (this.$initialQRLs$) {
+      for (const qrl of this.$initialQRLs$) {
+        const match = /#(.*)_([a-zA-Z0-9]+)(\[|$)/.exec(qrl);
+        if (match) {
+          preload(match[2], 0.3);
+        }
       }
-      this.$initialQRLsIndexes$ = null;
+      this.$initialQRLs$ = null;
     }
   }
 }

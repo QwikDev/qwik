@@ -68,6 +68,18 @@ async function runNext(
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
+  try {
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    isValidURL(requestEv.originalUrl);
+  } catch {
+    const status = 404;
+    const message = 'Resource Not Found';
+    requestEv.status(status);
+    const html = getErrorHtml(status, message);
+    requestEv.html(status, html);
+    return new ServerError(status, message);
+  }
+
   let rewriteAttempt = 1;
 
   async function _runNext() {

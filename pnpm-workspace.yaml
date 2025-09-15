@@ -1,5 +1,33 @@
 packages:
-  - 'packages/*'
-  - 'e2e/*'
-  # - 'starters/adapter/*'
-  # - 'starters/features/*'
+  - packages/*
+  - e2e/*
+
+autoInstallPeers: false
+
+engineStrict: true
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@rolldown/browser'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - netlify-cli
+  - puppeteer
+  - sharp
+  - simple-git-hooks
+  - unix-dgram
+  - workerd
+
+overrides:
+  '@builder.io/qwik': 'npm:@qwik.dev/core@*'
+  '@builder.io/qwik-city': 'npm:@qwik.dev/router'
+  '@types/estree': '1.0.8'
+  'prettier': '3.6.2'
+  typescript: 5.9.2
+  vfile: 6.0.3
+
+patchedDependencies:
+  density-clustering@1.3.0: patches/density-clustering@1.3.0.patch
+  domino@2.1.6: patches/domino@2.1.6.patch
+
+shellEmulator: true

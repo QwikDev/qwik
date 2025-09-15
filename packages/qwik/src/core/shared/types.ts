@@ -11,7 +11,7 @@ export interface DeserializeContainer {
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
-  $initialQRLsIndexes$: Array<number> | null;
+  $initialQRLs$: Array<string> | null;
   readonly $scheduler$: Scheduler | null;
 }
 
@@ -27,7 +27,7 @@ export interface Container {
   $currentUniqueId$: number;
   $buildBase$: string | null;
 
-  handleError(err: any, $host$: HostElement): void;
+  handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
@@ -123,3 +123,7 @@ export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |
   'never' | 'always';
+
+export const enum SsrNodeFlags {
+  Updatable = 1,
+}

@@ -53,7 +53,11 @@ import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
 import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
+import { transformSync } from 'esbuild';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
 
 /** @public */
 export async function domRender(
@@ -136,8 +140,8 @@ export async function ssrRenderToDom(
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
+  emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -158,6 +162,9 @@ export async function ssrRenderToDom(
     for (let i = 0; i < funcs.length; i++) {
       console.log(('    ' + i + ':').substring(-4), funcs[i].toString());
     }
+    const backpatchData = container.element.querySelector('script[type="qwik/backpatch"]');
+    console.log('--------------- SERIALIZED BACKPATCH DATA ---------------');
+    console.log('    ' + backpatchData?.textContent || 'No backpatch data found');
     console.log('---------------------------------------------------------');
   }
   const containerVNode = opts.raw
@@ -189,6 +196,7 @@ export async function ssrRenderToDom(
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
           (vnode_getAttr(child, 'type') === 'qwik/state' ||
+            vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_DATA ||
             vnode_getAttr(child, 'id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
@@ -259,6 +267,51 @@ export function emulateExecutionOfQwikFuncs(document: Document) {
     if (code) {
       (document as any)[QFuncsPrefix + hash] = eval(code);
     }
+  }
+}
+
+export function emulateExecutionOfBackpatch(document: Document) {
+  // treewalker needs NodeFilter
+  if (typeof NodeFilter === 'undefined') {
+    (globalThis as any).NodeFilter = {
+      SHOW_ELEMENT: 1,
+      SHOW_ALL: -1,
+      SHOW_ATTRIBUTE: 2,
+      SHOW_TEXT: 4,
+      SHOW_CDATA_SECTION: 8,
+      SHOW_ENTITY_REFERENCE: 16,
+      SHOW_ENTITY: 32,
+      SHOW_PROCESSING_INSTRUCTION: 64,
+      SHOW_COMMENT: 128,
+      SHOW_DOCUMENT: 256,
+      SHOW_DOCUMENT_TYPE: 512,
+      SHOW_DOCUMENT_FRAGMENT: 1024,
+      SHOW_NOTATION: 2048,
+    };
+  }
+
+  // we need esbuild to transpile from ts to js for the test environment
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
+  const tsPath = join(__dirname, '../backpatch-executor.ts');
+  const tsSource = readFileSync(tsPath, 'utf8');
+
+  const result = transformSync(tsSource, {
+    loader: 'ts',
+    target: 'es2020',
+    format: 'esm',
+    minify: false,
+    sourcemap: false,
+  });
+
+  const code = `try {${result.code}} catch (e) { console.error(e); }`;
+  const script = document.createElement('script');
+  document.body.appendChild(script);
+  (document as any).currentScript = script;
+  try {
+    eval(code);
+  } finally {
+    (document as any).currentScript = null;
+    document.body.removeChild(script);
   }
 }
 

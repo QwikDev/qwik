@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.cloud-run.tsx", "@qwik-router-config"],
+        input: ["src/entry.cloud-run.tsx"],
       },
     },
     plugins: [cloudRunAdapter()],

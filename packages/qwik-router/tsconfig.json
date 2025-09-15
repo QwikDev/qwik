@@ -21,9 +21,7 @@
       "@qwik.dev/router/adapters/shared/vite": [
         "packages/qwik-router/src/adapters/shared/vite/index.ts"
       ],
-      "@qwik.dev/router/adapters/static/vite": [
-        "packages/qwik-router/src/adapters/static/vite/index.ts"
-      ],
+      "@qwik.dev/router/adapters/ssg/vite": ["packages/qwik-router/src/adapters/ssg/vite/index.ts"],
       "@qwik.dev/router/middleware/azure-swa": ["packages/qwik-router/src/middleware/azure-swa"],
       "@qwik.dev/router/middleware/aws-lambda": ["packages/qwik-router/src/middleware/aws-lambda"],
       "@qwik.dev/router/middleware/cloudflare-pages": [
@@ -36,20 +34,14 @@
       "@qwik.dev/router/middleware/netlify-edge": [
         "packages/qwik-router/src/middleware/netlify-edge"
       ],
-      "@qwik.dev/router/static": ["packages/qwik-router/src/static"],
+      "@qwik.dev/router/ssg": ["packages/qwik-router/src/ssg"],
       "@qwik.dev/router/vite": ["packages/qwik-router/src/buildtime/vite"],
 
       "@qwik-router-config": ["packages/qwik-router/src/runtime/src/qwik-router-config.ts"],
       "@qwik-router-sw-register-build": [
         "packages/qwik-router/src/buildtime/runtime-generation/sw-register-build.ts"
       ],
-      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"],
-      "@qwik-router-not-found-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/not-found-paths.ts"
-      ],
-      "@qwik-router-static-paths": [
-        "packages/qwik-router/src/middleware/request-handler/generated/static-paths.ts"
-      ]
+      "@qwik-router-sw-register": ["packages/qwik-router/src/runtime/src/sw-register-runtime.ts"]
     }
   },
   "include": ["."]

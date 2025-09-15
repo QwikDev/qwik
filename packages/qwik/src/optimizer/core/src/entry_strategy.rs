@@ -1,11 +1,11 @@
 use crate::transform::{SegmentData, SegmentKind};
 use serde::{Deserialize, Serialize};
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 
 use lazy_static::lazy_static;
 
 lazy_static! {
-	static ref ENTRY_SEGMENTS: JsWord = JsWord::from("entry_segments");
+	static ref ENTRY_SEGMENTS: Atom = Atom::from("entry_segments");
 }
 
 // EntryStrategies
@@ -22,14 +22,14 @@ pub enum EntryStrategy {
 }
 
 pub trait EntryPolicy: Send + Sync {
-	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<JsWord>;
+	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom>;
 }
 
 #[derive(Default, Clone)]
 pub struct InlineStrategy;
 
 impl EntryPolicy for InlineStrategy {
-	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<JsWord> {
+	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<Atom> {
 		Some(ENTRY_SEGMENTS.clone())
 	}
 }
@@ -44,7 +44,7 @@ impl SingleStrategy {
 }
 
 impl EntryPolicy for SingleStrategy {
-	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<JsWord> {
+	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<Atom> {
 		Some(ENTRY_SEGMENTS.clone())
 	}
 }
@@ -59,7 +59,7 @@ impl PerSegmentStrategy {
 }
 
 impl EntryPolicy for PerSegmentStrategy {
-	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<JsWord> {
+	fn get_entry_for_sym(&self, _context: &[String], _segment: &SegmentData) -> Option<Atom> {
 		None
 	}
 }
@@ -74,10 +74,10 @@ impl PerComponentStrategy {
 }
 
 impl EntryPolicy for PerComponentStrategy {
-	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<JsWord> {
+	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
 		context.first().map_or_else(
 			|| Some(ENTRY_SEGMENTS.clone()),
-			|root| Some(JsWord::from([&segment.origin, "_entry_", root].concat())),
+			|root| Some(Atom::from([&segment.origin, "_entry_", root].concat())),
 		)
 	}
 }
@@ -92,7 +92,7 @@ impl SmartStrategy {
 }
 
 impl EntryPolicy for SmartStrategy {
-	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<JsWord> {
+	fn get_entry_for_sym(&self, context: &[String], segment: &SegmentData) -> Option<Atom> {
 		// Event handlers without scope variables are put into a separate file
 		if segment.scoped_idents.is_empty()
 			&& (segment.ctx_kind != SegmentKind::Function || &segment.ctx_name == "event$")
@@ -107,7 +107,7 @@ impl EntryPolicy for SmartStrategy {
 			// Top-level QRLs are put into a separate file
 			|| None,
 			// Other QRLs are put into a file named after the original file + the root component
-			|root| Some(JsWord::from([&segment.origin, "_entry_", root].concat())),
+			|root| Some(Atom::from([&segment.origin, "_entry_", root].concat())),
 		)
 	}
 }

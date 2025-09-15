@@ -49,6 +49,7 @@ export {
   QTemplate,
   QVersionAttr,
   Q_PROPS_SEPARATOR,
+  ELEMENT_BACKPATCH_DATA,
   STREAM_BLOCK_END_COMMENT,
   STREAM_BLOCK_START_COMMENT,
   dangerouslySetInnerHTML,
@@ -63,3 +64,4 @@ export { serializeAttribute } from '../core/shared/utils/styles';
 export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-types';
 export { getQueue, preload, resetQueue } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
+export { SsrNodeFlags } from '../core/shared/types';

@@ -5,9 +5,9 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 
-export { StaticGenerateRenderOptions }
+export { SsgRenderOptions }
 
 // @public (undocumented)
 export function vercelEdgeAdapter(opts?: VercelEdgeAdapterOptions): any;

@@ -1,5 +1,4 @@
 import fastifyStatic from "@fastify/static";
-import qwikRouterConfig from "@qwik-router-config";
 import { createQwikRouter } from "@qwik.dev/router/middleware/node";
 import type { FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
@@ -12,7 +11,7 @@ export interface FastifyQwikOptions {
   assetsDir: string;
 }
 
-const { router, notFound } = createQwikRouter({ render, qwikRouterConfig });
+const { router, notFound } = createQwikRouter({ render });
 
 const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify,

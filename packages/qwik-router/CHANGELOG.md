@@ -1,5 +1,45 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.9
+
+### Patch Changes
+
+- 🐞🩹 trigger params change after navigation (by [@Varixo](https://github.com/Varixo) in [#7816](https://github.com/QwikDev/qwik/pull/7816))
+
+## 2.0.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 Zod validator uses defined locale for the current request (by [@knoid](https://github.com/knoid) in [#7804](https://github.com/QwikDev/qwik/pull/7804))
+
+## 2.0.0-beta.7
+
+### Minor Changes
+
+- ✨ useQwikRouter() hook replaces QwikRouterProvider. This gives access to the context immediately and is slightly more efficient. (by [@wmertens](https://github.com/wmertens) in [#7731](https://github.com/QwikDev/qwik/pull/7731))
+
+- ✨ add `DocumentHeadTags` component and make the `head.styles` and `head.scripts` types more like the `head.meta` and `head.links` types. (by [@wmertens](https://github.com/wmertens) in [#7775](https://github.com/QwikDev/qwik/pull/7775))
+
+- ✨ `createRenderer()` wraps the `renderToStream()` function with Qwik Router types, for nicer `entry.ssr` files. (by [@wmertens](https://github.com/wmertens) in [#7770](https://github.com/QwikDev/qwik/pull/7770))
+
+- ✨ You can now put `documentHead` into the rendering functions as part of the `serverData` option. This is useful for passing title, meta tags, scripts, etc. to the `useDocumentHead()` hook from within the server. (by [@wmertens](https://github.com/wmertens) in [#7770](https://github.com/QwikDev/qwik/pull/7770))
+
+## 2.0.0-beta.6
+
+### Minor Changes
+
+- ✨ qwikRouter middleware no longer needs qwikRouterConfig, it handles it internally (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
+- 🐞🩹 the SSR internal build imports `@qwik-router-not-found-paths` and `@qwik-router-static-paths` are no longer used. Instead, the data is embedded directly. This might be a breaking change for some users that forked an adapter, in that case just remove the imports. (by [@wmertens](https://github.com/wmertens) in [#7755](https://github.com/QwikDev/qwik/pull/7755))
+
+### Patch Changes
+
+- Bugfix - rename the view transition type in CSS to prevent default view transition on SPA navigation (by [@GrandSchtroumpf](https://github.com/GrandSchtroumpf) in [#7713](https://github.com/QwikDev/qwik/pull/7713))
+
+- 🐞🩹 getting invoke context for loaders in production (by [@Varixo](https://github.com/Varixo) in [#7730](https://github.com/QwikDev/qwik/pull/7730))
+
+- ✨ Server output chunk files are now under their own build/ subdir, like the client build. This makes it easier to override the chunk filenames. This is possible because the Router metadata files are now an earlier part of the build process. (by [@wmertens](https://github.com/wmertens) in [#7748](https://github.com/QwikDev/qwik/pull/7748))
+
 ## 2.0.0-beta.5
 
 ### Patch Changes
@@ -53,6 +93,53 @@
 ### Major Changes
 
 - Renamed "Qwik City" to "Qwik Router" and package to "@qwik.dev/router" (by [@shairez](https://github.com/shairez) in [#7008](https://github.com/QwikDev/qwik/pull/7008))
+
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 Keeping the service worker components now properly unregisters them. (by [@maiieul](https://github.com/maiieul) in [#7781](https://github.com/QwikDev/qwik/pull/7781))
+
+- 🐞🩹 redirects no longer take their parent layout's Cache-Control value by default and are instead set to `no-store`. This prevents issues in redirection logic. We might introduce another API to enable caching redirects in the future. (by [@maiieul](https://github.com/maiieul) in [#7811](https://github.com/QwikDev/qwik/pull/7811))
+
+- 🐞🩹 Keeping the service worker components now also removes their associated Cache storage. (by [@maiieul](https://github.com/maiieul) in [#7782](https://github.com/QwikDev/qwik/pull/7782))
+
+## 1.15.0
+
+### Minor Changes
+
+- ✨ Added rewrite() to the RequestEvent object. It works like redirect but does not change the URL, (by [@omerman](https://github.com/omerman) in [#7562](https://github.com/QwikDev/qwik/pull/7562))
+  think of it as an internal redirect.
+
+  Example usage:
+
+  ```ts
+  export const onRequest: RequestHandler = async ({ url, rewrite }) => {
+    if (url.pathname.includes('/articles/the-best-article-in-the-world')) {
+      const artistId = db.getArticleByName('the-best-article-in-the-world');
+
+      // Url will remain /articles/the-best-article-in-the-world, but under the hood,
+      // will render /articles/${artistId}
+      throw rewrite(`/articles/${artistId}`);
+    }
+  };
+  ```
+
+### Patch Changes
+
+- 🐞🩹 Change Content-Type header in qwik requests to respect RFC 7231 (by [@joaomaridalho](https://github.com/joaomaridalho) in [#7690](https://github.com/QwikDev/qwik/pull/7690))
+
+- 🐞🩹 link/useNavigate with query params don't override loader/middleware redirect with query params anymore. (by [@maiieul](https://github.com/maiieul) in [#7733](https://github.com/QwikDev/qwik/pull/7733))
+
+- 🐞🩹 allow cross-protocol requests from the same domain (by [@gioboa](https://github.com/gioboa) in [#7693](https://github.com/QwikDev/qwik/pull/7693))
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
+
+- 🐞🩹 Duplicate ServerError class during dev mode (by [@wmertens](https://github.com/wmertens) in [#7724](https://github.com/QwikDev/qwik/pull/7724))
 
 ## 1.14.1
 

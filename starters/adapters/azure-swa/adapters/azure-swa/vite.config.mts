@@ -8,7 +8,7 @@ export default extendConfig(baseConfig, () => {
       ssr: true,
       outDir: "azure-functions/render",
       rollupOptions: {
-        input: ["src/entry.azure-swa.tsx", "@qwik-router-config"],
+        input: ["src/entry.azure-swa.tsx"],
         output: {
           entryFileNames: `[name].[hash].mjs`,
           chunkFileNames: `[name].[hash].mjs`,

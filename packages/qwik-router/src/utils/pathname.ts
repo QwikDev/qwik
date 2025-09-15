@@ -1,10 +1,6 @@
 import type { PathParams } from '../runtime/src';
 
-export function normalizePathname(
-  pathname: string | undefined | null,
-  basePathname: string,
-  trailingSlash: boolean
-) {
+export function normalizePathname(pathname: string | undefined | null, basePathname: string) {
   if (typeof pathname === 'string') {
     pathname = pathname.trim();
 
@@ -22,7 +18,7 @@ export function normalizePathname(
         pathname = new URL(basePathname + pathname, `https://qwik.dev`).pathname;
 
         if (pathname !== basePathname) {
-          if (trailingSlash) {
+          if (!globalThis.__NO_TRAILING_SLASH__) {
             if (!pathname.endsWith('/')) {
               const segments = pathname.split('/');
               const lastSegment = segments[segments.length - 1];

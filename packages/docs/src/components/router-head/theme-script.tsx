@@ -8,6 +8,6 @@ export const ThemeScript = () => {
                   localStorage.getItem('${themeStorageKey}') ??
                   (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
               );
-        } catch (err) { }`;
+        } catch (e) { }`.replaceAll(/\s+/gm, '');
   return <script dangerouslySetInnerHTML={themeScript} />;
 };

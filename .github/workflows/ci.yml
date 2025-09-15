@@ -592,7 +592,13 @@ jobs:
   test-unit:
     name: Unit Tests
     if: always() && needs.changes.outputs.build-unit == 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        settings:
+          - host: ubuntu-latest
+          - host: windows-latest
+
+    runs-on: ${{ matrix.settings.host }}
     needs:
       - changes
       - build-other-packages
@@ -772,6 +778,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: "Verify pnpm dedupe"
+        if: always()
+        run: pnpm dedupe --check
+
       - name: SyncPack Check
         if: always()
         run: pnpm run lint.syncpack
@@ -910,9 +920,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  ############ TRIGGER QWIKCITY E2E TEST ############
+  ############ TRIGGER QWIKKROUTER E2E TEST ############
   trigger-qwikrouter-e2e:
-    name: Trigger Qwik City E2E
+    name: Trigger Qwik Router E2E
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/upcoming'
 

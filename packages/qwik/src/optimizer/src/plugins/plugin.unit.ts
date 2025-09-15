@@ -15,24 +15,25 @@ test('types', () => () => {
 
 test('defaults', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions();
+  const opts = await plugin.normalizeOptions();
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(opts.entryStrategy, { type: 'segment' });
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('defaults (buildMode: production)', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ buildMode: 'production' });
+  const opts = await plugin.normalizeOptions({ buildMode: 'production' });
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'production');
   assert.deepEqual(opts.entryStrategy, { type: 'smart' });
@@ -40,18 +41,19 @@ test('defaults (buildMode: production)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
   assert.deepEqual(opts.entryStrategy, { type: 'smart' });
 });
 
 test('defaults (target: ssr)', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ target: 'ssr' });
+  const opts = await plugin.normalizeOptions({ target: 'ssr' });
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
@@ -59,17 +61,18 @@ test('defaults (target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('defaults (buildMode: production, target: ssr)', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
+  const opts = await plugin.normalizeOptions({ buildMode: 'production', target: 'ssr' });
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'production');
   assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
@@ -77,29 +80,30 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
   assert.deepEqual(opts.srcDir, normalizePath(resolve(cwd, 'src')));
-  assert.deepEqual(opts.srcInputs, null);
 });
 
 test('debug true', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ debug: true });
+  const opts = await plugin.normalizeOptions({ debug: true });
   assert.deepEqual(opts.debug, true);
 });
 
 test('csr', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ csr: true });
-  assert.deepEqual(opts.outDir, '');
+  const opts = await plugin.normalizeOptions({ csr: true });
+  assert.deepEqual(opts.outDir, undefined);
 });
 
 test('override entryStrategy', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     entryStrategy: { type: 'component' },
     buildMode: 'production',
   });
@@ -108,7 +112,7 @@ test('override entryStrategy', async () => {
 
 test('entryStrategy, smart', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     entryStrategy: { type: 'smart' },
   });
   assert.deepEqual(opts.entryStrategy.type, 'smart');
@@ -116,15 +120,14 @@ test('entryStrategy, smart', async () => {
 
 test('entryStrategy, segment no forceFullBuild', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ entryStrategy: { type: 'segment' } });
+  const opts = await plugin.normalizeOptions({ entryStrategy: { type: 'segment' } });
   assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
 
 test('entryStrategy, segment and srcInputs', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     entryStrategy: { type: 'segment' },
-    srcInputs: [],
   });
   assert.deepEqual(opts.entryStrategy.type, 'segment');
 });
@@ -132,20 +135,20 @@ test('entryStrategy, segment and srcInputs', async () => {
 test('rootDir, abs path', async () => {
   const plugin = await mockPlugin();
   const customRoot = normalizePath(resolve(cwd, 'abs-path'));
-  const opts = plugin.normalizeOptions({ rootDir: customRoot });
+  const opts = await plugin.normalizeOptions({ rootDir: customRoot });
   assert.deepEqual(opts.rootDir, customRoot);
 });
 
 test('rootDir, rel path', async () => {
   const plugin = await mockPlugin();
   const customRoot = 'rel-path';
-  const opts = plugin.normalizeOptions({ rootDir: customRoot });
+  const opts = await plugin.normalizeOptions({ rootDir: customRoot });
   assert.deepEqual(opts.rootDir, normalizePath(resolve(cwd, customRoot)));
 });
 
 test('tsconfigFileNames', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     tsconfigFileNames: ['./tsconfig.json', './tsconfig.app.json'],
   });
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json', './tsconfig.app.json']);
@@ -153,7 +156,7 @@ test('tsconfigFileNames', async () => {
 
 test('tsconfigFileNames, empty array fallback to default', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     tsconfigFileNames: [],
   });
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
@@ -161,31 +164,30 @@ test('tsconfigFileNames, empty array fallback to default', async () => {
 
 test('input string', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'cmps', 'main.tsx'))]);
+  const opts = await plugin.normalizeOptions({ input: 'src/cmps/main.tsx' });
+  // we don't provide input so that we don't override the vite input
+  assert.deepEqual(opts.input, undefined);
 });
 
 test('input array', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({
+  const opts = await plugin.normalizeOptions({
     input: ['src/cmps/a.tsx', 'src/cmps/b.tsx'],
   });
-  assert.deepEqual(opts.input, [
-    normalizePath(resolve(cwd, 'src', 'cmps', 'a.tsx')),
-    normalizePath(resolve(cwd, 'src', 'cmps', 'b.tsx')),
-  ]);
+  // we don't provide input so that we don't override the vite input
+  assert.deepEqual(opts.input, undefined);
 });
 
 test('outDir', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ outDir: 'out' });
+  const opts = await plugin.normalizeOptions({ outDir: 'out' });
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'out')));
 });
 
 test('manifestOutput', async () => {
   const plugin = await mockPlugin();
   const manifestOutput = () => {};
-  const opts = plugin.normalizeOptions({ manifestOutput });
+  const opts = await plugin.normalizeOptions({ manifestOutput });
   assert.deepEqual(opts.manifestOutput, manifestOutput);
 });
 
@@ -198,19 +200,19 @@ test('manifestInput', async () => {
     bundles: {},
     version: '1',
   };
-  const opts = plugin.normalizeOptions({ manifestInput });
+  const opts = await plugin.normalizeOptions({ manifestInput });
   assert.deepEqual(opts.manifestInput, manifestInput);
 });
 
 test('resolveQwikBuild true', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ resolveQwikBuild: true });
+  const opts = await plugin.normalizeOptions({ resolveQwikBuild: true });
   assert.deepEqual(opts.resolveQwikBuild, true);
 });
 
 test('resolveQwikBuild false', async () => {
   const plugin = await mockPlugin();
-  const opts = plugin.normalizeOptions({ resolveQwikBuild: false });
+  const opts = await plugin.normalizeOptions({ resolveQwikBuild: false });
   assert.deepEqual(opts.resolveQwikBuild, false);
 });
 
@@ -221,7 +223,7 @@ test('experimental[]', async () => {
     // we can't test this without a flag
     return;
   }
-  const opts = plugin.normalizeOptions({ experimental: [flag] });
+  const opts = await plugin.normalizeOptions({ experimental: [flag] });
   assert.deepEqual(opts.experimental, { [flag]: true } as any);
 });
 

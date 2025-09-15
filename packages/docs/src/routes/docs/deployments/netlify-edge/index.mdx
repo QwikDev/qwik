@@ -130,10 +130,9 @@ When the `netlify-edge` adapter is added, a new entry file will be created at `s
 
 ```tsx title="src/entry.netlify-edge.tsx"
 import { createQwikRouter } from '@qwik.dev/router/middleware/netlify-edge';
-import qwikRouterConfig from '@qwik-router-config';
 import render from './entry.ssr';
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });
 ```
 
 The compiled middleware will be built in the `.netlify/edge-functions` directory.

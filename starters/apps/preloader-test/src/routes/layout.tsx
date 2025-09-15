@@ -69,6 +69,7 @@ export default component$(() => {
             <LinkCmp href="/about">About</LinkCmp>
             <LinkCmp
               href="/counters"
+              // eslint-disable-next-line no-console
               onQVisible$={() => console.log("visible")}
             >
               Counters
@@ -84,7 +85,7 @@ export default component$(() => {
       <main class="main container">
         <Slot />
       </main>
-      {/* workaround: invisible Link to ensure qwik city context inclusion */}
+      {/* workaround: invisible Link to ensure qwik Router context inclusion */}
       <Link href="/" />
     </div>
   );

@@ -113,6 +113,7 @@ Expression which should be lazy loaded
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [QRL](#qrl)&lt;T&gt;
@@ -134,6 +135,55 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 ```
 
 **Extends:** [ComputedSignal](#computedsignal)&lt;T&gt;
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[error](#)
+
+</td><td>
+
+</td><td>
+
+Error \| null
+
+</td><td>
+
+The error that occurred while computing the signal.
+
+</td></tr>
+<tr><td>
+
+[loading](#)
+
+</td><td>
+
+</td><td>
+
+boolean
+
+</td><td>
+
+Whether the signal is currently loading.
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
@@ -181,6 +231,7 @@ number \| 'immutable'
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -313,6 +364,7 @@ onMount
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [Component](#component)&lt;PROPS&gt;
@@ -680,21 +732,6 @@ True of running on the server platform.
 </td></tr>
 <tr><td>
 
-[nextTick](#)
-
-</td><td>
-
-</td><td>
-
-(fn: () =&gt; any) =&gt; Promise&lt;any&gt;
-
-</td><td>
-
-Perform operation on next tick.
-
-</td></tr>
-<tr><td>
-
 [raf](#)
 
 </td><td>
@@ -822,6 +859,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
@@ -879,6 +917,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ComputedReturnType](#computedreturntype)&lt;T&gt;
@@ -960,6 +999,7 @@ The name of the context.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ContextId](#contextid)&lt;STATE&gt;
@@ -999,6 +1039,7 @@ SerializerArg&lt;T, S&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T extends Promise&lt;any&gt; ? never : SerializerSignal&lt;T&gt;
@@ -1280,6 +1321,7 @@ T
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 import("./qrl.public").[QRL](#qrl)&lt;T&gt;
@@ -1309,6 +1351,57 @@ force(): void;
 **Returns:**
 
 void
+
+## forceStoreEffects
+
+Force a store to recompute and schedule effects.
+
+```typescript
+forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+value
+
+</td><td>
+
+StoreTarget
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+prop
+
+</td><td>
+
+keyof StoreTarget
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
 
 ## Fragment
 
@@ -1375,6 +1468,7 @@ Element \| VNode
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 IClientContainer
@@ -1418,6 +1512,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 string
@@ -1504,11 +1599,22 @@ any[]
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;TYPE&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
+
+## HTMLElementAttrs
+
+```typescript
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement>
+```
+
+**Extends:** HTMLAttributesBase, FilterBase&lt;HTMLElement&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
 ## implicit$FirstArg
 
@@ -1576,6 +1682,7 @@ A function that should have its first argument automatically `$`.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 ((qrl: FIRST, ...rest: REST) =&gt; RET)
@@ -1641,6 +1748,7 @@ any
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 value is [Signal](#signal)&lt;unknown&gt;
@@ -1708,6 +1816,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;T&gt;
@@ -1828,6 +1937,7 @@ unknown
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXNode](#jsxnode)&lt;T&gt;
@@ -2249,6 +2359,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -2299,6 +2410,7 @@ opts
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -2765,7 +2877,7 @@ export type QwikHTMLElements = {
 };
 ```
 
-**References:** [QwikAttributes](#qwikattributes)
+**References:** [HTMLElementAttrs](#htmlelementattrs), [QwikAttributes](#qwikattributes)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
@@ -2963,6 +3075,8 @@ export type QwikSVGElements = {
 };
 ```
 
+**References:** [SVGProps](#svgprops)
+
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
 ## QwikSymbolEvent
@@ -3158,6 +3272,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;[RenderResult](#renderresult)&gt;
@@ -3428,6 +3543,7 @@ props
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [JSXOutput](#jsxoutput)
@@ -3658,7 +3774,7 @@ Description
 
 </td><td>
 
-() =&gt; [JSXOutput](#jsxoutput)
+() =&gt; [JSXOutput](#jsxoutput) \| Promise&lt;[JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 
@@ -3673,7 +3789,7 @@ _(Optional)_
 
 </td><td>
 
-(reason: Error) =&gt; [JSXOutput](#jsxoutput)
+(reason: Error) =&gt; [JSXOutput](#jsxoutput) \| Promise&lt;[JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 
@@ -3688,7 +3804,7 @@ _(Optional)_
 
 </td><td>
 
-(value: T) =&gt; [JSXOutput](#jsxoutput)
+(value: T) =&gt; [JSXOutput](#jsxoutput) \| Promise&lt;[JSXOutput](#jsxoutput)&gt;
 
 </td><td>
 
@@ -3902,6 +4018,7 @@ plt
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [CorePlatform](#coreplatform)
@@ -4383,11 +4500,11 @@ SSRStreamBlock: FunctionComponent<{
 ```typescript
 export type SSRStreamChildren =
   | AsyncGenerator<JSXChildren, void, any>
-  | ((stream: StreamWriter) => Promise<void>)
+  | ((stream: SSRStreamWriter) => Promise<void>)
   | (() => AsyncGenerator<JSXChildren, void, any>);
 ```
 
-**References:** [JSXChildren](#jsxchildren)
+**References:** [JSXChildren](#jsxchildren), [SSRStreamWriter](#ssrstreamwriter)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
 
@@ -4400,6 +4517,32 @@ export type SSRStreamProps = {
 ```
 
 **References:** [SSRStreamChildren](#ssrstreamchildren)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
+
+## SSRStreamWriter
+
+```typescript
+export interface SSRStreamWriter
+```
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[write(chunk)](#ssrstreamwriter-write)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/utils.public.ts)
 
@@ -8306,6 +8449,16 @@ _(Optional)_
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
 
+## SVGProps
+
+```typescript
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T>
+```
+
+**Extends:** [SVGAttributes](#svgattributes), [QwikAttributes](#qwikattributes)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-generated.ts)
+
 ## sync$
 
 Extract function into a synchronously loadable QRL.
@@ -8343,6 +8496,7 @@ Function to extract.
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [SyncQRL](#syncqrl)&lt;T&gt;
@@ -8558,6 +8712,7 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8597,6 +8752,7 @@ T
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8654,6 +8810,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [AsyncComputedReturnType](#asynccomputedreturntype)&lt;T&gt;
@@ -8709,6 +8866,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ComputedReturnType](#computedreturntype)&lt;T&gt;
@@ -8750,6 +8908,7 @@ value
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
@@ -8890,6 +9049,7 @@ STATE
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -8966,6 +9126,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9018,6 +9179,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9070,6 +9232,7 @@ EventQRL&lt;T&gt;
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9164,6 +9327,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [ResourceReturn](#resourcereturn)&lt;T&gt;
@@ -9252,6 +9416,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T \| undefined
@@ -9376,6 +9541,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 STATE
@@ -9484,6 +9650,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 UseStyles
@@ -9575,6 +9742,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 [UseStylesScoped](#usestylesscoped)
@@ -9618,6 +9786,7 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9688,6 +9857,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -9769,8 +9939,45 @@ fn
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-locale.ts)
+
+## write
+
+```typescript
+write(chunk: JSXOutput): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+chunk
+
+</td><td>
+
+[JSXOutput](#jsxoutput)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void

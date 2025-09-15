@@ -196,6 +196,51 @@ describe.each([
     }
   });
 
+  it('should find context with falsy value', async () => {
+    const ctxIf = createContextId<any>('if');
+    const ctxIf2 = createContextId<any>('if2');
+    const ctxIf3 = createContextId<any>('if3');
+
+    const Child = component$(() => {
+      const value = useContext(ctxIf);
+      const value2 = useContext(ctxIf2);
+      const value3 = useContext(ctxIf3);
+      return (
+        <>
+          {value}
+          {value2}
+          {value3}
+        </>
+      );
+    });
+
+    const Cmp = component$(() => {
+      useContextProvider(ctxIf, '');
+      useContextProvider(ctxIf2, false);
+      useContextProvider(ctxIf3, null);
+      return (
+        <div>
+          <Child />
+        </div>
+      );
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <div>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              {''}
+              {''}
+              {''}
+            </Fragment>
+          </Component>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {

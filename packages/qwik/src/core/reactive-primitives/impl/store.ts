@@ -7,7 +7,6 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
-  triggerEffects,
 } from '../utils';
 import {
   STORE_ALL_PROPS,
@@ -17,6 +16,7 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from '../types';
+import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 
@@ -32,6 +32,30 @@ export const getStoreTarget = <T extends StoreTarget>(value: T): T | null => {
 };
 
 /**
+ * Force a store to recompute and schedule effects.
+ *
+ * @public
+ */
+export const forceStoreEffects = (value: StoreTarget, prop: keyof StoreTarget): void => {
+  const handler = getStoreHandler(value);
+  if (handler) {
+    handler.force(prop);
+  }
+};
+
+/**
+ * @returns True if the store has effects for the given prop
+ * @internal
+ */
+export const _hasStoreEffects = (value: StoreTarget, prop: keyof StoreTarget): boolean => {
+  const handler = getStoreHandler(value);
+  if (handler) {
+    return (handler.$effects$?.get(prop)?.size ?? 0) > 0;
+  }
+  return false;
+};
+
+/**
  * Get the original object that was wrapped by the store. Useful if you want to clone a store
  * (structuredClone, IndexedDB,...)
  *
@@ -41,6 +65,7 @@ export const unwrapStore = <T>(value: T): T => {
   return getStoreTarget<any>(value) || value;
 };
 
+/** @internal */
 export const isStore = (value: StoreTarget): boolean => {
   return STORE_TARGET in value;
 };
@@ -81,7 +106,18 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     return '[Store]';
   }
 
+  force(prop: keyof StoreTarget): void {
+    const target = getStoreTarget(this)!;
+    this.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      this,
+      getEffects(target, prop, this.$effects$)
+    );
+  }
+
   get(target: StoreTarget, prop: string | symbol) {
+    // TODO(perf): handle better `slice` calls
     if (typeof prop === 'symbol') {
       if (prop === STORE_TARGET) {
         return target;
@@ -159,7 +195,16 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (typeof prop != 'string' || !delete target[prop]) {
       return false;
     }
-    triggerEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
+    if (!Array.isArray(target)) {
+      // If the target is an array, we don't need to trigger effects.
+      // Changing the length property will trigger effects.
+      this.$container$?.$scheduler$(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        null,
+        this,
+        getEffects(target, prop, this.$effects$)
+      );
+    }
     return true;
   }
 
@@ -243,12 +288,15 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   currentStore: StoreHandler
 ): void {
   (target as any)[prop] = value;
-  // TODO: trigger effects through the scheduler
-  triggerEffects(
-    currentStore.$container$,
-    currentStore,
-    getEffects(target, prop, currentStore.$effects$)
-  );
+  const effects = getEffects(target, prop, currentStore.$effects$);
+  if (effects) {
+    currentStore.$container$?.$scheduler$(
+      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+      null,
+      currentStore,
+      effects
+    );
+  }
 }
 
 function getEffects<T extends Record<string | symbol, any>>(

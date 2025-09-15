@@ -215,6 +215,7 @@ export default component$(() => {
       <Counter100 />
       <Link
         href="/hidden"
+        // eslint-disable-next-line no-console
         onQVisible$={() => console.log("visible below fold")}
       >
         Home

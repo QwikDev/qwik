@@ -1,18 +1,19 @@
-import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
+import { partytownVite } from '@qwik.dev/partytown/utils';
 import { qwikReact } from '@qwik.dev/react/vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
+import shikiRehype from '@shikijs/rehype';
+import darkPlus from '@shikijs/themes/dark-plus';
+import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+import type { ShikiTransformer } from '@shikijs/types';
+import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
-import { defineConfig, loadEnv, type Plugin } from 'vite';
-import Inspect from 'vite-plugin-inspect';
+import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import tailwindcss from '@tailwindcss/vite';
-import shikiRehype from '@shikijs/rehype';
-import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
-import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
-import type { ShikiTransformer } from '@shikijs/types';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -95,16 +96,60 @@ function transformerMetaShowTitle(): ShikiTransformer {
   };
 }
 
-export default defineConfig(async () => {
+function overrideManualChunksForRepl(): Plugin {
+  return {
+    name: 'override-manual-chunks-for-repl',
+    enforce: 'post',
+    config(userConfig) {
+      const prevOutput = userConfig.build?.rollupOptions?.output;
+      const prevManualChunks: Rollup.ManualChunksOption | undefined =
+        prevOutput && !Array.isArray(prevOutput)
+          ? (prevOutput as Rollup.OutputOptions).manualChunks
+          : undefined;
+
+      return {
+        build: {
+          rollupOptions: {
+            output: {
+              manualChunks: (id, meta) => {
+                const moduleInfo = meta.getModuleInfo(id);
+                if (moduleInfo) {
+                  // Prevent the similar optimizer plugin logic from running on the repl
+                  if (id.includes('repl') && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
+                    return null;
+                  }
+                }
+
+                if (typeof prevManualChunks === 'function') {
+                  return prevManualChunks(id, meta);
+                }
+              },
+            },
+          },
+        },
+      };
+    },
+  };
+}
+
+export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
     optimizeDeps: {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
+      exclude: [
+        // optimizing breaks the wasm import
+        '@rolldown/browser',
+      ],
     },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
       },
+    },
+    define: {
+      // The rolldown deps use this
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
       alias: [
@@ -124,6 +169,8 @@ export default defineConfig(async () => {
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
       ],
+      // Make sure to get the browser version of @rolldown/browser
+      conditions: ['browser', 'worker', 'import', 'default'],
     },
     ssr: {
       noExternal: [
@@ -137,7 +184,13 @@ export default defineConfig(async () => {
         'algoliasearch',
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
+        'qwik-image',
+        '@modular-forms/qwik',
+        '@qwik-ui/headless',
       ],
+      resolve: {
+        conditions: ['import', 'worker', 'default'],
+      },
     },
 
     plugins: [
@@ -147,6 +200,7 @@ export default defineConfig(async () => {
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
       rawSource(),
+      compiledStringPlugin(),
       qwikRouter({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
@@ -158,7 +212,7 @@ export default defineConfig(async () => {
             [
               shikiRehype,
               {
-                theme: 'dark-plus',
+                theme: darkPlus,
                 transformers: [
                   transformerMetaHighlight(),
                   transformerMetaWordHighlight(),
@@ -183,9 +237,9 @@ export default defineConfig(async () => {
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),
-      Inspect(),
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
+      overrideManualChunksForRepl(),
     ],
     build: {
       sourcemap: true,
@@ -196,9 +250,17 @@ export default defineConfig(async () => {
         external: ['@docsearch/css'],
       },
     },
+    worker: {
+      format: 'es',
+    },
     clearScreen: false,
     server: {
       port: 3000,
+      // Needed for the REPL SharedArrayBuffer
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
     },
-  };
+  } as UserConfig;
 });

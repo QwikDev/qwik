@@ -66,10 +66,9 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
     expect: './getting-started.txt',
   },
 ].forEach((t) => {
-  test(`getMarkdownRelativeUrl ${t.href}`, () => {
+  test(`getMarkdownRelativeUrl ${t.href} ${t.trailingSlash ? 'with' : 'without'} slash`, () => {
     const opts: NormalizedPluginOptions = {
       basePathname: '/',
-      trailingSlash: !!t.trailingSlash,
       routesDir,
       serverPluginsDir,
       mdxPlugins: {
@@ -82,6 +81,7 @@ const menuFilePath = join(routesDir, 'docs', 'menu.md');
       rewriteRoutes: [],
       defaultLoadersSerializationStrategy: 'never',
     };
+    globalThis.__NO_TRAILING_SLASH__ = !t.trailingSlash;
     assert.equal(getMarkdownRelativeUrl(opts, menuFilePath, t.href), t.expect);
   });
 });

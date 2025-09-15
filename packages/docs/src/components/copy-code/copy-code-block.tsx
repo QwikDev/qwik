@@ -39,7 +39,7 @@ export const CopyCode = component$(({ code }: { code: string }) => {
           await navigator.clipboard.writeText(code);
         }
       }}
-      class="absolute text-white right-2 top-2 shadow-2xl bg-[#1e1e1e] z-10"
+      class="absolute text-[--secondary-text-color] right-2 top-2 shadow-2xl z-10"
     >
       <span
         class={{

@@ -6,6 +6,11 @@ import type { QwikSerializer, ServerRenderOptions, ServerRequestEvent } from './
 import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user-response';
 
 /**
+ * We need to delay importing the config until the first request, because vite also imports from
+ * this file and @qwik-router-config doesn't exist from the vite config before the build.
+ */
+let qwikRouterConfigActual: QwikRouterConfig;
+/**
  * The request handler for QwikRouter. Called by every integration.
  *
  * @public
@@ -15,13 +20,22 @@ export async function requestHandler<T = unknown>(
   opts: ServerRenderOptions,
   qwikSerializer: QwikSerializer
 ): Promise<QwikRouterRun<T> | null> {
-  const { render, qwikRouterConfig, checkOrigin } = opts;
+  const { render, checkOrigin } = opts;
+  let { qwikRouterConfig } = opts;
+  if (!qwikRouterConfig) {
+    if (!qwikRouterConfigActual) {
+      qwikRouterConfigActual = await import('@qwik-router-config');
+    }
+    qwikRouterConfig = qwikRouterConfigActual;
+  }
   if (!qwikRouterConfig) {
     throw new Error('qwikRouterConfig is required.');
   }
 
   const pathname = serverRequestEv.url.pathname;
-  const matchPathname = getRouteMatchPathname(pathname, qwikRouterConfig.trailingSlash);
+  const matchPathname = getRouteMatchPathname(pathname);
+  // TODO also match 404 routes with extra notFound boolean result
+  // TODO cache pages
   const routeAndHandlers = await loadRequestHandlers(
     qwikRouterConfig,
     matchPathname,
@@ -34,7 +48,7 @@ export async function requestHandler<T = unknown>(
     const [route, requestHandlers] = routeAndHandlers;
 
     const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-      const matchPathname = getRouteMatchPathname(url.pathname, qwikRouterConfig.trailingSlash);
+      const matchPathname = getRouteMatchPathname(url.pathname);
       const routeAndHandlers = await loadRequestHandlers(
         qwikRouterConfig,
         matchPathname,
@@ -56,7 +70,6 @@ export async function requestHandler<T = unknown>(
       route,
       requestHandlers,
       rebuildRouteInfo,
-      qwikRouterConfig.trailingSlash,
       qwikRouterConfig.basePathname,
       qwikSerializer
     );
@@ -68,7 +81,7 @@ async function loadRequestHandlers(
   qwikRouterConfig: QwikRouterConfig,
   pathname: string,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderFn: Render
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikRouterConfig;

@@ -12,6 +12,11 @@ import type { StreamWriter } from '@qwik.dev/core';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
 
 // @public
+export function getQwikBackpatchExecutorScript(opts?: {
+    debug?: boolean;
+}): string;
+
+// @public
 export function getQwikLoaderScript(opts?: {
     debug?: boolean;
 }): string;
@@ -76,6 +81,7 @@ export interface PrefetchStrategy {
 export interface PreloaderOptions {
     debug?: boolean;
     maxIdlePreloads?: number;
+    // @deprecated (undocumented)
     preloadProbability?: number;
     ssrPreloadProbability?: number;
     ssrPreloads?: number;
@@ -103,7 +109,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     // (undocumented)
     preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
-    // (undocumented)
     serverData?: Record<string, any>;
     snapshot?: boolean;
 }

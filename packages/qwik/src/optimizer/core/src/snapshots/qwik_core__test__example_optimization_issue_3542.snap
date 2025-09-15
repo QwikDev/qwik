@@ -27,27 +27,27 @@ export const AtomStatus = component$(({ctx,atom})=>{
 import { componentQrl } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
-    let status = props.atom.status;
-    if (!props.atom.real) status = "WILL-VANISH";
-    else if (JSON.stringify(props.atom.atom) == JSON.stringify(props.atom.real)) status = "WTFED";
-    return <span title={props.atom.ID} onClick$={/*#__PURE__*/ inlinedQrl((ev)=>{
-        const [props] = useLexicalScope();
-        return atomStatusClick(props.ctx, ev, [
-            props.atom
+export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
+    let status = _rawProps.atom.status;
+    if (!_rawProps.atom.real) status = "WILL-VANISH";
+    else if (JSON.stringify(_rawProps.atom.atom) == JSON.stringify(_rawProps.atom.real)) status = "WTFED";
+    return <span title={_rawProps.atom.ID} onClick$={/*#__PURE__*/ inlinedQrl((ev)=>{
+        const [_rawProps] = useLexicalScope();
+        return atomStatusClick(_rawProps.ctx, ev, [
+            _rawProps.atom
         ]);
     }, "AtomStatus_component_span_onClick_Owf5fKaOlF0", [
-        props
+        _rawProps
     ])} class={[
         "atom",
         status,
-        props.ctx.store[props.atom.ID] ? "selected" : null
+        _rawProps.ctx.store[_rawProps.atom.ID] ? "selected" : null
     ]}>
 		</span>;
 }, "AtomStatus_component_hdwpoUtydSA"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW;IACpC,IAAI,SAAS,MAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,MAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,MAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,MAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,MAR4B,KAQvB,EAAE,EAAE,mCAAU,CAAC;;eAAK,sBARD,KAQqB,IAAG;kBARpB;SAQ0B;;;QAAG,OAAO;QAAC;QAAO;QAAO,MARvD,IAQ2D,KAAK,CAAC,MAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;EACjI,EAAE;AAEJ,wCAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,sCAAW;IACpC,IAAI,SAAS,UAD6B,KACxB,MAAM;IACxB,IAAG,CAAC,UAFsC,KAEjC,IAAI,EACZ,SAAO;SACD,IAAI,KAAK,SAAS,CAAC,UAJgB,KAIX,IAAI,KAAG,KAAK,SAAS,CAAC,UAJX,KAIgB,IAAI,GAC7D,SAAO;IAER,QACE,KAAK,OAAO,UAR4B,KAQvB,EAAE,EAAE,mCAAU,CAAC;;eAAK,0BARD,KAQqB,IAAG;sBARpB;SAQ0B;;;QAAG,OAAO;QAAC;QAAO;QAAO,UARvD,IAQ2D,KAAK,CAAC,UAR7D,KAQkE,EAAE,CAAC,GAAC,aAAW;KAAK,EAAE;EACjI,EAAE;AAEJ,wCAAE\"}")
 == DIAGNOSTICS ==
 
 []

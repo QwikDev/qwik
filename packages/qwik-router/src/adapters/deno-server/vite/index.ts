@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import { viteAdapter, type ServerAdapterOptions } from '../../shared/vite';
 
 /** @beta */
@@ -42,4 +42,4 @@ export interface DenoServerAdapterOptions extends ServerAdapterOptions {
 }
 
 /** @beta */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

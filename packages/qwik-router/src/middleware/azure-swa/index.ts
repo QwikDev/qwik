@@ -1,13 +1,15 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { getNotFound } from '@qwik-router-not-found-paths';
-import { isStaticPath } from '@qwik-router-static-paths';
 import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
   ServerRequestEvent,
 } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  getNotFound,
+  isStaticPath,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import { parseString } from 'set-cookie-parser';
 import type { QwikSerializer } from '../request-handler/types';
 
@@ -51,10 +53,8 @@ interface AzureCookie {
 /** @public */
 export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
   if (opts.qwikCityPlan && !opts.qwikRouterConfig) {
-    console.warn('qwikCityPlan is deprecated. Use qwikRouterConfig instead.');
+    console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
-  } else if (!opts.qwikRouterConfig) {
-    throw new Error('qwikRouterConfig is required.');
   }
   const qwikSerializer: QwikSerializer = {
     _deserialize,

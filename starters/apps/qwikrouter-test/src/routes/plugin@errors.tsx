@@ -1,14 +1,13 @@
 import { type RequestHandler } from "@qwik.dev/router";
 import { ServerError } from "@qwik.dev/router/middleware/request-handler";
-import { isDev } from "@qwik.dev/core";
 import { isErrorReason } from "./(common)/server-func/server-error";
 
-export const onRequest: RequestHandler = async ({ next, error }) => {
+export const onRequest: RequestHandler = async ({ next }) => {
   try {
     return await next();
   } catch (err) {
     // Intercept and update ServerErrors to test middleware
-    if (isServerError(err)) {
+    if (err instanceof ServerError) {
       // Update for (common)/server-func/server-error
       if (isErrorReason(err.data)) {
         err.data.middleware = "server-error-caught";
@@ -23,10 +22,3 @@ export const onRequest: RequestHandler = async ({ next, error }) => {
     throw err;
   }
 };
-
-function isServerError(err: unknown): err is ServerError {
-  return (
-    err instanceof ServerError ||
-    (isDev && err instanceof Error && err.constructor.name === "ServerError")
-  );
-}

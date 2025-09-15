@@ -16,7 +16,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\next\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\next\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.basename.md"
     },
     {
@@ -57,7 +57,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptimizerOptions\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
+      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptimizerOptions\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts",
       "mdFile": "core.createoptimizer.md"
     },
@@ -103,7 +103,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.dirname.md"
     },
     {
@@ -147,7 +147,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\nEnable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and <Insights/> component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
+      "content": "Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\nEnable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\ninsights\n\n\n</td><td>\n\n`\"insights\"`\n\n\n</td><td>\n\nEnable the ability to use the Qwik Insights vite plugin and `<Insights/>` component\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\nDisable SPA navigation handler in Qwik Router\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\nEnable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\nEnable the Valibot form validation\n\n\n</td></tr>\n<tr><td>\n\nwebWorker\n\n\n</td><td>\n\n`\"webWorker\"`\n\n\n</td><td>\n\nEnable worker$\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "core.experimentalfeatures.md"
     },
@@ -165,7 +165,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nextname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nextname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.extname.md"
     },
     {
@@ -182,7 +182,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npathObject\n\n\n</td><td>\n\n{ root: string; dir: string; base: string; ext: string; name: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npathObject\n\n\n</td><td>\n\n{ root: string; dir: string; base: string; ext: string; name: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.format.md"
     },
     {
@@ -244,7 +244,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nboolean",
+      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nboolean",
       "mdFile": "core.path.isabsolute.md"
     },
     {
@@ -261,7 +261,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.join.md"
     },
     {
@@ -292,7 +292,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.normalize.md"
     },
     {
@@ -368,7 +368,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
+      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
       "mdFile": "core.path.parse.md"
     },
     {
@@ -496,7 +496,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikRollupOpts\n\n\n</td><td>\n\n[QwikRollupPluginOptions](#qwikrolluppluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikRollupOpts\n\n\n</td><td>\n\n[QwikRollupPluginOptions](#qwikrolluppluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
       "mdFile": "core.qwikrollup.md"
     },
@@ -538,7 +538,7 @@
         }
       ],
       "kind": "Function",
-      "content": "The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`<!-- -->, and if you search the plugin by name you'll get the `QwikVitePlugin`<!-- -->.\n\n\n```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`<!-- -->, and if you search the plugin by name you'll get the `QwikVitePlugin`<!-- -->.\n\n\n```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "core.qwikvite.md"
     },
@@ -612,7 +612,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfrom\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nto\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfrom\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nto\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.relative.md"
     },
     {
@@ -629,7 +629,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "core.path.resolve.md"
     },
     {
@@ -754,8 +754,8 @@
         }
       ],
       "kind": "Variable",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite-dev-server.ts",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/index.ts",
       "mdFile": "core.symbolmapper.md"
     },
     {
@@ -768,7 +768,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "> This API is provided as a beta preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nFor a given symbol (QRL such as `onKeydown$`<!-- -->) the server needs to know which bundle the symbol is in.\n\nNormally this is provided by Qwik's `q-manifest` . But `q-manifest` only exists after a full client build.\n\nThis would be a problem in dev mode. So in dev mode the symbol is mapped to the expected URL using the symbolMapper function below. For Vite the given path is fixed for a given symbol.\n\n\n```typescript\nsymbolMapper: ReturnType<typeof createSymbolMapper>\n```",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\n> Warning: This API is now obsolete.\n> \n> No longer needed, it is automatic now\n> \n\n\n```typescript\nsymbolMapper: undefined\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "core.symbolmapper.md"
     },
@@ -842,7 +842,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
       "mdFile": "core.optimizer.transformmodules.md"
     },
     {

@@ -109,7 +109,7 @@ describe('serializer v2', () => {
 
     describe('node references', () => {
       // doesn't use the vnode so not serialized
-      it.skip('should retrieve element', async () => {
+      it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
@@ -273,18 +273,6 @@ describe('serializer v2', () => {
     describe('RegexSerializer, ///////// ' + TypeIds.Regex, () => {
       it('should serialize and deserialize', async () => {
         const obj = /abc/gim;
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
-    describe('StringSerializer, //////// ' + TypeIds.String, () => {
-      it('should serialize and deserialize', async () => {
-        const obj = '\u0010anything';
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-
-      it('should serialize and deserialize strings in array', async () => {
-        const obj = ['\b: backspace'];
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
@@ -512,7 +500,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, '', -1, [], [] as any);
+        const obj = new SsrNode(null, '', -1, [], [] as any, null);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });
@@ -609,19 +597,15 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(
-            jsx.varProps as any,
-            jsx.constProps,
-            ssrContainer.serializationCtx,
-            null,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps as any,
-            jsx.varProps,
-            ssrContainer.serializationCtx,
-            null
-          )
+          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+          })
         );
       } else {
         ssrContainer.openFragment([]);

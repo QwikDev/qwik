@@ -2,17 +2,21 @@ import { getErrorHtml } from '@qwik.dev/router/middleware/request-handler';
 import fs from 'node:fs';
 import { join } from 'node:path';
 
+/** Cleans the client output SSG results if needed and injects the SSG metadata into the build output */
 export async function postBuild(
   clientOutDir: string,
+  serverOutDir: string,
   pathName: string,
   userStaticPaths: string[],
-  format: string,
   cleanStatic: boolean
 ) {
   if (pathName && !pathName.endsWith('/')) {
     pathName += '/';
   }
-  const ignorePathnames = new Set([pathName + 'build/', pathName + 'assets/']);
+  const ignorePathnames = new Set([
+    pathName + '/' + (globalThis.__QWIK_BUILD_DIR__ || 'build') + '/',
+    pathName + '/' + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
+  ]);
 
   const staticPaths = new Set(userStaticPaths.map(normalizeTrailingSlash));
   const notFounds: string[][] = [];
@@ -57,13 +61,10 @@ export async function postBuild(
     await loadDir(clientOutDir, pathName);
   }
 
-  const notFoundPathsCode = createNotFoundPathsModule(pathName, notFounds, format);
-  const staticPathsCode = createStaticPathsModule(pathName, staticPaths, format);
+  const notFoundPathsCode = createNotFoundPathsCode(pathName, notFounds);
+  const staticPathsCode = createStaticPathsCode(staticPaths);
 
-  return {
-    notFoundPathsCode,
-    staticPathsCode,
-  };
+  await injectStatics(staticPathsCode, notFoundPathsCode, serverOutDir);
 }
 
 function normalizeTrailingSlash(pathname: string) {
@@ -73,7 +74,8 @@ function normalizeTrailingSlash(pathname: string) {
   return pathname;
 }
 
-function createNotFoundPathsModule(basePathname: string, notFounds: string[][], format: string) {
+function createNotFoundPathsCode(basePathname: string, notFounds: string[][]) {
+  /** Sort in order of longest path, so that the most specific paths match first */
   notFounds.sort((a, b) => {
     if (a[0].length > b[0].length) {
       return -1;
@@ -95,71 +97,50 @@ function createNotFoundPathsModule(basePathname: string, notFounds: string[][], 
     notFounds.push([basePathname, html]);
   }
 
-  const c: string[] = [];
-
-  c.push(`const notFounds = ${JSON.stringify(notFounds, null, 2)};`);
-
-  c.push(`function getNotFound(p) {`);
-  c.push(`  for (const r of notFounds) {`);
-  c.push(`    if (p.startsWith(r[0])) {`);
-  c.push(`      return r[1];`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  return "Resource Not Found";`);
-  c.push(`}`);
-
-  if (format === 'cjs') {
-    c.push('exports.getNotFound = getNotFound;');
-  } else {
-    c.push('export { getNotFound };');
-  }
-
-  return c.join('\n');
+  // This is the body of the not found array
+  return JSON.stringify(notFounds, null, 2).slice(1, -1);
 }
 
-function createStaticPathsModule(basePathname: string, staticPaths: Set<string>, format: string) {
-  const assetsPath = basePathname + 'assets/';
-  const baseBuildPath = basePathname + 'build/';
-
-  const c: string[] = [];
-
-  c.push(
-    `const staticPaths = new Set(${JSON.stringify(
-      Array.from(new Set<string>(staticPaths)).sort()
-    )});`
-  );
-
-  c.push(`function isStaticPath(method, url) {`);
-  c.push(`  if (method.toUpperCase() !== 'GET') {`);
-  c.push(`    return false;`);
-  c.push(`  }`);
-  c.push(`  const p = url.pathname;`);
-  c.push(`  if (p.startsWith(${JSON.stringify(baseBuildPath)})) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  if (p.startsWith(${JSON.stringify(assetsPath)})) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  if (staticPaths.has(p)) {`);
-  c.push(`    return true;`);
-  c.push(`  }`);
-  c.push(`  if (p.endsWith('/q-data.json')) {`);
-  c.push(`    const pWithoutQdata = p.replace(/\\/q-data.json$/, '');`);
-  c.push(`    if (staticPaths.has(pWithoutQdata + '/')) {`);
-  c.push(`      return true;`);
-  c.push(`    }`);
-  c.push(`    if (staticPaths.has(pWithoutQdata)) {`);
-  c.push(`      return true;`);
-  c.push(`    }`);
-  c.push(`  }`);
-  c.push(`  return false;`);
-  c.push(`}`);
-
-  if (format === 'cjs') {
-    c.push('exports.isStaticPath = isStaticPath;');
-  } else {
-    c.push('export { isStaticPath };');
-  }
-
-  return c.join('\n');
+function createStaticPathsCode(staticPaths: Set<string>) {
+  // This is the body of the static paths array
+  return JSON.stringify(Array.from(new Set<string>(staticPaths)).sort()).slice(1, -1);
 }
+
+const injectStatics = async (
+  staticPathsCode: string,
+  notFoundPathsCode: string,
+  outDir: string
+) => {
+  const promises = new Set<Promise<void>>();
+  // replace the placeholders in the build output with the actual values
+  const doReplace = async (path: string) => {
+    const code = await fs.promises.readFile(path, 'utf-8');
+
+    let replaced = false;
+    const newCode = code.replace(
+      /(['"])__QWIK_ROUTER_(STATIC_PATHS|NOT_FOUND)_ARRAY__\1/g,
+      (_, _quote, type) => {
+        replaced = true;
+        return type === 'STATIC_PATHS' ? staticPathsCode : notFoundPathsCode;
+      }
+    );
+    if (replaced) {
+      await fs.promises.writeFile(path, newCode);
+    }
+  };
+  const walk = async (dir: string) => {
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        await walk(join(dir, entry.name));
+      } else if (entry.name.endsWith('js')) {
+        const p = doReplace(join(dir, entry.name)).finally(() => {
+          promises.delete(p);
+        });
+        promises.add(p);
+      }
+    }
+  };
+  await walk(outDir);
+  await Promise.all(promises);
+};

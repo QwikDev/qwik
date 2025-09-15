@@ -1,3 +1,4 @@
+import fontlessImage from './blog/(articles)/fontless/fontless-hero.webp';
 import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
 
 export const authors: Record<string, { socialLink: string }> = {
@@ -11,6 +12,7 @@ export const authors: Record<string, { socialLink: string }> = {
   'Maïeul Chevalier': { socialLink: 'https://x.com/maiieul' },
   'Shai Reznik': { socialLink: 'https://x.com/shai_reznik' },
   'Wout Mertens': { socialLink: 'https://x.com/woutmertens' },
+  'Giorgio Boa': { socialLink: 'https://github.com/gioboa' },
 };
 
 type BlogArticle = {
@@ -24,11 +26,18 @@ type BlogArticle = {
 
 export const blogArticles: BlogArticle[] = [
   {
+    title: 'Effortlessly optimize web fonts with fontless.',
+    image: fontlessImage,
+    path: '/blog/fontless/',
+    tags: ['Fontaine', 'Qwik'],
+    featuredTitlePosition: 'top',
+    readingTime: 2,
+  },
+  {
     title: 'Introducing the Qwik Preloader',
     image: preloaderImage,
     path: '/blog/qwik-1-14-preloader/',
     tags: ['Qwik'],
-    featuredTitlePosition: 'top',
     readingTime: 10,
   },
   {
@@ -56,7 +65,7 @@ export const blogArticles: BlogArticle[] = [
     readingTime: 4,
   },
   {
-    title: 'Qwik City Routing: A Visual Guide',
+    title: 'Qwik Router: A Visual Guide',
     image:
       'https://cdn.builder.io/api/v1/image/assets%2FYJIGb4i01jvw0SRdL5Bt%2F4f52dab5f87142a38002269540e69cef',
     path: '/blog/qwik-city-routing/',

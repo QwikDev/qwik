@@ -14,9 +14,7 @@ import {
   type RouteModule,
   type ValidatorReturn,
 } from '../../runtime/src/types';
-import { ServerError } from './error-handler';
 import { HttpStatus } from './http-status-codes';
-import { RedirectMessage } from './redirect-handler';
 import {
   RequestEvIsRewrite,
   RequestEvQwikSerializer,
@@ -27,7 +25,6 @@ import {
   getRequestLoaderSerializationStrategyMap,
   getRequestLoaders,
   getRequestMode,
-  getRequestTrailingSlash,
   type RequestEventInternal,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
@@ -39,12 +36,14 @@ import type {
   RequestHandler,
 } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
+// Import separately to avoid duplicate imports in the vite dev server
+import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
-  checkOrigin: boolean,
+  checkOrigin: boolean | 'lax-proto',
   renderHandler: RequestHandler
 ) => {
   const routeLoaders: LoaderInternal[] = [];
@@ -70,7 +69,11 @@ export const resolveRequestHandlers = (
       checkOrigin &&
       (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')
     ) {
-      requestHandlers.unshift(csrfCheckMiddleware);
+      if (checkOrigin === 'lax-proto') {
+        requestHandlers.unshift(csrfLaxProtoCheckMiddleware);
+      } else {
+        requestHandlers.unshift(csrfCheckMiddleware);
+      }
     }
     if (isPageRoute) {
       // server$
@@ -397,13 +400,12 @@ async function pureServerFunction(ev: RequestEvent) {
 }
 
 function fixTrailingSlash(ev: RequestEvent) {
-  const trailingSlash = getRequestTrailingSlash(ev);
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
   const isQData = sharedMap.has(IsQData);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
-    if (trailingSlash) {
+    if (!globalThis.__NO_TRAILING_SLASH__) {
       // must have a trailing slash
       if (!pathname.endsWith('/')) {
         // add slash to existing pathname
@@ -442,12 +444,12 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
   return lastRouteModule && typeof (lastRouteModule as PageModule).default === 'function';
 }
 
-export function getPathname(url: URL, trailingSlash: boolean | undefined) {
+export function getPathname(url: URL) {
   url = new URL(url);
   if (url.pathname.endsWith(QDATA_JSON)) {
     url.pathname = url.pathname.slice(0, -QDATA_JSON.length);
   }
-  if (trailingSlash) {
+  if (!globalThis.__NO_TRAILING_SLASH__) {
     if (!url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
@@ -463,7 +465,13 @@ export function getPathname(url: URL, trailingSlash: boolean | undefined) {
 
 export const encoder = /*#__PURE__*/ new TextEncoder();
 
+function csrfLaxProtoCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv, 'lax-proto');
+}
 function csrfCheckMiddleware(requestEv: RequestEvent) {
+  checkCSRF(requestEv);
+}
+function checkCSRF(requestEv: RequestEvent, laxProto?: 'lax-proto') {
   const isForm = isContentType(
     requestEv.request.headers,
     'application/x-www-form-urlencoded',
@@ -473,7 +481,17 @@ function csrfCheckMiddleware(requestEv: RequestEvent) {
   if (isForm) {
     const inputOrigin = requestEv.request.headers.get('origin');
     const origin = requestEv.url.origin;
-    const forbidden = inputOrigin !== origin;
+    let forbidden = inputOrigin !== origin;
+
+    // fix https://github.com/QwikDev/qwik/issues/7688
+    if (
+      forbidden &&
+      laxProto &&
+      inputOrigin?.replace(/^http(s)?/g, '') === origin.replace(/^http(s)?/g, '')
+    ) {
+      forbidden = false;
+    }
+
     if (forbidden) {
       throw requestEv.error(
         403,
@@ -500,7 +518,6 @@ export function renderQwikMiddleware(render: Render) {
       responseHeaders.set('Content-Type', 'text/html; charset=utf-8');
     }
 
-    const trailingSlash = getRequestTrailingSlash(requestEv);
     const { readable, writable } = new TextEncoderStream();
     const writableStream = requestEv.getWritableStream();
     const pipe = readable.pipeTo(writableStream, { preventClose: true });
@@ -522,7 +539,7 @@ export function renderQwikMiddleware(render: Render) {
         loaders: getRequestLoaders(requestEv),
         action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
       };
       if (typeof (result as any as RenderToStringResult).html === 'string') {
         // render result used renderToString(), so none of it was streamed
@@ -587,7 +604,6 @@ export async function renderQData(requestEv: RequestEvent) {
 
   const status = requestEv.status();
   const redirectLocation = requestEv.headers.get('Location');
-  const trailingSlash = getRequestTrailingSlash(requestEv);
 
   const requestHeaders: Record<string, string> = {};
   requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
@@ -612,13 +628,13 @@ export async function renderQData(requestEv: RequestEvent) {
         // send minimal data to the client
         loaders,
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
       }
     : {
         loaders,
         action: requestEv.sharedMap.get(RequestEvSharedActionId),
         status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url, trailingSlash),
+        href: getPathname(requestEv.url),
         redirect: redirectLocation ?? undefined,
         isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
       };

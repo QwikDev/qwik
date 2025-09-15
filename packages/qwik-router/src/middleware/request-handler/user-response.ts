@@ -4,8 +4,7 @@ import type {
   RequestEvent,
   RequestHandler,
 } from '../../runtime/src/types';
-import { ServerError, getErrorHtml, minimalHtmlResponse } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
+import { getErrorHtml } from './error-handler';
 import {
   RequestEvQwikSerializer,
   createRequestEvent,
@@ -14,7 +13,13 @@ import {
 } from './request-event';
 import { encoder } from './resolve-request-handlers';
 import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
-import { RewriteMessage } from './rewrite-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import {
+  AbortMessage,
+  RedirectMessage,
+  ServerError,
+  RewriteMessage,
+} from '@qwik.dev/router/middleware/request-handler';
 
 export interface QwikRouterRun<T> {
   response: Promise<T | null>;
@@ -41,7 +46,6 @@ export function runQwikRouter<T>(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  trailingSlash = true,
   basePathname = '/',
   qwikSerializer: QwikSerializer
 ): QwikRouterRun<T> {
@@ -51,7 +55,6 @@ export function runQwikRouter<T>(
     serverRequestEv,
     loadedRoute,
     requestHandlers,
-    trailingSlash,
     basePathname,
     qwikSerializer,
     resolve!
@@ -71,6 +74,18 @@ async function runNext(
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
+  try {
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    isValidURL(requestEv.originalUrl);
+  } catch {
+    const status = 404;
+    const message = 'Resource Not Found';
+    requestEv.status(status);
+    const html = getErrorHtml(status, message);
+    requestEv.html(status, html);
+    return new ServerError(status, message);
+  }
+
   let rewriteAttempt = 1;
 
   async function _runNext() {
@@ -116,7 +131,7 @@ async function runNext(
             const stream = requestEv.getWritableStream();
             if (!stream.locked) {
               const writer = stream.getWriter();
-              await writer.write(encoder.encode(minimalHtmlResponse(500, 'Internal Server Error')));
+              await writer.write(encoder.encode(getErrorHtml(500, 'Internal Server Error')));
               await writer.close();
             }
           } catch {
@@ -144,9 +159,9 @@ async function runNext(
  * The pathname used to match in the route regex array. A pathname ending with /q-data.json should
  * be treated as a pathname without it.
  */
-export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
+export function getRouteMatchPathname(pathname: string) {
   if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+    const trimEnd = pathname.length - QDATA_JSON_LEN + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';

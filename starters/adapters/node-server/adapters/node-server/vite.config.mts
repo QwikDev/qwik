@@ -7,7 +7,7 @@ export default extendConfig(baseConfig, () => {
     build: {
       ssr: true,
       rollupOptions: {
-        input: ["src/entry.node-server.tsx", "@qwik-router-config"],
+        input: ["src/entry.node-server.tsx"],
       },
     },
     plugins: [nodeServerAdapter({ name: "node-server" })],

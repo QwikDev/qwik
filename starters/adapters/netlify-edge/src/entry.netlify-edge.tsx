@@ -7,7 +7,6 @@
  * - https://qwik.dev/docs/deployments/netlify-edge/
  *
  */
-import qwikRouterConfig from "@qwik-router-config";
 import {
   createQwikRouter,
   type PlatformNetlify,
@@ -15,7 +14,7 @@ import {
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikRouterPlatform extends PlatformNetlify {}
+  type QwikRouterPlatform = PlatformNetlify;
 }
 
-export default createQwikRouter({ render, qwikRouterConfig });
+export default createQwikRouter({ render });

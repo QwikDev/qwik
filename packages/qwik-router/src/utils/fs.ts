@@ -28,7 +28,7 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
   // ensure file system path uses / (POSIX) instead of \\ (windows)
   let pathname = normalizePath(relFilePath);
 
-  pathname = normalizePathname(pathname, opts.basePathname, opts.trailingSlash)!
+  pathname = normalizePathname(pathname, opts.basePathname)!
     .split('/')
     // remove grouped layout segments
     .filter((segment) => !isGroupedLayoutName(segment))
@@ -42,7 +42,11 @@ export function getPathnameFromDirPath(opts: NormalizedPluginOptions, dirPath: s
 export function getMenuPathname(opts: NormalizedPluginOptions, filePath: string) {
   let pathname = normalizePath(relative(opts.routesDir, filePath));
   pathname = `/` + normalizePath(dirname(pathname));
-  return normalizePathname(pathname, opts.basePathname, true)!;
+  let result = normalizePathname(pathname, opts.basePathname)!;
+  if (!result.endsWith('/')) {
+    result += '/';
+  }
+  return result;
 }
 
 export function getExtension(fileName: string) {

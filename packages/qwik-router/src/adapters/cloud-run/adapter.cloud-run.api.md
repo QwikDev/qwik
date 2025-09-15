@@ -5,7 +5,7 @@
 ```ts
 
 import { ServerAdapterOptions } from '../../shared/vite';
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 
 // @public (undocumented)
 export function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;
@@ -14,7 +14,7 @@ export function cloudRunAdapter(opts?: CloudRunAdapterOptions): any;
 export interface CloudRunAdapterOptions extends ServerAdapterOptions {
 }
 
-export { StaticGenerateRenderOptions }
+export { SsgRenderOptions }
 
 // (No @packageDocumentation comment for this package)
 

@@ -427,4 +427,28 @@ export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop:
   ) as T;
 };
 
+/** @internal */
+export const _getVarProps = <T, JSX>(
+  props: PropsProxy | Record<string, unknown> | null | undefined
+): Props | null => {
+  if (!props) {
+    return null;
+  }
+  return _VAR_PROPS in props
+    ? 'children' in props
+      ? { ...props[_VAR_PROPS], children: props.children }
+      : props[_VAR_PROPS]
+    : props;
+};
+
+/** @internal */
+export const _getConstProps = <T, JSX>(
+  props: PropsProxy | Record<string, unknown> | null | undefined
+): Props | null => {
+  if (!props) {
+    return null;
+  }
+  return _CONST_PROPS in props ? props[_CONST_PROPS] : null;
+};
+
 export { jsx as jsxs };

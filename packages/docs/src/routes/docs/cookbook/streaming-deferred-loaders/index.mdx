@@ -19,7 +19,7 @@ By returning an asynchronous function from our `routeLoader$` we can stream/defe
 import { Resource, component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
-export const useMyData = routeLoader$(() => {
+export const useMyData = routeLoader$(async () => {
   return async () => {
     await delay(4_000);
     return 'MyData ' + Math.random();

@@ -1,4 +1,17 @@
 //////////////////////////////////////////////////////////////////////////////////////////
+// Protect against duplicate imports
+//////////////////////////////////////////////////////////////////////////////////////////
+import { version } from './version';
+if ((globalThis as any).__qwik) {
+  console.error(
+    `==============================================\n` +
+      `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}. Verify external vs bundled imports etc. This can lead to issues due to duplicated shared structures.\n` +
+      `==============================================\n`
+  );
+}
+(globalThis as any).__qwik = version;
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { componentQrl, component$ } from './shared/component.public';
@@ -48,7 +61,12 @@ export {
   SSRComment,
   SkipRender,
 } from './shared/jsx/utils.public';
-export type { SSRStreamProps, SSRHintProps, SSRStreamChildren } from './shared/jsx/utils.public';
+export type {
+  SSRStreamProps,
+  SSRHintProps,
+  SSRStreamChildren,
+  SSRStreamWriter,
+} from './shared/jsx/utils.public';
 export { Slot } from './shared/jsx/slot.public';
 export {
   Fragment,
@@ -85,6 +103,8 @@ export type {
   QwikHTMLElements,
   QwikSVGElements,
   SVGAttributes,
+  HTMLElementAttrs,
+  SVGProps,
 } from './shared/jsx/types/jsx-generated';
 export { render } from './client/dom-render';
 export { getDomContainer, _getQContainerElement } from './client/dom-container';
@@ -96,7 +116,7 @@ export type { SerializationStrategy } from './shared/types';
 // use API
 //////////////////////////////////////////////////////////////////////////////////////////
 export { useLexicalScope } from './use/use-lexical-scope.public';
-export { useStore, unwrapStore } from './use/use-store.public';
+export { useStore, unwrapStore, forceStoreEffects } from './use/use-store.public';
 export { untrack } from './use/use-core';
 export { useId } from './use/use-id';
 export { useContext, useContextProvider, createContextId } from './use/use-context';

@@ -49,10 +49,10 @@ export function getMarkdownRelativeUrl(
     }
   } else if (extension === '') {
     if (url.endsWith('/')) {
-      if (!opts.trailingSlash) {
+      if (globalThis.__NO_TRAILING_SLASH__) {
         url = url.slice(0, -1);
       }
-    } else if (opts.trailingSlash) {
+    } else if (!globalThis.__NO_TRAILING_SLASH__) {
       url += '/';
     }
   }

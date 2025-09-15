@@ -141,8 +141,8 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-router', 'src', 'adapters', 'static', 'vite'),
-    join(config.packagesDir, 'qwik-router', 'lib', 'adapters', 'static', 'vite', 'index.d.ts')
+    join(config.packagesDir, 'qwik-router', 'src', 'adapters', 'ssg', 'vite'),
+    join(config.packagesDir, 'qwik-router', 'lib', 'adapters', 'ssg', 'vite', 'index.d.ts')
   );
   createTypesApi(
     config,
@@ -196,8 +196,8 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   );
   createTypesApi(
     config,
-    join(config.packagesDir, 'qwik-router', 'src', 'static'),
-    join(config.packagesDir, 'qwik-router', 'lib', 'static', 'index.d.ts')
+    join(config.packagesDir, 'qwik-router', 'src', 'ssg'),
+    join(config.packagesDir, 'qwik-router', 'lib', 'ssg', 'index.d.ts')
   );
   createTypesApi(
     config,

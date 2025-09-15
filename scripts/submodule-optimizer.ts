@@ -31,6 +31,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: false,
       platform: 'node',
       target,
+      external: ['launch-editor'],
     };
 
     const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
@@ -51,7 +52,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
           // throws an error if files from src/core are loaded, except for some allowed imports
           name: 'forbid-core',
           setup(build) {
-            build.onLoad({ filter: /src\/core\// }, (args) => {
+            build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
               if (args.path.includes('util') || args.path.includes('shared')) {
                 return null;
               }

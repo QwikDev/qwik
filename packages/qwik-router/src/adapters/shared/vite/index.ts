@@ -1,13 +1,18 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { StaticGenerateOptions, StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
-import fs from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
 import type { BuildRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
-/** @public */
+/**
+ * Implements the SSG after the build is complete. Also provides a `generate(...)` callback that is
+ * called after the SSG is complete, which allows for custom post-processing of the complete build
+ * results.
+ *
+ * @public
+ */
 export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let qwikRouterPlugin: QwikRouterPlugin | null = null;
   let qwikVitePlugin: QwikVitePlugin | null = null;
@@ -15,11 +20,10 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let renderModulePath: string | null = null;
   let qwikRouterConfigModulePath: string | null = null;
   let isSsrBuild = false;
-  let format = 'esm';
   const outputEntries: string[] = [];
 
   const plugin: Plugin<never> = {
-    name: `vite-plugin-qwik-router-${opts.name}`,
+    name: `vite-plugin-qwik-router-ssg-${opts.name}`,
     enforce: 'post',
     apply: 'build',
 
@@ -63,14 +67,24 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             `"build.rollupOptions.input" must be set in order to use the "${opts.name}" adapter.`
           );
         }
-
-        // @ts-ignore `format` removed in Vite 5
-        if (config.ssr?.format === 'cjs') {
-          format = 'cjs';
-        }
       }
     },
-
+    buildStart() {
+      if (isSsrBuild && opts.ssg !== null) {
+        const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
+        // TODO don't rely on entry points for SSG, somehow
+        this.emitFile({
+          id: '@qwik-router-config',
+          type: 'chunk',
+          fileName: '@qwik-router-config.js',
+        });
+        this.emitFile({
+          id: `${srcDir}/entry.ssr`,
+          type: 'chunk',
+          fileName: 'entry.ssr.js',
+        });
+      }
+    },
     generateBundle(_, bundles) {
       if (isSsrBuild) {
         outputEntries.length = 0;
@@ -87,31 +101,13 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
           }
         }
-
-        if (!renderModulePath) {
-          throw new Error(
-            'Unable to find "entry.ssr" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
-        }
-
-        if (!qwikRouterConfigModulePath) {
-          throw new Error(
-            'Unable to find "@qwik-router-config" entry point. Did you forget to add it to "build.rollupOptions.input"?'
-          );
-        }
       }
     },
 
     closeBundle: {
       sequential: true,
       async handler() {
-        if (
-          isSsrBuild &&
-          opts.ssg !== null &&
-          serverOutDir &&
-          qwikRouterPlugin?.api &&
-          qwikVitePlugin?.api
-        ) {
+        if (isSsrBuild && serverOutDir && qwikRouterPlugin?.api && qwikVitePlugin?.api) {
           const staticPaths: string[] = opts.staticPaths || [];
           const routes = qwikRouterPlugin.api.getRoutes();
           const basePathname = qwikRouterPlugin.api.getBasePathname();
@@ -121,6 +117,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
           const rootDir = qwikVitePlugin.api.getRootDir() ?? undefined;
           if (
+            opts.ssg !== null &&
             renderModulePath &&
             qwikRouterConfigModulePath &&
             clientOutDir &&
@@ -139,14 +136,14 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
             try {
               ssgOrigin = new URL(ssgOrigin).origin;
-            } catch (e) {
+            } catch {
               this.warn(
                 `Invalid "origin" option: "${ssgOrigin}". Using default origin: "https://yoursite.qwik.dev"`
               );
               ssgOrigin = `https://yoursite.qwik.dev`;
             }
 
-            const staticGenerate = await import('../../../static');
+            const staticGenerate = await import('../../../ssg');
             const generateOpts: StaticGenerateOptions = {
               maxWorkers: opts.maxWorkers,
               basePathname,
@@ -168,42 +165,36 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
             }
 
             staticPaths.push(...staticGenerateResult.staticPaths);
-
-            const { staticPathsCode, notFoundPathsCode } = await postBuild(
-              clientPublicOutDir,
-              assetsDir ? join(basePathname, assetsDir) : basePathname,
-              staticPaths,
-              format,
-              !!opts.cleanStaticGenerated
-            );
-
-            await Promise.all([
-              fs.promises.writeFile(join(serverOutDir, RESOLVED_STATIC_PATHS_ID), staticPathsCode),
-              fs.promises.writeFile(
-                join(serverOutDir, RESOLVED_NOT_FOUND_PATHS_ID),
-                notFoundPathsCode
-              ),
-            ]);
-            if (typeof opts.generate === 'function') {
-              await opts.generate({
-                outputEntries,
-                serverOutDir,
-                clientOutDir,
-                clientPublicOutDir,
-                basePathname,
-                routes,
-                assetsDir,
-                warn: (message) => this.warn(message),
-                error: (message) => this.error(message),
-              });
-            }
-            this.warn(
-              `\n==============================================` +
-                `\nNote: Make sure that you are serving the built files with proper cache headers.` +
-                `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
-                `\n==============================================`
-            );
           }
+
+          await postBuild(
+            clientPublicOutDir,
+            serverOutDir,
+            assetsDir ? join(basePathname, assetsDir) : basePathname,
+            staticPaths,
+            !!opts.cleanStaticGenerated
+          );
+
+          if (typeof opts.generate === 'function') {
+            await opts.generate({
+              outputEntries,
+              serverOutDir,
+              clientOutDir,
+              clientPublicOutDir,
+              basePathname,
+              routes,
+              assetsDir,
+              warn: (message) => this.warn(message),
+              error: (message) => this.error(message),
+            });
+          }
+
+          this.warn(
+            `\n==============================================` +
+              `\nNote: Make sure that you are serving the built files with proper cache headers.` +
+              `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
+              `\n==============================================`
+          );
         }
       },
     },
@@ -262,7 +253,7 @@ export interface ServerAdapterOptions {
 }
 
 /** @public */
-export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'outDir' | 'origin'> {
+export interface AdapterSSGOptions extends Omit<SsgRenderOptions, 'outDir' | 'origin'> {
   /** Defines routes that should be static generated. Accepts wildcard behavior. */
   include: string[];
   /**
@@ -285,15 +276,3 @@ export interface AdapterSSGOptions extends Omit<StaticGenerateRenderOptions, 'ou
    */
   origin?: string;
 }
-
-/** @public */
-export const STATIC_PATHS_ID = '@qwik-router-static-paths';
-
-/** @public */
-export const RESOLVED_STATIC_PATHS_ID = `${STATIC_PATHS_ID}.js`;
-
-/** @public */
-export const NOT_FOUND_PATHS_ID = '@qwik-router-not-found-paths';
-
-/** @public */
-export const RESOLVED_NOT_FOUND_PATHS_ID = `${NOT_FOUND_PATHS_ID}.js`;

@@ -606,6 +606,7 @@ Set stream response.
 import type { RequestHandler } from '@qwik.dev/router';
 
 export const onGet: RequestHandler = async (requestEvent) => {
+  requestEvent.headers.set('content-type','text/event-stream')  
   const writableStream = requestEvent.getWritableStream();
   const writer = writableStream.getWriter();
   const encoder = new TextEncoder();

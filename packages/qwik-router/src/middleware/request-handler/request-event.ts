@@ -12,10 +12,14 @@ import {
 import { isPromise } from '../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
-import { ServerError } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import {
+  AbortMessage,
+  RedirectMessage,
+  ServerError,
+  RewriteMessage,
+} from '@qwik.dev/router/middleware/request-handler';
 import { encoder, getRouteLoaderPromise } from './resolve-request-handlers';
-import { RewriteMessage } from './rewrite-handler';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -37,7 +41,6 @@ export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvLoaderSerializationStrategyMap = Symbol(
   'RequestEvLoaderSerializationStrategyMap'
 );
-export const RequestEvTrailingSlash = Symbol('RequestEvTrailingSlash');
 export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
@@ -51,7 +54,6 @@ export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
-  trailingSlash: boolean,
   basePathname: string,
   qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
@@ -64,7 +66,7 @@ export function createRequestEvent(
   const url = new URL(request.url);
   if (url.pathname.endsWith(QDATA_JSON)) {
     url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (trailingSlash && !url.pathname.endsWith('/')) {
+    if (!globalThis.__NO_TRAILING_SLASH__ && !url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
     sharedMap.set(IsQData, true);
@@ -155,7 +157,6 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
-    [RequestEvTrailingSlash]: trailingSlash,
     get [RequestEvRoute]() {
       return loadedRoute;
     },
@@ -237,6 +238,7 @@ export function createRequestEvent(
 
     error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
+      headers.delete('Cache-Control');
       return new ServerError(statusCode, message);
     },
 
@@ -250,8 +252,8 @@ export function createRequestEvent(
         }
         headers.set('Location', fixedURL);
       }
-      // Fallback to 'no-store' when end user is not managing Cache-Control header
-      if (statusCode > 301 && !headers.get('Cache-Control')) {
+      headers.delete('Cache-Control');
+      if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
       exit();
@@ -274,6 +276,7 @@ export function createRequestEvent(
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
+      headers.delete('Cache-Control');
       return {
         failed: true,
         ...data,
@@ -339,7 +342,6 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
-  [RequestEvTrailingSlash]: boolean;
   [RequestEvRoute]: LoadedRoute | null;
   [RequestEvQwikSerializer]: QwikSerializer;
 
@@ -370,10 +372,6 @@ export function getRequestLoaders(requestEv: RequestEventCommon) {
 
 export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaderSerializationStrategyMap];
-}
-
-export function getRequestTrailingSlash(requestEv: RequestEventCommon) {
-  return (requestEv as RequestEventInternal)[RequestEvTrailingSlash];
 }
 
 export function getRequestRoute(requestEv: RequestEventCommon) {

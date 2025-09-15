@@ -809,31 +809,47 @@ describe.each([
   });
 
   describe('regression', () => {
-    it('#7230 - when multiple useOn are used in a component that is not rendered, it should add multiple script nodes', async () => {
-      const BreakpointProvider = component$(() => {
+    it('#7230 - when multiple useOn are used in a component that is headless, it should still execute the events', async () => {
+      (globalThis as any).counter = 0;
+
+      const Cmp = component$(() => {
         useOnDocument(
           'click',
-          $(() => {})
+          $(() => {
+            (globalThis as any).counter++;
+          })
         );
 
         useOnWindow(
           'resize',
-          $(() => {})
+          $(() => {
+            (globalThis as any).counter++;
+          })
         );
 
-        useVisibleTask$(() => {});
+        useVisibleTask$(() => {
+          (globalThis as any).counter++;
+        });
 
         return <Slot />;
       });
 
       const LayoutTest = component$(() => {
         return (
-          <BreakpointProvider>
+          <Cmp>
             <div>test</div>
-          </BreakpointProvider>
+          </Cmp>
         );
       });
-      const { vNode } = await render(<LayoutTest />, { debug });
+      const { vNode, document } = await render(<LayoutTest />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', ':document:qinit');
+      }
+      await trigger(document.body, 'script', ':document:click');
+      await trigger(document.body, 'script', ':window:resize');
+      expect((globalThis as any).counter).toBe(3);
+
+      (globalThis as any).counter = undefined;
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Component ssr-required>
@@ -841,8 +857,6 @@ describe.each([
               <Component ssr-required>
                 <div>test</div>
               </Component>
-              <script type="placeholder" hidden></script>
-              <script type="placeholder" hidden></script>
               <script type="placeholder" hidden></script>
             </Component>
           </Component>

@@ -2,6 +2,7 @@ import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
 import { readPackageJson } from './package-json';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch';
 import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
 
 /**
@@ -55,7 +56,7 @@ export async function submoduleServer(config: BuildConfig) {
         // throws an error if files from src/core are loaded, except for some allowed imports
         name: 'forbid-core',
         setup(build) {
-          build.onLoad({ filter: /src\/core\// }, (args) => {
+          build.onLoad({ filter: /src[\\/]core[\\/]/ }, (args) => {
             if (
               args.path.includes('util') ||
               args.path.includes('shared') ||
@@ -74,6 +75,7 @@ export async function submoduleServer(config: BuildConfig) {
     ],
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
+      ...(await inlineBackpatchScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'false',
       'globalThis.IS_ESM': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
@@ -101,6 +103,7 @@ export async function submoduleServer(config: BuildConfig) {
     target: nodeTarget,
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
+      ...(await inlineBackpatchScriptsEsBuild(config)),
       'globalThis.IS_CJS': 'true',
       'globalThis.IS_ESM': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

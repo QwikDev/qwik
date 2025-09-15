@@ -4,7 +4,7 @@ import type { MenuData, RouteData, RouteModule } from './types';
 export const routes: RouteData[] = [];
 export const menus: MenuData[] = [];
 export const serverPlugins: RouteModule[] = [];
-export const trailingSlash = false;
+export const trailingSlash = !globalThis.__NO_TRAILING_SLASH__;
 export const basePathname = '/';
 export const cacheModules = false;
 

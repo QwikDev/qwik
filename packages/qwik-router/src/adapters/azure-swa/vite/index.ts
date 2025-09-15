@@ -1,4 +1,4 @@
-import type { StaticGenerateRenderOptions } from '@qwik.dev/router/static';
+import type { SsgRenderOptions } from 'packages/qwik-router/src/ssg';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { type ServerAdapterOptions, viteAdapter } from '../../shared/vite';
@@ -68,4 +68,4 @@ export function azureSwaAdapter(opts: AzureSwaAdapterOptions = {}): any {
 export interface AzureSwaAdapterOptions extends ServerAdapterOptions {}
 
 /** @public */
-export type { StaticGenerateRenderOptions };
+export type { SsgRenderOptions };

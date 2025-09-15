@@ -20,11 +20,11 @@ enum State {
 class HtmlTransformPatcher {
   private state: State = State.BUFFERING;
   private buffer = '';
-  private bodyStartIndex = -1;
-  private bodyTagEndIndex = -1;
+  private headInnerIndex = -1;
+  private bodyInnerIndex = -1;
   private isHtmlResponse = false;
 
-  private appendToBody = '';
+  private bodyPostContent = '';
   private response: ServerResponse;
   private server: ViteDevServer;
   private request: IncomingMessage;
@@ -114,12 +114,22 @@ class HtmlTransformPatcher {
 
     switch (this.state) {
       case State.BUFFERING:
-        const bodyMatch = this.buffer.match(/<body[^>]*>/i);
-        if (bodyMatch) {
-          this.state = State.PROCESSING_HEAD;
-          this.bodyStartIndex = this.buffer.indexOf(bodyMatch[0]);
-          this.bodyTagEndIndex = this.bodyStartIndex + bodyMatch[0].length;
-          this.processingPromise = this.processHead();
+        // Note that we scan the entire buffer every time, in case the <head> or <body> tags are split across chunks
+        if (this.headInnerIndex === -1) {
+          const headMatch = this.buffer.match(/<head[^>]*>/i);
+          if (headMatch) {
+            const headOuterIndex = this.buffer.indexOf(headMatch[0]);
+            this.headInnerIndex = headOuterIndex + headMatch[0].length;
+          }
+        }
+        if (this.headInnerIndex !== -1) {
+          const bodyMatch = this.buffer.slice(this.headInnerIndex).match(/<body[^>]*>/i);
+          if (bodyMatch) {
+            this.state = State.PROCESSING_HEAD;
+            const bodyOuterIndex = this.buffer.indexOf(bodyMatch[0]);
+            this.bodyInnerIndex = bodyOuterIndex + bodyMatch[0].length;
+            this.processingPromise = this.processHead();
+          }
         }
         break;
 
@@ -139,31 +149,57 @@ class HtmlTransformPatcher {
 
   private async processHead() {
     try {
-      const headPortion = this.buffer.slice(0, this.bodyTagEndIndex);
-      const fakeHtml = headPortion + '[FAKE_BODY]</body></html>';
-
+      // We can't pass the actual head to vite because it strips some scripts and then the DOM doesn't match the vdom positions
+      const fakeHtml = '<html><head>[FAKE_HEAD]</head><body>[FAKE_BODY]</body></html>';
       // Let Vite transform the HTML
       const transformedHtml = await this.server.transformIndexHtml(
         this.request.url || '/',
         fakeHtml
       );
 
-      // Find the [FAKE_BODY] marker in the transformed result
-      const fakeBodyIndex = transformedHtml.indexOf('[FAKE_BODY]');
-      const bodyEndIndex = transformedHtml.indexOf('</body>', fakeBodyIndex);
-      if (fakeBodyIndex === -1 || bodyEndIndex === -1) {
+      // Extract the pre and post head and body content. For now, ignore attributes added to the tags
+      // If attributes are needed later, put them after the : attribute on qwik's tags
+      const fakeHeadIndex = transformedHtml.indexOf('[FAKE_HEAD]');
+      const fakeHeadCloseIndex = transformedHtml.indexOf('</head>', fakeHeadIndex);
+      if (fakeHeadIndex === -1 || fakeHeadCloseIndex === -1) {
+        throw new Error('Transformed HTML does not contain [FAKE_HEAD]...</head>');
+      }
+      const headPreContent = transformedHtml.slice('<html><head>'.length, fakeHeadIndex);
+      const headPostContent = transformedHtml.slice(
+        fakeHeadIndex + '[FAKE_HEAD]'.length,
+        fakeHeadCloseIndex
+      );
+      const fakeBodyStartIndex = transformedHtml.indexOf('<body>', fakeHeadCloseIndex);
+      const fakeBodyIndex = transformedHtml.indexOf('[FAKE_BODY]', fakeBodyStartIndex);
+      const fakeBodyEndIndex = transformedHtml.indexOf('</body>', fakeBodyIndex);
+      if (fakeBodyIndex === -1 || fakeBodyEndIndex === -1) {
         throw new Error('Transformed HTML does not contain [FAKE_BODY]...</body>');
       }
-
-      // Extract the transformed head and body tags
-      const transformedHead = transformedHtml.substring(0, fakeBodyIndex);
-      this.appendToBody = transformedHtml.substring(
-        fakeBodyIndex + '[FAKE_BODY]'.length,
-        bodyEndIndex
+      const bodyPreContent = transformedHtml.slice(
+        fakeBodyStartIndex + '<body>'.length,
+        fakeBodyIndex
       );
-      this.buffer = transformedHead + this.buffer.slice(this.bodyTagEndIndex);
+      this.bodyPostContent = transformedHtml.slice(
+        fakeBodyIndex + '[FAKE_BODY]'.length,
+        fakeBodyEndIndex
+      );
+      // Now inject the head pre and post content and the body pre into the buffered content
+      // Note that the head tag has attributes
+      const headCloseIndex = this.buffer.indexOf('</head>', this.headInnerIndex);
+      if (headCloseIndex === -1) {
+        throw new Error('Buffered HTML does not contain </head>');
+      }
 
-      if (this.appendToBody.length > 0) {
+      this.buffer =
+        this.buffer.slice(0, this.headInnerIndex) +
+        headPreContent +
+        this.buffer.slice(this.headInnerIndex, headCloseIndex) +
+        headPostContent +
+        this.buffer.slice(headCloseIndex, this.bodyInnerIndex) +
+        bodyPreContent +
+        this.buffer.slice(this.bodyInnerIndex);
+
+      if (this.bodyPostContent.length > 0) {
         this.state = State.STREAMING_BODY;
         this.handleStreamingBodyState();
         return;
@@ -184,7 +220,7 @@ class HtmlTransformPatcher {
     if (bodyEndMatch) {
       const bodyEndPos = this.buffer.indexOf(bodyEndMatch[0]);
       this.buffer =
-        this.buffer.slice(0, bodyEndPos) + this.appendToBody + this.buffer.slice(bodyEndPos);
+        this.buffer.slice(0, bodyEndPos) + this.bodyPostContent + this.buffer.slice(bodyEndPos);
 
       this.transitionToPassthrough();
       return;

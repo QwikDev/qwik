@@ -1,203 +1,7 @@
-<style>
-  [data-qwik-cls] {
-    outline: 2px solid red;
-  }
-  [data-qwik-cls]::after {
-    position: absolute;
-    font-size: 12px;
-    content: 'CLS ' attr(data-qwik-cls);
-    font-family: monospace;
-    font-weight: bold;
-    background: red;
-    color: white;
-    margin: -2px;
-    padding: 1px;
-    line-height: 1;
-    pointer-events: none;
-  }
-  #qwik-image-warning-container {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 0 !important;
-    overflow: visible !important;
-    height: 0 !important;
-    pointer-events: none !important;
-    contain: size layout style content;
-    z-index: 1;
-  }
-</style>
-<template id="qwik-image-warning-template">
-  <style>
-    :host {
-      position: absolute;
-      border: 1px solid red;
-      pointer-events: none;
-      z-index: 1;
-      contain: layout size;
-    }
-
-    #icon {
-      border: 0;
-      margin: 5px;
-      color: black;
-      max-width: 100%;
-      width: 20px;
-      background: yellow;
-      border-radius: 100%;
-      height: 20px;
-      padding: 3px;
-      pointer-events: all;
-      cursor: pointer;
-    }
-
-    #icon svg {
-      width: 100%;
-      height: auto;
-      pointer-events: none;
-    }
-
-    dialog {
-      padding: 0;
-      border: 0;
-      margin: 0 5px;
-      background: #ffffe8;
-      color: black;
-      width: 250px;
-      font-size: 11px;
-      position: absolute;
-      inset-inline-start: unset;
-      inset-inline-end: unset;
-      border-radius: 5px;
-      pointer-events: all;
-      overflow: hidden;
-      box-shadow: 0px -2px 20px 0px #0000002e;
-      z-index: 10000;
-    }
-
-    .top {
-      bottom: calc(100% + 5px);
-    }
-    .bottom {
-      top: 40px;
-    }
-    .right {
-      inset-inline-start: 0;
-      inset-inline-end: unset;
-    }
-    .left {
-      inset-inline-start: unset;
-      inset-inline-end: calc(100% - 40px);
-    }
-
-    .content {
-      padding: 5px;
-    }
-
-    #loc {
-      background: #2e3801;
-      color: #d2d2d2;
-      font-family: monospace;
-      padding: 3px 5px;
-      pointer-events: all;
-      margin: 0;
-      border: 0;
-      cursor: pointer;
-      font-size: 11px;
-      width: calc(100% - 24px);
-      text-overflow: ellipsis;
-      overflow: hidden;
-      display: block;
-      direction: rtl;
-      text-align: right;
-    }
-    #loc:hover {
-      background: #3a4a01;
-    }
-
-    pre {
-      background: #f1fb8e;
-      padding: 5px;
-      margin: 5px 0;
-      border-radius: 3px;
-      user-select: none;
-    }
-
-    pre span {
-      user-select: all;
-    }
-
-    a {
-      text-decoration: underline;
-    }
-
-    #close {
-      border: 0;
-      width: 25px;
-      height: 25px;
-      position: absolute;
-      right: 0;
-      top: 0;
-      background: #ffe14f;
-      color: black;
-      font-weight: 900;
-      padding: 0;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      cursor: pointer;
-    }
-    #close:hover {
-      background: #ffeb6f;
-    }
-
-    #action-btn {
-      border: 2px solid #18ae00;
-      padding: 2px 4px;
-      background: #50ff50;
-      border-radius: 5px;
-      color: #0c5500;
-      font-weight: 800;
-      font-size: 10px;
-      cursor: pointer;
-    }
-
-    p {
-      margin: 5px 0;
-    }
-
-    h2 {
-      font-weight: 900;
-      margin: 10px 0;
-    }
-  </style>
-  <button id="icon" type="button" aria-label="Open image dev dialog">
-    <svg width="32" height="32" viewBox="0 0 24 24">
-      <path
-        fill="currentColor"
-        d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
-      />
-    </svg>
-  </button>
-  <dialog>
-    <form method="dialog">
-      <button id="close" type="submit" aria-label="Close">X</button>
-    </form>
-    <button id="loc"></button>
-    <div class="content">
-      <h2 id="title"></h2>
-      <p id="message"></p>
-      <p class="action-container"></p>
-    </div>
-  </dialog>
-</template>
-<div id="qwik-image-warning-container"></div>
-<script>
-  (function () {
+if (typeof document !== 'undefined') {
+  const register = () => {
     function getPositionClasses(target) {
-      const { x, y } = target.getBoundingClientRect();
+      const { x } = target.getBoundingClientRect();
       const windowWidth = window.innerWidth;
       let horizontal = 'right';
       let vertical = 'bottom';
@@ -212,7 +16,7 @@
         super();
         this.attachShadow({ mode: 'open' });
         this.shadowRoot.appendChild(
-          document.importNode(document.getElementById('qwik-image-warning-template').content, true)
+          (document.createElement('template').innerHTML = globalThis.__TEMPLATE__)
         );
         const dialog = this.shadowRoot.querySelector('dialog');
 
@@ -266,9 +70,13 @@
     }
     customElements.define('image-warning', ImageWarning);
 
-    const shiftsMap = new Map();
     const visibleNodes = new Map();
-    const imageContainer = document.querySelector('#qwik-image-warning-container');
+    let imageContainer = document.querySelector('#qwik-image-warning-container');
+    if (!imageContainer) {
+      imageContainer = document.createElement('div');
+      imageContainer.id = 'qwik-image-warning-container';
+      document.body.appendChild(imageContainer);
+    }
     let skip = false;
 
     async function _getInfo(originalSrc) {
@@ -278,12 +86,9 @@
       }
       const url = new URL('/__image_info', location.href);
       url.searchParams.set('url', originalSrc);
-      const res = await fetch(url);
-      if (res.ok) {
-        return await res.json();
-      } else {
-        return null;
-      }
+      return fetch(url)
+        .then((res) => res.json())
+        .catch(() => null);
     }
 
     const map = new Map();
@@ -339,7 +144,7 @@
           if (layoutInvalidation) {
             const clipBoard = `width="${info.width}" height="${info.height}"`;
             overlay.header = 'Perf: layout shift';
-            overlay.message = `Image\'s size is unknown until it\'s loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>${clipBoard}</span></pre>`;
+            overlay.message = `Image's size is unknown until it's loaded, <a href="https://web.dev/cls/" target="_blank" rel="noopener noreferrer">causing layout shift</a>.</p><p>To solve this problem set the width/height in the img tag:</p><pre>&lt;img <span>${clipBoard}</span></pre>`;
             const uniqueLoc =
               document.querySelectorAll('[data-qwik-inspector="' + loc + '"]').length === 1;
             if (loc) {
@@ -368,7 +173,7 @@
             }
           } else if (tooBig) {
             overlay.header = 'Perf: properly size image';
-            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it\'s displayed at. The image dimensions are ${info.width} x ${info.height} but it\'s displayed at ${rect.width}x${rect.height}.</p>`;
+            overlay.message = `The image is too big, <a href="https://developer.chrome.com/en/docs/lighthouse/performance/uses-responsive-images/" target="_blank" rel="noopener noreferrer">hurting performance</a>, it should be resized to the size it's displayed at. The image dimensions are ${info.width} x ${info.height} but it's displayed at ${rect.width}x${rect.height}.</p>`;
           }
           return;
         }
@@ -455,7 +260,6 @@
         .map((nav) => nav.type)
         .includes('reload');
     if (typeof PerformanceObserver !== 'undefined' && !pageAccessedByReload) {
-      const shiftsMap = new Map();
       perfObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
           if (entry.hadRecentInput) {
@@ -477,5 +281,7 @@
       });
       perfObserver.observe({ type: 'layout-shift', buffered: true });
     }
-  })();
-</script>
+  };
+
+  document.addEventListener('load', register);
+}

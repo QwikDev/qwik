@@ -6,7 +6,8 @@ export function createBuildContext(
   rootDir: string,
   viteBasePath: string,
   userOpts?: PluginOptions,
-  target?: 'ssr' | 'client'
+  target?: 'ssr' | 'client',
+  dynamicImports?: boolean
 ) {
   const ctx: BuildContext = {
     rootDir: normalizePath(rootDir),
@@ -20,8 +21,7 @@ export function createBuildContext(
     diagnostics: [],
     frontmatter: new Map(),
     target: target || 'ssr',
-    isDevServer: false,
-    isDevServerClientOnly: false,
+    dynamicImports: target === 'client' || !!dynamicImports,
     isDirty: true,
     activeBuild: null,
   };

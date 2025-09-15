@@ -195,6 +195,34 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
               `\nSee https://qwik.dev/docs/deployments/#cache-headers for more information.` +
               `\n==============================================`
           );
+          if (opts.ssg !== null) {
+            /**
+             * HACK: for some reason the build hangs after SSG. `why-is-node-running` shows 4
+             * culprits:
+             *
+             * ```
+             * There are 4 handle(s) keeping the process running.
+             *
+             * # CustomGC
+             * ./node_modules/.pnpm/lightningcss@1.30.1/node_modules/lightningcss/node/index.js:20 - module.exports = require(`lightningcss-${parts.join('-')}`);
+             *
+             * # CustomGC
+             * ./node_modules/.pnpm/@tailwindcss+oxide@4.1.12/node_modules/@tailwindcss/oxide/index.js:229 - return require('@tailwindcss/oxide-linux-x64-gnu')
+             *
+             * # Timeout
+             * node_modules/.vite-temp/vite.config.timestamp-1755270314169-a2a97ad5233f9.mjs:357
+             * ./node_modules/.pnpm/vite@7.1.2_@types+node@24.3.0_jiti@2.5.1_lightningcss@1.30.1_terser@5.43.1_tsx@4.20.4_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:36657 - return (await import(pathToFileURL(tempFileName).href)).default;
+             *
+             * # CustomGC
+             * ./packages/qwik/dist/optimizer.mjs:1328 - const mod2 = module.default.createRequire(import.meta.url)(`../bindings/${triple.platformArchABI}`);
+             * ```
+             *
+             * For now, we'll force exit the process after SSG with some delay.
+             */
+            setTimeout(() => {
+              process.exit(0);
+            }, 5000).unref();
+          }
         }
       },
     },

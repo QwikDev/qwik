@@ -5,7 +5,7 @@ export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: str
   let swUrl = '/service-worker.js';
 
   // Also unregister if the developer removed the service-worker.ts file since Qwik 1.14.0 and above now use modulepreload by default
-  if (ctx.isDevServer || ctx.serviceWorkers.length === 0) {
+  if (ctx.serviceWorkers.length === 0) {
     swReg = SW_UNREGISTER;
   } else {
     swReg = swRegister;

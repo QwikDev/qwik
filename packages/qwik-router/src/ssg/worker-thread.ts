@@ -1,15 +1,14 @@
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler, RequestEvShareQData } from '@qwik.dev/router/middleware/request-handler';
+import { RequestEvShareQData, requestHandler } from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
-import type { QwikSerializer } from '../middleware/request-handler/types';
 import type { ClientPageData } from '../runtime/src/types';
 import type {
   SsgHandlerOptions,
   SsgRoute,
-  StaticStreamWriter,
   SsgWorkerRenderResult,
+  StaticStreamWriter,
   System,
 } from './types';
 
@@ -72,11 +71,6 @@ async function workerRender(
   pendingPromises: Set<Promise<any>>,
   callback: (result: SsgWorkerRenderResult) => void
 ) {
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
 
@@ -237,7 +231,7 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, opts, qwikSerializer)
+    const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
         if (rsp != null) {
           return rsp.completion.then((r) => {

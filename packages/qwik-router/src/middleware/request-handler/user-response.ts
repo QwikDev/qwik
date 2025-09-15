@@ -1,3 +1,4 @@
+import { _serialize } from '@qwik.dev/core/internal';
 import type {
   LoadedRoute,
   RebuildRouteInfoInternal,
@@ -5,20 +6,15 @@ import type {
   RequestHandler,
 } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import {
-  RequestEvQwikSerializer,
-  createRequestEvent,
-  getRequestMode,
-  type RequestEventInternal,
-} from './request-event';
+import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { encoder } from './resolve-request-handlers';
-import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import type { ServerRequestEvent, StatusCodes } from './types';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
   RedirectMessage,
-  ServerError,
   RewriteMessage,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 
 export interface QwikRouterRun<T> {
@@ -46,8 +42,7 @@ export function runQwikRouter<T>(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  basePathname = '/',
-  qwikSerializer: QwikSerializer
+  basePathname = '/'
 ): QwikRouterRun<T> {
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
@@ -56,7 +51,6 @@ export function runQwikRouter<T>(
     loadedRoute,
     requestHandlers,
     basePathname,
-    qwikSerializer,
     resolve!
   );
 
@@ -112,9 +106,8 @@ async function runNext(
           const status = e.status as StatusCodes;
           const accept = requestEv.request.headers.get('Accept');
           if (accept && !accept.includes('text/html')) {
-            const qwikSerializer = requestEv[RequestEvQwikSerializer];
             requestEv.headers.set('Content-Type', 'application/qwik-json');
-            requestEv.send(status, await qwikSerializer._serialize([e.data]));
+            requestEv.send(status, await _serialize([e.data]));
           } else {
             const html = getErrorHtml(e.status, e.data);
             requestEv.html(status, html);

@@ -51,6 +51,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
   let viteCommand: string;
   let devServer: ViteDevServer | null = null;
 
+  let devSsrServer = userOpts?.devSsrServer;
+
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
     getRoutes: () => {
@@ -136,6 +138,10 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }
+      if (typeof devSsrServer !== 'boolean') {
+        // read the old option from qwik plugin
+        devSsrServer = qwikPlugin.api._oldDevSsrServer();
+      }
       qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
         return getRouteImports(ctx!.routes, manifest);
       });
@@ -172,10 +178,12 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         }
       });
 
-      // this callback runs after all other middlewares have been added, so we can SSR as the last middleware
-      return () => {
-        server.middlewares.use(makeRouterDevMiddleware(server, ctx!));
-      };
+      if (userOpts?.devSsrServer !== false) {
+        // this callback runs after all other middlewares have been added, so we can SSR as the last middleware
+        return () => {
+          server.middlewares.use(makeRouterDevMiddleware(server, ctx!));
+        };
+      }
     },
 
     transformIndexHtml() {

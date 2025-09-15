@@ -76,6 +76,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
+    _oldDevSsrServer: () => qwikViteOpts.devSsrServer,
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -825,15 +826,7 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
 
-  /**
-   * Qwik is SSR first framework. This means that Qwik requires either SSR or SSG. In dev mode the
-   * dev SSR server is responsible for rendering and pausing the application on the server.
-   *
-   * Under normal circumstances this should be on, unless you have your own SSR server which you
-   * would like to use instead and wish to disable this one.
-   *
-   * Default: true
-   */
+  /** @deprecated Use the `devSsrServer` option of the qwikRouter() plugin instead. */
   devSsrServer?: boolean;
 
   /** Controls the SSR behavior. */
@@ -882,6 +875,8 @@ export interface QwikVitePluginApi {
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
+  /** @internal */
+  _oldDevSsrServer: () => boolean | undefined;
 }
 
 /**

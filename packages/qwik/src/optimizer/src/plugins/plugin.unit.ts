@@ -98,7 +98,7 @@ test('debug true', async () => {
 test('csr', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ csr: true });
-  assert.deepEqual(opts.outDir, undefined);
+  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
 });
 
 test('override entryStrategy', async () => {

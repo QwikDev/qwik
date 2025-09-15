@@ -35,13 +35,14 @@ export const replResolver = (
     return srcInputs.find((i) => i.path === id)?.path;
   };
 
-  const getQwik = (id: string, external?: true) => {
+  const resolveQwik = (id: string, external?: true) => {
     const path = deps[QWIK_PKG_NAME_V1][id];
     if (!path) {
       throw new Error(`Unknown Qwik path: ${id}`);
     }
     return {
-      id: `\0@qwik${id}`,
+      // Make sure this matches the regexes in manifest.ts
+      id: `/node_modules/@qwik.dev/core${id}`,
       sideEffects: false,
       // It would be nice to load qwik as external, but
       // we import core and core/build so we need processing
@@ -58,7 +59,7 @@ export const replResolver = (
       if (id.startsWith('http')) {
         return { id, external: true };
       }
-      if (id.startsWith('\0@qwik/')) {
+      if (id.startsWith('/node_modules/@qwik.dev/core/')) {
         return id;
       }
       const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
@@ -66,22 +67,22 @@ export const replResolver = (
         const pkgName = match[2];
 
         if (pkgName === '/build') {
-          return `\0@qwik/build`;
+          return `/node_modules/@qwik.dev/core/build`;
         }
         if (!pkgName || pkgName === '/jsx-runtime' || pkgName === '/jsx-dev-runtime') {
-          return getQwik('/dist/core.mjs');
+          return resolveQwik('/dist/core.mjs');
         }
         if (pkgName === '/server') {
-          return getQwik('/dist/server.mjs');
+          return resolveQwik('/dist/server.mjs');
         }
         if (pkgName.includes('/preloader')) {
-          return getQwik('/dist/preloader.mjs');
+          return resolveQwik('/dist/preloader.mjs');
         }
         if (pkgName.includes('/qwikloader')) {
-          return getQwik('/dist/qwikloader.js');
+          return resolveQwik('/dist/qwikloader.js');
         }
         if (pkgName.includes('/handlers')) {
-          return getQwik('/handlers.mjs');
+          return resolveQwik('/handlers.mjs');
         }
       }
       // Simple relative file resolution
@@ -107,8 +108,8 @@ export const replResolver = (
       if (input && typeof input.code === 'string') {
         return input.code;
       }
-      if (id.startsWith('\0@qwik/')) {
-        const path = id.slice('\0@qwik'.length);
+      if (id.startsWith('/node_modules/@qwik.dev/core/')) {
+        const path = id.slice('/node_modules/@qwik.dev/core'.length);
         if (path === '/build') {
           // Virtual module for Qwik build
           const isDev = options.buildMode === 'development';

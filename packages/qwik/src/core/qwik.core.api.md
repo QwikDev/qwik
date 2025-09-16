@@ -160,6 +160,16 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
+// Warning: (ae-forgotten-export) The symbol "AsyncComputedFn" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const createAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => Signal<Awaited<T>>;
+
+// Warning: (ae-internal-missing-underscore) The name "createAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const createAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>) => Signal<Awaited<T>>;
+
 // @public @deprecated
 export const createComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
 
@@ -1639,6 +1649,14 @@ export const untrack: <T>(fn: () => T) => T;
 
 // @public
 export const unwrapStore: <T>(proxy: T) => T;
+
+// @public
+export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>) => Signal<Awaited<T>>;
+
+// Warning: (ae-internal-missing-underscore) The name "useAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>) => Signal<Awaited<T>>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;

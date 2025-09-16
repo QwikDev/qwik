@@ -224,6 +224,7 @@ export default component$(() => {
 In Qwik, there are two ways to create computed values, each with a different use case (in order of preference):
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
+  There is also an async version of `useComputed$()`, called `useAsyncComputed$()`. It allows passing async functions and the signal value is the resolved result.
 
 2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
@@ -259,6 +260,16 @@ export default component$(() => {
 </CodeSandbox>
 
 > **NOTE** Because `useComputed$()` is synchronous it is not necessary to explicitly track the input signals.
+
+### `useAsyncComputed$()`
+
+Use `useAsyncComputed$()` to create a computed value that is derived asynchronously. The signal value is the resolved result, not the Promise.
+
+It behaves more like `useTask$` in that it does not track any signals automatically. You must explicitly track the signals that should cause the async function to re-run, using the `track` function that is passed in the argument.
+
+If you read the signal value before the async function resolves, it will stop execution of the current function and re-run that function when the computed result is known.
+
+Therefore you must take care not to read the signal value in the same function that sets it, to avoid re-running the function. Passing the signal value into JSX is safe, because Qwik will know to pause the JSX rendering until the value is known.
 
 ### `useResource$()`
 

@@ -81,10 +81,10 @@ function tests() {
     /***********  Docs: components/basics  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/components/basics/"]',
+      '[data-test-menu-link="/qwikcity-test/docs/core/basics/"]',
     );
     await assertPage(ctx, {
-      pathname: "/qwikcity-test/docs/components/basics/",
+      pathname: "/qwikcity-test/docs/core/basics/",
       title: "Docs: components basics - Qwik",
       layoutHierarchy: ["docs"],
       h1: "Docs: components basics",
@@ -103,10 +103,10 @@ function tests() {
     /***********  Docs: components/listeners  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikcity-test/docs/components/listeners/"]',
+      '[data-test-menu-link="/qwikcity-test/docs/core/listeners/"]',
     );
     await assertPage(ctx, {
-      pathname: "/qwikcity-test/docs/components/listeners/",
+      pathname: "/qwikcity-test/docs/core/listeners/",
       title: "Docs: components listeners - Qwik",
       layoutHierarchy: ["docs"],
       h1: "Docs: components listeners",

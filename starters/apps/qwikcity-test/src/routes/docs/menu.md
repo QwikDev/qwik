@@ -7,8 +7,8 @@
 
 ## Components
 
-- [Basics](/qwikcity-test/docs/components/basics/)
-- [Listeners](/qwikcity-test/docs/components/listeners)
+- [Basics](/qwikcity-test/docs/core/basics/)
+- [Listeners](/qwikcity-test/docs/core/listeners)
 
 ## Anchors
 

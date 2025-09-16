@@ -81,7 +81,7 @@ export const DocSearchModal = component$(
       })
         .then(({ collections }) => {
           state.status = 'idle';
-          state.collections = collections.map((c) => ({
+          state.collections = collections.reverse().map((c) => ({
             ...c,
             source: {
               items: c.items,

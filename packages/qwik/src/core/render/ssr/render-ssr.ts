@@ -57,7 +57,7 @@ const FLUSH_COMMENT = '<!--qkssr-f-->';
 
 /** @public */
 export type StreamWriter = {
-  write: (chunk: string) => void;
+  write: (chunk: string) => Promise<void>;
 };
 
 /** @public */
@@ -243,7 +243,7 @@ const renderGenerator = async (
   let value: AsyncGenerator;
   if (isFunction(generator)) {
     const v = generator({
-      write(chunk) {
+      async write(chunk) {
         stream.write(chunk);
         stream.write(FLUSH_COMMENT);
       },

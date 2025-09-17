@@ -123,7 +123,7 @@ export default component$(() => {
 
 > **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
 
-Because [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) tracks deep reactivity, that means that Arrays and Objects inside the store will also be reactive.
+Because [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) tracks deep reactivity, that means that Arrays and Objects inside the store will also be reactive.
 
 <CodeSandbox src="/src/routes/demo/state/counter-store-deep/index.tsx" style={{ height: '10em' }}>
 ```tsx
@@ -225,10 +225,10 @@ In Qwik, there are two ways to create computed values, each with a different use
 
 1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
 
-2. [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
+2. [`useResource$()`](/docs/(qwik)/core/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
 
 
-In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
+In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
 
 ### `useComputed$()`
 
@@ -390,7 +390,7 @@ The state `resource.loading` can be one of the following:
 - `false` - the data is not yet available.
 - `true` - the data is available. (Either resolved or rejected.)
 
-The callback passed to [`useResource$()`](/docs/(qwik)/components/state/index.mdx#useresource) runs right after the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
+The callback passed to [`useResource$()`](/docs/(qwik)/core/state/index.mdx#useresource) runs right after the [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
 
 #### `<Resource />`
 

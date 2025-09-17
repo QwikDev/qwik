@@ -175,13 +175,13 @@ class DeserializationHandler implements ProxyHandler<object> {
  */
 export const _eagerDeserializeArray = (
   container: DeserializeContainer,
-  data: unknown[]
+  data: unknown[],
+  output: unknown[] = Array(data.length / 2)
 ): unknown[] => {
-  const out = Array(data.length / 2);
   for (let i = 0; i < data.length; i += 2) {
-    out[i / 2] = deserializeData(container, data[i] as TypeIds, data[i + 1]);
+    output[i / 2] = deserializeData(container, data[i] as TypeIds, data[i + 1]);
   }
-  return out;
+  return output;
 };
 
 const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
@@ -196,16 +196,14 @@ const inflate = (
     // Already processed
     return;
   }
-  // Restore the complex data
-  if (Array.isArray(data)) {
+  // Restore the complex data, special case for Array
+  if (typeId !== TypeIds.Array && Array.isArray(data)) {
     data = _eagerDeserializeArray(container, data);
   }
   switch (typeId) {
     case TypeIds.Array:
-      for (let i = 0; i < (target as any[]).length; i++) {
-        // read the value to trigger lazy deserialization
-        (target as any[])[i];
-      }
+      // Arrays are special, we need to fill the array in place
+      _eagerDeserializeArray(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
       for (let i = 0; i < (data as any[]).length; i += 2) {
@@ -480,8 +478,7 @@ const allocate = (container: DeserializeContainer, typeId: number, value: unknow
     case TypeIds.Constant:
       return _constants[value as Constants];
     case TypeIds.Array:
-      // Wrap while inflating so we can handle cyclic references
-      return wrapDeserializerProxy(container as any, value as any[]);
+      return Array((value as any[]).length / 2);
     case TypeIds.Object:
       return {};
     case TypeIds.QRL:

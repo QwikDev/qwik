@@ -74,7 +74,7 @@ import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
-import transitionCss from './view-transition.css?inline';
+import transitionCss from './qwik-view-transition.css?inline';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)

@@ -69,4 +69,4 @@
 /docs/components/inline-components/ /docs/core/overview/ 308
 /docs/think-qwik/ /docs/concepts/think-qwik/ 308
 /docs/env-variables/ /docs/guides/env-variables/ 308
-/docs/components/ /docs/core/ 308
+/docs/components/* /docs/core/:splat 308

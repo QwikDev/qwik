@@ -871,7 +871,7 @@ export const Works = component$((props) => {
 	const text = 'hola';
 	return (
 		<>
-		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => server$(() => console.log('in server', text))}></div>
 		<div onClick$={() => foo()}></div>
 		</>
 	);
@@ -1843,10 +1843,10 @@ export const Parent = component$(() => {
 	serverStuff$(async () => {
 		// should be removed too
 		const a = $(() => {
-			// from $(), should not be removed
+			dontRemoveThisDollar();
 		});
 		const b = client$(() => {
-			// from clien$(), should not be removed
+			dontRemoveThisClient();
 		});
 		return [a,b];
 	})
@@ -1854,7 +1854,7 @@ export const Parent = component$(() => {
 	serverLoader$(handler);
 
 	useTask$(() => {
-		// Code
+		runSomething();
 	});
 
 	return (
@@ -1950,6 +1950,7 @@ export const Parent = component$(() => {
 
 	useTask$(() => {
 		// Code
+		runSomething();
 	});
 
 	return (

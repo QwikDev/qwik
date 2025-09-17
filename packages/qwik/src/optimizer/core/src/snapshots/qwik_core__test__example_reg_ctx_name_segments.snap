@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 865
+assertion_line: 866
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -13,7 +12,7 @@ export const Works = component$((props) => {
 	const text = 'hola';
 	return (
 		<>
-		<div onClick$={server$(() => console.log('in server', text))}></div>
+		<div onClick$={() => server$(() => console.log('in server', text))}></div>
 		<div onClick$={() => foo()}></div>
 		</>
 	);
@@ -23,25 +22,23 @@ export const Works = component$((props) => {
 
 import "./foo";
 import { componentQrl } from "@qwik.dev/core";
-import { serverQrl } from "@qwik.dev/core";
-import { _regSymbol } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
-import { _jsxSorted } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
-        /*#__PURE__*/ _jsxSorted("div", {
-            onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "gcSPFNpGYgg"), "Works_component_Fragment_div_onClick_server_gcSPFNpGYgg"))
-        }, null, null, 2, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_nO4DPVZWP7g")
+        }, null, 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, {
+            onClick$: /*#__PURE__*/ _noopQrl("Works_component_Fragment_div_onClick_1_GlJs0t0HdXk")
         }, null, 3, null)
-    ], 1, "u6_0");
+    ], 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAEhC,qBACC;sBACA,WAAC;YAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAH7B;;sBAIZ,WAAC;YAAI,QAAQ;;;AAGf,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAEhC,qBACC;sBACA,WAAC;YAAI,QAAQ;;sBACb,WAAC;YAAI,QAAQ;;;AAGf,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

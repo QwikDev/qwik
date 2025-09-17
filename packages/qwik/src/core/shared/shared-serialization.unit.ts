@@ -44,8 +44,8 @@ describe('shared-serialization', () => {
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "
-        0 Plain "hi"
-        1 Plain 123.456
+        0 {string} "hi"
+        1 {number} 123.456
         (18 chars)"
       `);
       // make sure we're not serializing the same string twice
@@ -54,7 +54,7 @@ describe('shared-serialization', () => {
         0 Array [
           RootRef 1
         ]
-        1 Plain "long"
+        1 {string} "long"
         (18 chars)"
       `);
     });
@@ -63,8 +63,8 @@ describe('shared-serialization', () => {
         "
         0 Array [
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
           RootRef 1
         ]
@@ -100,9 +100,9 @@ describe('shared-serialization', () => {
       expect(await dump([0, null, 'hello'])).toMatchInlineSnapshot(`
         "
         0 Array [
-          Plain 0
+          {number} 0
           Constant null
-          Plain "hello"
+          {string} "hello"
         ]
         (23 chars)"
       `);
@@ -112,14 +112,14 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "foo"
+          {string} "foo"
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         1 Object [
-          Plain "bar"
+          {string} "bar"
           RootRef 2
           RootRef 3
           Constant true
@@ -185,9 +185,9 @@ describe('shared-serialization', () => {
       expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
-          Plain "hi"
-          Plain "stack"
-          Plain "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "hi"
+          {string} "stack"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
         ]
         (x chars)"
       `);
@@ -195,11 +195,11 @@ describe('shared-serialization', () => {
       expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
-          Plain "hi"
-          Plain "extra"
-          Plain "yey"
-          Plain "stack"
-          Plain "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "hi"
+          {string} "extra"
+          {string} "yey"
+          {string} "stack"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
         ]
         (x chars)"
       `);
@@ -212,15 +212,15 @@ describe('shared-serialization', () => {
         2 Promise [
           Constant true
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         3 Promise [
           Constant false
           Object [
             RootRef 4
-            Plain 2
+            {number} 2
           ]
         ]
         4 RootRef "2 1 0"
@@ -248,15 +248,15 @@ describe('shared-serialization', () => {
         2 Promise [
           Constant true
           Object [
-            Plain "foo"
-            Plain "bar"
+            {string} "foo"
+            {string} "bar"
           ]
         ]
         3 Promise [
           Constant true
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         4 ForwardRefs [
@@ -271,8 +271,8 @@ describe('shared-serialization', () => {
         "
         0 Set [
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
           Array [
             RootRef 1
@@ -293,14 +293,14 @@ describe('shared-serialization', () => {
       ).toMatchInlineSnapshot(`
         "
         0 Map [
-          Plain "shared"
+          {string} "shared"
           Object [
             RootRef 1
-            Plain 1
+            {number} 1
           ]
           Object [
             RootRef 1
-            Plain 2
+            {number} 2
           ]
           RootRef 2
         ]
@@ -325,8 +325,8 @@ describe('shared-serialization', () => {
         .toMatchInlineSnapshot(`
           "
           0 QRL "mock-chunk#dump_qrl[1 2]"
-          1 Plain 123
-          2 Plain "hello"
+          1 {number} 123
+          2 {string} "hello"
           (47 chars)"
         `);
     });
@@ -346,20 +346,20 @@ describe('shared-serialization', () => {
         "
         0 Task [
           QRL 2
-          Plain 0
-          Plain 0
+          {number} 0
+          {number} 0
           RootRef 1
           Constant null
           Object [
-            Plain "shared"
-            Plain 2
+            {string} "shared"
+            {number} 2
           ]
         ]
         1 Object [
           RootRef 3
-          Plain 1
+          {number} 1
         ]
-        2 Plain "mock-chunk#task_qrl[1]"
+        2 {string} "mock-chunk#task_qrl[1]"
         3 RootRef "0 5 0"
         (95 chars)"
       `);
@@ -374,7 +374,7 @@ describe('shared-serialization', () => {
         0 ForwardRef 0
         1 Resource [
           Constant true
-          Plain 123
+          {number} 123
           Constant null
         ]
         2 ForwardRefs [
@@ -392,7 +392,7 @@ describe('shared-serialization', () => {
         0 Component [
           QRL 1
         ]
-        1 Plain "mock-chunk#dump_component"
+        1 {string} "mock-chunk#dump_component"
         (41 chars)"
       `
       );
@@ -402,9 +402,9 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "foo"
+          {string} "foo"
           Signal [
-            Plain "hi"
+            {string} "hi"
           ]
         ]
         (25 chars)"
@@ -423,24 +423,24 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 WrappedSignal [
-          Plain 0
+          {number} 0
           Array [
-            Plain 3
+            {number} 3
           ]
           Constant null
-          Plain 5
+          {number} 5
           Constant null
         ]
         1 WrappedSignal [
-          Plain 1
+          {number} 1
           Array [
             Signal [
-              Plain 3
+              {number} 3
             ]
-            Plain "value"
+            {string} "value"
           ]
           Constant null
-          Plain 7
+          {number} 7
           Constant null
         ]
         (74 chars)"
@@ -476,7 +476,7 @@ describe('shared-serialization', () => {
         1 ComputedSignal [
           RootRef 5
           Constant null
-          Plain 2
+          {number} 2
         ]
         2 ComputedSignal [
           RootRef 6
@@ -485,14 +485,14 @@ describe('shared-serialization', () => {
         3 ComputedSignal [
           RootRef 7
           Constant null
-          Plain 2
+          {number} 2
         ]
         4 PreloadQRL "mock-chunk#dirty[8]"
         5 PreloadQRL "mock-chunk#clean[8]"
         6 PreloadQRL "mock-chunk#never[8]"
         7 PreloadQRL "mock-chunk#always[8]"
         8 Signal [
-          Plain 1
+          {number} 1
         ]
         (171 chars)"
       `);
@@ -521,7 +521,7 @@ describe('shared-serialization', () => {
         2 SerializerSignal [
           RootRef 1
           Constant null
-          Plain 4
+          {number} 4
         ]
         3 ForwardRefs [
           2
@@ -609,14 +609,14 @@ describe('shared-serialization', () => {
           Constant null
           Constant false
           Constant null
-          Plain 2
+          {number} 2
         ]
         4 PreloadQRL "mock-chunk#dirty[8]"
         5 PreloadQRL "mock-chunk#clean[8]"
         6 PreloadQRL "mock-chunk#never[8]"
         7 PreloadQRL "mock-chunk#always[8]"
         8 Signal [
-          Plain 1
+          {number} 1
         ]
         (231 chars)"
       `);
@@ -631,19 +631,19 @@ describe('shared-serialization', () => {
         "
         0 Array [
           Object [
-            Plain "a"
+            {string} "a"
             Object [
-              Plain "b"
+              {string} "b"
               Constant true
-              Plain "c"
+              {string} "c"
               Store [
                 RootRef 1
-                Plain 1
+                {number} 1
               ]
             ]
-            Plain "orig"
+            {string} "orig"
             RootRef 1
-            Plain "c"
+            {string} "c"
             RootRef 1
           ]
           RootRef 2
@@ -923,7 +923,7 @@ describe('shared-serialization', () => {
       expect(await dump(parent)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "child"
+          {string} "child"
           ForwardRef 0
         ]
         1 ForwardRefs [
@@ -945,13 +945,13 @@ describe('shared-serialization', () => {
       expect(await dump(parent, qrl)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "child"
+          {string} "child"
           ForwardRef 0
         ]
         1 QRL "mock-chunk#dump_qrl[2]"
         2 Object [
-          Plain "should"
-          Plain "serialize"
+          {string} "should"
+          {string} "serialize"
         ]
         3 ForwardRefs [
           2
@@ -973,12 +973,12 @@ describe('shared-serialization', () => {
         "
         0 QRL "mock-chunk#dump_qrl[2]"
         1 Object [
-          Plain "child"
+          {string} "child"
           ForwardRef 0
         ]
         2 Object [
-          Plain "should"
-          Plain "serialize"
+          {string} "should"
+          {string} "serialize"
         ]
         3 ForwardRefs [
           2
@@ -994,8 +994,8 @@ describe('shared-serialization', () => {
       expect(dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "a"
-          Plain 1
+          {string} "a"
+          {number} 1
         ]
         (15 chars)"
       `);
@@ -1012,11 +1012,11 @@ describe('shared-serialization', () => {
         "
         0 Array [
           Object [
-            Plain "self"
+            {string} "self"
             RootRef 1
-            Plain "obj2"
+            {string} "obj2"
             Object [
-              Plain "obj1"
+              {string} "obj1"
               RootRef 1
               RootRef 2
               RootRef 3
@@ -1039,8 +1039,8 @@ describe('shared-serialization', () => {
         2 Promise [
           Constant true
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         3 Promise [
@@ -1064,15 +1064,15 @@ describe('shared-serialization', () => {
         1 Promise [
           Constant true
           Object [
-            Plain "hi"
+            {string} "hi"
             ForwardRef 1
           ]
         ]
         2 Promise [
           Constant true
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         3 ForwardRefs [
@@ -1088,8 +1088,8 @@ describe('shared-serialization', () => {
         "
         0 Array [
           Object [
-            Plain "shared"
-            Plain 1
+            {string} "shared"
+            {number} 1
           ]
         ]
         1 QRL "mock-chunk#foo[2]"
@@ -1144,7 +1144,7 @@ describe('shared-serialization', () => {
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "hi"
+          {string} "hi"
           Constant true
         ]
         (16 chars)"
@@ -1158,7 +1158,7 @@ describe('shared-serialization', () => {
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "hi"
+          {string} "hi"
           Constant true
         ]
         (16 chars)"
@@ -1185,9 +1185,9 @@ describe('shared-serialization', () => {
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Array [
-          Plain "obj"
-          Plain "class"
-          Plain 1
+          {string} "obj"
+          {string} "class"
+          {number} 1
         ]
         (27 chars)"
       `);
@@ -1198,8 +1198,8 @@ describe('shared-serialization', () => {
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
-          Plain "hi"
-          Plain "orig"
+          {string} "hi"
+          {string} "orig"
         ]
         (21 chars)"
       `);
@@ -1215,7 +1215,7 @@ describe('shared-serialization', () => {
       expect(dumpState(state)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
-        1 Plain "promise"
+        1 {string} "promise"
         2 ForwardRefs [
           1
         ]
@@ -1243,7 +1243,7 @@ describe('shared-serialization', () => {
         1 Promise [
           Constant true
           Object [
-            Plain "test"
+            {string} "test"
             RootRef 2
           ]
         ]

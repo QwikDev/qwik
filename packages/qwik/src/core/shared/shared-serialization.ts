@@ -2073,9 +2073,8 @@ export const dumpState = (
       if (isRaw) {
         hasRaw = true;
       }
-      const type = isRaw
-        ? `[raw${isObject(value) ? ` ${value.constructor.name}` : ''}]`
-        : typeIdToName(key as TypeIds);
+      const type = `{${isObject(value) ? value.constructor.name : typeof value}}`;
+
       out.push(`${RED}${type}${RESET} ${printRaw(value, `${prefix}  `)}`);
     } else {
       if (key === TypeIds.Constant) {

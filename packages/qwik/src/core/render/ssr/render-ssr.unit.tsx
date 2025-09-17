@@ -1229,7 +1229,7 @@ test('component useBrowserVisibleTask() without elements', async () => {
       <body>
         <!--qv q:id=0 q:key=sX:-->
         Hola
-        <script type="placeholder" hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
+        <script hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
         <!--/qv-->
       </body>
     </html>
@@ -1248,7 +1248,7 @@ test('component useBrowserVisibleTask() inside <head>', async () => {
       <head q:head>
         <!--qv q:id=0 q:key=sX:-->
         Hola
-        <script type="placeholder" hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
+        <script hidden q:id="1" on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]"></script>
         <!--/qv-->
         <!--qv q:id=2 q:key=sX:-->
         <style on-document:qinit="/runtimeQRL#_[0]\n/runtimeQRL#_[1]" q:id="3" q:head></style>

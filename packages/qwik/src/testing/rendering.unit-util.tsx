@@ -36,7 +36,7 @@ import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ChoreType } from '../core/shared/util-chore-type';
-import { dumpState, preprocessState } from '../core/shared/shared-serialization';
+import { dumpState, preprocessState } from '../core/shared/serdes/index';
 import {
   ELEMENT_PROPS,
   OnRenderProp,

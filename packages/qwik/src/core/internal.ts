@@ -60,7 +60,7 @@ export {
   preprocessState as _preprocessState,
   _serializationWeakRef,
   _serialize,
-} from './shared/shared-serialization';
+} from './shared/serdes/index';
 export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS, _UNINITIALIZED } from './shared/utils/constants';
 export { EMPTY_ARRAY as _EMPTY_ARRAY } from './shared/utils/flyweight';
 export { _restProps } from './shared/utils/prop';

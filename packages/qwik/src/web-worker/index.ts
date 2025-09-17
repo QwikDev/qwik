@@ -1,7 +1,7 @@
 //@ts-ignore
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
 import { $, type QRL } from '../core/shared/qrl/qrl.public';
-import { _serialize } from '../core/shared/shared-serialization';
+import { _serialize } from '../core/shared/serdes/index';
 import { _getContextElement } from '../core/use/use-core';
 import workerUrl from './worker.js?worker&url';
 

@@ -9,14 +9,14 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2022-08-02T12:07:45Z'
 ---
 
-Use [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) to store the state of the component. The store's purpose is to:
+Use [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) to store the state of the component. The store's purpose is to:
 
 1. store the state of the component
 2. present the state as a proxy that can observe read/writes to the store
 3. serialize the state of the store into JSON on application pause.
 4. observe which properties of the store are used in a component template and create subscriptions to the store. The subscriptions are then used to automatically update the component template if a store changes.
 
-Stores are declared inside the component's function using the [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) function. Wrap the `github` assignment in the `useStore(...)` function call to create a store.
+Stores are declared inside the component's function using the [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) function. Wrap the `github` assignment in the `useStore(...)` function call to create a store.
 
 > **NOTE**
 > In this example, the store never changes. Therefore there is no way to observe automatic template re-rendering. In the next example, we will add a listener to the `<input>` to demonstrate automatic template re-rendering.

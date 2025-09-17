@@ -3,7 +3,7 @@ import { qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
 import { $, type QRL } from './qrl.public';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { createSerializationContext, parseQRL, qrlToString } from '../shared-serialization';
+import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {

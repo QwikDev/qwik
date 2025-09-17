@@ -288,7 +288,7 @@ export default component$(() => {
 
 ### 4. Modifying State
 
-Keeping track of the state and updating the UI is core to what applications do. Qwik provides a `useSignal` hook to keep track of the application's state. To learn more, see [state management](/docs/components/state/).
+Keeping track of the state and updating the UI is core to what applications do. Qwik provides a `useSignal` hook to keep track of the application's state. To learn more, see [state management](/docs/core/state/).
 
 To declare state:
 
@@ -365,7 +365,7 @@ export default component$(() => {
 
 ### 5. Tasks and Invoking Server Code
 
-In Qwik, a [task](/docs/components/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
+In Qwik, a [task](/docs/core/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
 1. Import `useTask$` from `qwik` and `server$` from `qwik-city`.
    ```tsx /useTask\$/ /server\$/

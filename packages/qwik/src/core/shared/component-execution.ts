@@ -299,20 +299,7 @@ function injectPlaceholderElement(
   return [null, jsx];
 }
 
-/**
- * Creates a <script> element with a placeholder type.
- *
- * @returns A <script> element with a placeholder type.
- */
+/** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl(
-    'script',
-    {},
-    {
-      type: 'placeholder',
-      hidden: '',
-    },
-    null,
-    3
-  );
+  return new JSXNodeImpl('script', {}, { hidden: '' }, null, 3);
 }

@@ -5,7 +5,7 @@ import type { SubscriptionData } from '../reactive-primitives/subscription-data'
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { createScheduler, Scheduler } from './scheduler';
-import { createSerializationContext, type SerializationContext } from './shared-serialization';
+import { createSerializationContext, type SerializationContext } from './serdes/index';
 import type { Container, HostElement, ObjToProxyMap } from './types';
 
 /** @internal */

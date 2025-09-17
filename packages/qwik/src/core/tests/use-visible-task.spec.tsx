@@ -242,7 +242,7 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
       </Component>
     );
@@ -264,7 +264,7 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
@@ -288,7 +288,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
       </Component>
     );

@@ -2,7 +2,7 @@ import { QError, qError } from '../error/error';
 import { isNode } from './element';
 import { isPromise } from './promises';
 import { isArray, isFunction, isObject, isSerializableObject } from './types';
-import { canSerialize } from '../shared-serialization';
+import { canSerialize } from '../serdes/index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 

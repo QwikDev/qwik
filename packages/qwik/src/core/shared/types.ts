@@ -2,7 +2,7 @@ import type { ContextId } from '../use/use-context';
 import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
-import type { SerializationContext } from './shared-serialization';
+import type { SerializationContext } from './serdes/index';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;

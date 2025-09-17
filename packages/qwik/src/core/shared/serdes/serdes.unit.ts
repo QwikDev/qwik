@@ -1,18 +1,18 @@
 import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../internal';
-import { type SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../../internal';
+import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import {
   createComputedQrl,
   createSerializerQrl,
   createSignal,
   isSignal,
-} from '../reactive-primitives/signal.public';
-import { createStore } from '../reactive-primitives/impl/store';
-import { createResourceReturn } from '../use/use-resource';
-import { Task } from '../use/use-task';
-import { inlinedQrl } from './qrl/qrl';
-import { createQRL, type QRLInternal } from './qrl/qrl-class';
+} from '../../reactive-primitives/signal.public';
+import { createStore } from '../../reactive-primitives/impl/store';
+import { createResourceReturn } from '../../use/use-resource';
+import { Task } from '../../use/use-task';
+import { inlinedQrl } from '../qrl/qrl';
+import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import {
   TypeIds,
   _constants,
@@ -20,15 +20,15 @@ import {
   _typeIdNames,
   createSerializationContext,
   dumpState,
-} from './shared-serialization';
-import { EMPTY_ARRAY, EMPTY_OBJ } from './utils/flyweight';
-import { isQrl } from './qrl/qrl-utils';
-import { NoSerializeSymbol, SerializerSymbol } from './utils/serialize-utils';
-import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { StoreFlags } from '../reactive-primitives/types';
-import { createAsyncComputedSignal } from '../reactive-primitives/signal-api';
-import { retryOnPromise } from './utils/promises';
-import { QError } from './error/error';
+} from '.';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { isQrl } from '../qrl/qrl-utils';
+import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
+import { SubscriptionData } from '../../reactive-primitives/subscription-data';
+import { StoreFlags } from '../../reactive-primitives/types';
+import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
+import { retryOnPromise } from '../utils/promises';
+import { QError } from '../error/error';
 
 const DEBUG = false;
 

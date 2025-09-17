@@ -93,7 +93,7 @@ When the user interacts with the application, it resumes on the client-side, con
 
 `useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending on where the component is initially rendered.
 
-Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/components/state/index.mdx) changes.
+Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
@@ -323,7 +323,7 @@ export default component$(() => {
 
 ## `useVisibleTask$()`
 
-Sometimes a task needs to run only on the browser and after rendering, in that case, you should use `useVisibleTask$()`. The `useVisibleTask$()` is similar to `useTask$()` but it only runs on the browser and after initial rendering. `useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [state](/docs/(qwik)/components/state/index.mdx) changes.
+Sometimes a task needs to run only on the browser and after rendering, in that case, you should use `useVisibleTask$()`. The `useVisibleTask$()` is similar to `useTask$()` but it only runs on the browser and after initial rendering. `useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
 `useVisibleTask$()` has these properties:
 

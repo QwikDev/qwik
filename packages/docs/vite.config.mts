@@ -132,7 +132,7 @@ function overrideManualChunksForRepl(): Plugin {
   };
 }
 
-export default defineConfig((): any => {
+export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
     preview: {

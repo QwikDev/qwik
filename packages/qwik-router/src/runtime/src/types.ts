@@ -125,17 +125,15 @@ export type RouteNavigate = QRL<
   ) => Promise<void>
 >;
 
-export type RouteAction = Signal<RouteActionValue>;
+export type RouteAction = Signal<RouteActionValue | undefined>;
 
 export type RouteActionResolver = { status: number; result: unknown };
-export type RouteActionValue =
-  | {
-      id: string;
-      data: FormData | Record<string, unknown> | undefined;
-      output?: RouteActionResolver;
-      resolve?: NoSerialize<(data: RouteActionResolver) => void>;
-    }
-  | undefined;
+export type RouteActionValue = {
+  id: string;
+  data: FormData | Record<string, unknown> | undefined;
+  output?: RouteActionResolver;
+  resolve?: NoSerialize<(data: RouteActionResolver) => void>;
+};
 
 export type MutableRouteLocation = Mutable<RouteLocation>;
 
@@ -336,8 +334,13 @@ export interface EndpointResponse {
   status: number;
   loaders: Record<string, unknown>;
   loadersSerializationStrategy: Map<string, SerializationStrategy>;
+  action?: ClientActionData;
   formData?: FormData;
-  action?: string;
+}
+
+export interface ClientActionData {
+  id: string;
+  data: unknown;
 }
 
 export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {

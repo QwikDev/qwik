@@ -2,14 +2,13 @@
 
 import type { RequestEvent } from '@qwik.dev/router';
 import { _serialize } from 'packages/qwik/core-internal';
-import { RequestEvIsRewrite, RequestEvSharedActionId } from './request-event';
+import { RequestEvIsRewrite } from './request-event';
 import { getPathname } from './resolve-request-handlers';
 import { IsQData } from './user-response';
 
 export interface QData {
   status: number;
   href: string;
-  action?: string;
   redirect?: string;
   isRewrite?: boolean;
 }
@@ -32,7 +31,6 @@ export async function qDataHandler(requestEv: RequestEvent) {
   const qData: QData = {
     status,
     href: getPathname(requestEv.url),
-    action: requestEv.sharedMap.get(RequestEvSharedActionId),
     redirect: redirectLocation ?? undefined,
     isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };

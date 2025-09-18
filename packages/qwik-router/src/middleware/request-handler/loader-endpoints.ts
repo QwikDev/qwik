@@ -58,7 +58,7 @@ export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandle
   };
 }
 
-export function singleLoaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
+export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 

@@ -2,6 +2,7 @@ import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
 import type { QData } from '../../middleware/request-handler/qdata-endpoints';
+import { QACTION_KEY } from './constants';
 
 interface LoaderDataResponse {
   id: string;
@@ -26,43 +27,46 @@ export const loadClientData = async (
 ): Promise<ClientPageData | undefined> => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
   if (opts?.preloadRouteBundles !== false) {
-    preloadRouteBundles(pagePathname, 0.8);
-  }
-
-  let loaderData: LoaderDataResponse[] = [];
-  if (!opts?.loaderIds) {
-    // we need to load all the loaders
-    // first we need to get the loader urls
-    loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
-  } else {
-    loaderData = opts.loaderIds.map((loaderId) => {
-      return {
-        id: loaderId,
-        route: pagePathname,
-      };
-    });
+    preloadRouteBundles(pagePathname);
   }
 
   const loaders: Record<string, unknown> = {};
-  if (loaderData.length > 0) {
-    // load specific loaders
-    const loaderPromises = loaderData.map((loader) =>
-      fetchLoader(loader.id, loader.route, manifestHash)
-    );
-    const loaderResults = await Promise.all(loaderPromises);
-    for (let i = 0; i < loaderData.length; i++) {
-      loaders[loaderData[i].id] = loaderResults[i];
+  let resolveFn: () => void | undefined;
+  let actionData: unknown;
+  if (opts?.action) {
+    const actionResult = await fetchActionData(opts.action, pagePathname, url.searchParams);
+    actionData = actionResult.data;
+    resolveFn = () => {
+      opts.action!.resolve!({ status: actionResult.status, result: actionData });
+    };
+  } else {
+    let loaderData: LoaderDataResponse[] = [];
+    if (!opts?.loaderIds) {
+      // we need to load all the loaders
+      // first we need to get the loader urls
+      loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
+    } else {
+      loaderData = opts.loaderIds.map((loaderId) => {
+        return {
+          id: loaderId,
+          route: pagePathname,
+        };
+      });
+    }
+    if (loaderData.length > 0) {
+      // load specific loaders
+      const loaderPromises = loaderData.map((loader) =>
+        fetchLoader(loader.id, loader.route, manifestHash)
+      );
+      const loaderResults = await Promise.all(loaderPromises);
+      for (let i = 0; i < loaderData.length; i++) {
+        loaders[loaderData[i].id] = loaderResults[i];
+      }
     }
   }
 
-  const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache);
-  if (opts?.action) {
-    opts.action.data = undefined;
-  }
-
-  let resolveFn: () => void | undefined;
   const qDataUrl = `${pagePathname}q-data.json`;
-  const qData = fetch(qDataUrl, fetchOptions).then((rsp) => {
+  const qData = fetch(qDataUrl).then((rsp) => {
     if (rsp.redirected) {
       const redirectedURL = new URL(rsp.url);
       const isQData = redirectedURL.pathname.endsWith('/q-data.json');
@@ -84,12 +88,6 @@ export const loadClientData = async (
         if (clientData.redirect) {
           // server function asked for redirect
           location.href = clientData.redirect;
-        } else if (opts?.action) {
-          const { action } = opts;
-          const actionData = loaders[action.id];
-          resolveFn = () => {
-            action!.resolve!({ status: rsp.status, result: actionData });
-          };
         }
         return clientData;
       });
@@ -105,12 +103,17 @@ export const loadClientData = async (
     resolveFn && resolveFn();
     return {
       loaders,
-      href: v?.href,
-      status: v?.status,
-      action: v?.action,
+      action: actionData
+        ? {
+            id: opts!.action!.id,
+            data: actionData,
+          }
+        : undefined,
+      href: v?.href ?? pagePathname,
+      status: v?.status ?? 200,
       redirect: v?.redirect,
       isRewrite: v?.isRewrite,
-    } as ClientPageData;
+    } satisfies ClientPageData;
   });
 };
 
@@ -141,33 +144,48 @@ export async function fetchLoader(
   return data;
 }
 
-const getFetchOptions = (
-  action: RouteActionValue | undefined,
-  noCache: boolean | undefined
-): RequestInit | undefined => {
-  const actionData = action?.data;
-  if (!actionData) {
-    if (noCache) {
-      return {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache',
-        },
-      };
-    }
-    return undefined;
-  }
+function buildActionUrl(
+  routePath: string,
+  searchParams: URLSearchParams,
+  actionId: string
+): string {
+  searchParams.set(QACTION_KEY, actionId);
+  return `${routePath}?${searchParams.toString()}`;
+}
+
+export async function fetchActionData(
+  action: RouteActionValue,
+  routePath: string,
+  searchParams: URLSearchParams
+): Promise<{ data: unknown; status: number }> {
+  const url = buildActionUrl(routePath, searchParams, action.id);
+  const fetchOptions = getActionFetchOptions(action);
+  // TODO: why we need it?
+  action.data = undefined;
+  const response = await fetch(url, fetchOptions);
+
+  const text = await response.text();
+  const [data] = _deserialize(text, document.documentElement) as [Record<string, unknown>];
+
+  return { data, status: response.status };
+}
+
+const getActionFetchOptions = (action: RouteActionValue): RequestInit | undefined => {
+  const actionData = action.data;
   if (actionData instanceof FormData) {
     return {
       method: 'POST',
       body: actionData,
+      headers: {
+        accept: 'application/json',
+      },
     };
   } else {
     return {
       method: 'POST',
       body: JSON.stringify(actionData),
       headers: {
+        accept: 'application/json',
         'Content-Type': 'application/json; charset=UTF-8',
       },
     };

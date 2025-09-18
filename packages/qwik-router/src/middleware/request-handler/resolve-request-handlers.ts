@@ -12,19 +12,15 @@ import {
   type PageModule,
   type RouteModule,
 } from '../../runtime/src/types';
+import { actionHandler } from './action-endpoints';
 import { HttpStatus } from './http-status-codes';
-import {
-  executeLoader,
-  loaderDataHandler,
-  runValidators,
-  singleLoaderHandler,
-} from './loader-endpoints';
+import { executeLoader, loaderDataHandler, loaderHandler, runValidators } from './loader-endpoints';
 import { qDataHandler } from './qdata-endpoints';
 import {
   RequestEvShareQData,
   RequestEvShareServerTiming,
-  RequestEvSharedActionId,
   RequestRouteName,
+  getRequestActions,
   getRequestLoaders,
   getRequestMode,
   recognizeRequest,
@@ -32,9 +28,7 @@ import {
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
-import { IsQData, IsQLoader, IsQLoaderData, OriginalQDataName } from './user-response';
-// Import separately to avoid duplicate imports in the vite dev server
-import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
+import { IsQData, IsQLoader, IsQLoaderData, OriginalQDataName, QActionId } from './user-response';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -94,9 +88,10 @@ export const resolveRequestHandlers = (
       });
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(loaderDataHandler(routeLoaders));
-      requestHandlers.push(singleLoaderHandler(routeLoaders));
+      requestHandlers.push(loaderHandler(routeLoaders));
+      requestHandlers.push(actionHandler(routeActions));
       requestHandlers.push(qDataHandler);
-      requestHandlers.push(actionsMiddleware(routeActions));
+      // requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);
     }
@@ -177,14 +172,14 @@ export const checkBrand = (obj: any, brand: string) => {
 };
 
 export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandler {
-  return async (requestEvent: RequestEvent) => {
+  return async (requestEvent: RequestEvent): Promise<void> => {
     const requestEv = requestEvent as RequestEventInternal;
     if (requestEv.headersSent) {
       requestEv.exit();
       return;
     }
     const { method } = requestEv;
-    const loaders = getRequestLoaders(requestEv);
+    const actions = getRequestActions(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
     if (isDev && method === 'GET') {
       if (requestEv.query.has(QACTION_KEY)) {
@@ -203,7 +198,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
           routeActions.find((action) => action.__id === selectedActionId) ??
           serverActionsMap?.get(selectedActionId);
         if (action) {
-          requestEv.sharedMap.set(RequestEvSharedActionId, selectedActionId);
+          requestEv.sharedMap.set(QActionId, selectedActionId);
           const data = await requestEv.parseBody();
           if (!data || typeof data !== 'object') {
             throw new Error(
@@ -212,7 +207,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
           }
           const result = await runValidators(requestEv, action.__validators, data, isDev);
           if (!result.success) {
-            loaders[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
+            actions[selectedActionId] = requestEv.fail(result.status ?? 500, result.error);
           } else {
             const actionResolved = isDev
               ? await measure(requestEv, action.__qrl.getHash(), () =>
@@ -222,7 +217,7 @@ export function actionsMiddleware(routeActions: ActionInternal[]): RequestHandle
             if (isDev) {
               verifySerializable(actionResolved, action.__qrl);
             }
-            loaders[selectedActionId] = actionResolved;
+            actions[selectedActionId] = actionResolved;
           }
         }
       }
@@ -311,8 +306,7 @@ async function pureServerFunction(ev: RequestEvent) {
 function fixTrailingSlash(ev: RequestEvent) {
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
-  const isQData =
-    sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
+  const isQData = isQDataRequestBasedOnSharedMap(sharedMap);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (!globalThis.__NO_TRAILING_SLASH__) {
@@ -332,6 +326,10 @@ function fixTrailingSlash(ev: RequestEvent) {
       }
     }
   }
+}
+
+export function isQDataRequestBasedOnSharedMap(sharedMap: Map<string, unknown>) {
+  return sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
 }
 
 export function verifySerializable(data: any, qrl: QRL) {
@@ -419,10 +417,7 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq =
-      requestEv.sharedMap.has(IsQData) ||
-      requestEv.sharedMap.has(IsQLoaderData) ||
-      requestEv.sharedMap.has(IsQLoader);
+    const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
     if (isPageDataReq) {
       return;
     }
@@ -451,9 +446,15 @@ export function renderQwikMiddleware(render: Render) {
           ...serverData.containerAttributes,
         },
       });
+      const actionId = requestEv.sharedMap.get(QActionId) as string | undefined;
       const qData: ClientPageData = {
         loaders: getRequestLoaders(requestEv),
-        action: requestEv.sharedMap.get(RequestEvSharedActionId),
+        action: actionId
+          ? {
+              id: actionId,
+              data: getRequestActions(requestEv)[actionId],
+            }
+          : undefined,
         status: status !== 200 ? status : 200,
         href: getPathname(requestEv.url),
       };
@@ -474,10 +475,7 @@ export function renderQwikMiddleware(render: Render) {
 }
 
 export async function handleRedirect(requestEv: RequestEvent) {
-  const isPageDataReq =
-    requestEv.sharedMap.has(IsQData) ||
-    requestEv.sharedMap.has(IsQLoaderData) ||
-    requestEv.sharedMap.has(IsQLoader);
+  const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
   if (!isPageDataReq) {
     return;
   }

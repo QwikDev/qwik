@@ -1,6 +1,6 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { _deserialize, _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
-import { QDATA_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
   type ActionInternal,
@@ -16,9 +16,10 @@ import { Cookie } from './cookie';
 import {
   AbortMessage,
   RedirectMessage,
-  ServerError,
   RewriteMessage,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
+import { executeLoader } from './loader-endpoints';
 import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
@@ -32,26 +33,27 @@ import type {
   ServerRequestMode,
 } from './types';
 import {
+  IsQAction,
   IsQData,
   IsQLoader,
   IsQLoaderData,
+  LOADER_REGEX,
   OriginalQDataName,
   Q_LOADER_DATA_REGEX,
+  QActionId,
   QDATA_JSON,
   QDATA_JSON_LEN,
   QLoaderId,
-  SINGLE_LOADER_REGEX,
 } from './user-response';
-import { executeLoader } from './loader-endpoints';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
+const RequestEvActions = Symbol('RequestEvActions');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvLoaderSerializationStrategyMap = Symbol(
   'RequestEvLoaderSerializationStrategyMap'
 );
 export const RequestRouteName = '@routeName';
-export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
@@ -89,6 +91,12 @@ export function createRequestEvent(
     }
 
     trimEnd(requestRecognized.trimLength);
+  }
+
+  const actionMatch = url.searchParams.get(QACTION_KEY);
+  if (actionMatch) {
+    sharedMap.set(IsQAction, true);
+    sharedMap.set(QActionId, actionMatch);
   }
 
   let routeModuleIndex = -1;
@@ -174,8 +182,10 @@ export function createRequestEvent(
   };
 
   const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
+  const actions: Record<string, ValueOrPromise<unknown> | undefined> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
+    [RequestEvActions]: actions,
     [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     get [RequestEvRoute]() {
@@ -359,6 +369,7 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
+  [RequestEvActions]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvRoute]: LoadedRoute | null;
@@ -386,6 +397,10 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestActions(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvActions];
 }
 
 export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
@@ -488,7 +503,7 @@ export function recognizeRequest(pathname: string) {
     };
   }
 
-  const loaderMatch = pathname.match(SINGLE_LOADER_REGEX);
+  const loaderMatch = pathname.match(LOADER_REGEX);
   if (loaderMatch) {
     return {
       type: IsQLoader,

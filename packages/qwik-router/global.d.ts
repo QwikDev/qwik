@@ -1,8 +1,6 @@
 /* eslint-disable no-var */
 // Globals used by qwik-router, for internal use only
 
-type RequestEventInternal =
-  import('./middleware/request-handler/request-event').RequestEventInternal;
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;
 type SerializationStrategy = import('@qwik.dev/core/internal').SerializationStrategy;
 

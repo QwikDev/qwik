@@ -184,10 +184,12 @@ export function getRouteMatchPathname(pathname: string) {
 
 export const IsQData = '@isQData';
 export const IsQLoader = '@isQLoader';
-export const QLoaderId = '@qLoaderId';
+export const IsQAction = '@isQAction';
+export const QLoaderId = '@loaderId';
+export const QActionId = '@actionId';
 export const IsQLoaderData = '@isQLoaderData';
 export const OriginalQDataName = '@originalQDataName';
 export const QDATA_JSON = '/q-data.json';
 export const QDATA_JSON_LEN = QDATA_JSON.length;
 export const Q_LOADER_DATA_REGEX = /\/(q-loader-data\.(.+)\.json)$/;
-export const SINGLE_LOADER_REGEX = /\/(q-loader-(.+)\.(.+)\.json)$/;
+export const LOADER_REGEX = /\/(q-loader-(.+)\.(.+)\.json)$/;

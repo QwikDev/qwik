@@ -1,5 +1,5 @@
 import { type QRL } from '@qwik.dev/core';
-import { _serialize, _UNINITIALIZED, _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import {
@@ -14,24 +14,25 @@ import {
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import {
+  executeLoader,
+  loaderDataHandler,
+  runValidators,
+  singleLoaderHandler,
+} from './loader-endpoints';
+import { qDataHandler } from './qdata-endpoints';
+import {
   RequestEvShareQData,
   RequestEvShareServerTiming,
   RequestEvSharedActionId,
   RequestRouteName,
   getRequestLoaders,
   getRequestMode,
+  recognizeRequest,
   type RequestEventInternal,
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
-import { IsQData, QDATA_JSON } from './user-response';
-import {
-  executeLoader,
-  singleLoaderHandler,
-  runValidators,
-  loaderDataHandler,
-} from './loader-endpoints';
-import { qDataHandler } from './qdata-endpoints';
+import { IsQData, IsQLoader, IsQLoaderData, OriginalQDataName } from './user-response';
 // Import separately to avoid duplicate imports in the vite dev server
 import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
 
@@ -80,24 +81,21 @@ export const resolveRequestHandlers = (
         requestHandlers.unshift(csrfCheckMiddleware);
       }
     }
+    requestHandlers.push(handleRedirect);
     if (isPageRoute) {
       // server$
       if (method === 'POST' || method === 'GET') {
         requestHandlers.push(pureServerFunction);
       }
 
-      requestHandlers.push(fixTrailingSlash);
-      requestHandlers.push(loaderDataHandler(routeLoaders));
-      requestHandlers.push(singleLoaderHandler(routeLoaders));
-      requestHandlers.push(qDataHandler);
-    }
-    requestHandlers.push(handleRedirect);
-
-    if (isPageRoute) {
       requestHandlers.push((ev) => {
         // Set the current route name
         ev.sharedMap.set(RequestRouteName, routeName);
       });
+      requestHandlers.push(fixTrailingSlash);
+      requestHandlers.push(loaderDataHandler(routeLoaders));
+      requestHandlers.push(singleLoaderHandler(routeLoaders));
+      requestHandlers.push(qDataHandler);
       requestHandlers.push(actionsMiddleware(routeActions));
       requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);
@@ -313,7 +311,8 @@ async function pureServerFunction(ev: RequestEvent) {
 function fixTrailingSlash(ev: RequestEvent) {
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
-  const isQData = sharedMap.has(IsQData);
+  const isQData =
+    sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (!globalThis.__NO_TRAILING_SLASH__) {
@@ -357,8 +356,11 @@ export function isLastModulePageRoute(routeModules: RouteModule[]) {
 
 export function getPathname(url: URL) {
   url = new URL(url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON.length);
+
+  const qDataInfo = recognizeRequest(url.pathname);
+
+  if (qDataInfo) {
+    url.pathname = url.pathname.slice(0, -qDataInfo.trimLength);
   }
   if (!globalThis.__NO_TRAILING_SLASH__) {
     if (!url.pathname.endsWith('/')) {
@@ -417,7 +419,10 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq = requestEv.sharedMap.has(IsQData);
+    const isPageDataReq =
+      requestEv.sharedMap.has(IsQData) ||
+      requestEv.sharedMap.has(IsQLoaderData) ||
+      requestEv.sharedMap.has(IsQLoader);
     if (isPageDataReq) {
       return;
     }
@@ -469,7 +474,10 @@ export function renderQwikMiddleware(render: Render) {
 }
 
 export async function handleRedirect(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.sharedMap.has(IsQData);
+  const isPageDataReq =
+    requestEv.sharedMap.has(IsQData) ||
+    requestEv.sharedMap.has(IsQLoaderData) ||
+    requestEv.sharedMap.has(IsQLoader);
   if (!isPageDataReq) {
     return;
   }
@@ -490,7 +498,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   const isRedirect = status >= 301 && status <= 308 && location;
 
   if (isRedirect) {
-    const adaptedLocation = makeQDataPath(location);
+    const adaptedLocation = makeQDataPath(location, requestEv.sharedMap);
     if (adaptedLocation) {
       requestEv.headers.set('Location', adaptedLocation);
       requestEv.getWritableStream().close();
@@ -502,12 +510,16 @@ export async function handleRedirect(requestEv: RequestEvent) {
   }
 }
 
-function makeQDataPath(href: string) {
+function makeQDataPath(href: string, sharedMap: Map<string, unknown>) {
   if (href.startsWith('/')) {
-    const append = QDATA_JSON;
     const url = new URL(href, 'http://localhost');
-
     const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+    const append = sharedMap.get(OriginalQDataName) as string;
+
+    if (!append) {
+      return undefined;
+    }
+
     return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
   } else {
     return undefined;

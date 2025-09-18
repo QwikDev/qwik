@@ -41,6 +41,7 @@ export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandle
       let loaderRoute = qwikRouterConfig.loaderIdToRoute[loaderId];
       const params = requestEv.params;
       if (Object.keys(params).length > 0) {
+        // TODO: use RequestEvRoute?
         const pathname = getPathnameForDynamicRoute(
           requestEv.url.pathname,
           Object.keys(params),

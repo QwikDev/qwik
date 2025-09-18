@@ -685,30 +685,9 @@ impl<'a> QwikTransform<'a> {
 			hash,
 		};
 		let should_emit = self.should_emit_segment(&segment_data);
-		if should_emit {
-			for id in &segment_data.local_idents {
-				if !self.options.global_collect.exports.contains_key(id) {
-					if self.options.global_collect.root.contains_key(id) {
-						self.ensure_export(id);
-					}
-					if invalid_decl.iter().any(|entry| entry.0 == *id) {
-						HANDLER.with(|handler| {
-							handler
-								.struct_err_with_code(
-									&format!(
-										"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
-										id.0
-									),
-									errors::get_diagnostic_id(errors::Error::FunctionReference),
-								)
-								.emit();
-						});
-					}
-				}
-			}
-		}
-		if !should_emit {
-			(self.create_noop_qrl(&symbol_name, segment_data), is_const)
+
+		let result = if is_empty_function(&folded) {
+			self.create_noop_qrl(&symbol_name, segment_data.clone())
 		} else if self.is_inline() {
 			let folded = if !segment_data.scoped_idents.is_empty() {
 				let new_local = self.ensure_core_import(&USE_LEXICAL_SCOPE);
@@ -728,15 +707,41 @@ impl<'a> QwikTransform<'a> {
 			} else {
 				folded
 			};
-			(
-				self.create_inline_qrl(segment_data, folded, symbol_name, span),
-				is_const,
-			)
+			self.create_inline_qrl(segment_data.clone(), folded, symbol_name.clone(), span)
 		} else {
-			(
-				self.create_segment(segment_data, folded, symbol_name, span, segment_hash),
-				is_const,
+			self.create_segment(
+				segment_data.clone(),
+				folded,
+				symbol_name.clone(),
+				span,
+				segment_hash,
 			)
+		};
+
+		if should_emit {
+			for id in &segment_data.local_idents {
+				if !self.options.global_collect.exports.contains_key(id) {
+					if self.options.global_collect.root.contains_key(id) {
+						self.ensure_export(id);
+					}
+					if invalid_decl.iter().any(|entry| entry.0 == *id) {
+						HANDLER.with(|handler| {
+							handler
+								.struct_err_with_code(
+									&format!(
+										"Reference to identifier '{}' can not be used inside a Qrl($) scope because it's a function",
+										id.0
+									),
+									errors::get_diagnostic_id(errors::Error::FunctionReference),
+								)
+								.emit();
+					});
+					}
+				}
+			}
+			(result, is_const)
+		} else {
+			(self.create_noop_qrl(&symbol_name, segment_data), is_const)
 		}
 	}
 
@@ -2735,6 +2740,21 @@ fn is_text_only(node: &str) -> bool {
 		node,
 		"text" | "textarea" | "title" | "option" | "script" | "style" | "noscript"
 	)
+}
+
+fn is_empty_function(expr: &ast::Expr) -> bool {
+	match expr {
+		ast::Expr::Arrow(arrow) => match &*arrow.body {
+			ast::BlockStmtOrExpr::BlockStmt(block) => block.stmts.is_empty(),
+			ast::BlockStmtOrExpr::Expr(_) => false,
+		},
+		ast::Expr::Fn(fn_expr) => fn_expr
+			.function
+			.body
+			.as_ref()
+			.map_or(true, |body| body.stmts.is_empty()),
+		_ => false,
+	}
 }
 
 fn process_node_props(pat: &ast::Pat) -> Vec<IdPlusType> {

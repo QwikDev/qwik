@@ -149,6 +149,33 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.tsx_Parent_component_serverLoader_k1L0DiPQV1I.js (ENTRY POINT)==
+
+import { handler } from "serverless";
+export const s_k1L0DiPQV1I = handler;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BA8Be\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_k1L0DiPQV1I",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_serverLoader",
+  "hash": "k1L0DiPQV1I",
+  "canonicalFilename": "test.tsx_Parent_component_serverLoader_k1L0DiPQV1I",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "serverLoader$",
+  "captures": false,
+  "loc": [
+    676,
+    683
+  ]
+}
+*/
 ============================= test.tsx_Parent_component_0TaiDayHrlo.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
@@ -223,6 +250,44 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     756,
     783
+  ]
+}
+*/
+============================= test.tsx_Parent_component_serverStuff_r1qAHX7Opp0.js (ENTRY POINT)==
+
+import { clientQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_2ca3HLDC7yc = ()=>import("./test.tsx_Parent_component_serverStuff_a_2ca3HLDC7yc");
+const i_v9qawr2Inkk = ()=>import("./test.tsx_Parent_component_serverStuff_b_client_v9qawr2Inkk");
+export const s_r1qAHX7Opp0 = async ()=>{
+    // should be removed too
+    const a = /*#__PURE__*/ qrl(i_2ca3HLDC7yc, "s_2ca3HLDC7yc");
+    const b = clientQrl(/*#__PURE__*/ qrl(i_v9qawr2Inkk, "s_v9qawr2Inkk"));
+    return [
+        a,
+        b
+    ];
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;6BAmBc;IACZ,wBAAwB;IACxB,MAAM;IAGN,MAAM,IAAI;IAGV,OAAO;QAAC;QAAE;KAAE;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_r1qAHX7Opp0",
+  "entry": null,
+  "displayName": "test.tsx_Parent_component_serverStuff",
+  "hash": "r1qAHX7Opp0",
+  "canonicalFilename": "test.tsx_Parent_component_serverStuff_r1qAHX7Opp0",
+  "path": "",
+  "extension": "js",
+  "parent": "s_0TaiDayHrlo",
+  "ctxKind": "function",
+  "ctxName": "serverStuff$",
+  "captures": false,
+  "loc": [
+    483,
+    658
   ]
 }
 */

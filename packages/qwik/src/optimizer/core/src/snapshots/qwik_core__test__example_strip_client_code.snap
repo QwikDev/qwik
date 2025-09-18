@@ -50,11 +50,11 @@ import "./keep";
 import "../keep2";
 import { componentQrl } from "@qwik.dev/core";
 import { useClientMountQrl } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 import { _noopQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 export const Parent = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{

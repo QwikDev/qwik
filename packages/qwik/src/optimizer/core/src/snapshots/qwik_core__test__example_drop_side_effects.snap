@@ -38,9 +38,9 @@ export default component$(() => {
 ============================= test.js ==
 
 import { serverQrl } from "@qwik.dev/router";
+import { qrlDEV } from "@qwik.dev/core";
 import { _noopQrlDEV } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
-import { qrlDEV } from "@qwik.dev/core";
 const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 import { sideEffect } from './secret';
 (function() {
@@ -89,6 +89,34 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     541,
     558
+  ]
+}
+*/
+============================= test.tsx_api_server_JonPp043gH0.js (ENTRY POINT)==
+
+export const api_server_JonPp043gH0 = ()=>{
+    supabase.from('ffg').do(dfd);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sCAoB2B;IAC1B,SAAS,IAAI,CAAC,OAAO,EAAE,CAAC;AACzB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "api_server_JonPp043gH0",
+  "entry": null,
+  "displayName": "test.tsx_api_server",
+  "hash": "JonPp043gH0",
+  "canonicalFilename": "test.tsx_api_server_JonPp043gH0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    433,
+    473
   ]
 }
 */

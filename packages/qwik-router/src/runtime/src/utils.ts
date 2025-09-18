@@ -93,12 +93,13 @@ export const createLoaderSignal = (
   loaderId: string,
   url: URL,
   serializationStrategy: SerializationStrategy,
+  instanceHash: string,
   container?: ClientContainer
 ) => {
   return createAsyncComputed$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        const data = await loadClientLoaderData(url, loaderId);
+        const data = await loadClientLoaderData(url, loaderId, instanceHash);
         loadersObject[loaderId] = data ?? _UNINITIALIZED;
       }
       return loadersObject[loaderId];

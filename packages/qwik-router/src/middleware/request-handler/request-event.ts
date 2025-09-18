@@ -35,8 +35,7 @@ import {
   IsQData,
   IsQLoader,
   IsQLoaderData,
-  Q_LOADER_DATA_JSON,
-  Q_LOADER_DATA_JSON_LEN,
+  Q_LOADER_DATA_REGEX,
   QDATA_JSON,
   QDATA_JSON_LEN,
   QLoaderId,
@@ -80,18 +79,14 @@ export function createRequestEvent(
     }
   };
 
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    trimEnd(QDATA_JSON_LEN);
-    sharedMap.set(IsQData, true);
-  } else if (url.pathname.endsWith(Q_LOADER_DATA_JSON)) {
-    trimEnd(Q_LOADER_DATA_JSON_LEN);
-    sharedMap.set(IsQLoaderData, true);
-  }
-  const loaderMatch = url.pathname.match(SINGLE_LOADER_REGEX);
-  if (loaderMatch) {
-    trimEnd(loaderMatch[0].length);
-    sharedMap.set(IsQLoader, true);
-    sharedMap.set(QLoaderId, loaderMatch[1]); // Store which loader was requested
+  const requestRecognized = recognizeRequest(url.pathname);
+  if (requestRecognized) {
+    sharedMap.set(requestRecognized.type, true);
+    if (requestRecognized.type === IsQLoader && requestRecognized.data) {
+      sharedMap.set(QLoaderId, requestRecognized.data.loaderId);
+    }
+
+    trimEnd(requestRecognized.trimLength);
   }
 
   let routeModuleIndex = -1;
@@ -463,3 +458,40 @@ const formToObj = (formData: FormData): Record<string, any> => {
   // Return values object
   return values;
 };
+
+export function recognizeRequest(pathname: string) {
+  // Quick length check for common cases
+  if (pathname.length < 10) {
+    return null;
+  }
+
+  // Check exact matches first (fastest)
+  if (pathname.endsWith(QDATA_JSON)) {
+    return {
+      type: IsQData,
+      trimLength: QDATA_JSON_LEN,
+      data: null,
+    };
+  }
+
+  // Check for loader patterns
+  const loaderDataMatch = pathname.match(Q_LOADER_DATA_REGEX);
+  if (loaderDataMatch) {
+    return {
+      type: IsQLoaderData,
+      trimLength: loaderDataMatch[0].length,
+      data: null,
+    };
+  }
+
+  const loaderMatch = pathname.match(SINGLE_LOADER_REGEX);
+  if (loaderMatch) {
+    return {
+      type: IsQLoader,
+      trimLength: loaderMatch[0].length,
+      data: { loaderId: loaderMatch[1] },
+    };
+  }
+
+  return null;
+}

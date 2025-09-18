@@ -9,10 +9,13 @@ import {
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
   getRequestMode,
+  RequestEventInternal,
 } from './request-event';
 import { measure, verifySerializable } from './resolve-request-handlers';
 import type { RequestEvent } from './types';
 import { IsQLoader, IsQLoaderData, QLoaderId } from './user-response';
+import qwikRouterConfig from '@qwik-router-config';
+import { getPathnameForDynamicRoute } from '../../utils/pathname';
 
 export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
@@ -27,15 +30,30 @@ export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandle
       return;
     }
 
-    // Set cache headers - aggressive for loaders
+    // Set cache headers - cache it as never expires
     requestEv.cacheControl({
-      maxAge: 300, // 5 minutes
-      staleWhileRevalidate: 3600, // 1 hour
+      maxAge: 365 * 24 * 60 * 60, // 1 year
     });
 
-    // return loader ids
-    const loaderIds = routeLoaders.map((l) => l.__id);
-    return requestEv.json(200, { loaderIds });
+    // return loader data: id and route
+    const loaderData = routeLoaders.map((l) => {
+      const loaderId = l.__id;
+      let loaderRoute = qwikRouterConfig.loaderIdToRoute[loaderId];
+      const params = requestEv.params;
+      if (Object.keys(params).length > 0) {
+        const pathname = getPathnameForDynamicRoute(
+          requestEv.url.pathname,
+          Object.keys(params),
+          params
+        );
+        loaderRoute = pathname;
+      }
+      return {
+        id: loaderId,
+        route: loaderRoute,
+      };
+    });
+    requestEv.json(200, { loaderData });
   };
 }
 
@@ -53,42 +71,38 @@ export function singleLoaderHandler(routeLoaders: LoaderInternal[]): RequestHand
     }
     const loaderId = requestEv.sharedMap.get(QLoaderId);
 
-    try {
-      // Execute just this loader
-      const loaders = getRequestLoaders(requestEv);
-      const isDev = getRequestMode(requestEv) === 'dev';
+    // Execute just this loader
+    const loaders = getRequestLoaders(requestEv);
+    const isDev = getRequestMode(requestEv) === 'dev';
 
-      let loader: LoaderInternal | undefined;
-      for (const routeLoader of routeLoaders) {
-        if (routeLoader.__id === loaderId) {
-          loader = routeLoader;
-        } else if (!loaders[routeLoader.__id]) {
-          loaders[routeLoader.__id] = _UNINITIALIZED;
-        }
+    let loader: LoaderInternal | undefined;
+    for (const routeLoader of routeLoaders) {
+      if (routeLoader.__id === loaderId) {
+        loader = routeLoader;
+      } else if (!loaders[routeLoader.__id]) {
+        loaders[routeLoader.__id] = _UNINITIALIZED;
       }
-
-      if (!loader) {
-        return requestEv.json(404, { error: 'Loader not found' });
-      }
-
-      await executeLoader(loader, loaders, requestEv, isDev);
-
-      // Set cache headers - aggressive for loaders
-      requestEv.cacheControl({
-        maxAge: 300, // 5 minutes
-        staleWhileRevalidate: 3600, // 1 hour
-      });
-
-      const data = await _serialize([loaders[loaderId]]);
-
-      requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
-
-      // Return just this loader's result
-      return requestEv.send(200, data);
-    } catch (error) {
-      console.error(`Loader ${loaderId} failed:`, error);
-      return requestEv.json(500, { error: 'Loader execution failed' });
     }
+
+    if (!loader) {
+      requestEv.json(404, { error: 'Loader not found' });
+      return;
+    }
+
+    await executeLoader(loader, loaders, requestEv, isDev);
+
+    // Set cache headers - aggressive for loaders
+    requestEv.cacheControl({
+      maxAge: 300, // 5 minutes
+      staleWhileRevalidate: 3600, // 1 hour
+    });
+
+    const data = await _serialize([loaders[loaderId]]);
+
+    requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
+
+    // Return just this loader's result
+    requestEv.send(200, data);
   };
 }
 

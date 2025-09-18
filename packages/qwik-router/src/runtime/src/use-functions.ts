@@ -96,5 +96,8 @@ export const useAction = (): RouteAction => useContext(RouteActionContext);
 
 export const useQwikRouterEnv = () => noSerialize(useServerData<QwikRouterEnvData>('qwikrouter'));
 
+export const useInstanceHash = () =>
+  useServerData<Record<string, string>>('containerAttributes')?.['q:instance'];
+
 /** @deprecated Use `useQwikRouterEnv` instead. Will be removed in v3 */
 export const useQwikCityEnv = useQwikRouterEnv;

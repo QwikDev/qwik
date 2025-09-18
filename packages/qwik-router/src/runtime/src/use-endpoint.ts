@@ -1,15 +1,21 @@
 import type { ClientPageData, RouteActionValue } from './types';
-import { _deserialize } from '@qwik.dev/core/internal';
+import { _deserialize, _getDomContainer } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
 import type { QData } from '../../middleware/request-handler/qdata-endpoints';
 
-export const loadClientLoaderData = async (url: URL, loaderId: string) => {
+interface LoaderDataResponse {
+  id: string;
+  route: string;
+}
+
+export const loadClientLoaderData = async (url: URL, loaderId: string, instanceHash: string) => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
-  return fetchLoader(loaderId, pagePathname);
+  return fetchLoader(loaderId, pagePathname, instanceHash);
 };
 
 export const loadClientData = async (
   url: URL,
+  instanceHash: string,
   opts?: {
     action?: RouteActionValue;
     loaderIds?: string[];
@@ -23,21 +29,29 @@ export const loadClientData = async (
     preloadRouteBundles(pagePathname, 0.8);
   }
 
+  let loaderData: LoaderDataResponse[] = [];
   if (!opts?.loaderIds) {
     // we need to load all the loaders
-    // first we need to get the loader ids
-    opts = opts || {};
-    opts.loaderIds = (await fetchLoaderData(pagePathname)).loaderIds;
+    // first we need to get the loader urls
+    loaderData = (await fetchLoaderData(pagePathname, instanceHash)).loaderData;
+  } else {
+    loaderData = opts.loaderIds.map((loaderId) => {
+      return {
+        id: loaderId,
+        route: pagePathname,
+      };
+    });
   }
 
-  const loaderIds = opts.loaderIds;
   const loaders: Record<string, unknown> = {};
-  if (loaderIds.length > 0) {
+  if (loaderData.length > 0) {
     // load specific loaders
-    const loaderPromises = loaderIds.map((loaderId) => fetchLoader(loaderId, pagePathname));
+    const loaderPromises = loaderData.map((loader) =>
+      fetchLoader(loader.id, loader.route, instanceHash)
+    );
     const loaderResults = await Promise.all(loaderPromises);
-    for (let i = 0; i < loaderIds.length; i++) {
-      loaders[loaderIds[i]] = loaderResults[i];
+    for (let i = 0; i < loaderData.length; i++) {
+      loaders[loaderData[i].id] = loaderResults[i];
     }
   }
 
@@ -100,14 +114,21 @@ export const loadClientData = async (
   });
 };
 
-export async function fetchLoaderData(routePath: string): Promise<{ loaderIds: string[] }> {
-  const url = `${routePath}q-loader-data.json`;
+export async function fetchLoaderData(
+  routePath: string,
+  instanceHash: string
+): Promise<{ loaderData: LoaderDataResponse[] }> {
+  const url = `${routePath}q-loader-data.${instanceHash}.json`;
   const response = await fetch(url);
   return response.json();
 }
 
-export async function fetchLoader(loaderId: string, routePath: string): Promise<unknown> {
-  const url = `${routePath}q-loader-${loaderId}.json`;
+export async function fetchLoader(
+  loaderId: string,
+  routePath: string,
+  instanceHash: string
+): Promise<unknown> {
+  const url = `${routePath}q-loader-${loaderId}.${instanceHash}.json`;
 
   const response = await fetch(url);
   if (!response.ok) {

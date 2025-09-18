@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3814
+assertion_line: 3815
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -31,6 +30,116 @@ export const App = component$(() => {
 	);
 });
 
+============================= test.tsx_App_component_serverStuff_ebyHaP15ytQ.js (ENTRY POINT)==
+
+export const App_component_serverStuff_ebyHaP15ytQ = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_serverStuff_ebyHaP15ytQ",
+  "entry": null,
+  "displayName": "test.tsx_App_component_serverStuff",
+  "hash": "ebyHaP15ytQ",
+  "canonicalFilename": "test.tsx_App_component_serverStuff_ebyHaP15ytQ",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "serverStuff$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "stuff"
+  ]
+}
+*/
+============================= test.tsx_App_component_serverStuff_1_PQCqO0ANabY.js (ENTRY POINT)==
+
+export const App_component_serverStuff_1_PQCqO0ANabY = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_serverStuff_1_PQCqO0ANabY",
+  "entry": null,
+  "displayName": "test.tsx_App_component_serverStuff_1",
+  "hash": "PQCqO0ANabY",
+  "canonicalFilename": "test.tsx_App_component_serverStuff_1_PQCqO0ANabY",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "function",
+  "ctxName": "serverStuff$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
+============================= test.tsx_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4.js (ENTRY POINT)==
+
+export const App_component_Cmp_p_shouldRemove_uU0MG0jvQD4 = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_shouldRemove_uU0MG0jvQD4",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Cmp_p_shouldRemove",
+  "hash": "uU0MG0jvQD4",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_shouldRemove_uU0MG0jvQD4",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "shouldRemove$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "stuff"
+  ]
+}
+*/
+============================= test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto.js (ENTRY POINT)==
+
+export const App_component_Cmp_p_onClick_vuXzfUTkpto = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_Cmp_p_onClick_vuXzfUTkpto",
+  "entry": null,
+  "displayName": "test.tsx_App_component_Cmp_p_onClick",
+  "hash": "vuXzfUTkpto",
+  "canonicalFilename": "test.tsx_App_component_Cmp_p_onClick_vuXzfUTkpto",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";

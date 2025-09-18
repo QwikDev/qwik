@@ -13,13 +13,14 @@ import {
 } from '@qwik.dev/core';
 import { preloadRouteBundles } from './client-navigate';
 import { loadClientData } from './use-endpoint';
-import { useLocation, useNavigate } from './use-functions';
+import { useInstanceHash, useLocation, useNavigate } from './use-functions';
 import { getClientNavPath, shouldPreload } from './utils';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
   const nav = useNavigate();
   const loc = useLocation();
+  const instanceHash = useInstanceHash();
   const originalHref = props.href;
   const anchorRef = useSignal<HTMLAnchorElement>();
   const {
@@ -53,8 +54,8 @@ export const Link = component$<LinkProps>((props) => {
           const url = new URL(elm.href);
           preloadRouteBundles(url.pathname);
 
-          if (elm.hasAttribute('data-prefetch')) {
-            loadClientData(url, {
+          if (elm.hasAttribute('data-prefetch') && instanceHash) {
+            loadClientData(url, instanceHash, {
               preloadRouteBundles: false,
               isPrefetch: true,
             });

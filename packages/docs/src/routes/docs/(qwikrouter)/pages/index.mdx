@@ -79,7 +79,7 @@ The example above sets the title, as well as some [Open Graph](https://ogp.me/) 
 
 > HTML places the `<head>` tag as the first element within `<html>` (at the very top of the HTML content). The `<head>` section is not something that your route component renders directly because it would break the HTML streaming.
 
-Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component.
+Look into `useDocumentHead()` to read and consume the `DocumentHead` object from within your component; you can also use `<DocumentHeadTags />` to render the tags directly and correctly.
 
 ### Dynamic Head
 
@@ -121,11 +121,30 @@ export const head: DocumentHead = ({resolveValue, params}) => {
 };
 ```
 
+#### A note on ordering
+
+The `head` exports are merged in an outward-in manner. This means that values from `index.tsx` will override the layout's `head` export, and that in turn will override the root layout's `head` export.
+
+However, for dynamic `head()` exports (functions), the ordering is reversed. This allows to always add something to the title, for example, in a layout component.
+
+```ts
+export const head: DocumentHead = ({ head }) => {
+  return {
+    title: `MySite - ${head.title}`,
+  };
+};
+```
+
+So first all plain object `head` exports are merged, and then the function `head` exports are called in reverse order.
+
+Furthermore, if two values in arrays (like `meta` or `links`) have the same `key`, the last one wins. This allows you to override specific meta tags.
+Without a `key`, all entries are included.
+
 ### Server-injected Head
 
 You can also pass `documentHead` to `createRenderer()` as part of the `serverData` option.
 
-The values passed will be used as the default values for `useDocumentHead()`, before the `head` exports are resolved.
+The values passed will be used as the default values for `useDocumentHead()`, before the `head` exports are resolved. So layouts and pages can override the values set here.
 
 ```tsx title="src/entry.ssr.tsx" {10}
 import { createRenderer } from "@qwik.dev/router";

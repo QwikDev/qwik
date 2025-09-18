@@ -11,6 +11,7 @@ import type {
   Editable,
   ResolveSyncValue,
   ActionInternal,
+  ContentModuleHead,
 } from './types';
 import { isPromise } from './utils';
 
@@ -37,28 +38,36 @@ export const resolveHead = (
     }
     return data;
   }) as any as ResolveSyncValue;
-  const headProps: DocumentHeadProps = {
-    head,
-    withLocale: (fn) => withLocale(locale, fn),
-    resolveValue: getData,
-    ...routeLocation,
-  };
 
-  for (let i = contentModules.length - 1; i >= 0; i--) {
-    const contentModuleHead = contentModules[i] && contentModules[i].head;
+  const fns: Extract<ContentModuleHead, Function>[] = [];
+  for (const contentModule of contentModules) {
+    const contentModuleHead = contentModule?.head;
     if (contentModuleHead) {
       if (typeof contentModuleHead === 'function') {
-        resolveDocumentHead(
-          head,
-          withLocale(locale, () => contentModuleHead(headProps))
-        );
+        // Functions are executed inner before outer
+        fns.unshift(contentModuleHead);
       } else if (typeof contentModuleHead === 'object') {
+        // Objects are merged inner over outer
         resolveDocumentHead(head, contentModuleHead);
       }
     }
   }
+  if (fns.length) {
+    const headProps: DocumentHeadProps = {
+      head,
+      withLocale: (fn) => withLocale(locale, fn),
+      resolveValue: getData,
+      ...routeLocation,
+    };
 
-  return headProps.head;
+    withLocale(locale, () => {
+      for (const fn of fns) {
+        resolveDocumentHead(head, fn(headProps));
+      }
+    });
+  }
+
+  return head;
 };
 
 const resolveDocumentHead = (

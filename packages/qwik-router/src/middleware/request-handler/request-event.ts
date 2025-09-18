@@ -19,7 +19,7 @@ import {
   ServerError,
   RewriteMessage,
 } from '@qwik.dev/router/middleware/request-handler';
-import { encoder, getRouteLoaderPromise } from './resolve-request-handlers';
+import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -31,7 +31,18 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import {
+  IsQData,
+  IsQLoader,
+  IsQLoaderData,
+  Q_LOADER_DATA_JSON,
+  Q_LOADER_DATA_JSON_LEN,
+  QDATA_JSON,
+  QDATA_JSON_LEN,
+  QLoaderId,
+  SINGLE_LOADER_REGEX,
+} from './user-response';
+import { executeLoader } from './loader-endpoints';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -61,12 +72,26 @@ export function createRequestEvent(
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
+
+  const trimEnd = (length: number) => {
+    url.pathname = url.pathname.slice(0, -length);
     if (!globalThis.__NO_TRAILING_SLASH__ && !url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
+  };
+
+  if (url.pathname.endsWith(QDATA_JSON)) {
+    trimEnd(QDATA_JSON_LEN);
     sharedMap.set(IsQData, true);
+  } else if (url.pathname.endsWith(Q_LOADER_DATA_JSON)) {
+    trimEnd(Q_LOADER_DATA_JSON_LEN);
+    sharedMap.set(IsQLoaderData, true);
+  }
+  const loaderMatch = url.pathname.match(SINGLE_LOADER_REGEX);
+  if (loaderMatch) {
+    trimEnd(loaderMatch[0].length);
+    sharedMap.set(IsQLoader, true);
+    sharedMap.set(QLoaderId, loaderMatch[1]); // Store which loader was requested
   }
 
   let routeModuleIndex = -1;
@@ -211,7 +236,7 @@ export function createRequestEvent(
         }
         if (loaders[id] === _UNINITIALIZED) {
           const isDev = getRequestMode(requestEv) === 'dev';
-          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev);
+          await executeLoader(loaderOrAction, loaders, requestEv, isDev);
         }
       }
 

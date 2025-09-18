@@ -7,7 +7,7 @@ import {
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { QACTION_KEY, QLOADER_KEY } from './constants';
-import { loadClientData } from './use-endpoint';
+import { loadClientLoaderData } from './use-endpoint';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -98,10 +98,8 @@ export const createLoaderSignal = (
   return createAsyncComputed$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        const data = await loadClientData(url, undefined, {
-          loaderIds: [loaderId],
-        });
-        loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
+        const data = await loadClientLoaderData(url, loaderId);
+        loadersObject[loaderId] = data ?? _UNINITIALIZED;
       }
       return loadersObject[loaderId];
     },

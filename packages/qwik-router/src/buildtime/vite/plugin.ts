@@ -13,6 +13,7 @@ import { generateQwikRouterEntries } from '../runtime-generation/generate-entrie
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
 import type { RoutingContext } from '../types';
+import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
@@ -21,7 +22,6 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
-import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';

@@ -20,14 +20,14 @@ import {
   _getContextContainer,
   _getContextElement,
   _getQContainerElement,
-  _waitUntilRendered,
+  _hasStoreEffects,
   _UNINITIALIZED,
+  _waitUntilRendered,
+  forceStoreEffects,
   SerializerSymbol,
   type _ElementVNode,
   type AsyncComputedReadonlySignal,
   type SerializationStrategy,
-  forceStoreEffects,
-  _hasStoreEffects,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
 import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
@@ -43,6 +43,7 @@ import {
   RouteStateContext,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
+import transitionCss from './qwik-view-transition.css?inline';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -51,7 +52,6 @@ import {
   restoreScroll,
   saveScrollHistory,
 } from './scroll-restoration';
-import spaInit from './spa-init';
 import type {
   ClientPageData,
   ContentModule,
@@ -74,7 +74,6 @@ import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
-import transitionCss from './qwik-view-transition.css?inline';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -354,7 +353,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      loadClientData(dest, _getContextElement());
+      loadClientData(dest);
       loadRoute(
         qwikRouterConfig.routes,
         qwikRouterConfig.menus,
@@ -417,7 +416,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           trackUrl.pathname
         );
         elm = _getContextElement();
-        const pageData = (clientPageData = await loadClientData(trackUrl, elm, {
+        const pageData = (clientPageData = await loadClientData(trackUrl, {
           action,
           clearCache: true,
         }));

@@ -1,27 +1,23 @@
 import { type QRL } from '@qwik.dev/core';
 import { _serialize, _UNINITIALIZED, _verifySerializable } from '@qwik.dev/core/internal';
 import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
-import { QACTION_KEY, QFN_KEY, QLOADER_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
   type ActionInternal,
   type ClientPageData,
-  type DataValidator,
   type JSONObject,
   type LoadedRoute,
   type LoaderInternal,
   type PageModule,
   type RouteModule,
-  type ValidatorReturn,
 } from '../../runtime/src/types';
 import { HttpStatus } from './http-status-codes';
 import {
-  RequestEvIsRewrite,
   RequestEvShareQData,
   RequestEvShareServerTiming,
   RequestEvSharedActionId,
   RequestRouteName,
-  getRequestLoaderSerializationStrategyMap,
   getRequestLoaders,
   getRequestMode,
   type RequestEventInternal,
@@ -29,6 +25,13 @@ import {
 import { getQwikRouterServerData } from './response-page';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { IsQData, QDATA_JSON } from './user-response';
+import {
+  executeLoader,
+  singleLoaderHandler,
+  runValidators,
+  loaderDataHandler,
+} from './loader-endpoints';
+import { qDataHandler } from './qdata-endpoints';
 // Import separately to avoid duplicate imports in the vite dev server
 import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
 
@@ -84,7 +87,9 @@ export const resolveRequestHandlers = (
       }
 
       requestHandlers.push(fixTrailingSlash);
-      requestHandlers.push(renderQData);
+      requestHandlers.push(loaderDataHandler(routeLoaders));
+      requestHandlers.push(singleLoaderHandler(routeLoaders));
+      requestHandlers.push(qDataHandler);
     }
     requestHandlers.push(handleRedirect);
 
@@ -238,82 +243,11 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
     const isDev = getRequestMode(requestEv) === 'dev';
     if (routeLoaders.length > 0) {
       const resolvedLoadersPromises = routeLoaders.map((loader) =>
-        getRouteLoaderPromise(loader, loaders, requestEv, isDev)
+        executeLoader(loader, loaders, requestEv, isDev)
       );
       await Promise.all(resolvedLoadersPromises);
     }
   };
-}
-
-export async function getRouteLoaderPromise(
-  loader: LoaderInternal,
-  loaders: Record<string, unknown>,
-  requestEv: RequestEventInternal,
-  isDev: boolean
-) {
-  const loaderId = loader.__id;
-  loaders[loaderId] = runValidators(
-    requestEv,
-    loader.__validators,
-    undefined, // data
-    isDev
-  )
-    .then((res) => {
-      if (res.success) {
-        if (isDev) {
-          return measure<Promise<unknown>>(requestEv, loader.__qrl.getHash(), () =>
-            loader.__qrl.call(requestEv, requestEv)
-          );
-        } else {
-          return loader.__qrl.call(requestEv, requestEv);
-        }
-      } else {
-        return requestEv.fail(res.status ?? 500, res.error);
-      }
-    })
-    .then((resolvedLoader) => {
-      if (typeof resolvedLoader === 'function') {
-        loaders[loaderId] = resolvedLoader();
-      } else {
-        if (isDev) {
-          verifySerializable(resolvedLoader, loader.__qrl);
-        }
-        loaders[loaderId] = resolvedLoader;
-      }
-      return resolvedLoader;
-    });
-  const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
-  loadersSerializationStrategy.set(loaderId, loader.__serializationStrategy);
-  return loaders[loaderId];
-}
-
-async function runValidators(
-  requestEv: RequestEvent,
-  validators: DataValidator[] | undefined,
-  data: unknown,
-  isDev: boolean
-) {
-  let lastResult: ValidatorReturn = {
-    success: true,
-    data,
-  };
-  if (validators) {
-    for (const validator of validators) {
-      if (isDev) {
-        lastResult = await measure(requestEv, `validator$`, () =>
-          validator.validate(requestEv, data)
-        );
-      } else {
-        lastResult = await validator.validate(requestEv, data);
-      }
-      if (!lastResult.success) {
-        return lastResult;
-      } else {
-        data = lastResult.data;
-      }
-    }
-  }
-  return lastResult;
 }
 
 function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {
@@ -566,62 +500,6 @@ export async function handleRedirect(requestEv: RequestEvent) {
       requestEv.headers.delete('Location');
     }
   }
-}
-
-export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.sharedMap.has(IsQData);
-  if (!isPageDataReq) {
-    return;
-  }
-  await requestEv.next();
-
-  if (requestEv.headersSent || requestEv.exited) {
-    return;
-  }
-
-  const status = requestEv.status();
-  const redirectLocation = requestEv.headers.get('Location');
-
-  const requestHeaders: Record<string, string> = {};
-  requestEv.request.headers.forEach((value, key) => (requestHeaders[key] = value));
-  requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
-
-  let loaders = getRequestLoaders(requestEv);
-  const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
-
-  const hasCustomLoaders = selectedLoaderIds.length > 0;
-
-  if (hasCustomLoaders) {
-    const selectedLoaders: Record<string, unknown> = {};
-    for (const loaderId of selectedLoaderIds) {
-      const loader = loaders[loaderId];
-      selectedLoaders[loaderId] = loader;
-    }
-    loaders = selectedLoaders;
-  }
-
-  const qData: ClientPageData = hasCustomLoaders
-    ? {
-        // send minimal data to the client
-        loaders,
-        status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url),
-      }
-    : {
-        loaders,
-        action: requestEv.sharedMap.get(RequestEvSharedActionId),
-        status: status !== 200 ? status : 200,
-        href: getPathname(requestEv.url),
-        redirect: redirectLocation ?? undefined,
-        isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
-      };
-  const writer = requestEv.getWritableStream().getWriter();
-  // write just the page json data to the response body
-  const data = await _serialize([qData]);
-  writer.write(encoder.encode(data));
-  requestEv.sharedMap.set(RequestEvShareQData, qData);
-
-  writer.close();
 }
 
 function makeQDataPath(href: string) {

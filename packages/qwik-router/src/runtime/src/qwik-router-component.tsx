@@ -71,7 +71,7 @@ import type {
   ScrollState,
 } from './types';
 import { loadClientData } from './use-endpoint';
-import { useInstanceHash, useQwikRouterEnv } from './use-functions';
+import { useManifestHash, useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 
@@ -134,7 +134,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     throw new Error(`Missing Qwik URL Env Data`);
   }
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
-  const instanceHash = useInstanceHash();
+  const manifestHash = useManifestHash();
 
   if (isServer) {
     if (
@@ -181,7 +181,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       key,
       url,
       getSerializationStrategy(key),
-      instanceHash!,
+      manifestHash!,
       container
     );
   }
@@ -355,8 +355,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     routeInternal.value = { type, dest, forceReload, replaceState, scroll };
 
     if (isBrowser) {
-      if (instanceHash) {
-        loadClientData(dest, instanceHash);
+      if (manifestHash) {
+        loadClientData(dest, manifestHash);
       }
       loadRoute(
         qwikRouterConfig.routes,
@@ -421,8 +421,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         );
         elm = _getContextElement();
         const pageData =
-          instanceHash &&
-          (clientPageData = await loadClientData(trackUrl, instanceHash, {
+          manifestHash &&
+          (clientPageData = await loadClientData(trackUrl, manifestHash, {
             action,
             clearCache: true,
           }));
@@ -547,7 +547,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                   key,
                   trackUrl,
                   DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
-                  instanceHash!,
+                  manifestHash!,
                   container
                 );
               } else {

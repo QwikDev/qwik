@@ -8,14 +8,14 @@ interface LoaderDataResponse {
   route: string;
 }
 
-export const loadClientLoaderData = async (url: URL, loaderId: string, instanceHash: string) => {
+export const loadClientLoaderData = async (url: URL, loaderId: string, manifestHash: string) => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
-  return fetchLoader(loaderId, pagePathname, instanceHash);
+  return fetchLoader(loaderId, pagePathname, manifestHash);
 };
 
 export const loadClientData = async (
   url: URL,
-  instanceHash: string,
+  manifestHash: string,
   opts?: {
     action?: RouteActionValue;
     loaderIds?: string[];
@@ -33,7 +33,7 @@ export const loadClientData = async (
   if (!opts?.loaderIds) {
     // we need to load all the loaders
     // first we need to get the loader urls
-    loaderData = (await fetchLoaderData(pagePathname, instanceHash)).loaderData;
+    loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
   } else {
     loaderData = opts.loaderIds.map((loaderId) => {
       return {
@@ -47,7 +47,7 @@ export const loadClientData = async (
   if (loaderData.length > 0) {
     // load specific loaders
     const loaderPromises = loaderData.map((loader) =>
-      fetchLoader(loader.id, loader.route, instanceHash)
+      fetchLoader(loader.id, loader.route, manifestHash)
     );
     const loaderResults = await Promise.all(loaderPromises);
     for (let i = 0; i < loaderData.length; i++) {
@@ -116,9 +116,9 @@ export const loadClientData = async (
 
 export async function fetchLoaderData(
   routePath: string,
-  instanceHash: string
+  manifestHash: string
 ): Promise<{ loaderData: LoaderDataResponse[] }> {
-  const url = `${routePath}q-loader-data.${instanceHash}.json`;
+  const url = `${routePath}q-loader-data.${manifestHash}.json`;
   const response = await fetch(url);
   return response.json();
 }
@@ -126,9 +126,9 @@ export async function fetchLoaderData(
 export async function fetchLoader(
   loaderId: string,
   routePath: string,
-  instanceHash: string
+  manifestHash: string
 ): Promise<unknown> {
-  const url = `${routePath}q-loader-${loaderId}.${instanceHash}.json`;
+  const url = `${routePath}q-loader-${loaderId}.${manifestHash}.json`;
 
   const response = await fetch(url);
   if (!response.ok) {

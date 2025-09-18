@@ -85,8 +85,6 @@ import { VNodeFlags, type ClientContainer } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { StoreHandler } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
@@ -227,7 +225,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
     host: HostElement | null,
-    target: Signal | StoreHandler,
+    target: Signal<unknown> | StoreTarget,
     effects: Set<EffectSubscription> | null
   ): Chore<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>;
   function schedule(
@@ -714,11 +712,7 @@ This is often caused by modifying a signal in an already rendered component duri
       }
       case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
         {
-          const target = chore.$target$ as
-            | SignalImpl
-            | ComputedSignalImpl<unknown>
-            | WrappedSignalImpl<unknown>
-            | StoreHandler;
+          const target = chore.$target$ as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>;
 
           const effects = chore.$payload$ as Set<EffectSubscription>;
           if (!effects?.size) {
@@ -727,6 +721,8 @@ This is often caused by modifying a signal in an already rendered component duri
 
           let shouldCompute =
             target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl;
+
+          // for .error and .loading effects
           if (target instanceof AsyncComputedSignalImpl && effects !== target.$effects$) {
             shouldCompute = false;
           }

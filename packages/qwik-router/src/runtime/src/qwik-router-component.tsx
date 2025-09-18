@@ -708,9 +708,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
             removeEventListener('scroll', win._qRouterInitScroll!);
             win._qRouterInitScroll = undefined;
-
-            // Cache SPA recovery script.
-            spaInit.resolve();
           }
 
           if (navType !== 'popstate') {

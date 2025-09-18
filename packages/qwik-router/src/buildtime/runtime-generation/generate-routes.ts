@@ -1,5 +1,5 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
+import { getPathnameFromDirPath, isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
 import type { RoutingContext, BuiltRoute } from '../types';
 import { getImportPath } from './utils';
 
@@ -120,4 +120,63 @@ function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuiltRoute) {
   }
 
   return bundlesNames;
+}
+
+export function createLoaderIdToRoute(
+  ctx: RoutingContext,
+  qwikPlugin: QwikVitePlugin,
+  c: string[]
+) {
+  const manifest = qwikPlugin.api.getManifest();
+  const loaderSymbols: Record<string, string> = {};
+  const mainDir = ctx.routes[0].routeName;
+  const routesDir = ctx.opts.routesDir.split('/').pop()!;
+
+  if (manifest) {
+    for (const symbolData of Object.values(manifest.symbols)) {
+      if (symbolData.ctxName === 'routeLoader$') {
+        // extract file name from origin
+        const fileName = symbolData.origin.split('/').pop();
+        if (!fileName) {
+          console.warn(`File name not found for loader: ${symbolData.origin}`);
+          continue;
+        }
+
+        const filePath =
+          mainDir +
+          symbolData.origin
+            .replace(routesDir, '')
+            .replace(fileName, '')
+            // remove trailing slash
+            .substring(1);
+
+        const routePath = getPathnameFromDirPath(ctx.opts, filePath);
+        const route = ctx.routes.find((r) => r.pathname === routePath);
+        if (route) {
+          // everything fine, route exists we can use that
+          loaderSymbols[symbolData.hash] = routePath;
+        } else {
+          /**
+           * Route not found, we need to get first available route this is the case for folders with
+           * layout files only like:
+           *
+           * ```
+           * layout-only/
+           * ├─ inner-route/
+           * │ └─ index.tsx
+           * └─ layout.tsx
+           * ```
+           */
+          const firstRoute = ctx.routes.find((r) => r.pathname.startsWith(filePath));
+          if (firstRoute) {
+            loaderSymbols[symbolData.hash] = firstRoute.pathname;
+          } else {
+            console.warn(`Route not found for loader: ${symbolData.origin}`);
+          }
+        }
+      }
+    }
+  }
+
+  c.push(`export const loaderIdToRoute = ${JSON.stringify(loaderSymbols)};`);
 }

@@ -4,12 +4,14 @@ declare module '@qwik-router-config' {
   export const trailingSlash: boolean;
   export const basePathname: string;
   export const cacheModules: boolean;
+  export const loaderIdToRoute: Record<string, string>;
   const defaultExport: {
     routes: any[];
     menus: any[];
     trailingSlash: boolean;
     basePathname: string;
     cacheModules: boolean;
+    loaderIdToRoute: Record<string, string>;
   };
   export default defaultExport;
 }

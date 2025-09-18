@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 865
+assertion_line: 866
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -19,6 +18,32 @@ export const Works = component$((props) => {
 	);
 });
 
+============================= test.tsx_Works_component_Fragment_div_onClick_nO4DPVZWP7g.js (ENTRY POINT)==
+
+export const Works_component_Fragment_div_onClick_nO4DPVZWP7g = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Works_component_Fragment_div_onClick_nO4DPVZWP7g",
+  "entry": null,
+  "displayName": "test.tsx_Works_component_Fragment_div_onClick",
+  "hash": "nO4DPVZWP7g",
+  "canonicalFilename": "test.tsx_Works_component_Fragment_div_onClick_nO4DPVZWP7g",
+  "path": "",
+  "extension": "js",
+  "parent": "Works_component_t45qL4vNGv0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
 ============================= test.js ==
 
 import "./foo";

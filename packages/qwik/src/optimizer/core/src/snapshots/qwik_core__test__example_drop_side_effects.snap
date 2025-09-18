@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 821
+assertion_line: 822
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -36,6 +35,32 @@ export default component$(() => {
 	)
 	});
 
+============================= test.tsx_api_server_JonPp043gH0.js (ENTRY POINT)==
+
+export const api_server_JonPp043gH0 = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "api_server_JonPp043gH0",
+  "entry": null,
+  "displayName": "test.tsx_api_server",
+  "hash": "JonPp043gH0",
+  "canonicalFilename": "test.tsx_api_server_JonPp043gH0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "server$",
+  "captures": false,
+  "loc": [
+    0,
+    0
+  ]
+}
+*/
 ============================= test.js ==
 
 import { serverQrl } from "@qwik.dev/router";

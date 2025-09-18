@@ -1,8 +1,8 @@
-import { getClientDataPath } from './utils';
-import { CLIENT_DATA_CACHE } from './constants';
-import type { ClientPageData, RouteActionValue } from './types';
 import { _deserialize } from '@qwik.dev/core/internal';
 import { preloadRouteBundles } from './client-navigate';
+import { CLIENT_DATA_CACHE } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
+import { getClientDataPath } from './utils';
 
 const MAX_Q_DATA_RETRY_COUNT = 3;
 

@@ -31,7 +31,7 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, getRouteMatchPathname } from './user-response';
+import { IsQData, QDATA_JSON, getRouteMatchPathname } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');

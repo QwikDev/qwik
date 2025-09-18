@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1929
+assertion_line: 1930
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -44,6 +43,93 @@ export const Parent = component$(() => {
 	);
 });
 
+============================= components/component.tsx_Parent_component_useClientMount_Yn2kIDABoYw.js (ENTRY POINT)==
+
+export const Parent_component_useClientMount_Yn2kIDABoYw = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "components/component.tsx",
+  "name": "Parent_component_useClientMount_Yn2kIDABoYw",
+  "entry": null,
+  "displayName": "component.tsx_Parent_component_useClientMount",
+  "hash": "Yn2kIDABoYw",
+  "canonicalFilename": "component.tsx_Parent_component_useClientMount_Yn2kIDABoYw",
+  "path": "components",
+  "extension": "js",
+  "parent": "Parent_component_t6Wy3C0Q0XM",
+  "ctxKind": "function",
+  "ctxName": "useClientMount$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= components/component.tsx_Parent_component_div_shouldRemove_EBj69wTX1do.js (ENTRY POINT)==
+
+export const Parent_component_div_shouldRemove_EBj69wTX1do = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "components/component.tsx",
+  "name": "Parent_component_div_shouldRemove_EBj69wTX1do",
+  "entry": null,
+  "displayName": "component.tsx_Parent_component_div_shouldRemove",
+  "hash": "EBj69wTX1do",
+  "canonicalFilename": "component.tsx_Parent_component_div_shouldRemove_EBj69wTX1do",
+  "path": "components",
+  "extension": "js",
+  "parent": "Parent_component_t6Wy3C0Q0XM",
+  "ctxKind": "eventHandler",
+  "ctxName": "shouldRemove$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
+============================= components/component.tsx_Parent_component_div_onClick_0PioS4FByUg.js (ENTRY POINT)==
+
+export const Parent_component_div_onClick_0PioS4FByUg = null;
+
+
+Some("{\"version\":3,\"sources\":[],\"names\":[],\"mappings\":\"\"}")
+/*
+{
+  "origin": "components/component.tsx",
+  "name": "Parent_component_div_onClick_0PioS4FByUg",
+  "entry": null,
+  "displayName": "component.tsx_Parent_component_div_onClick",
+  "hash": "0PioS4FByUg",
+  "canonicalFilename": "component.tsx_Parent_component_div_onClick_0PioS4FByUg",
+  "path": "components",
+  "extension": "js",
+  "parent": "Parent_component_t6Wy3C0Q0XM",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    0,
+    0
+  ],
+  "captureNames": [
+    "state"
+  ]
+}
+*/
 ============================= components/component.js ==
 
 import "./keep";

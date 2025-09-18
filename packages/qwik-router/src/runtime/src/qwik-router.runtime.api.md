@@ -331,6 +331,8 @@ export interface QwikRouterConfig {
     // (undocumented)
     readonly cacheModules?: boolean;
     // (undocumented)
+    readonly loaderIdToRoute?: Record<string, string>;
+    // (undocumented)
     readonly menus?: MenuData[];
     // (undocumented)
     readonly routes: RouteData[];

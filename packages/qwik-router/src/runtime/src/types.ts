@@ -307,6 +307,7 @@ export interface QwikRouterConfig {
   readonly menus?: MenuData[];
   readonly trailingSlash?: boolean;
   readonly cacheModules?: boolean;
+  readonly loaderIdToRoute?: Record<string, string>;
 }
 
 /** @public */

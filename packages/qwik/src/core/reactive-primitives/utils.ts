@@ -84,7 +84,7 @@ export const addQrlToSerializationCtx = (
   }
 };
 
-export const triggerEffects = (
+export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null

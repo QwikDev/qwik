@@ -12,7 +12,7 @@ import {
   SignalFlags,
   WrappedSignalFlags,
 } from '../types';
-import { triggerEffects } from '../utils';
+import { scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
@@ -57,7 +57,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     // if the computation not failed, we can run the effects directly
     if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
       this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
-      triggerEffects(this.$container$, this, this.$effects$);
+      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 

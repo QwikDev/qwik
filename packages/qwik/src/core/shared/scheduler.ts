@@ -95,7 +95,7 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from '../reactive-primitives/types';
-import { triggerEffects } from '../reactive-primitives/utils';
+import { scheduleEffects } from '../reactive-primitives/utils';
 import { type ISsrNode, type SSRContainer } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -738,13 +738,13 @@ This is often caused by modifying a signal in an already rendered component duri
               () => {
                 if ((target as ComputedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
                   (target as ComputedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
-                  return retryOnPromise(() => triggerEffects(container, target, effects));
+                  return retryOnPromise(() => scheduleEffects(container, target, effects));
                 }
               }
             ) as ValueOrPromise<ChoreReturnValue<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>>;
           } else {
             returnValue = retryOnPromise(() => {
-              triggerEffects(container, target, effects);
+              scheduleEffects(container, target, effects);
             }) as ValueOrPromise<ChoreReturnValue<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>>;
           }
         }

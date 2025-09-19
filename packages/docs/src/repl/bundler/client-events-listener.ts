@@ -2,7 +2,7 @@ import type { QwikSymbolEvent } from '@builder.io/qwik';
 import type { ReplEvent } from '../types';
 
 (() => {
-  const replId = location.pathname.split('/')[2];
+  const replId = location.pathname.split('/')[3];
   const origConsole: Record<string, any> = {};
 
   const sendToServerWindow = (data: Omit<ReplEvent, 'start'>) => {

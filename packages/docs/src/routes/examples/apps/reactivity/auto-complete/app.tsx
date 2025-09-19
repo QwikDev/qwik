@@ -7,7 +7,7 @@ export default component$(() => {
       <br />
       <br />
       Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
-      <a href="https://swapi-node.vercel.app/">Star Wars API</a>:
+      <a href="https://swapi.py4e.com/">Star Wars API</a>:
       <br />
       <br />
       <AutoComplete></AutoComplete>
@@ -68,16 +68,16 @@ export const SuggestionsListComponent = (props: { state: IState }) => {
 };
 
 const getPeople = (searchInput: string, controller?: AbortController): Promise<string[]> =>
-  fetch(`https://swapi-node.vercel.app/api/people/?search=${searchInput}`, {
+  fetch(`https://swapi.py4e.com/api/people/?search=${searchInput}`, {
     signal: controller?.signal,
   })
     .then((response) => {
       return response.json();
     })
     .then((parsedResponse) => {
-      debugger;
-      return parsedResponse.results.map((people: any) => people.fields.name);
-    });
+      return parsedResponse.results.map((people: { name: string }) => people.name);
+    })
+    .catch((e) => console.error('fetch failed', e));
 
 function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
   let timeoutId: ReturnType<typeof setTimeout>;

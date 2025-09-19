@@ -9,7 +9,6 @@ import { IsQData } from './user-response';
 export interface QData {
   status: number;
   href: string;
-  redirect?: string;
   isRewrite?: boolean;
 }
 
@@ -24,14 +23,12 @@ export async function qDataHandler(requestEv: RequestEvent) {
   }
 
   const status = requestEv.status();
-  const redirectLocation = requestEv.headers.get('Location');
 
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
 
   const qData: QData = {
     status,
     href: getPathname(requestEv.url),
-    redirect: redirectLocation ?? undefined,
     isRewrite: requestEv.sharedMap.get(RequestEvIsRewrite),
   };
 

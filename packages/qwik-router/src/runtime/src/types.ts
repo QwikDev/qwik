@@ -18,6 +18,7 @@ import type {
 } from '@qwik.dev/router/middleware/request-handler';
 import type * as v from 'valibot';
 import type * as z from 'zod';
+import type { QData } from '../../middleware/request-handler/qdata-endpoints';
 import type { Q_ROUTE } from './constants';
 
 export type {
@@ -343,10 +344,9 @@ export interface ClientActionData {
   data: unknown;
 }
 
-export interface ClientPageData extends Omit<EndpointResponse, 'loadersSerializationStrategy'> {
-  href: string;
-  redirect?: string;
-  isRewrite?: boolean;
+export interface ClientPageData extends QData {
+  loaders: Record<string, unknown>;
+  action?: ClientActionData;
 }
 
 export interface LoaderData {

@@ -30,7 +30,7 @@ import {
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { clientNavigate } from './client-navigate';
-import { CLIENT_DATA_CACHE, DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
+import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY, Q_ROUTE } from './constants';
 import {
   ContentContext,
   ContentInternalContext,
@@ -555,7 +555,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               }
             }
           }
-          CLIENT_DATA_CACHE.clear();
 
           const win = window as ClientSPAWindow;
           if (!win._qRouterSPA) {

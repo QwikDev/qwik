@@ -140,6 +140,13 @@
         "enableSsrOutput": false
       },
       {
+        "id": "use-signal",
+        "title": "useSignal()",
+        "enableHtmlOutput": false,
+        "enableClientOutput": false,
+        "enableSsrOutput": false
+      },
+      {
         "id": "recursive",
         "title": "Recursive Store",
         "enableHtmlOutput": false,
@@ -234,13 +241,6 @@
         "enableSsrOutput": false
       },
       {
-        "id": "use-signal",
-        "title": "useSignal()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
         "id": "use-visible-task",
         "title": "useVisibleTask$()",
         "enableHtmlOutput": false,
@@ -250,13 +250,6 @@
       {
         "id": "use-on",
         "title": "useOn() / useOnDocument() / useOnWindow()",
-        "enableHtmlOutput": false,
-        "enableClientOutput": false,
-        "enableSsrOutput": false
-      },
-      {
-        "id": "use-un-mount",
-        "title": "useUnMount$()",
         "enableHtmlOutput": false,
         "enableClientOutput": false,
         "enableSsrOutput": false

@@ -1,14 +1,14 @@
+import { _serialize, type ValueOrPromise } from '@qwik.dev/core/internal';
 import type {
   ActionInternal,
   JSONObject,
   RequestEvent,
   RequestHandler,
 } from '../../../runtime/src/types';
-import { runValidators } from './loader-handler';
 import { getRequestActions, getRequestMode, type RequestEventInternal } from '../request-event';
 import { measure, verifySerializable } from '../resolve-request-handlers';
 import { IsQAction, QActionId } from '../user-response';
-import { _serialize, _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
+import { runValidators } from './validator-utils';
 
 export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
@@ -58,7 +58,7 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
       await executeAction(action, actions, requestEv, isDev);
 
       if (requestEv.request.headers.get('accept')?.includes('application/json')) {
-        // only return the action data if the client accepts json, otherwise return the html page
+        // only return the action data if the client accepts json, otherwise it will return the html page (for forms)
         const data = await _serialize([actions[actionId]]);
         requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
         requestEv.send(200, data);

@@ -5,7 +5,7 @@ import { HttpStatus } from '../http-status-codes';
 export function fixTrailingSlash(ev: RequestEvent) {
   const { basePathname, originalUrl, sharedMap } = ev;
   const { pathname, search } = originalUrl;
-  const isQData = isQDataRequestBasedOnSharedMap(sharedMap);
+  const isQData = isQDataRequestBasedOnSharedMap(sharedMap, ev.request.headers);
   if (!isQData && pathname !== basePathname && !pathname.endsWith('.html')) {
     // only check for slash redirect on pages
     if (!globalThis.__NO_TRAILING_SLASH__) {

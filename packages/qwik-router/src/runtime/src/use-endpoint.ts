@@ -1,17 +1,29 @@
-import { _deserialize } from '@qwik.dev/core/internal';
+import { _deserialize, isDev } from '@qwik.dev/core/internal';
 import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 import { preloadRouteBundles } from './client-navigate';
 import { QACTION_KEY } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
+
+class ShouldRedirect<T> {
+  constructor(
+    public location: string,
+    public data: T
+  ) {}
+}
 
 interface LoaderDataResponse {
   id: string;
   route: string;
 }
 
+interface RedirectContext {
+  promise: Promise<unknown> | undefined;
+}
+
 export const loadClientLoaderData = async (url: URL, loaderId: string, manifestHash: string) => {
   const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
-  return fetchLoader(loaderId, pagePathname, manifestHash);
+  const abortController = new AbortController();
+  return fetchLoader(loaderId, pagePathname, manifestHash, abortController, { promise: undefined });
 };
 
 export const loadClientData = async (
@@ -20,6 +32,7 @@ export const loadClientData = async (
   opts?: {
     action?: RouteActionValue;
     loaderIds?: string[];
+    redirectData?: ShouldRedirect<LoaderDataResponse[]>;
     clearCache?: boolean;
     preloadRouteBundles?: boolean;
     isPrefetch?: boolean;
@@ -34,33 +47,69 @@ export const loadClientData = async (
   let resolveFn: () => void | undefined;
   let actionData: unknown;
   if (opts?.action) {
-    const actionResult = await fetchActionData(opts.action, pagePathname, url.searchParams);
-    actionData = actionResult.data;
-    resolveFn = () => {
-      opts.action!.resolve!({ status: actionResult.status, result: actionData });
-    };
+    try {
+      const actionResult = await fetchActionData(opts.action, pagePathname, url.searchParams);
+      actionData = actionResult.data;
+      resolveFn = () => {
+        opts.action!.resolve!({ status: actionResult.status, result: actionData });
+      };
+    } catch (e) {
+      if (e instanceof ShouldRedirect) {
+        const newUrl = new URL(e.location, url);
+        const newOpts = {
+          ...opts,
+          action: undefined,
+          loaderIds: undefined,
+          redirectData: e,
+        };
+        return loadClientData(newUrl, manifestHash, newOpts);
+      } else {
+        throw e;
+      }
+    }
   } else {
     let loaderData: LoaderDataResponse[] = [];
-    if (!opts?.loaderIds) {
-      // we need to load all the loaders
-      // first we need to get the loader urls
-      loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
-    } else {
+    if (opts && opts.loaderIds) {
       loaderData = opts.loaderIds.map((loaderId) => {
         return {
           id: loaderId,
           route: pagePathname,
         };
       });
+    } else if (opts?.redirectData?.data) {
+      loaderData = opts.redirectData.data;
+    } else {
+      // we need to load all the loaders
+      // first we need to get the loader urls
+      loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
     }
     if (loaderData.length > 0) {
       // load specific loaders
-      const loaderPromises = loaderData.map((loader) =>
-        fetchLoader(loader.id, loader.route, manifestHash)
-      );
-      const loaderResults = await Promise.all(loaderPromises);
-      for (let i = 0; i < loaderData.length; i++) {
-        loaders[loaderData[i].id] = loaderResults[i];
+      const abortController = new AbortController();
+      const redirectContext: RedirectContext = { promise: undefined };
+      try {
+        const loaderPromises = loaderData.map((loader) =>
+          fetchLoader(loader.id, loader.route, manifestHash, abortController, redirectContext)
+        );
+        const loaderResults = await Promise.all(loaderPromises);
+        for (let i = 0; i < loaderData.length; i++) {
+          loaders[loaderData[i].id] = loaderResults[i];
+        }
+      } catch (e) {
+        if (e instanceof ShouldRedirect) {
+          const newUrl = new URL(e.location, url);
+          const newOpts = {
+            ...opts,
+            action: undefined,
+            loaderIds: undefined,
+            redirectData: e,
+          };
+          return loadClientData(newUrl, manifestHash, newOpts);
+        } else if (e instanceof Error && e.name === 'AbortError') {
+          // Expected, do nothing
+        } else {
+          throw e;
+        }
       }
     }
   }
@@ -118,24 +167,57 @@ export async function fetchLoaderData(
 ): Promise<{ loaderData: LoaderDataResponse[] }> {
   const url = `${routePath}q-loader-data.${manifestHash}.json`;
   const response = await fetch(url);
+
+  if (!response.ok) {
+    if (isDev) {
+      throw new Error(`Failed to load loader data for ${routePath}: ${response.status}`);
+    }
+    return { loaderData: [] };
+  }
   return response.json();
 }
 
 export async function fetchLoader(
   loaderId: string,
   routePath: string,
-  manifestHash: string
+  manifestHash: string,
+  abortController: AbortController,
+  redirectContext: RedirectContext
 ): Promise<unknown> {
   const url = `${routePath}q-loader-${loaderId}.${manifestHash}.json`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    signal: abortController.signal,
+  });
+
+  if (response.redirected) {
+    if (!redirectContext.promise) {
+      redirectContext.promise = response.json();
+
+      abortController.abort();
+
+      const data = await redirectContext.promise;
+      // remove the q-loader-XY.json from the url and keep the rest of the url
+      // the url is like this: https://localhost:3000/q-loader-XY.json
+      // we need to remove the q-loader-XY.json and keep the rest of the url
+      // the new url is like this: https://localhost:3000/
+      const newUrl = new URL(response.url);
+      newUrl.pathname = newUrl.pathname.replace(`q-loader-data.${manifestHash}.json`, '');
+      throw new ShouldRedirect(
+        newUrl.pathname,
+        (data as { loaderData: LoaderDataResponse[] }).loaderData
+      );
+    }
+  }
   if (!response.ok) {
-    throw new Error(`Failed to load ${loaderId}: ${response.status}`);
+    if (isDev) {
+      throw new Error(`Failed to load ${loaderId}: ${response.status}`);
+    }
+    return undefined;
   }
 
   const text = await response.text();
   const [data] = _deserialize(text, document.documentElement) as [Record<string, unknown>];
-
   return data;
 }
 
@@ -158,6 +240,12 @@ export async function fetchActionData(
   // TODO: why we need it?
   action.data = undefined;
   const response = await fetch(url, fetchOptions);
+
+  if (response.redirected) {
+    const newUrl = new URL(response.url);
+    newUrl.pathname = newUrl.pathname.replace('q-data.json', '');
+    throw new ShouldRedirect(newUrl.pathname, undefined);
+  }
 
   const text = await response.text();
   const [data] = _deserialize(text, document.documentElement) as [Record<string, unknown>];

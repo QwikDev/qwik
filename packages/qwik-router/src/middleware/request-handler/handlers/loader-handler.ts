@@ -49,7 +49,6 @@ export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandle
       maxAge: 365 * 24 * 60 * 60, // 1 year
     });
 
-    // return loader data: id and route
     const loaderData = routeLoaders.map((l) => {
       const loaderId = l.__id;
       let loaderRoute = qwikRouterConfig.loaderIdToRoute[loaderId];

@@ -1,9 +1,12 @@
 import { RedirectMessage, RequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { OriginalQDataName } from '../user-response';
 import { isQDataRequestBasedOnSharedMap } from '../resolve-request-handlers';
+import { QDATA_JSON, QManifestHash } from '../user-response';
 
 export async function handleRedirect(requestEv: RequestEvent) {
-  const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
+  const isPageDataReq = isQDataRequestBasedOnSharedMap(
+    requestEv.sharedMap,
+    requestEv.request.headers
+  );
   if (!isPageDataReq) {
     return;
   }
@@ -40,7 +43,8 @@ function makeQDataPath(href: string, sharedMap: Map<string, unknown>) {
   if (href.startsWith('/')) {
     const url = new URL(href, 'http://localhost');
     const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
-    const append = sharedMap.get(OriginalQDataName) as string;
+    const manifestHash = sharedMap.get(QManifestHash) as string;
+    const append = manifestHash ? `/q-loader-data.${manifestHash}.json` : QDATA_JSON;
 
     if (!append) {
       return undefined;

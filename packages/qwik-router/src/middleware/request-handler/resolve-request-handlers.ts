@@ -28,7 +28,7 @@ import {
 } from './request-event';
 import { getQwikRouterServerData } from './response-page';
 import type { RequestEvent, RequestEventBase, RequestHandler } from './types';
-import { IsQData, IsQLoader, IsQLoaderData, QActionId } from './user-response';
+import { IsQAction, IsQData, IsQLoader, IsQLoaderData, QActionId } from './user-response';
 
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
@@ -75,7 +75,6 @@ export const resolveRequestHandlers = (
         requestHandlers.unshift(csrfCheckMiddleware);
       }
     }
-    requestHandlers.push(handleRedirect);
     if (isPageRoute) {
       if (method === 'POST' || method === 'GET') {
         // server$
@@ -87,6 +86,7 @@ export const resolveRequestHandlers = (
         ev.sharedMap.set(RequestRouteName, routeName);
       });
       requestHandlers.push(fixTrailingSlash);
+      requestHandlers.push(handleRedirect);
       requestHandlers.push(loaderDataHandler(routeLoaders));
       requestHandlers.push(loaderHandler(routeLoaders));
       requestHandlers.push(actionHandler(routeActions));
@@ -170,8 +170,15 @@ export const checkBrand = (obj: any, brand: string) => {
   return obj && typeof obj === 'function' && obj.__brand === brand;
 };
 
-export function isQDataRequestBasedOnSharedMap(sharedMap: Map<string, unknown>) {
-  return sharedMap.has(IsQData) || sharedMap.has(IsQLoaderData) || sharedMap.has(IsQLoader);
+export function isQDataRequestBasedOnSharedMap(sharedMap: Map<string, unknown>, headers: Headers) {
+  return (
+    sharedMap.has(IsQData) ||
+    sharedMap.has(IsQLoaderData) ||
+    sharedMap.has(IsQLoader) ||
+    (sharedMap.has(IsQAction) &&
+      // we need to ignore actions without JS enabled and render the page
+      headers.get('accept')?.includes('application/json'))
+  );
 }
 
 export function verifySerializable(data: any, qrl: QRL) {
@@ -219,7 +226,10 @@ export function renderQwikMiddleware(render: Render) {
     if (requestEv.headersSent) {
       return;
     }
-    const isPageDataReq = isQDataRequestBasedOnSharedMap(requestEv.sharedMap);
+    const isPageDataReq = isQDataRequestBasedOnSharedMap(
+      requestEv.sharedMap,
+      requestEv.request.headers
+    );
     if (isPageDataReq) {
       return;
     }

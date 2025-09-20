@@ -26,6 +26,9 @@ describe('fixTrailingSlash', () => {
       originalUrl: new URL('http://localhost/test'),
       sharedMap: new Map(),
       redirect: vi.fn(),
+      request: {
+        headers: {},
+      },
     } as unknown as Mocked<RequestEvent>;
 
     // Set up default mocks

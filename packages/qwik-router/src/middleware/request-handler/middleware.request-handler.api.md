@@ -179,7 +179,7 @@ export interface ResolveSyncValue {
     // (undocumented)
     <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
     // (undocumented)
-    <T>(action: Action<T>): Awaited<T> | undefined;
+    <O, I, B extends boolean>(action: Action<O, I, B>): O | undefined;
 }
 
 // @public (undocumented)
@@ -187,7 +187,7 @@ export interface ResolveValue {
     // (undocumented)
     <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
     // (undocumented)
-    <T>(action: Action<T>): Promise<T | undefined>;
+    <O, I, B extends boolean>(action: Action<O, I, B>): Promise<O | undefined>;
 }
 
 // @public (undocumented)

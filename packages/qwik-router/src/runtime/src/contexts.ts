@@ -2,6 +2,7 @@ import { createContextId, type Signal } from '@qwik.dev/core';
 import type {
   ContentState,
   ContentStateInternal,
+  LoaderSignal,
   ResolvedDocumentHead,
   RouteAction,
   RouteLocation,
@@ -11,7 +12,7 @@ import type {
 } from './types';
 
 export const RouteStateContext =
-  /*#__PURE__*/ createContextId<Record<string, Signal<unknown>>>('qc-s');
+  /*#__PURE__*/ createContextId<Record<string, LoaderSignal<unknown>>>('qc-s');
 
 export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qc-c');
 export const ContentInternalContext =

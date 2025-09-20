@@ -2,11 +2,10 @@ import type {
   NoSerialize,
   QRL,
   QwikIntrinsicElements,
-  ReadonlySignal,
   Signal,
   ValueOrPromise,
 } from '@qwik.dev/core';
-import type { SerializationStrategy } from '@qwik.dev/core/internal';
+import type { AsyncComputedReadonlySignal, SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   EnvGetter,
   RequestEvent,
@@ -810,8 +809,8 @@ export type FailReturn<T> = T & Failed;
 
 /** @public */
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR>
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>;
+  ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : AsyncComputedReadonlySignal<TYPE>;
 
 /** @public */
 export type Loader<RETURN> = {

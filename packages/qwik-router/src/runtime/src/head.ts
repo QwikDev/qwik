@@ -36,7 +36,7 @@ export const resolveHead = (
       throw new Error('Loaders returning a promise can not be resolved for the head function.');
     }
     return data;
-  }) as any as ResolveSyncValue;
+  }) as ResolveSyncValue;
   const headProps: DocumentHeadProps = {
     head,
     withLocale: (fn) => withLocale(locale, fn),

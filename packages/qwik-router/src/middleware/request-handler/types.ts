@@ -503,13 +503,13 @@ export interface RequestEventLoader<PLATFORM = QwikRouterPlatform>
 /** @public */
 export interface ResolveValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Promise<T>;
-  <T>(action: Action<T>): Promise<T | undefined>;
+  <O, I, B extends boolean>(action: Action<O, I, B>): Promise<O | undefined>;
 }
 
 /** @public */
 export interface ResolveSyncValue {
   <T>(loader: Loader<T>): Awaited<T> extends () => any ? never : Awaited<T>;
-  <T>(action: Action<T>): Awaited<T> | undefined;
+  <O, I, B extends boolean>(action: Action<O, I, B>): O | undefined;
 }
 
 /** @public */

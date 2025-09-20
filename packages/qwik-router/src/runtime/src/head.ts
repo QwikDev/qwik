@@ -1,21 +1,23 @@
-import { withLocale } from '@qwik.dev/core';
+import { untrack, withLocale } from '@qwik.dev/core';
+import { _retryOnPromise } from '@qwik.dev/core/internal';
 import type {
   ContentModule,
   RouteLocation,
-  EndpointResponse,
   ResolvedDocumentHead,
   DocumentHeadProps,
   DocumentHeadValue,
-  ClientPageData,
   LoaderInternal,
   Editable,
   ResolveSyncValue,
   ActionInternal,
+  LoaderSignal,
+  ClientActionData,
 } from './types';
 import { isPromise } from './utils';
 
-export const resolveHead = (
-  endpoint: EndpointResponse | ClientPageData,
+export const resolveHead = async (
+  loaderState: Record<string, LoaderSignal<unknown>>,
+  action: ClientActionData | undefined,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
   locale: string,
@@ -25,13 +27,19 @@ export const resolveHead = (
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
     if (loaderOrAction.__brand === 'server_loader') {
-      if (!(id in endpoint.loaders)) {
+      if (!(id in loaderState)) {
         throw new Error(
           'You can not get the returned data of a loader that has not been executed for this request.'
         );
       }
+    } else if (
+      action &&
+      action.id === loaderOrAction.__id &&
+      loaderOrAction.__brand === 'server_action'
+    ) {
+      return action.data;
     }
-    const data = endpoint.loaders[id];
+    const data = untrack(() => loaderState[id]?.value);
     if (isPromise(data)) {
       throw new Error('Loaders returning a promise can not be resolved for the head function.');
     }
@@ -48,9 +56,10 @@ export const resolveHead = (
     const contentModuleHead = contentModules[i] && contentModules[i].head;
     if (contentModuleHead) {
       if (typeof contentModuleHead === 'function') {
+        const contentModuleHeadResult = await _retryOnPromise(() => contentModuleHead(headProps));
         resolveDocumentHead(
           head,
-          withLocale(locale, () => contentModuleHead(headProps))
+          withLocale(locale, () => contentModuleHeadResult)
         );
       } else if (typeof contentModuleHead === 'object') {
         resolveDocumentHead(head, contentModuleHead);

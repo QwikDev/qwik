@@ -493,10 +493,14 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         (routeInternal as any).untrackedValue = { type: navType, dest: trackUrl };
 
         // Needs to be done after routeLocation is updated
-        const resolvedHead = resolveHead(
-          clientPageData!,
+        const resolvedHead = await resolveHead(
+          loaderState,
+          clientPageData?.action,
+
           routeLocation,
+
           contentModules,
+
           locale,
           serverHead
         );
@@ -552,6 +556,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                 );
               } else {
                 signal.invalidate();
+              }
+            }
+            // remove not existing loaders
+            for (const key of Object.keys(loaderState)) {
+              if (!(key in loadersObject)) {
+                delete loaderState[key];
               }
             }
           }

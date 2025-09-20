@@ -895,6 +895,9 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
+export function _retryOnPromise<T>(fn: () => ValueOrPromise<T>, retryCount?: number): ValueOrPromise<T>;
+
+// @internal
 export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
 
 // @public (undocumented)

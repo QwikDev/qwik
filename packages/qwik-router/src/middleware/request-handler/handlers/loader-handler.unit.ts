@@ -54,9 +54,13 @@ vi.mock('./validator-utils', () => ({
 }));
 
 function createMockLoader(id: string, hash: string, result: unknown): Mocked<LoaderInternal> {
-  const mockLoaderFunction = (): Mocked<LoaderSignal<unknown>> => ({
-    value: Promise.resolve(result),
-  });
+  const mockLoaderFunction = (): Mocked<LoaderSignal<unknown>> =>
+    ({
+      value: Promise.resolve(result),
+      force: vi.fn(),
+      invalidate: vi.fn(),
+      refetch: vi.fn(),
+    }) as unknown as Mocked<LoaderSignal<unknown>>;
 
   return {
     __brand: 'server_loader' as const,
@@ -379,19 +383,12 @@ describe('loaderHandler', () => {
 describe('loadersMiddleware', () => {
   let mockRequestEvent: Mocked<RequestEventInternal>;
   let mockLoader: Mocked<LoaderInternal>;
-  let mockQwikSerializer: Mocked<QwikSerializer>;
   let mockLoaders: Record<string, any>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     mockLoader = createMockLoader('test-loader-id', 'test-hash', { result: 'success' });
-
-    mockQwikSerializer = {
-      _serialize: vi.fn(),
-      _deserialize: vi.fn(),
-      _verifySerializable: vi.fn(),
-    } as Mocked<QwikSerializer>;
 
     mockLoaders = {};
 
@@ -487,18 +484,11 @@ describe('loadersMiddleware', () => {
 describe('loaderDataHandler', () => {
   let mockRequestEvent: Mocked<RequestEventInternal>;
   let mockLoader: Mocked<LoaderInternal>;
-  let mockQwikSerializer: Mocked<QwikSerializer>;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     mockLoader = createMockLoader('test-loader-id', 'test-hash', { result: 'success' });
-
-    mockQwikSerializer = {
-      _serialize: vi.fn(),
-      _deserialize: vi.fn(),
-      _verifySerializable: vi.fn(),
-    } as Mocked<QwikSerializer>;
 
     mockRequestEvent = {
       sharedMap: new Map(),
@@ -657,7 +647,6 @@ describe('loaderDataHandler', () => {
 describe('executeLoader', () => {
   let mockRequestEvent: Mocked<RequestEventInternal>;
   let mockLoader: Mocked<LoaderInternal>;
-  let mockQwikSerializer: Mocked<QwikSerializer>;
   let mockLoaders: Record<string, any>;
   let mockSerializationStrategyMap: Map<string, any>;
 
@@ -665,12 +654,6 @@ describe('executeLoader', () => {
     vi.clearAllMocks();
 
     mockLoader = createMockLoader('test-loader-id', 'test-hash', { result: 'success' });
-
-    mockQwikSerializer = {
-      _serialize: vi.fn(),
-      _deserialize: vi.fn(),
-      _verifySerializable: vi.fn(),
-    } as Mocked<QwikSerializer>;
 
     mockLoaders = {};
     mockSerializationStrategyMap = new Map();

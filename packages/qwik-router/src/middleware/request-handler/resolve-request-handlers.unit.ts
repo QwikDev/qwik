@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getPathname, isContentType } from './resolve-request-handlers';
+import { getPathname } from './resolve-request-handlers';
 
 describe('resolve-request-handler', () => {
   describe('getPathname', () => {
@@ -31,16 +31,6 @@ describe('resolve-request-handler', () => {
       expect(getPathname(new URL('http://server/path?foo=1&qloaders=f&bar=2'))).toBe(
         '/path?foo=1&bar=2'
       );
-    });
-  });
-
-  describe('isContentType', () => {
-    it('should correctly identify form/data', () => {
-      const headers = new Headers({
-        'content-type':
-          'multipart/form-data; boundary=---------------------------5509475224001460121912752931',
-      });
-      expect(isContentType(headers, 'multipart/form-data')).toBe(true);
     });
   });
 });

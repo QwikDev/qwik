@@ -1,10 +1,8 @@
-// requestEv.sharedMap.get(RequestEvSharedActionId)
-
+import { _serialize } from '@qwik.dev/core/internal';
 import type { RequestEvent } from '@qwik.dev/router';
-import { _serialize } from 'packages/qwik/core-internal';
-import { RequestEvIsRewrite } from './request-event';
-import { getPathname } from './resolve-request-handlers';
-import { IsQData } from './user-response';
+import { RequestEvIsRewrite } from '../request-event';
+import { getPathname } from '../resolve-request-handlers';
+import { IsQData } from '../user-response';
 
 export interface QData {
   status: number;

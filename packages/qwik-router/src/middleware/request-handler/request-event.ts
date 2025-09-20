@@ -19,7 +19,7 @@ import {
   RewriteMessage,
   ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
-import { executeLoader } from './loader-endpoints';
+import { executeLoader } from './handlers/loader-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,

@@ -3,18 +3,12 @@ import type {
   JSONObject,
   RequestEvent,
   RequestHandler,
-} from '../../runtime/src/types';
-import { runValidators } from './loader-endpoints';
-import {
-  getRequestActions,
-  getRequestMode,
-  RequestEvQwikSerializer,
-  type RequestEventInternal,
-} from './request-event';
-import { measure, verifySerializable } from './resolve-request-handlers';
-import type { QwikSerializer } from './types';
-import { IsQAction, QActionId } from './user-response';
-import { _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
+} from '../../../runtime/src/types';
+import { runValidators } from './loader-handler';
+import { getRequestActions, getRequestMode, type RequestEventInternal } from '../request-event';
+import { measure, verifySerializable } from '../resolve-request-handlers';
+import { IsQAction, QActionId } from '../user-response';
+import { _serialize, _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
 
 export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
   return async (requestEvent: RequestEvent) => {
@@ -33,7 +27,6 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     // Execute just this action
     const actions = getRequestActions(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
-    const qwikSerializer = requestEv[RequestEvQwikSerializer];
     const method = requestEv.method;
 
     if (isDev && method === 'GET') {
@@ -62,11 +55,11 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
         return;
       }
 
-      await executeAction(action, actions, requestEv, isDev, qwikSerializer);
+      await executeAction(action, actions, requestEv, isDev);
 
       if (requestEv.request.headers.get('accept')?.includes('application/json')) {
         // only return the action data if the client accepts json, otherwise return the html page
-        const data = await qwikSerializer._serialize([actions[actionId]]);
+        const data = await _serialize([actions[actionId]]);
         requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
         requestEv.send(200, data);
         return;
@@ -79,8 +72,7 @@ async function executeAction(
   action: ActionInternal,
   actions: Record<string, ValueOrPromise<unknown> | undefined>,
   requestEv: RequestEventInternal,
-  isDev: boolean,
-  qwikSerializer: QwikSerializer
+  isDev: boolean
 ) {
   const selectedActionId = action.__id;
   requestEv.sharedMap.set(QActionId, selectedActionId);
@@ -98,7 +90,7 @@ async function executeAction(
         )
       : await action.__qrl.call(requestEv, result.data as JSONObject, requestEv);
     if (isDev) {
-      verifySerializable(qwikSerializer, actionResolved, action.__qrl);
+      verifySerializable(actionResolved, action.__qrl);
     }
     actions[selectedActionId] = actionResolved;
   }

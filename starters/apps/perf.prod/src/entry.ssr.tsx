@@ -1,11 +1,21 @@
 import { renderToStream, RenderToStreamOptions } from "@qwik.dev/core/server";
-import Root from "./root";
+import { Root } from "./root";
 
 /**
  * Server-Side Render method to be called by a server.
  */
 export default function (opts: RenderToStreamOptions) {
-  // Render the Root component to a string
-  // Pass in the manifest that was generated from the client build
-  return renderToStream(<Root />, opts);
+  const url = new URL(opts.serverData!.url);
+  return renderToStream(
+    <>
+      <head>
+        <meta charset="utf-8" />
+        <title>Qwik Blank App</title>
+      </head>
+      <body>
+        <Root pathname={url.pathname} />
+      </body>
+    </>,
+    opts,
+  );
 }

@@ -1,6 +1,10 @@
-import { component$ } from '@builder.io/qwik';
+import { component$, type QwikIntrinsicElements } from '@builder.io/qwik';
 
-export const SunIcon = component$(() => {
+interface SunIconProps {
+  class?: string;
+}
+
+export const SunIcon = component$<SunIconProps>(({ class: className, ...props }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -8,7 +12,8 @@ export const SunIcon = component$(() => {
       viewBox="0 0 24 24"
       stroke-width="1.5"
       stroke="currentColor"
-      class="size-6"
+      class={className}
+      {...props}
     >
       <path
         stroke-linecap="round"

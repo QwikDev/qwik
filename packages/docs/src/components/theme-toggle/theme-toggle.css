@@ -1,33 +1,10 @@
-.theme-toggle {
-  --size: 22px;
-  --icon-fill: hsl(210 10% 15%);
-  --icon-fill-hover: hsl(210 10% 30%);
-
-  display: block;
-
-  background: none;
-  border: none;
-  padding: 0;
-
-  inline-size: var(--size);
-  block-size: var(--size);
-  aspect-ratio: 1;
-  border-radius: 50%;
-
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-
-  outline-offset: 5px;
+.themeIcon {
+  opacity: 0;
+  transition: opacity 400ms ease-in-out;
 }
 
-[data-theme='dark'] .theme-toggle {
-  --icon-fill: hsl(210 10% 100%);
-  --icon-fill-hover: hsl(210 15% 70%);
-}
-
-.theme-toggle > svg {
-  inline-size: 100%;
-  block-size: 100%;
-  stroke-linecap: round;
+html[data-theme='light'] .themeIcon.light,
+html[data-theme='dark'] .themeIcon.dark,
+html:not([data-theme]) .themeIcon.auto {
+  opacity: 1;
 }

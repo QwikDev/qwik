@@ -171,6 +171,47 @@
   --panel-toggle-background-color: var(--qwik-dark-blue);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --qwik-blue: #009dfd;
+
+    --bg-color: #101010;
+    --bg-secondary-color: #232323;
+    --bg-header-color: #00000006;
+    --text-color: #e3e2e9;
+    --secondary-text-color: #ffffffc3;
+    --interactive-text-color: var(--qwik-blue);
+
+    --code-bg-color: #1d1d1d;
+    --code-border-color: #525252;
+    --blockquote-bg-color: #353639;
+
+    --repl-tab-button-hover-bg-color: #ffffff25;
+    --repl-tab-button-input-hover-border-color: #c3c1de75;
+    --repl-tab-button-input-active-border-color: #d8c2fa;
+    --repl-tab-button-active-border-color: var(--qwik-light-blue);
+    --repl-diagnostics-hover-border-color: rgba(255, 0, 144, 0.46);
+    --repl-diagnostics-active-border-color: rgb(255, 0, 144);
+    --repl-commands-color: var(--qwik-light-blue);
+    --repl-tab-bg-color: var(--bg-color);
+    --repl-border-color: rgba(255, 255, 255, 0.2);
+
+    --examples-header-text-color: var(--text-color);
+    --examples-active-bg-color: #1d1d1d;
+    --examples-hover-bg-color: #353639;
+    --examples-border-color: rgba(255, 255, 255, 0.2);
+    --examples-main-border-color: rgba(255, 255, 255, 0.1);
+
+    --made-with-love-text-color: #c6c5cb;
+
+    --media-separator-color: rgba(255, 255, 255, 0.1);
+    --media-video-shadow-color: var(--qwik-blue);
+
+    --panel-toggle-background-color: var(--qwik-dark-blue);
+  }
+}
+
 @media (max-width: 768px) {
   :root {
     --panel-toggle-height: 56px;

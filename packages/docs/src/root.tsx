@@ -6,7 +6,6 @@ import { RouterHead } from './components/router-head/router-head';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-import { ThemeScript } from './components/theme-toggle/theme-script';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -56,7 +55,6 @@ export default component$(() => {
       <head>
         <meta charset="utf-8" />
         <script dangerouslySetInnerHTML={uwu} />
-        <ThemeScript />
         <RouterHead />
 
         <ServiceWorkerRegister />

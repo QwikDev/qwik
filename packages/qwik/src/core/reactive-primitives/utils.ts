@@ -54,13 +54,14 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  array.add(effectSubscription);
+  !array.has(effectSubscription) && array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
   array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  array[EffectSubscriptionProp.BACK_REF].add(value);
+  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
+    array[EffectSubscriptionProp.BACK_REF].add(value);
 };
 
 export const addQrlToSerializationCtx = (
@@ -84,7 +85,7 @@ export const addQrlToSerializationCtx = (
   }
 };
 
-export const triggerEffects = (
+export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null

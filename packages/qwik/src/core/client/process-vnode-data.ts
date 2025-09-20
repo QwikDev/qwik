@@ -1,6 +1,7 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
-import type { ContainerElement, ElementVNode, QDocument } from './types';
+import type { ContainerElement, QDocument } from './types';
+import type { ElementVNode } from './vnode-impl';
 
 /**
  * Process the VNodeData script tags and store the VNodeData in the VNodeDataMap.

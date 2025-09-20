@@ -21,7 +21,7 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { vnode_getNextSibling, vnode_getProp, vnode_locate } from '../client/vnode';
+import { vnode_locate } from '../client/vnode';
 import { HTML_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 
@@ -88,7 +88,7 @@ describe.each([
       </Fragment>
     );
     if (render === ssrRenderToDom) {
-      expect(vnode_getNextSibling(vNode!)).toMatchVDOM(
+      expect(vNode!.nextSibling).toMatchVDOM(
         <q:template hidden aria-hidden="true">
           parent-contentrender-content
         </q:template>
@@ -2280,7 +2280,7 @@ describe.each([
 
     if (ssrRenderToDom === render) {
       const CmpVNode = vnode_locate(container.rootVNode, '4A');
-      const renderProp = vnode_getProp(CmpVNode, 'q:renderFn', null);
+      const renderProp = CmpVNode.getProp('q:renderFn', null);
       expect(renderProp).not.toBeNull();
     }
   });

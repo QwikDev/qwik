@@ -241,13 +241,11 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getHostProp<T>(host: HostElement, name: string): T | null;
     // (undocumented)
-    getParentHost(host: HostElement): HostElement | null;
+    getParentHost(host: _VNode): _VNode | null;
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    handleError(err: any, host: HostElement | null): void;
+    handleError(err: any, host: _VNode | null): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -255,11 +253,13 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
-    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    setContext<T>(host: _VNode, context: ContextId<T>, value: T): void;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
@@ -277,25 +277,17 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
-export type _ElementVNode = [
-_VNodeFlags.Element,
-////////////// 0 - Flags
-_VNode | null,
-/////////////// 1 - Parent
-_VNode | null,
-/////////////// 2 - Previous sibling
-_VNode | null,
-/////////////// 3 - Next sibling
-_VNode | null | undefined,
-/// 4 - First child - undefined if children need to be materialize
-_VNode | null | undefined,
-Element,
-//////////////////// 6 - Element
-string | undefined,
-(string | null)[]
-] & {
-    __brand__: 'ElementVNode';
-};
+export class _ElementVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
+    // (undocumented)
+    element: Element;
+    // (undocumented)
+    elementName: string | undefined;
+    // (undocumented)
+    firstChild: _VNode | null | undefined;
+    // (undocumented)
+    lastChild: _VNode | null | undefined;
+}
 
 // @internal (undocumented)
 export const _EMPTY_ARRAY: any[];
@@ -1668,20 +1660,13 @@ export interface TaskCtx {
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
-export type _TextVNode = [
-_VNodeFlags.Text | _VNodeFlags.Inflated,
-// 0 - Flags
-_VNode | null,
-///////////////// 1 - Parent
-_VNode | null,
-///////////////// 2 - Previous sibling
-_VNode | null,
-///////////////// 3 - Next sibling
-Text | null | undefined,
-string
-] & {
-    __brand__: 'TextVNode';
-};
+export class _TextVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
+    // (undocumented)
+    text: string | undefined;
+    // (undocumented)
+    textNode: Text | null;
+}
 
 // @public
 export interface Tracker {
@@ -1843,34 +1828,54 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 export const version: string;
 
 // @internal (undocumented)
-export type _VirtualVNode = [
-_VNodeFlags.Virtual,
-///////////// 0 - Flags
-_VNode | null,
-/////////////// 1 - Parent
-_VNode | null,
-/////////////// 2 - Previous sibling
-_VNode | null,
-/////////////// 3 - Next sibling
-_VNode | null,
-/////////////// 4 - First child
-_VNode | null,
-(string | null | boolean)[]
-] & {
-    __brand__: 'FragmentNode' & 'HostElement';
-};
+export class _VirtualVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
+    // (undocumented)
+    firstChild: _VNode | null | undefined;
+    // (undocumented)
+    lastChild: _VNode | null | undefined;
+}
 
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
+// Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+export abstract class _VNode extends BackRef {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
+    // (undocumented)
+    blockedChores: ChoreArray | null;
+    // Warning: (ae-forgotten-export) The symbol "ChoreArray" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    chores: ChoreArray | null;
+    // (undocumented)
+    flags: _VNodeFlags;
+    // (undocumented)
+    getAttr(key: string): string | null;
+    // (undocumented)
+    getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null;
+    // (undocumented)
+    nextSibling: _VNode | null | undefined;
+    // (undocumented)
+    parent: _ElementVNode | _VirtualVNode | null;
+    // (undocumented)
+    previousSibling: _VNode | null | undefined;
+    // (undocumented)
+    props: unknown[] | null;
+    // (undocumented)
+    setAttr(key: string, value: string | null | boolean, journal: VNodeJournal | null): void;
+    // (undocumented)
+    setProp(key: string, value: any): void;
+    // (undocumented)
+    slotParent: _VNode | null;
+    // (undocumented)
+    toString(): string;
+}
 
 // @internal (undocumented)
 export const _vnode_ensureElementInflated: (vnode: _VNode) => void;
-
-// @internal (undocumented)
-export const _vnode_getAttr: (vnode: _VNode, key: string) => string | null;
 
 // @internal (undocumented)
 export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => string[];
@@ -1879,13 +1884,7 @@ export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => strin
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
 
 // @internal (undocumented)
-export const _vnode_getNextSibling: (vnode: _VNode) => _VNode | null;
-
-// @internal (undocumented)
-export const _vnode_getProps: (vnode: _VNode) => unknown[];
-
-// @internal (undocumented)
-export const _vnode_getPropStartIndex: (vnode: _VNode) => number;
+export const _vnode_getProps: (vnode: _ElementVNode | _VirtualVNode) => unknown[];
 
 // @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;

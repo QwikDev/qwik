@@ -4,7 +4,7 @@ import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { useSignal } from '../core/use/use-signal';
 import { ssrRenderToDom } from '../testing/rendering.unit-util';
 import { encodeAsAlphanumeric } from './vnode-data';
-import { vnode_getProp, vnode_locate } from '../core/client/vnode';
+import { vnode_locate } from '../core/client/vnode';
 import { ELEMENT_PROPS, OnRenderProp } from '../core/shared/utils/markers';
 import { type QRLInternal } from '../core/shared/qrl/qrl-class';
 import type { DomContainer } from '../core/client/dom-container';
@@ -224,14 +224,14 @@ interface RefIdProp {
 function expectVNodeSymbol(container: DomContainer, vNodeId: string, cmpSymbol: string) {
   const vnode = vnode_locate(container.rootVNode, vNodeId);
 
-  expect(
-    vnode_getProp<QRLInternal>(vnode, OnRenderProp, container.$getObjectById$)?.$hash$
-  ).toEqual(cmpSymbol);
+  expect(vnode.getProp<QRLInternal>(OnRenderProp, container.$getObjectById$)?.$hash$).toEqual(
+    cmpSymbol
+  );
 }
 
 function expectVNodeProps(container: DomContainer, vNodeId: string, props: any) {
   const vnode = vnode_locate(container.rootVNode, vNodeId);
-  const elementProps = vnode_getProp(vnode, ELEMENT_PROPS, container.$getObjectById$) as any;
+  const elementProps = vnode.getProp(ELEMENT_PROPS, container.$getObjectById$) as any;
 
   // TODO(hack): elementProps object does not contain fields because it is a PropsProxy,
   // so we need to manually read the property value and create a new object

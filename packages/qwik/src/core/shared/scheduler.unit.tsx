@@ -3,13 +3,11 @@ import { $, _jsxSorted, type JSXOutput, type OnRenderFn, type QRL } from '@qwik.
 import { createDocument } from '@qwik.dev/core/testing';
 import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
-import type { ElementVNode, VNode, VirtualVNode } from '../client/types';
 import {
   vnode_insertBefore,
   vnode_locate,
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
-  vnode_setProp,
 } from '../client/vnode';
 import { Task, TaskFlags } from '../use/use-task';
 import type { Props } from './jsx/jsx-runtime';
@@ -20,6 +18,8 @@ import type { HostElement } from './types';
 import { ELEMENT_SEQ, QContainerAttr } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT } from './utils/promises';
 import * as nextTick from './platform/next-tick';
+import type { ElementVNode, VirtualVNode, VNode } from '../client/vnode-impl';
+import { ChoreArray } from '../client/chore-array';
 
 declare global {
   let testLog: string[];
@@ -41,7 +41,7 @@ describe('scheduler', () => {
   let vBHost1: VirtualVNode = null!;
   let vBHost2: VirtualVNode = null!;
   let handleError: (err: any, host: HostElement | null) => void;
-  let choreQueue: Chore[];
+  let choreQueue: ChoreArray;
   let blockedChores: Set<Chore>;
   let runningChores: Set<Chore>;
 
@@ -56,7 +56,7 @@ describe('scheduler', () => {
     document.body.setAttribute(QContainerAttr, 'paused');
     const container = getDomContainer(document.body);
     handleError = container.handleError = vi.fn();
-    choreQueue = [];
+    choreQueue = new ChoreArray();
     blockedChores = new Set();
     runningChores = new Set();
     scheduler = createScheduler(
@@ -70,13 +70,13 @@ describe('scheduler', () => {
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual();
-    vnode_setProp(vAHost, 'q:id', 'A');
+    vAHost.setProp('q:id', 'A');
     vnode_insertBefore([], vA, vAHost, null);
     vB = vnode_locate(vBody, document.querySelector('b') as Element) as ElementVNode;
     vBHost1 = vnode_newVirtual();
-    vnode_setProp(vBHost1, 'q:id', 'b1');
+    vBHost1.setProp('q:id', 'b1');
     vBHost2 = vnode_newVirtual();
-    vnode_setProp(vBHost2, 'q:id', 'b2');
+    vBHost2.setProp('q:id', 'b2');
     vnode_insertBefore([], vB, vBHost1, null);
     vnode_insertBefore([], vB, vBHost2, null);
   });
@@ -248,7 +248,7 @@ describe('scheduler', () => {
     const task2 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1.1')), index: 1 });
     const task3 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1.2')), index: 2 });
 
-    vnode_setProp(vBHost1, ELEMENT_SEQ, [task1, task2, task3]);
+    vBHost1.setProp(ELEMENT_SEQ, [task1, task2, task3]);
 
     scheduler(ChoreType.TASK, task1);
     scheduler(ChoreType.TASK, task2);
@@ -279,11 +279,20 @@ describe('scheduler', () => {
       document = createDocument();
       document.body.setAttribute(QContainerAttr, 'paused');
       const container = getDomContainer(document.body);
-      scheduler = createScheduler(container, () => testLog.push('journalFlush'));
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      scheduler = createScheduler(
+        container,
+        () => testLog.push('journalFlush'),
+        choreQueue,
+        blockedChores,
+        runningChores
+      );
       document.body.innerHTML = '<a></a><b></b>';
       vnode_newUnMaterializedElement(document.body);
       vBHost1 = vnode_newVirtual();
-      vnode_setProp(vBHost1, 'q:id', 'b1');
+      vBHost1.setProp('q:id', 'b1');
     });
 
     it('should flush journal periodically', async () => {

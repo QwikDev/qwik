@@ -46,7 +46,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
 
 function clearSignal(container: Container, producer: SignalImpl, effect: EffectSubscription) {
   const effects = producer.$effects$;
-  if (effects) {
+  if (effects && effects.has(effect)) {
     effects.delete(effect);
   }
 
@@ -61,11 +61,11 @@ function clearAsyncComputedSignal(
   effect: EffectSubscription
 ) {
   const effects = producer.$effects$;
-  if (effects) {
+  if (effects && effects.has(effect)) {
     effects.delete(effect);
   }
   const pendingEffects = producer.$loadingEffects$;
-  if (pendingEffects) {
+  if (pendingEffects && pendingEffects.has(effect)) {
     pendingEffects.delete(effect);
   }
 }
@@ -74,7 +74,9 @@ function clearStore(producer: StoreHandler, effect: EffectSubscription) {
   const effects = producer?.$effects$;
   if (effects) {
     for (const propEffects of effects.values()) {
-      propEffects.delete(effect);
+      if (propEffects.has(effect)) {
+        propEffects.delete(effect);
+      }
     }
   }
 }

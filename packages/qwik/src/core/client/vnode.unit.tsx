@@ -3,23 +3,10 @@ import { createDocument } from '../../testing/document';
 
 import { Fragment } from '@qwik.dev/core';
 import '../../testing/vdom-diff.unit-util';
-import {
-  ElementVNodeProps,
-  VNodeFlags,
-  VNodeProps,
-  type ContainerElement,
-  type ElementVNode,
-  type QDocument,
-  type TextVNode,
-  type VNode,
-  type VirtualVNode,
-} from './types';
+import { VNodeFlags, type ContainerElement, type QDocument } from './types';
 import {
   vnode_applyJournal,
-  vnode_getAttr,
   vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_getProp,
   vnode_insertBefore,
   vnode_locate,
   vnode_newElement,
@@ -27,11 +14,11 @@ import {
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
   vnode_remove,
-  vnode_setAttr,
   vnode_setText,
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
+import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -141,7 +128,7 @@ describe('vnode', () => {
         </test>
       );
       const firstText = vnode_getFirstChild(vParent) as TextVNode;
-      const virtual = vnode_getNextSibling(vnode_getNextSibling(firstText)!)! as VirtualVNode;
+      const virtual = firstText.nextSibling!.nextSibling as VirtualVNode;
       const fragmentText = vnode_getFirstChild(virtual)! as TextVNode;
       vnode_setText(journal, fragmentText, 'Virtual Text');
       vnode_setText(journal, firstText, 'First Text');
@@ -157,9 +144,9 @@ describe('vnode', () => {
         </test>
       );
       const text1 = vnode_getFirstChild(vParent) as TextVNode;
-      const text2 = vnode_getNextSibling(text1) as TextVNode;
-      const text3 = vnode_getNextSibling(text2) as TextVNode;
-      const text4 = vnode_getNextSibling(text3) as TextVNode;
+      const text2 = text1.nextSibling as TextVNode;
+      const text3 = text2.nextSibling as TextVNode;
+      const text4 = text3.nextSibling as TextVNode;
       vnode_setText(journal, text1, 'Salutation');
       vnode_setText(journal, text3, 'Name');
       vnode_setText(journal, text4, '.');
@@ -183,7 +170,7 @@ describe('vnode', () => {
         </test>
       );
       const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
-      const lastText = vnode_getNextSibling(firstVirtual) as TextVNode;
+      const lastText = firstVirtual.nextSibling as TextVNode;
       vnode_setText(journal, lastText, '!');
       vnode_applyJournal(journal);
       expect(parent.innerHTML).toEqual(`12!`);
@@ -206,7 +193,7 @@ describe('vnode', () => {
       );
       const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
       const innerVirtual = vnode_getFirstChild(firstVirtual) as VirtualVNode;
-      const firstTextVirtual = vnode_getNextSibling(innerVirtual) as TextVNode;
+      const firstTextVirtual = innerVirtual.nextSibling as TextVNode;
       const firstText = vnode_getFirstChild(firstTextVirtual) as TextVNode;
       vnode_setText(journal, firstText, '!');
       vnode_applyJournal(journal);
@@ -222,7 +209,7 @@ describe('vnode', () => {
         </test>
       );
       const firstText = vnode_getFirstChild(vParent) as TextVNode;
-      const secondText = vnode_getNextSibling(firstText) as TextVNode;
+      const secondText = firstText.nextSibling as TextVNode;
       // Getting hold of the text nodes should not cause inflation.
       expect(journal.length).toBe(0);
 
@@ -268,7 +255,7 @@ describe('vnode', () => {
           </test>
         );
         const firstText = vnode_getFirstChild(vParent) as TextVNode;
-        const secondText = vnode_getNextSibling(firstText) as TextVNode;
+        const secondText = firstText.nextSibling as TextVNode;
         vnode_remove(journal, vParent, secondText, true);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -292,8 +279,8 @@ describe('vnode', () => {
           </test>
         );
         const firstText = vnode_getFirstChild(vParent) as TextVNode;
-        const secondText = vnode_getNextSibling(firstText) as TextVNode;
-        const thirdText = vnode_getNextSibling(secondText) as TextVNode;
+        const secondText = firstText.nextSibling as TextVNode;
+        const thirdText = secondText.nextSibling as TextVNode;
         vnode_remove(journal, vParent, thirdText, true);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -317,7 +304,7 @@ describe('vnode', () => {
           </test>
         );
         const firstText = vnode_getFirstChild(vParent) as TextVNode;
-        const secondText = vnode_getNextSibling(firstText) as TextVNode;
+        const secondText = firstText.nextSibling as TextVNode;
         vnode_remove(journal, vParent, firstText, true);
         vnode_setText(journal, secondText, '!');
         vnode_applyJournal(journal);
@@ -366,7 +353,7 @@ describe('vnode', () => {
           </test>
         );
         const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
-        const secondVirtual = vnode_getNextSibling(firstVirtual) as VirtualVNode;
+        const secondVirtual = firstVirtual.nextSibling as VirtualVNode;
         vnode_remove(journal, vParent, secondVirtual, true);
 
         vnode_applyJournal(journal);
@@ -391,8 +378,8 @@ describe('vnode', () => {
           </test>
         );
         const firstVirtual = vnode_getFirstChild(vParent) as VirtualVNode;
-        const secondVirtual = vnode_getNextSibling(firstVirtual) as VirtualVNode;
-        const thirdVirtual = vnode_getNextSibling(secondVirtual) as VirtualVNode;
+        const secondVirtual = firstVirtual.nextSibling as VirtualVNode;
+        const thirdVirtual = secondVirtual.nextSibling as VirtualVNode;
         vnode_remove(journal, vParent, thirdVirtual, true);
 
         vnode_applyJournal(journal);
@@ -427,10 +414,10 @@ describe('vnode', () => {
     });
     it('should place attributes on Virtual', () => {
       parent.innerHTML = ``;
-      document.qVNodeData.set(parent, '{?:sparent_@:key_}');
+      document.qVNodeData.set(parent, '{@:key_}');
       expect(vParent).toMatchVDOM(
         <test>
-          <Fragment {...({ 'q:sparent': ':sparent_' } as any)} key=":key_" />
+          <Fragment key=":key_" />
         </test>
       );
     });
@@ -463,9 +450,9 @@ describe('vnode', () => {
       const fragment1 = vnode_newVirtual();
       const fragment2 = vnode_newVirtual();
       const fragment3 = vnode_newVirtual();
-      vnode_setAttr(null, fragment1, 'q:id', '1');
-      vnode_setAttr(null, fragment2, 'q:id', '2');
-      vnode_setAttr(null, fragment3, 'q:id', '3');
+      (fragment1 as VirtualVNode).setAttr('q:id', '1', null);
+      (fragment2 as VirtualVNode).setAttr('q:id', '2', null);
+      (fragment3 as VirtualVNode).setAttr('q:id', '3', null);
       const textA = vnode_newText(document.createTextNode('1A'), '1A');
       const textB = vnode_newText(document.createTextNode('2B'), '2B');
       const textC = vnode_newText(document.createTextNode('3C'), '3C');
@@ -687,7 +674,7 @@ describe('vnode', () => {
           );
           const text = vnode_newText(document.createTextNode('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<p />);
           vnode_insertBefore(journal, vParent, text, targetNode);
           vnode_applyJournal(journal);
@@ -747,7 +734,7 @@ describe('vnode', () => {
           );
           const text = vnode_newText(document.createTextNode('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM('p');
           vnode_insertBefore(journal, vParent, text, targetNode);
           vnode_applyJournal(journal);
@@ -815,7 +802,7 @@ describe('vnode', () => {
           );
           const text = vnode_newText(document.createTextNode('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           vnode_insertBefore(journal, vParent, text, targetNode);
           vnode_applyJournal(journal);
           expect(vParent).toMatchVDOM(
@@ -948,7 +935,7 @@ describe('vnode', () => {
           const text = vnode_newText(document.createTextNode('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, text, targetNode);
           vnode_applyJournal(journal);
@@ -1086,7 +1073,7 @@ describe('vnode', () => {
           const text = vnode_newText(document.createTextNode('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, text, targetNode);
           vnode_applyJournal(journal);
@@ -1211,7 +1198,7 @@ describe('vnode', () => {
           );
           const element = vnode_newElement(document.createElement('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<p />);
           vnode_insertBefore(journal, vParent, element, targetNode);
           vnode_applyJournal(journal);
@@ -1271,7 +1258,7 @@ describe('vnode', () => {
           );
           const element = vnode_newElement(document.createElement('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM('p');
           vnode_insertBefore(journal, vParent, element, targetNode);
           vnode_applyJournal(journal);
@@ -1339,7 +1326,7 @@ describe('vnode', () => {
           );
           const element = vnode_newElement(document.createElement('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           vnode_insertBefore(journal, vParent, element, targetNode);
           vnode_applyJournal(journal);
           expect(vParent).toMatchVDOM(
@@ -1472,7 +1459,7 @@ describe('vnode', () => {
           const element = vnode_newElement(document.createElement('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, element, targetNode);
           vnode_applyJournal(journal);
@@ -1610,7 +1597,7 @@ describe('vnode', () => {
           const element = vnode_newElement(document.createElement('foo'), 'foo');
           const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, element, targetNode);
           vnode_applyJournal(journal);
@@ -1735,7 +1722,7 @@ describe('vnode', () => {
           );
           const virtual = vnode_newVirtual();
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<p />);
           vnode_insertBefore(journal, vParent, virtual, targetNode);
           vnode_applyJournal(journal);
@@ -1795,7 +1782,7 @@ describe('vnode', () => {
           );
           const virtual = vnode_newVirtual();
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM('p');
           vnode_insertBefore(journal, vParent, virtual, targetNode);
           vnode_applyJournal(journal);
@@ -1831,7 +1818,7 @@ describe('vnode', () => {
           );
 
           expect(vnode_getFirstChild(vParent)).not.toBe(firstNode);
-          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).toBe(firstNode);
+          expect(vnode_getFirstChild(vParent)!.nextSibling).toBe(firstNode);
           expect(parent.innerHTML).toBe('');
         });
 
@@ -1853,7 +1840,7 @@ describe('vnode', () => {
               <></>
             </test>
           );
-          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(firstNode);
+          expect(vnode_getFirstChild(vParent)!.nextSibling).not.toBe(firstNode);
           expect(vnode_getFirstChild(vParent)).toBe(firstNode);
           expect(parent.innerHTML).toBe('');
         });
@@ -1869,7 +1856,7 @@ describe('vnode', () => {
           );
           const virtual = vnode_newVirtual();
           const firstNode = vnode_getFirstChild(vParent);
-          const targetNode = vnode_getNextSibling(firstNode!);
+          const targetNode = firstNode!.nextSibling as VNode | null;
           vnode_insertBefore(journal, vParent, virtual, targetNode);
           vnode_applyJournal(journal);
           expect(vParent).toMatchVDOM(
@@ -1880,11 +1867,9 @@ describe('vnode', () => {
             </test>
           );
           expect(vnode_getFirstChild(vParent)).toBe(firstNode);
-          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(firstNode);
-          expect(vnode_getNextSibling(vnode_getFirstChild(vParent)!)).not.toBe(targetNode);
-          expect(vnode_getNextSibling(vnode_getNextSibling(vnode_getFirstChild(vParent)!)!)).toBe(
-            targetNode
-          );
+          expect(vnode_getFirstChild(vParent)!.nextSibling).not.toBe(firstNode);
+          expect(vnode_getFirstChild(vParent)!.nextSibling).not.toBe(targetNode);
+          expect(vnode_getFirstChild(vParent)!.nextSibling!.nextSibling).toBe(targetNode);
           expect(parent.innerHTML).toBe('');
         });
       });
@@ -1941,7 +1926,7 @@ describe('vnode', () => {
             </test>
           );
 
-          expect(vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)).toBe(
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).toBe(
             firstInnerNode
           );
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).not.toBe(firstInnerNode);
@@ -1996,9 +1981,9 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(firstInnerNode);
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            firstInnerNode
+          );
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
           expect(parent.innerHTML).toBe('<div></div>');
         });
@@ -2017,7 +2002,7 @@ describe('vnode', () => {
           const virtual = vnode_newVirtual();
           const firstNode = vnode_getFirstChild(vParent) as ElementVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as ElementVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, virtual, targetNode);
           vnode_applyJournal(journal);
@@ -2032,17 +2017,15 @@ describe('vnode', () => {
           );
 
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(firstInnerNode);
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(targetNode);
-          expect(
-            vnode_getNextSibling(
-              vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)!
-            )
-          ).toBe(targetNode);
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            firstInnerNode
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            targetNode
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling!.nextSibling).toBe(
+            targetNode
+          );
           expect(parent.innerHTML).toBe('<div></div>');
         });
       });
@@ -2101,7 +2084,7 @@ describe('vnode', () => {
           );
 
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).not.toBe(firstInnerNode);
-          expect(vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)).toBe(
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).toBe(
             firstInnerNode
           );
           expect(parent.innerHTML).toBe('');
@@ -2157,9 +2140,9 @@ describe('vnode', () => {
             </test>
           );
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(firstInnerNode);
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            firstInnerNode
+          );
           expect(parent.innerHTML).toBe('');
         });
 
@@ -2177,7 +2160,7 @@ describe('vnode', () => {
           const virtual = vnode_newVirtual();
           const firstNode = vnode_getFirstChild(vParent) as VirtualVNode;
           const firstInnerNode = vnode_getFirstChild(firstNode) as VirtualVNode;
-          const targetNode = vnode_getNextSibling(firstInnerNode!);
+          const targetNode = firstInnerNode!.nextSibling as VNode | null;
           expect(targetNode).toMatchVDOM(<></>);
           vnode_insertBefore(journal, firstNode, virtual, targetNode);
           vnode_applyJournal(journal);
@@ -2192,17 +2175,15 @@ describe('vnode', () => {
           );
 
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(firstInnerNode);
-          expect(
-            vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)
-          ).not.toBe(targetNode);
-          expect(
-            vnode_getNextSibling(
-              vnode_getNextSibling(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!)!
-            )
-          ).toBe(targetNode);
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            firstInnerNode
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling).not.toBe(
+            targetNode
+          );
+          expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling!.nextSibling).toBe(
+            targetNode
+          );
           expect(parent.innerHTML).toBe('');
         });
       });
@@ -2268,7 +2249,7 @@ describe('vnode', () => {
         </test>
       );
       expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
-      expect(vnode_getNextSibling(text)).toBeNull();
+      expect(text.nextSibling).toBeNull();
     });
   });
   describe('move', () => {
@@ -2284,7 +2265,7 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text2, text1);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -2307,7 +2288,7 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text2, null);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -2330,8 +2311,8 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
-        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
+        const text3 = text2.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text1, text3);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -2376,8 +2357,8 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
-        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
+        const text3 = text2.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text3, text1);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -2400,8 +2381,8 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
-        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
+        const text3 = text2.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text3, text2);
         vnode_applyJournal(journal);
         expect(vParent).toMatchVDOM(
@@ -2424,8 +2405,8 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
-        const text3 = vnode_getNextSibling(text2) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
+        const text3 = text2.nextSibling as TextVNode;
         vnode_insertBefore(journal, vParent, text2, text1);
         vnode_insertBefore(journal, vParent, text3, text2);
         vnode_applyJournal(journal);
@@ -2449,7 +2430,7 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
         const virtual = vnode_newVirtual();
         vnode_insertBefore(journal, vParent, virtual, text2);
         vnode_insertBefore(journal, virtual, text2, null);
@@ -2474,7 +2455,7 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const text2 = vnode_getNextSibling(text1) as TextVNode;
+        const text2 = text1.nextSibling as TextVNode;
         const element = vnode_newElement(document.createElement('foo'), 'foo');
         vnode_insertBefore(journal, vParent, element, text2);
         vnode_insertBefore(journal, element, text2, null);
@@ -2499,9 +2480,9 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const element1 = vnode_getNextSibling(text1) as ElementVNode;
+        const element1 = text1.nextSibling as ElementVNode;
         const text2 = vnode_getFirstChild(element1) as TextVNode;
-        const element2 = vnode_getNextSibling(element1) as ElementVNode;
+        const element2 = element1.nextSibling as ElementVNode;
         const text3 = vnode_getFirstChild(element2) as TextVNode;
         vnode_insertBefore(journal, element2, text2, text3);
         vnode_applyJournal(journal);
@@ -2528,9 +2509,9 @@ describe('vnode', () => {
           </test>
         );
         const text1 = vnode_getFirstChild(vParent) as TextVNode;
-        const element1 = vnode_getNextSibling(text1) as ElementVNode;
+        const element1 = text1.nextSibling as ElementVNode;
         const text2 = vnode_getFirstChild(element1) as TextVNode;
-        const virtual1 = vnode_getNextSibling(element1) as ElementVNode;
+        const virtual1 = element1.nextSibling as ElementVNode;
         const text3 = vnode_getFirstChild(virtual1) as TextVNode;
         vnode_insertBefore(journal, virtual1, text2, text3);
         vnode_applyJournal(journal);
@@ -2576,11 +2557,11 @@ describe('vnode', () => {
       document.qVNodeData.set(parent, '{B||0B}{B|:|0A}');
       qVNodeRefs.set(0, vParent);
       const v1 = vnode_getFirstChild(vParent) as VirtualVNode;
-      const v2 = vnode_getNextSibling(v1) as VirtualVNode;
+      const v2 = v1.nextSibling as VirtualVNode;
       expect(v1).toMatchVDOM(<>A</>);
       expect(v2).toMatchVDOM(<>B</>);
-      expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
-      expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
+      expect(v1.getProp('', getVNode)).toBe(v2);
+      expect(v2.getProp(':', getVNode)).toBe(v1);
     });
   });
   describe('attributes', () => {
@@ -2597,7 +2578,7 @@ describe('vnode', () => {
       it('should update innerHTML', () => {
         parent.innerHTML = '<div q:container="html"><i>content</i></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, div, 'dangerouslySetInnerHTML', '<b>new content</b>');
+        (div as VirtualVNode).setAttr('dangerouslySetInnerHTML', '<b>new content</b>', journal);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div q:container="html"><b>new content</b></div>');
         expect(vParent).toMatchVDOM(
@@ -2606,7 +2587,7 @@ describe('vnode', () => {
             <div q:container="html" dangerouslySetInnerHTML="<b>new content</b>" />
           </test>
         );
-        expect(vnode_getAttr(div, 'dangerouslySetInnerHTML')).toBe('<b>new content</b>');
+        expect((div as VirtualVNode).getAttr('dangerouslySetInnerHTML')).toBe('<b>new content</b>');
       });
       it('should have empty child for dangerouslySetInnerHTML', () => {
         parent.innerHTML = '<div q:container="html"><i>content</i></div>';
@@ -2633,7 +2614,7 @@ describe('vnode', () => {
       it('should update textContent', () => {
         parent.innerHTML = '<textarea q:container="text">content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, textarea, 'value', 'new content');
+        (textarea as VirtualVNode).setAttr('value', 'new content', journal);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<textarea q:container="text">new content</textarea>');
         expect(vParent).toMatchVDOM(
@@ -2642,7 +2623,7 @@ describe('vnode', () => {
             <textarea q:container="text" value="new content" />
           </test>
         );
-        expect(vnode_getAttr(textarea, 'value')).toBe('new content');
+        expect((textarea as VirtualVNode).getAttr('value')).toBe('new content');
       });
       it('should have empty child for value', () => {
         parent.innerHTML = '<textarea q:container="text">content</textarea>';
@@ -2717,8 +2698,8 @@ describe('vnode', () => {
       it('should remove', () => {
         parent.innerHTML = '<b>1</b><b>2</b><b>3</b>';
         const b1 = vnode_getFirstChild(vParent) as ElementVNode;
-        const b2 = vnode_getNextSibling(b1) as ElementVNode;
-        const b3 = vnode_getNextSibling(b2) as ElementVNode;
+        const b2 = b1.nextSibling as ElementVNode;
+        const b3 = b2.nextSibling as ElementVNode;
         vnode_remove(journal, vParent, b2, true);
         expect(vParent).toMatchVDOM(
           <test>
@@ -2747,10 +2728,10 @@ describe('vnode', () => {
       it('should set attribute', () => {
         parent.innerHTML = '<div foo="bar"></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        vnode_setAttr(journal, div, 'key', '123');
+        (div as VirtualVNode).setAttr('key', '123', journal);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div foo="bar" key="123"></div>');
-        vnode_setAttr(journal, div, 'foo', null);
+        (div as VirtualVNode).setAttr('foo', null, journal);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div key="123"></div>');
       });
@@ -2768,7 +2749,7 @@ describe('vnode', () => {
         parent.innerHTML = 'ABC';
         document.qVNodeData.set(parent, 'BBB');
         const a = vnode_getFirstChild(vParent) as TextVNode;
-        const b = vnode_getNextSibling(a) as TextVNode;
+        const b = a.nextSibling as TextVNode;
         vnode_setText(journal, b, '123');
         expect(parent.innerHTML).toBe('ABC');
         expect(parent.firstChild?.nodeValue).toEqual('ABC');
@@ -2820,11 +2801,11 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild1, null);
 
         // Verify child is linked into tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.parent]).toBe(vParent);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vChild1.parent).toBe(vParent);
 
         // Verify child is marked as deleted (inherited from parent)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(0);
@@ -2838,11 +2819,11 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vVirtual, vChild1, null);
 
         // Verify child is linked into tree structure
-        expect(vVirtual[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.parent]).toBe(vVirtual);
+        expect(vVirtual.firstChild).toBe(vChild1);
+        expect(vChild1.parent).toBe(vVirtual);
 
         // Verify child is marked as deleted (inherited from parent)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(0);
@@ -2863,15 +2844,15 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewChild, vChild2);
 
         // Verify correct tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.nextSibling]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.previousSibling]).toBe(vChild1);
-        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild2);
-        expect(vChild2[VNodeProps.previousSibling]).toBe(vNewChild);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild2);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vChild1.nextSibling).toBe(vNewChild);
+        expect(vNewChild.previousSibling).toBe(vChild1);
+        expect(vNewChild.nextSibling).toBe(vChild2);
+        expect(vChild2.previousSibling).toBe(vNewChild);
+        expect(vParent.lastChild).toBe(vChild2);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no additional DOM insertion journal entries
         expect(journal.length).toBe(journalOperations);
@@ -2889,13 +2870,13 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewChild, null);
 
         // Verify correct tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.nextSibling]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.previousSibling]).toBe(vChild1);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vNewChild);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vChild1.nextSibling).toBe(vNewChild);
+        expect(vNewChild.previousSibling).toBe(vChild1);
+        expect(vParent.lastChild).toBe(vNewChild);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle insertion at beginning when parent is deleted', () => {
@@ -2910,13 +2891,13 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewChild, vChild1);
 
         // Verify correct tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild1);
-        expect(vChild1[VNodeProps.previousSibling]).toBe(vNewChild);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+        expect(vParent.firstChild).toBe(vNewChild);
+        expect(vNewChild.nextSibling).toBe(vChild1);
+        expect(vChild1.previousSibling).toBe(vNewChild);
+        expect(vParent.lastChild).toBe(vChild1);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle text node insertion when parent is deleted', () => {
@@ -2928,11 +2909,11 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vText, null);
 
         // Verify text node is linked into tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vText);
-        expect(vText[VNodeProps.parent]).toBe(vParent);
+        expect(vParent.firstChild).toBe(vText);
+        expect(vText.parent).toBe(vParent);
 
         // Verify text node is marked as deleted (inherited from parent)
-        expect(vText[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vText.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(0);
@@ -2947,11 +2928,11 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewVirtual, null);
 
         // Verify virtual node is linked into tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewVirtual);
-        expect(vNewVirtual[VNodeProps.parent]).toBe(vParent);
+        expect(vParent.firstChild).toBe(vNewVirtual);
+        expect(vNewVirtual.parent).toBe(vParent);
 
         // Verify virtual node is marked as deleted (inherited from parent)
-        expect(vNewVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewVirtual.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(0);
@@ -2971,18 +2952,18 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vVirtual, vNewChild, vChild2);
 
         // Verify correct tree structure
-        expect(vVirtual[ElementVNodeProps.firstChild]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild2);
-        expect(vChild2[VNodeProps.previousSibling]).toBe(vNewChild);
-        expect(vVirtual[ElementVNodeProps.lastChild]).toBe(vChild2);
+        expect(vVirtual.firstChild).toBe(vNewChild);
+        expect(vNewChild.nextSibling).toBe(vChild2);
+        expect(vChild2.previousSibling).toBe(vNewChild);
+        expect(vVirtual.lastChild).toBe(vChild2);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify existing children are also marked as deleted (from tree traversal)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vVirtual.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle insertion when parent becomes deleted during operation', () => {
@@ -3001,13 +2982,13 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewChild, vChild1);
 
         // Verify correct tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.nextSibling]).toBe(vChild1);
-        expect(vChild1[VNodeProps.previousSibling]).toBe(vNewChild);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+        expect(vParent.firstChild).toBe(vNewChild);
+        expect(vNewChild.nextSibling).toBe(vChild1);
+        expect(vChild1.previousSibling).toBe(vNewChild);
+        expect(vParent.lastChild).toBe(vChild1);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(journalOperations);
@@ -3024,16 +3005,16 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild3, null);
 
         // Verify all children are linked correctly
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.nextSibling]).toBe(vChild2);
-        expect(vChild2[VNodeProps.nextSibling]).toBe(vChild3);
-        expect(vChild3[VNodeProps.previousSibling]).toBe(vChild2);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild3);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vChild1.nextSibling).toBe(vChild2);
+        expect(vChild2.nextSibling).toBe(vChild3);
+        expect(vChild3.previousSibling).toBe(vChild2);
+        expect(vParent.lastChild).toBe(vChild3);
 
         // Verify all children are marked as deleted (inherited from parent)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild3[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild3.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify no DOM insertion journal entries
         expect(journal.length).toBe(0);
@@ -3047,13 +3028,13 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild1, null);
 
         // Verify child is linked correctly
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.previousSibling]).toBe(null);
-        expect(vChild1[VNodeProps.nextSibling]).toBe(null);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vParent.lastChild).toBe(vChild1);
+        expect(vChild1.previousSibling).toBe(null);
+        expect(vChild1.nextSibling).toBe(null);
 
         // Verify child is marked as deleted (inherited from parent)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle insertion with virtual insertBefore when parent is deleted', () => {
@@ -3069,15 +3050,15 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vNewChild, vVirtual);
 
         // Verify correct tree structure
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vNewChild);
-        expect(vNewChild[VNodeProps.nextSibling]).toBe(vVirtual);
-        expect(vVirtual[VNodeProps.previousSibling]).toBe(vNewChild);
-        expect(vVirtual[VNodeProps.nextSibling]).toBe(vChild1);
-        expect(vChild1[VNodeProps.previousSibling]).toBe(vVirtual);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
+        expect(vParent.firstChild).toBe(vNewChild);
+        expect(vNewChild.nextSibling).toBe(vVirtual);
+        expect(vVirtual.previousSibling).toBe(vNewChild);
+        expect(vVirtual.nextSibling).toBe(vChild1);
+        expect(vChild1.previousSibling).toBe(vVirtual);
+        expect(vParent.lastChild).toBe(vChild1);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
     });
 
@@ -3093,9 +3074,9 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild1, null);
 
         // Verify child is still properly linked
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.parent]).toBe(vParent);
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vChild1.parent).toBe(vParent);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle insertion when insertBefore is the same as newChild', () => {
@@ -3106,10 +3087,10 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild1, vChild1);
 
         // Should handle gracefully - child should be at the end
-        expect(vParent[ElementVNodeProps.firstChild]).toBe(vChild1);
-        expect(vParent[ElementVNodeProps.lastChild]).toBe(vChild1);
-        expect(vChild1[VNodeProps.previousSibling]).toBe(null);
-        expect(vChild1[VNodeProps.nextSibling]).toBe(null);
+        expect(vParent.firstChild).toBe(vChild1);
+        expect(vParent.lastChild).toBe(vChild1);
+        expect(vChild1.previousSibling).toBe(null);
+        expect(vChild1.nextSibling).toBe(null);
       });
 
       it('should handle insertion when parent is not deleted initially but becomes deleted', () => {
@@ -3117,7 +3098,7 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild1, null);
 
         // Verify child is not deleted initially
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(0);
 
         // Mark parent and its tree as deleted
         markVNodeTreeAsDeleted(vParent);
@@ -3126,10 +3107,10 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild2, null);
 
         // Verify new child is marked as deleted (inherited from parent)
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Verify existing child is also marked as deleted (from tree traversal)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should demonstrate that marking parent as deleted affects the entire tree', () => {
@@ -3138,20 +3119,20 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vParent, vChild2, null);
 
         // Verify children are not deleted initially
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(0);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(0);
 
         // Mark parent and its entire tree as deleted
         markVNodeTreeAsDeleted(vParent);
 
         // Verify existing children are now marked as deleted (from tree traversal)
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
 
         // Only new children inserted after parent is marked as deleted get the deleted flag
         const vNewChild = vnode_newElement(document.createElement('p'), 'p');
         vnode_insertBefore(journal, vParent, vNewChild, null);
-        expect(vNewChild[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vNewChild.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
 
       it('should handle nested tree deletion correctly', () => {
@@ -3161,19 +3142,19 @@ describe('vnode', () => {
         vnode_insertBefore(journal, vVirtual, vChild2, null);
 
         // Verify no nodes are deleted initially
-        expect(vParent[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
-        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(0);
+        expect(vParent.flags & VNodeFlags.Deleted).toBe(0);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(0);
+        expect(vVirtual.flags & VNodeFlags.Deleted).toBe(0);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(0);
 
         // Mark parent and its entire tree as deleted
         markVNodeTreeAsDeleted(vParent);
 
         // Verify all nodes in the tree are marked as deleted
-        expect(vParent[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild1[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vVirtual[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
-        expect(vChild2[VNodeProps.flags] & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vParent.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild1.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vVirtual.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
+        expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
     });
   });
@@ -3182,6 +3163,6 @@ describe('vnode', () => {
 function markVNodeTreeAsDeleted(vNode: VNode) {
   // simulate the cleanup traversal from vnode_diff
   vnode_walkVNode(vNode, (vChild) => {
-    vChild[VNodeProps.flags] |= VNodeFlags.Deleted;
+    vChild.flags |= VNodeFlags.Deleted;
   });
 }

@@ -1,6 +1,10 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { RequestEvShareQData, requestHandler } from '@qwik.dev/router/middleware/request-handler';
+import {
+  RedirectMessage,
+  RequestEvShareQData,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import type { ClientPageData } from '../runtime/src/types';
@@ -152,6 +156,7 @@ async function workerRender(
                 });
               }
             } catch (e: any) {
+              console.error('Error during stream start', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -166,6 +171,7 @@ async function workerRender(
                 routeWriter.write(Buffer.from(chunk.buffer));
               }
             } catch (e: any) {
+              console.error('Error during stream write', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -219,6 +225,7 @@ async function workerRender(
                 await Promise.all(writePromises);
               }
             } catch (e: any) {
+              console.error('Error during stream close', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -242,8 +249,13 @@ async function workerRender(
           });
         }
       })
-      .then((e) => {
+      .then((e: any) => {
         if (e !== undefined) {
+          if (e instanceof RedirectMessage) {
+            // TODO We should render a html page for redirects too
+            // that would require refactoring redirects
+            return;
+          }
           if (e instanceof Error) {
             result.error = {
               message: e.message,
@@ -255,6 +267,7 @@ async function workerRender(
               stack: undefined,
             };
           }
+          console.error('Error during request handling', staticRoute.pathname, e);
         }
       })
       .finally(() => {
@@ -264,6 +277,7 @@ async function workerRender(
 
     pendingPromises.add(promise);
   } catch (e: any) {
+    console.error('Error during render', staticRoute.pathname, e);
     if (e instanceof Error) {
       result.error = {
         message: e.message,

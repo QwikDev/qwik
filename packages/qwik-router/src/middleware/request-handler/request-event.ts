@@ -1,6 +1,6 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
 import { _deserialize, _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
-import { QDATA_KEY } from '../../runtime/src/constants';
+import { QACTION_KEY, QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
   type ActionInternal,
@@ -16,10 +16,11 @@ import { Cookie } from './cookie';
 import {
   AbortMessage,
   RedirectMessage,
-  ServerError,
   RewriteMessage,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
-import { encoder, getRouteLoaderPromise } from './resolve-request-handlers';
+import { executeLoader } from './handlers/loader-handler';
+import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
   CacheControlTarget,
@@ -31,16 +32,29 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import {
+  IsQAction,
+  IsQData,
+  IsQLoader,
+  IsQLoaderData,
+  LOADER_REGEX,
+  Q_LOADER_DATA_REGEX,
+  QActionId,
+  QDATA_JSON,
+  QDATA_JSON_LEN,
+  QLoaderId,
+  QManifestHash,
+} from './user-response';
+import { executeAction } from './handlers/action-handler';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
+const RequestEvActions = Symbol('RequestEvActions');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
 export const RequestEvLoaderSerializationStrategyMap = Symbol(
   'RequestEvLoaderSerializationStrategyMap'
 );
 export const RequestRouteName = '@routeName';
-export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
@@ -61,12 +75,31 @@ export function createRequestEvent(
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
+
+  const trimEnd = (length: number) => {
+    url.pathname = url.pathname.slice(0, -length);
     if (!globalThis.__NO_TRAILING_SLASH__ && !url.pathname.endsWith('/')) {
       url.pathname += '/';
     }
-    sharedMap.set(IsQData, true);
+  };
+
+  const requestRecognized = recognizeRequest(url.pathname);
+  if (requestRecognized) {
+    sharedMap.set(requestRecognized.type, true);
+    if (requestRecognized.manifestHash) {
+      sharedMap.set(QManifestHash, requestRecognized.manifestHash);
+    }
+    if (requestRecognized.type === IsQLoader && requestRecognized.data) {
+      sharedMap.set(QLoaderId, requestRecognized.data.loaderId);
+    }
+
+    trimEnd(requestRecognized.trimLength);
+  }
+
+  const actionMatch = url.searchParams.get(QACTION_KEY);
+  if (actionMatch) {
+    sharedMap.set(IsQAction, true);
+    sharedMap.set(QActionId, actionMatch);
   }
 
   let routeModuleIndex = -1;
@@ -144,14 +177,18 @@ export function createRequestEvent(
     return exit();
   };
 
-  const exit = () => {
+  const exit = <T extends AbortMessage | RedirectMessage | RewriteMessage>(
+    message: T = new AbortMessage() as T
+  ) => {
     routeModuleIndex = ABORT_INDEX;
-    return new AbortMessage();
+    return message;
   };
 
   const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
+  const actions: Record<string, ValueOrPromise<unknown> | undefined> = {};
   const requestEv: RequestEventInternal = {
     [RequestEvLoaders]: loaders,
+    [RequestEvActions]: actions,
     [RequestEvLoaderSerializationStrategyMap]: new Map(),
     [RequestEvMode]: serverRequestEv.mode,
     get [RequestEvRoute]() {
@@ -209,11 +246,17 @@ export function createRequestEvent(
         }
         if (loaders[id] === _UNINITIALIZED) {
           const isDev = getRequestMode(requestEv) === 'dev';
-          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev);
+          await executeLoader(loaderOrAction, loaders, requestEv, isDev);
         }
+        return loaders[id];
+      } else if (loaderOrAction.__brand === 'server_action' && id in actions) {
+        if (actions[id] === _UNINITIALIZED) {
+          const isDev = getRequestMode(requestEv) === 'dev';
+          await executeAction(loaderOrAction, actions, requestEv, isDev);
+        }
+        return actions[id];
       }
-
-      return loaders[id];
+      return undefined;
     }) as ResolveValue,
 
     status: (statusCode?: number) => {
@@ -252,8 +295,7 @@ export function createRequestEvent(
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
-      exit();
-      return new RedirectMessage();
+      return exit(new RedirectMessage());
     },
 
     rewrite: (pathname: string) => {
@@ -262,7 +304,7 @@ export function createRequestEvent(
         throw new Error('Rewrite does not support absolute urls');
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
+      return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));
     },
 
     defer: (returnData) => {
@@ -336,6 +378,7 @@ export function createRequestEvent(
 
 export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
+  [RequestEvActions]: Record<string, ValueOrPromise<unknown> | undefined>;
   [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvRoute]: LoadedRoute | null;
@@ -363,6 +406,10 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {
   return (requestEv as RequestEventInternal)[RequestEvLoaders];
+}
+
+export function getRequestActions(requestEv: RequestEventCommon) {
+  return (requestEv as RequestEventInternal)[RequestEvActions];
 }
 
 export function getRequestLoaderSerializationStrategyMap(requestEv: RequestEventCommon) {
@@ -437,3 +484,43 @@ const formToObj = (formData: FormData): Record<string, any> => {
   // Return values object
   return values;
 };
+
+export function recognizeRequest(pathname: string) {
+  // Quick length check for common cases
+  if (pathname.length < 10) {
+    return null;
+  }
+
+  // Check exact matches first (fastest)
+  if (pathname.endsWith(QDATA_JSON)) {
+    return {
+      type: IsQData,
+      trimLength: QDATA_JSON_LEN,
+      manifestHash: null,
+      data: null,
+    };
+  }
+
+  // Check for loader patterns
+  const loaderDataMatch = pathname.match(Q_LOADER_DATA_REGEX);
+  if (loaderDataMatch) {
+    return {
+      type: IsQLoaderData,
+      trimLength: loaderDataMatch[0].length,
+      manifestHash: loaderDataMatch[2],
+      data: null,
+    };
+  }
+
+  const loaderMatch = pathname.match(LOADER_REGEX);
+  if (loaderMatch) {
+    return {
+      type: IsQLoader,
+      trimLength: loaderMatch[0].length,
+      manifestHash: loaderMatch[3],
+      data: { loaderId: loaderMatch[2] },
+    };
+  }
+
+  return null;
+}

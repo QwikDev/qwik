@@ -29,12 +29,12 @@ export const loadRoute = async (
     if (!params) {
       continue;
     }
-    const loaders = routeData[RouteDataProp.Loaders];
+    const moduleLoaders = routeData[RouteDataProp.ModuleLoaders];
     const routeBundleNames = routeData[RouteDataProp.RouteBundleNames];
-    const modules: RouteModule[] = new Array(loaders.length);
+    const modules: RouteModule[] = new Array(moduleLoaders.length);
     const pendingLoads: Promise<any>[] = [];
 
-    loaders.forEach((moduleLoader, i) => {
+    moduleLoaders.forEach((moduleLoader, i) => {
       loadModule<RouteModule>(
         moduleLoader,
         pendingLoads,

@@ -1,4 +1,4 @@
-import type { SimpleURL } from './types';
+import type { LoaderSignal, SimpleURL } from './types';
 
 import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
 import {
@@ -6,8 +6,7 @@ import {
   type ClientContainer,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
-import { QACTION_KEY, QLOADER_KEY } from './constants';
-import { loadClientData } from './use-endpoint';
+import { loadClientLoaderData } from './use-endpoint';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -34,26 +33,6 @@ export const isSamePath = (a: SimpleURL, b: SimpleURL) =>
 /** Same origin, but different pathname (doesn't include search and hash) */
 export const isSameOriginDifferentPathname = (a: SimpleURL, b: SimpleURL) =>
   isSameOrigin(a, b) && !isSamePath(a, b);
-
-export const getClientDataPath = (
-  pathname: string,
-  pageSearch?: string,
-  options?: {
-    actionId?: string;
-    loaderIds?: string[];
-  }
-) => {
-  let search = pageSearch ?? '';
-  if (options?.actionId) {
-    search += (search ? '&' : '?') + QACTION_KEY + '=' + encodeURIComponent(options.actionId);
-  }
-  if (options?.loaderIds) {
-    for (const loaderId of options.loaderIds) {
-      search += (search ? '&' : '?') + QLOADER_KEY + '=' + encodeURIComponent(loaderId);
-    }
-  }
-  return pathname + (pathname.endsWith('/') ? '' : '/') + 'q-data.json' + search;
-};
 
 export const getClientNavPath = (props: Record<string, any>, baseUrl: { url: URL }) => {
   const href = props.href;
@@ -93,15 +72,14 @@ export const createLoaderSignal = (
   loaderId: string,
   url: URL,
   serializationStrategy: SerializationStrategy,
+  manifestHash: string,
   container?: ClientContainer
-) => {
+): LoaderSignal<unknown> => {
   return createAsyncComputed$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        const data = await loadClientData(url, undefined, {
-          loaderIds: [loaderId],
-        });
-        loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
+        const data = await loadClientLoaderData(url, loaderId, manifestHash);
+        loadersObject[loaderId] = data ?? _UNINITIALIZED;
       }
       return loadersObject[loaderId];
     },
@@ -109,5 +87,5 @@ export const createLoaderSignal = (
       container: container as ClientContainer,
       serializationStrategy,
     }
-  );
+  ) as LoaderSignal<unknown>;
 };

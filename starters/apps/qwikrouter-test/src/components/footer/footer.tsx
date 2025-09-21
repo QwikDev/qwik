@@ -55,6 +55,9 @@ export default component$(() => {
             Home
           </Link>
         </li>
+        <li>
+          <Link href="/qwikrouter-test/layout-only/inner/">Layout Only</Link>
+        </li>
       </ul>
       <ul>
         <li>{serverData.value.serverTime.toISOString()}</li>

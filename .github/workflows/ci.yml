@@ -285,7 +285,7 @@ jobs:
 
       - run: pnpm install
       - if: matrix.settings.wasm
-        run: pnpm install wasm-pack
+        run: pnpm install -w wasm-pack
 
       - name: Lint check
         if: matrix.settings.wasm

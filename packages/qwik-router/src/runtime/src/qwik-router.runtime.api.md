@@ -4,6 +4,7 @@
 
 ```ts
 
+import type { AsyncComputedReadonlySignal } from '@qwik.dev/core/internal';
 import { Component } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
 import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
@@ -15,7 +16,6 @@ import { QRL } from '@qwik.dev/core';
 import { QRLEventHandlerMulti } from '@qwik.dev/core';
 import { QwikIntrinsicElements } from '@qwik.dev/core';
 import { QwikJSX } from '@qwik.dev/core';
-import type { ReadonlySignal } from '@qwik.dev/core';
 import { Render } from '@qwik.dev/core/server';
 import { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent } from '@qwik.dev/router/middleware/request-handler';
@@ -263,7 +263,7 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;
+export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>> : AsyncComputedReadonlySignal<TYPE>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //
@@ -329,6 +329,8 @@ export interface QwikRouterConfig {
     readonly basePathname?: string;
     // (undocumented)
     readonly cacheModules?: boolean;
+    // (undocumented)
+    readonly loaderIdToRoute?: Record<string, string>;
     // (undocumented)
     readonly menus?: MenuData[];
     // (undocumented)
@@ -416,9 +418,12 @@ export const routeActionQrl: ActionConstructorQRL;
 // Warning: (ae-forgotten-export) The symbol "ModuleLoader" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type RouteData = [routeName: string, loaders: ModuleLoader[]] | [
+export type RouteData = [
 routeName: string,
-loaders: ModuleLoader[],
+moduleLoaders: ModuleLoader[]
+] | [
+routeName: string,
+moduleLoaders: ModuleLoader[],
 originalPathname: string,
 routeBundleNames: string[]
 ];

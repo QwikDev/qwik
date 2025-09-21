@@ -1166,8 +1166,8 @@ export type Loader<RETURN> = {
 export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
   infer VALIDATOR
 >
-  ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>;
+  ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>>
+  : AsyncComputedReadonlySignal<TYPE>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -1502,6 +1502,23 @@ _(Optional)_
 </td><td>
 
 boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+[loaderIdToRoute?](./router.qwikrouterconfig.loaderidtoroute.md)
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+Record&lt;string, string&gt;
 
 </td><td>
 
@@ -1854,10 +1871,10 @@ routeAction$: ActionConstructor;
 
 ```typescript
 export type RouteData =
-  | [routeName: string, loaders: ModuleLoader[]]
+  | [routeName: string, moduleLoaders: ModuleLoader[]]
   | [
       routeName: string,
-      loaders: ModuleLoader[],
+      moduleLoaders: ModuleLoader[],
       originalPathname: string,
       routeBundleNames: string[],
     ];

@@ -446,7 +446,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>;\n```",
+      "content": "```typescript\nexport type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<infer VALIDATOR> ? AsyncComputedReadonlySignal<ValueOrPromise<VALIDATOR>> : AsyncComputedReadonlySignal<TYPE>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },
@@ -656,7 +656,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname?](./router.qwikrouterconfig.basepathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[cacheModules?](./router.qwikrouterconfig.cachemodules.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[menus?](./router.qwikrouterconfig.menus.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[MenuData](#menudata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[routes](./router.qwikrouterconfig.routes.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[serverPlugins?](./router.qwikrouterconfig.serverplugins.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[trailingSlash?](./router.qwikrouterconfig.trailingslash.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[basePathname?](./router.qwikrouterconfig.basepathname.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[cacheModules?](./router.qwikrouterconfig.cachemodules.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[loaderIdToRoute?](./router.qwikrouterconfig.loaderidtoroute.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[menus?](./router.qwikrouterconfig.menus.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[MenuData](#menudata)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[routes](./router.qwikrouterconfig.routes.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[serverPlugins?](./router.qwikrouterconfig.serverplugins.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[trailingSlash?](./router.qwikrouterconfig.trailingslash.md)\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.qwikrouterconfig.md"
     },
@@ -796,7 +796,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteData = [routeName: string, loaders: ModuleLoader[]] | [\n    routeName: string,\n    loaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "content": "```typescript\nexport type RouteData = [\n    routeName: string,\n    moduleLoaders: ModuleLoader[]\n] | [\n    routeName: string,\n    moduleLoaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routedata.md"
     },

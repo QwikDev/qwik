@@ -212,6 +212,7 @@ export {
     }),
   );
 
+  console.log(`  ✅ built client`, clientManifest);
   await build(
     getInlineConf({
       build: {

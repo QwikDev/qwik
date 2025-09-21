@@ -1,133 +1,285 @@
-import { getClientDataPath } from './utils';
-import { CLIENT_DATA_CACHE } from './constants';
-import type { ClientPageData, RouteActionValue } from './types';
-import { _deserialize } from '@qwik.dev/core/internal';
+import { _deserialize, isDev } from '@qwik.dev/core/internal';
+import type { QData } from '../../middleware/request-handler/handlers/qdata-handler';
 import { preloadRouteBundles } from './client-navigate';
+import { QACTION_KEY } from './constants';
+import type { ClientPageData, RouteActionValue } from './types';
 
-const MAX_Q_DATA_RETRY_COUNT = 3;
+class ShouldRedirect<T> {
+  constructor(
+    public location: string,
+    public data: T
+  ) {}
+}
 
-export const loadClientData = async (
-  url: URL,
-  element: unknown,
-  opts?: {
-    action?: RouteActionValue;
-    loaderIds?: string[];
-    clearCache?: boolean;
-    preloadRouteBundles?: boolean;
-    isPrefetch?: boolean;
-  },
-  retryCount: number = 0
-): Promise<ClientPageData | undefined> => {
-  const pagePathname = url.pathname;
-  const pageSearch = url.search;
-  const clientDataPath = getClientDataPath(pagePathname, pageSearch, {
-    actionId: opts?.action?.id,
-    loaderIds: opts?.loaderIds,
-  });
-  let qData: Promise<ClientPageData | undefined> | undefined;
-  if (!opts?.action) {
-    qData = CLIENT_DATA_CACHE.get(clientDataPath);
-  }
+interface LoaderDataResponse {
+  id: string;
+  route: string;
+}
 
-  if (opts?.preloadRouteBundles !== false) {
-    preloadRouteBundles(pagePathname, 0.8);
-  }
-  let resolveFn: () => void | undefined;
+interface RedirectContext {
+  promise: Promise<unknown> | undefined;
+}
 
-  if (!qData) {
-    const fetchOptions = getFetchOptions(opts?.action, opts?.clearCache);
-    if (opts?.action) {
-      opts.action.data = undefined;
-    }
-    qData = fetch(clientDataPath, fetchOptions).then((rsp) => {
-      if (rsp.status === 404 && opts?.loaderIds && retryCount < MAX_Q_DATA_RETRY_COUNT) {
-        // retry if the q-data.json is not found with all options
-        // we want to retry with all the loaders
-        opts.loaderIds = undefined;
-        return loadClientData(url, element, opts, retryCount + 1);
-      }
-      if (rsp.redirected) {
-        const redirectedURL = new URL(rsp.url);
-        const isQData = redirectedURL.pathname.endsWith('/q-data.json');
-        if (!isQData || redirectedURL.origin !== location.origin) {
-          // Captive portal etc. We can't talk to the server, so redirect as asked
-          location.href = redirectedURL.href;
-          return;
-        }
-      }
-      if ((rsp.headers.get('content-type') || '').includes('json')) {
-        // we are safe we are reading a q-data.json
-        return rsp.text().then((text) => {
-          const [clientData] = _deserialize(text, element) as [ClientPageData];
-          if (!clientData) {
-            // Something went wrong, show to the user
-            location.href = url.href;
-            return;
-          }
-          if (opts?.clearCache) {
-            CLIENT_DATA_CACHE.delete(clientDataPath);
-          }
-          if (clientData.redirect) {
-            // server function asked for redirect
-            location.href = clientData.redirect;
-          } else if (opts?.action) {
-            const { action } = opts;
-            const actionData = clientData.loaders[action.id];
-            resolveFn = () => {
-              action!.resolve!({ status: rsp.status, result: actionData });
-            };
-          }
-          return clientData;
-        });
-      } else {
-        if (opts?.isPrefetch !== true) {
-          location.href = url.href;
-        }
-        return undefined;
-      }
-    });
-
-    if (!opts?.action) {
-      CLIENT_DATA_CACHE.set(clientDataPath, qData);
-    }
-  }
-
-  return qData.then((v) => {
-    if (!v) {
-      CLIENT_DATA_CACHE.delete(clientDataPath);
-    }
-    resolveFn && resolveFn();
-    return v;
+export const loadClientLoaderData = async (url: URL, loaderId: string, manifestHash: string) => {
+  const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+  const abortController = new AbortController();
+  return fetchLoader(loaderId, pagePathname, manifestHash, true, abortController, {
+    promise: undefined,
   });
 };
 
-const getFetchOptions = (
-  action: RouteActionValue | undefined,
-  noCache: boolean | undefined
-): RequestInit | undefined => {
-  const actionData = action?.data;
-  if (!actionData) {
-    if (noCache) {
-      return {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache',
-        },
+export const loadClientData = async (
+  url: URL,
+  manifestHash: string,
+  opts?: {
+    action?: RouteActionValue;
+    loaderIds?: string[];
+    redirectData?: ShouldRedirect<LoaderDataResponse[]>;
+    clearCache?: boolean;
+    preloadRouteBundles?: boolean;
+    isPrefetch?: boolean;
+  }
+): Promise<ClientPageData | undefined> => {
+  const pagePathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+  if (opts?.preloadRouteBundles !== false) {
+    preloadRouteBundles(pagePathname);
+  }
+
+  const loaders: Record<string, unknown> = {};
+  let resolveFn: () => void | undefined;
+  let actionData: unknown;
+  if (opts?.action) {
+    try {
+      const actionResult = await fetchActionData(opts.action, pagePathname, url.searchParams);
+      actionData = actionResult.data;
+      resolveFn = () => {
+        opts.action!.resolve!({ status: actionResult.status, result: actionData });
       };
+    } catch (e) {
+      if (e instanceof ShouldRedirect) {
+        const newUrl = new URL(e.location, url);
+        const newOpts = {
+          ...opts,
+          action: undefined,
+          loaderIds: undefined,
+          redirectData: e,
+        };
+        return loadClientData(newUrl, manifestHash, newOpts);
+      } else {
+        throw e;
+      }
+    }
+  }
+  let loaderData: LoaderDataResponse[] = [];
+  if (opts && opts.loaderIds) {
+    loaderData = opts.loaderIds.map((loaderId) => {
+      return {
+        id: loaderId,
+        route: pagePathname,
+      };
+    });
+  } else if (opts?.redirectData?.data) {
+    loaderData = opts.redirectData.data;
+  } else {
+    // we need to load all the loaders
+    // first we need to get the loader urls
+    loaderData = (await fetchLoaderData(pagePathname, manifestHash)).loaderData;
+  }
+  if (loaderData.length > 0) {
+    // load specific loaders
+    const abortController = new AbortController();
+    const redirectContext: RedirectContext = { promise: undefined };
+    try {
+      const loaderPromises = loaderData.map((loader) =>
+        fetchLoader(
+          loader.id,
+          loader.route,
+          manifestHash,
+          !opts?.action,
+          abortController,
+          redirectContext
+        )
+      );
+      const loaderResults = await Promise.all(loaderPromises);
+      for (let i = 0; i < loaderData.length; i++) {
+        loaders[loaderData[i].id] = loaderResults[i];
+      }
+    } catch (e) {
+      if (e instanceof ShouldRedirect) {
+        const newUrl = new URL(e.location, url);
+        const newOpts = {
+          ...opts,
+          action: undefined,
+          loaderIds: undefined,
+          redirectData: e,
+        };
+        return loadClientData(newUrl, manifestHash, newOpts);
+      } else if (e instanceof Error && e.name === 'AbortError') {
+        // Expected, do nothing
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  const qDataUrl = `${pagePathname}q-data.json`;
+  const qData = fetch(qDataUrl).then((rsp) => {
+    if (rsp.redirected) {
+      const redirectedURL = new URL(rsp.url);
+      const isQData = redirectedURL.pathname.endsWith('/q-data.json');
+      if (!isQData || redirectedURL.origin !== location.origin) {
+        // Captive portal etc. We can't talk to the server, so redirect as asked
+        location.href = redirectedURL.href;
+        return;
+      }
+    }
+    // TODO: why we need it?
+    if ((rsp.headers.get('content-type') || '').includes('json')) {
+      // we are safe we are reading a q-data.json
+      return rsp.text().then((text) => {
+        const [clientData] = _deserialize(text) as [QData];
+        if (!clientData) {
+          // Something went wrong, show to the user
+          location.href = url.href;
+          return;
+        }
+        return clientData;
+      });
+    } else {
+      if (opts?.isPrefetch !== true) {
+        location.href = url.href;
+      }
+      return;
+    }
+  });
+
+  return qData.then((v) => {
+    resolveFn && resolveFn();
+    return {
+      loaders,
+      action: actionData
+        ? {
+            id: opts!.action!.id,
+            data: actionData,
+          }
+        : undefined,
+      href: v?.href ?? pagePathname,
+      status: v?.status ?? 200,
+      isRewrite: v?.isRewrite ?? false,
+    } satisfies ClientPageData;
+  });
+};
+
+export async function fetchLoaderData(
+  routePath: string,
+  manifestHash: string
+): Promise<{ loaderData: LoaderDataResponse[] }> {
+  const url = `${routePath}q-loader-data.${manifestHash}.json`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    if (isDev) {
+      throw new Error(`Failed to load loader data for ${routePath}: ${response.status}`);
+    }
+    return { loaderData: [] };
+  }
+  return response.json();
+}
+
+export async function fetchLoader(
+  loaderId: string,
+  routePath: string,
+  manifestHash: string,
+  useCache: boolean,
+  abortController: AbortController,
+  redirectContext: RedirectContext
+): Promise<unknown> {
+  const url = `${routePath}q-loader-${loaderId}.${manifestHash}.json`;
+
+  const response = await fetch(url, {
+    signal: abortController.signal,
+    cache: useCache ? 'default' : 'no-cache',
+  });
+
+  if (response.redirected) {
+    if (!redirectContext.promise) {
+      redirectContext.promise = response.json();
+
+      abortController.abort();
+
+      const data = await redirectContext.promise;
+      // remove the q-loader-XY.json from the url and keep the rest of the url
+      // the url is like this: https://localhost:3000/q-loader-XY.json
+      // we need to remove the q-loader-XY.json and keep the rest of the url
+      // the new url is like this: https://localhost:3000/
+      const newUrl = new URL(response.url);
+      newUrl.pathname = newUrl.pathname.replace(`q-loader-data.${manifestHash}.json`, '');
+      throw new ShouldRedirect(
+        newUrl.pathname,
+        (data as { loaderData: LoaderDataResponse[] }).loaderData
+      );
+    }
+  }
+  if (!response.ok) {
+    if (isDev) {
+      throw new Error(`Failed to load ${loaderId}: ${response.status}`);
     }
     return undefined;
   }
+
+  const text = await response.text();
+  const [data] = _deserialize(text, document.documentElement) as [Record<string, unknown>];
+  return data;
+}
+
+function buildActionUrl(
+  routePath: string,
+  searchParams: URLSearchParams,
+  actionId: string
+): string {
+  searchParams.set(QACTION_KEY, actionId);
+  return `${routePath}?${searchParams.toString()}`;
+}
+
+export async function fetchActionData(
+  action: RouteActionValue,
+  routePath: string,
+  searchParams: URLSearchParams
+): Promise<{ data: unknown; status: number }> {
+  const url = buildActionUrl(routePath, searchParams, action.id);
+  const fetchOptions = getActionFetchOptions(action);
+  // TODO: why we need it?
+  action.data = undefined;
+  const response = await fetch(url, fetchOptions);
+
+  if (response.redirected) {
+    const newUrl = new URL(response.url);
+    newUrl.pathname = newUrl.pathname.replace('q-data.json', '');
+    throw new ShouldRedirect(newUrl.pathname, undefined);
+  }
+
+  const text = await response.text();
+  const [data] = _deserialize(text, document.documentElement) as [Record<string, unknown>];
+
+  return { data, status: response.status };
+}
+
+const getActionFetchOptions = (action: RouteActionValue): RequestInit | undefined => {
+  const actionData = action.data;
   if (actionData instanceof FormData) {
     return {
       method: 'POST',
       body: actionData,
+      headers: {
+        accept: 'application/json',
+      },
     };
   } else {
     return {
       method: 'POST',
       body: JSON.stringify(actionData),
       headers: {
+        accept: 'application/json',
         'Content-Type': 'application/json; charset=UTF-8',
       },
     };

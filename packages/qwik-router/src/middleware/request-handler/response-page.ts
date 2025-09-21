@@ -1,22 +1,23 @@
 import { Q_ROUTE } from '../../runtime/src/constants';
 import type { QwikRouterEnvData } from '../../runtime/src/types';
 import {
+  getRequestActions,
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
   getRequestRoute,
   RequestEvSharedActionFormData,
-  RequestEvSharedActionId,
   RequestEvSharedNonce,
   RequestRouteName,
 } from './request-event';
 import type { RequestEvent } from './types';
+import { QActionId } from './user-response';
 
 export function getQwikRouterServerData(requestEv: RequestEvent) {
   const { params, request, status, locale, originalUrl } = requestEv;
   const requestHeaders: Record<string, string> = {};
   request.headers.forEach((value, key) => (requestHeaders[key] = value));
 
-  const action = requestEv.sharedMap.get(RequestEvSharedActionId) as string;
+  const actionId = requestEv.sharedMap.get(QActionId) as string | undefined;
   const formData = requestEv.sharedMap.get(RequestEvSharedActionFormData);
   const routeName = requestEv.sharedMap.get(RequestRouteName) as string;
   const nonce = requestEv.sharedMap.get(RequestEvSharedNonce);
@@ -34,6 +35,7 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
 
   const loaders = getRequestLoaders(requestEv);
   const loadersSerializationStrategy = getRequestLoaderSerializationStrategyMap(requestEv);
+  const actions = getRequestActions(requestEv);
 
   return {
     url: reconstructedUrl.href,
@@ -52,7 +54,12 @@ export function getQwikRouterServerData(requestEv: RequestEvent) {
         status: status(),
         loaders,
         loadersSerializationStrategy,
-        action,
+        action: actionId
+          ? {
+              id: actionId,
+              data: actions[actionId],
+            }
+          : undefined,
         formData,
       },
     } satisfies QwikRouterEnvData,

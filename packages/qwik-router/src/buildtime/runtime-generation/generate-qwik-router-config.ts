@@ -1,13 +1,13 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { createEntries } from './generate-entries';
 import { createMenus } from './generate-menus';
-import { createRoutes } from './generate-routes';
+import { createLoaderIdToRoute, createRoutes } from './generate-routes';
 import { createServerPlugins } from './generate-server-plugins';
 
 /** Generates the Qwik Router Config runtime code */
 export function generateQwikRouterConfig(
-  ctx: BuildContext,
+  ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
   isSSR: boolean
 ) {
@@ -25,6 +25,8 @@ export function generateQwikRouterConfig(
 
   createEntries(ctx, c);
 
+  createLoaderIdToRoute(ctx, qwikPlugin, c);
+
   c.push(`export const trailingSlash = ${JSON.stringify(!globalThis.__NO_TRAILING_SLASH__)};`);
 
   c.push(`export const basePathname = ${JSON.stringify(ctx.opts.basePathname)};`);
@@ -32,7 +34,7 @@ export function generateQwikRouterConfig(
   c.push(`export const cacheModules = !isDev;`);
 
   c.push(
-    `export default { routes, serverPlugins, menus, trailingSlash, basePathname, cacheModules };`
+    `export default { routes, serverPlugins, menus, trailingSlash, basePathname, cacheModules, loaderIdToRoute };`
   );
   return esmImports.join('\n') + c.join('\n');
 }

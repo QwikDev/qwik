@@ -32,8 +32,7 @@ export async function qDataHandler(requestEv: RequestEvent) {
 
   // Set cache headers
   requestEv.cacheControl({
-    maxAge: 300, // 5 minutes
-    staleWhileRevalidate: 3600, // 1 hour
+    maxAge: 60, // 1 minute
   });
 
   // write just the page json data to the response body

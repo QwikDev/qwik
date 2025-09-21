@@ -108,7 +108,6 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
     // Set cache headers - aggressive for loaders
     requestEv.cacheControl({
       maxAge: 300, // 5 minutes
-      staleWhileRevalidate: 3600, // 1 hour
     });
 
     const data = await _serialize([loaders[loaderId]]);

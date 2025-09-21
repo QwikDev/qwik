@@ -399,6 +399,10 @@ export interface CacheControlOptions {
   /**
    * The stale-while-revalidate response directive indicates that the cache could reuse a stale
    * response while it revalidates it to a cache.
+   *
+   * Note: there is no mechanism that updates the application when the revalidation happens. Use
+   * this only when you know you will be fetching the revalidated resource again in the very near
+   * future.
    */
   staleWhileRevalidate?: number;
 

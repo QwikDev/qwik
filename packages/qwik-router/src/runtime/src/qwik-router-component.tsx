@@ -494,7 +494,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
         // Needs to be done after routeLocation is updated
         const resolvedHead = await resolveHead(
-          loaderState,
+          clientPageData?.loaders,
           clientPageData?.action,
 
           routeLocation,

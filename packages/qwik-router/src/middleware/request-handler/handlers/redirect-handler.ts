@@ -30,6 +30,8 @@ export async function handleRedirect(requestEv: RequestEvent) {
     const adaptedLocation = makeQDataPath(location, requestEv.sharedMap);
     if (adaptedLocation) {
       requestEv.headers.set('Location', adaptedLocation);
+      // make sure we get an answer for actions
+      requestEv.headers.set('Content-Type', 'application/json');
       requestEv.getWritableStream().close();
       return;
     } else {

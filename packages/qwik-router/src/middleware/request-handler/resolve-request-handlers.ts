@@ -88,8 +88,8 @@ export const resolveRequestHandlers = (
       requestHandlers.push(fixTrailingSlash);
       requestHandlers.push(handleRedirect);
       requestHandlers.push(loaderDataHandler(routeLoaders));
-      requestHandlers.push(loaderHandler(routeLoaders));
-      requestHandlers.push(actionHandler(routeActions));
+      requestHandlers.push(loaderHandler(routeLoaders, routeActions));
+      requestHandlers.push(actionHandler(routeActions, routeLoaders));
       requestHandlers.push(qDataHandler);
       requestHandlers.push(loadersMiddleware(routeLoaders));
       requestHandlers.push(renderHandler);

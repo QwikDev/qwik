@@ -1,16 +1,25 @@
-import { _serialize, type ValueOrPromise } from '@qwik.dev/core/internal';
+import { _serialize, _UNINITIALIZED, type ValueOrPromise } from '@qwik.dev/core/internal';
 import type {
   ActionInternal,
   JSONObject,
+  LoaderInternal,
   RequestEvent,
   RequestHandler,
 } from '../../../runtime/src/types';
-import { getRequestActions, getRequestMode, type RequestEventInternal } from '../request-event';
+import {
+  getRequestActions,
+  getRequestLoaders,
+  getRequestMode,
+  type RequestEventInternal,
+} from '../request-event';
 import { measure, verifySerializable } from '../resolve-request-handlers';
 import { IsQAction, QActionId } from '../user-response';
 import { runValidators } from './validator-utils';
 
-export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
+export function actionHandler(
+  routeActions: ActionInternal[],
+  routeLoaders: LoaderInternal[]
+): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
@@ -25,7 +34,6 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
     const actionId = requestEv.sharedMap.get(QActionId);
 
     // Execute just this action
-    const actions = getRequestActions(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
     const method = requestEv.method;
 
@@ -35,13 +43,20 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
       );
     }
     if (method === 'POST') {
+      const actions = getRequestActions(requestEv);
       let action: ActionInternal | undefined;
       for (const routeAction of routeActions) {
         if (routeAction.__id === actionId) {
           action = routeAction;
-          break;
+        } else {
+          // actions can use other actions
+          actions[routeAction.__id] = _UNINITIALIZED;
         }
-        // TODO: do we need to initialize the rest with _UNINITIALIZED?
+      }
+      // actions can use loaders
+      const loaders = getRequestLoaders(requestEv);
+      for (const routeLoader of routeLoaders) {
+        loaders[routeLoader.__id] = _UNINITIALIZED;
       }
       if (!action) {
         const serverActionsMap = globalThis._qwikActionsMap as
@@ -68,7 +83,7 @@ export function actionHandler(routeActions: ActionInternal[]): RequestHandler {
   };
 }
 
-async function executeAction(
+export async function executeAction(
   action: ActionInternal,
   actions: Record<string, ValueOrPromise<unknown> | undefined>,
   requestEv: RequestEventInternal,

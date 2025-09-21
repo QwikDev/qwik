@@ -1,8 +1,9 @@
 import qwikRouterConfig from '@qwik-router-config';
 import { _serialize, _UNINITIALIZED } from '@qwik.dev/core/internal';
-import type { LoaderInternal, RequestHandler } from '../../../runtime/src/types';
+import type { ActionInternal, LoaderInternal, RequestHandler } from '../../../runtime/src/types';
 import { getPathnameForDynamicRoute } from '../../../utils/pathname';
 import {
+  getRequestActions,
   getRequestLoaders,
   getRequestLoaderSerializationStrategyMap,
   getRequestMode,
@@ -71,7 +72,10 @@ export function loaderDataHandler(routeLoaders: LoaderInternal[]): RequestHandle
   };
 }
 
-export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
+export function loaderHandler(
+  routeLoaders: LoaderInternal[],
+  routeActions: ActionInternal[]
+): RequestHandler {
   return async (requestEvent: RequestEvent) => {
     const requestEv = requestEvent as RequestEventInternal;
 
@@ -94,8 +98,15 @@ export function loaderHandler(routeLoaders: LoaderInternal[]): RequestHandler {
       if (routeLoader.__id === loaderId) {
         loader = routeLoader;
       } else if (!loaders[routeLoader.__id]) {
+        // loaders can use other loaders
         loaders[routeLoader.__id] = _UNINITIALIZED;
       }
+    }
+
+    // loaders can use actions
+    const actions = getRequestActions(requestEv);
+    for (const routeAction of routeActions) {
+      actions[routeAction.__id] = _UNINITIALIZED;
     }
 
     if (!loader) {

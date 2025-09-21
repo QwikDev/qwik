@@ -1,5 +1,3 @@
-import type { Rollup } from 'vite';
-
 import type {
   Diagnostic,
   EntryStrategy,
@@ -18,6 +16,7 @@ import {
   type QwikPlugin,
   type QwikPluginOptions,
 } from './plugin';
+import type { OutputOptions, Plugin, PreRenderedChunk, RollupError } from 'rollup';
 
 type QwikRollupPluginApi = {
   getOptimizer: () => Optimizer;
@@ -129,10 +128,10 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
 
 export function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
-  rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
+  rollupOutputOpts: OutputOptions | OutputOptions[] | undefined,
   useAssetsDir: boolean,
   outDir?: string
-): Rollup.OutputOptions | Rollup.OutputOptions[] {
+): OutputOptions | OutputOptions[] {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
     if (!rollupOutputOpts.length) {
@@ -153,10 +152,10 @@ export function normalizeRollupOutputOptions(
 
 export function normalizeRollupOutputOptionsObject(
   qwikPlugin: QwikPlugin,
-  rollupOutputOptsObj: Rollup.OutputOptions | undefined,
+  rollupOutputOptsObj: OutputOptions | undefined,
   useAssetsDir: boolean
-): Rollup.OutputOptions {
-  const outputOpts: Rollup.OutputOptions = { ...rollupOutputOptsObj };
+): OutputOptions {
+  const outputOpts: OutputOptions = { ...rollupOutputOptsObj };
   const opts = qwikPlugin.getOptions();
   const optimizer = qwikPlugin.getOptimizer();
   const manualChunks = qwikPlugin.manualChunks;
@@ -170,7 +169,7 @@ export function normalizeRollupOutputOptionsObject(
         : assetFileNames;
     }
 
-    let fileName: string | ((chunkInfo: Rollup.PreRenderedChunk) => string) | undefined;
+    let fileName: string | ((chunkInfo: PreRenderedChunk) => string) | undefined;
     if (opts.buildMode === 'production' && !opts.debug) {
       fileName = 'build/q-[hash].js';
     } else {
@@ -199,15 +198,14 @@ export function normalizeRollupOutputOptionsObject(
       };
     }
     // client development/debug output
-    const getFilePath = (fileNamePattern: string | ((info: Rollup.PreRenderedChunk) => string)) =>
+    const getFilePath = (fileNamePattern: string | ((info: PreRenderedChunk) => string)) =>
       typeof fileNamePattern === 'string'
         ? useAssetsDir
           ? `${opts.assetsDir}/${fileNamePattern}`
           : fileNamePattern
         : useAssetsDir
-          ? (chunkInfo: Rollup.PreRenderedChunk) =>
-              `${opts.assetsDir}/${fileNamePattern(chunkInfo)}`
-          : (chunkInfo: Rollup.PreRenderedChunk) => fileNamePattern(chunkInfo);
+          ? (chunkInfo: PreRenderedChunk) => `${opts.assetsDir}/${fileNamePattern(chunkInfo)}`
+          : (chunkInfo: PreRenderedChunk) => fileNamePattern(chunkInfo);
 
     if (!outputOpts.entryFileNames) {
       outputOpts.entryFileNames = getFilePath(fileName);
@@ -253,12 +251,17 @@ export function normalizeRollupOutputOptionsObject(
    */
   outputOpts.hoistTransitiveImports = false;
 
+  outputOpts.onlyExplicitManualChunks = true;
+  console.warn(
+    `⚠️ For the latest and greatest, we recommend to install rollup@^4.52.0 directly in your project. It enables the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
+  );
+
   return outputOpts;
 }
 
 export function createRollupError(id: string, diagnostic: Diagnostic) {
   const loc = diagnostic.highlights[0] ?? {};
-  const err: Rollup.RollupError = Object.assign(new Error(diagnostic.message), {
+  const err: RollupError = Object.assign(new Error(diagnostic.message), {
     id,
     plugin: 'qwik',
     loc: {
@@ -352,5 +355,5 @@ export interface QwikRollupPluginOptions {
   experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 export { ExperimentalFeatures } from './plugin';
-type P<T> = Rollup.Plugin<T> & { api: T };
+type P<T> = Plugin<T> & { api: T };
 export interface QwikRollupPlugin extends P<QwikRollupPluginApi> {}

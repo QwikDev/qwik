@@ -59,6 +59,10 @@ class HtmlTransformPatcher {
       statusMessage?: string | OutgoingHttpHeaders | OutgoingHttpHeader[],
       headers?: OutgoingHttpHeaders | OutgoingHttpHeader[]
     ) => {
+      if (typeof statusMessage === 'object' && statusMessage !== null) {
+        headers = statusMessage;
+        statusMessage = undefined;
+      }
       if (headers && typeof headers === 'object') {
         for (const [key, value] of Object.entries(headers)) {
           if (key.toLowerCase() === 'content-type') {
@@ -164,7 +168,10 @@ class HtmlTransformPatcher {
       if (fakeHeadIndex === -1 || fakeHeadCloseIndex === -1) {
         throw new Error('Transformed HTML does not contain [FAKE_HEAD]...</head>');
       }
-      const headPreContent = transformedHtml.slice('<html><head>'.length, fakeHeadIndex);
+      const headPreContent = transformedHtml
+        .slice('<html><head>'.length, fakeHeadIndex)
+        // remove new line after <script type="module" src="/@vite/client"></script>
+        .trim();
       const headPostContent = transformedHtml.slice(
         fakeHeadIndex + '[FAKE_HEAD]'.length,
         fakeHeadCloseIndex

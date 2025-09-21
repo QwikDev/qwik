@@ -149,7 +149,7 @@
     "prettier-plugin-tailwindcss": "0.6.14",
     "pretty-quick": "4.2.2",
     "prompts": "2.4.2",
-    "rollup": ">= 4.39.0",
+    "rollup": ">= 4.52.0",
     "semver": "7.7.2",
     "simple-git-hooks": "2.13.1",
     "snoop": "1.0.4",

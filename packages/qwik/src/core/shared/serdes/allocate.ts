@@ -1,6 +1,6 @@
 import { TypeIds, _constants, type Constants, parseQRL, deserializeData, resolvers } from './index';
 import type { DomContainer } from '../../client/dom-container';
-import type { ElementVNode, VNode } from '../../client/types';
+import type { ElementVNode, VNode } from '../../client/vnode-impl';
 import { vnode_isVNode, ensureMaterialized, vnode_getNode, vnode_locate } from '../../client/vnode';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';

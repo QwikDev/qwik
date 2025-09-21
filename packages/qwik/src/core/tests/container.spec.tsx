@@ -5,8 +5,8 @@ import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
-import type { ClientContainer, VNode } from '../client/types';
-import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import type { ClientContainer } from '../client/types';
+import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
 import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
@@ -20,6 +20,7 @@ import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx'
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { SignalFlags } from '../reactive-primitives/types';
+import type { VNode } from '../client/vnode-impl';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -122,8 +123,8 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnodeSpan = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
+        const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
+        expect(vnodeSpan.getAttr('id')).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {

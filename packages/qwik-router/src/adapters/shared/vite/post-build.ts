@@ -1,6 +1,6 @@
-import { getErrorHtml } from '@qwik.dev/router/middleware/request-handler';
 import fs from 'node:fs';
 import { join } from 'node:path';
+import { getErrorHtml } from '../../../middleware/request-handler/error-handler';
 
 /** Cleans the client output SSG results if needed and injects the SSG metadata into the build output */
 export async function postBuild(

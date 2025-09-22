@@ -253,6 +253,7 @@ export async function normalizeRollupOutputOptionsObject(
    */
   outputOpts.hoistTransitiveImports = false;
 
+  // V2 official release TODO: remove below checks and just keep `outputOpts.onlyExplicitManualChunks = true;`
   const userPkgJsonPath = await findDepPkgJsonPath(optimizer.sys, 'rollup', optimizer.sys.cwd());
   if (userPkgJsonPath) {
     try {
@@ -272,7 +273,7 @@ export async function normalizeRollupOutputOptionsObject(
         outputOpts.onlyExplicitManualChunks = true;
       } else {
         console.warn(
-          `⚠️ For the latest and greatest, we recommend to install rollup@^4.52.0 directly in your project. It enables the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
+          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 directly in your project (${version}). For the latest and greatest, we recommend to remove it and let Vite install the latest version for you. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
         );
       }
     } catch {

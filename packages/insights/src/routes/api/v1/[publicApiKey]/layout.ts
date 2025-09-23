@@ -5,5 +5,5 @@ export const onRequest = ({ url, headers }: RequestEvent) => {
   headers.set('Access-Control-Allow-Origin', url.origin);
   headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   headers.set('Access-Control-Allow-Headers', 'Content-Type');
-  headers.set('Access-Control-Resource-Policy', 'cross-origin');
+  headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 };

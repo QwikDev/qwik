@@ -16,7 +16,8 @@ export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
-  pathname: string
+  pathname: string,
+  isInternal?: boolean
 ): Promise<LoadedRoute | null> => {
   if (!Array.isArray(routes)) {
     return null;
@@ -41,16 +42,18 @@ export const loadRoute = async (
       );
     });
 
-    const menuLoader = getMenuLoader(menus, pathname);
     let menu: ContentMenu | undefined = undefined;
+    // No need to load menu for internal QData requests
+    if (!isInternal) {
+      const menuLoader = getMenuLoader(menus, pathname);
 
-    loadModule<MenuModule>(
-      menuLoader,
-      pendingLoads,
-      (menuModule) => (menu = menuModule?.default),
-      cacheModules
-    );
-
+      loadModule<MenuModule>(
+        menuLoader,
+        pendingLoads,
+        (menuModule) => (menu = menuModule?.default),
+        cacheModules
+      );
+    }
     if (pendingLoads.length > 0) {
       await Promise.all(pendingLoads);
     }
@@ -91,9 +94,8 @@ const loadModule = <T>(
 export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
   if (menus) {
     pathname = pathname.endsWith('/') ? pathname : pathname + '/';
-    const menu = menus.find(
-      (m) => m[0] === pathname || pathname.startsWith(m[0] + (pathname.endsWith('/') ? '' : '/'))
-    );
+    // The menus are sorted longest to shortest so first match wins
+    const menu = menus.find((m) => m[0] === pathname || pathname.startsWith(m[0]));
     if (menu) {
       return menu[1];
     }

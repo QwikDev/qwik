@@ -127,26 +127,28 @@ export function qwikRollup(qwikRollupOpts: QwikRollupPluginOptions = {}): any {
   return rollupPlugin;
 }
 
-export function normalizeRollupOutputOptions(
+export async function normalizeRollupOutputOptions(
   qwikPlugin: QwikPlugin,
   rollupOutputOpts: Rollup.OutputOptions | Rollup.OutputOptions[] | undefined,
   useAssetsDir: boolean,
   outDir?: string
-): Rollup.OutputOptions | Rollup.OutputOptions[] {
+): Promise<Rollup.OutputOptions | Rollup.OutputOptions[]> {
   if (Array.isArray(rollupOutputOpts)) {
     // make sure at least one output is present in every case
     if (!rollupOutputOpts.length) {
       rollupOutputOpts.push({});
     }
 
-    return rollupOutputOpts.map((outputOptsObj) => ({
-      ...normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir),
-      dir: outDir || outputOptsObj.dir,
-    }));
+    return await Promise.all(
+      rollupOutputOpts.map(async (outputOptsObj) => ({
+        ...(await normalizeRollupOutputOptionsObject(qwikPlugin, outputOptsObj, useAssetsDir)),
+        dir: outDir || outputOptsObj.dir,
+      }))
+    );
   }
 
   return {
-    ...normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir),
+    ...(await normalizeRollupOutputOptionsObject(qwikPlugin, rollupOutputOpts, useAssetsDir)),
     dir: outDir || rollupOutputOpts?.dir,
   };
 }

@@ -1478,27 +1478,28 @@ const fastGetter = <T>(prototype: any, name: string): T => {
   );
 };
 
-const isQStyleElement = (node: Node | null): node is Element => {
+const hasQStyleAttribute = (element: Element): boolean => {
   return (
-    isElement(node) &&
-    node.nodeName === 'STYLE' &&
-    (node.hasAttribute(QScopedStyle) || node.hasAttribute(QStyle))
+    element.nodeName === 'STYLE' &&
+    (element.hasAttribute(QScopedStyle) || element.hasAttribute(QStyle))
   );
+};
+
+const hasPropsSeparator = (element: Element): boolean => {
+  return element.hasAttribute(Q_PROPS_SEPARATOR);
 };
 
 const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vData?: string) => {
   let vFirstChild: VNode | null = null;
 
-  const skipStyleElements = () => {
-    while (isQStyleElement(child)) {
-      // skip over style elements, as those need to be moved to the head.
-      // VNode pretends that `<style q:style q:sstyle>` elements do not exist.
+  const skipElements = () => {
+    while (isElement(child) && shouldSkipElement(child)) {
       child = fastNextSibling(child);
     }
   };
   // materialize from DOM
   let child = firstChild;
-  skipStyleElements();
+  skipElements();
   let vChild: VNode | null = null;
   while (child) {
     const nodeType = fastNodeType(child);
@@ -1518,7 +1519,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
       vParent.firstChild = vFirstChild = vChild;
     }
     child = fastNextSibling(child);
-    skipStyleElements();
+    skipElements();
   }
   vParent.lastChild = vChild || null;
   vParent.firstChild = vFirstChild;
@@ -1785,6 +1786,17 @@ export function vnode_toString(
 const isNumber = (ch: number) => /* `0` */ 48 <= ch && ch <= 57; /* `9` */
 const isLowercase = (ch: number) => /* `a` */ 97 <= ch && ch <= 122; /* `z` */
 
+function shouldSkipElement(element: Element) {
+  return (
+    // Skip over elements that don't have a props separator. They are not rendered by Qwik.
+    !hasPropsSeparator(element) ||
+    // We pretend that style element's don't exist as they can get moved out.
+    // skip over style elements, as those need to be moved to the head
+    // and are not included in the counts.
+    hasQStyleAttribute(element)
+  );
+}
+
 const stack: any[] = [];
 function materializeFromVNodeData(
   vParent: ElementVNode | VirtualVNode,
@@ -1813,16 +1825,15 @@ function materializeFromVNodeData(
   let combinedText: string | null = null;
   let container: ClientContainer | null = null;
 
+  const shouldSkipNode = (node: Node | null) => {
+    const nodeIsElement = isElement(node);
+    return !nodeIsElement || (nodeIsElement && shouldSkipElement(node));
+  };
+
   processVNodeData(vData, (peek, consumeValue, consume, getChar, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
-      while (
-        !isElement(child) ||
-        // We pretend that style element's don't exist as they can get moved out.
-        // skip over style elements, as those need to be moved to the head
-        // and are not included in the counts.
-        isQStyleElement(child)
-      ) {
+      while (shouldSkipNode(child)) {
         child = fastNextSibling(child);
         if (!child) {
           throw qError(QError.materializeVNodeDataError, [vData, peek(), nextToConsumeIdx]);
@@ -1902,8 +1913,8 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SLOT) {
       vParent.setAttr(QSlot, consumeValue(), null);
     } else {
-      // skip over style elements in front of text nodes, where text node is the first child (except the style node)
-      while (isQStyleElement(child)) {
+      // skip over style or non-qwik elements in front of text nodes, where text node is the first child (except the style node)
+      while (isElement(child) && shouldSkipElement(child)) {
         child = fastNextSibling(child);
       }
       const textNode =

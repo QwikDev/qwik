@@ -66,7 +66,7 @@ describe('scheduler', () => {
       blockedChores,
       runningChores
     );
-    document.body.innerHTML = '<a></a><b></b>';
+    document.body.innerHTML = '<a :></a><b :></b>';
     vBody = vnode_newUnMaterializedElement(document.body);
     vA = vnode_locate(vBody, document.querySelector('a') as Element) as ElementVNode;
     vAHost = vnode_newVirtual();
@@ -289,7 +289,7 @@ describe('scheduler', () => {
         blockedChores,
         runningChores
       );
-      document.body.innerHTML = '<a></a><b></b>';
+      document.body.innerHTML = '<a :></a><b :></b>';
       vnode_newUnMaterializedElement(document.body);
       vBHost1 = vnode_newVirtual();
       vBHost1.setProp('q:id', 'b1');

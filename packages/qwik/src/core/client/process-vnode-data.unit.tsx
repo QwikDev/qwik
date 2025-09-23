@@ -19,10 +19,10 @@ describe('processVnodeData', () => {
           <div q:shadowRoot>
             <template>
               <div q:container="paused">
-                <button>
+                <button :>
                   0
                 </button>
-                <script type="qwik/vnode">
+                <script : type="qwik/vnode">
                   ~{1}!~
                 </script>
               </div>
@@ -66,7 +66,7 @@ describe('processVnodeData', () => {
     <html q:container="paused">
       <head :></head>
       <body :>
-        <div q:container="html"><span></span></div>
+        <div q:container="html" :><span></span></div>
         <b :>HelloWorld</b>
         ${encodeVNode({ 2: '2', 4: 'FF' })}
     </body>
@@ -91,7 +91,7 @@ describe('processVnodeData', () => {
       <html q:container="paused">
         <head :></head>
         <body :>
-          <div q:container="html"><span></span></div>
+          <div q:container="html" :><span></span></div>
           <div>ignore this</div>
           <b :>HelloWorld</b>
           ${encodeVNode({ 2: '3', 4: 'FF' })}
@@ -119,7 +119,7 @@ describe('processVnodeData', () => {
           <head :></head>
           <body :>
             Before
-            <div q:container="paused">
+            <div q:container="paused" :>
               Foo<b :>Bar!</b>
               ${encodeVNode({ 0: 'D1', 1: 'DB' })}
             </div>

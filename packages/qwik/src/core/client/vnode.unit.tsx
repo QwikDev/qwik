@@ -54,7 +54,7 @@ describe('vnode', () => {
     });
 
     it('should process text element text', () => {
-      parent.innerHTML = `Hello <b>world</b>!`;
+      parent.innerHTML = `Hello <b :>world</b>!`;
       document.qVNodeData.set(parent, 'G1B');
       expect(vParent).toMatchVDOM(
         <test>
@@ -64,7 +64,7 @@ describe('vnode', () => {
     });
 
     it('should process missing text node', () => {
-      parent.innerHTML = `<b></b>`;
+      parent.innerHTML = `<b :></b>`;
       document.qVNodeData.set(parent, 'A1{A}');
       expect(vParent).toMatchVDOM(
         <test>
@@ -76,7 +76,7 @@ describe('vnode', () => {
     });
 
     it('should process virtual text element text', () => {
-      parent.innerHTML = `Hello <b>world</b>!`;
+      parent.innerHTML = `Hello <b :>world</b>!`;
       document.qVNodeData.set(parent, 'F{B1B}');
       expect(vParent).toMatchVDOM(
         <test>
@@ -90,7 +90,7 @@ describe('vnode', () => {
     });
 
     it('should process many fragments', () => {
-      parent.innerHTML = `<span>A</span>Hello World!<span></span>Greetings World!`;
+      parent.innerHTML = `<span :>A</span>Hello World!<span :></span>Greetings World!`;
       document.qVNodeData.set(parent, '1{GFB}1{KFB}');
       expect(vParent).toMatchVDOM(
         <test>
@@ -103,7 +103,7 @@ describe('vnode', () => {
     });
 
     it('should not consume trailing nodes after virtual', () => {
-      parent.innerHTML = '<button>Count: 123!</button><script></script>';
+      parent.innerHTML = '<button :>Count: 123!</button><script :></script>';
       document.qVNodeData.set(parent, '{1}');
       document.qVNodeData.set(parent.firstChild as Element, 'HDB');
       expect(vParent).toMatchVDOM(
@@ -118,7 +118,7 @@ describe('vnode', () => {
   });
   describe('text node inflation', () => {
     it('should inflate text node on write', () => {
-      parent.innerHTML = `<b></b>`;
+      parent.innerHTML = `<b :></b>`;
       document.qVNodeData.set(parent, 'A1{A}');
       expect(vParent).toMatchVDOM(
         <test>
@@ -133,7 +133,7 @@ describe('vnode', () => {
       vnode_setText(journal, fragmentText, 'Virtual Text');
       vnode_setText(journal, firstText, 'First Text');
       vnode_applyJournal(journal);
-      expect(parent.innerHTML).toEqual(`First Text<b></b>Virtual Text`);
+      expect(parent.innerHTML).toEqual(`First Text<b :=""></b>Virtual Text`);
     });
     it('should inflate text nodes on write', () => {
       parent.innerHTML = `Hello World!`;
@@ -404,7 +404,7 @@ describe('vnode', () => {
       );
     });
     it('should create empty Virtual before element', () => {
-      parent.innerHTML = `<b></b>`;
+      parent.innerHTML = `<b :></b>`;
       document.qVNodeData.set(parent, '{}');
       expect(vParent).toMatchVDOM(
         <test>
@@ -585,7 +585,7 @@ describe('vnode', () => {
       });
 
       it('should insert text node inside element', () => {
-        parent.innerHTML = '<div></div>';
+        parent.innerHTML = '<div :></div>';
         expect(vParent).toMatchVDOM(
           <test>
             <div></div>
@@ -600,7 +600,7 @@ describe('vnode', () => {
             <div>foo</div>
           </test>
         );
-        expect(parent.innerHTML).toBe('<div>foo</div>');
+        expect(parent.innerHTML).toBe('<div :="">foo</div>');
       });
 
       it('should insert text node inside virtual', () => {
@@ -625,7 +625,7 @@ describe('vnode', () => {
 
       describe('inserting text node near element node sibling', () => {
         it('should insert text node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -642,11 +642,11 @@ describe('vnode', () => {
               <b />
             </test>
           );
-          expect(parent.innerHTML).toBe('foo<b></b>');
+          expect(parent.innerHTML).toBe('foo<b :=""></b>');
         });
 
         it('should insert text node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -661,11 +661,11 @@ describe('vnode', () => {
               foo
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>foo');
+          expect(parent.innerHTML).toBe('<b :=""></b>foo');
         });
 
         it('should insert text node between elements', () => {
-          parent.innerHTML = '<b></b><p></p>';
+          parent.innerHTML = '<b :></b><p :></p>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -685,7 +685,7 @@ describe('vnode', () => {
               <p />
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>foo<p></p>');
+          expect(parent.innerHTML).toBe('<b :=""></b>foo<p :=""></p>');
         });
       });
 
@@ -818,7 +818,7 @@ describe('vnode', () => {
 
       describe('inserting text node inside element node near element node sibling', () => {
         it('should insert text node before element', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -840,11 +840,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div>foo<b></b></div>');
+          expect(parent.innerHTML).toBe('<div :="">foo<b :=""></b></div>');
         });
 
         it('should insert text node before virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -867,11 +867,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div>foo</div>');
+          expect(parent.innerHTML).toBe('<div :="">foo</div>');
         });
 
         it('should insert text node after element at the end', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -891,11 +891,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><b></b>foo</div>');
+          expect(parent.innerHTML).toBe('<div :=""><b :=""></b>foo</div>');
         });
 
         it('should insert text node after virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -918,11 +918,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div>foo</div>');
+          expect(parent.innerHTML).toBe('<div :="">foo</div>');
         });
 
         it('should insert text node between virtual elements', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -948,13 +948,13 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div>foo</div>');
+          expect(parent.innerHTML).toBe('<div :="">foo</div>');
         });
       });
 
       describe('inserting text node inside virtual node near element node sibling', () => {
         it('should insert text node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -977,7 +977,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('foo<b></b>');
+          expect(parent.innerHTML).toBe('foo<b :=""></b>');
         });
 
         it('should insert text node before virtual element', () => {
@@ -1008,7 +1008,7 @@ describe('vnode', () => {
         });
 
         it('should insert text node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1029,7 +1029,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>foo');
+          expect(parent.innerHTML).toBe('<b :=""></b>foo');
         });
 
         it('should insert text node after virtual element', () => {
@@ -1105,7 +1105,7 @@ describe('vnode', () => {
       });
 
       it('should insert element node inside element', () => {
-        parent.innerHTML = '<div></div>';
+        parent.innerHTML = '<div :></div>';
         expect(vParent).toMatchVDOM(
           <test>
             <div></div>
@@ -1122,7 +1122,7 @@ describe('vnode', () => {
             </div>
           </test>
         );
-        expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+        expect(parent.innerHTML).toBe('<div :=""><foo></foo></div>');
       });
 
       it('should insert element node inside virtual', () => {
@@ -1149,7 +1149,7 @@ describe('vnode', () => {
 
       describe('inserting element node near element node sibling', () => {
         it('should insert element node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1166,11 +1166,11 @@ describe('vnode', () => {
               <b />
             </test>
           );
-          expect(parent.innerHTML).toBe('<foo></foo><b></b>');
+          expect(parent.innerHTML).toBe('<foo></foo><b :=""></b>');
         });
 
         it('should insert element node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1185,11 +1185,11 @@ describe('vnode', () => {
               <foo />
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b><foo></foo>');
+          expect(parent.innerHTML).toBe('<b :=""></b><foo></foo>');
         });
 
         it('should insert element node between elements', () => {
-          parent.innerHTML = '<b></b><p></p>';
+          parent.innerHTML = '<b :></b><p :></p>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1209,7 +1209,7 @@ describe('vnode', () => {
               <p />
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b><foo></foo><p></p>');
+          expect(parent.innerHTML).toBe('<b :=""></b><foo></foo><p :=""></p>');
         });
       });
 
@@ -1342,7 +1342,7 @@ describe('vnode', () => {
 
       describe('inserting element node inside element node near element node sibling', () => {
         it('should insert element node before element', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -1364,11 +1364,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><foo></foo><b></b></div>');
+          expect(parent.innerHTML).toBe('<div :=""><foo></foo><b :=""></b></div>');
         });
 
         it('should insert element node before virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1391,11 +1391,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+          expect(parent.innerHTML).toBe('<div :=""><foo></foo></div>');
         });
 
         it('should insert element node after element at the end', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -1415,11 +1415,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><b></b><foo></foo></div>');
+          expect(parent.innerHTML).toBe('<div :=""><b :=""></b><foo></foo></div>');
         });
 
         it('should insert element node after virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1442,11 +1442,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+          expect(parent.innerHTML).toBe('<div :=""><foo></foo></div>');
         });
 
         it('should insert element node between virtual elements', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1472,13 +1472,13 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><foo></foo></div>');
+          expect(parent.innerHTML).toBe('<div :=""><foo></foo></div>');
         });
       });
 
       describe('inserting element node inside virtual node near element node sibling', () => {
         it('should insert element node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1501,7 +1501,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('<foo></foo><b></b>');
+          expect(parent.innerHTML).toBe('<foo></foo><b :=""></b>');
         });
 
         it('should insert element node before virtual element', () => {
@@ -1532,7 +1532,7 @@ describe('vnode', () => {
         });
 
         it('should insert element node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1553,7 +1553,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b><foo></foo>');
+          expect(parent.innerHTML).toBe('<b :=""></b><foo></foo>');
         });
 
         it('should insert element node after virtual element', () => {
@@ -1629,7 +1629,7 @@ describe('vnode', () => {
       });
 
       it('should insert virtual node inside element', () => {
-        parent.innerHTML = '<div></div>';
+        parent.innerHTML = '<div :></div>';
         expect(vParent).toMatchVDOM(
           <test>
             <div></div>
@@ -1646,7 +1646,7 @@ describe('vnode', () => {
             </div>
           </test>
         );
-        expect(parent.innerHTML).toBe('<div></div>');
+        expect(parent.innerHTML).toBe('<div :=""></div>');
       });
 
       it('should insert virtual node inside virtual', () => {
@@ -1673,7 +1673,7 @@ describe('vnode', () => {
 
       describe('inserting virtual node near element node sibling', () => {
         it('should insert virtual node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1690,11 +1690,11 @@ describe('vnode', () => {
               <b />
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>');
+          expect(parent.innerHTML).toBe('<b :=""></b>');
         });
 
         it('should insert virtual node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1709,11 +1709,11 @@ describe('vnode', () => {
               <></>
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>');
+          expect(parent.innerHTML).toBe('<b :=""></b>');
         });
 
         it('should insert virtual node between elements', () => {
-          parent.innerHTML = '<b></b><p></p>';
+          parent.innerHTML = '<b :></b><p :></p>';
           expect(vParent).toMatchVDOM(
             <test>
               <b />
@@ -1733,7 +1733,7 @@ describe('vnode', () => {
               <p />
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b><p></p>');
+          expect(parent.innerHTML).toBe('<b :=""></b><p :=""></p>');
         });
       });
 
@@ -1876,7 +1876,7 @@ describe('vnode', () => {
 
       describe('inserting virtual node inside element node near element node sibling', () => {
         it('should insert virtual node before element', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -1898,11 +1898,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><b></b></div>');
+          expect(parent.innerHTML).toBe('<div :=""><b :=""></b></div>');
         });
 
         it('should insert virtual node before virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1930,11 +1930,11 @@ describe('vnode', () => {
             firstInnerNode
           );
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).not.toBe(firstInnerNode);
-          expect(parent.innerHTML).toBe('<div></div>');
+          expect(parent.innerHTML).toBe('<div :=""></div>');
         });
 
         it('should insert virtual node after element at the end', () => {
-          parent.innerHTML = '<div><b></b></div>';
+          parent.innerHTML = '<div :><b :></b></div>';
           expect(vParent).toMatchVDOM(
             <test>
               <div>
@@ -1954,11 +1954,11 @@ describe('vnode', () => {
               </div>
             </test>
           );
-          expect(parent.innerHTML).toBe('<div><b></b></div>');
+          expect(parent.innerHTML).toBe('<div :=""><b :=""></b></div>');
         });
 
         it('should insert virtual node after virtual element', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -1985,11 +1985,11 @@ describe('vnode', () => {
             firstInnerNode
           );
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)).toBe(firstInnerNode);
-          expect(parent.innerHTML).toBe('<div></div>');
+          expect(parent.innerHTML).toBe('<div :=""></div>');
         });
 
         it('should insert virtual node between virtual elements', () => {
-          parent.innerHTML = '<div></div>';
+          parent.innerHTML = '<div :></div>';
           document.qVNodeData.set(parent.firstChild as Element, '{}{}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -2026,13 +2026,13 @@ describe('vnode', () => {
           expect(vnode_getFirstChild(vnode_getFirstChild(vParent)!)!.nextSibling!.nextSibling).toBe(
             targetNode
           );
-          expect(parent.innerHTML).toBe('<div></div>');
+          expect(parent.innerHTML).toBe('<div :=""></div>');
         });
       });
 
       describe('inserting virtual node inside virtual node near element node sibling', () => {
         it('should insert virtual node before element', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -2055,7 +2055,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>');
+          expect(parent.innerHTML).toBe('<b :=""></b>');
         });
 
         it('should insert virtual node before virtual element', () => {
@@ -2091,7 +2091,7 @@ describe('vnode', () => {
         });
 
         it('should insert virtual node after element at the end', () => {
-          parent.innerHTML = '<b></b>';
+          parent.innerHTML = '<b :></b>';
           document.qVNodeData.set(parent, '{1}');
           expect(vParent).toMatchVDOM(
             <test>
@@ -2112,7 +2112,7 @@ describe('vnode', () => {
               </>
             </test>
           );
-          expect(parent.innerHTML).toBe('<b></b>');
+          expect(parent.innerHTML).toBe('<b :=""></b>');
         });
 
         it('should insert virtual node after virtual element', () => {
@@ -2189,7 +2189,7 @@ describe('vnode', () => {
       });
     });
     it('should insert at the end', () => {
-      parent.innerHTML = '<b></b><i></i>';
+      parent.innerHTML = '<b :></b><i :></i>';
       document.qVNodeData.set(parent, '{{1}}1');
       expect(vParent).toMatchVDOM(
         <test>
@@ -2217,10 +2217,10 @@ describe('vnode', () => {
           <i />
         </test>
       );
-      expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
+      expect(parent.innerHTML).toBe('<b :=""></b>INSERT<i :=""></i>');
     });
     it('should replace insertBefore with null for created newChild equals to insertBefore', () => {
-      parent.innerHTML = '<b></b><i></i>';
+      parent.innerHTML = '<b :></b><i :></i>';
       document.qVNodeData.set(parent, '{{1}}1');
       expect(vParent).toMatchVDOM(
         <test>
@@ -2248,7 +2248,7 @@ describe('vnode', () => {
           <i />
         </test>
       );
-      expect(parent.innerHTML).toBe('<b></b>INSERT<i></i>');
+      expect(parent.innerHTML).toBe('<b :=""></b>INSERT<i :=""></i>');
       expect(text.nextSibling).toBeNull();
     });
   });
@@ -2470,7 +2470,7 @@ describe('vnode', () => {
         expect(parent.innerHTML).toBe('A<foo>B</foo>C');
       });
       it('should move text node to from element node to element node', () => {
-        parent.innerHTML = 'A<div>B</div><p>C</p>';
+        parent.innerHTML = 'A<div :>B</div><p :>C</p>';
         document.qVNodeData.set(parent, 'B2');
         expect(vParent).toMatchVDOM(
           <test>
@@ -2496,10 +2496,10 @@ describe('vnode', () => {
             </p>
           </test>
         );
-        expect(parent.innerHTML).toBe('A<div></div><p>BC</p>');
+        expect(parent.innerHTML).toBe('A<div :=""></div><p :="">BC</p>');
       });
       it('should move text node to from element node to virtual node', () => {
-        parent.innerHTML = 'A<div>B</div>C';
+        parent.innerHTML = 'A<div :>B</div>C';
         document.qVNodeData.set(parent, 'B1{B}');
         expect(vParent).toMatchVDOM(
           <test>
@@ -2525,12 +2525,12 @@ describe('vnode', () => {
             </>
           </test>
         );
-        expect(parent.innerHTML).toBe('A<div></div>BC');
+        expect(parent.innerHTML).toBe('A<div :=""></div>BC');
       });
     });
     describe('element node', () => {
       it('should early return for moving element node before itself', () => {
-        parent.innerHTML = '<div>A</div><div>B</div>';
+        parent.innerHTML = '<div :>A</div><div :>B</div>';
         expect(vParent).toMatchVDOM(
           <test>
             <div>{'A'}</div>
@@ -2546,7 +2546,7 @@ describe('vnode', () => {
             <div>{'B'}</div>
           </test>
         );
-        expect(parent.innerHTML).toBe('<div>A</div><div>B</div>');
+        expect(parent.innerHTML).toBe('<div :="">A</div><div :="">B</div>');
       });
     });
     describe.todo('virtual node');
@@ -2567,7 +2567,7 @@ describe('vnode', () => {
   describe('attributes', () => {
     describe('dangerouslySetInnerHTML', () => {
       it('should materialize without innerHTML children', () => {
-        parent.innerHTML = '<div q:container="html"><i>content</i></div>';
+        parent.innerHTML = '<div q:container="html" :><i>content</i></div>';
         expect(vParent).toMatchVDOM(
           <test>
             {/* @ts-ignore-next-line */}
@@ -2576,11 +2576,11 @@ describe('vnode', () => {
         );
       });
       it('should update innerHTML', () => {
-        parent.innerHTML = '<div q:container="html"><i>content</i></div>';
+        parent.innerHTML = '<div q:container="html" :><i>content</i></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
         (div as VirtualVNode).setAttr('dangerouslySetInnerHTML', '<b>new content</b>', journal);
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<div q:container="html"><b>new content</b></div>');
+        expect(parent.innerHTML).toBe('<div q:container="html" :=""><b>new content</b></div>');
         expect(vParent).toMatchVDOM(
           <test>
             {/* @ts-ignore-next-line */}
@@ -2590,7 +2590,7 @@ describe('vnode', () => {
         expect((div as VirtualVNode).getAttr('dangerouslySetInnerHTML')).toBe('<b>new content</b>');
       });
       it('should have empty child for dangerouslySetInnerHTML', () => {
-        parent.innerHTML = '<div q:container="html"><i>content</i></div>';
+        parent.innerHTML = '<div q:container="html" :><i>content</i></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
 
         expect(div).toMatchVDOM(
@@ -2603,7 +2603,7 @@ describe('vnode', () => {
 
     describe('textarea value', () => {
       it('should materialize without textContent', () => {
-        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        parent.innerHTML = '<textarea q:container="text" :>content</textarea>';
         expect(vParent).toMatchVDOM(
           <test>
             {/* @ts-ignore-next-line */}
@@ -2612,11 +2612,11 @@ describe('vnode', () => {
         );
       });
       it('should update textContent', () => {
-        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        parent.innerHTML = '<textarea q:container="text" :>content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
         (textarea as VirtualVNode).setAttr('value', 'new content', journal);
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<textarea q:container="text">new content</textarea>');
+        expect(parent.innerHTML).toBe('<textarea q:container="text" :="">new content</textarea>');
         expect(vParent).toMatchVDOM(
           <test>
             {/* @ts-ignore-next-line */}
@@ -2626,7 +2626,7 @@ describe('vnode', () => {
         expect((textarea as VirtualVNode).getAttr('value')).toBe('new content');
       });
       it('should have empty child for value', () => {
-        parent.innerHTML = '<textarea q:container="text">content</textarea>';
+        parent.innerHTML = '<textarea q:container="text" :>content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
 
         expect(textarea).toMatchVDOM(
@@ -2696,7 +2696,7 @@ describe('vnode', () => {
     });
     describe('vnode_remove', () => {
       it('should remove', () => {
-        parent.innerHTML = '<b>1</b><b>2</b><b>3</b>';
+        parent.innerHTML = '<b :>1</b><b :>2</b><b :>3</b>';
         const b1 = vnode_getFirstChild(vParent) as ElementVNode;
         const b2 = b1.nextSibling as ElementVNode;
         const b3 = b2.nextSibling as ElementVNode;
@@ -2708,7 +2708,7 @@ describe('vnode', () => {
           </test>
         );
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<b>1</b><b>3</b>');
+        expect(parent.innerHTML).toBe('<b :="">1</b><b :="">3</b>');
         vnode_remove(journal, vParent, b1, true);
         expect(vParent).toMatchVDOM(
           <test>
@@ -2716,7 +2716,7 @@ describe('vnode', () => {
           </test>
         );
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<b>3</b>');
+        expect(parent.innerHTML).toBe('<b :="">3</b>');
         vnode_remove(journal, vParent, b3, true);
         expect(vParent).toMatchVDOM(<test></test>);
         vnode_applyJournal(journal);
@@ -2726,14 +2726,14 @@ describe('vnode', () => {
     });
     describe('vnode_setAttr', () => {
       it('should set attribute', () => {
-        parent.innerHTML = '<div foo="bar"></div>';
+        parent.innerHTML = '<div foo="bar" :></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
         (div as VirtualVNode).setAttr('key', '123', journal);
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<div foo="bar" key="123"></div>');
+        expect(parent.innerHTML).toBe('<div foo="bar" :="" key="123"></div>');
         (div as VirtualVNode).setAttr('foo', null, journal);
         vnode_applyJournal(journal);
-        expect(parent.innerHTML).toBe('<div key="123"></div>');
+        expect(parent.innerHTML).toBe('<div :="" key="123"></div>');
       });
     });
     describe('vnode_setText', () => {
@@ -3156,6 +3156,76 @@ describe('vnode', () => {
         expect(vVirtual.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
         expect(vChild2.flags & VNodeFlags.Deleted).toBe(VNodeFlags.Deleted);
       });
+    });
+  });
+
+  describe('materializing dom', () => {
+    it('should skip qwik style elements', () => {
+      parent.innerHTML = '<style q:sstyle>div { color: red; }</style><div :>Hello</div>';
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>Hello</div>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements on start', () => {
+      parent.innerHTML = '<b>Hello</b><div :>World</div>';
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>World</div>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements on end', () => {
+      parent.innerHTML = '<div :>Hello</div><b>World</b>';
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>Hello</div>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements in front of text nodes', () => {
+      parent.innerHTML = '<div :>Hello</div><b>World</b>text';
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>Hello</div>
+          text
+        </test>
+      );
+    });
+  });
+
+  describe('materializing vNodeData', () => {
+    it('should skip non-qwik elements on start', () => {
+      parent.innerHTML = '<b>Hello</b><div :>World</div>';
+      document.qVNodeData.set(parent, '1{}');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>World</div>
+          <Fragment></Fragment>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements on end', () => {
+      parent.innerHTML = '<div :>Hello</div><b>World</b>';
+      document.qVNodeData.set(parent, '{}1');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <Fragment></Fragment>
+          <div>Hello</div>
+        </test>
+      );
+    });
+    it('should skip non-qwik elements in front of text nodes', () => {
+      parent.innerHTML = '<div :>World</div><b>Hello</b>text';
+      document.qVNodeData.set(parent, '1E{}');
+      expect(vParent).toMatchVDOM(
+        <test>
+          <div>World</div>
+          text
+          <Fragment></Fragment>
+        </test>
+      );
     });
   });
 });

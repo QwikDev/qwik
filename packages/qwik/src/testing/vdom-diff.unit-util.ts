@@ -48,7 +48,7 @@ import {
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
-import { prettyHtml } from './html';
+import { isElement, prettyHtml } from './html';
 import { QContainerValue } from '../core/shared/types';
 import type { ElementVNode, VirtualVNode, VNode } from '../core/client/vnode-impl';
 
@@ -75,6 +75,12 @@ expect.extend({
       return {
         pass: false,
         message: () => 'Missing element',
+      };
+    }
+    if (!isElement(received)) {
+      return {
+        pass: false,
+        message: () => 'Received is not an element',
       };
     }
     const receivedHTML = await format(prettyHtml(received), formatOptions);

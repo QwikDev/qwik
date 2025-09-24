@@ -1,5 +1,15 @@
 # @builder.io/qwik-city
 
+## 1.16.2
+
+### Patch Changes
+
+- 🐞🩹 SSG sometimes hangs after completion, now we forcibly exit the SSG process when this happens. (by [@wmertens](https://github.com/wmertens) in [#7957](https://github.com/QwikDev/qwik/pull/7957))
+
+- 🐞🩹 return 404 for missing /build/ files. (by [@gioboa](https://github.com/gioboa) in [#7914](https://github.com/QwikDev/qwik/pull/7914))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
 ## 1.16.1
 
 ### Patch Changes

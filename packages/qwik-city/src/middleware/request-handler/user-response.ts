@@ -158,16 +158,16 @@ async function runNext(
  * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
-  if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+  const isInternal = pathname.endsWith(QDATA_JSON);
+  if (isInternal) {
+    const trimEnd = pathname.length - QDATA_JSON.length + (trailingSlash ? 1 : 0);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';
     }
   }
-  return pathname;
+  return { pathname, isInternal };
 }
 
 export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-export const QDATA_JSON_LEN = QDATA_JSON.length;

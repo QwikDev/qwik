@@ -81,7 +81,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
 }): Promise<{
     container: _DomContainer;
     document: Document;
-    vNode: _VirtualVNode | null;
+    vNode: _VNode | null;
     getStyles: () => Record<string, string | string[]>;
 }>;
 
@@ -92,7 +92,7 @@ export function trigger(root: Element, queryOrElement: string | Element | keyof 
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _ElementVNode;
+    vParent: _ElementVNode | _VirtualVNode;
     vNode: _VNode | null;
     document: _QDocument;
     container: ClientContainer;

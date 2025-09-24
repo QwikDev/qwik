@@ -78,14 +78,14 @@ type BenchState = {
   data: Array<{ id: number; label: string }>;
   selected: number | null;
 };
-export const App = component$(() => {
+export default component$(() => {
   const state = useStore<BenchState>({ data: [], selected: null });
   return (
     <div class="container">
       <div class="jumbotron">
         <div class="row">
           <div class="col-md-6">
-            <h1>Qwik Keyed</h1>
+            <h1>Qwik Store Implementation</h1>
           </div>
           <div class="col-md-6">
             <div class="row">
@@ -98,6 +98,8 @@ export const App = component$(() => {
                 >
                   Create 1,000 rows
                 </button>
+              </div>
+              <div class="col-sm-6 smallpad">
                 <button
                   id="runlots"
                   class="btn btn-primary btn-block"
@@ -106,6 +108,8 @@ export const App = component$(() => {
                 >
                   Create 10,000 rows
                 </button>
+              </div>
+              <div class="col-sm-6 smallpad">
                 <button
                   id="add"
                   class="btn btn-primary btn-block"
@@ -116,6 +120,8 @@ export const App = component$(() => {
                 >
                   Append 1,000 rows
                 </button>
+              </div>
+              <div class="col-sm-6 smallpad">
                 <button
                   id="update"
                   class="btn btn-primary btn-block"
@@ -132,6 +138,8 @@ export const App = component$(() => {
                 >
                   Update every 10th row
                 </button>
+              </div>
+              <div class="col-sm-6 smallpad">
                 <button
                   id="clear"
                   class="btn btn-primary btn-block"
@@ -140,6 +148,8 @@ export const App = component$(() => {
                 >
                   Clear
                 </button>
+              </div>
+              <div class="col-sm-6 smallpad">
                 <button
                   id="swaprows"
                   class="btn btn-primary btn-block"
@@ -168,22 +178,19 @@ export const App = component$(() => {
               <tr key={id} class={id === state.selected ? "danger" : ""}>
                 <td class="col-md-1">{id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => alert(label)}>{label}</a>
+                  <a onClick$={() => (state.selected = id)}>{label}</a>
                 </td>
                 <td class="col-md-1">
                   <a
-                  // onClick$={() => {
-                  //   const d = state.data;
-                  //   d.splice(
-                  //     d.findIndex((d) => d.id === id),
-                  //     1
-                  //   );
-                  // }}
+                    onClick$={() => {
+                      const d = state.data;
+                      d.splice(
+                        d.findIndex((d) => d.id === id),
+                        1,
+                      );
+                    }}
                   >
-                    <span
-                      class="glyphicon glyphicon-remove"
-                      ariaHidden="true"
-                    />
+                    <span aria-hidden="true">x</span>
                   </a>
                 </td>
                 <td class="col-md-6" />
@@ -192,7 +199,7 @@ export const App = component$(() => {
           })}
         </tbody>
       </table>
-      <span class="preloadicon glyphicon glyphicon-remove" ariaHidden="true" />
+      <span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true" />
     </div>
   );
 });

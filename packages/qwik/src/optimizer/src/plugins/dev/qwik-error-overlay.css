@@ -1,14 +1,13 @@
-export const VITE_ERROR_OVERLAY_STYLES = `
 vite-error-overlay {
   --color-bright: rgba(255, 255, 255, 0.8);
-  --color-yellow: rgba(255,246,85,0.8);
+  --color-yellow: rgba(255, 246, 85, 0.8);
   --qwik-dark-blue: #006ce9;
   --qwik-light-blue: #3ec2f7;
   --qwik-light-purple: #ac7ff4;
   --qwik-dark-purple: #713fc2;
-  --yellow: #fff;                   /* override vite yellow */
-  --purple: var(--color-bright);    /* override vite purple */
-  --red: var(--qwik-light-blue);    /* override vite red */
+  --yellow: #fff; /* override vite yellow */
+  --purple: var(--color-bright); /* override vite purple */
+  --red: var(--qwik-light-blue); /* override vite red */
 
   --vertical-box-spacing: 15px;
   --box-padding: 20px;
@@ -69,9 +68,8 @@ vite-error-overlay::part(frame) {
 }
 
 vite-error-overlay::part(stack) {
-  border-left-color: #FF5722;
+  border-left-color: #ff5722;
 }
-
 
 vite-error-overlay::part(tip) {
   border-top: none;
@@ -87,7 +85,7 @@ vite-error-overlay::part(stack):before {
   margin-bottom: 15px;
   padding-bottom: 5px;
   padding-left: 30px; /* space for icon */
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 vite-error-overlay::part(file):before {
@@ -127,8 +125,7 @@ vite-error-overlay::part(stack):after {
 }
 
 vite-error-overlay::part(tip):before {
-  content: "Not sure how to solve this? Visit https://qwik.dev or connect with the community on Discord.";
+  content: 'Not sure how to solve this? Visit https://qwik.dev or connect with the community on Discord.';
   display: block;
   margin-bottom: 1em;
 }
-`;

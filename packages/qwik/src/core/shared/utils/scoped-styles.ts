@@ -6,12 +6,7 @@ export const styleContent = (styleId: string): string => {
 };
 
 export function hasClassAttr(props: Props): boolean {
-  for (const key in props) {
-    if (Object.prototype.hasOwnProperty.call(props, key) && isClassAttr(key)) {
-      return true;
-    }
-  }
-  return false;
+  return 'class' in props || 'className' in props;
 }
 
 export function isClassAttr(key: string): boolean {

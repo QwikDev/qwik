@@ -268,14 +268,6 @@ export interface QwikSymbol {
 // @public
 export function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
 
-// @public (undocumented)
-export interface QwikViteDevResponse {
-    // (undocumented)
-    _qwikEnvData?: Record<string, any>;
-    // (undocumented)
-    _qwikRenderResolve?: () => void;
-}
-
 // Warning: (ae-forgotten-export) The symbol "P" needs to be exported by the entry point index.d.ts
 //
 // @public
@@ -301,6 +293,8 @@ export interface QwikVitePluginApi {
     getOptions: () => NormalizedQwikPluginOptions;
     // (undocumented)
     getRootDir: () => string | null;
+    // @internal (undocumented)
+    _oldDevSsrServer: () => boolean | undefined;
     // (undocumented)
     registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
 }

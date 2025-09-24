@@ -32,6 +32,19 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
   mdx?: MdxOptions;
   platform?: Record<string, unknown>;
   imageOptimization?: ImageOptimizationOptions;
+  /** Whether to use static imports for route modules (layout and index files). Defaults to `false`. */
+  staticImportRoutes?: boolean;
+  /**
+   * Qwik is an SSR first framework. This means that Qwik requires either SSR or SSG. In Vite dev
+   * mode the dev SSR server is responsible for rendering and pausing the application on the
+   * server.
+   *
+   * Under normal circumstances this should be on, unless you have your own dev SSR server setup and
+   * wish to disable this one.
+   *
+   * Default: true
+   */
+  devSsrServer?: boolean;
 }
 
 /** @public */

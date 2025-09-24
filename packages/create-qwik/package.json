@@ -1,12 +1,12 @@
 {
   "name": "create-qwik",
   "description": "Interactive CLI for create Qwik projects and adding features.",
-  "version": "2.0.0-beta.9",
+  "version": "2.0.0-beta.10",
   "author": "Qwik Team",
   "bin": "./create-qwik.cjs",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
-    "@clack/prompts": "0.7.0",
+    "@clack/prompts": "0.11.0",
     "@types/yargs": "17.0.33",
     "kleur": "4.1.5",
     "yargs": "17.7.2"

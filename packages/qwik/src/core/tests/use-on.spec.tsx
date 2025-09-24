@@ -242,7 +242,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script type="placeholder" hidden></script>
+            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
           </Fragment>
         </Component>
       );
@@ -251,7 +251,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script type="placeholder" hidden></script>
+            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
           </Fragment>
         </Component>
       );
@@ -441,7 +441,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script type="placeholder" hidden></script>
+            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
           </Fragment>
         </Component>
       );
@@ -450,7 +450,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script type="placeholder" hidden></script>
+            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
           </Fragment>
         </Component>
       );
@@ -857,7 +857,7 @@ describe.each([
               <Component ssr-required>
                 <div>test</div>
               </Component>
-              <script type="placeholder" hidden></script>
+              <script hidden></script>
             </Component>
           </Component>
         </Component>
@@ -888,7 +888,7 @@ describe.each([
               <Projection ssr-required>
                 <div>test</div>
               </Projection>
-              <script type="placeholder" hidden></script>
+              <script hidden></script>
             </Component>
           </Component>
         </Component>

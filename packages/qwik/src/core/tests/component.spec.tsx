@@ -2410,6 +2410,131 @@ describe.each([
     await expect(document.querySelector('div')).toMatchDOM(<div />);
   });
 
+  it('should correctly remove all children for empty array', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          {list.value.map((item) => (
+            <div>{item}</div>
+          ))}
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+        </main>
+      </Component>
+    );
+    expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
+    );
+  });
+
+  it('should correctly remove all children for empty array - case 2', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          <div>
+            {list.value.map((item) => (
+              <div>{item}</div>
+            ))}
+          </div>
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+          </div>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div></div>
+        </main>
+      </Component>
+    );
+    expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+        <div></div>
+      </main>
+    );
+  });
+
+  it('should correctly remove all children for empty array within virtual node', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          <>
+            {list.value.map((item) => (
+              <div>{item}</div>
+            ))}
+          </>
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <Fragment ssr-required>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+          </Fragment>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <Fragment ssr-required></Fragment>
+        </main>
+      </Component>
+    );
+    await expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

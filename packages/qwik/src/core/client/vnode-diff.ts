@@ -32,7 +32,7 @@ import {
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isPromise } from '../shared/utils/promises';
-import { type ValueOrPromise } from '../shared/utils/types';
+import { isArray, type ValueOrPromise } from '../shared/utils/types';
 import {
   getEventNameFromJsxEvent,
   getEventNameScopeFromJsxEvent,
@@ -308,7 +308,7 @@ export const vnode_diff = (
    *   is an array produced by the `map` function.
    */
   function descend(children: JSXChildren, descendVNode: boolean) {
-    if (children == null) {
+    if (children == null || (descendVNode && isArray(children) && children.length === 0)) {
       expectNoChildren();
       return;
     }

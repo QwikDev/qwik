@@ -1,0 +1,22 @@
+{
+    "description": "Gel: Graph Relational Database on top of Postgres",
+    "__qwik__": {
+      "displayName": "Integration: GelDB",
+      "priority": -10,
+      "docs": [
+        "https://www.geldata.com/docs/quickstart"
+      ]
+    },
+    "viteConfig": {},
+    "scripts": {
+        "gel:generate": "pnpm run gel:generate:queries && pnpm run gel:generate:queries --file && pnpm run gel:generate:interfaces && pnpm run gel:generate:edgeql-js"
+    },
+    "devDependencies": {
+        "@gel/generate": "^0.6.3",
+        "@qwik.dev/router": "2.0.0-beta.6",
+        "@qwik.dev/core": "2.0.0-beta.6"
+    },
+    "dependencies": {
+        "gel": "2.1.1"
+    }
+  }

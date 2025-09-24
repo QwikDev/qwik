@@ -45,3 +45,11 @@ The production build should generate the production build of your component libr
 ```
 npm run build
 ```
+
+## sideEffects: false
+
+This package is configured with "sideEffects": false in its package.json.<br/>
+This tells bundlers that the module [has no side effects](https://webpack.js.org/guides/tree-shaking/#mark-the-file-as-side-effect-free) when imported.<br/>
+Consequently, to maintain the integrity of tree-shaking optimizations, please ensure your code truly contains no side effects (such as modifying global variables or the DOM upon import).<br/>
+If your module does introduce side effects, remove "sideEffects": false or specify the specific files with side effects.<br/>
+Be sure to only remove it from the specific file where the global is being set. Finally, verify that your build continues to function as expected after making any adjustments to the sideEffects setting.

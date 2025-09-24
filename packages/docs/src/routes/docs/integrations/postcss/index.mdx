@@ -54,7 +54,7 @@ This will create a new `postcss.config.js` file at the root of the project with 
 - [PostCSS Preset Env](https://preset-env.cssdb.org/)
 
 ```ts title="postcss.config.js"
-module.exports = {
+export default {
   plugins: {
     autoprefixer: {},
     "postcss-preset-env": {
@@ -64,7 +64,7 @@ module.exports = {
       },
     },
   },
-}
+};
 ```
 
 If you wish to add a new plugin like [CssNano](https://cssnano.co/) run the following command and update the `postcss.config.js`.

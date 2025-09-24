@@ -72,6 +72,18 @@ async function runNext(
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
+  try {
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    isValidURL(requestEv.originalUrl);
+  } catch {
+    const status = 404;
+    const message = 'Resource Not Found';
+    requestEv.status(status);
+    const html = getErrorHtml(status, message);
+    requestEv.html(status, html);
+    return new ServerError(status, message);
+  }
+
   let rewriteAttempt = 1;
 
   async function _runNext() {
@@ -146,16 +158,16 @@ async function runNext(
  * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string, trailingSlash: boolean | undefined) {
-  if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (trailingSlash ? 1 : 0);
+  const isInternal = pathname.endsWith(QDATA_JSON);
+  if (isInternal) {
+    const trimEnd = pathname.length - QDATA_JSON.length + (trailingSlash ? 1 : 0);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';
     }
   }
-  return pathname;
+  return { pathname, isInternal };
 }
 
 export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-export const QDATA_JSON_LEN = QDATA_JSON.length;

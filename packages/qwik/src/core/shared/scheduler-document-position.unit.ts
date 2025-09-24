@@ -23,7 +23,7 @@ describe('vnode_documentPosition', () => {
   });
 
   it('should compare two elements', () => {
-    parent.innerHTML = '<b></b><i></i>';
+    parent.innerHTML = '<b :></b><i :></i>';
     const b = vnode_getFirstChild(vParent) as ElementVNode;
     const i = b.nextSibling as ElementVNode;
     expect(vnode_documentPosition(b, i)).toBe(-1);

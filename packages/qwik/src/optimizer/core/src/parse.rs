@@ -388,6 +388,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					let comments_maps = comments.clone().take_all();
 					// Now process each segment
+					// TODO handle noop segments, don't generate code for them
 					if !segments.is_empty() {
 						let q = qt.as_ref().unwrap();
 						for h in segments.into_iter() {

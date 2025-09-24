@@ -1,8 +1,13 @@
 import { createFileId } from '../../utils/fs';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { getImportPath } from './utils';
 
-export function createMenus(ctx: BuildContext, c: string[], esmImports: string[], isSSR: boolean) {
+export function createMenus(
+  ctx: RoutingContext,
+  c: string[],
+  esmImports: string[],
+  isSSR: boolean
+) {
   c.push(`\n/** Qwik Router Menus (${ctx.menus.length}) */`);
   c.push(`export const menus = [`);
 

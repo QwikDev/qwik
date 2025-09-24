@@ -1,6 +1,7 @@
-import type { BuildRoute } from '../types';
+import type { BuiltRoute } from '../types';
 
-export function routeSortCompare(a: BuildRoute, b: BuildRoute) {
+/** Sort routes by pathname, then by extension. Longer routes are sorted first. */
+export function routeSortCompare(a: BuiltRoute, b: BuiltRoute) {
   const maxSegments = Math.max(a.segments.length, b.segments.length);
 
   for (let i = 0; i < maxSegments; i += 1) {

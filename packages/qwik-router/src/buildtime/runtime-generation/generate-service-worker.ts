@@ -1,6 +1,6 @@
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 
-export function generateServiceWorkerRegister(ctx: BuildContext, swRegister: string) {
+export function generateServiceWorkerRegister(ctx: RoutingContext, swRegister: string) {
   let swReg: string;
   let swUrl = '/service-worker.js';
 

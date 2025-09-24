@@ -1854,10 +1854,10 @@ routeAction$: ActionConstructor;
 
 ```typescript
 export type RouteData =
-  | [routeName: string, loaders: ModuleLoader[]]
+  | [routeName: string, moduleLoaders: ModuleLoader[]]
   | [
       routeName: string,
-      loaders: ModuleLoader[],
+      moduleLoaders: ModuleLoader[],
       originalPathname: string,
       routeBundleNames: string[],
     ];

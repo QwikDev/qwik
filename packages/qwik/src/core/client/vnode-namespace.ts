@@ -100,22 +100,36 @@ export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
   return domChildren;
 }
 
-/** This function clones an element with a different namespace, but without the children. */
-function cloneElementWithNamespace(
+/** This function clones an element with a different namespace, including the children */
+function cloneDomTreeWithNamespace(
   element: Element,
   elementName: string,
-  namespace: string
+  namespace: string,
+  deep = false
 ): Element {
   const newElement = element.ownerDocument.createElementNS(namespace, elementName);
-  const attributes = element.attributes;
-  for (const attribute of attributes) {
-    const name = attribute.name;
-    const value = attribute.value;
-    if (!name || name === Q_PROPS_SEPARATOR) {
-      continue;
+
+  // Copy all attributes
+  for (const attr of element.attributes) {
+    if (attr.name !== Q_PROPS_SEPARATOR) {
+      newElement.setAttribute(attr.name, attr.value);
     }
-    newElement.setAttribute(name, value);
   }
+
+  if (deep) {
+    // Recursively clone all child nodes
+    for (const child of element.childNodes) {
+      const nodeType = child.nodeType;
+      if (nodeType === 3 /* Node.TEXT_NODE */) {
+        newElement.appendChild(child.cloneNode());
+      } else if (nodeType === 1 /* Node.ELEMENT_NODE */) {
+        newElement.appendChild(
+          cloneDomTreeWithNamespace(child as Element, (child as Element).localName, namespace, deep)
+        );
+      }
+    }
+  }
+
   return newElement;
 }
 
@@ -159,8 +173,15 @@ function vnode_cloneElementWithNamespace(
         namespace = namespaceData.elementNamespace;
         namespaceFlag = namespaceData.elementNamespaceFlag;
       }
+      const vFirstChild = vnode_getFirstChild(vCursor);
 
-      newChildElement = cloneElementWithNamespace(childElement, childElementTag, namespace);
+      newChildElement = cloneDomTreeWithNamespace(
+        childElement,
+        childElementTag,
+        namespace,
+        // deep if there is no vnode children, children are probably inserted via innerHTML
+        !vFirstChild
+      );
 
       childElement.remove();
 
@@ -173,7 +194,7 @@ function vnode_cloneElementWithNamespace(
 
       // Descend into children
       // We need first get the first child, if any
-      const vFirstChild = vnode_getFirstChild(vCursor);
+
       // Then we can overwrite the cursor with newly created element.
       // This is because we need to materialize the children before we assign new element
       vCursor.element = newChildElement;

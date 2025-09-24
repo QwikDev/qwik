@@ -1,0 +1,164 @@
+<style>
+  :host {
+    position: absolute;
+    border: 1px solid red;
+    pointer-events: none;
+    z-index: 1;
+    contain: layout size;
+  }
+
+  #icon {
+    border: 0;
+    margin: 5px;
+    color: black;
+    max-width: 100%;
+    width: 20px;
+    background: yellow;
+    border-radius: 100%;
+    height: 20px;
+    padding: 3px;
+    pointer-events: all;
+    cursor: pointer;
+  }
+
+  #icon svg {
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+  }
+
+  dialog {
+    padding: 0;
+    border: 0;
+    margin: 0 5px;
+    background: #ffffe8;
+    color: black;
+    width: 250px;
+    font-size: 11px;
+    position: absolute;
+    inset-inline-start: unset;
+    inset-inline-end: unset;
+    border-radius: 5px;
+    pointer-events: all;
+    overflow: hidden;
+    box-shadow: 0px -2px 20px 0px #0000002e;
+    z-index: 10000;
+  }
+
+  .top {
+    bottom: calc(100% + 5px);
+  }
+  .bottom {
+    top: 40px;
+  }
+  .right {
+    inset-inline-start: 0;
+    inset-inline-end: unset;
+  }
+  .left {
+    inset-inline-start: unset;
+    inset-inline-end: calc(100% - 40px);
+  }
+
+  .content {
+    padding: 5px;
+  }
+
+  #loc {
+    background: #2e3801;
+    color: #d2d2d2;
+    font-family: monospace;
+    padding: 3px 5px;
+    pointer-events: all;
+    margin: 0;
+    border: 0;
+    cursor: pointer;
+    font-size: 11px;
+    width: calc(100% - 24px);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
+    direction: rtl;
+    text-align: right;
+  }
+  #loc:hover {
+    background: #3a4a01;
+  }
+
+  pre {
+    background: #f1fb8e;
+    padding: 5px;
+    margin: 5px 0;
+    border-radius: 3px;
+    user-select: none;
+  }
+
+  pre span {
+    user-select: all;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  #close {
+    border: 0;
+    width: 25px;
+    height: 25px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: #ffe14f;
+    color: black;
+    font-weight: 900;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #close:hover {
+    background: #ffeb6f;
+  }
+
+  #action-btn {
+    border: 2px solid #18ae00;
+    padding: 2px 4px;
+    background: #50ff50;
+    border-radius: 5px;
+    color: #0c5500;
+    font-weight: 800;
+    font-size: 10px;
+    cursor: pointer;
+  }
+
+  p {
+    margin: 5px 0;
+  }
+
+  h2 {
+    font-weight: 900;
+    margin: 10px 0;
+  }
+</style>
+<button id="icon" type="button" aria-label="Open image dev dialog">
+  <svg width="32" height="32" viewBox="0 0 24 24">
+    <path
+      fill="currentColor"
+      d="M2.725 21q-.275 0-.5-.138t-.35-.362q-.125-.225-.138-.488t.138-.512l9.25-16q.15-.25.388-.375T12 3q.25 0 .488.125t.387.375l9.25 16q.15.25.138.513t-.138.487q-.125.225-.35.363t-.5.137H2.725ZM12 18q.425 0 .713-.288T13 17q0-.425-.288-.713T12 16q-.425 0-.713.288T11 17q0 .425.288.713T12 18Zm0-3q.425 0 .713-.288T13 14v-3q0-.425-.288-.713T12 10q-.425 0-.713.288T11 11v3q0 .425.288.713T12 15Z"
+    />
+  </svg>
+</button>
+<dialog>
+  <form method="dialog">
+    <button id="close" type="submit" aria-label="Close">X</button>
+  </form>
+  <button id="loc"></button>
+  <div class="content">
+    <h2 id="title"></h2>
+    <p id="message"></p>
+    <p class="action-container"></p>
+  </div>
+</dialog>

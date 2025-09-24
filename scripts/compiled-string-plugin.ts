@@ -1,5 +1,5 @@
-import type { Plugin } from 'vite';
 import { minify } from 'terser';
+import type { Plugin } from 'vite';
 
 const isCompiledStringId = (id: string) => /[?&]compiled-string/.test(id);
 

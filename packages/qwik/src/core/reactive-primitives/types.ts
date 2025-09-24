@@ -1,4 +1,3 @@
-import type { VNode } from '../client/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
@@ -9,6 +8,7 @@ import type { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ComputedFn } from '../use/use-computed';
 import type { AsyncComputedFn } from '../use/use-async-computed';
 import type { Container, SerializationStrategy } from '../shared/types';
+import type { VNode } from '../client/vnode-impl';
 
 /**
  * # ================================

@@ -11,7 +11,8 @@
     "@qwik.dev/dom": "2.1.19",
     "@qwik.dev/react": "2.0.0-0",
     "supabase-auth-helpers-qwik": "0.0.3",
-    "qwik-cli-e2e": "0.0.0"
+    "qwik-cli-e2e": "0.0.0",
+    "docs-e2e": "1.0.0"
   },
   "branch": "build/v2",
   "changesets": [
@@ -59,6 +60,7 @@
     "fuzzy-files-kiss",
     "fuzzy-jobs-compare",
     "gentle-melons-pretend",
+    "great-news-lie",
     "green-drinks-strive",
     "heavy-kids-wave",
     "heavy-maps-wash",
@@ -144,6 +146,7 @@
     "tiny-cows-pick",
     "tricky-meals-heal",
     "tricky-peaches-buy",
+    "twelve-buckets-brake",
     "twenty-goats-flow",
     "twenty-lines-prove",
     "unlucky-dodos-grab",

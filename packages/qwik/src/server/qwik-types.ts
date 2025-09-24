@@ -18,7 +18,7 @@ export type { JSXOutput, JSXNodeInternal } from '../core/shared/jsx/types/jsx-no
 export type { JSXChildren } from '../core/shared/jsx/types/jsx-qwik-attributes';
 export type { ContextId } from '../core/use/use-context';
 export type { ValueOrPromise } from '../core/shared/utils/types';
-export type { SerializationContext } from '../core/shared/shared-serialization';
+export type { SerializationContext } from '../core/shared/serdes/index';
 export type { Container, HostElement, ObjToProxyMap } from '../core/shared/types';
 export type {
   ISsrComponentFrame,

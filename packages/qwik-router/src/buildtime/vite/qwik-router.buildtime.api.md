@@ -44,6 +44,7 @@ export interface QwikRouterPlugin extends P<QwikRouterPluginApi> {
 //
 // @public (undocumented)
 export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePathname'> {
+    devSsrServer?: boolean;
     // Warning: (ae-forgotten-export) The symbol "ImageOptimizationOptions" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -56,6 +57,7 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
     mdxPlugins?: MdxPlugins;
     // (undocumented)
     platform?: Record<string, unknown>;
+    staticImportRoutes?: boolean;
 }
 
 // (No @packageDocumentation comment for this package)

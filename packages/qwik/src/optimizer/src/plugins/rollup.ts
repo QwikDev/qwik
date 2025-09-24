@@ -275,7 +275,7 @@ export async function normalizeRollupOutputOptionsObject(
         outputOpts.onlyExplicitManualChunks = true;
       } else {
         console.warn(
-          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 directly in your project (${version}). For the latest and greatest, we recommend to remove it and let Vite install the latest version for you. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
+          `⚠️ We detected that you're using a Rollup version prior to 4.52.0 (${version}). For the latest and greatest, we recommend to let Vite install the latest version for you, or manually install the latest version of Rollup in your project if that doesn't work. It will enable the new Rollup \`outputOpts.onlyExplicitManualChunks\` feature flag, which improves preloading performance and reduces cache invalidation for a snappier user experience.`
         );
       }
     } catch {

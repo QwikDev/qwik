@@ -29,7 +29,6 @@ with
       else (
         update Email
         filter .address = <str>email.address
-          and .user.name = NewUser.name
         set {
           provider := <str>email.provider,
         }

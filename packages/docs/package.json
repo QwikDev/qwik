@@ -55,7 +55,7 @@
     "typescript": "5.4.5",
     "undici": "*",
     "valibot": "0.33.3",
-    "vite": "7.1.5",
+    "vite": "7.1.6",
     "vite-plugin-inspect": "11.3.2",
     "vite-tsconfig-paths": "5.1.4",
     "wrangler": "3.65.1"

@@ -3,7 +3,7 @@ title: Gel | Integrations
 keywords: 'Gel, EdgeDB, database, data, postgres'
 contributors:
   - nabrams
-updated_at: '2024-08-01T18:53:23Z'
+updated_at: '2025-09-25T18:53:23Z'
 created_at: '2025-08-01T23:00:50Z'
 ---
 
@@ -19,7 +19,9 @@ and streamlines your entire database workflow.
 
 Gel can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
 
-The easiest way to add Gel to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `db` folder with the drizzle schema.
+The easiest way to add Gel to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `gel` folder with the gel schema.
+
+It will also create a `gel.toml` file to configure the gel instance. Everything you need to get started is there.
 
 <PackageManagerTabs>
 <span q:slot="pnpm">

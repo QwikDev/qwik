@@ -18,7 +18,7 @@ The key point here is to [get hold of a DOM element](https://qwik.dev/docs/core/
 
 <CodeSandbox src="/src/routes/demo/cookbook/detect-img-tag-onload" style={{ height: '20em' }}>
 ```tsx
-import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const imgRef = useSignal<HTMLImageElement>();

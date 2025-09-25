@@ -239,7 +239,7 @@ The two approaches can best be described as declarative vs imperative. They both
 
 Qwik uses the declarative projection approach because it needs to be able to render parent and child components independently from each other. In an imperative  approach, there are countless ways a child component can modify the `children`. If a child component relied on its `children`, it would be forced to re-render every time the parent component re-rendered to reapply the changes. This additional rendering contradicts Qwik's goal of having components render in isolation.
 
-> **Note**: Make sure to use `<Slot />` within a `component$()` function to ensure it works correctly. `<Slot />` cannot operate in [inline components](/docs/components/overview/#inline-components) which are similar to normal functions `export const MyInlineComp = () => `.
+> **Note**: Make sure to use `<Slot />` within a `component$()` function to ensure it works correctly. `<Slot />` cannot operate in [inline components](/docs/core/overview/#inline-components) which are similar to normal functions `export const MyInlineComp = () => `.
 
 ### Advanced: Slots and Context
 

@@ -278,7 +278,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           ...updatedViteConfig.build!.rollupOptions,
-          output: normalizeRollupOutputOptions(
+          output: await normalizeRollupOutputOptions(
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,

@@ -95,7 +95,7 @@ const makeEditPageUrl = (url: string): string => {
     if (index !== -1 && index + 1 >= segments.length) {
       // These are directory paths without subpaths, map to their overview pages
       if (componentIndex !== -1) {
-        return 'docs/(qwik)/components/overview';
+        return 'docs/(qwik)/core/overview';
       } else if (conceptIndex !== -1) {
         return 'docs/(qwik)/concepts/think-qwik';
       }

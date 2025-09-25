@@ -50,8 +50,10 @@ export const loadClientData = async (
         const redirectedURL = new URL(rsp.url);
         const isQData = redirectedURL.pathname.endsWith('/q-data.json');
         if (!isQData || redirectedURL.origin !== location.origin) {
-          // Captive portal etc. We can't talk to the server, so redirect as asked
-          location.href = redirectedURL.href;
+          // Captive portal etc. We can't talk to the server, so redirect as asked, except when prefetching
+          if (!opts?.isPrefetch) {
+            location.href = redirectedURL.href;
+          }
           return;
         }
       }

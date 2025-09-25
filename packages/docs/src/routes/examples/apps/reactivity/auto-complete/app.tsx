@@ -5,11 +5,11 @@ export default component$(() => {
     <article>
       This example features an auto-complete component with a debounce of 150 ms.
       <br />
-      The function `debouncedGetPeople` needs to be exported because it is used in `useTask$`.
-      <br />
       <br />
       Go ahead, search for Star Wars characters such as "Luke Skywalker", it uses the{' '}
-      <a href="https://swapi.dev/">Star Wars API</a>
+      <a href="https://swapi.py4e.com/">Star Wars API</a>:
+      <br />
+      <br />
       <AutoComplete></AutoComplete>
     </article>
   );
@@ -60,15 +60,15 @@ export const SuggestionsListComponent = (props: { state: IState }) => {
         return <li onClick$={() => (props.state.selectedValue = suggestion)}>{suggestion}</li>;
       })}
     </ul>
-  ) : (
+  ) : props.state.searchInput ? (
     <p class="no-results">
-      <em>No suggestions, you re on your own!</em>
+      <em>No results</em>
     </p>
-  );
+  ) : null;
 };
 
 const getPeople = (searchInput: string, controller?: AbortController): Promise<string[]> =>
-  fetch(`https://swapi.dev/api/people/?search=${searchInput}`, {
+  fetch(`https://swapi.py4e.com/api/people/?search=${searchInput}`, {
     signal: controller?.signal,
   })
     .then((response) => {
@@ -76,7 +76,8 @@ const getPeople = (searchInput: string, controller?: AbortController): Promise<s
     })
     .then((parsedResponse) => {
       return parsedResponse.results.map((people: { name: string }) => people.name);
-    });
+    })
+    .catch((e) => console.error('fetch failed', e));
 
 function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -91,4 +92,4 @@ function debounce<F extends (...args: any) => any>(fn: F, delay = 500) {
   };
 }
 
-export const debouncedGetPeople = debounce(getPeople, 150);
+const debouncedGetPeople = debounce(getPeople, 150);

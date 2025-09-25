@@ -24,7 +24,7 @@ src/routes/articles/
 
 
 ```tsx title="src/routes/plugin@article-rewrite.tsx"
-import type { RequestHandler } from "@builder.io/qwik-city";
+import type { RequestHandler } from "@qwik.dev/router";
 
 export const onRequest: RequestHandler = async ({ url, rewrite }) => {
   const pattern = /^\/articles\/(.*)$/;

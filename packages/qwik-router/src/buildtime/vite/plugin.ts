@@ -52,6 +52,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
   let devServer: ViteDevServer | null = null;
 
   let devSsrServer = userOpts?.devSsrServer;
+  const routesDir = userOpts?.routesDir ?? 'src/routes';
+  const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -81,6 +83,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         },
         appType: 'custom',
         resolve: {
+          dedupe: [QWIK_ROUTER, '@builder.io/qwik-city'],
           alias: [
             { find: '@builder.io/qwik-city', replacement: '@qwik.dev/router' },
             { find: /^@builder\.io\/qwik-city\/(.*)/, replacement: '@qwik.dev/router/$1' },
@@ -90,6 +93,12 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           ],
         },
         optimizeDeps: {
+          // Let Vite find all app deps, these are not part of the static imports from `src/root`
+          entries: [
+            `${routesDir}/**/index*`,
+            `${routesDir}/**/layout*`,
+            `${serverPluginsDir}/plugin@*`,
+          ],
           exclude: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,

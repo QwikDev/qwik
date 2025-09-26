@@ -99,6 +99,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             `${routesDir}/**/layout*`,
             `${serverPluginsDir}/plugin@*`,
           ],
+          // These need processing by the optimizer during dev
           exclude: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,

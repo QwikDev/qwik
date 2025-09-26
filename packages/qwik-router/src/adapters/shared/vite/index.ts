@@ -48,8 +48,9 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         if (!qwikRouterPlugin) {
           throw new Error('Missing vite-plugin-qwik-router');
         }
-        const foundQwikPlugin = config.plugins.find((p) => p.name === 'vite-plugin-qwik');
-        qwikVitePlugin = foundQwikPlugin as QwikVitePlugin;
+        qwikVitePlugin = config.plugins.find(
+          (p) => p.name === 'vite-plugin-qwik'
+        ) as any as QwikVitePlugin;
         if (!qwikVitePlugin) {
           throw new Error('Missing vite-plugin-qwik');
         }

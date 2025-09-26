@@ -134,7 +134,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
       mdxTransform = await createMdxTransformer(ctx);
 
-      qwikPlugin = config.plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
+      const foundPlugin = config.plugins.find((p) => p.name === 'vite-plugin-qwik');
+      qwikPlugin = foundPlugin as QwikVitePlugin;
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }

@@ -48,6 +48,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         if (!qwikRouterPlugin) {
           throw new Error('Missing vite-plugin-qwik-router');
         }
+        // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
+        // when comparing QwikVitePlugin with Plugin types
         qwikVitePlugin = config.plugins.find(
           (p) => p.name === 'vite-plugin-qwik'
         ) as any as QwikVitePlugin;

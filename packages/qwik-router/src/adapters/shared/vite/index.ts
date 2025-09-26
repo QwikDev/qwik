@@ -220,6 +220,9 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
              * For now, we'll force exit the process after SSG with some delay.
              */
             setTimeout(() => {
+              console.warn(
+                'SSG seems to be hanging after completion, forcing process to exit. Everything is likely fine.'
+              );
               process.exit(0);
             }, 5000).unref();
           }

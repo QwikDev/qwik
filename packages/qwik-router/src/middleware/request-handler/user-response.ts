@@ -8,6 +8,8 @@ import type {
 import { getErrorHtml } from './error-handler';
 import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { encoder } from './resolve-request-handlers';
+import { withLocale } from '@qwik.dev/core';
+import { asyncRequestStore } from './async-request-store';
 import type { ServerRequestEvent, StatusCodes } from './types';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
@@ -22,20 +24,6 @@ export interface QwikRouterRun<T> {
   requestEv: RequestEvent;
   completion: Promise<unknown>;
 }
-
-let asyncStore: AsyncStore | undefined;
-import('node:async_hooks')
-  .then((module) => {
-    const AsyncLocalStorage = module.AsyncLocalStorage;
-    asyncStore = new AsyncLocalStorage<RequestEventInternal>();
-    globalThis.qcAsyncRequestStore = asyncStore;
-  })
-  .catch((err) => {
-    console.warn(
-      'AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.',
-      err
-    );
-  });
 
 export function runQwikRouter<T>(
   serverRequestEv: ServerRequestEvent<T>,
@@ -57,9 +45,12 @@ export function runQwikRouter<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion: withLocale(
+      requestEv.locale(),
+      asyncRequestStore
+        ? () => asyncRequestStore!.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+        : () => runNext(requestEv, rebuildRouteInfo, resolve!)
+    ),
   };
 }
 

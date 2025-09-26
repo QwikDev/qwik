@@ -14,6 +14,7 @@ import type {
   ContentModuleHead,
 } from './types';
 import { isPromise } from './utils';
+import { asyncRequestStore } from '../../middleware/request-handler/async-request-store';
 
 export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
@@ -53,18 +54,25 @@ export const resolveHead = (
     }
   }
   if (fns.length) {
+    const hasAsyncStore = !!asyncRequestStore;
     const headProps: DocumentHeadProps = {
       head,
-      withLocale: (fn) => withLocale(locale, fn),
+      withLocale: hasAsyncStore ? (fn) => fn() : (fn) => withLocale(locale, fn),
       resolveValue: getData,
       ...routeLocation,
     };
 
-    withLocale(locale, () => {
+    if (hasAsyncStore) {
       for (const fn of fns) {
         resolveDocumentHead(head, fn(headProps));
       }
-    });
+    } else {
+      withLocale(locale, () => {
+        for (const fn of fns) {
+          resolveDocumentHead(head, fn(headProps));
+        }
+      });
+    }
   }
 
   return head;

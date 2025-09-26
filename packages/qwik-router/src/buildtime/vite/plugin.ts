@@ -133,8 +133,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       await validatePlugin(ctx.opts);
 
       mdxTransform = await createMdxTransformer(ctx);
-
-      qwikPlugin = config.plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
+      // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
+      // when comparing QwikVitePlugin with Plugin types
+      qwikPlugin = config.plugins.find(
+        (p) => p.name === 'vite-plugin-qwik'
+      ) as any as QwikVitePlugin;
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
       }

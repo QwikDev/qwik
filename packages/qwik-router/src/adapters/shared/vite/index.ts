@@ -20,6 +20,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let renderModulePath: string | null = null;
   let qwikRouterConfigModulePath: string | null = null;
   let isSsrBuild = false;
+  let viteCommand: string | undefined;
   const outputEntries: string[] = [];
 
   const plugin: Plugin<never> = {
@@ -40,6 +41,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
     configResolved(config) {
       isSsrBuild = !!config.build.ssr;
+      viteCommand = config.command;
 
       if (isSsrBuild) {
         qwikRouterPlugin = config.plugins.find(
@@ -72,17 +74,19 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     buildStart() {
       if (isSsrBuild && opts.ssg !== null) {
         const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
-        // TODO don't rely on entry points for SSG, somehow
-        this.emitFile({
-          id: '@qwik-router-config',
-          type: 'chunk',
-          fileName: '@qwik-router-config.js',
-        });
-        this.emitFile({
-          id: `${srcDir}/entry.ssr`,
-          type: 'chunk',
-          fileName: 'entry.ssr.js',
-        });
+        if (viteCommand === 'build' && serverOutDir && srcDir) {
+          // TODO don't rely on entry points for SSG, somehow
+          this.emitFile({
+            id: '@qwik-router-config',
+            type: 'chunk',
+            fileName: '@qwik-router-config.js',
+          });
+          this.emitFile({
+            id: `${srcDir}/entry.ssr`,
+            type: 'chunk',
+            fileName: 'entry.ssr.js',
+          });
+        }
       }
     },
     generateBundle(_, bundles) {

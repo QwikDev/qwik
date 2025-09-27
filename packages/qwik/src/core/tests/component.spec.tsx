@@ -86,6 +86,49 @@ describe.each([
     );
   });
 
+  it('should render component with key', async () => {
+    (globalThis as any).componentExecuted = [];
+    const Cmp = component$(() => {
+      (globalThis as any).componentExecuted.push('Cmp');
+      return <div></div>;
+    });
+
+    const Parent = component$(() => {
+      const counter = useSignal(0);
+      return (
+        <>
+          <Cmp key={counter.value} />
+          <button id="counter" onClick$={() => counter.value++}></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect((globalThis as any).componentExecuted).toEqual(['Cmp']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component>
+            <div></div>
+          </Component>
+          <button id="counter"></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).componentExecuted).toEqual(['Cmp', 'Cmp']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component>
+            <div></div>
+          </Component>
+          <button id="counter"></button>
+        </Fragment>
+      </Component>
+    );
+  });
+
   it('should handle null as empty string', async () => {
     const MyComp = component$(() => {
       return (

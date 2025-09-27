@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.11
+
+### Patch Changes
+
+- 🐞🩹 resuming app with non-qwik elements inside (by [@Varixo](https://github.com/Varixo) in [#7991](https://github.com/QwikDev/qwik/pull/7991))
+
 ## 2.0.0-beta.10
 
 ### Minor Changes

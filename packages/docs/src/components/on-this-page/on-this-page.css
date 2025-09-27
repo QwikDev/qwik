@@ -7,7 +7,7 @@
   position: sticky;
   top: var(--header-height);
   min-width: var(--aside-width);
-  max-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
 }
 
 .on-this-page h6 {

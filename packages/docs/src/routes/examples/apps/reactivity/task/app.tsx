@@ -1,23 +1,16 @@
-import { component$, useTask$, useStore } from '@qwik.dev/core';
-
-interface State {
-  count: number;
-  debounced: number;
-}
+import { component$, useTask$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
-  const store = useStore<State>({
-    count: 0,
-    debounced: 0,
-  });
+  const count = useSignal(0);
+  const debounced = useSignal(0);
 
   useTask$(({ track }) => {
-    // track changes in store.count
-    track(() => store.count);
+    // track changes in count
+    const value = track(count);
     console.log('count changed');
 
     const timer = setTimeout(() => {
-      store.debounced = store.count;
+      debounced.value = value;
     }, 2000);
     return () => {
       clearTimeout(timer);
@@ -27,25 +20,25 @@ export default component$(() => {
   console.log('<App> renders');
   return (
     <div>
-      <Child state={store} />
-      <button id="add" onClick$={() => store.count++}>
+      <Child count={count.value} debounced={debounced.value} />
+      <button id="add" onClick$={() => count.value++}>
         +
       </button>
     </div>
   );
 });
 
-export const Child = component$((props: { state: State }) => {
+export const Child = component$((props: { count: number; debounced: number }) => {
   console.log('<Child> render');
   return (
     <div>
-      <div id="child">{props.state.count}</div>
-      <GrandChild state={props.state} />
+      <div id="child">{props.count}</div>
+      <GrandChild debounced={props.debounced} />
     </div>
   );
 });
 
-export const GrandChild = component$((props: { state: State }) => {
+export const GrandChild = component$((props: { debounced: number }) => {
   console.log('<GrandChild> render');
-  return <div id="debounced">Debounced: {props.state.debounced}</div>;
+  return <div id="debounced">Debounced: {props.debounced}</div>;
 });

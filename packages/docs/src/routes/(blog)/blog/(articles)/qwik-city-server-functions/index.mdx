@@ -73,7 +73,7 @@ In the context of Qwik Router, the problem becomes a little bit more complicated
 
 Qwik's Data Loader solves the issue of quickly fetching data to be displayed in the HTML. It helps to ensure that the data is available in a timely manner. This helps to improve the user experience and reduce loading times.
 
-Qwik Router goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/components/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
+Qwik Router goes a long way to execute all relevant loaders as soon as possible and in parallel to keep latency as low as possible, in addition, loaders are connected to the reactivity system of Qwik powered by [signals](https://qwik.dev/docs/core/state/#usesignal), so new data will automatically and efficiently update all parts of the app that depend on it.
 
 ```tsx
 import { loader$ } from '@builder.io/qwik-city';

@@ -9,7 +9,13 @@
   "access": "public",
   "baseBranch": "origin/build/v2",
   "updateInternalDependencies": "minor",
-  "ignore": ["qwik-docs", "insights", "qwik-cli-e2e", "docs-e2e"],
+  "ignore": [
+    "qwik-docs",
+    "insights",
+    "qwik-cli-e2e",
+    "qwik-react-test-app",
+    "docs-e2e"
+  ],
   "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
     "onlyUpdatePeerDependentsWhenOutOfRange": true
   }

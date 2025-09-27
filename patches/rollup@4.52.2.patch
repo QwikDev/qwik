@@ -1,0 +1,17 @@
+diff --git a/dist/native.js b/dist/native.js
+index bea730a21c14e5307a062f075dd7690254d1fd88..8a77576b164dc0b95b5dc7aa3f2911384da47852 100644
+--- a/dist/native.js
++++ b/dist/native.js
+@@ -32,11 +32,7 @@ const bindingsByPlatformAndArch = {
+ 	win32: {
+ 		arm64: { base: 'win32-arm64-msvc' },
+ 		ia32: { base: 'win32-ia32-msvc' },
+-		x64: {
+-			base: report.getReport().header.osName.startsWith('MINGW32_NT')
+-				? 'win32-x64-gnu'
+-				: 'win32-x64-msvc'
+-		}
++		x64: { base: 'win32-x64-msvc' }
+ 	}
+ };
+ 

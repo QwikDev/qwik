@@ -7,6 +7,21 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  environments: {
+    client: {
+      optimizeDeps: {
+        exclude: ['@auth/qwik', '@modular-forms/qwik'],
+      },
+    },
+    ssr: {
+      build: {
+        sourcemap: true,
+      },
+      resolve: {
+        noExternal: ['@auth/qwik', '@modular-forms/qwik'],
+      },
+    },
+  },
   plugins: [
     macroPlugin({ preset: 'pandacss' }),
     qwikRouter(),
@@ -21,8 +36,5 @@ export default defineConfig({
     headers: {
       'Cache-Control': 'public, max-age=600',
     },
-  },
-  optimizeDeps: {
-    include: ['@auth/core'],
   },
 });

@@ -465,20 +465,20 @@ test.describe("nav", () => {
         "/qwikrouter-test/issue7732/c/?redirected=true",
       );
     });
-    // TODO: Fix this test (currently not working because the action redirect adds a `/q-data.json` at the end of the path)
-    test.fixme(
-      "action with redirect without query params in a route with query param should redirect to route without query params",
-      async ({ page }) => {
-        await page.goto(
-          "/qwikrouter-test/action-redirect-without-search-params/?test=test",
-        );
-        const button = page.locator("button");
-        await button.click();
-        await page.waitForURL(
-          "/qwikrouter-test/action-redirect-without-search-params-target/",
-        );
-      },
-    );
+    test("action with redirect without query params in a route with query param should redirect to route without query params", async ({
+      page,
+    }) => {
+      await page.goto(
+        "/qwikrouter-test/action-redirect-without-search-params/?test=test",
+      );
+      const button = page.locator("button");
+      await button.click();
+      await page.waitForURL(
+        "/qwikrouter-test/action-redirect-without-search-params-target/",
+      );
+      const searchParams = new URL(page.url()).searchParams;
+      expect(searchParams.size).toBe(0);
+    });
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikrouter-test/");
 
@@ -528,6 +528,22 @@ test.describe("nav", () => {
       );
 
       await expect(page.locator("#redirected-result")).toHaveText("true");
+    });
+
+    test("server plugin q-data redirect from /redirectme to /", async ({
+      baseURL,
+    }) => {
+      const res = await fetch(
+        new URL("/qwikrouter-test/redirectme/q-data.json", baseURL),
+        {
+          redirect: "manual",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+      expect(res.status).toBe(301);
+      expect(res.headers.get("Location")).toBe("/qwikrouter-test/q-data.json");
     });
 
     test("should not execute task from removed layout, and should be executed only once for SPA", async ({

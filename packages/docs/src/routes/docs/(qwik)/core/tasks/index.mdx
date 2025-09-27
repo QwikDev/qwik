@@ -47,7 +47,7 @@ Tasks can also be used to perform work when a component state changes. In this c
 
 Sometimes a task needs to run only on the browser and after rendering, in that case, you should use [`useVisibleTask$()`](#usevisibletask).
 
-> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useResource$()`](/docs/components/state/#useresource).  [`useResource$()`](/docs/components/state/#useresource) does not block rendering while the resource is being resolved.
+> **Note**: If you need to fetch data asynchronously and not block rendering, you should use [`useResource$()`](/docs/core/state/#useresource).  [`useResource$()`](/docs/core/state/#useresource) does not block rendering while the resource is being resolved.
 
 ## Lifecycle
 Resumability is "Lazy execution", it's the ability to build the "framework state" (component boundaries, etc) on the server, and have it exist on the client without re-executing the framework again.
@@ -93,7 +93,7 @@ When the user interacts with the application, it resumes on the client-side, con
 
 `useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending on where the component is initially rendered.
 
-Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/components/state/index.mdx) changes.
+Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
 **Notice that any subsequent re-execution of the task will always happen in the browser**, because reactivity is a browser-only thing.
 
@@ -154,7 +154,7 @@ Use `useTask$()` when you need to:
 - Run code only once before the component is first rendered
 - Programmatically run side-effect code when state changes
 
-> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useResource$()`](/docs/components/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
+> Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useResource$()`](/docs/core/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
 ### On mount
 
@@ -190,7 +190,7 @@ Note that deep store updates don't mutate the store itself, so `store[item].coun
 
 During SSR, each component will wait until all tasks are completed before outputting the HTML for that component. So a task can be called multiple times during SSR if the tracked state changes due to other tasks.
 
-> **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/components/state/#usecomputed) instead.
+> **Note**: If all you want to do is compute a new state from an existing state synchronously, you should use [`useComputed$()`](/docs/core/state/#usecomputed) instead.
 
 <CodeSandbox src="/src/routes/demo/tasks/track/index.tsx" style={{ height: '6em' }} >
 ```tsx
@@ -321,7 +321,7 @@ export default component$(() => {
 
 ## `useVisibleTask$()`
 
-Sometimes a task needs to run only on the browser and after rendering, in that case, you should use `useVisibleTask$()`. The `useVisibleTask$()` is similar to `useTask$()` but it only runs on the browser and after initial rendering. `useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [state](/docs/(qwik)/components/state/index.mdx) changes.
+Sometimes a task needs to run only on the browser and after rendering, in that case, you should use `useVisibleTask$()`. The `useVisibleTask$()` is similar to `useTask$()` but it only runs on the browser and after initial rendering. `useVisibleTask$()` registers a hook to be executed when the component becomes visible in the viewport, it will run at least once in the browser, and it can be reactive and re-execute when some **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
 `useVisibleTask$()` has these properties:
 

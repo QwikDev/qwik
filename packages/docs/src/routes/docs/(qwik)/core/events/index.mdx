@@ -57,7 +57,7 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-You can also use `bind:propertyName` to conveniently have a [two-way binding](/docs/(qwik)/components/rendering/index.mdx#bind-attribute) between a signal and an input element.
+You can also use `bind:propertyName` to conveniently have a [two-way binding](/docs/(qwik)/core/rendering/index.mdx#bind-attribute) between a signal and an input element.
 
 Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). This is a hint to both the [Optimizer](/docs/(qwik)/advanced/optimizer/index.mdx) and the developer that a special transformation occurs at this location. The presence of the `$` suffix implies a lazy-loaded boundary here. The code associated with the `click` handler is not loaded into the JavaScript Virtual Machine (VM) until the user activates the click event. However, to avoid delays during the first interaction, it is eagerly loaded into the browser cache.
 

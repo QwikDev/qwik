@@ -1,7 +1,7 @@
 {
   "name": "eslint-plugin-qwik",
   "description": "An Open-Source sub-framework designed with a focus on server-side-rendering, lazy-loading, and styling/animation.",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.11",
   "author": "Qwik Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {

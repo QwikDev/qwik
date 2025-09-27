@@ -19,6 +19,9 @@ patchedDependencies:
   domino@2.1.6:
     hash: cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d
     path: patches/domino@2.1.6.patch
+  rollup@4.52.2:
+    hash: be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c
+    path: patches/rollup@4.52.2.patch
 
 importers:
 
@@ -189,7 +192,7 @@ importers:
         version: 2.4.2
       rollup:
         specifier: '>= 4.52.0'
-        version: 4.52.2
+        version: 4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)
       semver:
         specifier: 7.7.2
         version: 7.7.2
@@ -234,10 +237,10 @@ importers:
         version: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
       vite-imagetools:
         specifier: 8.0.0
-        version: 8.0.0(rollup@4.52.2)
+        version: 8.0.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       vite-plugin-dts:
         specifier: 4.5.4
-        version: 4.5.4(@types/node@24.3.0)(rollup@4.52.2)(typescript@5.9.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
+        version: 4.5.4(@types/node@24.3.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
       vite-tsconfig-paths:
         specifier: 5.1.4
         version: 5.1.4(typescript@5.9.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
@@ -317,7 +320,7 @@ importers:
         version: '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@builder.io/qwik-city':
         specifier: npm:@qwik.dev/router
-        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2)'
+        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)'
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.1.13)(react@19.1.1)
@@ -326,7 +329,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1)
       '@modular-forms/qwik':
         specifier: 0.29.1
-        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2))(typescript@5.9.2)
+        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2))(typescript@5.9.2)
       '@mui/material':
         specifier: 7.3.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -504,7 +507,7 @@ importers:
         version: 0.15.15
       '@modular-forms/qwik':
         specifier: ^0.29.1
-        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2))(typescript@5.9.2)
+        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2))(typescript@5.9.2)
       '@typescript/analyze-trace':
         specifier: ^0.10.1
         version: 0.10.1
@@ -526,10 +529,10 @@ importers:
         version: '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@builder.io/qwik-city':
         specifier: npm:@qwik.dev/router
-        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2)'
+        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)'
       '@builder.io/vite-plugin-macro':
         specifier: 0.0.7
-        version: 0.0.7(@types/node@24.3.0)(lightningcss@1.30.1)(rollup@4.52.2)(terser@5.43.1)
+        version: 0.0.7(@types/node@24.3.0)(lightningcss@1.30.1)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(terser@5.43.1)
       '@eslint/js':
         specifier: 9.33.0
         version: 9.33.0
@@ -565,7 +568,7 @@ importers:
         version: 16.3.0
       netlify-cli:
         specifier: 23.7.3
-        version: 23.7.3(@types/express@5.0.3)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2)
+        version: 23.7.3(@types/express@5.0.3)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       postcss:
         specifier: 8.5.6
         version: 8.5.6
@@ -607,7 +610,7 @@ importers:
         version: 2.11.1
       rollup:
         specifier: '>= ^4.52.0'
-        version: 4.52.2
+        version: 4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)
     devDependencies:
       '@croct/json5-parser':
         specifier: 0.2.0
@@ -739,7 +742,7 @@ importers:
         version: 6.0.3
       vite-imagetools:
         specifier: ^8.0.0
-        version: 8.0.0(rollup@4.52.2)
+        version: 8.0.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       yaml:
         specifier: ^2.8.1
         version: 2.8.1
@@ -9458,9 +9461,9 @@ snapshots:
 
   '@bugsnag/safe-json-stringify@6.1.0': {}
 
-  '@builder.io/vite-plugin-macro@0.0.7(@types/node@24.3.0)(lightningcss@1.30.1)(rollup@4.52.2)(terser@5.43.1)':
+  '@builder.io/vite-plugin-macro@0.0.7(@types/node@24.3.0)(lightningcss@1.30.1)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(terser@5.43.1)':
     dependencies:
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.2)
+      '@rollup/pluginutils': 5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       magic-string: 0.30.17
       vite-node: 0.32.4(@types/node@24.3.0)(lightningcss@1.30.1)(terser@5.43.1)
     transitivePeerDependencies:
@@ -10555,10 +10558,10 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@modular-forms/qwik@0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2))(typescript@5.9.2)':
+  '@modular-forms/qwik@0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2))(typescript@5.9.2)':
     dependencies:
       '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
-      '@builder.io/qwik-city': '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2)'
+      '@builder.io/qwik-city': '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)'
       decode-formdata: 0.8.0
       valibot: 1.1.0(typescript@5.9.2)
     transitivePeerDependencies:
@@ -10724,19 +10727,19 @@ snapshots:
       yaml: 2.8.1
       yargs: 17.7.2
 
-  '@netlify/build@35.1.7(@opentelemetry/api@1.8.0)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2)':
+  '@netlify/build@35.1.7(@opentelemetry/api@1.8.0)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))':
     dependencies:
       '@bugsnag/js': 8.6.0
       '@netlify/blobs': 10.0.11
       '@netlify/cache-utils': 6.0.4
       '@netlify/config': 24.0.4
       '@netlify/edge-bundler': 14.5.5
-      '@netlify/functions-utils': 6.2.8(rollup@4.52.2)(supports-color@10.2.2)
+      '@netlify/functions-utils': 6.2.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)
       '@netlify/git-utils': 6.0.2
       '@netlify/opentelemetry-utils': 2.0.1(@opentelemetry/api@1.8.0)
       '@netlify/plugins-list': 6.80.0
       '@netlify/run-utils': 6.0.2
-      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)
       '@opentelemetry/api': 1.8.0
       '@sindresorhus/slugify': 2.2.1
       ansi-escapes: 7.1.1
@@ -10923,9 +10926,9 @@ snapshots:
       '@netlify/types': 2.0.3
       get-port: 7.1.0
 
-  '@netlify/functions-utils@6.2.8(rollup@4.52.2)(supports-color@10.2.2)':
+  '@netlify/functions-utils@6.2.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)':
     dependencies:
-      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)
       cpy: 11.1.0
       path-exists: 5.0.0
     transitivePeerDependencies:
@@ -11028,13 +11031,13 @@ snapshots:
 
   '@netlify/types@2.0.3': {}
 
-  '@netlify/zip-it-and-ship-it@14.1.8(rollup@4.52.2)(supports-color@10.2.2)':
+  '@netlify/zip-it-and-ship-it@14.1.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)':
     dependencies:
       '@babel/parser': 7.28.4
       '@babel/types': 7.28.4
       '@netlify/binary-info': 1.0.0
       '@netlify/serverless-functions-api': 2.5.0
-      '@vercel/nft': 0.29.4(rollup@4.52.2)(supports-color@10.2.2)
+      '@vercel/nft': 0.29.4(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)
       archiver: 7.0.1
       common-path-prefix: 3.0.0
       copy-file: 11.1.0
@@ -11349,7 +11352,7 @@ snapshots:
   '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))':
     dependencies:
       csstype: 3.1.3
-      rollup: 4.52.2
+      rollup: 4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)
       vite: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
     optionalDependencies:
       prettier: 3.6.2
@@ -11359,7 +11362,7 @@ snapshots:
     dependencies:
       dotenv: 16.5.0
 
-  '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2)(typescript@5.9.2)':
+  '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)':
     dependencies:
       '@mdx-js/mdx': 3.1.0(acorn@8.15.0)
       '@types/mdx': 2.0.13
@@ -11368,7 +11371,7 @@ snapshots:
       undici: 7.16.0
       valibot: 1.1.0(typescript@5.9.2)
       vfile: 6.0.3
-      vite-imagetools: 7.1.1(rollup@4.52.2)
+      vite-imagetools: 7.1.1(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       zod: 3.25.48
     transitivePeerDependencies:
       - acorn
@@ -11381,13 +11384,13 @@ snapshots:
       '@napi-rs/wasm-runtime': 1.0.4
       '@oxc-project/runtime': 0.87.0
 
-  '@rollup/pluginutils@5.3.0(rollup@4.52.2)':
+  '@rollup/pluginutils@5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))':
     dependencies:
       '@types/estree': 1.0.8
       estree-walker: 2.0.2
       picomatch: 4.0.3
     optionalDependencies:
-      rollup: 4.52.2
+      rollup: 4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)
 
   '@rollup/rollup-android-arm-eabi@4.52.2':
     optional: true
@@ -12122,10 +12125,10 @@ snapshots:
     dependencies:
       '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
 
-  '@vercel/nft@0.29.4(rollup@4.52.2)(supports-color@10.2.2)':
+  '@vercel/nft@0.29.4(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)':
     dependencies:
       '@mapbox/node-pre-gyp': 2.0.0(supports-color@10.2.2)
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.2)
+      '@rollup/pluginutils': 5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       acorn: 8.15.0
       acorn-import-attributes: 1.9.5(acorn@8.15.0)
       async-sema: 3.1.1
@@ -16205,13 +16208,13 @@ snapshots:
 
   negotiator@0.6.3: {}
 
-  netlify-cli@23.7.3(@types/express@5.0.3)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2):
+  netlify-cli@23.7.3(@types/express@5.0.3)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)):
     dependencies:
       '@fastify/static': 7.0.4
       '@netlify/ai': 0.2.1
       '@netlify/api': 14.0.5
       '@netlify/blobs': 10.0.11
-      '@netlify/build': 35.1.7(@opentelemetry/api@1.8.0)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2)
+      '@netlify/build': 35.1.7(@opentelemetry/api@1.8.0)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       '@netlify/build-info': 10.0.8
       '@netlify/config': 24.0.4
       '@netlify/dev-utils': 4.1.3
@@ -16221,7 +16224,7 @@ snapshots:
       '@netlify/headers-parser': 9.0.2
       '@netlify/local-functions-proxy': 2.0.3
       '@netlify/redirect-parser': 15.0.3
-      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2)(supports-color@10.2.2)
+      '@netlify/zip-it-and-ship-it': 14.1.8(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(supports-color@10.2.2)
       '@octokit/rest': 21.1.1
       '@opentelemetry/api': 1.8.0
       '@pnpm/tabtab': 0.5.4
@@ -17349,7 +17352,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  rollup@4.52.2:
+  rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c):
     dependencies:
       '@types/estree': 1.0.8
     optionalDependencies:
@@ -18415,17 +18418,17 @@ snapshots:
     dependencies:
       vite: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
 
-  vite-imagetools@7.1.1(rollup@4.52.2):
+  vite-imagetools@7.1.1(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)):
     dependencies:
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.2)
+      '@rollup/pluginutils': 5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       imagetools-core: 7.1.0
       sharp: 0.34.4
     transitivePeerDependencies:
       - rollup
 
-  vite-imagetools@8.0.0(rollup@4.52.2):
+  vite-imagetools@8.0.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)):
     dependencies:
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.2)
+      '@rollup/pluginutils': 5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       imagetools-core: 8.0.0
       sharp: 0.34.4
     transitivePeerDependencies:
@@ -18470,10 +18473,10 @@ snapshots:
       - tsx
       - yaml
 
-  vite-plugin-dts@4.5.4(@types/node@24.3.0)(rollup@4.52.2)(typescript@5.9.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)):
+  vite-plugin-dts@4.5.4(@types/node@24.3.0)(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))(typescript@5.9.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)):
     dependencies:
       '@microsoft/api-extractor': 7.52.10(@types/node@24.3.0)
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.2)
+      '@rollup/pluginutils': 5.3.0(rollup@4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c))
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.0(typescript@5.9.2)
       compare-versions: 6.1.1
@@ -18532,7 +18535,7 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
       postcss: 8.5.6
-      rollup: 4.52.2
+      rollup: 4.52.2(patch_hash=be6a3611c102e8170dc7eb51e7f6da5d05be4729edb9f87434bf2c1f9007986c)
       tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 24.3.0

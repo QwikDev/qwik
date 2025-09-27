@@ -50,6 +50,8 @@ export function qwikDebugToString(value: any): any {
         return 'Store';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
+      } else if (vnode_isVNode(value)) {
+        return '(' + value.getProp(DEBUG_TYPE, null) + ')';
       }
     } finally {
       stringifyPath.pop();

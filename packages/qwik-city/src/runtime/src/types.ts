@@ -63,7 +63,7 @@ export interface MenuModule {
 
 /** @public */
 export interface RouteLocation {
-  readonly params: Readonly<Record<string, string>>;
+  readonly params: Readonly<Record<string, string | undefined>>;
   readonly url: URL;
   readonly isNavigating: boolean;
   readonly prevUrl: URL | undefined;

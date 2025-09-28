@@ -591,13 +591,6 @@ export interface CookieValue {
 }
 
 /** @public */
-export interface QwikSerializer {
-  _deserialize: typeof _deserialize;
-  _serialize: typeof _serialize;
-  _verifySerializable: typeof _verifySerializable;
-}
-
-/** @public */
 export type HttpMethod =
   | 'GET'
   | 'POST'

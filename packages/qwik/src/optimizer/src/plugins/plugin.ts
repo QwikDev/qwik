@@ -813,6 +813,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);

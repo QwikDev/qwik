@@ -1,12 +1,12 @@
 import type { Transformer } from 'unified';
-import type { BuildContext, FrontmatterAttrs } from '../types';
+import type { RoutingContext, FrontmatterAttrs } from '../types';
 import { normalizePath } from '../../utils/fs';
 import { visit } from 'unist-util-visit';
 import { parse as parseYaml } from 'yaml';
 import type { ResolvedDocumentHead } from '../../runtime/src';
 import type { DocumentMeta, Editable } from '../../runtime/src/types';
 
-export function parseFrontmatter(ctx: BuildContext): Transformer {
+export function parseFrontmatter(ctx: RoutingContext): Transformer {
   return (mdast, vfile) => {
     const attrs: FrontmatterAttrs = {};
 

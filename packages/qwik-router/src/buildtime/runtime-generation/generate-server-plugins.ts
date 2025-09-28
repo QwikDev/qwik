@@ -1,9 +1,9 @@
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { getImportPath } from './utils';
 
 export function createServerPlugins(
-  ctx: BuildContext,
+  ctx: RoutingContext,
   _qwikPlugin: QwikVitePlugin,
   c: string[],
   esmImports: string[],

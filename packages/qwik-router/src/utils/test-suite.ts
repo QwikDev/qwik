@@ -3,12 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assert, beforeAll, test, type TestAPI } from 'vitest';
-import { build } from '../buildtime/build';
+import { parseRoutesDir } from '../buildtime/build';
 import { createBuildContext } from '../buildtime/context';
 import type {
-  BuildContext,
-  BuildLayout,
-  BuildRoute,
+  RoutingContext,
+  BuiltLayout,
+  BuiltRoute,
   MarkdownAttributes,
   PluginOptions,
 } from '../buildtime/types';
@@ -39,7 +39,7 @@ export function testAppSuite(
   title: string,
   userOpts?: PluginOptions
 ): TestAPI<TestAppBuildContext> {
-  let buildCtx: BuildContext;
+  let buildCtx: RoutingContext;
 
   beforeAll(async (testCtx) => {
     const testAppRootDir = join(
@@ -58,7 +58,7 @@ export function testAppSuite(
     assert.equal(normalizePath(testAppRootDir), ctx.rootDir);
     assert.equal(normalizePath(join(testAppRootDir, 'src', 'routes')), ctx.opts.routesDir);
 
-    await build(ctx);
+    await parseRoutesDir(ctx);
 
     assert.deepEqual(ctx.diagnostics, []);
 
@@ -98,12 +98,12 @@ export function testAppSuite(
 }
 
 export interface TestAppBuildContext extends TestContext {
-  assertRoute: (pathname: string) => BuildRoute;
-  assertLayout: (id: string) => BuildLayout;
+  assertRoute: (pathname: string) => BuiltRoute;
+  assertLayout: (id: string) => BuiltLayout;
 }
 
 export interface TestContext {
-  ctx: BuildContext;
+  ctx: RoutingContext;
   filePath: string;
   attrs: MarkdownAttributes;
 }

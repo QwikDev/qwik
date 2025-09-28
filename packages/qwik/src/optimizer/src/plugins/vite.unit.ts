@@ -53,7 +53,6 @@ const excludeDeps = [
   '@qwik.dev/core/build',
   '@qwik-client-manifest',
   '@builder.io/qwik',
-  '@builder.io/qwik-city',
 ];
 
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>

@@ -53,6 +53,8 @@ export const makeRouterDevMiddleware =
       return;
     }
 
+    // We'll be reloading the Qwik module, that's fine, don't let it warn
+    (globalThis as any).__qwik = undefined;
     // Now we can stream the render
     const { createQwikRouter } = (await server.ssrLoadModule(
       '@qwik.dev/router/middleware/node'

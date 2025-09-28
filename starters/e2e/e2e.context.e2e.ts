@@ -55,9 +55,14 @@ test.describe("context", () => {
         "bar = 0",
         "bar = 0",
       ]);
+      // Add 2 level3 components to the first level2
       await btnLevel2Increment.click();
       await btnLevel2Increment.click();
+      // Add 1 level3 component to the second level2
       await btnLevel2Increment2.click();
+      // Wait for all level3 to be visible
+      const level3s = page.locator(".level3-state2");
+      await expect(level3s).toHaveCount(3);
 
       const level3State1 = page.locator(".level3-state1");
       const level3State2 = page.locator(".level3-state2");

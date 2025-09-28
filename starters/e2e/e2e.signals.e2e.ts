@@ -319,11 +319,11 @@ test.describe("signals", () => {
       const result = page.locator("#issue-3415-result");
       const button = page.locator("#issue-3415-button");
       await expect(result).toHaveText("foo");
-      await expect(await result.innerHTML()).toEqual("<b>foo</b>");
+      expect(await result.innerHTML()).toEqual("<b>foo</b>");
 
       await button.click();
       await expect(result).toHaveText("bar");
-      await expect(await result.innerHTML()).toEqual("<i>bar</i>");
+      expect(await result.innerHTML()).toEqual("<i>bar</i>");
     });
 
     test("bind value", async ({ page }) => {
@@ -348,8 +348,8 @@ test.describe("signals", () => {
 
       await input.clear();
       await textarea.fill("from2");
-      await expect(input).toHaveValue("from2");
       await expect(textarea).toHaveValue("from2");
+      await expect(input).toHaveValue("from2");
       await expect(text1).toHaveText("Value: from2");
       await expect(text2).toHaveText("Value: from2");
 

@@ -52,7 +52,7 @@ test.describe("streaming", () => {
     await expect(count).toHaveText("Rerender: 1");
 
     await rerender.click();
-    expect(rerender).toHaveText("Client rerender: 1");
+    await expect(rerender).toHaveText("Client rerender: 1");
     await expect(count).toHaveText("Rerender: 0");
     await count.click();
 

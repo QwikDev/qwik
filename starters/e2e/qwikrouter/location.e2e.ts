@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Qwik Router API: useLocation", () => {
   test("should take x-forwarded headers into account", async ({ page }) => {
-    page.setExtraHTTPHeaders({
+    await page.setExtraHTTPHeaders({
       "X-Forwarded-Host": "override-server",
       "X-Forwarded-Proto": "http",
     });
@@ -17,7 +17,7 @@ test.describe("Qwik Router API: useLocation", () => {
   test("should take x-forwarded headers into account with port", async ({
     page,
   }) => {
-    page.setExtraHTTPHeaders({
+    await page.setExtraHTTPHeaders({
       "X-Forwarded-Host": "override-server:9999",
       "X-Forwarded-Proto": "https",
     });

@@ -1,4 +1,4 @@
-import { $, isBrowser } from '@qwik.dev/core';
+import { $, _wrapProp, isBrowser } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
@@ -242,6 +242,16 @@ describe('signal', () => {
         computed.force();
         await flushSignals();
         expect(log).toEqual([1, 2]);
+      });
+    });
+    describe('wrapped', () => {
+      it('should not re-wrap wrapped signal', () => {
+        const signal = createSignal(1);
+        const wrapped = _wrapProp(signal);
+        expect(wrapped).toHaveProperty('value', 1);
+        expect(wrapped).not.toBe(signal);
+        const wrapped2 = _wrapProp(wrapped);
+        expect(wrapped2).toBe(wrapped);
       });
     });
   });

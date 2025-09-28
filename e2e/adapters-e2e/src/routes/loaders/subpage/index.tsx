@@ -2,7 +2,8 @@ import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
 export const useTest = routeLoader$(async () => {
-  return 42;
+  // eslint-disable-next-line @typescript-eslint/await-thenable
+  return await 42;
 });
 
 export default component$(() => {

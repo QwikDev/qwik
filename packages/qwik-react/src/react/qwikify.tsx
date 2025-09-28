@@ -22,8 +22,8 @@ import { renderFromServer } from './server-render';
 import { getHostProps, main, mainExactProps, useWakeupSignal } from './slot';
 import type { Internal, QwikifyOptions, QwikifyProps } from './types';
 
-export function qwikifyQrl<PROPS extends Record<any, any>>(
-  reactCmp$: QRL<ReactFC<PROPS & { children?: any }>>,
+export function qwikifyQrl<PROPS extends Record<string, unknown>>(
+  reactCmp$: QRL<ReactFC<PROPS & { children?: unknown }>>,
   opts?: QwikifyOptions
 ) {
   return component$((props: QwikifyProps<PROPS>) => {
@@ -35,7 +35,7 @@ export function qwikifyQrl<PROPS extends Record<any, any>>(
     const internalState = useSignal<NoSerialize<Internal<PROPS>>>();
     const [signal, isClientOnly] = useWakeupSignal(props, opts);
     const hydrationKeys = useStore({});
-    const TagName = opts?.tagName ?? ('qwik-react' as any);
+    const TagName = opts?.tagName ?? 'qwik-react';
 
     // Task takes cares of updates and partial hydration
     useTask$(async ({ track }) => {

@@ -43,6 +43,8 @@ import {
   type SerializationContext,
 } from './index';
 
+type SerOutput = number | string | SerOutput[];
+
 /**
  * Format:
  *
@@ -87,7 +89,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     $writer$.write(']');
   };
 
-  const output = (type: number, value: number | string | any[]) => {
+  const output = (type: number, value: number | string | unknown[]) => {
     $writer$.write(`${type},`);
     if (typeof value === 'number') {
       $writer$.write(value.toString());
@@ -152,7 +154,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   };
 
   const writeValue = (value: unknown) => {
-    if (fastSkipSerialize(value as object | Function)) {
+    if (fastSkipSerialize(value as object)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (typeof value === 'bigint') {
       output(TypeIds.BigInt, value.toString());

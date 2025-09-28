@@ -357,7 +357,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         qwikPlugin.setSourceMapSupport(true);
       }
       // Ensure that the final settings are applied
-      qwikPlugin.normalizeOptions(qwikViteOpts);
+      await qwikPlugin.normalizeOptions(qwikViteOpts);
     },
 
     async buildStart() {

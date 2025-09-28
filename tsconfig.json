@@ -44,6 +44,7 @@
     "starters/apps/qwikrouter-test/**/*",
     "starters/apps/qwikrouter-test.prod/**/*",
     "starters/dev-server.ts",
+    "starters/e2e/**/*",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",

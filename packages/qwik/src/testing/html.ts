@@ -6,7 +6,7 @@ export function isTemplate(node: Node | null | undefined): node is HTMLTemplateE
   return tagName.toUpperCase() == 'TEMPLATE';
 }
 
-export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
+export function prettyHtml(element: HTMLElement, prefix: string = ''): string {
   const lines = [];
   lines.push(prefix, '<', element.localName);
   const attrs = Array.from(element.attributes)
@@ -52,10 +52,10 @@ export function prettyHtml(element: HTMLElement, prefix: string = ''): any {
   return lines.join('');
 }
 
-export function isElement(value: any): value is HTMLElement {
+export function isElement(value: unknown): value is HTMLElement {
   return isNode(value) && value.nodeType === 1;
 }
 
-export function isNode(value: any): value is Node {
-  return value && typeof value.nodeType === 'number';
+export function isNode(value: unknown): value is Node {
+  return value ? typeof (value as Node).nodeType === 'number' : false;
 }

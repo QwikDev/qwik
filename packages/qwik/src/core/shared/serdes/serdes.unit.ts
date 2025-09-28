@@ -1,34 +1,35 @@
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../../internal';
+import {
+  _constants,
+  _createDeserializeContainer,
+  _typeIdNames,
+  createSerializationContext,
+  dumpState,
+  TypeIds,
+} from '.';
+import { _fnSignal, _serializationWeakRef, _wrapProp } from '../../internal';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import { createStore } from '../../reactive-primitives/impl/store';
+import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import {
   createComputedQrl,
   createSerializerQrl,
   createSignal,
   isSignal,
 } from '../../reactive-primitives/signal.public';
-import { createStore } from '../../reactive-primitives/impl/store';
-import { createResourceReturn } from '../../use/use-resource';
-import { Task } from '../../use/use-task';
-import { inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
-import {
-  TypeIds,
-  _constants,
-  _createDeserializeContainer,
-  _typeIdNames,
-  createSerializationContext,
-  dumpState,
-} from '.';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { isQrl } from '../qrl/qrl-utils';
-import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import { StoreFlags } from '../../reactive-primitives/types';
-import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
-import { retryOnPromise } from '../utils/promises';
+import { createResourceReturn } from '../../use/use-resource';
+import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
+import { inlinedQrl } from '../qrl/qrl';
+import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { isQrl } from '../qrl/qrl-utils';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { retryOnPromise } from '../utils/promises';
+import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
 
 const DEBUG = false;
 
@@ -40,7 +41,7 @@ describe('shared-serialization', () => {
   const shared2 = { shared: 2 };
 
   describe('serialize types', () => {
-    const dump = async (...value: any) => dumpState(await serialize(...value));
+    const dump = async (...value: unknown[]) => dumpState(await serialize(...value));
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "
@@ -180,7 +181,7 @@ describe('shared-serialization', () => {
       err.stack = err
         .stack!.replaceAll(/([A-Z]:){0,1}(\/|\\).*\./g, '/...path/file.')
         .replaceAll(/:\d+:\d+/g, ':123:456');
-      const dumpNoSize = async (obj: any) =>
+      const dumpNoSize = async (obj: unknown) =>
         (await dump(obj)).replaceAll(/\(\d+ chars\)/g, '(x chars)');
       expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
@@ -191,7 +192,7 @@ describe('shared-serialization', () => {
         ]
         (x chars)"
       `);
-      (err as any).extra = 'yey';
+      (err as Error & { extra: string }).extra = 'yey';
       expect(await dumpNoSize(err)).toMatchInlineSnapshot(`
         "
         0 Error [
@@ -285,7 +286,7 @@ describe('shared-serialization', () => {
     it(title(TypeIds.Map), async () => {
       expect(
         await dump(
-          new Map<any, any>([
+          new Map<unknown, unknown>([
             ['shared', shared1],
             [shared2, shared1],
           ])

@@ -1946,11 +1946,13 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 
+// Warning: (ae-forgotten-export) The symbol "WrappedProp" needs to be exported by the entry point index.d.ts
+//
 // @internal
-export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(...args: [T, P?]) => any;
+export const _wrapProp: <T extends object, P extends keyof T>(...args: [T, P?]) => WrappedProp<T, P>;
 
 // @internal @deprecated (undocumented)
-export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
+export const _wrapSignal: <T extends object, P extends keyof T>(obj: T, prop: P) => T[P] | WrappedProp<T, P>;
 
 // (No @packageDocumentation comment for this package)
 

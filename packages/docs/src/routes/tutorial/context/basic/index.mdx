@@ -17,8 +17,8 @@ The code to use a context is divided into three parts:
 
 - `createContextId()`: this creates a serializable ID for the context. Make sure that this ID is unique within your application.
 - `useContextProvider()`: In a parent component, call this method to publish the context value. All children (and grandchildren) that are descendants of this component will be able to retrieve the context.
-- [`useContext()`](/docs/(qwik)/components/context/index.mdx#usecontext) to retrieve the context and use it in any component.
+- [`useContext()`](/docs/(qwik)/core/context/index.mdx#usecontext) to retrieve the context and use it in any component.
 
-In this example, we would like to pass the `TodosStore` to the `<Items>` component. Update the code to use [`useContext()`](/docs/(qwik)/components/context/index.mdx#usecontext) to retrieve the value.
+In this example, we would like to pass the `TodosStore` to the `<Items>` component. Update the code to use [`useContext()`](/docs/(qwik)/core/context/index.mdx#usecontext) to retrieve the value.
 
 Contexts typically are stores, and as such, they must be serializable.

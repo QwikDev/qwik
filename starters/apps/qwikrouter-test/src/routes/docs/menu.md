@@ -5,10 +5,10 @@
 - [Overview](overview/index.md)
 - [Getting Started](getting-started/index.md)
 
-## Components
+## Core
 
-- [Basics](/qwikrouter-test/docs/components/basics/)
-- [Listeners](/qwikrouter-test/docs/components/listeners)
+- [Basics](/qwikrouter-test/docs/core/basics/)
+- [Listeners](/qwikrouter-test/docs/core/listeners)
 
 ## Anchors
 

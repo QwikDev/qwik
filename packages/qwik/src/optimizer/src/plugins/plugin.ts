@@ -709,6 +709,14 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
+  /** Optimized deps can contain Qwik libraries, process them too */
+  const isOptimizedQwikDep = (id: string, code: string) => {
+    if (devServer && id.includes('.vite/deps/') && code.slice(0, 10000).includes('qwik')) {
+      return true;
+    }
+    return false;
+  };
+
   let transformCount = 0;
   const transform = async function (
     ctx: Rollup.PluginContext,
@@ -735,7 +743,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
+    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId) || isOptimizedQwikDep(id, code)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       debug(

@@ -24,6 +24,7 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
 import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
+import { pendingStoreTargents } from './allocate';
 import { deserializeData, inflateQRL, resolvers, TypeIds } from './index';
 
 export const inflate = (
@@ -84,15 +85,19 @@ export const inflate = (
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
     case TypeIds.Store: {
+      // Inflate the store target
+      const store = target as object;
+      const storeTarget = pendingStoreTargents.get(store);
+      if (storeTarget) {
+        pendingStoreTargents.delete(store);
+        inflate(container, store, storeTarget.t, storeTarget.v);
+      }
       /**
-       * Note that cycles between stores and their targets can cause this inflation to happen on
-       * already inflated stores, but that's ok because the flags and effects are still the same.
-       *
-       * Also note that we don't do anything with the innerstores we added during serialization,
-       * because they are already inflated in the first step of inflate().
+       * Note that we don't do anything with the innerstores we added during serialization, because
+       * they are already inflated in the deserialize of the data, above.
        */
       const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(target as object)!;
+      const storeHandler = getStoreHandler(store)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
       break;

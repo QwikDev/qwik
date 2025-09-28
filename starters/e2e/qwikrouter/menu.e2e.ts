@@ -78,16 +78,16 @@ function tests() {
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
     expect(await breadcrumb1.innerText()).toBe("Getting Started");
 
-    /***********  Docs: components/basics  ***********/
+    /***********  Docs: core/basics  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikrouter-test/docs/components/basics/"]',
+      '[data-test-menu-link="/qwikrouter-test/docs/core/basics/"]',
     );
     await assertPage(ctx, {
-      pathname: "/qwikrouter-test/docs/components/basics/",
-      title: "Docs: components basics - Qwik",
+      pathname: "/qwikrouter-test/docs/core/basics/",
+      title: "Docs: core basics - Qwik",
       layoutHierarchy: ["docs"],
-      h1: "Docs: components basics",
+      h1: "Docs: core basics",
       activeHeaderLink: "Docs",
     });
 
@@ -95,21 +95,21 @@ function tests() {
     expect(await menuHeader.innerText()).toBe("Introduction");
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe("Components");
+    expect(await breadcrumb0.innerText()).toBe("Core");
 
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
     expect(await breadcrumb1.innerText()).toBe("Basics");
 
-    /***********  Docs: components/listeners  ***********/
+    /***********  Docs: core/listeners  ***********/
     await linkNavigate(
       ctx,
-      '[data-test-menu-link="/qwikrouter-test/docs/components/listeners/"]',
+      '[data-test-menu-link="/qwikrouter-test/docs/core/listeners/"]',
     );
     await assertPage(ctx, {
-      pathname: "/qwikrouter-test/docs/components/listeners/",
-      title: "Docs: components listeners - Qwik",
+      pathname: "/qwikrouter-test/docs/core/listeners/",
+      title: "Docs: core listeners - Qwik",
       layoutHierarchy: ["docs"],
-      h1: "Docs: components listeners",
+      h1: "Docs: core listeners",
       activeHeaderLink: "Docs",
     });
 
@@ -117,7 +117,7 @@ function tests() {
     expect(await menuHeader.innerText()).toBe("Introduction");
 
     breadcrumb0 = locator(ctx, `[data-test-breadcrumb="0"]`);
-    expect(await breadcrumb0.innerText()).toBe("Components");
+    expect(await breadcrumb0.innerText()).toBe("Core");
 
     breadcrumb1 = locator(ctx, `[data-test-breadcrumb="1"]`);
     expect(await breadcrumb1.innerText()).toBe("Listeners");

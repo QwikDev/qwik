@@ -1,4 +1,4 @@
-import { TypeIds, _constants, type Constants, parseQRL, deserializeData, resolvers } from './index';
+import { TypeIds, _constants, type Constants, parseQRL, resolvers } from './index';
 import type { DomContainer } from '../../client/dom-container';
 import type { ElementVNode, VNode } from '../../client/vnode-impl';
 import { vnode_isVNode, ensureMaterialized, vnode_getNode, vnode_locate } from '../../client/vnode';
@@ -17,12 +17,14 @@ import { qError, QError } from '../error/error';
 import { JSXNodeImpl, createPropsProxy } from '../jsx/jsx-runtime';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
+import { needsInflation } from './deser-proxy';
+
+export const pendingStoreTargents = new Map<object, { t: TypeIds; v: unknown }>();
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
-  if (typeId === TypeIds.Plain) {
-    return value;
-  }
   switch (typeId) {
+    case TypeIds.Plain:
+      return value;
     case TypeIds.RootRef:
       return container.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
@@ -84,24 +86,23 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return new AsyncComputedSignalImpl(container as any, null!);
     case TypeIds.SerializerSignal:
       return new SerializerSignalImpl(container as any, null!);
-    case TypeIds.Store:
-      /**
-       * We have a problem here: In theory, both the store and the target need to be present at
-       * allocate time before inflation can happen. However, that makes the code really complex.
-       * Instead, we deserialize the target here, which will already allocate and inflate this store
-       * if there is a cycle (because the original allocation for the store didn't complete yet).
-       * Because we have a map of target -> store, we will reuse the same store instance after
-       * target deserialization. So in that case, we will be running inflation twice on the same
-       * store, but that is not a problem, very little overhead and the code is way simpler.
-       */
-      const storeValue = deserializeData(
-        container,
-        (value as any[])[0] as TypeIds,
-        (value as any[])[1]
-      );
-      (value as any[])[0] = TypeIds.Plain;
-      (value as any[])[1] = storeValue;
-      return getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
+    case TypeIds.Store: {
+      const data = value as [TypeIds, unknown];
+      // We need to allocate the store first, before we inflate its data, because the data can
+      // reference the store itself (circular)
+      // Note: the actual store data will be inflated in inflate()
+      const t = data[0] as TypeIds;
+      const v = data[1];
+      const storeValue = allocate(container, t, v);
+      const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
+      if (needsInflation(t)) {
+        pendingStoreTargents.set(store, { t, v });
+      }
+      // We must store the reference so it doesn't get deserialized again in inflate()
+      data[0] = TypeIds.Plain;
+      data[1] = storeValue;
+      return store;
+    }
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:

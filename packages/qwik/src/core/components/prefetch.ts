@@ -42,7 +42,7 @@ export const PrefetchServiceWorker = (opts: {
     // the file 'qwik-prefetch-service-worker.js' is not located in /build/
     resolvedOpts.path = baseUrl + resolvedOpts.path;
   }
-  let code = PREFETCH_CODE.replace("'_URL_'", JSON.stringify(resolvedOpts.path));
+  let code = PREFETCH_CODE.replace('"_URL_"', JSON.stringify(resolvedOpts.path.split('/').pop()));
   if (!isDev) {
     // consecutive spaces are indentation
     code = code.replaceAll(/\s\s+/gm, '');
@@ -73,6 +73,17 @@ const PREFETCH_CODE = /*#__PURE__*/ ((
         }
       });
     });
+  }
+  if ('caches' in window) {
+    caches
+      .keys()
+      .then((names) => {
+        const cacheName = names.find((name) => name.startsWith('QwikBundles'));
+        if (cacheName) {
+          caches.delete(cacheName).catch(console.error);
+        }
+      })
+      .catch(console.error);
   }
 }).toString();
 

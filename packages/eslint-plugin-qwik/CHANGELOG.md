@@ -1,5 +1,19 @@
 # eslint-plugin-qwik
 
+## 1.16.1
+
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+## 1.15.0
+
+### Patch Changes
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
+
 ## 1.14.1
 
 ## 1.14.0

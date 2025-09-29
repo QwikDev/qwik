@@ -10,6 +10,7 @@
     cursor: pointer;
     z-index: 999999;
   }
+
   #qwik-inspector-info-popup {
     position: fixed;
     bottom: 10px;
@@ -28,13 +29,16 @@
     z-index: 999999;
     contain: layout;
   }
+
   #qwik-inspector-info-popup p {
     margin: 0px;
   }
+
   @-webkit-keyframes fadeOut {
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
     }
@@ -44,6 +48,7 @@
     0% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
       visibility: hidden;
@@ -131,10 +136,17 @@
           const target = findContainer(event.target);
           if (target) {
             event.preventDefault();
+            event.stopPropagation();
             const inspectUrl = target.getAttribute(inspectAttribute);
             if (inspectUrl !== 'false') {
               body.style.setProperty('cursor', 'progress');
-              qwikOpenInEditor(inspectUrl);
+              const match = inspectUrl.match(/^(.*?)(:\d+(:\d+)?)?$/);
+              if (match) {
+                const [, filePath, location] = match;
+                fetch(`${filePath}?editor${location}`).then(() => {
+                  body.style.removeProperty('cursor');
+                });
+              }
             }
           }
         }
@@ -142,18 +154,6 @@
       { capture: true }
     );
 
-    globalThis.qwikOpenInEditor = function (path) {
-      const isWindows = navigator.platform.includes('Win');
-      const resolvedURL = new URL(path, isWindows ? origin : srcDir);
-      if (resolvedURL.origin === origin) {
-        const params = new URLSearchParams();
-        const prefix = isWindows ? srcDir : '';
-        params.set('file', prefix + resolvedURL.pathname);
-        fetch('/__open-in-editor?' + params.toString());
-      } else {
-        location.href = resolvedURL.href;
-      }
-    };
     document.addEventListener(
       'contextmenu',
       (event) => {

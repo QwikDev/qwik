@@ -13,8 +13,10 @@ import {
 import { getClientNavPath, shouldPreload } from './utils';
 import { loadClientData } from './use-endpoint';
 import { useLocation, useNavigate } from './use-functions';
-import { prefetchSymbols } from './client-navigate';
+import { preloadRouteBundles } from './client-navigate';
 import { isDev } from '@builder.io/qwik';
+// @ts-expect-error we don't have types for the preloader yet
+import { p as preload } from '@builder.io/qwik/preloader';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -51,17 +53,18 @@ export const Link = component$<LinkProps>((props) => {
 
         if (elm && elm.href) {
           const url = new URL(elm.href);
-          prefetchSymbols(url.pathname);
+          preloadRouteBundles(url.pathname);
 
           if (elm.hasAttribute('data-prefetch')) {
             loadClientData(url, elm, {
-              prefetchSymbols: false,
+              preloadRouteBundles: false,
               isPrefetch: true,
             });
           }
         }
       })
     : undefined;
+
   const preventDefault = clientNavPath
     ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
@@ -69,10 +72,11 @@ export const Link = component$<LinkProps>((props) => {
         }
       })
     : undefined;
-  const handleClick = clientNavPath
+
+  const handleClientSideNavigation = clientNavPath
     ? $(async (event: Event, elm: HTMLAnchorElement) => {
         if (event.defaultPrevented) {
-          // If default was prevented, than it is up to us to make client side navigation.
+          // If default was prevented, then it is up to us to make client side navigation.
           if (elm.hasAttribute('q:nbs')) {
             // Allow bootstrapping into useNavigate.
             await nav(location.href, { type: 'popstate' });
@@ -84,6 +88,11 @@ export const Link = component$<LinkProps>((props) => {
         }
       })
     : undefined;
+
+  const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
+    const url = new URL(elm.href);
+    preloadRouteBundles(url.pathname, 1);
+  });
 
   useVisibleTask$(({ track }) => {
     track(() => loc.url.pathname);
@@ -115,7 +124,12 @@ export const Link = component$<LinkProps>((props) => {
       // Attr 'q:link' is used as a selector for bootstrapping into spa after context loss
       {...{ 'q:link': !!clientNavPath }}
       {...linkProps}
-      onClick$={[preventDefault, onClick$, handleClick]}
+      onClick$={[
+        preventDefault,
+        handlePreload, // needs to be in between preventDefault and onClick$ to ensure it starts asap.
+        onClick$,
+        handleClientSideNavigation,
+      ]}
       data-prefetch={prefetchData}
       onMouseOver$={[linkProps.onMouseOver$, handlePrefetch]}
       onFocus$={[linkProps.onFocus$, handlePrefetch]}

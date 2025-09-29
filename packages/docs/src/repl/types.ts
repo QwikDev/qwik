@@ -125,7 +125,7 @@ export interface SSRErrorMessage {
 export type OutputPanel =
   | 'app'
   | 'html'
-  | 'symbols'
+  | 'segments'
   | 'clientBundles'
   | 'serverModules'
   | 'diagnostics';

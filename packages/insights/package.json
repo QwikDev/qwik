@@ -16,7 +16,6 @@
     "@builder.io/qwik": "workspace:^",
     "@builder.io/qwik-city": "workspace:^",
     "@builder.io/qwik-labs": "workspace:^",
-    "@builder.io/vite-plugin-macro": "0.0.7",
     "@eslint/js": "9.32.0",
     "@netlify/edge-functions": "2.17.0",
     "@tailwindcss/vite": "4.1.11",

@@ -2,7 +2,7 @@ import { getClientDataPath } from './utils';
 import { CLIENT_DATA_CACHE } from './constants';
 import type { ClientPageData, RouteActionValue } from './types';
 import { _deserializeData } from '@builder.io/qwik';
-import { prefetchSymbols } from './client-navigate';
+import { preloadRouteBundles } from './client-navigate';
 
 export const loadClientData = async (
   url: URL,
@@ -10,7 +10,7 @@ export const loadClientData = async (
   opts?: {
     action?: RouteActionValue;
     clearCache?: boolean;
-    prefetchSymbols?: boolean;
+    preloadRouteBundles?: boolean;
     isPrefetch?: boolean;
   }
 ) => {
@@ -22,8 +22,8 @@ export const loadClientData = async (
     qData = CLIENT_DATA_CACHE.get(clientDataPath);
   }
 
-  if (opts?.prefetchSymbols !== false) {
-    prefetchSymbols(pagePathname);
+  if (opts?.preloadRouteBundles !== false) {
+    preloadRouteBundles(pagePathname, 0.8);
   }
   let resolveFn: () => void | undefined;
 
@@ -37,8 +37,10 @@ export const loadClientData = async (
         const redirectedURL = new URL(rsp.url);
         const isQData = redirectedURL.pathname.endsWith('/q-data.json');
         if (!isQData || redirectedURL.origin !== location.origin) {
-          // Captive portal etc. We can't talk to the server, so redirect as asked
-          location.href = redirectedURL.href;
+          // Captive portal etc. We can't talk to the server, so redirect as asked, except when prefetching
+          if (!opts?.isPrefetch) {
+            location.href = redirectedURL.href;
+          }
           return;
         }
       }

@@ -191,6 +191,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           }
         }
       }
+
       return null;
     },
 

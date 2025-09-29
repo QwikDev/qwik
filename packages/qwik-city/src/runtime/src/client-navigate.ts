@@ -41,10 +41,10 @@ export const newScrollState = (): ScrollState => {
   };
 };
 
-export const prefetchSymbols = (path: string) => {
+export const preloadRouteBundles = (path: string, probability: number = 0.8) => {
   if (isBrowser) {
     path = path.endsWith('/') ? path : path + '/';
     path = path.length > 1 && path.startsWith('/') ? path.slice(1) : path;
-    preload(path, 0.8);
+    preload(path, probability);
   }
 };

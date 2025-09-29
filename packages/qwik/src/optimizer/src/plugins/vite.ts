@@ -1,4 +1,4 @@
-import type { UserConfig, ViteDevServer, Plugin as VitePlugin } from 'vite';
+import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
 import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
@@ -32,6 +32,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
 import { parseId } from './vite-utils';
+import { findDepPkgJsonPath } from './utils';
 
 const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
 
@@ -323,10 +324,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
              * https://github.com/QwikDev/qwik/issues/7226#issuecomment-2647122505
              */
             maxParallelFileOps: 1,
-            output: {
-              manualChunks: qwikPlugin.manualChunks,
-            },
-          },
+            // temporary fix for rolldown-vite types
+          } as BuildOptions['rollupOptions'],
         },
         define: {
           [qDevKey]: qDev,
@@ -347,7 +346,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           input: opts.input,
-          output: normalizeRollupOutputOptions(
+          output: await normalizeRollupOutputOptions(
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
@@ -752,28 +751,6 @@ export async function render(document, rootNode, opts) {
     console.debug("%c⭐️ Qwik Client Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
   }
 }`;
-}
-
-async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
-  const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-  let root = parent;
-  while (root) {
-    const pkg = sys.path.join(root, 'node_modules', dep, 'package.json');
-    try {
-      await fs.promises.access(pkg);
-      // use 'node:fs' version to match 'vite:resolve' and avoid realpath.native quirk
-      // https://github.com/sveltejs/vite-plugin-svelte/issues/525#issuecomment-1355551264
-      return fs.promises.realpath(pkg);
-    } catch {
-      //empty
-    }
-    const nextRoot = sys.path.dirname(root);
-    if (nextRoot === root) {
-      break;
-    }
-    root = nextRoot;
-  }
-  return undefined;
 }
 
 const findQwikRoots = async (

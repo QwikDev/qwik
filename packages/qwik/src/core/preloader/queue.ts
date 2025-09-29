@@ -78,10 +78,9 @@ export const trigger = () => {
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
     const allowedPreloads = graph
-      ? // The more likely the bundle, the more simultaneous preloads we want to allow
-        Math.max(1, config.$maxIdlePreloads$ * probability)
-      : // While the graph is not available, we limit to 2 preloads
-        2;
+      ? config.$maxIdlePreloads$
+      : // While the graph is not available, we limit to 5 preloads
+        5;
     // When we're 99% sure, everything needs to be queued
     if (probability >= 0.99 || preloadCount < allowedPreloads) {
       queue.shift();
@@ -170,8 +169,7 @@ export const adjustProbabilities = (
   if (
     // don't queue until we have initialized the preloader
     base != null &&
-    bundle.$state$ < BundleImportState_Preload &&
-    bundle.$inverseProbability$ < config.$invPreloadProbability$
+    bundle.$state$ < BundleImportState_Preload
   ) {
     if (bundle.$state$ === BundleImportState_None) {
       bundle.$state$ = BundleImportState_Queued;
@@ -205,10 +203,7 @@ export const adjustProbabilities = (
        * too.
        */
       let newInverseProbability: number;
-      if (
-        dep.$importProbability$ > 0.5 &&
-        (probability === 1 || (probability >= 0.99 && depsCount < 100))
-      ) {
+      if (probability === 1 || (probability >= 0.99 && depsCount < 100)) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);

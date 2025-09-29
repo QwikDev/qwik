@@ -175,7 +175,8 @@
   aspect-ratio: 16/9;
   content: '';
 
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
     conic-gradient(
       from 180deg at 53.75% 37.25%,
       #7976e8 -110.28deg,

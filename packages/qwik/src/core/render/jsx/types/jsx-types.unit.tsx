@@ -1,12 +1,11 @@
 import { assertType, describe, expectTypeOf, test } from 'vitest';
-import { $, type PropFunction } from '../../../qrl/qrl.public';
-import type { EventHandler, QRLEventHandlerMulti } from './jsx-qwik-attributes';
-import type { FunctionComponent, JSXOutput } from './jsx-node';
-import type { QwikIntrinsicElements } from './jsx-qwik-elements';
-import type { JSXChildren } from './jsx-qwik-attributes';
 import { component$, type PropsOf, type PublicProps } from '../../../component/component.public';
-import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
+import { $, type PropFunction } from '../../../qrl/qrl.public';
 import type { JSX } from '../jsx-runtime';
+import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
+import type { FunctionComponent, JSXOutput } from './jsx-node';
+import type { EventHandler, JSXChildren, QRLEventHandlerMulti } from './jsx-qwik-attributes';
+import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 
 describe('types', () => {
   // Note, these type checks happen at compile time. We don't need to call anything, so we do ()=>()=>. We just need to
@@ -326,5 +325,22 @@ describe('types', () => {
     expectTypeOf<PropsOf<typeof DefProps$ | null>>().toEqualTypeOf<{ foo: string }>();
 
     expectTypeOf<PropsOf<17>>().toEqualTypeOf<never>();
+  });
+
+  test('CSSProperties', () => () => {
+    return (
+      <div
+        style={{
+          color: 'red',
+          backgroundColor: 'blue',
+          // Using a CSS variable
+          '--my-variable': '10px',
+          // Using a number value
+          marginTop: 10,
+          // Using a string value
+          padding: '5px',
+        }}
+      />
+    );
   });
 });

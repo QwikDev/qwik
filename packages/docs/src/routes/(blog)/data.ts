@@ -1,3 +1,4 @@
+import fontlessImage from './blog/(articles)/fontless/fontless-hero.webp';
 import preloaderImage from './blog/(articles)/qwik-1-14-preloader/qwik-preloader-hero.webp';
 
 export const authors: Record<string, { socialLink: string }> = {
@@ -11,6 +12,7 @@ export const authors: Record<string, { socialLink: string }> = {
   'Maïeul Chevalier': { socialLink: 'https://x.com/maiieul' },
   'Shai Reznik': { socialLink: 'https://x.com/shai_reznik' },
   'Wout Mertens': { socialLink: 'https://x.com/woutmertens' },
+  'Giorgio Boa': { socialLink: 'https://github.com/gioboa' },
 };
 
 type BlogArticle = {
@@ -24,11 +26,18 @@ type BlogArticle = {
 
 export const blogArticles: BlogArticle[] = [
   {
+    title: 'Effortlessly optimize web fonts with fontless.',
+    image: fontlessImage,
+    path: '/blog/fontless/',
+    tags: ['Fontaine', 'Qwik'],
+    featuredTitlePosition: 'top',
+    readingTime: 2,
+  },
+  {
     title: 'Introducing the Qwik Preloader',
     image: preloaderImage,
     path: '/blog/qwik-1-14-preloader/',
     tags: ['Qwik'],
-    featuredTitlePosition: 'top',
     readingTime: 10,
   },
   {

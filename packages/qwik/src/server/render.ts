@@ -20,6 +20,12 @@ import { manifest as builtManifest } from '@qwik-client-manifest';
 
 const DOCTYPE = '<!DOCTYPE html>';
 
+enum QwikLoaderInclude {
+  Module,
+  Inline,
+  Never,
+}
+
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
  * document to a string.
@@ -48,6 +54,7 @@ export async function renderToStream(
   const firstFlushTimer = createTimer();
   const buildBase = getBuildBase(opts);
   const resolvedManifest = resolveManifest(opts.manifest);
+  const nonce = opts.serverData?.nonce;
   function flush() {
     if (buffer) {
       nativeStream.write(buffer);
@@ -118,21 +125,53 @@ export async function renderToStream(
     ? injections.map((injection) => jsx(injection.tag, injection.attributes ?? {}))
     : [];
 
-  const includeMode = opts.qwikLoader?.include ?? 'auto';
+  let includeMode = opts.qwikLoader
+    ? typeof opts.qwikLoader === 'object'
+      ? opts.qwikLoader.include === 'never'
+        ? QwikLoaderInclude.Never
+        : QwikLoaderInclude.Module
+      : opts.qwikLoader === 'inline'
+        ? QwikLoaderInclude.Inline
+        : opts.qwikLoader === 'never'
+          ? QwikLoaderInclude.Never
+          : QwikLoaderInclude.Module
+    : QwikLoaderInclude.Module;
   const qwikLoaderChunk = resolvedManifest?.manifest.qwikLoader;
-  let didAddQwikLoader = false;
-  if (includeMode !== 'never' && qwikLoaderChunk) {
+  if (includeMode === QwikLoaderInclude.Module && !qwikLoaderChunk) {
+    includeMode = QwikLoaderInclude.Inline;
+  }
+  if (includeMode === QwikLoaderInclude.Module) {
     beforeContent.unshift(
-      jsx('link', { rel: 'modulepreload', href: `${buildBase}${qwikLoaderChunk}` }),
+      jsx('link', {
+        rel: 'modulepreload',
+        href: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
+      }),
       jsx('script', {
         type: 'module',
         async: true,
         src: `${buildBase}${qwikLoaderChunk}`,
+        nonce,
       })
     );
-    didAddQwikLoader = true;
+  } else if (includeMode === QwikLoaderInclude.Inline) {
+    // It would be nice to keep track of HTML size and wait 30kB before inlining the script, skipping if ended and not needed.
+    const qwikLoaderScript = getQwikLoaderScript({
+      debug: opts.debug,
+    });
+    beforeContent.unshift(
+      jsx('script', {
+        id: 'qwikloader',
+        // Qwik only works when modules work
+        type: 'module',
+        // Execute asap, don't wait for domcontentloaded
+        async: true,
+        nonce,
+        dangerouslySetInnerHTML: qwikLoaderScript,
+      })
+    );
   }
-  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, opts.serverData?.nonce);
+  preloaderPre(buildBase, resolvedManifest, opts.preloader, beforeContent, nonce);
 
   const renderTimer = createTimer();
   const renderSymbols: string[] = [];
@@ -161,7 +200,7 @@ export async function renderToStream(
         jsx('script', {
           type: 'qwik/json',
           dangerouslySetInnerHTML: escapeText(jsonData),
-          nonce: opts.serverData?.nonce,
+          nonce,
         })
       );
       if (snapshotResult.funcs.length > 0) {
@@ -170,25 +209,7 @@ export async function renderToStream(
           jsx('script', {
             'q:func': 'qwik/json',
             dangerouslySetInnerHTML: serializeFunctions(hash, snapshotResult.funcs),
-            nonce: opts.serverData?.nonce,
-          })
-        );
-      }
-
-      const needLoader = !snapshotResult || snapshotResult.mode !== 'static';
-      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-      if (!didAddQwikLoader && includeLoader) {
-        const qwikLoaderScript = getQwikLoaderScript({
-          debug: opts.debug,
-        });
-        children.push(
-          jsx('script', {
-            id: 'qwikloader',
-            // execute even before DOM order
-            async: true,
-            type: 'module',
-            dangerouslySetInnerHTML: qwikLoaderScript,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }
@@ -200,7 +221,7 @@ export async function renderToStream(
         children.push(
           jsx('script', {
             dangerouslySetInnerHTML: content,
-            nonce: opts.serverData?.nonce,
+            nonce,
           })
         );
       }

@@ -1,27 +1,51 @@
-import { Slot, component$, useContext, useSignal, $, type PropsOf } from '@builder.io/qwik';
+import {
+  Slot,
+  component$,
+  useContext,
+  useSignal,
+  $,
+  type PropsOf,
+  isBrowser,
+} from '@builder.io/qwik';
 import { Tabs } from '@qwik-ui/headless';
 import { GlobalStore } from '~/context';
 
 const pkgManagers = ['pnpm', 'npm', 'yarn', 'bun'] as const;
-type PkgManagers = (typeof pkgManagers)[number];
+export type PkgManagers = (typeof pkgManagers)[number];
+
+const pkgManagerStorageKey = 'pkg-manager-preference';
+
+const setPreference = (value: PkgManagers) => {
+  if (isBrowser) {
+    localStorage.setItem(pkgManagerStorageKey, value);
+  }
+};
+
+export const getPkgManagerPreference = () => {
+  try {
+    return (localStorage.getItem(pkgManagerStorageKey) || 'pnpm') as PkgManagers;
+  } catch (err) {
+    return 'pnpm';
+  }
+};
 
 export default component$(() => {
   const globalStore = useContext(GlobalStore);
-  const selectedPkgManagersSig = useSignal<PkgManagers>('pnpm');
-
   const activeClass = `${globalStore.theme === 'light' ? 'bg-gray-300 text-black' : 'bg-slate-800 text-white'}`;
 
   return (
     <Tabs.Root
-      selectedTabId={selectedPkgManagersSig.value}
+      selectedTabId={globalStore.pkgManager}
       onSelectedTabIdChange$={(pkgManager) => {
-        selectedPkgManagersSig.value = pkgManager as PkgManagers;
+        const value = pkgManager as PkgManagers;
+        globalStore.pkgManager = value;
+        setPreference(value);
       }}
     >
       <Tabs.List>
         <Tabs.Tab
           tabId="pnpm"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'pnpm' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'pnpm' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <PnpmIcon />
@@ -30,7 +54,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="npm"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'npm' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'npm' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <NpmIcon />
@@ -39,7 +63,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="yarn"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'yarn' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'yarn' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <YarnIcon />
@@ -48,7 +72,7 @@ export default component$(() => {
         </Tabs.Tab>
         <Tabs.Tab
           tabId="bun"
-          class={`px-4 pt-2 rounded-md ${selectedPkgManagersSig.value === 'bun' ? `font-bold ${activeClass}` : ''}`}
+          class={`px-4 pt-2 rounded-md ${globalStore.pkgManager === 'bun' ? `font-bold ${activeClass}` : ''}`}
         >
           <span class="inline-flex items-center gap-x-2">
             <BunIcon />

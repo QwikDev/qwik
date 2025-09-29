@@ -11,7 +11,7 @@ created_at: '2022-08-02T12:07:45Z'
 
 For the application to be resumable it needs to have lots of entry points. For example, clicking on button `A` is a different entry point than clicking on button `B`. When we implement an application we don't usually think about entry points and so we typically end up with just one entry point or the `main()` function.
 
-The Optimizer does its job by looking for functions that end in `$` character. For example, the Optimizer will transform a call to [`component$()`](/docs/(qwik)/components/overview/index.mdx#component) into an entry point. Notice that the name of the function doesn't matter only that it ends with the `$`.
+The Optimizer does its job by looking for functions that end in `$` character. For example, the Optimizer will transform a call to [`component$()`](/docs/(qwik)/core/overview/index.mdx#component) into an entry point. Notice that the name of the function doesn't matter only that it ends with the `$`.
 
 Every time you see `$` you should think, there is a lazy-loaded boundary here. The implication is that the lazy-loaded content may require lazy-loading and hence can't be accessed synchronously.
 

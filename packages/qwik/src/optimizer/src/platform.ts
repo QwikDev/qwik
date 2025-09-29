@@ -61,15 +61,14 @@ export async function getSystem() {
       };
     }
   }
-
-  if (sysEnv === 'node' || sysEnv === 'bun') {
-    sys.path = await sys.dynamicImport('node:path');
-    sys.cwd = () => process.cwd();
-    sys.os = process.platform;
-  } else if (sysEnv === 'deno') {
-    sys.path = await sys.dynamicImport('node:path');
-    sys.cwd = (): string => Deno.cwd();
-    sys.os = Deno.platform();
+  if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
+    try {
+      sys.path = await sys.dynamicImport('node:path');
+      sys.cwd = () => process.cwd();
+      sys.os = process.platform;
+    } catch {
+      // ignore
+    }
   }
 
   return sys;

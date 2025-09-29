@@ -6,7 +6,8 @@ import { vnode_diff } from './vnode-diff';
 import type { QElement } from '../shared/types';
 import { createSignal } from '../reactive-primitives/signal-api';
 import { QError, qError } from '../shared/error/error';
-import type { VirtualVNode } from './types';
+import { VNodeFlags } from './types';
+import type { VirtualVNode } from './vnode-impl';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -839,6 +840,20 @@ describe('vNode-diff', () => {
           expect(firstChild).toMatchVDOM(<span class="test"></span>);
         });
       });
+    });
+  });
+
+  describe('deleted parent', () => {
+    it('should ignore diff when parent is deleted', () => {
+      const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_0">Hello</div>);
+
+      vParent.flags |= VNodeFlags.Deleted;
+
+      vnode_diff(container, <div key="KA_0">World</div>, vParent, null);
+
+      expect(container.$journal$.length).toEqual(0);
+
+      expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">Hello</div>');
     });
   });
 });

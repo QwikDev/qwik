@@ -45,6 +45,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Document
@@ -97,6 +98,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;\{ render: (jsxElement: JSXOutput) =&gt; Promise&lt;import("@qwik.dev/core").RenderResult&gt;; screen: HTMLElement; userEvent: (queryOrElement: string \| Element \| keyof HTMLElementTagNameMap \| null, eventNameCamel: string \| keyof WindowEventMap, eventPayload?: any) =&gt; Promise&lt;void&gt;; }&gt;
@@ -163,6 +165,7 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;\{ document: Document; container: import("@qwik.dev/core/internal").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
@@ -341,6 +344,7 @@ Document
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void
@@ -392,6 +396,7 @@ string
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;void&gt;
@@ -434,7 +439,7 @@ export declare function ssrRenderToDom(
 ): Promise<{
   container: _DomContainer;
   document: Document;
-  vNode: _VirtualVNode | null;
+  vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
 ```
@@ -477,9 +482,10 @@ _(Optional)_
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
-Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VirtualVNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -501,6 +507,9 @@ export declare function trigger(
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
   eventName: string,
   eventPayload?: any,
+  options?: {
+    waitForIdle?: boolean;
+  },
 ): Promise<void>;
 ```
 
@@ -563,7 +572,21 @@ any
 _(Optional)_
 
 </td></tr>
+<tr><td>
+
+options
+
+</td><td>
+
+\{ waitForIdle?: boolean; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
+
 **Returns:**
 
 Promise&lt;void&gt;
@@ -574,7 +597,7 @@ Promise&lt;void&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _ElementVNode;
+  vParent: _ElementVNode | _VirtualVNode;
   vNode: _VNode | null;
   document: _QDocument;
   container: ClientContainer;
@@ -606,11 +629,56 @@ JSXOutput
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
-\{ vParent: \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
+\{ vParent: \_ElementVNode \| \_VirtualVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
+
+## waitForDrain
+
+Wait for the scheduler to drain.
+
+This is useful when testing async code.
+
+```typescript
+export declare function waitForDrain(container: Container): Promise<void>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+container
+
+</td><td>
+
+Container
+
+</td><td>
+
+The application container.
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+Promise&lt;void&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/util.ts)
 
 ## walkJSX
 
@@ -661,6 +729,7 @@ apply
 
 </td></tr>
 </tbody></table>
+
 **Returns:**
 
 void

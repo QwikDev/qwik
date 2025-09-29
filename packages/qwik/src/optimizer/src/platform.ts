@@ -61,15 +61,14 @@ export async function getSystem() {
       };
     }
   }
-
-  if (sysEnv === 'node' || sysEnv === 'bun') {
-    sys.path = await sys.dynamicImport('node:path');
-    sys.cwd = () => process.cwd();
-    sys.os = process.platform;
-  } else if (sysEnv === 'deno') {
-    sys.path = await sys.dynamicImport('node:path');
-    sys.cwd = (): string => Deno.cwd();
-    sys.os = Deno.platform();
+  if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
+    try {
+      sys.path = await sys.dynamicImport('node:path');
+      sys.cwd = () => process.cwd();
+      sys.os = process.platform;
+    } catch {
+      // ignore
+    }
   }
 
   return sys;
@@ -177,18 +176,10 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
       const mod = await sys.dynamicImport(`../bindings/qwik.wasm.cjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
-      return new Promise<Buffer>((resolve, reject) => {
-        fs.readFile(wasmPath, (err, buf) => {
-          if (err != null) {
-            reject(err);
-          } else {
-            resolve(buf);
-          }
-        });
-      })
-        .then((buf) => WebAssembly.compile(buf))
-        .then((wasm) => mod.default(wasm))
-        .then(() => mod);
+      const buf = await fs.promises.readFile(wasmPath);
+      const wasm = await WebAssembly.compile(buf as any);
+      await mod.default(wasm);
+      return mod;
     }
 
     if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
@@ -234,25 +225,17 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
 
   if (globalThis.IS_ESM) {
     if (sysEnv === 'node' || sysEnv === 'bun') {
-      // CJS WASM Node.js
+      // ESM WASM Node.js
       const url: typeof import('url') = await sys.dynamicImport('node:url');
       const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
       const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
       const mod = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
       const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
-      return new Promise<Buffer>((resolve, reject) => {
-        fs.readFile(wasmPath, (err, buf) => {
-          if (err != null) {
-            reject(err);
-          } else {
-            resolve(buf);
-          }
-        });
-      })
-        .then((buf) => WebAssembly.compile(buf))
-        .then((wasm) => mod.default(wasm))
-        .then(() => mod);
+      const buf = await fs.promises.readFile(wasmPath);
+      const wasm = await WebAssembly.compile(buf as any);
+      await mod.default(wasm);
+      return mod;
     } else {
       const module = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
       await module.default();

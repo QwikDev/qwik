@@ -1,5 +1,4 @@
-import { component$, Slot, useContext, useSignal, useStylesScoped$ } from '@qwik.dev/core';
-import { GlobalStore } from '../../context';
+import { component$, Slot, useSignal, useStylesScoped$ } from '@qwik.dev/core';
 import { EditIcon } from '../svgs/edit-icon';
 import CSS from './index.css?inline';
 
@@ -10,10 +9,9 @@ export default component$<{
   console?: boolean;
   maxHeight?: number;
   style?: Record<string, string>;
-}>(({ url, tabs, src, style, console, maxHeight }) => {
+}>(({ url, tabs, src, style, console }) => {
   const activeTab = useSignal(0);
   useStylesScoped$(CSS);
-  const state = useContext(GlobalStore);
   const exampleUrl = (url || src) + (console ? '?console=true' : '');
   return (
     <>
@@ -71,7 +69,7 @@ export default component$<{
         <div>
           <iframe
             loading="lazy"
-            src={examplePath({ path: exampleUrl, theme: state.theme, includeTheme: true })}
+            src={examplePath(exampleUrl)}
             style={{ width: '100%', height: '200px', ...style }}
           />
         </div>
@@ -80,37 +78,16 @@ export default component$<{
   );
 });
 
-function examplePath(
-  opts:
-    | {
-        path: string;
-        theme?: string;
-        includeTheme?: boolean;
-      }
-    | string
-) {
-  const {
-    path,
-    theme = 'light',
-    includeTheme = false,
-  } = typeof opts === 'string' ? ({ path: opts } as any) : opts;
+function examplePath(path: string) {
   const newPath = path
     .replace('/(qwik)/', '/')
     .replace('/(qwikrouter)/', '/')
     .replace('/src/routes/demo', '/demo')
     .replace(/\/[\w\d]+\.tsx?$/, '/');
 
-  if (!includeTheme) {
-    return newPath;
-  }
-
-  if (newPath.indexOf('?') > -1) {
-    return newPath + '&theme=' + theme;
-  }
-
-  return newPath + '?theme=' + theme;
+  return newPath;
 }
 
-export const CodeFile = component$<{ src: string }>((props) => {
+export const CodeFile = component$<{ src: string }>(() => {
   return <Slot />;
 });

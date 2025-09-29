@@ -3,6 +3,7 @@ import { pad, qwikDebugToString } from '../debug';
 import type { OnRenderFn } from '../shared/component.public';
 import { assertDefined } from '../shared/error/assert';
 import type { Props } from '../shared/jsx/jsx-runtime';
+import { isServerPlatform } from '../shared/platform/platform';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, HostElement, SerializationStrategy } from '../shared/types';
@@ -18,7 +19,7 @@ import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
 import { SubscriptionData, type NodePropPayload } from './subscription-data';
 import {
-  ComputedSignalFlags,
+  SerializationSignalFlags,
   EffectProperty,
   EffectSubscriptionProp,
   SignalFlags,
@@ -53,13 +54,14 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  array.add(effectSubscription);
+  !array.has(effectSubscription) && array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
   array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  array[EffectSubscriptionProp.BACK_REF].add(value);
+  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
+    array[EffectSubscriptionProp.BACK_REF].add(value);
 };
 
 export const addQrlToSerializationCtx = (
@@ -83,12 +85,12 @@ export const addQrlToSerializationCtx = (
   }
 };
 
-export const triggerEffects = (
+export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null
 ) => {
-  const isBrowser = isDomContainer(container);
+  const isBrowser = !isServerPlatform();
   if (effects) {
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
@@ -120,21 +122,21 @@ export const triggerEffects = (
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-      } else if (isBrowser) {
-        if (property === EffectProperty.VNODE) {
+      } else if (property === EffectProperty.VNODE) {
+        if (isBrowser) {
           const host: HostElement = consumer;
           container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
-        } else {
-          const host: HostElement = consumer;
-          const effectData = effectSubscription[EffectSubscriptionProp.DATA];
-          if (effectData instanceof SubscriptionData) {
-            const data = effectData.data;
-            const payload: NodePropPayload = {
-              ...data,
-              $value$: signal as SignalImpl,
-            };
-            container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
-          }
+        }
+      } else {
+        const host: HostElement = consumer;
+        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        if (effectData instanceof SubscriptionData) {
+          const data = effectData.data;
+          const payload: NodePropPayload = {
+            ...data,
+            $value$: signal as SignalImpl,
+          };
+          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
         }
       }
     };
@@ -155,7 +157,7 @@ export const isSerializerObj = <T extends { [SerializerSymbol]: (obj: any) => an
 
 export const getComputedSignalFlags = (
   serializationStrategy: SerializationStrategy
-): ComputedSignalFlags | SignalFlags => {
+): SerializationSignalFlags | SignalFlags => {
   let flags = SignalFlags.INVALID;
   switch (serializationStrategy) {
     // TODO: implement this in the future
@@ -163,10 +165,10 @@ export const getComputedSignalFlags = (
     //   flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_AUTO;
     //   break;
     case 'never':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_NEVER;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_NEVER;
       break;
     case 'always':
-      flags |= ComputedSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
+      flags |= SerializationSignalFlags.SERIALIZATION_STRATEGY_ALWAYS;
       break;
   }
   return flags;

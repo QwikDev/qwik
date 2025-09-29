@@ -3,6 +3,7 @@
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import type { VNodeJournal } from './vnode';
+import type { ElementVNode, VirtualVNode } from './vnode-impl';
 
 export type ClientAttrKey = string;
 export type ClientAttrValue = string | null;
@@ -17,9 +18,8 @@ export interface ClientContainer extends Container {
   qManifestHash: string;
   rootVNode: ElementVNode;
   $journal$: VNodeJournal;
-  renderDone: Promise<void> | null;
   $forwardRefs$: Array<number> | null;
-  $initialQRLsIndexes$: Array<number> | null;
+  $flushEpoch$: number;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
@@ -77,10 +77,10 @@ export const enum VNodeFlags {
   Element /* ****************** */ = 0b00_000001,
   Virtual /* ****************** */ = 0b00_000010,
   ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000011,
+  Text /* ********************* */ = 0b00_000100,
   ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000101,
   TYPE_MASK /* **************** */ = 0b00_000111,
   INFLATED_TYPE_MASK /* ******* */ = 0b00_001111,
-  Text /* ********************* */ = 0b00_000100,
   /// Extra flag which marks if a node needs to be inflated.
   Inflated /* ***************** */ = 0b00_001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
@@ -116,20 +116,20 @@ export const enum ElementVNodeProps {
 }
 
 /** @internal */
-export type ElementVNode = [
-  /// COMMON: VNodeProps
-  VNodeFlags.Element, ////////////// 0 - Flags
-  VNode | null, /////////////// 1 - Parent
-  VNode | null, /////////////// 2 - Previous sibling
-  VNode | null, /////////////// 3 - Next sibling
-  /// SPECIFIC: ElementVNodeProps
-  VNode | null | undefined, /// 4 - First child - undefined if children need to be materialize
-  VNode | null | undefined, /// 5 - Last child - undefined if children need to be materialize
-  Element, //////////////////// 6 - Element
-  string | undefined, ///////// 7 - tag
-  /// Props
-  (string | null)[], /////// 8 - attrs
-] & { __brand__: 'ElementVNode' };
+// export type ElementVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Element, ////////////// 0 - Flags
+//   VNode | null, /////////////// 1 - Parent
+//   VNode | null, /////////////// 2 - Previous sibling
+//   VNode | null, /////////////// 3 - Next sibling
+//   /// SPECIFIC: ElementVNodeProps
+//   VNode | null | undefined, /// 4 - First child - undefined if children need to be materialize
+//   VNode | null | undefined, /// 5 - Last child - undefined if children need to be materialize
+//   Element, //////////////////// 6 - Element
+//   string | undefined, ///////// 7 - tag
+//   /// Props
+//   (string | null)[], /////// 8 - attrs
+// ] & { __brand__: 'ElementVNode' };
 
 export const enum TextVNodeProps {
   node = 4,
@@ -137,16 +137,16 @@ export const enum TextVNodeProps {
 }
 
 /** @internal */
-export type TextVNode = [
-  /// COMMON: VNodeProps
-  VNodeFlags.Text | VNodeFlags.Inflated, // 0 - Flags
-  VNode | null, ///////////////// 1 - Parent
-  VNode | null, ///////////////// 2 - Previous sibling
-  VNode | null, ///////////////// 3 - Next sibling
-  /// SPECIFIC: TextVNodeProps
-  Text | null | undefined, ////// 4 - TextNode or SharedTextNode if Flags.SharedText
-  string, /////////////////////// 5 - text content
-] & { __brand__: 'TextVNode' };
+// export type TextVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Text | VNodeFlags.Inflated, // 0 - Flags
+//   VNode | null, ///////////////// 1 - Parent
+//   VNode | null, ///////////////// 2 - Previous sibling
+//   VNode | null, ///////////////// 3 - Next sibling
+//   /// SPECIFIC: TextVNodeProps
+//   Text | null | undefined, ////// 4 - TextNode or SharedTextNode if Flags.SharedText
+//   string, /////////////////////// 5 - text content
+// ] & { __brand__: 'TextVNode' };
 
 export const enum VirtualVNodeProps {
   firstChild = ElementVNodeProps.firstChild,
@@ -155,21 +155,21 @@ export const enum VirtualVNodeProps {
 }
 
 /** @internal */
-export type VirtualVNode = [
-  /// COMMON: VNodeProps
-  VNodeFlags.Virtual, ///////////// 0 - Flags
-  VNode | null, /////////////// 1 - Parent
-  VNode | null, /////////////// 2 - Previous sibling
-  VNode | null, /////////////// 3 - Next sibling
-  /// SPECIFIC: VirtualVNodeProps
-  VNode | null, /////////////// 4 - First child
-  VNode | null, /////////////// 5 - Last child
-  /// Props
-  (string | null | boolean)[], /////// 6 - attrs
-] & { __brand__: 'FragmentNode' & 'HostElement' };
+// export type VirtualVNode = [
+//   /// COMMON: VNodeProps
+//   VNodeFlags.Virtual, ///////////// 0 - Flags
+//   VNode | null, /////////////// 1 - Parent
+//   VNode | null, /////////////// 2 - Previous sibling
+//   VNode | null, /////////////// 3 - Next sibling
+//   /// SPECIFIC: VirtualVNodeProps
+//   VNode | null, /////////////// 4 - First child
+//   VNode | null, /////////////// 5 - Last child
+//   /// Props
+//   (string | null | boolean)[], /////// 6 - attrs
+// ] & { __brand__: 'FragmentNode' & 'HostElement' };
 
 /** @internal */
-export type VNode = ElementVNode | TextVNode | VirtualVNode;
+// export type VNode = ElementVNode | TextVNode | VirtualVNode;
 
 /** @public */
 export interface RenderOptions {

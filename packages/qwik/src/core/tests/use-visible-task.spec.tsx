@@ -213,8 +213,8 @@ describe.each([
       'Counter',
       'render',
       '1:task',
-      '1:resolved',
       '2:task',
+      '1:resolved',
       '2:resolved',
     ]);
     expect(vNode).toMatchVDOM(
@@ -242,7 +242,7 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
       </Component>
     );
@@ -264,7 +264,7 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
@@ -288,7 +288,7 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <script type="placeholder" hidden></script>
+          <script hidden></script>
         </Fragment>
       </Component>
     );
@@ -367,7 +367,7 @@ describe.each([
     });
   });
 
-  it('should add q:visible event if only script tag is present', async () => {
+  it('should add event if only script tag is present', async () => {
     (globalThis as any).counter = 0;
     const Cmp = component$(() => {
       useVisibleTask$(() => {
@@ -401,6 +401,36 @@ describe.each([
     }
 
     expect((globalThis as any).counter).toBe(1);
+
+    (globalThis as any).counter = undefined;
+  });
+
+  it('should merge events if only script tag is present', async () => {
+    (globalThis as any).counter = 0;
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).counter++;
+      });
+      return (
+        <script
+          document:onQInit$={() => {
+            (globalThis as any).counter++;
+          }}
+        />
+      );
+    });
+
+    const { document } = await render(<Cmp />, { debug });
+    await trigger(document.body, 'script', ':document:qinit');
+
+    expect((globalThis as any).counter).toBe(
+      render === ssrRenderToDom
+        ? // visible + inline
+          2
+        : // TODO: is it correct?
+          // visible itself from scheduling it + inline + visible from triggering document:qinit
+          3
+    );
 
     (globalThis as any).counter = undefined;
   });

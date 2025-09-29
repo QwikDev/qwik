@@ -1,4 +1,3 @@
-import type { VNode } from '../client/types';
 import type { ISsrNode } from '../ssr/ssr-types';
 import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
@@ -9,6 +8,7 @@ import type { SerializerSymbol } from '../shared/utils/serialize-utils';
 import type { ComputedFn } from '../use/use-computed';
 import type { AsyncComputedFn } from '../use/use-async-computed';
 import type { Container, SerializationStrategy } from '../shared/types';
+import type { VNode } from '../client/vnode-impl';
 
 /**
  * # ================================
@@ -51,21 +51,22 @@ export interface ComputedOptions {
 
 export const enum SignalFlags {
   INVALID = 1,
+  RUN_EFFECTS = 2,
 }
 
 export const enum WrappedSignalFlags {
   // should subscribe to value and be unwrapped for PropsProxy
-  UNWRAP = 2,
+  UNWRAP = 4,
 }
 
-export const enum ComputedSignalFlags {
+export const enum SerializationSignalFlags {
   // TODO: implement this in the future
-  // SERIALIZATION_STRATEGY_AUTO = 4,
-  SERIALIZATION_STRATEGY_NEVER = 8,
-  SERIALIZATION_STRATEGY_ALWAYS = 16,
+  // SERIALIZATION_STRATEGY_AUTO = 8,
+  SERIALIZATION_STRATEGY_NEVER = 16,
+  SERIALIZATION_STRATEGY_ALWAYS = 32,
 }
 
-export type AllSignalFlags = SignalFlags | WrappedSignalFlags | ComputedSignalFlags;
+export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;
 
 /**
  * Effect is something which needs to happen (side-effect) due to signal value change.

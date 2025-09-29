@@ -3,7 +3,7 @@ import { qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
 import { $, type QRL } from './qrl.public';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
-import { createSerializationContext, parseQRL, qrlToString } from '../shared-serialization';
+import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 
 function matchProps(obj: any, properties: Record<string, any>) {
   for (const [key, value] of Object.entries(properties)) {
@@ -156,7 +156,7 @@ describe('serialization', () => {
   });
 
   // See https://github.com/QwikDev/qwik/issues/5087#issuecomment-1707185010
-  test.skip('should parse self-reference', () => {});
+  test.todo('should parse self-reference');
 
   test('should store resolved value', async () => {
     const q = qrl(() => Promise.resolve({ hi: 'hello' }), 'hi');

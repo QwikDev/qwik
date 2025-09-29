@@ -9,11 +9,6 @@ type SerializationStrategy = import('@qwik.dev/core/internal').SerializationStra
 declare var qcAsyncRequestStore: AsyncStore | undefined;
 declare var _qwikActionsMap: Map<string, ActionInternal> | undefined;
 
-/** @deprecated Will be removed in v3 */
-declare var __qwikCityNew: boolean | undefined;
-
-declare var __qwikRouterNew: boolean | undefined;
-
 type ExperimentalFeatures = import('@qwik.dev/core/optimizer').ExperimentalFeatures;
 
 declare var __EXPERIMENTAL__: {

@@ -1,3 +1,4 @@
+import { _serialize } from '@qwik.dev/core/internal';
 import type {
   LoadedRoute,
   RebuildRouteInfoInternal,
@@ -5,20 +6,15 @@ import type {
   RequestHandler,
 } from '../../runtime/src/types';
 import { getErrorHtml } from './error-handler';
-import {
-  RequestEvQwikSerializer,
-  createRequestEvent,
-  getRequestMode,
-  type RequestEventInternal,
-} from './request-event';
+import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { encoder } from './resolve-request-handlers';
-import type { QwikSerializer, ServerRequestEvent, StatusCodes } from './types';
+import type { ServerRequestEvent, StatusCodes } from './types';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
   AbortMessage,
   RedirectMessage,
-  ServerError,
   RewriteMessage,
+  ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
 
 export interface QwikRouterRun<T> {
@@ -46,8 +42,7 @@ export function runQwikRouter<T>(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   rebuildRouteInfo: RebuildRouteInfoInternal,
-  basePathname = '/',
-  qwikSerializer: QwikSerializer
+  basePathname = '/'
 ): QwikRouterRun<T> {
   let resolve: (value: T) => void;
   const responsePromise = new Promise<T>((r) => (resolve = r));
@@ -56,7 +51,6 @@ export function runQwikRouter<T>(
     loadedRoute,
     requestHandlers,
     basePathname,
-    qwikSerializer,
     resolve!
   );
 
@@ -74,6 +68,18 @@ async function runNext(
   rebuildRouteInfo: RebuildRouteInfoInternal,
   resolve: (value: any) => void
 ) {
+  try {
+    const isValidURL = (url: URL) => new URL(url.pathname + url.search, url);
+    isValidURL(requestEv.originalUrl);
+  } catch {
+    const status = 404;
+    const message = 'Resource Not Found';
+    requestEv.status(status);
+    const html = getErrorHtml(status, message);
+    requestEv.html(status, html);
+    return new ServerError(status, message);
+  }
+
   let rewriteAttempt = 1;
 
   async function _runNext() {
@@ -100,9 +106,8 @@ async function runNext(
           const status = e.status as StatusCodes;
           const accept = requestEv.request.headers.get('Accept');
           if (accept && !accept.includes('text/html')) {
-            const qwikSerializer = requestEv[RequestEvQwikSerializer];
             requestEv.headers.set('Content-Type', 'application/qwik-json');
-            requestEv.send(status, await qwikSerializer._serialize([e.data]));
+            requestEv.send(status, await _serialize([e.data]));
           } else {
             const html = getErrorHtml(e.status, e.data);
             requestEv.html(status, html);
@@ -148,16 +153,17 @@ async function runNext(
  * be treated as a pathname without it.
  */
 export function getRouteMatchPathname(pathname: string) {
-  if (pathname.endsWith(QDATA_JSON)) {
-    const trimEnd = pathname.length - QDATA_JSON_LEN + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
+  const isInternal = pathname.endsWith(QDATA_JSON);
+  if (isInternal) {
+    const trimEnd =
+      pathname.length - QDATA_JSON.length + (globalThis.__NO_TRAILING_SLASH__ ? 0 : 1);
     pathname = pathname.slice(0, trimEnd);
     if (pathname === '') {
       pathname = '/';
     }
   }
-  return pathname;
+  return { pathname, isInternal };
 }
 
 export const IsQData = '@isQData';
 export const QDATA_JSON = '/q-data.json';
-export const QDATA_JSON_LEN = QDATA_JSON.length;

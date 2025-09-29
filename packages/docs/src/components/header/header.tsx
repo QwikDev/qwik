@@ -1,8 +1,8 @@
 import {
   component$,
   useContext,
-  useSignal,
   useStyles$,
+  useSignal,
   useVisibleTask$,
   type PropsOf,
 } from '@qwik.dev/core';
@@ -16,13 +16,9 @@ import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import {
-  colorSchemeChangeListener,
-  getColorPreference,
-  setPreference,
-  ThemeToggle,
-} from '../theme-toggle/theme-toggle';
+import { ThemeToggle } from '../theme-toggle/theme-toggle';
 import styles from './header.css?inline';
+import { getPkgManagerPreference } from '../package-manager-tabs';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -46,11 +42,7 @@ export const Header = component$(() => {
   const pathname = useLocation().url.pathname;
 
   useVisibleTask$(() => {
-    globalStore.theme = getColorPreference();
-    return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
-    });
+    globalStore.pkgManager = getPkgManagerPreference();
   });
 
   return (

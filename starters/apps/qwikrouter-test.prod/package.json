@@ -1,5 +1,5 @@
 {
-  "description": "QwikCity e2e prod app",
+  "description": "Qwik Router e2e prod app",
   "type": "module",
   "__qwik__": {
     "qwikRouter": true

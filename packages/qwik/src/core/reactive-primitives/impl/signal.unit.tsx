@@ -1,4 +1,4 @@
-import { $, isBrowser } from '@qwik.dev/core';
+import { $, _wrapProp, isBrowser } from '@qwik.dev/core';
 import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
@@ -118,7 +118,7 @@ describe('signal', () => {
 
   afterEach(async () => {
     delayMap.clear();
-    await container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
     await getTestPlatform().flush();
     container = null!;
   });
@@ -213,8 +213,8 @@ describe('signal', () => {
       });
     });
 
-    it('force', () =>
-      withContainer(async () => {
+    it('force', async () => {
+      await withContainer(async () => {
         const obj = { count: 0 };
         const computed = await retryOnPromise(() => {
           return createComputedQrl(
@@ -242,7 +242,18 @@ describe('signal', () => {
         computed.force();
         await flushSignals();
         expect(log).toEqual([1, 2]);
-      }));
+      });
+    });
+    describe('wrapped', () => {
+      it('should not re-wrap wrapped signal', () => {
+        const signal = createSignal(1);
+        const wrapped = _wrapProp(signal);
+        expect(wrapped).toHaveProperty('value', 1);
+        expect(wrapped).not.toBe(signal);
+        const wrapped2 = _wrapProp(wrapped);
+        expect(wrapped2).toBe(wrapped);
+      });
+    });
   });
   ////////////////////////////////////////
 
@@ -252,8 +263,8 @@ describe('signal', () => {
     return invoke(ctx, fn);
   }
 
-  function flushSignals() {
-    return container.$scheduler$(ChoreType.WAIT_FOR_ALL);
+  async function flushSignals() {
+    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */

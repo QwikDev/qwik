@@ -50,6 +50,8 @@ export const Foo = component$((props) => {
 ============================= test.js ==
 
 import { _jsxSorted } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
@@ -59,8 +61,8 @@ export const Lightweight = (props)=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, null, null, 3, null),
         /*#__PURE__*/ _jsxSplit("button", {
-            ...props
-        }, null, null, 0, null)
+            ..._getVarProps(props)
+        }, _getConstProps(props), null, 0, null)
     ], 1, "u6_0"), 1, "u6_1");
 };
 export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "Foo_component_HTDRsvUbLiE"), {
@@ -68,7 +70,7 @@ export const Foo = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_HTDRsvUbLiE, "
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;YAAQ,GAAG,KAAK;;;AAIrB,EAAE;AAEF,OAAO,MAAM,oBAAM,4EAuBhB;IACF,SAAS;AACV,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;AAGA,OAAO,MAAM,cAAc,CAAC;IAC3B,qBACC,WAAC,iCACA;sBACC,WAAC;sBACD,UAAC;4BAAW;0BAAA;;AAIhB,EAAE;AAEF,OAAO,MAAM,oBAAM,4EAuBhB;IACF,SAAS;AACV,GAAG\"}")
 ============================= test.tsx_Foo_component_HTDRsvUbLiE.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -109,6 +111,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@qwik.dev/core";
 import { Lightweight } from "./test";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
 export const Foo_component_1_DvU6FitWglY = ()=>{
@@ -128,8 +132,8 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, {
             class: "class"
         }, /*#__PURE__*/ _jsxSplit(Lightweight, {
-            ...props
-        }, null, null, 0, "u6_3"), 1, null),
+            ..._getVarProps(props)
+        }, _getConstProps(props), null, 0, "u6_3"), 1, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
             class: "class"
         }, [
@@ -144,7 +148,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;2CAeU;;IACR,qBACC,WAAC;sBACA;0BACC,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;eAAQ;;sBAEpB,WAAC;YAAI,OAAM;yBACV,UAAC;YAAa,GAAG,KAAK;;sBAEvB,WAAC;YAAI,OAAM;;0BACV,WAAC;0BACD,WAAC;0BACD,WAAC;;sBAEF,WAAC;YAAI,OAAM;WACT\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;2CAeU;;IACR,qBACC,WAAC;sBACA;0BACC,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;;0BACX,WAAC;gBAAI,OAAM;eAAQ;;sBAEpB,WAAC;YAAI,OAAM;yBACV,UAAC;4BAAgB;0BAAA;sBAElB,WAAC;YAAI,OAAM;;0BACV,WAAC;0BACD,WAAC;0BACD,WAAC;;sBAEF,WAAC;YAAI,OAAM;WACT\"}")
 /*
 {
   "origin": "test.tsx",

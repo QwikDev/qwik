@@ -22,7 +22,9 @@ test('defaults', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -39,7 +41,9 @@ test('defaults (buildMode: production)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'root')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -57,7 +61,9 @@ test('defaults (target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -74,7 +80,9 @@ test('defaults (buildMode: production, target: ssr)', async () => {
   assert.deepEqual(opts.debug, false);
   assert.deepEqual(opts.rootDir, normalizePath(cwd));
   assert.deepEqual(opts.tsconfigFileNames, ['./tsconfig.json']);
-  assert.deepEqual(opts.input, [normalizePath(resolve(cwd, 'src', 'entry.ssr'))]);
+  assert.deepEqual((opts.input as string[]).map(normalizePath), [
+    normalizePath(resolve(cwd, 'src', 'entry.ssr')),
+  ]);
   assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'server')));
   assert.deepEqual(opts.manifestInput, null);
   assert.deepEqual(opts.manifestOutput, null);
@@ -90,7 +98,7 @@ test('debug true', async () => {
 test('csr', async () => {
   const plugin = await mockPlugin();
   const opts = await plugin.normalizeOptions({ csr: true });
-  assert.deepEqual(opts.outDir, undefined);
+  assert.deepEqual(opts.outDir, normalizePath(resolve(cwd, 'dist')));
 });
 
 test('override entryStrategy', async () => {

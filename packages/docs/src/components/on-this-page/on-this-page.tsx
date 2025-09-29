@@ -1,6 +1,5 @@
-import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
+import { $, component$, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
 import { useContent, useLocation } from '@qwik.dev/router';
-import { GlobalStore } from '../../context';
 import styles from './on-this-page.css?inline';
 import { OnThisPageMore } from './on-this-page-more';
 
@@ -96,7 +95,7 @@ const makeEditPageUrl = (url: string): string => {
     if (index !== -1 && index + 1 >= segments.length) {
       // These are directory paths without subpaths, map to their overview pages
       if (componentIndex !== -1) {
-        return 'docs/(qwik)/components/overview';
+        return 'docs/(qwik)/core/overview';
       } else if (conceptIndex !== -1) {
         return 'docs/(qwik)/concepts/think-qwik';
       }
@@ -108,7 +107,6 @@ const makeEditPageUrl = (url: string): string => {
 
 export const OnThisPage = component$(() => {
   useStyles$(styles);
-  const theme = useContext(GlobalStore);
   const { headings } = useContent();
   const contentHeadings = headings?.filter((h) => h.level <= 3) || [];
 
@@ -162,14 +160,7 @@ export const OnThisPage = component$(() => {
           <h6>On This Page</h6>
           <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
             {contentHeadings.map((h) => (
-              <li
-                key={h.id}
-                class={`${
-                  theme.theme === 'light'
-                    ? 'hover:bg-[var(--qwik-light-blue)]'
-                    : 'hover:bg-[var(--on-this-page-hover-bg-color)]'
-                }`}
-              >
+              <li key={h.id} class="hover:bg-(--on-this-page-hover-bg-color)">
                 {activeId.value === h.id ? (
                   <span class="on-this-page-item">{h.text}</span>
                 ) : (
@@ -180,7 +171,7 @@ export const OnThisPage = component$(() => {
               </li>
             ))}
           </ul>
-          <OnThisPageMore theme={theme.theme} editUrl={editUrl} />
+          <OnThisPageMore editUrl={editUrl} />
         </>
       ) : null}
     </aside>

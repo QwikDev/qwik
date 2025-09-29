@@ -1,4 +1,3 @@
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
@@ -10,7 +9,6 @@ import {
   mergeHeadersCookies,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import type { QwikSerializer } from '../request-handler/types';
 
 // @qwik.dev/router/middleware/vercel-edge
 const COUNTRY_HEADER_NAME = 'x-vercel-ip-country';
@@ -26,11 +24,6 @@ export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
     console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
   }
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -92,7 +85,7 @@ export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
       };
 
       // send request to qwik router request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
           if (v) {
@@ -111,9 +104,11 @@ export function createQwikRouter(opts: QwikRouterVercelEdgeOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || 'GET', url)
-        ? 'Not Found'
-        : getNotFound(url.pathname);
+      const notFoundHtml =
+        !request.headers.get('accept')?.includes('text/html') ||
+        isStaticPath(request.method || 'GET', url)
+          ? 'Not Found'
+          : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

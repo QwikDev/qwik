@@ -33,7 +33,7 @@ for (const type of ['empty', 'playground'] as QwikProjectType[]) {
         }
         config.cleanupFn();
       };
-    });
+    }, 120000);
 
     if (type === 'playground') {
       test(

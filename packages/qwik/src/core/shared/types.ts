@@ -1,8 +1,8 @@
 import type { ContextId } from '../use/use-context';
-import type { VNode } from '../client/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { Scheduler } from './scheduler';
-import type { SerializationContext } from './shared-serialization';
+import type { SerializationContext } from './serdes/index';
+import type { VNode } from '../client/vnode-impl';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
@@ -11,7 +11,7 @@ export interface DeserializeContainer {
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
-  $initialQRLsIndexes$: Array<number> | null;
+  $initialQRLs$: Array<string> | null;
   readonly $scheduler$: Scheduler | null;
 }
 
@@ -27,7 +27,7 @@ export interface Container {
   $currentUniqueId$: number;
   $buildBase$: string | null;
 
-  handleError(err: any, $host$: HostElement): void;
+  handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;
   setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
   resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
@@ -59,7 +59,7 @@ export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends HTMLElement {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
-  vNode?: WeakRef<VNode>;
+  vNode?: VNode;
 }
 
 export type qWindow = Window & {
@@ -123,3 +123,7 @@ export type SerializationStrategy =
   // TODO: implement this in the future
   // 'auto' |
   'never' | 'always';
+
+export const enum SsrNodeFlags {
+  Updatable = 1,
+}

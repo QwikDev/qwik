@@ -43,10 +43,6 @@ const appNames = readdirSync(startersAppsDir).filter(
   (p) => statSync(join(startersAppsDir, p)).isDirectory() && p !== "base",
 );
 
-const rootDir = resolve(__dirname, "..");
-const packagesDir = resolve(rootDir, "packages");
-const qwikRouterMjs = join(packagesDir, "qwik-router", "lib", "index.qwik.mjs");
-
 /** Used when qwik-router server is enabled */
 const qwikRouterVirtualEntry = "@router-ssr-entry";
 const entrySsrFileName = "entry.ssr.tsx";
@@ -57,7 +53,13 @@ Error.stackTraceLimit = 1000;
 const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
-    const url = new URL(req.url, address);
+    let url;
+    try {
+      url = new URL(req.url, address);
+    } catch {
+      res.status(404).send();
+      return;
+    }
     if (existsSync(url.pathname)) {
       const relPath = relative(startersAppsDir, url.pathname);
       if (!relPath.startsWith(".")) {
@@ -198,16 +200,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          /**
-           * normally qwik finds qwik-router via package.json but we don't want that
-           * because it causes it to try to lookup the special qwik router imports
-           * even when we're not actually importing qwik-router
-           */
-          disableVendorScan: true,
-          vendorRoots: enableRouterServer ? [qwikRouterMjs] : [],
-          entryStrategy: {
-            type: "segment",
-          },
+          entryStrategy: { type: "segment" },
           client: {
             manifestOutput(manifest) {
               clientManifest = manifest;
@@ -271,7 +264,8 @@ async function routerApp(
   appDir: string,
 ) {
   const ssrPath = join(appDir, "server", `${qwikRouterVirtualEntry}.js`);
-
+  // it's ok in the devserver to import core multiple times
+  (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
   router(req, res, () => {
@@ -289,6 +283,8 @@ async function ssrApp(
   manifest: QwikManifest,
 ) {
   const ssrPath = join(appDir, "server", "entry.ssr.js");
+  // it's ok in the devserver to import core multiple times
+  (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const render: Render = mod.default ?? mod.render;
 

@@ -1,0 +1,37 @@
+{
+  "name": "qwik-react-test-app",
+  "description": "Qwik react test app",
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "@qwik.dev/react": "workspace:*",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.7",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "scripts": {
+    "build": "qwik build",
+    "build.client": "vite build",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.server": "vite build -c adapters/express/vite.config.ts",
+    "build.types": "tsc --incremental --noEmit",
+    "deploy": "vercel deploy",
+    "dev": "vite --mode ssr",
+    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "express": "pnpm build && pnpm serve",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "preview": "qwik build preview && vite preview --open",
+    "qwik": "qwik",
+    "serve": "node server/entry.express",
+    "start": "vite --open --mode ssr",
+    "test": "playwright test",
+    "test.debug": "playwright test --debug",
+    "test.ui": "playwright test --ui"
+  },
+  "type": "module"
+}

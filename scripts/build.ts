@@ -21,6 +21,7 @@ import { submoduleCore } from './submodule-core';
 import { submoduleInsights } from './submodule-insights';
 import { submoduleOptimizer } from './submodule-optimizer';
 import { submoduleQwikLoader } from './submodule-qwikloader';
+import { submoduleBackpatch } from './submodule-backpatch';
 import { submoduleServer } from './submodule-server';
 import { submoduleTesting } from './submodule-testing';
 import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
@@ -71,6 +72,7 @@ export async function build(config: BuildConfig) {
       await Promise.all([
         submoduleCore(config),
         submoduleQwikLoader(config),
+        submoduleBackpatch(config),
         submoduleBuild(config),
         submoduleTesting(config),
         submoduleCli(config),

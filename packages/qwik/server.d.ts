@@ -12,5 +12,7 @@ export {
   RenderToStreamResult,
   RenderToStringOptions,
   RenderToStringResult,
+  RenderToString,
+  RenderToStream,
   versions,
 } from './dist/server';

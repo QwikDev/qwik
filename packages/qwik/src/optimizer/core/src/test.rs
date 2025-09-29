@@ -2,6 +2,7 @@
 
 use super::*;
 use serde_json::to_string_pretty;
+use swc_atoms::Atom;
 
 macro_rules! snapshot_res {
 	($res: expr, $prefix: expr) => {
@@ -49,15 +50,15 @@ macro_rules! test_input {
 }
 
 fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
-	let strip_exports: Option<Vec<JsWord>> = input
+	let strip_exports: Option<Vec<Atom>> = input
 		.strip_exports
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let reg_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let reg_ctx_name: Option<Vec<Atom>> = input
 		.reg_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
-	let strip_ctx_name: Option<Vec<JsWord>> = input
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
+	let strip_ctx_name: Option<Vec<Atom>> = input
 		.strip_ctx_name
-		.map(|v| v.into_iter().map(|s| JsWord::from(s)).collect());
+		.map(|v| v.into_iter().map(|s| Atom::from(s)).collect());
 
 	transform_modules(TransformModulesOptions {
 		src_dir: input.src_dir,
@@ -1328,7 +1329,7 @@ export const Lightweight = (props) => {
 	useMemo$(() => {
 		console.log(state.count);
 	});
-});
+};
 "#
 		.to_string(),
 		transpile_ts: true,
@@ -4420,6 +4421,205 @@ fn should_not_wrap_ternary_function_operator_with_fn() {
 				}
 			></button>
 		);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div {...props} test="test"></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop2() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return (
+				<div test="test" {...props}></div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop3() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+		import { Foo } from './foo';
+
+		export default component$((props) => {
+			return (
+				<Foo s={Math.random()} {...props} hello {...globalThis.nothing} />
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop4() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props: any) => {
+			return <button {...props} onClick$={() => props.onClick$()}></button>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_split_spread_props_with_additional_prop5() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		function Hola(props: any) {
+			return <div {...props}></div>;
+		}
+
+		export default component$(() => {
+		return <Hola>
+			<div>1</div>
+			<div>2</div>
+		</Hola>;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_generate_conflicting_props_identifiers() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
+
+		export default component$(({ color, ...props }) => {
+		useComputed$(() => color)
+
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		// important to use hoist entry strategy to test this case
+		// only in hoist mode there was an issue with conflicting props identifiers
+		entry_strategy: EntryStrategy::Hoist,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_convert_rest_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$, useTask$ } from '@qwik.dev/core'
+
+		export default component$<any>(({ ...props }) => {
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} />;
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_attributes_with_spread_props_before_and_after() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		export default component$((props) => {
+			return <div {...props} class={[props.class, 'component']} {...props} />;
 		});
 		"#
 		.to_string(),

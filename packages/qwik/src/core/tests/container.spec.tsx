@@ -5,21 +5,22 @@ import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
-import type { ClientContainer, VNode } from '../client/types';
-import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import type { ClientContainer } from '../client/types';
+import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
 import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { TypeIds } from '../shared/shared-serialization';
+import { TypeIds } from '../shared/serdes/index';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { SignalFlags } from '../reactive-primitives/types';
+import type { VNode } from '../client/vnode-impl';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -109,7 +110,7 @@ describe('serializer v2', () => {
 
     describe('node references', () => {
       // doesn't use the vnode so not serialized
-      it.skip('should retrieve element', async () => {
+      it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
           ssr.openElement('div', ['id', 'parent']);
           ssr.textNode('Hello');
@@ -122,8 +123,8 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnodeSpan = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
+        const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
+        expect(vnodeSpan.getAttr('id')).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {
@@ -273,18 +274,6 @@ describe('serializer v2', () => {
     describe('RegexSerializer, ///////// ' + TypeIds.Regex, () => {
       it('should serialize and deserialize', async () => {
         const obj = /abc/gim;
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-    });
-
-    describe('StringSerializer, //////// ' + TypeIds.String, () => {
-      it('should serialize and deserialize', async () => {
-        const obj = '\u0010anything';
-        expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
-      });
-
-      it('should serialize and deserialize strings in array', async () => {
-        const obj = ['\b: backspace'];
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });
@@ -512,7 +501,7 @@ describe('serializer v2', () => {
 
     describe('DocumentSerializer, //////', () => {
       it('should serialize and deserialize', async () => {
-        const obj = new SsrNode(null, '', -1, [], [] as any);
+        const obj = new SsrNode(null, '', -1, [], [] as any, null);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
         expect(container.$getObjectById$(0)).toEqual(container.element.ownerDocument);
       });
@@ -609,19 +598,15 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(
-            jsx.varProps as any,
-            jsx.constProps,
-            ssrContainer.serializationCtx,
-            null,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps as any,
-            jsx.varProps,
-            ssrContainer.serializationCtx,
-            null
-          )
+          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+            serializationCtx: ssrContainer.serializationCtx,
+            styleScopedId: null,
+          })
         );
       } else {
         ssrContainer.openFragment([]);

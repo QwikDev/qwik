@@ -45,7 +45,6 @@ const ignores = [
   // packages with eslint.config.mjs
   'packages/qwik-labs',
   'packages/insights',
-  'starters',
   // eslint.config.*
   '**/eslint.config.mjs',
   '**/eslint.config.js',

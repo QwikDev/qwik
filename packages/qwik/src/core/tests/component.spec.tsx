@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_getParent, vnode_getProp, vnode_locate } from '../client/vnode';
+import { vnode_locate } from '../client/vnode';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -641,6 +641,27 @@ describe.each([
     );
   });
 
+  it('should handle falsy values in dangerouslySetInnerHTML', async () => {
+    const Cmp = component$(() => {
+      return (
+        <main>
+          <div dangerouslySetInnerHTML={undefined}></div>
+          <div dangerouslySetInnerHTML={null!}></div>
+          {/* @ts-ignore-next-line */}
+          <div dangerouslySetInnerHTML={false}></div>
+        </main>
+      );
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <div></div>
+        <div></div>
+        <div></div>
+      </main>
+    );
+  });
+
   it('should render textarea value', async () => {
     const Cmp = component$(() => {
       const signal = useSignal('value 123');
@@ -809,7 +830,19 @@ describe.each([
 
       const update = $(() => store2.count++);
       return (
-        <button onClick$={[$(() => store1.count++), update, undefined, [null, update]]}>
+        <button
+          onClick$={[
+            $(() => store1.count++),
+            update,
+            undefined,
+            [
+              null,
+              // Note, this is the same as update but we only run the same chore once
+              // Also, different AST so that later deduping of QRLs works
+              $(() => (store2.count += 1)),
+            ],
+          ]}
+        >
           {store1.count} / {store2.count}
         </button>
       );
@@ -2254,7 +2287,7 @@ describe.each([
     );
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
-    expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+    expect(h1Element.parent!.getProp(OnRenderProp, null)).toBeNull();
   });
 
   it('should reuse the same props instance when props are changing', async () => {
@@ -2363,6 +2396,18 @@ describe.each([
     }
     await trigger(document.body, 'button', 'click');
     expect(document.body.innerHTML).toContain('I am the innerHTML content!');
+  });
+
+  it('should not throw when props are null', async () => {
+    const Child = component$((props: any) => {
+      props = (globalThis as any).stuff ? (globalThis as any).foo : (globalThis as any).bar;
+      return <div {...props} />;
+    });
+    const Cmp = component$(() => {
+      return <Child />;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    await expect(document.querySelector('div')).toMatchDOM(<div />);
   });
 
   describe('regression', () => {

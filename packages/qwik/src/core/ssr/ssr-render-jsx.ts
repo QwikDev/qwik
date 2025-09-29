@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { queueQRL } from '../client/queue-qrl';
+import { _run } from '../client/queue-qrl';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
@@ -8,7 +8,7 @@ import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { qrlToString, type SerializationContext } from '../shared/shared-serialization';
+import { qrlToString, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
@@ -164,19 +164,15 @@ function processJSXNode(
 
         const innerHTML = ssr.openElement(
           type,
-          varPropsToSsrAttrs(
-            jsx.varProps,
-            jsx.constProps,
-            ssr.serializationCtx,
-            options.styleScoped,
-            jsx.key
-          ),
-          constPropsToSsrAttrs(
-            jsx.constProps,
-            jsx.varProps,
-            ssr.serializationCtx,
-            options.styleScoped
-          ),
+          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+            key: jsx.key,
+          }),
+          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
+            serializationCtx: ssr.serializationCtx,
+            styleScopedId: options.styleScoped,
+          }),
           qwikInspectorAttrValue
         );
         if (innerHTML) {
@@ -252,7 +248,7 @@ function processJSXNode(
           if (isFunction(generator)) {
             value = generator({
               async write(chunk) {
-                await _walkJSX(ssr, chunk as JSXOutput, {
+                await _walkJSX(ssr, chunk, {
                   currentStyleScoped: options.styleScoped,
                   parentComponentFrame: options.parentComponentFrame,
                 });
@@ -308,52 +304,50 @@ function processJSXNode(
   }
 }
 
+interface SsrAttrsOptions {
+  serializationCtx: SerializationContext;
+  styleScopedId: string | null;
+  key?: string | null;
+}
+
 export function varPropsToSsrAttrs(
   varProps: Record<string, unknown>,
   constProps: Record<string, unknown> | null,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null,
-  key?: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(varProps, constProps, serializationCtx, true, styleScopedId, key);
+  return toSsrAttrs(varProps, constProps, false, options);
 }
 
 export function constPropsToSsrAttrs(
   constProps: Record<string, unknown> | null,
   varProps: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  styleScopedId: string | null
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(constProps, varProps, serializationCtx, false, styleScopedId);
+  return toSsrAttrs(constProps, varProps, true, options);
 }
 
 export function toSsrAttrs(
   record: Record<string, unknown>,
   anotherRecord: Record<string, unknown>,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null;
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
-  serializationCtx: SerializationContext,
-  pushMergedEventProps: boolean,
-  styleScopedId: string | null,
-  key?: string | null
+  isConst: boolean,
+  options: SsrAttrsOptions
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
+  const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
   for (const key in record) {
     let value = record[key];
@@ -389,7 +383,7 @@ export function toSsrAttrs(
           }
         }
       }
-      const eventValue = setEvent(serializationCtx, key, value);
+      const eventValue = setEvent(options.serializationCtx, key, value);
       if (eventValue) {
         ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
@@ -400,23 +394,24 @@ export function toSsrAttrs(
       // write signal as is. We will track this signal inside `writeAttrs`
       if (isClassAttr(key)) {
         // additionally append styleScopedId for class attr
-        ssrAttrs.push(key, [value, styleScopedId]);
+        ssrAttrs.push(key, [value, options.styleScopedId]);
       } else {
         ssrAttrs.push(key, value);
       }
+
       continue;
     }
 
     if (isPreventDefault(key)) {
-      addPreventDefaultEventToSerializationContext(serializationCtx, key);
+      addPreventDefaultEventToSerializationContext(options.serializationCtx, key);
     }
 
-    value = serializeAttribute(key, value, styleScopedId);
+    value = serializeAttribute(key, value, options.styleScopedId);
 
     ssrAttrs.push(key, value as string);
   }
-  if (key != null) {
-    ssrAttrs.push(ELEMENT_KEY, key);
+  if (options.key != null) {
+    ssrAttrs.push(ELEMENT_KEY, options.key);
   }
   return ssrAttrs;
 }
@@ -470,7 +465,7 @@ function setEvent(
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
     if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
-      qrl = createQRL(null, '_run', queueQRL, null, null, [qrl]);
+      qrl = createQRL(null, '_run', _run, null, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);
   };

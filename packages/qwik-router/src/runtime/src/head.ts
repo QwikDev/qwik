@@ -11,6 +11,7 @@ import type {
   Editable,
   ResolveSyncValue,
   ActionInternal,
+  ContentModuleHead,
 } from './types';
 import { isPromise } from './utils';
 
@@ -18,9 +19,10 @@ export const resolveHead = (
   endpoint: EndpointResponse | ClientPageData,
   routeLocation: RouteLocation,
   contentModules: ContentModule[],
-  locale: string
+  locale: string,
+  defaults?: DocumentHeadValue
 ) => {
-  const head = createDocumentHead();
+  const head = createDocumentHead(defaults);
   const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
     const id = loaderOrAction.__id;
     if (loaderOrAction.__brand === 'server_loader') {
@@ -36,28 +38,36 @@ export const resolveHead = (
     }
     return data;
   }) as any as ResolveSyncValue;
-  const headProps: DocumentHeadProps = {
-    head,
-    withLocale: (fn) => withLocale(locale, fn),
-    resolveValue: getData,
-    ...routeLocation,
-  };
 
-  for (let i = contentModules.length - 1; i >= 0; i--) {
-    const contentModuleHead = contentModules[i] && contentModules[i].head;
+  const fns: Extract<ContentModuleHead, Function>[] = [];
+  for (const contentModule of contentModules) {
+    const contentModuleHead = contentModule?.head;
     if (contentModuleHead) {
       if (typeof contentModuleHead === 'function') {
-        resolveDocumentHead(
-          head,
-          withLocale(locale, () => contentModuleHead(headProps))
-        );
+        // Functions are executed inner before outer
+        fns.unshift(contentModuleHead);
       } else if (typeof contentModuleHead === 'object') {
+        // Objects are merged inner over outer
         resolveDocumentHead(head, contentModuleHead);
       }
     }
   }
+  if (fns.length) {
+    const headProps: DocumentHeadProps = {
+      head,
+      withLocale: (fn) => withLocale(locale, fn),
+      resolveValue: getData,
+      ...routeLocation,
+    };
 
-  return headProps.head;
+    withLocale(locale, () => {
+      for (const fn of fns) {
+        resolveDocumentHead(head, fn(headProps));
+      }
+    });
+  }
+
+  return head;
 };
 
 const resolveDocumentHead = (
@@ -75,11 +85,12 @@ const resolveDocumentHead = (
 };
 
 const mergeArray = (
-  existingArr: { key?: string }[],
-  newArr: readonly { key?: string }[] | undefined
+  existingArr: { key?: string | number | null }[],
+  newArr: readonly { key?: string | number | null }[] | undefined
 ) => {
   if (Array.isArray(newArr)) {
     for (const newItem of newArr) {
+      // items with the same string key are replaced
       if (typeof newItem.key === 'string') {
         const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
         if (existingIndex > -1) {
@@ -92,11 +103,11 @@ const mergeArray = (
   }
 };
 
-export const createDocumentHead = (): ResolvedDocumentHead => ({
-  title: '',
-  meta: [],
-  links: [],
-  styles: [],
-  scripts: [],
-  frontmatter: {},
+export const createDocumentHead = (defaults?: DocumentHeadValue): ResolvedDocumentHead => ({
+  title: defaults?.title || '',
+  meta: [...(defaults?.meta || [])],
+  links: [...(defaults?.links || [])],
+  styles: [...(defaults?.styles || [])],
+  scripts: [...(defaults?.scripts || [])],
+  frontmatter: { ...defaults?.frontmatter },
 });

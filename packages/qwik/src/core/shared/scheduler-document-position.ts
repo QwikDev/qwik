@@ -1,12 +1,5 @@
-import { VNodeProps, type ElementVNode, type VNode } from '../client/types';
-import {
-  vnode_getNextSibling,
-  vnode_getPreviousSibling,
-  vnode_getProp,
-  vnode_locate,
-} from '../client/vnode';
+import type { VNode } from '../client/vnode-impl';
 import type { ISsrNode } from '../ssr/ssr-types';
-import { QSlotParent } from './utils/markers';
 
 /// These global variables are used to avoid creating new arrays for each call to `vnode_documentPosition`.
 const aVNodePath: VNode[] = [];
@@ -16,14 +9,9 @@ const bVNodePath: VNode[] = [];
  *
  * @param a VNode to compare
  * @param b VNode to compare
- * @param rootVNode - Root VNode of a container
  * @returns -1 if `a` is before `b`, 0 if `a` is the same as `b`, 1 if `a` is after `b`.
  */
-export const vnode_documentPosition = (
-  a: VNode,
-  b: VNode,
-  rootVNode: ElementVNode | null
-): -1 | 0 | 1 => {
+export const vnode_documentPosition = (a: VNode, b: VNode): -1 | 0 | 1 => {
   if (a === b) {
     return 0;
   }
@@ -32,13 +20,11 @@ export const vnode_documentPosition = (
   let bDepth = -1;
   while (a) {
     const vNode = (aVNodePath[++aDepth] = a);
-    a = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(a, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+    a = (vNode.parent || a.slotParent)!;
   }
   while (b) {
     const vNode = (bVNodePath[++bDepth] = b);
-    b = (vNode[VNodeProps.parent] ||
-      (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))))!;
+    b = (vNode.parent || b.slotParent)!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {
@@ -50,21 +36,21 @@ export const vnode_documentPosition = (
       bDepth--;
     } else {
       // We found a difference so we need to scan nodes at this level.
-      let cursor: VNode | null = b;
+      let cursor: VNode | null | undefined = b;
       do {
-        cursor = vnode_getNextSibling(cursor);
+        cursor = cursor.nextSibling;
         if (cursor === a) {
           return 1;
         }
       } while (cursor);
       cursor = b;
       do {
-        cursor = vnode_getPreviousSibling(cursor);
+        cursor = cursor.previousSibling;
         if (cursor === a) {
           return -1;
         }
       } while (cursor);
-      if (rootVNode && vnode_getProp(b, QSlotParent, (id) => vnode_locate(rootVNode, id))) {
+      if (b.slotParent) {
         // The "b" node is a projection, so we need to set it after "a" node,
         // because the "a" node could be a context provider.
         return -1;
@@ -96,11 +82,11 @@ export const ssrNodeDocumentPosition = (a: ISsrNode, b: ISsrNode): -1 | 0 | 1 =>
   let bDepth = -1;
   while (a) {
     const ssrNode = (aSsrNodePath[++aDepth] = a);
-    a = ssrNode.parentSsrNode!;
+    a = ssrNode.parentComponent!;
   }
   while (b) {
     const ssrNode = (bSsrNodePath[++bDepth] = b);
-    b = ssrNode.parentSsrNode!;
+    b = ssrNode.parentComponent!;
   }
 
   while (aDepth >= 0 && bDepth >= 0) {

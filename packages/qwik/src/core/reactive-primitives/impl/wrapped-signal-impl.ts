@@ -12,6 +12,7 @@ import {
   SignalFlags,
   WrappedSignalFlags,
 } from '../types';
+import { scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
@@ -21,7 +22,6 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   $flags$: AllSignalFlags;
   $hostElement$: HostElement | null = null;
-  $forceRunEffects$: boolean = false;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
@@ -42,13 +42,23 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$forceRunEffects$ = false;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      this.$hostElement$,
-      this,
-      this.$effects$
-    );
+    // we are trying to run computation without creating a chore, which can be expensive
+    // for many signals. If it fails, we schedule a chore to run the computation.
+    try {
+      this.$computeIfNeeded$();
+    } catch (_) {
+      this.$container$?.$scheduler$(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        this.$hostElement$,
+        this,
+        this.$effects$
+      );
+    }
+    // if the computation not failed, we can run the effects directly
+    if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
+      this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+      scheduleEffects(this.$container$, this, this.$effects$);
+    }
   }
 
   /**
@@ -56,7 +66,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    * remained the same object.
    */
   force() {
-    this.$forceRunEffects$ = true;
+    this.$flags$ |= SignalFlags.RUN_EFFECTS;
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
       this.$hostElement$,
@@ -66,17 +76,14 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   }
 
   get untrackedValue() {
-    const didChange = this.$computeIfNeeded$();
-    if (didChange) {
-      this.$forceRunEffects$ = didChange;
-    }
+    this.$computeIfNeeded$();
     assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 
   $computeIfNeeded$() {
     if (!(this.$flags$ & SignalFlags.INVALID)) {
-      return false;
+      return;
     }
     const untrackedValue = trackSignal(
       () => this.$func$(...this.$args$),
@@ -84,13 +91,20 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       EffectProperty.VNODE,
       this.$container$!
     );
-    // TODO: we should remove invalid flag here
+    // TODO: we should remove invalid flag here, but some tests are failing
+    // Sometimes we may call .value on wrapped signals without ctx. This means subscription will be
+    // not created and effects will not be triggered. After wrapping this with if (this.$container$)
+    // less tests are failing, but still some are failing.
     // this.$flags$ &= ~SignalFlags.INVALID;
+
+    // reset flag in case we call computedIfNeeded twice and the value was changed only the first time
+    // TODO: change to version number?
+    this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
+      this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue;
     }
-    return didChange;
   }
   // Make this signal read-only
   set value(_: any) {

@@ -1,5 +1,4 @@
 import { STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from '../utils/markers';
-import type { StreamWriter } from '../../ssr/ssr-types';
 import { jsx, RenderOnce } from './jsx-runtime';
 import type { FunctionComponent, JSXNode, JSXOutput } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
@@ -28,9 +27,14 @@ export type SSRStreamProps = {
 };
 
 /** @public */
+export interface SSRStreamWriter {
+  write(chunk: JSXOutput): void;
+}
+
+/** @public */
 export type SSRStreamChildren =
   | AsyncGenerator<JSXChildren, void, any>
-  | ((stream: StreamWriter) => Promise<void>)
+  | ((stream: SSRStreamWriter) => Promise<void>)
   | (() => AsyncGenerator<JSXChildren, void, any>);
 
 /** @public */

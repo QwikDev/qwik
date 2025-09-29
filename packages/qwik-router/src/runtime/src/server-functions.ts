@@ -6,6 +6,7 @@ import {
   noSerialize,
   untrack,
   useStore,
+  withLocale,
   type QRL,
   type ValueOrPromise,
 } from '@qwik.dev/core';
@@ -63,7 +64,7 @@ import type {
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
 import type { FormSubmitCompletedDetail } from './form-component';
-import { deepFreeze } from './utils';
+import { deepFreeze } from './deepFreeze';
 
 /** @internal */
 export const routeActionQrl = ((
@@ -367,7 +368,7 @@ export const zodQrl: ZodConstructorQRL = (
           }
         });
         const data = inputData ?? (await ev.parseBody());
-        const result = await schema.safeParseAsync(data);
+        const result = await withLocale(ev.locale(), () => schema.safeParseAsync(data));
         if (result.success) {
           return result;
         } else {

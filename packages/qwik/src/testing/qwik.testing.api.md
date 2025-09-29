@@ -12,6 +12,7 @@ import type { JSXNodeInternal } from '@qwik.dev/core/internal';
 import { JSXOutput } from '@qwik.dev/core';
 import type { _QDocument } from '@qwik.dev/core/internal';
 import { RenderResult } from '@qwik.dev/core';
+import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 import type { _Stringifiable } from '@qwik.dev/core/internal';
 import type { _VirtualVNode } from '@qwik.dev/core/internal';
 import type { _VNode } from '@qwik.dev/core/internal';
@@ -80,20 +81,27 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
 }): Promise<{
     container: _DomContainer;
     document: Document;
-    vNode: _VirtualVNode | null;
+    vNode: _VNode | null;
     getStyles: () => Record<string, string | string[]>;
 }>;
 
 // @public
-export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any): Promise<void>;
+export function trigger(root: Element, queryOrElement: string | Element | keyof HTMLElementTagNameMap | null, eventName: string, eventPayload?: any, options?: {
+    waitForIdle?: boolean;
+}): Promise<void>;
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _ElementVNode;
+    vParent: _ElementVNode | _VirtualVNode;
     vNode: _VNode | null;
     document: _QDocument;
     container: ClientContainer;
 };
+
+// Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
+//
+// @public
+export function waitForDrain(container: Container): Promise<void>;
 
 // @public (undocumented)
 export function walkJSX(jsx: JSXOutput, apply: {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createDocument } from '../../testing/document';
+import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
@@ -7,8 +7,40 @@ import { processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
+import { vnode_getFirstChild } from './vnode';
+import { Fragment } from '@qwik.dev/core';
 
 describe('processVnodeData', () => {
+  it('should process shadow root container', () => {
+    const [, container] = process(`
+      <html q:container="paused">
+        <head :></head>
+        <body :>
+          <div q:shadowRoot>
+            <template>
+              <div q:container="paused">
+                <button :>
+                  0
+                </button>
+                <script : type="qwik/vnode">
+                  ~{1}!~
+                </script>
+              </div>
+            </template>
+          </div>
+        </body>
+      </html>
+    `);
+    vnode_getFirstChild(container.rootVNode);
+    expect(container.rootVNode).toMatchVDOM(
+      <div {...qContainerPaused}>
+        <Fragment>
+          <button>0</button>
+        </Fragment>
+      </div>
+    );
+  });
+
   it('should parse simple case', () => {
     const [container] = process(`
       <html q:container="paused">
@@ -34,7 +66,7 @@ describe('processVnodeData', () => {
     <html q:container="paused">
       <head :></head>
       <body :>
-        <div q:container="html"><span></span></div>
+        <div q:container="html" :><span></span></div>
         <b :>HelloWorld</b>
         ${encodeVNode({ 2: '2', 4: 'FF' })}
     </body>
@@ -59,7 +91,7 @@ describe('processVnodeData', () => {
       <html q:container="paused">
         <head :></head>
         <body :>
-          <div q:container="html"><span></span></div>
+          <div q:container="html" :><span></span></div>
           <div>ignore this</div>
           <b :>HelloWorld</b>
           ${encodeVNode({ 2: '3', 4: 'FF' })}
@@ -87,7 +119,7 @@ describe('processVnodeData', () => {
           <head :></head>
           <body :>
             Before
-            <div q:container="paused">
+            <div q:container="paused" :>
               Foo<b :>Bar!</b>
               ${encodeVNode({ 0: 'D1', 1: 'DB' })}
             </div>
@@ -186,9 +218,34 @@ function process(html: string): ClientContainer[] {
   html = html.replace(/\n\s*/g, '');
   // console.log(html);
   const document = createDocument({ html });
+  const templates = Array.from(document.querySelectorAll('template'));
+  for (const template of templates) {
+    const parent = template.parentElement!;
+    if (parent.hasAttribute('q:shadowroot')) {
+      const content = (template as any).content;
+      mockAttachShadow(parent);
+      const shadowRoot = (parent as any).attachShadow({ mode: 'open' });
+      shadowRoot.append(content);
+      template.remove();
+    }
+  }
   processVNodeData(document);
-  return Array.from(document.querySelectorAll('[q\\:container="paused"]')).map(getDomContainer);
+
+  const containers: Element[] = [];
+  findContainers(document, containers);
+
+  return containers.map(getDomContainer);
 }
+
+const findContainers = (element: Document | ShadowRoot, containers: Element[]) => {
+  Array.from(element.querySelectorAll('[q\\:container]')).forEach((container) => {
+    containers.push(container);
+  });
+  element.querySelectorAll('[q\\:shadowroot]').forEach((parent) => {
+    const shadowRoot = parent.shadowRoot;
+    shadowRoot && findContainers(shadowRoot, containers);
+  });
+};
 
 function encodeVNode(data: Record<number, string> = {}) {
   const keys = Object.keys(data)

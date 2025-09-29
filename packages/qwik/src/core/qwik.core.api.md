@@ -11,7 +11,6 @@ import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { QRL as QRL_2 } from './qrl.public';
 import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
-import { ValueOrPromise as ValueOrPromise_2 } from '..';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -23,6 +22,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 
 // @public (undocumented)
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+    error: Error | null;
+    loading: boolean;
 }
 
 // @public (undocumented)
@@ -37,9 +38,9 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 // @internal (undocumented)
 export interface ClientContainer extends Container {
     // (undocumented)
-    $forwardRefs$: Array<number> | null;
+    $flushEpoch$: number;
     // (undocumented)
-    $initialQRLsIndexes$: Array<number> | null;
+    $forwardRefs$: Array<number> | null;
     // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -58,8 +59,6 @@ export interface ClientContainer extends Container {
     qContainer: string;
     // (undocumented)
     qManifestHash: string;
-    // (undocumented)
-    renderDone: Promise<void> | null;
     // (undocumented)
     rootVNode: _ElementVNode;
 }
@@ -125,7 +124,6 @@ export interface CorePlatform {
     chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
     importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
     isServer: boolean;
-    nextTick: (fn: () => any) => Promise<any>;
     raf: (fn: () => any) => Promise<any>;
 }
 
@@ -218,7 +216,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     // (undocumented)
-    $initialQRLsIndexes$: Array<number> | null;
+    $initialQRLs$: Array<string> | null;
     // (undocumented)
     $instanceHash$: string;
     // (undocumented)
@@ -243,13 +241,11 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getHostProp<T>(host: HostElement, name: string): T | null;
     // (undocumented)
-    getParentHost(host: HostElement): HostElement | null;
+    getParentHost(host: _VNode): _VNode | null;
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    handleError(err: any, host: HostElement): void;
+    handleError(err: any, host: _VNode | null): void;
     // (undocumented)
     parseQRL<T = unknown>(qrl: string): QRL<T>;
     // (undocumented)
@@ -257,15 +253,13 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     qManifestHash: string;
     // (undocumented)
-    renderDone: Promise<void> | null;
-    // (undocumented)
-    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
-    scheduleRender(): Promise<void>;
-    // (undocumented)
-    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    setContext<T>(host: _VNode, context: ContextId<T>, value: T): void;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
@@ -283,25 +277,17 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
-export type _ElementVNode = [
-_VNodeFlags.Element,
-////////////// 0 - Flags
-_VNode | null,
-/////////////// 1 - Parent
-_VNode | null,
-/////////////// 2 - Previous sibling
-_VNode | null,
-/////////////// 3 - Next sibling
-_VNode | null | undefined,
-/// 4 - First child - undefined if children need to be materialize
-_VNode | null | undefined,
-Element,
-//////////////////// 6 - Element
-string | undefined,
-(string | null)[]
-] & {
-    __brand__: 'ElementVNode';
-};
+export class _ElementVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
+    // (undocumented)
+    element: Element;
+    // (undocumented)
+    elementName: string | undefined;
+    // (undocumented)
+    firstChild: _VNode | null | undefined;
+    // (undocumented)
+    lastChild: _VNode | null | undefined;
+}
 
 // @internal (undocumented)
 export const _EMPTY_ARRAY: any[];
@@ -330,6 +316,11 @@ export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 // @internal (undocumented)
 export const _fnSignal: <T extends (...args: any) => any>(fn: T, args: Parameters<T>, fnStr?: string) => WrappedSignalImpl<any>;
 
+// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
+//
+// @public
+export const forceStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => void;
+
 // @public (undocumented)
 export const Fragment: FunctionComponent<{
     children?: any;
@@ -340,6 +331,12 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
 export const _getContextContainer: () => ClientContainer | undefined;
@@ -367,10 +364,23 @@ export const getPlatform: () => CorePlatform;
 // @internal (undocumented)
 export function _getQContainerElement(element: Element | _VNode): Element | null;
 
+// @internal (undocumented)
+export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal (undocumented)
+export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
+
+// Warning: (ae-forgotten-export) The symbol "HTMLAttributesBase" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "FilterBase" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface HTMLElementAttrs extends HTMLAttributesBase, FilterBase<HTMLElement> {
+}
 
 // @internal @deprecated (undocumented)
 export const _IMMUTABLE: unique symbol;
@@ -427,8 +437,6 @@ export interface ISsrComponentFrame {
     scopedStyleIds: Set<string>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "StoreTarget" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export const _isStore: (value: StoreTarget) => boolean;
 
@@ -440,8 +448,6 @@ export function _isStringifiable(value: unknown): value is _Stringifiable;
 // @internal (undocumented)
 export const _isTask: (value: any) => value is Task;
 
-// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
-//
 // @public
 const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>;
 export { jsx }
@@ -518,7 +524,7 @@ export const _mapApp_findIndx: <T>(array: (T | null)[], key: string, start: numb
 export const _mapArray_get: <T>(array: (T | null)[], key: string, start: number) => T | null;
 
 // @internal (undocumented)
-export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number) => void;
+export const _mapArray_set: <T>(array: (T | null)[], key: string, value: T | null, start: number, allowNullValue?: boolean) => void;
 
 // @public @deprecated (undocumented)
 export type NativeAnimationEvent = AnimationEvent;
@@ -685,7 +691,6 @@ export type QwikFocusEvent<T = Element> = NativeFocusEvent;
 
 // Warning: (ae-forgotten-export) The symbol "Augmented" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "SpecialAttrs" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "HTMLElementAttrs" needs to be exported by the entry point index.d.ts
 //
 // @public
 export type QwikHTMLElements = {
@@ -742,8 +747,6 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
-// Warning: (ae-forgotten-export) The symbol "SVGProps" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type QwikSVGElements = {
     [K in keyof Omit<SVGElementTagNameMap, keyof HTMLElementTagNameMap>]: SVGProps<SVGElementTagNameMap[K]>;
@@ -860,11 +863,11 @@ export interface ResourcePending<T> {
 // @public (undocumented)
 export interface ResourceProps<T> {
     // (undocumented)
-    onPending?: () => JSXOutput;
+    onPending?: () => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onRejected?: (reason: Error) => JSXOutput;
+    onRejected?: (reason: Error) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
-    onResolved: (value: T) => JSXOutput;
+    onResolved: (value: T) => JSXOutput | Promise<JSXOutput>;
     // (undocumented)
     readonly value: ResourceReturn<T> | Signal<Promise<T> | T> | Promise<T>;
 }
@@ -888,13 +891,11 @@ export interface ResourceResolved<T> {
 // @public (undocumented)
 export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | ResourceRejected<T>;
 
-// Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
-export const _restProps: (props: PropsProxy, omit: string[], target?: Props) => Props;
+export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise_2<void>;
+export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
@@ -922,6 +923,8 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     $currentUniqueId$: number;
     // (undocumented)
+    $flushEpoch$: number;
+    // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     $instanceHash$: string | null;
@@ -937,7 +940,7 @@ export abstract class _SharedContainer implements Container {
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
-    constructor(scheduleDrain: () => void, journalFlush: () => void, serverData: Record<string, any>, locale: string);
+    constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string);
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
@@ -945,7 +948,7 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     abstract getParentHost(host: HostElement): HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: HostElement): void;
+    abstract handleError(err: any, $host$: HostElement | null): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -1062,15 +1065,19 @@ export const SSRStreamBlock: FunctionComponent<{
     children?: JSXOutput;
 }>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "SSRStreamChildren" is marked as @public, but its signature references "StreamWriter" which is marked as @internal
-//
 // @public (undocumented)
-export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: StreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
+export type SSRStreamChildren = AsyncGenerator<JSXChildren, void, any> | ((stream: SSRStreamWriter) => Promise<void>) | (() => AsyncGenerator<JSXChildren, void, any>);
 
 // @public (undocumented)
 export type SSRStreamProps = {
     children: SSRStreamChildren;
 };
+
+// @public (undocumented)
+export interface SSRStreamWriter {
+    // (undocumented)
+    write(chunk: JSXOutput): void;
+}
 
 // Warning: (ae-internal-missing-underscore) The name "StreamWriter" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1620,6 +1627,10 @@ export interface SVGAttributes<T extends Element = Element> extends AriaAttribut
     zoomAndPan?: string | undefined;
 }
 
+// @public (undocumented)
+export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttributes<T> {
+}
+
 // @public
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
@@ -1649,20 +1660,13 @@ export interface TaskCtx {
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 // @internal (undocumented)
-export type _TextVNode = [
-_VNodeFlags.Text | _VNodeFlags.Inflated,
-// 0 - Flags
-_VNode | null,
-///////////////// 1 - Parent
-_VNode | null,
-///////////////// 2 - Previous sibling
-_VNode | null,
-///////////////// 3 - Next sibling
-Text | null | undefined,
-string
-] & {
-    __brand__: 'TextVNode';
-};
+export class _TextVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
+    // (undocumented)
+    text: string | undefined;
+    // (undocumented)
+    textNode: Text | null;
+}
 
 // @public
 export interface Tracker {
@@ -1824,34 +1828,54 @@ export const _verifySerializable: <T>(value: T, preMessage?: string) => T;
 export const version: string;
 
 // @internal (undocumented)
-export type _VirtualVNode = [
-_VNodeFlags.Virtual,
-///////////// 0 - Flags
-_VNode | null,
-/////////////// 1 - Parent
-_VNode | null,
-/////////////// 2 - Previous sibling
-_VNode | null,
-/////////////// 3 - Next sibling
-_VNode | null,
-/////////////// 4 - First child
-_VNode | null,
-(string | null | boolean)[]
-] & {
-    __brand__: 'FragmentNode' & 'HostElement';
-};
+export class _VirtualVNode extends _VNode {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
+    // (undocumented)
+    firstChild: _VNode | null | undefined;
+    // (undocumented)
+    lastChild: _VNode | null | undefined;
+}
 
 // @public (undocumented)
 export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | 'document-idle';
 
+// Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
+//
 // @internal (undocumented)
-export type _VNode = _ElementVNode | _TextVNode | _VirtualVNode;
+export abstract class _VNode extends BackRef {
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
+    // (undocumented)
+    blockedChores: ChoreArray | null;
+    // Warning: (ae-forgotten-export) The symbol "ChoreArray" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    chores: ChoreArray | null;
+    // (undocumented)
+    flags: _VNodeFlags;
+    // (undocumented)
+    getAttr(key: string): string | null;
+    // (undocumented)
+    getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null;
+    // (undocumented)
+    nextSibling: _VNode | null | undefined;
+    // (undocumented)
+    parent: _ElementVNode | _VirtualVNode | null;
+    // (undocumented)
+    previousSibling: _VNode | null | undefined;
+    // (undocumented)
+    props: unknown[] | null;
+    // (undocumented)
+    setAttr(key: string, value: string | null | boolean, journal: VNodeJournal | null): void;
+    // (undocumented)
+    setProp(key: string, value: any): void;
+    // (undocumented)
+    slotParent: _VNode | null;
+    // (undocumented)
+    toString(): string;
+}
 
 // @internal (undocumented)
 export const _vnode_ensureElementInflated: (vnode: _VNode) => void;
-
-// @internal (undocumented)
-export const _vnode_getAttr: (vnode: _VNode, key: string) => string | null;
 
 // @internal (undocumented)
 export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => string[];
@@ -1860,13 +1884,7 @@ export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => strin
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
 
 // @internal (undocumented)
-export const _vnode_getNextSibling: (vnode: _VNode) => _VNode | null;
-
-// @internal (undocumented)
-export const _vnode_getProps: (vnode: _VNode) => unknown[];
-
-// @internal (undocumented)
-export const _vnode_getPropStartIndex: (vnode: _VNode) => number;
+export const _vnode_getProps: (vnode: _ElementVNode | _VirtualVNode) => unknown[];
 
 // @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
@@ -1928,11 +1946,13 @@ export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
 // @public
 export function withLocale<T>(locale: string, fn: () => T): T;
 
+// Warning: (ae-forgotten-export) The symbol "WrappedProp" needs to be exported by the entry point index.d.ts
+//
 // @internal
-export const _wrapProp: <T extends Record<any, any>, P extends keyof T>(...args: [T, P?]) => any;
+export const _wrapProp: <T extends object, P extends keyof T>(...args: [T, P?]) => WrappedProp<T, P>;
 
 // @internal @deprecated (undocumented)
-export const _wrapSignal: <T extends Record<any, any>, P extends keyof T>(obj: T, prop: P) => any;
+export const _wrapSignal: <T extends object, P extends keyof T>(obj: T, prop: P) => T[P] | WrappedProp<T, P>;
 
 // (No @packageDocumentation comment for this package)
 

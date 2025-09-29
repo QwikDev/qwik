@@ -44,73 +44,115 @@ Menus are contextual data declared with `menu.md` files. See [menus file definit
 
 ## `useDocumentHead()`
 
-Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikrouter)/pages/index.mdx#head-export).
+Use the `useDocumentHead()` function to read the document [head metadata](/docs/(qwikrouter)/pages/index.mdx#head-export) that is generated from `head` exports and markdown files.
 
-`useDocumentHead()` retrieves a readonly `DocumentHead` object that includes:
+`useDocumentHead()` retrieves a readonly `DocumentHeadValue` object:
 
 ```ts
-export interface DocumentHead {
-  /**
-   * Represents the `<title>` element of the document.
-   */
+export interface DocumentHeadValue<
+  FrontMatter extends Record<string, any> = Record<string, unknown>,
+> {
+  /** Sets `document.title`. */
   readonly title?: string;
-  /**
-   * Used to manually set meta tags in the head. Additionally, the `data`
-   * property could be used to set arbitrary data which the `<head>` component
-   * could later use to generate `<meta>` tags.
-   */
+  /** Used to manually set meta tags in the head. */
   readonly meta?: readonly DocumentMeta[];
-  /**
-   * Used to manually append `<link>` elements to the `<head>`.
-   */
+  /** Used to manually append `<link>` elements to the `<head>`. */
   readonly links?: readonly DocumentLink[];
-  /**
-   * Used to manually append `<style>` elements to the `<head>`.
-   */
+  /** Used to manually append `<style>` elements to the `<head>`. */
   readonly styles?: readonly DocumentStyle[];
+  /** Used to manually append `<script>` elements to the `<head>`. */
+  readonly scripts?: readonly DocumentScript[];
   /**
-   * Arbitrary object containing custom data. When the document head is created from
-   * markdown files, the frontmatter attributes that are not recognized as a well-known
-   * meta names (such as title, description, author, etc...), are stored in this property.
+   * Arbitrary object containing custom data. When the document head is created from markdown files,
+   * the frontmatter attributes that are not recognized as a well-known meta names (such as title,
+   * description, author, etc...), are stored in this property.
    */
-  readonly frontmatter?: Readonly<Record<string, any>>;
+  readonly frontmatter?: Readonly<FrontMatter>;
 }
 ```
 
-All starters include a `<RouterHead>` component that is responsible for generating the `<head>` element of the document. It uses the `useDocumentHead()` function to retrieve the current head metadata and render the appropriate `<meta>`, `<link>`, `<style>` and `<title>` elements.
+To get this data into the `<head>` element of the document, you can do it manually, for example:
 
-```tsx title="src/components/router-head/router-head.tsx"
-import { component$ } from '@qwik.dev/core';
-import { useDocumentHead } from '@qwik.dev/router';
+```tsx
+import { component$ } from "@qwik.dev/core";
+import { useDocumentHead } from "@qwik.dev/router";
 
-/**
- * The RouterHead component is placed inside of the document `<head>` element.
- */
+/** Use inside of the `<head>` element in `src/root.tsx` */
 export const RouterHead = component$(() => {
   const head = useDocumentHead();
 
   return (
     <>
-      <title>{head.title}</title>
-
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
+      {head.title && <title>{head.title}</title>}
       {head.meta.map((m) => (
         <meta {...m} />
       ))}
-
       {head.links.map((l) => (
         <link {...l} />
       ))}
-
-      {head.styles.map((s) => (
-        <style {...s.props} dangerouslySetInnerHTML={s.style} />
-      ))}
+      {head.styles.map((s) => {
+        // Support for the old `props` property
+        const props = s.props || s;
+        return (
+          <style
+            {...props}
+            dangerouslySetInnerHTML={s.style || props.dangerouslySetInnerHTML}
+            key={s.key}
+          />
+        );
+      })}
+      {head.scripts.map((s) => {
+        // Support for the old `props` property
+        const props = s.props || s;
+        return (
+          <script
+            {...props}
+            dangerouslySetInnerHTML={s.script || props.dangerouslySetInnerHTML}
+            key={s.key}
+          />
+        );
+      })}
     </>
   );
 });
 ```
+
+You can also use the [`DocumentHeadTags`](#documentheadtags) component to render the head tags.
+
+## `<DocumentHeadTags>`
+
+The `<DocumentHeadTags>` component renders the head tags collected from `head` exports and markdown files.
+
+Place it inside of the `<head>` element in `src/root.tsx`:
+
+```tsx
+// ...
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <link rel="canonical" href={loc.url.href} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        <DocumentHeadTags />
+      </head>
+// ...
+```
+
+You can partially override the head, for example if you want to change the title:
+
+```tsx
+import { DocumentHeadTags, useDocumentHead } from '@qwik.dev/router';
+
+export default component$(() => {
+  const head = useDocumentHead();
+  return <DocumentHeadTags title={`${head.title} - My App`} />;
+});
+```
+
+You don't have to use this component, you can also do it yourself for full control. Just copy the code from this component and modify it to your needs.
+
+Note that this component normally only runs once, during SSR. You can use Signals in your `src/root.tsx` to make runtime changes to `<head>` if needed.
 
 ## `useLocation()`
 
@@ -276,38 +318,49 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikrouter)/action/index.mdx) section for more information.
 
-## `<QwikRouterProvider>`
+## List all routes with qwikRouterConfig.routes
 
-The `QwikRouterProvider` component initializes Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent) and `useLocation()`.
+The `qwikRouterConfig.routes` property is used to retrieve the route list of your application.
 
-This component is usually located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file:
+```tsx
+import qwikRouterConfig from '@qwik-router-config';
+
+const routes = qwikRouterConfig.routes;
+for (const route of routes) {
+	// your logic here
+}
+```
+
+## `useQwikRouter()`
+
+The `useQwikRouter()` function is used to initialize Qwik Router in the existing document, providing the necessary context for Qwik Router to work, such as [`useContent()`](/docs/(qwikrouter)/api/index.mdx#usecontent), `useLocation()` and `<RouterOutlet />`.
+
+This hook should be located at the very root of your application. In most of the starters, you will find it in the `src/root.tsx` file.
 
 ```tsx title="src/root.tsx"
+import { useQwikRouter } from '@qwik.dev/router';
+
 export default component$(() => {
-  /**
-   * The root of a Qwik site always start with the <QwikRouterProvider> component,
-   * immediately followed by the document's <head> and <body>.
-   *
-   * Don't remove the `<head>` and `<body>` elements.
-   */
+  useQwikRouter();
 
   return (
-    <QwikRouterProvider>
+    <>
       <head>
-        <meta charSet="utf-8" />
-        <link rel="manifest" href="/manifest.json" />
-        <RouterHead />
+        {/* ... */}
       </head>
-      <body lang="en">
+      <body>
         <RouterOutlet />
       </body>
-    </QwikRouterProvider>
+    </>
   );
 });
 ```
 
-> `QwikRouterProvider` does not render any DOM element, not even the matched route. It merely initializes Qwik Router core logic so it should not be used more than once in the same app.
+> `useQwikRouter()` should only be called once, in the root of your application.
 
+## `<QwikRouterProvider>`
+
+The `QwikRouterProvider` component is a wrapper around the `useQwikRouter()` hook. It does not render any DOM element, not even the matched route. We recommend using the hook instead of this component.
 
 ## `<QwikRouterMockProvider>`
 

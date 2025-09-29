@@ -15,11 +15,8 @@ import {
 } from '@qwik.dev/core';
 import { expect } from 'vitest';
 import {
-  vnode_getAttr,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_getParent,
   vnode_getVNodeForChildNode,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -27,7 +24,6 @@ import {
   vnode_locate,
   vnode_newVirtual,
   vnode_remove,
-  vnode_setProp,
   vnode_toString,
   type VNodeJournal,
 } from '../core/client/vnode';
@@ -36,7 +32,7 @@ import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { ChoreType } from '../core/shared/util-chore-type';
-import { dumpState, preprocessState } from '../core/shared/shared-serialization';
+import { dumpState, preprocessState } from '../core/shared/serdes/index';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -52,8 +48,12 @@ import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
-import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, VirtualType } from '../server/qwik-copy';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
+import { transformSync } from 'esbuild';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import type { VirtualVNode, VNode } from '../core/client/vnode-impl';
 
 /** @public */
 export async function domRender(
@@ -136,8 +136,8 @@ export async function ssrRenderToDom(
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
   emulateExecutionOfQwikFuncs(document);
+  emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
-  await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   if (opts.debug) {
     console.log('========================================================');
@@ -158,6 +158,9 @@ export async function ssrRenderToDom(
     for (let i = 0; i < funcs.length; i++) {
       console.log(('    ' + i + ':').substring(-4), funcs[i].toString());
     }
+    const backpatchData = container.element.querySelector('script[type="qwik/backpatch"]');
+    console.log('--------------- SERIALIZED BACKPATCH DATA ---------------');
+    console.log('    ' + backpatchData?.textContent || 'No backpatch data found');
     console.log('---------------------------------------------------------');
   }
   const containerVNode = opts.raw
@@ -176,7 +179,7 @@ export async function ssrRenderToDom(
 
     // Create a fragment
     const fragment = vnode_newVirtual();
-    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
+    fragment.setProp(DEBUG_TYPE, VirtualType.Fragment);
 
     const childrenToMove = [];
 
@@ -188,15 +191,16 @@ export async function ssrRenderToDom(
       if (
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
-          (vnode_getAttr(child, 'type') === 'qwik/state' ||
-            vnode_getAttr(child, 'id') === 'qwikloader')) ||
+          (child.getAttr('type') === 'qwik/state' ||
+            child.getAttr('type') === ELEMENT_BACKPATCH_DATA ||
+            child.getAttr('id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
         break;
       }
       childrenToMove.push(child);
-      child = vnode_getNextSibling(child);
+      child = child.nextSibling as VNode | null;
     }
 
     // Set the container vnode as a parent of the fragment
@@ -220,32 +224,27 @@ function vnode_moveToVirtual(
   insertBefore: VNode | null
 ) {
   // ensure that the previous node is unlinked.
-  const newChildCurrentParent = newChild[VNodeProps.parent];
-  if (
-    newChildCurrentParent &&
-    (newChild[VNodeProps.previousSibling] || newChild[VNodeProps.nextSibling])
-  ) {
+  const newChildCurrentParent = newChild.parent;
+  if (newChildCurrentParent && (newChild.previousSibling || newChild.nextSibling)) {
     vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
   // link newChild into the previous/next list
   const vNext = insertBefore;
-  const vPrevious = vNext
-    ? vNext[VNodeProps.previousSibling]
-    : (parent[VirtualVNodeProps.lastChild] as VNode | null);
+  const vPrevious = vNext ? vNext.previousSibling : (parent.lastChild as VNode | null);
   if (vNext) {
-    vNext[VNodeProps.previousSibling] = newChild;
+    vNext.previousSibling = newChild;
   } else {
-    parent[VirtualVNodeProps.lastChild] = newChild;
+    parent.lastChild = newChild;
   }
   if (vPrevious) {
-    vPrevious[VNodeProps.nextSibling] = newChild;
+    vPrevious.nextSibling = newChild;
   } else {
-    parent[VirtualVNodeProps.firstChild] = newChild;
+    parent.firstChild = newChild;
   }
-  newChild[VNodeProps.previousSibling] = vPrevious;
-  newChild[VNodeProps.nextSibling] = vNext;
-  newChild[VNodeProps.parent] = parent;
+  newChild.previousSibling = vPrevious;
+  newChild.nextSibling = vNext;
+  newChild.parent = parent;
 }
 
 /** @public */
@@ -259,6 +258,51 @@ export function emulateExecutionOfQwikFuncs(document: Document) {
     if (code) {
       (document as any)[QFuncsPrefix + hash] = eval(code);
     }
+  }
+}
+
+export function emulateExecutionOfBackpatch(document: Document) {
+  // treewalker needs NodeFilter
+  if (typeof NodeFilter === 'undefined') {
+    (globalThis as any).NodeFilter = {
+      SHOW_ELEMENT: 1,
+      SHOW_ALL: -1,
+      SHOW_ATTRIBUTE: 2,
+      SHOW_TEXT: 4,
+      SHOW_CDATA_SECTION: 8,
+      SHOW_ENTITY_REFERENCE: 16,
+      SHOW_ENTITY: 32,
+      SHOW_PROCESSING_INSTRUCTION: 64,
+      SHOW_COMMENT: 128,
+      SHOW_DOCUMENT: 256,
+      SHOW_DOCUMENT_TYPE: 512,
+      SHOW_DOCUMENT_FRAGMENT: 1024,
+      SHOW_NOTATION: 2048,
+    };
+  }
+
+  // we need esbuild to transpile from ts to js for the test environment
+  const __dirname = fileURLToPath(new URL('.', import.meta.url));
+  const tsPath = join(__dirname, '../backpatch-executor.ts');
+  const tsSource = readFileSync(tsPath, 'utf8');
+
+  const result = transformSync(tsSource, {
+    loader: 'ts',
+    target: 'es2020',
+    format: 'esm',
+    minify: false,
+    sourcemap: false,
+  });
+
+  const code = `try {${result.code}} catch (e) { console.error(e); }`;
+  const script = document.createElement('script');
+  document.body.appendChild(script);
+  (document as any).currentScript = script;
+  try {
+    eval(code);
+  } finally {
+    (document as any).currentScript = null;
+    document.body.removeChild(script);
   }
 }
 
@@ -288,10 +332,10 @@ export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
 
 function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
-    if (vnode_getAttr(vElement, OnRenderProp) != null) {
+    if (vElement.getAttr(OnRenderProp) != null) {
       return vElement as _VirtualVNode;
     }
-    vElement = vnode_getParent(vElement);
+    vElement = vElement.parent;
   }
   return vElement;
 }

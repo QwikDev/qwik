@@ -1,20 +1,14 @@
 /** @file Public APIs for the SSR */
 
+// @ts-expect-error we don't have types for the preloader
+import { p as preload } from '@qwik.dev/core/preloader';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
-import { getPlatform } from '../shared/platform/platform';
-import { emitEvent, type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/util-chore-type';
 import { _SharedContainer } from '../shared/shared-container';
-import {
-  getObjectById,
-  inflateQRL,
-  parseQRL,
-  preprocessState,
-  wrapDeserializerProxy,
-} from '../shared/shared-serialization';
+import { getObjectById, inflateQRL, parseQRL, preprocessState } from '../shared/serdes/index';
+import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
@@ -22,23 +16,21 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QBackRefs,
   QBaseAttr,
   QContainerAttr,
   QContainerSelector,
   QCtxAttr,
   QInstanceAttr,
+  QLocaleAttr,
+  QManifestHashAttr,
   QScopedStyle,
-  QSlotParent,
   QStyle,
   QStyleSelector,
-  QBackRefs,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
-  QLocaleAttr,
-  QManifestHashAttr,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { qDev } from '../shared/utils/qdev';
 import {
@@ -49,31 +41,26 @@ import type { ContextId } from '../use/use-context';
 import { processVNodeData } from './process-vnode-data';
 import {
   VNodeFlags,
-  VNodeProps,
   type ContainerElement,
-  type ElementVNode,
   type ClientContainer as IClientContainer,
   type QDocument,
-  type VNode,
-  type VirtualVNode,
 } from './types';
+import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
   VNodeJournalOpCode,
   vnode_applyJournal,
-  vnode_getDOMChildNodes,
+  vnode_createErrorDiv,
   vnode_getDomParent,
-  vnode_getParent,
-  vnode_getProp,
   vnode_getProps,
   vnode_insertBefore,
+  vnode_isElementVNode,
+  vnode_isVNode,
   vnode_isVirtualVNode,
   vnode_locate,
-  vnode_newElement,
   vnode_newUnMaterializedElement,
-  vnode_setProp,
   type VNodeJournal,
 } from './vnode';
-import { mapArray_get, mapArray_set } from './util-mapArray';
+import type { ElementVNode, VirtualVNode, VNode } from './vnode-impl';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -95,8 +82,8 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 
 /** @internal */
 export function _getQContainerElement(element: Element | VNode): Element | null {
-  const qContainerElement: Element | null = Array.isArray(element)
-    ? (vnode_getDomParent(element) as Element)
+  const qContainerElement: Element | null = vnode_isVNode(element)
+    ? (vnode_getDomParent(element, true) as Element)
     : element;
   return qContainerElement.closest(QContainerSelector);
 }
@@ -113,23 +100,23 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public rootVNode: ElementVNode;
   public document: QDocument;
   public $journal$: VNodeJournal;
-  public renderDone: Promise<void> | null = null;
   public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
-  public $initialQRLsIndexes$: Array<number> | null = null;
+  public $initialQRLs$: Array<string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $stateData$: unknown[];
   private $styleIds$: Set<string> | null = null;
-  private $renderCount$ = 0;
 
   constructor(element: ContainerElement) {
     super(
-      () => this.scheduleRender(),
-      () => vnode_applyJournal(this.$journal$),
+      () => {
+        this.$flushEpoch$++;
+        vnode_applyJournal(this.$journal$);
+      },
       {},
       element.getAttribute(QLocaleAttr)!
     );
@@ -181,24 +168,19 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
-  handleError(err: any, host: HostElement): void {
+  handleError(err: any, host: VNode | null): void {
     if (qDev && host) {
-      // Clean vdom
       if (typeof document !== 'undefined') {
         const vHost = host as VirtualVNode;
-        const errorDiv = document.createElement('errored-host');
-        if (err && err instanceof Error) {
-          (errorDiv as any).props = { error: err };
-        }
-        errorDiv.setAttribute('q:key', '_error_');
         const journal: VNodeJournal = [];
-
-        const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
-
-        vnode_getDOMChildNodes(journal, vHost, true).forEach((child) => {
-          vnode_insertBefore(journal, vErrorDiv, child, null);
-        });
-        vnode_insertBefore(journal, vHost, vErrorDiv, null);
+        const vHostParent = vHost.parent;
+        const vHostNextSibling = vHost.nextSibling as VNode | null;
+        const vErrorDiv = vnode_createErrorDiv(document, vHost, err, journal);
+        // If the host is an element node, we need to insert the error div into its parent.
+        const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+        // If the host is different then we need to insert errored-host in the same position as the host.
+        const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+        vnode_insertBefore(journal, insertHost, vErrorDiv, insertBefore);
         vnode_applyJournal(journal);
       }
 
@@ -218,41 +200,38 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     errorStore.error = err;
   }
 
-  setContext<T>(host: HostElement, context: ContextId<T>, value: T): void {
+  setContext<T>(host: VNode, context: ContextId<T>, value: T): void {
     let ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-    if (!ctx) {
+    if (ctx == null) {
       this.setHostProp(host, QCtxAttr, (ctx = []));
     }
-    mapArray_set(ctx, context.id, value, 0);
+    mapArray_set(ctx, context.id, value, 0, true);
   }
 
-  resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined {
+  resolveContext<T>(host: VNode, contextId: ContextId<T>): T | undefined {
     while (host) {
       const ctx = this.getHostProp<Array<string | unknown>>(host, QCtxAttr);
-      if (ctx) {
-        const value = mapArray_get(ctx, contextId.id, 0) as T;
-        if (value) {
-          return value as T;
-        }
+      if (ctx != null && mapArray_has(ctx, contextId.id, 0)) {
+        return mapArray_get(ctx, contextId.id, 0) as T;
       }
       host = this.getParentHost(host)!;
     }
     return undefined;
   }
 
-  getParentHost(host: HostElement): HostElement | null {
-    let vNode = vnode_getParent(host as any);
+  getParentHost(host: VNode): VNode | null {
+    let vNode: VNode | null = host.parent;
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
-        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
-          return vNode as any as HostElement;
+        if (vNode.getProp(OnRenderProp, null) !== null) {
+          return vNode;
         }
         vNode =
-          vnode_getParent(vNode) ||
+          vNode.parent ||
           // If virtual node, than it could be a slot so we need to read its parent.
-          vnode_getProp<VNode>(vNode, QSlotParent, this.vNodeLocate);
+          vNode.slotParent;
       } else {
-        vNode = vnode_getParent(vNode);
+        vNode = vNode.parent;
       }
     }
     return null;
@@ -260,7 +239,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const vNode: VirtualVNode = host as any;
-    vnode_setProp(vNode, name, value);
+    vNode.setProp(name, value);
   }
 
   getHostProp<T>(host: HostElement, name: string): T | null {
@@ -279,46 +258,20 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         getObjectById = parseInt;
         break;
     }
-    return vnode_getProp(vNode, name, getObjectById);
-  }
-
-  scheduleRender() {
-    this.$renderCount$++;
-    this.renderDone ||= getPlatform().nextTick(() => this.processChores());
-    return this.renderDone.finally(() =>
-      emitEvent('qrender', { instanceHash: this.$instanceHash$, renderCount: this.$renderCount$ })
-    );
-  }
-
-  private processChores() {
-    let renderCount = this.$renderCount$;
-    const result = this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-    if (isPromise(result)) {
-      return result.then(async () => {
-        while (renderCount !== this.$renderCount$) {
-          renderCount = this.$renderCount$;
-          await this.$scheduler$(ChoreType.WAIT_FOR_ALL);
-        }
-        this.renderDone = null;
-      });
-    }
-    if (renderCount !== this.$renderCount$) {
-      this.processChores();
-      return;
-    }
-    this.renderDone = null;
+    return vNode.getProp(name, getObjectById);
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
-    if ((vNode[VNodeProps.flags] & VNodeFlags.Resolved) === 0) {
-      vNode[VNodeProps.flags] |= VNodeFlags.Resolved;
+    if ((vNode.flags & VNodeFlags.Resolved) === 0) {
+      vNode.flags |= VNodeFlags.Resolved;
       const props = vnode_getProps(vNode);
       for (let i = 0; i < props.length; i = i + 2) {
         const prop = props[i] as string;
         if (isSlotProp(prop)) {
           const value = props[i + 1];
           if (typeof value == 'string') {
-            props[i + 1] = this.vNodeLocate(value);
+            const projection = this.vNodeLocate(value);
+            props[i + 1] = projection;
           }
         }
       }
@@ -393,15 +346,14 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
    * ```
    */
   private $scheduleInitialQRLs$(): void {
-    if (this.$initialQRLsIndexes$) {
-      for (const index of this.$initialQRLsIndexes$) {
-        this.$scheduler$(
-          ChoreType.QRL_RESOLVE,
-          null,
-          this.$getObjectById$(index) as QRLInternal<(...args: unknown[]) => unknown>
-        );
+    if (this.$initialQRLs$) {
+      for (const qrl of this.$initialQRLs$) {
+        const match = /#(.*)_([a-zA-Z0-9]+)(\[|$)/.exec(qrl);
+        if (match) {
+          preload(match[2], 0.3);
+        }
       }
-      this.$initialQRLsIndexes$ = null;
+      this.$initialQRLs$ = null;
     }
   }
 }

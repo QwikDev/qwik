@@ -1,5 +1,25 @@
 # create-qwik
 
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 set sideEffects: false to the lib template, otherwise there might be some side effects imports when building a consumer project. (by [@gioboa](https://github.com/gioboa) in [#7855](https://github.com/QwikDev/qwik/pull/7855))
+
+- 🐞🩹 fix up vscode settings merge. Use JSON5 to parse settings.json to prevent parsing errors. (by [@gioboa](https://github.com/gioboa) in [#7858](https://github.com/QwikDev/qwik/pull/7858))
+
+- 🛠 use the new version of @croct/json5-parser to merge JSON5 and preserve comments (by [@gioboa](https://github.com/gioboa) in [#7884](https://github.com/QwikDev/qwik/pull/7884))
+
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 fix up TypeScript compatibility in the localize starter (by [@FDiskas](https://github.com/FDiskas) in [#7617](https://github.com/QwikDev/qwik/pull/7617))
+
 ## 1.15.0
 
 ### Patch Changes

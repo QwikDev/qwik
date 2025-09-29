@@ -30,7 +30,7 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { IsQData, getRouteMatchPathname } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -58,11 +58,11 @@ export function createRequestEvent(
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (trailingSlash && !url.pathname.endsWith('/')) {
-      url.pathname += '/';
-    }
+  const { pathname, isInternal } = getRouteMatchPathname(url.pathname, trailingSlash);
+  if (isInternal) {
+    // For the middleware callbacks we pretend it's a regular request
+    url.pathname = pathname;
+    // But we set this flag so that they can act differently
     sharedMap.set(IsQData, true);
   }
 
@@ -77,10 +77,7 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const asyncStore = globalThis.qcAsyncRequestStore;
-      const result = asyncStore?.run
-        ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
-        : moduleRequestHandler(requestEv);
+      const result = moduleRequestHandler(requestEv);
       if (isPromise(result)) {
         await result;
       }
@@ -228,6 +225,7 @@ export function createRequestEvent(
 
     error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
+      headers.delete('Cache-Control');
       return new ServerError(statusCode, message);
     },
 
@@ -235,17 +233,19 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
-        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
-        if (url !== fixedURL) {
+        if (/([^:])\/{2,}/.test(url)) {
+          const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+          url = fixedURL;
         }
-        headers.set('Location', fixedURL);
+        headers.set('Location', url);
       }
-      // Fallback to 'no-store' when end user is not managing Cache-Control header
-      if (statusCode > 301 && !headers.get('Cache-Control')) {
+      headers.delete('Cache-Control');
+      if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
-      exit();
+
+      routeModuleIndex = ABORT_INDEX;
       return new RedirectMessage();
     },
 
@@ -265,6 +265,7 @@ export function createRequestEvent(
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
+      headers.delete('Cache-Control');
       return {
         failed: true,
         ...data,

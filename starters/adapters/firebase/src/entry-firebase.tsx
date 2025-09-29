@@ -15,7 +15,7 @@ import qwikCityPlan from "@qwik-city-plan";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformFirebase {}
+  type QwikCityPlatform = PlatformFirebase;
 }
 
 export default createQwikCity({ render, qwikCityPlan });

@@ -16,7 +16,7 @@ import { createServer } from "node:http";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  type QwikCityPlatform = PlatformNode;
 }
 
 /** The default headers used by helmet */

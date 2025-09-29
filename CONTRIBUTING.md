@@ -341,7 +341,6 @@ For larger PRs, it would really help if you follow these guidelines.
   For example: `feat(qwik-city): confetti animations` or `chore: pnpm api.update`
 
   Common types include:
-
   - feat: A new feature
   - fix: A bug fix
   - docs: Documentation only changes

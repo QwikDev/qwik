@@ -391,6 +391,9 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
   if (pathname.includes('__open-in-editor')) {
     return false;
   }
+  if (pathname.includes('?editor:')) {
+    return false;
+  }
   if (url.searchParams.has('html-proxy')) {
     return false;
   }

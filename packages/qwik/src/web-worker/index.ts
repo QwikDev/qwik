@@ -1,15 +1,11 @@
-//@ts-ignore
 import { implicit$FirstArg } from '../core/shared/qrl/implicit_dollar';
 import { $, type QRL } from '../core/shared/qrl/qrl.public';
 import { _serialize } from '../core/shared/serdes/index';
 import { _getContextElement } from '../core/use/use-core';
 import workerUrl from './worker.js?worker&url';
 
-export interface ServerFunction {
-  (...args: any[]): any;
-}
 export interface WorkerConstructorQRL {
-  <T extends ServerFunction>(fnQrl: QRL<T>): QRL<T>;
+  <T extends (...args: any[]) => any>(fnQrl: QRL<T>): QRL<T>;
 }
 
 const qwikWorkers = new Map<string, Worker>();
@@ -44,7 +40,7 @@ export const workerQrl: WorkerConstructorQRL = (qrl) => {
       'worker$ is experimental and must be enabled with `experimental: ["webWorker"]` in the `qwikVite` plugin.'
     );
   }
-  return $(async (...args: any[]) => {
+  return $(async (...args: unknown[]) => {
     const containerEl =
       (_getContextElement() as HTMLElement | undefined)?.closest(
         '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'

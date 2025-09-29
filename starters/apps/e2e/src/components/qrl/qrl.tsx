@@ -20,9 +20,7 @@ export const InnerComputedButton = component$<any>((props) => {
     props.test.value;
   });
 
-  const handleClick = $(() => {
-    syncSelection();
-  });
+  const handleClick = $(() => syncSelection());
 
   return (
     <button id="inner-computed-button" onClick$={handleClick}>

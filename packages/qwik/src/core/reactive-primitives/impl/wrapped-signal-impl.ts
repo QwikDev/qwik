@@ -15,29 +15,23 @@ import {
 import { scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 
-export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
-  $args$: any[];
-  $func$: (...args: any[]) => T;
-  $funcStr$: string | null;
-
-  $flags$: AllSignalFlags;
+export class WrappedSignalImpl<T, A extends unknown[] = unknown[]>
+  extends SignalImpl<T>
+  implements BackRef
+{
   $hostElement$: HostElement | null = null;
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
   constructor(
     container: Container | null,
-    fn: (...args: any[]) => T,
-    args: any[],
-    fnStr: string | null,
+    public $func$: (...args: A) => T,
+    public $args$: A,
+    public $funcStr$: string | null,
     // We need a separate flag to know when the computation needs running because
     // we need the old value to know if effects need running after computation
-    flags: SignalFlags = SignalFlags.INVALID | WrappedSignalFlags.UNWRAP
+    public $flags$: AllSignalFlags = SignalFlags.INVALID | WrappedSignalFlags.UNWRAP
   ) {
-    super(container, NEEDS_COMPUTATION);
-    this.$args$ = args;
-    this.$func$ = fn;
-    this.$funcStr$ = fnStr;
-    this.$flags$ = flags;
+    super(container, NEEDS_COMPUTATION as T);
   }
 
   invalidate() {
@@ -46,7 +40,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     // for many signals. If it fails, we schedule a chore to run the computation.
     try {
       this.$computeIfNeeded$();
-    } catch (_) {
+    } catch {
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
         this.$hostElement$,
@@ -107,7 +101,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     }
   }
   // Make this signal read-only
-  set value(_: any) {
+  set value(_: T) {
     throw qError(QError.wrappedReadOnly);
   }
   // Getters don't get inherited when overriding a setter

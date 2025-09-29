@@ -18,6 +18,6 @@
       "@qwik-client-manifest": ["packages/qwik/src/server/server-modules.d.ts"]
     }
   },
-  "include": ["src", "global.d.ts"],
+  "include": ["."],
   "exclude": ["dist"]
 }

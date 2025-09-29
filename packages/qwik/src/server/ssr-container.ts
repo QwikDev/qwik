@@ -610,7 +610,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private _styleNode(styleId: string, content: string) {
     this.openElement('style', [QStyle, styleId]);
     this.write(content);
-    this.closeElement();
+    this._closeElement();
   }
 
   ////////////////////////////////////
@@ -792,7 +792,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
 
-    this.closeElement();
+    this._closeElement();
   }
 
   private emitStateData(): ValueOrPromise<void> {
@@ -801,7 +801,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
     this.openElement('script', ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
-      this.closeElement();
+      this._closeElement();
     });
   }
 
@@ -817,7 +817,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('[');
       this.writeArray(fns, ',');
       this.write(']');
-      this.closeElement();
+      this._closeElement();
     }
   }
 
@@ -839,7 +839,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('script', scriptAttrs);
       this.write(JSON.stringify(patches));
-      this.closeElement();
+      this._closeElement();
     }
   }
 
@@ -857,7 +857,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const backpatchScript = getQwikBackpatchExecutorScript({ debug: isDev });
     this.write(backpatchScript);
 
-    this.closeElement();
+    this._closeElement();
   }
 
   emitPreloaderPre() {
@@ -886,13 +886,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           linkAttrs.push('nonce', nonce);
         }
         this.openElement('link', linkAttrs);
-        this.closeElement();
+        this._closeElement();
         const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
         if (nonce) {
           scriptAttrs.push('nonce', nonce);
         }
         this.openElement('script', scriptAttrs);
-        this.closeElement();
+        this._closeElement();
       }
     }
   }
@@ -916,7 +916,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         }
         this.openElement('script', scriptAttrs);
         this.write(qwikLoaderScript);
-        this.closeElement();
+        this._closeElement();
       }
     }
 
@@ -933,7 +933,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
-      this.closeElement();
+      this._closeElement();
     }
   }
 
@@ -994,7 +994,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             throw Error(); // 'should not get here'
           }
         }
-        this.closeElement();
+        this._closeElement();
       } finally {
         this.currentComponentNode = previousCurrentComponentNode;
       }

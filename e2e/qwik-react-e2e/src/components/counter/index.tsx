@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { qwikify$ } from '@qwik.dev/react';
 
 interface IProps {
-  onMount(): void;
-  onUnmount(): void;
+  onMount(this: void): void;
+  onUnmount(this: void): void;
 }
 
 function Counter({ onMount, onUnmount }: IProps) {

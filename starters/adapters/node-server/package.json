@@ -1,7 +1,7 @@
 {
   "description": "Vanilla Node server",
   "scripts": {
-    "build.server": "vite build -c adapters/node-server/vite.config.mts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/node-server/vite.config.mts",
     "serve": "node server/entry.node-server"
   },
   "__qwik__": {

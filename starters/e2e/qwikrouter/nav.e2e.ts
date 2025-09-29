@@ -32,7 +32,7 @@ test.describe("nav", () => {
       await increment.click();
       await expect(increment).toHaveText("Click me 1");
       await link.click();
-      await expect(new URL(page.url()).hash).toBe("#navigate");
+      expect(new URL(page.url()).hash).toBe("#navigate");
       await expect(increment).toHaveText("Click me 1");
     });
 
@@ -44,6 +44,9 @@ test.describe("nav", () => {
         const link = page.locator("#to-page-short");
         await link.click();
 
+        await expect(page).toHaveURL(
+          "/qwikrouter-test/scroll-restoration/page-short/",
+        );
         await expect(page.locator("h1")).toHaveText("Page Short");
 
         await page.reload();
@@ -51,18 +54,21 @@ test.describe("nav", () => {
 
         await page.goBack();
 
+        await expect(page).toHaveURL(
+          "/qwikrouter-test/scroll-restoration/page-long/",
+        );
         await expect(page.locator("h1")).toHaveText("Page Long");
       });
       test("should scroll on hash change", async ({ page }) => {
         await page.goto("/qwikrouter-test/scroll-restoration/hash/");
-        expect(page).toHaveURL("/qwikrouter-test/scroll-restoration/hash/");
+        await expect(page).toHaveURL(
+          "/qwikrouter-test/scroll-restoration/hash/",
+        );
 
         const link = page.locator("#hash-1");
         await link.click();
-        // Without this, sometimes the URL is #hash-1
-        await page.waitForTimeout(100);
 
-        expect(page).toHaveURL(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/hash/#hash-2",
         );
         let scrollY1;
@@ -77,7 +83,7 @@ test.describe("nav", () => {
         await scrollTo(page, 0, 1000);
         await link2.click();
 
-        expect(page).toHaveURL(
+        await expect(page).toHaveURL(
           "/qwikrouter-test/scroll-restoration/hash/#hash-1",
         );
         await page.waitForTimeout(50);
@@ -89,7 +95,9 @@ test.describe("nav", () => {
         await scrollTo(page, 0, 2000);
         await link3.click();
 
-        expect(page).toHaveURL("/qwikrouter-test/scroll-restoration/hash/");
+        await expect(page).toHaveURL(
+          "/qwikrouter-test/scroll-restoration/hash/",
+        );
         await page.waitForTimeout(50);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
@@ -270,7 +278,7 @@ test.describe("nav", () => {
         await expect(page.locator("#issue2829-context")).toHaveText(
           "context: __CONTEXT_VALUE__",
         );
-        await expect(new URL(page.url()).pathname).toBe(
+        expect(new URL(page.url()).pathname).toBe(
           "/qwikrouter-test/issue2829/b/",
         );
       });
@@ -422,7 +430,7 @@ test.describe("nav", () => {
 
     test("issue4956", async ({ page }) => {
       await page.goto("/qwikrouter-test/issue4956?id=1");
-      const textContent = await page.locator("#routeId");
+      const textContent = page.locator("#routeId");
 
       await expect(textContent).toHaveText("1");
     });
@@ -442,13 +450,13 @@ test.describe("nav", () => {
 
     test("issue7182", async ({ page, javaScriptEnabled }) => {
       await page.goto("/qwikrouter-test/issue7182");
-      const input1 = await page.locator("#input1");
+      const input1 = page.locator("#input1");
       await input1.fill("4");
       await input1.dispatchEvent("change");
-      const input2 = await page.locator("#input2");
+      const input2 = page.locator("#input2");
       await input2.fill("4");
       await input2.dispatchEvent("change");
-      const result = await page.locator("#result");
+      const result = page.locator("#result");
       if (javaScriptEnabled) {
         await expect(result).toHaveText("8");
       } else {
@@ -465,20 +473,20 @@ test.describe("nav", () => {
         "/qwikrouter-test/issue7732/c/?redirected=true",
       );
     });
-    // TODO: Fix this test (currently not working because the action redirect adds a `/q-data.json` at the end of the path)
-    test.fixme(
-      "action with redirect without query params in a route with query param should redirect to route without query params",
-      async ({ page }) => {
-        await page.goto(
-          "/qwikrouter-test/action-redirect-without-search-params/?test=test",
-        );
-        const button = page.locator("button");
-        await button.click();
-        await page.waitForURL(
-          "/qwikrouter-test/action-redirect-without-search-params-target/",
-        );
-      },
-    );
+    test("action with redirect without query params in a route with query param should redirect to route without query params", async ({
+      page,
+    }) => {
+      await page.goto(
+        "/qwikrouter-test/action-redirect-without-search-params/?test=test",
+      );
+      const button = page.locator("button");
+      await button.click();
+      await page.waitForURL(
+        "/qwikrouter-test/action-redirect-without-search-params-target/",
+      );
+      const searchParams = new URL(page.url()).searchParams;
+      expect(searchParams.size).toBe(0);
+    });
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikrouter-test/");
 
@@ -530,6 +538,22 @@ test.describe("nav", () => {
       await expect(page.locator("#redirected-result")).toHaveText("true");
     });
 
+    test("server plugin q-data redirect from /redirectme to /", async ({
+      baseURL,
+    }) => {
+      const res = await fetch(
+        new URL("/qwikrouter-test/redirectme/q-data.json", baseURL),
+        {
+          redirect: "manual",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+      expect(res.status).toBe(301);
+      expect(res.headers.get("Location")).toBe("/qwikrouter-test/q-data.json");
+    });
+
     test("should not execute task from removed layout, and should be executed only once for SPA", async ({
       page,
       javaScriptEnabled,
@@ -563,8 +587,3 @@ test.describe("nav", () => {
     });
   }
 });
-
-function toPath(href: string) {
-  const url = new URL(href);
-  return url.pathname + url.search + url.hash;
-}

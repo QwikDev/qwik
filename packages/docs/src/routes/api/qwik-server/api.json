@@ -3,6 +3,20 @@
   "package": "@qwik.dev/qwik/server",
   "members": [
     {
+      "name": "getQwikBackpatchExecutorScript",
+      "id": "getqwikbackpatchexecutorscript",
+      "hierarchy": [
+        {
+          "name": "getQwikBackpatchExecutorScript",
+          "id": "getqwikbackpatchexecutorscript"
+        }
+      ],
+      "kind": "Function",
+      "content": "Provides the `backpatch-executor.js` executor script as a string.\n\n\n```typescript\nexport declare function getQwikBackpatchExecutorScript(opts?: {\n    debug?: boolean;\n}): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n{ debug?: boolean; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts",
+      "mdFile": "core.getqwikbackpatchexecutorscript.md"
+    },
+    {
       "name": "getQwikLoaderScript",
       "id": "getqwikloaderscript",
       "hierarchy": [
@@ -124,7 +138,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PreloaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Log preloader debug information to the console.\n\nDefaults to `false`\n\n\n</td></tr>\n<tr><td>\n\n[maxIdlePreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain. If you set this higher, the browser will have all JS files in memory sooner, but it will contend with other resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait longer to be preloaded.\n\nBundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.\n\nDefaults to `25`\n\n\n</td></tr>\n<tr><td>\n\n[preloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ The minimum probability for a bundle to be added to the preload queue.\n\nDefaults to `0.35` (35% probability)\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.\n\nDefaults to `0.7` (70% probability)\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This most likely includes the core and the preloader script itself. Setting this to 0 will disable all preload links.\n\nPreload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a Core Web Vital but more noticeable to the user.\n\nDefaults to `5`\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface PreloaderOptions \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[debug?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Log preloader debug information to the console.\n\nDefaults to `false`\n\n\n</td></tr>\n<tr><td>\n\n[maxIdlePreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of simultaneous preload links that the preloader will maintain. If you set this higher, the browser will have all JS files in memory sooner, but it will contend with other resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait longer to be preloaded.\n\nBundles that reach 100% probability (static imports of other bundles) will always be preloaded immediately, no limit.\n\nDefaults to `25`\n\n\n</td></tr>\n<tr><td>\n\n[preloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloadProbability?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.\n\nDefaults to `0.7` (70% probability)\n\nThis makes sure that the most likely bundles are preloaded ahead of time.\n\n\n</td></tr>\n<tr><td>\n\n[ssrPreloads?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Maximum number of preload links to add during SSR. These instruct the browser to preload likely bundles before the preloader script is active. This most likely includes the core and the preloader script itself. Setting this to 0 will disable all preload links.\n\nPreload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a Core Web Vital but more noticeable to the user.\n\nDefaults to `5`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts",
       "mdFile": "core.preloaderoptions.md"
     },

@@ -21,5 +21,5 @@ test('preloader script', () => {
    * dereference objects etc, but that actually results in worse compression
    */
   const compressed = compress(Buffer.from(preLoader), { mode: 1, quality: 11 });
-  expect([compressed.length, preLoader.length]).toEqual([1855, 5490]);
+  expect([compressed.length, preLoader.length]).toEqual([1802, 5340]);
 });

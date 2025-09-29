@@ -54,13 +54,14 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  array.add(effectSubscription);
+  !array.has(effectSubscription) && array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
   array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  array[EffectSubscriptionProp.BACK_REF].add(value);
+  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
+    array[EffectSubscriptionProp.BACK_REF].add(value);
 };
 
 export const addQrlToSerializationCtx = (
@@ -84,7 +85,7 @@ export const addQrlToSerializationCtx = (
   }
 };
 
-export const triggerEffects = (
+export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null
@@ -121,21 +122,21 @@ export const triggerEffects = (
         assertDefined(qrl, 'Component must have QRL');
         const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
         container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-      } else if (isBrowser) {
-        if (property === EffectProperty.VNODE) {
+      } else if (property === EffectProperty.VNODE) {
+        if (isBrowser) {
           const host: HostElement = consumer;
           container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
-        } else {
-          const host: HostElement = consumer;
-          const effectData = effectSubscription[EffectSubscriptionProp.DATA];
-          if (effectData instanceof SubscriptionData) {
-            const data = effectData.data;
-            const payload: NodePropPayload = {
-              ...data,
-              $value$: signal as SignalImpl,
-            };
-            container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
-          }
+        }
+      } else {
+        const host: HostElement = consumer;
+        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        if (effectData instanceof SubscriptionData) {
+          const data = effectData.data;
+          const payload: NodePropPayload = {
+            ...data,
+            $value$: signal as SignalImpl,
+          };
+          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
         }
       }
     };

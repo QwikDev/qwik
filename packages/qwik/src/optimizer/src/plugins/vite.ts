@@ -1,5 +1,4 @@
 import type { UserConfig, ViteDevServer, Plugin as VitePlugin, BuildOptions } from 'vite';
-import { QWIK_LOADER_DEFAULT_DEBUG, QWIK_LOADER_DEFAULT_MINIFIED } from '../scripts';
 import type {
   EntryStrategy,
   GlobalInjections,
@@ -9,7 +8,7 @@ import type {
   TransformModule,
 } from '../types';
 import { type BundleGraphAdder } from './bundle-graph';
-import { getImageSizeServer } from './image-size-server';
+import { getImageSizeServer } from './dev/image-size-server';
 import {
   QWIK_BUILD_ID,
   QWIK_CLIENT_MANIFEST_ID,
@@ -27,10 +26,18 @@ import {
   type QwikPluginOptions,
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
-import { VITE_DEV_CLIENT_QS, configureDevServer, configurePreviewServer } from './vite-dev-server';
-import { parseId } from './vite-utils';
+import { configurePreviewServer, getViteIndexTags } from './dev';
+import { isVirtualId } from './vite-utils';
 
-const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
+const DEDUPE = [
+  QWIK_CORE_ID,
+  QWIK_JSX_RUNTIME_ID,
+  QWIK_JSX_DEV_RUNTIME_ID,
+  QWIK_CORE_INTERNAL_ID,
+  '@builder.io/qwik',
+  '@builder.io/qwik/jsx-runtime',
+  '@builder.io/qwik/jsx-dev-runtime',
+];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
@@ -50,8 +57,6 @@ type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], F
  * @public
  */
 export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
-  let isClientDevOnly = false;
-  let clientDevInput: undefined | string = undefined;
   let viteCommand: 'build' | 'serve' = 'serve';
   let manifestInput: QwikManifest | null = null;
   let clientOutDir: string | null = null;
@@ -80,6 +85,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     getClientPublicOutDir: () => clientPublicOutDir,
     getAssetsDir: () => viteAssetsDir,
     registerBundleGraphAdder: (adder: BundleGraphAdder) => bundleGraphAdders.add(adder),
+    _oldDevSsrServer: () => qwikViteOpts.devSsrServer,
   };
 
   // We provide two plugins to Vite. The first plugin is the main plugin that handles all the
@@ -107,6 +113,8 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         target = 'client';
       }
 
+      viteCommand = viteEnv.command;
+
       let buildMode: QwikBuildMode;
       if (viteEnv.mode === 'production') {
         buildMode = 'production';
@@ -119,9 +127,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         // serve (development)
         buildMode = 'development';
       }
-
-      viteCommand = viteEnv.command;
-      isClientDevOnly = viteCommand === 'serve' && viteEnv.mode !== 'ssr';
 
       qwikPlugin.debug(`vite config(), command: ${viteCommand}, env.mode: ${viteEnv.mode}`);
 
@@ -190,17 +195,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           : clientOutDir;
 
         ssrOutDir = opts.ssrOutDir;
-
-        if (typeof qwikViteOpts.client?.devInput === 'string') {
-          clientDevInput = path.resolve(opts.rootDir, qwikViteOpts.client.devInput);
-        } else {
-          if (opts.srcDir) {
-            clientDevInput = path.resolve(opts.srcDir, CLIENT_DEV_INPUT);
-          } else {
-            clientDevInput = path.resolve(opts.rootDir, 'src', CLIENT_DEV_INPUT);
-          }
-        }
-        clientDevInput = qwikPlugin.normalizePath(clientDevInput);
       }
 
       const isDevelopment = buildMode === 'development';
@@ -229,6 +223,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             '@builder.io/qwik/jsx-dev-runtime': '@qwik.dev/core/jsx-dev-runtime',
             '@builder.io/qwik/optimizer': '@qwik.dev/core/optimizer',
             '@builder.io/qwik/loader': '@qwik.dev/core/loader',
+            '@builder.io/qwik/backpatch': '@qwik.dev/core/backpatch',
             '@builder.io/qwik/cli': '@qwik.dev/core/cli',
             '@builder.io/qwik/testing': '@qwik.dev/core/testing',
           },
@@ -251,10 +246,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
-            // v1 imports, they are removed during transform but vite doesn't know that
             '@builder.io/qwik',
-            '@builder.io/qwik-city',
           ],
+          // Enforce scanning our input even when overridden later
+          entries:
+            input &&
+            (typeof input === 'string'
+              ? [input]
+              : typeof input === 'object'
+                ? Object.values(input)
+                : input),
         },
         build: {
           modulePreload: false,
@@ -270,9 +271,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             maxParallelFileOps: 1,
             // This will amend the existing input
             input,
-            output: {
-              manualChunks: qwikPlugin.manualChunks,
-            },
             // temporary fix for rolldown-vite types
           } as BuildOptions['rollupOptions'],
         },
@@ -295,7 +293,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           ...updatedViteConfig.build!.rollupOptions,
-          output: normalizeRollupOutputOptions(
+          output: await normalizeRollupOutputOptions(
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
@@ -320,10 +318,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             }
           }
         } else if (opts.target === 'client') {
-          // Client Build
-          if (isClientDevOnly && !opts.csr) {
-            updatedViteConfig.build!.rollupOptions!.input = clientDevInput;
-          }
+          // nothing
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
@@ -356,13 +351,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     async configResolved(config) {
       basePathname = config.base;
       if (!(basePathname.startsWith('/') && basePathname.endsWith('/'))) {
-        // TODO v2: make this an error
-        console.error(
-          `warning: vite's config.base must begin and end with /. This will be an error in v2. If you have a valid use case, please open an issue.`
-        );
-        if (!basePathname.endsWith('/')) {
-          basePathname += '/';
-        }
+        throw new Error(`vite's config.base must begin and end with /`);
       }
       const useSourcemap = !!config.build.sourcemap;
       if (useSourcemap && qwikViteOpts.optimizerOptions?.sourcemap === undefined) {
@@ -395,26 +384,21 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
+      const shouldResolveFile = fileFilter(id, 'resolveId');
+      if (isVirtualId(id) || !shouldResolveFile) {
         return null;
-      }
-      if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
-        return id;
       }
       return qwikPlugin.resolveId(this, id, importer, resolveIdOpts);
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
+      const shouldLoadFile = fileFilter(id, 'load');
+      if (isVirtualId(id) || !shouldLoadFile) {
         return null;
       }
 
       id = qwikPlugin.normalizePath(id);
-      const opts = qwikPlugin.getOptions();
 
-      if (isClientDevOnly && id === VITE_CLIENT_MODULE) {
-        return getViteDevModule(opts);
-      }
       if (viteCommand === 'serve' && id.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
         return {
           code: 'export const manifest = undefined;',
@@ -424,16 +408,26 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'transform') || id.includes('?raw')) {
+      const shouldTransformFile = fileFilter(id, 'transform');
+      const isStringImportId = id.includes('?raw');
+      if (isVirtualId(id) || !shouldTransformFile || isStringImportId) {
         return null;
       }
-
-      if (isClientDevOnly) {
-        const parsedId = parseId(id);
-        if (parsedId.params.has(VITE_DEV_CLIENT_QS)) {
-          code = updateEntryDev(code);
-        }
+      if (
+        id.includes('.vite/deps/') &&
+        code.slice(0, 5000).includes('qwik') &&
+        /import[^\n]*qwik[^\n]*\n/.test(code)
+      ) {
+        const relPath = rootDir && id.startsWith(rootDir) ? id.slice(rootDir.length) : id;
+        throw new Error(
+          `\n==============\n` +
+            `This dependency was pre-bundled by Vite, but it seems to use Qwik, which needs processing by the optimizer.\n` +
+            `Please add the original modulename to the "optimizeDeps.exclude" array in your Vite config:\n` +
+            `${relPath}\n` +
+            `==============\n`
+        );
       }
+
       return qwikPlugin.transform(this, code, id, transformOpts);
     },
   } as const satisfies VitePlugin<QwikVitePluginApi>;
@@ -552,48 +546,19 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         }
       }
     },
-
+    transformIndexHtml() {
+      // only in dev mode
+      if (viteCommand !== 'serve') {
+        return;
+      }
+      return getViteIndexTags(qwikPlugin.getOptions(), srcDir!);
+    },
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);
-      const devSsrServer =
-        !qwikViteOpts.csr && ('devSsrServer' in qwikViteOpts ? !!qwikViteOpts.devSsrServer : true);
-      const imageDevTools =
-        qwikViteOpts.devTools && 'imageDevTools' in qwikViteOpts.devTools
-          ? qwikViteOpts.devTools.imageDevTools
-          : true;
+      const imageDevTools = qwikViteOpts?.devTools?.imageDevTools ?? true;
 
       if (imageDevTools) {
         server.middlewares.use(getImageSizeServer(qwikPlugin.getSys(), rootDir!, srcDir!));
-      }
-
-      if (devSsrServer) {
-        const plugin = async () => {
-          const opts = qwikPlugin.getOptions();
-          const sys = qwikPlugin.getSys();
-          const path = qwikPlugin.getPath();
-          await configureDevServer(
-            basePathname,
-            server,
-            opts,
-            sys,
-            path,
-            isClientDevOnly,
-            clientDevInput
-          );
-        };
-        // TODO: Remove the "__qwikCityNew" condition in V3
-        const isNEW =
-          (globalThis as any).__qwikRouterNew === true ||
-          (globalThis as any).__qwikCityNew === true ||
-          // related to this issue https://github.com/QwikDev/qwik/issues/7600
-          // FIX: the @qwik-handlers aren't properly handled in dev mode for library projects
-          server.config.build.lib;
-
-        if (isNEW) {
-          return plugin;
-        } else {
-          return plugin();
-        }
       }
     },
 
@@ -698,23 +663,38 @@ async function checkExternals() {
     configResolved: (config) => {
       rootDir = config.root;
     },
+    // We check all SSR build lookups for external Qwik deps
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (source.startsWith('node:') || seen.has(source)) {
+        if (!options.ssr || /^([./]|node:|[^a-z])/.test(source) || seen.has(source)) {
+          return;
+        }
+        const packageName = (
+          source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]
+        ).split('?')[0];
+        if (seen.has(packageName)) {
           return;
         }
         // technically we should check for each importer, but this is ok
         seen.add(source);
-        const result = await this.resolve(source, importer, { ...options, skipSelf: true });
+        seen.add(packageName);
+        const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         if (result?.external) {
-          // For Qwik files, check if they should be externalized
-          if (await isQwikDep(source, importer ? path.dirname(importer) : rootDir)) {
+          // Qwik deps should not be external
+          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
             // TODO link to docs
             throw new Error(
-              `\n==============\n${source} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik.\nPlease add the package to "ssr.noExternal" in the Vite config. \n==============`
+              `\n==============\n` +
+                `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
+                `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
+                `==============\n`
             );
           }
+        }
+        if (packageName === source) {
+          // We already resolved it, so return that result
+          return result;
         }
       },
     },
@@ -747,45 +727,9 @@ const LOG_COLOR = {
   debug: ANSI_COLOR.BrightBlack,
 };
 
-function updateEntryDev(code: string) {
-  code = code.replace(/["']@builder.io\/qwik["']/g, `'${VITE_CLIENT_MODULE}'`);
-  return code;
-}
-
-function getViteDevModule(opts: NormalizedQwikPluginOptions) {
-  const qwikLoader = JSON.stringify(
-    opts.debug ? QWIK_LOADER_DEFAULT_DEBUG : QWIK_LOADER_DEFAULT_MINIFIED
-  );
-
-  return `// Qwik Vite Dev Module
-import { render as qwikRender } from '@qwik.dev/core';
-
-export async function render(document, rootNode, opts) {
-
-  await qwikRender(document, rootNode, opts);
-
-  let qwikLoader = document.getElementById('qwikloader');
-  if (!qwikLoader) {
-    qwikLoader = document.createElement('script');
-    qwikLoader.id = 'qwikloader';
-    qwikLoader.innerHTML = ${qwikLoader};
-    const parent = document.head ?? document.body ?? document.documentElement;
-    parent.appendChild(qwikLoader);
-  }
-
-  if (!window.__qwikViteLog) {
-    window.__qwikViteLog = true;
-    console.debug("%c⭐️ Qwik Client Mode","background: #0c75d2; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;","Do not use this mode in production!\\n - No portion of the application is pre-rendered on the server\\n - All of the application is running eagerly in the browser\\n - Optimizer/Serialization/Deserialization code is not exercised!");
-  }
-}`;
-}
-
 export const isNotNullable = <T>(v: T): v is NonNullable<T> => {
   return v != null;
 };
-
-const VITE_CLIENT_MODULE = `@qwik.dev/core/vite-client`;
-const CLIENT_DEV_INPUT = 'entry.dev';
 
 interface QwikVitePluginCommonOptions {
   /**
@@ -862,7 +806,7 @@ interface QwikVitePluginCommonOptions {
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
    * transform
    */
-  fileFilter?: (id: string, hook: string) => boolean;
+  fileFilter?: (id: string, hook: keyof VitePlugin) => boolean;
   /**
    * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
    * large projects. Defaults to `true`
@@ -904,13 +848,6 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      */
     input?: string[] | string;
     /**
-     * Entry input for client-side only development with hot-module reloading. This is for Vite
-     * development only and does not use SSR.
-     *
-     * Default `src/entry.dev.tsx`
-     */
-    devInput?: string;
-    /**
      * Output directory for the client build.
      *
      * Default `dist`
@@ -925,15 +862,7 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
     manifestOutput?: (manifest: QwikManifest) => Promise<void> | void;
   };
 
-  /**
-   * Qwik is SSR first framework. This means that Qwik requires either SSR or SSG. In dev mode the
-   * dev SSR server is responsible for rendering and pausing the application on the server.
-   *
-   * Under normal circumstances this should be on, unless you have your own SSR server which you
-   * would like to use instead and wish to disable this one.
-   *
-   * Default: true
-   */
+  /** @deprecated Use the `devSsrServer` option of the qwikRouter() plugin instead. */
   devSsrServer?: boolean;
 
   /** Controls the SSR behavior. */
@@ -982,6 +911,8 @@ export interface QwikVitePluginApi {
   getClientPublicOutDir: () => string | null;
   getAssetsDir: () => string | undefined;
   registerBundleGraphAdder: (adder: BundleGraphAdder) => void;
+  /** @internal */
+  _oldDevSsrServer: () => boolean | undefined;
 }
 
 /**
@@ -993,9 +924,3 @@ export interface QwikVitePluginApi {
 export type QwikVitePlugin = P<QwikVitePluginApi> & {
   name: 'vite-plugin-qwik';
 };
-
-/** @public */
-export interface QwikViteDevResponse {
-  _qwikEnvData?: Record<string, any>;
-  _qwikRenderResolve?: () => void;
-}

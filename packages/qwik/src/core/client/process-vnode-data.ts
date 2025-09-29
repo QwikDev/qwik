@@ -1,6 +1,7 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
-import type { ContainerElement, ElementVNode, QDocument } from './types';
+import type { ContainerElement, QDocument } from './types';
+import type { ElementVNode } from './vnode-impl';
 
 /**
  * Process the VNodeData script tags and store the VNodeData in the VNodeDataMap.
@@ -102,17 +103,17 @@ export function processVNodeData(document: Document) {
   ///////////////////////////////
 
   const enum NodeType {
-    CONTAINER_MASK /* ***************** */ = 0b00000001,
-    ELEMENT /* ************************ */ = 0b00000010, // regular element
-    ELEMENT_CONTAINER /* ************** */ = 0b00000011, // container element need to descend into it
-    ELEMENT_SHADOW_ROOT /* ************ */ = 0b00000110, // shadow root element
-    COMMENT_SKIP_START /* ************* */ = 0b00000101, // Comment but skip the content until COMMENT_SKIP_END
-    COMMENT_SKIP_END /* *************** */ = 0b00001000, // Comment end
-    COMMENT_IGNORE_START /* *********** */ = 0b00010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
-    COMMENT_IGNORE_END /* ************* */ = 0b00100000, // Comment ignore end
-    COMMENT_ISLAND_START /* *********** */ = 0b01000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
-    COMMENT_ISLAND_END /* ************* */ = 0b10000000, // Comment island end
-    OTHER /* ************************** */ = 0b00000000,
+    CONTAINER_MASK /* ***************** */ = 0b0000001,
+    ELEMENT /* ************************ */ = 0b0000010, // regular element
+    ELEMENT_CONTAINER /* ************** */ = 0b0000011, // container element need to descend into it
+    ELEMENT_SHADOW_ROOT_WRAPPER /* **** */ = 0b0000110, // shadow root wrapper element with q:shadowroot attribute
+    COMMENT_SKIP_START /* ************* */ = 0b0001001, // Comment but skip the content until COMMENT_SKIP_END
+    COMMENT_SKIP_END /* *************** */ = 0b0001000, // Comment end
+    COMMENT_IGNORE_START /* *********** */ = 0b0010000, // Comment ignore, descend into children and skip the content until COMMENT_ISLAND_START
+    COMMENT_IGNORE_END /* ************* */ = 0b0100000, // Comment ignore end
+    COMMENT_ISLAND_START /* *********** */ = 0b1000001, // Comment island, count elements for parent container until COMMENT_ISLAND_END
+    COMMENT_ISLAND_END /* ************* */ = 0b1000000, // Comment island end
+    OTHER /* ************************** */ = 0b0000000,
   }
 
   /**
@@ -126,7 +127,7 @@ export function processVNodeData(document: Document) {
       const qContainer = getAttribute.call(node, Q_CONTAINER);
       if (qContainer === null) {
         if (hasAttribute.call(node, Q_SHADOW_ROOT)) {
-          return NodeType.ELEMENT_SHADOW_ROOT;
+          return NodeType.ELEMENT_SHADOW_ROOT_WRAPPER;
         }
         const isQElement = hasAttribute.call(node, Q_PROPS_SEPARATOR);
         return isQElement ? NodeType.ELEMENT : NodeType.OTHER;
@@ -184,12 +185,6 @@ export function processVNodeData(document: Document) {
   const nextSibling = (node: Node | null) => {
     // eslint-disable-next-line no-empty
     while (node && (node = node.nextSibling) && getFastNodeType(node) === NodeType.OTHER) {}
-    return node;
-  };
-
-  const firstChild = (node: Node | null) => {
-    // eslint-disable-next-line no-empty
-    while (node && (node = node.firstChild) && getFastNodeType(node) === NodeType.OTHER) {}
     return node;
   };
 
@@ -289,7 +284,7 @@ export function processVNodeData(document: Document) {
         } while (getFastNodeType(nextNode) !== NodeType.COMMENT_SKIP_END);
         // console.log('EXIT', nextNode?.outerHTML);
         walkContainer(walker, node, node, nextNode, '', null!, prefix + '  ');
-      } else if (nodeType === NodeType.ELEMENT_SHADOW_ROOT) {
+      } else if (nodeType === NodeType.ELEMENT_SHADOW_ROOT_WRAPPER) {
         // If we are in a shadow root, we need to get the shadow root element.
         nextNode = nextSibling(node);
         const shadowRootContainer = node as Element | null;
@@ -302,7 +297,7 @@ export function processVNodeData(document: Document) {
               0x1 /* NodeFilter.SHOW_ELEMENT  */ | 0x80 /*  NodeFilter.SHOW_COMMENT */
             ),
             null,
-            firstChild(shadowRoot),
+            shadowRoot,
             null,
             '',
             null!,

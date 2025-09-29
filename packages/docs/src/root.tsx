@@ -56,6 +56,7 @@ export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
+    pkgManager: 'pnpm',
   });
 
   useContextProvider(GlobalStore, store);

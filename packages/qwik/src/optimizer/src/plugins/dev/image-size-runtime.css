@@ -1,0 +1,27 @@
+[data-qwik-cls] {
+  outline: 2px solid red;
+}
+[data-qwik-cls]::after {
+  position: absolute;
+  font-size: 12px;
+  content: 'CLS ' attr(data-qwik-cls);
+  font-family: monospace;
+  font-weight: bold;
+  background: red;
+  color: white;
+  margin: -2px;
+  padding: 1px;
+  line-height: 1;
+  pointer-events: none;
+}
+#qwik-image-warning-container {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 0 !important;
+  overflow: visible !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  contain: size layout style content;
+  z-index: 1;
+}

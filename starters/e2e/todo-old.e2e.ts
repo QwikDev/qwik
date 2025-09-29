@@ -74,7 +74,7 @@ test.describe("Todo", () => {
     await assertItemCount(page, 2);
     await page.waitForTimeout(100);
 
-    page.locator(".todo-list>li:last-child input").click();
+    await page.locator(".todo-list>li:last-child input").click();
     await assertItemCount(page, 1, 2);
   });
 

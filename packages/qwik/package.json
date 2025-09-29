@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.8",
+  "version": "2.0.0-beta.10",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -9,13 +9,16 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "csstype": "^3.1.3",
-    "rollup": ">= ^4.44.0"
+    "launch-editor": "^2.11.1",
+    "rollup": ">= ^4.52.0"
   },
   "devDependencies": {
+    "@croct/json5-parser": "0.2.0",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
+    "domino": "2.1.6",
     "ignore": "5.3.1",
-    "image-size": "1.1.1",
+    "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.6.2",
     "ts-morph": "23.0.0",
@@ -138,6 +141,8 @@
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
+    "./backpatch-executor.js": "./dist/backpatch-executor.js",
+    "./backpatch-executor.debug.js": "./dist/backpatch-executor.debug.js",
     "./package.json": "./package.json"
   },
   "exports_annotation": "We use the build for the optimizer because esbuild doesn't like the html?raw imports in the server plugin and it's only used in the vite configs",
@@ -180,7 +185,7 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
-    "prettier": "*",
+    "prettier": "3.6.2",
     "vite": ">=5 <8",
     "vitest": ">=2 <4"
   },
@@ -200,6 +205,7 @@
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
   },
+  "sideEffects": false,
   "scripts": {
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },

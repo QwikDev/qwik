@@ -96,7 +96,7 @@ function makeEditPageUrl(url) {
     if (index !== -1 && index + 1 >= segments.length) {
       // These are directory paths without subpaths, map to their overview pages
       if (componentIndex !== -1) {
-        return 'docs/(qwik)/components/overview';
+        return 'docs/(qwik)/core/overview';
       } else if (conceptIndex !== -1) {
         return 'docs/(qwik)/concepts/think-qwik';
       }
@@ -169,12 +169,12 @@ async function testAllPaths() {
     testPaths.push(`/docs/advanced/${path}`);
   }
 
-  // Test QWIKCITY_GROUP paths
+  // Test QWIKROUTER_GROUP paths
   for (const path of QWIKROUTER_GROUP) {
     testPaths.push(`/docs/${path}`);
   }
 
-  // Test QWIKCITY_ADVANCED_GROUP paths
+  // Test QWIKROUTER_ADVANCED_GROUP paths
   for (const path of QWIKROUTER_ADVANCED_GROUP) {
     testPaths.push(`/docs/advanced/${path}`);
   }

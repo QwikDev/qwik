@@ -68,7 +68,7 @@ We also have an interactive [tutorial](../../tutorial/welcome/overview/) to get 
 
 ## What are all those `$` signs?
 
-You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](/docs/(qwik)/components/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It serves as a marker for a lazy-load boundary. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. The `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
+You might have noticed there are more [`$`](../advanced/dollar/index.mdx) signs than usual in Qwik apps, such as: [`component$()`](/docs/(qwik)/core/overview/index.mdx#component), [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask), and `<div onClick$={() => console.log('click')} />`. It serves as a marker for a lazy-load boundary. Qwik breaks your application into small chunks; these pieces are smaller than the component itself. For event handlers, hooks, etc. The `$` signals to both the [optimizer](../advanced/optimizer/index.mdx) and the developer when it's happening.
 
 **Example:**
 
@@ -271,6 +271,11 @@ For this to work, developers need to manually define the islands, and then manua
 Instead, Qwik components do not hydrate at all. Qwik achieves this through a powerful serialization system that serializes only the necessary state in the reactivity graph. This way, the app can resume without eagerly running any JS.
 
 We think resumability scales without the negative trade-offs of partial hydration.
+
+## Which browsers are supported?
+
+Qwik uses Vite under the hood so you shouldn't need to worry about whether the browser supports it if you're targeting modern web users.<br/>
+Here is the [Vite browser compatibility](https://vite.dev/guide/build.html#browser-compatibility).
 
 ## In which languages is Qwik written?
 

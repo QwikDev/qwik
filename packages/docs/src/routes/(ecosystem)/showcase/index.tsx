@@ -45,19 +45,6 @@ export default component$(() => {
         ))}
       </ul>
       <section>
-        <h2>Add Site</h2>
-        <p>This page missing any great site or in need of an update?</p>
-        <p>
-          <a
-            href="https://github.com/QwikDev/qwik/edit/main/packages/docs/scripts/pages.json"
-            target="_blank"
-            class="edit-page"
-          >
-            Edit this page!
-          </a>
-        </p>
-      </section>
-      <section>
         <h2>How are the scores calculated?</h2>
         <p>
           The scores are calculated using the{' '}

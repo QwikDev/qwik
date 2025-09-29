@@ -4,6 +4,50 @@ title: \@qwik.dev/qwik/server API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik/server
 
+## getQwikBackpatchExecutorScript
+
+Provides the `backpatch-executor.js` executor script as a string.
+
+```typescript
+export declare function getQwikBackpatchExecutorScript(opts?: {
+  debug?: boolean;
+}): string;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+opts
+
+</td><td>
+
+\{ debug?: boolean; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+string
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/scripts.ts)
+
 ## getQwikLoaderScript
 
 Provides the `qwikloader.js` file as a string. Useful for tooling to inline the qwikloader script into HTML.
@@ -497,9 +541,7 @@ number
 
 </td><td>
 
-_(Optional)_ The minimum probability for a bundle to be added to the preload queue.
-
-Defaults to `0.35` (35% probability)
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -517,6 +559,8 @@ number
 _(Optional)_ The minimum probability for a bundle to be added as a preload link during SSR.
 
 Defaults to `0.7` (70% probability)
+
+This makes sure that the most likely bundles are preloaded ahead of time.
 
 </td></tr>
 <tr><td>

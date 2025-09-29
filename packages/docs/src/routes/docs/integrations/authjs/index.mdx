@@ -69,9 +69,9 @@ and create a new file named `plugin@auth.ts` with an example configuration.
 > **Note on Manual Deployments with Node**
 
 > When deploying applications manually using Node.js, particularly with frameworks like Express, the server or Node process does not inherently know if it's being served under HTTP or HTTPS. 
-> Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ﻿ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
+> Unlike hosting services like Vercel, Netlify, or Cloudflare, where the ORIGIN configuration is automatically managed, manual setups require explicit specification. To ensure that your Node.js application recognizes the correct protocol and host it is being served under, set the following **environment variables**:
 
->	-	﻿ORIGIN: Set this to the URL of your application. For example:
+>	-	ORIGIN: Set this to the URL of your application. For example:
 >	ORIGIN=https://your-app-name.example.com
 >	- PROTOCOL_HEADER: This is used to indicate the original protocol requested by the client. Commonly, this is specified in proxy configurations. Set this variable to:
 >	PROTOCOL_HEADER=X-Forwarded-Proto

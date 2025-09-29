@@ -12,8 +12,7 @@ export interface BuildContext {
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client' | undefined;
-  isDevServer: boolean;
-  isDevServerClientOnly: boolean;
+  dynamicImports: boolean;
   isDirty: boolean;
   activeBuild: Promise<void> | null;
 }
@@ -113,13 +112,13 @@ export interface RewriteRouteOption {
 
 /** @public */
 export interface PluginOptions {
-  /** Directory of the `routes`. Defaults to `src/routes`. */
+  /** Directory of the `routes`. Defaults to `"src/routes"`. */
   routesDir?: string;
-  /** Directory of the `server plugins`. Defaults to `src/server-plugins`. */
+  /** Directory of the `server plugins`. Defaults to `routesDir`. */
   serverPluginsDir?: string;
   /**
    * The base pathname is used to create absolute URL paths up to the `hostname`, and must always
-   * start and end with a `/`. Defaults to `/`.
+   * start and end with a `/`. Defaults to `"/""`.
    */
   basePathname?: string;
   /**

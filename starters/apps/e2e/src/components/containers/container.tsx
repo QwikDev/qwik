@@ -5,6 +5,11 @@ import {
   useSignal,
   useStyles$,
 } from "@qwik.dev/core";
+import {
+  SSRRaw,
+  SSRStream,
+  type SSRStreamWriter,
+} from "@qwik.dev/core/internal";
 
 interface ContainerProps {
   url: string;
@@ -16,6 +21,47 @@ export const Containers = component$(() => {
     <div>
       <button onClick$={() => signal.value++}>{signal.value}</button>
       <Container url="/e2e/two-listeners"></Container>
+    </div>
+  );
+});
+
+const SSRStreamRemoteContainer = component$<{
+  url: string;
+  containerId?: string;
+}>(({ url, containerId }) => {
+  const decoder = new TextDecoder();
+  const getSSRStreamFunction =
+    (remoteUrl: string) => async (stream: SSRStreamWriter) => {
+      const _remoteUrl = new URL(
+        `http://localhost:${(globalThis as any).PORT}${remoteUrl}`,
+      );
+      const response = await fetch(_remoteUrl, {
+        headers: {
+          accept: "text/html",
+        },
+      });
+      if (response.ok) {
+        const reader = response.body!.getReader();
+        let fragmentChunk = await reader.read();
+        while (!fragmentChunk.done) {
+          const rawHtml = decoder.decode(fragmentChunk.value);
+          stream.write((<SSRRaw data={rawHtml} />) as string);
+          fragmentChunk = await reader.read();
+        }
+      } else {
+        console.error(
+          "Failed to connect with status:",
+          response.status,
+          response.statusText,
+        );
+      }
+    };
+
+  return (
+    <div id={containerId} q:shadowRoot>
+      <template shadowRootMode="open">
+        <SSRStream>{getSSRStreamFunction(url)}</SSRStream>
+      </template>
     </div>
   );
 });
@@ -72,7 +118,7 @@ export const Container = component$((props: ContainerProps) => {
       </div>
       <div style={{ border: "1px solid red" }}>
         Shadow DOM
-        <div q:shadowRoot>
+        <div id="shadow-dom-resource" q:shadowRoot>
           <template shadowRootMode="open">
             <Resource
               value={resource}
@@ -87,6 +133,10 @@ export const Container = component$((props: ContainerProps) => {
             />
           </template>
         </div>
+        <SSRStreamRemoteContainer
+          url="/e2e/two-listeners?fragment&loader=false"
+          containerId="shadow-dom-stream"
+        />
       </div>
     </div>
   );

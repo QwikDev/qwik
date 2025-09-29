@@ -11,6 +11,7 @@ import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
   DEBUG_TYPE,
+  ELEMENT_BACKPATCH_DATA,
   ELEMENT_ID,
   ELEMENT_KEY,
   ELEMENT_PROPS,
@@ -67,7 +68,8 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
 } from './qwik-types';
-import { getQwikLoaderScript } from './scripts';
+
+import { getQwikLoaderScript, getQwikBackpatchExecutorScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -77,7 +79,12 @@ import {
   isSelfClosingTag,
   isTagAllowed,
 } from './tag-nesting';
-import { VNodeDataFlag, type RenderOptions, type RenderToStreamResult } from './types';
+import {
+  VNodeDataFlag,
+  type BackpatchEntry,
+  type RenderOptions,
+  type RenderToStreamResult,
+} from './types';
 import { createTimer } from './utils';
 import {
   CLOSE_FRAGMENT,
@@ -188,9 +195,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
    * - From manifest injections
    */
   public additionalBodyNodes = new Array<JSXNodeInternal>();
+
   private lastNode: ISsrNode | null = null;
   private currentComponentNode: ISsrNode | null = null;
   private styleIds = new Set<string>();
+  private isBackpatchExecutorEmitted = false;
+  private backpatchMap = new Map<number, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
 
@@ -210,6 +220,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
+
   constructor(opts: Required<SSRRenderOptions>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
@@ -239,6 +250,22 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   handleError(err: any, _$host$: null): void {
     throw err;
+  }
+
+  addBackpatchEntry(
+    ssrNodeId: string,
+    attrName: string,
+    serializedValue: string | true | null
+  ): void {
+    // we want to always parse as decimal here
+    const elementIndex = parseInt(ssrNodeId, 10);
+    const entry: BackpatchEntry = {
+      attrName,
+      value: serializedValue,
+    };
+    const entries = this.backpatchMap.get(elementIndex) || [];
+    entries.push(entry);
+    this.backpatchMap.set(elementIndex, entries);
   }
 
   async render(jsx: JSXOutput) {
@@ -596,6 +623,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         this.emitVNodeData();
         preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
         this.emitSyncFnsData();
+        this.emitPatchDataIfNeeded();
+        this.emitExecutorIfNeeded();
         this.emitQwikLoaderAtBottomIfNeeded();
       })
     );
@@ -790,6 +819,45 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write(']');
       this.closeElement();
     }
+  }
+
+  emitPatchDataIfNeeded(): void {
+    const patches: (string | number | boolean | null)[] = [];
+    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+      for (const backpatchEntry of backpatchEntries) {
+        patches.push(elementIndex, backpatchEntry.attrName, backpatchEntry.value);
+      }
+    }
+
+    this.backpatchMap.clear();
+
+    if (patches.length > 0) {
+      this.isBackpatchExecutorEmitted = true;
+      const scriptAttrs = ['type', ELEMENT_BACKPATCH_DATA];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.write(JSON.stringify(patches));
+      this.closeElement();
+    }
+  }
+
+  private emitExecutorIfNeeded(): void {
+    if (!this.isBackpatchExecutorEmitted) {
+      return;
+    }
+
+    const scriptAttrs = ['type', 'text/javascript'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+    }
+    this.openElement('script', scriptAttrs);
+
+    const backpatchScript = getQwikBackpatchExecutorScript({ debug: isDev });
+    this.write(backpatchScript);
+
+    this.closeElement();
   }
 
   emitPreloaderPre() {
@@ -1092,6 +1160,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             $scopedStyleIdPrefix$: styleScopedId,
             $isConst$: isConst,
           });
+
           value = this.trackSignalValue(value, lastNode, key, signalData);
         }
 

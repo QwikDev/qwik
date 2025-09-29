@@ -1,14 +1,6 @@
-import {
-  createContextId,
-  Slot,
-  useContext,
-  useContextProvider,
-  useSignal,
-  useTask$,
-  type Signal,
-} from '@qwik.dev/core';
+import { Slot, useSignal, SSRStreamWriter } from '@qwik.dev/core';
 import { ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { component$ } from '../shared/component.public';
 import {
   Fragment as Component,
@@ -18,7 +10,6 @@ import {
 } from '../shared/jsx/jsx-runtime';
 import { SSRComment, SSRRaw, SSRStream, SSRStreamBlock } from '../shared/jsx/utils.public';
 import { delay } from '../shared/utils/promises';
-import * as logUtils from '../shared/utils/log';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -249,113 +240,31 @@ describe('v2 ssr render', () => {
         </ul>
       );
     });
-  });
 
-  it('should correctly detect node changes when node was already streamed', async () => {
-    const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
+    it('should render values from generator with stream from string', async () => {
+      const { document } = await ssrRenderToDom(
+        <ul>
+          <SSRStream>
+            {async function (stream: SSRStreamWriter) {
+              for (let i = 0; i < 5; i++) {
+                stream.write(<SSRRaw data={`<li>raw: ${i}</li>`} />);
+                await delay(10);
+              }
+            }}
+          </SSRStream>
+        </ul>,
+        { debug }
+      );
 
-    const rootContextId = createContextId<RootContext>('root-context');
-
-    type RootContext = {
-      isLabel: Signal<boolean>;
-      isDescription: Signal<boolean>;
-    };
-
-    const Label = component$(() => {
-      const context = useContext(rootContextId);
-
-      useTask$(() => {
-        context.isLabel.value = true;
-      });
-
-      return <div>Label</div>;
-    });
-
-    const Sibling = component$(() => {
-      const context = useContext(rootContextId);
-
-      return (
-        <>
-          <p>Does Sibling know about Label? {context.isLabel.value ? 'Yes' : 'No'}</p>
-          <p>Does Sibling know about Description? {context.isDescription.value ? 'Yes' : 'No'} </p>
-        </>
+      await expect(document.querySelector('ul')).toMatchDOM(
+        <ul>
+          <li>raw: 0</li>
+          <li>raw: 1</li>
+          <li>raw: 2</li>
+          <li>raw: 3</li>
+          <li>raw: 4</li>
+        </ul>
       );
     });
-
-    const Description = component$(() => {
-      const context = useContext(rootContextId);
-
-      useTask$(() => {
-        context.isDescription.value = true;
-      });
-
-      return <div>Description</div>;
-    });
-
-    const Cmp = component$(() => {
-      const isLabel = useSignal(false);
-      const isDescription = useSignal(false);
-
-      const context: RootContext = {
-        isLabel,
-        isDescription,
-      };
-
-      useContextProvider(rootContextId, context);
-
-      return (
-        <>
-          <Label />
-          <Sibling />
-          <Description />
-        </>
-      );
-    });
-
-    await ssrRenderToDom(<Cmp />, { debug });
-
-    expect(logWarnSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should correctly detect attribute changes when node was already streamed', async () => {
-    const logWarnSpy = vi.spyOn(logUtils, 'logWarn').mockImplementation(() => {});
-
-    const rootContextId = createContextId<RootContext>('root-context');
-
-    type RootContext = {
-      isLabel: Signal<boolean>;
-    };
-
-    const Label = component$(() => {
-      const context = useContext(rootContextId);
-
-      useTask$(() => {
-        context.isLabel.value = true;
-      });
-
-      return <div>Label</div>;
-    });
-
-    const Cmp = component$(() => {
-      const isLabel = useSignal(false);
-
-      const context: RootContext = {
-        isLabel,
-      };
-
-      useContextProvider(rootContextId, context);
-
-      return (
-        <>
-          <div aria-label={context.isLabel.value ? 'Yes' : 'No'}>
-            <Label />
-          </div>
-        </>
-      );
-    });
-
-    await ssrRenderToDom(<Cmp />, { debug });
-
-    expect(logWarnSpy).toHaveBeenCalledTimes(1);
   });
 });

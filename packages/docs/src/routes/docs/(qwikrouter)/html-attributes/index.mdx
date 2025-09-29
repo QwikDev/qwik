@@ -1,5 +1,5 @@
 ---
-title: HTML attributes | QwikRouter
+title: HTML attributes | Qwik Router
 description: Learn how to add attributes to the html tag, in order to add "lang" or other custom attributes.
 contributors:
   - bab2683
@@ -10,7 +10,7 @@ created_at: '2023-08-23T23:06:42Z'
 
 # HTML attributes
 
-Occasionally, it is necessary to add attributes to a website to enable specific functionalities, such as controlling the application's theme, determining text direction with the `﻿dir` attribute, or setting the page language with the `﻿lang` attribute. Typically, adding these attributes to the HTML tag is practical since it generally serves as the application's container.
+Occasionally, it is necessary to add attributes to a website to enable specific functionalities, such as controlling the application's theme, determining text direction with the `dir` attribute, or setting the page language with the `lang` attribute. Typically, adding these attributes to the HTML tag is practical since it generally serves as the application's container.
 
 To apply these attributes in Qwik router, add them to `containerAttributes` in the `src/entry.ssr.tsx` file:
 
@@ -28,7 +28,7 @@ export default function (opts: RenderToStreamOptions) {
 }
 ```
 
-In addition, the `opts.serverData` object and nested objects allow you to access information about the request, including ﻿`request headers`, `url`, `route params`, and more. Leveraging this information enables you to do the following:
+In addition, the `opts.serverData` object and nested objects allow you to access information about the request, including `request headers`, `url`, `route params`, and more. Leveraging this information enables you to do the following:
 
 ```tsx
 export default function (opts: RenderToStreamOptions) {

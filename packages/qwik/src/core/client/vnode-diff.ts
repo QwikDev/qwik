@@ -723,32 +723,12 @@ export const vnode_diff = (
     let needsQDispatchEventPatch = false;
     const currentKey = getKey(vCurrent);
     if (!isSameElementName || jsxKey !== currentKey) {
-      // scan until you find the key you want.
-      vNewNode = retrieveChildWithKey(elementName, jsxKey);
-      // If found remove everything before and place in side buffer.
-      if (vNewNode) {
-        vCurrent = vNewNode;
-        vNewNode = null;
-      } else {
-        // If not found, check the side buffer
-        vNewNode = vSideBuffer?.get(elementName + ':' + jsxKey) || null;
-        if (vNewNode) {
-          vSideBuffer!.delete(elementName + ':' + jsxKey);
-          // if found insert from side-buffer
-          // Existing keyed node
-          vnode_insertBefore(journal, vParent as ElementVNode, vNewNode, vCurrent);
-          // We are here, so jsx is different from the vCurrent, so now we want to point to the moved node.
-          vCurrent = vNewNode;
-          // We need to clean up the vNewNode, because we don't want to skip advance to next sibling (see `advance` function).
-          vNewNode = null;
-        } else {
-          // if not found it is a new item create it.
-          needsQDispatchEventPatch = createNewElement(jsx, elementName);
-        }
-      }
-    } else if (vSideBuffer?.has(elementName + ':' + jsxKey)) {
+      const sideBufferKey = getSideBufferKey(elementName, jsxKey);
+      const createNew = () => (needsQDispatchEventPatch = createNewElement(jsx, elementName));
+      moveOrCreateKeyedNode(elementName, jsxKey, sideBufferKey, vParent as ElementVNode, createNew);
+    } else {
       // delete the key from the side buffer if it is the same element
-      vSideBuffer.delete(elementName + ':' + jsxKey);
+      deleteFromSideBuffer(elementName, jsxKey);
     }
 
     // reconcile attributes
@@ -1013,7 +993,7 @@ export const vnode_diff = (
         } else {
           if (!foundTarget) {
             keyedSiblingsBeforeTarget ||= [];
-            const sideBufferKey = name ? name + ':' + vKey : vKey;
+            const sideBufferKey = getSideBufferKey(name, vKey);
             // Collect keyed sibling found before target
             keyedSiblingsBeforeTarget.push({ sideBufferKey, vNode });
           }
@@ -1028,12 +1008,87 @@ export const vnode_diff = (
       const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
       const vKey = getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
       if (vKey != null) {
-        const sideBufferKey = name ? name + ':' + vKey : vKey;
+        const sideBufferKey = getSideBufferKey(name, vKey);
         vSideBuffer ||= new Map();
         vSideBuffer.set(sideBufferKey, vCurrent);
       }
     }
     return vNodeWithKey;
+  }
+
+  function getSideBufferKey(nodeName: string | null, key: string): string;
+  function getSideBufferKey(nodeName: string | null, key: string | null): string | null;
+  function getSideBufferKey(nodeName: string | null, key: string | null): string | null {
+    if (key == null) {
+      return null;
+    }
+    return nodeName ? nodeName + ':' + key : key;
+  }
+
+  function deleteFromSideBuffer(nodeName: string | null, key: string | null): boolean {
+    const sbKey = getSideBufferKey(nodeName, key);
+    if (sbKey && vSideBuffer?.has(sbKey)) {
+      vSideBuffer.delete(sbKey);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Shared utility to resolve a keyed node by:
+   *
+   * 1. Scanning forward siblings via `retrieveChildWithKey`
+   * 2. Falling back to the side buffer using the provided `sideBufferKey`
+   * 3. Creating a new node via `createNew` when not found
+   *
+   * If a node is moved from the side buffer, it is inserted before `vCurrent` under
+   * `parentForInsert`. The function updates `vCurrent`/`vNewNode` accordingly and returns the value
+   * from `createNew` when a new node is created.
+   */
+  function moveOrCreateKeyedNode(
+    nodeName: string | null,
+    lookupKey: string | null,
+    sideBufferKey: string | null,
+    parentForInsert: VNode,
+    createNew: () => any,
+    addCurrentToSideBufferOnSideInsert?: boolean
+  ): any {
+    // 1) Try to find the node among upcoming siblings
+    vNewNode = retrieveChildWithKey(nodeName, lookupKey);
+    if (vNewNode) {
+      vCurrent = vNewNode;
+      vNewNode = null;
+      return;
+    }
+
+    // 2) Try side buffer
+    if (sideBufferKey != null) {
+      const buffered = vSideBuffer?.get(sideBufferKey) || null;
+      if (buffered) {
+        vSideBuffer!.delete(sideBufferKey);
+        if (addCurrentToSideBufferOnSideInsert && vCurrent) {
+          const currentKey =
+            getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
+          if (currentKey != null) {
+            const currentName = vnode_isElementVNode(vCurrent)
+              ? vnode_getElementName(vCurrent)
+              : null;
+            const currentSideKey = getSideBufferKey(currentName, currentKey);
+            if (currentSideKey != null) {
+              vSideBuffer ||= new Map();
+              vSideBuffer.set(currentSideKey, vCurrent);
+            }
+          }
+        }
+        vnode_insertBefore(journal, parentForInsert as any, buffered, vCurrent);
+        vCurrent = buffered;
+        vNewNode = null;
+        return;
+      }
+    }
+
+    // 3) Create new
+    return createNew();
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
@@ -1047,33 +1102,11 @@ export const vnode_diff = (
 
     if (isSameNode) {
       // All is good.
-      if (currentKey && vSideBuffer?.has(currentKey)) {
-        vSideBuffer.delete(currentKey);
-      }
+      deleteFromSideBuffer(null, currentKey);
       return;
     }
-    if (jsxKey !== null) {
-      // Try to find the node.
-      vNewNode = retrieveChildWithKey(null, jsxKey);
-      if (vNewNode) {
-        vCurrent = vNewNode;
-        vNewNode = null;
-      } else {
-        // If not found, check the side buffer
-        vNewNode = vSideBuffer?.get(jsxKey) || null;
-        if (vNewNode) {
-          // if found insert from side-buffer
-          vSideBuffer!.delete(jsxKey);
-          // Add current to the side buffer
-          if (vCurrent && currentKey) {
-            vSideBuffer?.set(currentKey, vCurrent);
-          }
-          vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
-        }
-      }
-    }
-    if (vNewNode === null) {
-      // if not found it is a new item create it.
+
+    const createNew = () => {
       vnode_insertBefore(
         journal,
         vParent as VirtualVNode,
@@ -1082,7 +1115,20 @@ export const vnode_diff = (
       );
       (vNewNode as VirtualVNode).setProp(ELEMENT_KEY, jsxKey);
       isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, type);
+    };
+    // For fragments without a key, always create a new virtual node (ensures rerender semantics)
+    if (checkKey && jsxKey === null) {
+      createNew();
+      return;
     }
+    moveOrCreateKeyedNode(
+      null,
+      jsxKey,
+      getSideBufferKey(null, jsxKey),
+      vParent as VirtualVNode,
+      createNew,
+      true
+    );
   }
 
   function expectComponent(component: Function) {
@@ -1105,32 +1151,19 @@ export const vnode_diff = (
       const hashesAreEqual = componentHash === vNodeComponentHash;
 
       if (!lookupKeysAreEqual) {
-        vNewNode = retrieveChildWithKey(null, lookupKey);
-        if (vNewNode) {
-          vCurrent = vNewNode;
-          vNewNode = null;
-          host = vCurrent as VirtualVNode;
-        } else {
-          vNewNode = lookupKey != null ? vSideBuffer?.get(lookupKey) || null : null;
-          if (vNewNode) {
-            vSideBuffer!.delete(lookupKey);
-            vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
-            vCurrent = vNewNode;
-            vNewNode = null;
-            host = vCurrent as VirtualVNode;
-          } else {
-            insertNewComponent(host, componentQRL, jsxProps);
-            shouldRender = true;
-            host = vNewNode! as VirtualVNode;
-          }
-        }
+        const createNew = () => {
+          insertNewComponent(host, componentQRL, jsxProps);
+          shouldRender = true;
+        };
+        moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode, createNew);
+        host = (vNewNode || vCurrent) as VirtualVNode;
       } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
         host = vNewNode as VirtualVNode;
         shouldRender = true;
-      } else if (vSideBuffer?.has(lookupKey)) {
+      } else {
         // delete the key from the side buffer if it is the same component
-        vSideBuffer.delete(lookupKey);
+        deleteFromSideBuffer(null, lookupKey);
       }
 
       if (host) {
@@ -1185,29 +1218,15 @@ export const vnode_diff = (
         insertNewInlineComponent();
         host = vNewNode as VirtualVNode;
       } else if (!lookupKeysAreEqual) {
-        // See if we already have this inline component later on.
-        vNewNode = retrieveChildWithKey(null, lookupKey);
-        if (vNewNode) {
-          vCurrent = vNewNode;
-          vNewNode = null;
-          host = vCurrent as VirtualVNode;
-        } else {
-          vNewNode = vSideBuffer?.get(lookupKey) || null;
-          if (vNewNode) {
-            vSideBuffer!.delete(lookupKey);
-            vnode_insertBefore(journal, vParent as VirtualVNode, vNewNode, vCurrent);
-            vCurrent = vNewNode;
-            vNewNode = null;
-            host = vCurrent as VirtualVNode;
-          } else {
-            // We did not find the inline component, create it.
-            insertNewInlineComponent();
-            host = vNewNode! as VirtualVNode;
-          }
-        }
-      } else if (vSideBuffer?.has(lookupKey)) {
+        const createNew = () => {
+          // We did not find the inline component, create it.
+          insertNewInlineComponent();
+        };
+        moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode, createNew);
+        host = (vNewNode || vCurrent) as VirtualVNode;
+      } else {
         // delete the key from the side buffer if it is the same component
-        vSideBuffer.delete(lookupKey);
+        deleteFromSideBuffer(null, lookupKey);
       }
 
       if (host) {

@@ -1,5 +1,12 @@
 import { useLocation } from '@builder.io/qwik-city';
-import { component$, useStyles$, useContext, useVisibleTask$ } from '@builder.io/qwik';
+import {
+  component$,
+  useStyles$,
+  useContext,
+  useVisibleTask$,
+  type PropsOf,
+  useSignal,
+} from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
@@ -15,13 +22,32 @@ import {
   setPreference,
   ThemeToggle,
 } from '../theme-toggle/theme-toggle';
+import { SearchIcon } from '../docsearch/icons/SearchIcon';
+import { getPkgManagerPreference } from '../package-manager-tabs';
+
+export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
+  return (
+    <button
+      {...props}
+      class={['DocSearch-Button', props.class]}
+      type="button"
+      title="Search"
+      aria-label="Search"
+    >
+      <span class="mr-2 md:inline-block sm:hidden hidden sm:visible">Search</span>
+      <SearchIcon />
+    </button>
+  );
+});
 
 export const Header = component$(() => {
   useStyles$(styles);
+  const shouldActivate = useSignal(false);
   const globalStore = useContext(GlobalStore);
   const pathname = useLocation().url.pathname;
 
   useVisibleTask$(() => {
+    globalStore.pkgManager = getPkgManagerPreference();
     globalStore.theme = getColorPreference();
     return colorSchemeChangeListener((isDark) => {
       globalStore.theme = isDark ? 'dark' : 'light';
@@ -43,6 +69,14 @@ export const Header = component$(() => {
               <span class="sr-only">Qwik Homepage</span>
               <QwikLogo width={130} height={44} />
             </a>
+          </div>
+          <div class="flex items-center lg:hidden">
+            <SearchButton
+              onClick$={() => {
+                shouldActivate.value = true;
+              }}
+              class="absolute right-14 lg:hidden"
+            />
           </div>
           <button
             onClick$={() => {
@@ -92,18 +126,18 @@ export const Header = component$(() => {
             </li>
             <li>
               <a
-                href="/shop/"
-                class={{ active: pathname.startsWith('/shop') }}
-                aria-label="Qwik shop"
+                href="/blog/"
+                class={{ active: pathname.startsWith('/blog') }}
+                aria-label="Qwik blog"
               >
-                <span>Shop</span>
+                <span>Blog</span>
               </a>
             </li>
-            <li>
-              <DocSearch
-                appId={import.meta.env.VITE_ALGOLIA_APP_ID}
-                apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
-                indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+            <li class="hidden lg:flex">
+              <SearchButton
+                onClick$={() => {
+                  shouldActivate.value = true;
+                }}
               />
             </li>
             <li>
@@ -135,6 +169,12 @@ export const Header = component$(() => {
             </li>
           </ul>
         </div>
+        <DocSearch
+          isOpen={shouldActivate}
+          appId={import.meta.env.VITE_ALGOLIA_APP_ID}
+          apiKey={import.meta.env.VITE_ALGOLIA_SEARCH_KEY}
+          indexName={import.meta.env.VITE_ALGOLIA_INDEX}
+        />
       </header>
     </>
   );

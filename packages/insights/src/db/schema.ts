@@ -73,7 +73,14 @@ export const manifestTable = sqliteTable(
     timestamp: integer('timestamp', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => ({
-    publicApiKeyIndex: uniqueIndex('hashIndex').on(table.hash, table.publicApiKey),
+    publicApiKeyHashIndex: index('idx_manifests_apiKey_hash').on(table.hash, table.publicApiKey),
+    publicApiKeyHashIndex_2: index('idx_manifests_apiKey_hash_2').on(
+      table.publicApiKey,
+      table.hash
+    ),
+    apiTimestamp: index('idx_manifest_api_timestamp').on(table.publicApiKey, table.timestamp),
+    publicApiKeyIndex: index('idx_manifests_public_apiKey').on(table.publicApiKey),
+    hashIndex: index('idx_manifests_hash').on(table.hash),
   })
 );
 
@@ -91,18 +98,20 @@ export const symbolDetailTable = sqliteTable(
     lo: integer('lo').notNull(),
     hi: integer('hi').notNull(),
   },
-  (symbolDetailTable) => {
-    return {
-      publicApiKeyReference: foreignKey(() => ({
-        columns: [symbolDetailTable.publicApiKey],
-        foreignColumns: [applicationTable.publicApiKey],
-      })),
-      manifestHashReference: foreignKey(() => ({
-        columns: [symbolDetailTable.publicApiKey, symbolDetailTable.manifestHash],
-        foreignColumns: [manifestTable.publicApiKey, manifestTable.hash],
-      })),
-    };
-  }
+  (symbolDetailTable) => ({
+    apiKeyManifestHashIndex: uniqueIndex('idx_symbolDetail_apiKey_manifestHash').on(
+      symbolDetailTable.publicApiKey,
+      symbolDetailTable.manifestHash
+    ),
+    publicApiKeyReference: foreignKey({
+      columns: [symbolDetailTable.publicApiKey],
+      foreignColumns: [applicationTable.publicApiKey],
+    }),
+    manifestHashReference: foreignKey({
+      columns: [symbolDetailTable.publicApiKey, symbolDetailTable.manifestHash],
+      foreignColumns: [manifestTable.publicApiKey, manifestTable.hash],
+    }),
+  })
 );
 
 export type SymbolDetailRow = InferSelectModel<typeof symbolDetailTable>;
@@ -220,16 +229,24 @@ export const edgeTable = sqliteTable(
   },
   (table) => ({
     publicApiKyIndex: index('edgeIndex_PublicApiKey').on(table.publicApiKey),
-    publicApiKyManifestHashIndex: index('edgeIndex_PublicApiKey_manifestHash').on(
+    publicApiKeyIndex: index('idx_edge_publicApiKey_manifestHash').on(table.publicApiKey),
+    publicApiKeyManifestHashIndex: index('idx_edge_publicApiKey_manifestHash').on(
       table.publicApiKey,
       table.manifestHash
     ),
-    edgeIndex: uniqueIndex('edgeIndex').on(
+    edgeIndex: index('idx_edge_apiKey_manifestHash_from_to').on(
       table.publicApiKey,
       table.manifestHash,
       table.from,
       table.to
     ),
+    idx_edge_from_to: index('idx_edge_from_to').on(table.from, table.to),
+    idx_apiKey_hash_from: index('idx_apiKey_hash_from').on(
+      table.publicApiKey,
+      table.from,
+      table.manifestHash
+    ),
+    idx_hash_to: index('idx_hash_to').on(table.manifestHash, table.to),
   })
 );
 
@@ -301,6 +318,10 @@ export const routesTable = sqliteTable(
       table.manifestHash,
       table.route,
       table.symbol
+    ),
+    publicApiKeyAndManifestHashIndex: index('idx_routes_publicApiKey_manifestHash').on(
+      table.publicApiKey,
+      table.manifestHash
     ),
   })
 );

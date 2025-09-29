@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
 import type { QwikEslintExamples } from '../examples';
@@ -17,7 +16,8 @@ export const useMethodUsage: Rule.RuleModule = {
     },
   },
   create(context) {
-    const modifyJsxSource = context.sourceCode
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const modifyJsxSource = sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {

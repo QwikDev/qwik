@@ -1,13 +1,15 @@
+import { JsonParser, JsonObjectNode } from '@croct/json5-parser';
 import fs from 'node:fs';
-import type { FsUpdates, UpdateAppOptions } from '../types';
 import { extname, join } from 'node:path';
+import type { FsUpdates, UpdateAppOptions } from '../types';
 import { getPackageManager } from '../utils/utils';
 
 export async function mergeIntegrationDir(
   fileUpdates: FsUpdates,
   opts: UpdateAppOptions,
   srcDir: string,
-  destDir: string
+  destDir: string,
+  alwaysInRoot?: string[]
 ) {
   const items = await fs.promises.readdir(srcDir);
   await Promise.all(
@@ -15,35 +17,39 @@ export async function mergeIntegrationDir(
       const destName = itemName === 'gitignore' ? '.gitignore' : itemName;
       const ext = extname(destName);
       const srcChildPath = join(srcDir, itemName);
-      const destChildPath = join(destDir, destName);
+
+      const destRootPath = join(destDir, destName);
+
       const s = await fs.promises.stat(srcChildPath);
 
       if (s.isDirectory()) {
-        await mergeIntegrationDir(fileUpdates, opts, srcChildPath, destChildPath);
+        await mergeIntegrationDir(fileUpdates, opts, srcChildPath, destRootPath, alwaysInRoot);
       } else if (s.isFile()) {
+        const finalDestPath = getFinalDestPath(opts, destRootPath, destDir, destName, alwaysInRoot);
+
         if (destName === 'package.json') {
-          await mergePackageJsons(fileUpdates, srcChildPath, destChildPath);
-        } else if (destName === 'settings.json') {
-          await mergeJsons(fileUpdates, srcChildPath, destChildPath);
+          await mergePackageJsons(fileUpdates, srcChildPath, destRootPath);
+        } else if (destDir.endsWith('.vscode') && destName === 'settings.json') {
+          await mergeVSCodeSettings(fileUpdates, srcChildPath, finalDestPath);
         } else if (destName === 'README.md') {
-          await mergeReadmes(fileUpdates, srcChildPath, destChildPath);
+          await mergeReadmes(fileUpdates, srcChildPath, finalDestPath);
         } else if (
           destName === '.gitignore' ||
           destName === '.prettierignore' ||
           destName === '.eslintignore'
         ) {
-          await mergeIgnoresFile(fileUpdates, srcChildPath, destChildPath);
+          await mergeIgnoresFile(fileUpdates, srcChildPath, destRootPath);
         } else if (ext === '.css') {
-          await mergeCss(fileUpdates, srcChildPath, destChildPath, opts);
-        } else if (fs.existsSync(destChildPath)) {
+          await mergeCss(fileUpdates, srcChildPath, finalDestPath, opts);
+        } else if (fs.existsSync(finalDestPath)) {
           fileUpdates.files.push({
-            path: destChildPath,
+            path: finalDestPath,
             content: await fs.promises.readFile(srcChildPath),
             type: 'overwrite',
           });
         } else {
           fileUpdates.files.push({
-            path: destChildPath,
+            path: finalDestPath,
             content: await fs.promises.readFile(srcChildPath),
             type: 'create',
           });
@@ -51,6 +57,30 @@ export async function mergeIntegrationDir(
       }
     })
   );
+}
+
+function getFinalDestPath(
+  opts: UpdateAppOptions,
+  destRootPath: string,
+  destDir: string,
+  destName: string,
+  alwaysInRoot?: string[]
+) {
+  // If the integration has a projectDir, copy the files to the projectDir
+  // Unless that path is part of "alwaysInRoot"
+  const projectDir = opts.projectDir ? opts.projectDir : '';
+  const rootDirEndIndex = destDir.indexOf(opts.rootDir) + opts.rootDir.length;
+  const destWithoutRoot = destDir.slice(rootDirEndIndex);
+
+  const destChildPath = join(opts.rootDir, projectDir, destWithoutRoot, destName);
+
+  const finalDestPath =
+    alwaysInRoot &&
+    alwaysInRoot.some((rootItem) => destName.includes(rootItem) || destDir.includes(rootItem))
+      ? destRootPath
+      : destChildPath;
+
+  return finalDestPath;
 }
 
 async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
@@ -81,16 +111,19 @@ async function mergePackageJsons(fileUpdates: FsUpdates, srcPath: string, destPa
   }
 }
 
-async function mergeJsons(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
+async function mergeVSCodeSettings(fileUpdates: FsUpdates, srcPath: string, destPath: string) {
   const srcContent = await fs.promises.readFile(srcPath, 'utf-8');
   try {
-    const srcPkgJson = JSON.parse(srcContent);
-    const destPkgJson = JSON.parse(await fs.promises.readFile(destPath, 'utf-8'));
-    Object.assign(srcPkgJson, destPkgJson);
+    const srcPkgJson = JsonParser.parse(srcContent, JsonObjectNode);
+    const destPkgJson = JsonParser.parse(
+      await fs.promises.readFile(destPath, 'utf-8'),
+      JsonObjectNode
+    );
+    destPkgJson.merge(srcPkgJson);
 
     fileUpdates.files.push({
       path: destPath,
-      content: JSON.stringify(srcPkgJson, null, 2) + '\n',
+      content: destPkgJson.toString() + '\n',
       type: 'modify',
     });
   } catch (e) {

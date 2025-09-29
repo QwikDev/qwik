@@ -1,19 +1,10 @@
 <br>
 <p align="center">
-  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/QwikDev/qwik/main/.github/assets/qwik-logo.svg" />
+  <img alt="Qwik Logo" width="400" src="https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/public/logos/qwik.svg" />
 </p>
 <br>
 <p align="center">
    <a href="https://github.com/QwikDev/qwik/actions/workflows/ci.yml"><img src="https://github.com/QwikDev/qwik/actions/workflows/ci.yml/badge.svg?event=push" alt="Qwik CI"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/azure.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/azure.yml/badge.svg" alt="Azure SWA Server"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cloudflare.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cloudflare.yml/badge.svg" alt="Cloudflare Pages Server"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/netlify.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/netlify.yml/badge.svg" alt="Netlify Server"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/node.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/node.yml/badge.svg" alt="Node Servers"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-edge.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-edge.yml/badge.svg" alt="Vercel Edge"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-serverless.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/vercel-serverless.yml/badge.svg" alt="Vercel Serverless"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/cli.yml/badge.svg" alt="Create Qwik CLI"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/deno.yml/badge.svg" alt="Deno Server"></a>
-   <a href="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml"><img src="https://github.com/QwikDev/qwik-city-e2e/actions/workflows/aws.yml/badge.svg" alt="AWS Server"></a>
 </p>
 <br>
 <br>
@@ -61,7 +52,7 @@ bun create qwik@latest
 
 ## Related
 
-- [Partytown](https://partytown.builder.io/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
+- [Partytown](https://partytown.qwik.dev/): Relocate resource intensive third-party scripts off of the main thread and into a web worker 🎉.
 - [Mitosis](https://github.com/BuilderIO/mitosis): Write components once, run everywhere. Compiles to Vue, React, Solid, Angular, Svelte, and more.
 - [Builder](https://github.com/BuilderIO/builder): Drag and drop page builder and CMS for React, Vue, Angular, and more.
 
@@ -74,12 +65,37 @@ bun create qwik@latest
   </tr>
   <tr>
     <td align="center">
-      <a href="https://www.builder.io/m/developers">
+      <a href="https://www.builder.io/m/developers" rel="noopener">
         <picture>
           <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/eT9FjKT.png">
           <img width="250" alt="Special sponsor Builder.io" src="https://i.imgur.com/32mv01X.png">
         </picture>
       </a>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>sponsors</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://kunaico.com/" target="_blank" rel="noopener">
+        <picture>
+          <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
+          <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Company logo">
+        </picture>
+      </a>    
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="http://hirez.io/" target="_blank" rel="noopener">
+        <picture>
+          <source srcset="https://i.imgur.com/DHhJM0J.png" media="(prefers-color-scheme: dark)">
+          <source srcset="https://i.imgur.com/DIbsvQC.png" media="(prefers-color-scheme: light)">
+          <img width="250" src="https://i.imgur.com/DIbsvQC.png" alt="Company logo">
+        </picture>
+      </a>    
     </td>
   </tr>
 </table>

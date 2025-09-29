@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "ES2020",
-    "module": "ES2020",
+    "target": "es2022",
+    "module": "es2022",
     "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
@@ -21,7 +21,7 @@
       "@playground-data": ["src/routes/playground/playground-data.ts"],
       "@tutorial-data": ["src/routes/tutorial/tutorial-data.ts"]
     },
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "@builder.io/qwik"],
     "esModuleInterop": true,
     "sourceRoot": ".",
     "inlineSourceMap": true,

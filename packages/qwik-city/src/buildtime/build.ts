@@ -78,7 +78,15 @@ function rewriteRoutes(ctx: BuildContext, resolvedFiles: ReturnType<typeof resol
           return;
         }
         const routeToPush = translateRoute(route, config, configIndex);
-        translatedRoutes.push(routeToPush);
+
+        if (
+          !translatedRoutes.some(
+            (item) =>
+              item.pathname === routeToPush.pathname && item.routeName === routeToPush.routeName
+          )
+        ) {
+          translatedRoutes.push(routeToPush);
+        }
       });
     }
   });

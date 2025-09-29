@@ -113,6 +113,34 @@
       "when": 1701478557950,
       "tag": "0015_complete_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1732499276499,
+      "tag": "0016_demonic_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1732832624307,
+      "tag": "0017_pink_maestro",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1732833549246,
+      "tag": "0018_heavy_toad",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1733272274985,
+      "tag": "0019_known_satana",
+      "breakpoints": true
     }
   ]
 }

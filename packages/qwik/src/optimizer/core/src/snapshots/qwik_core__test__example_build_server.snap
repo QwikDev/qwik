@@ -1,20 +1,21 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2619
+assertion_line: 2620
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$, useStore } from '@builder.io/qwik';
-import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
+import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-  if (isBrowser) {
+  if (isb) {
     console.log('l', L);
     console.log('hey');
     window.alert('hey');
@@ -26,14 +27,14 @@ export const App = component$(() => {
         if (isServer) {
             console.log('server', mongodb());
         }
-        if (isBrowser) {
+        if (isb) {
             console.log('browser', new threejs());
         }
     });
     return (
         <Cmp>
-            {isServer && <p>server</p>}
-            {isBrowser && <p>server</p>}
+            {isServer2 && <p>server</p>}
+            {isb && <p>server</p>}
         </Cmp>
     );
 });
@@ -61,7 +62,7 @@ export const s_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;YACD,EAAc,EAAE,MAAM,EAAE,GAAG;YAC3B,OAA4B;QAChC,EAAE;AAEV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6BAgB8B;IAC1B,UAAU;QAEF,QAAQ,GAAG,CAAC,UAAU;IAK9B;IACA,QACK,IAAI;YACD,EAAe,EAAE,MAAM,EAAE,GAAG;YAC5B,OAAsB;QAC1B,EAAE;AAEV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -77,8 +78,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    396,
-    731
+    427,
+    751
   ]
 }
 */

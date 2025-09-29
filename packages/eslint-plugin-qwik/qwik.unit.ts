@@ -1,7 +1,5 @@
 import * as vitest from 'vitest';
-// @ts-ignore
-import { RuleTester } from '@typescript-eslint/rule-tester';
-
+import { RuleTester, type RuleTesterConfig } from '@typescript-eslint/rule-tester';
 import { fileURLToPath } from 'node:url';
 import { rules } from './index';
 import { readdir, readFile, stat } from 'node:fs/promises';
@@ -14,22 +12,26 @@ RuleTester.itOnly = vitest.it.only;
 RuleTester.describe = vitest.describe;
 
 const testConfig = {
-  parser: '@typescript-eslint/parser',
-  env: {
-    es6: true,
+  rules: {
+    'no-console': 'error',
   },
-  parserOptions: {
-    tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
-    project: ['./tests/tsconfig.json'],
-    ecmaFeatures: {
-      jsx: true,
+  languageOptions: {
+    parserOptions: {
+      projectService: {
+        allowDefaultProject: ['*.ts*'],
+      },
+      sourceType: 'module',
+      ecmaFeatures: {
+        jsx: true,
+      },
+      ecmaVersion: 2024,
+      project: ['./tests/tsconfig.json'],
+      tsconfigRootDir: fileURLToPath(new URL('.', import.meta.url)),
     },
-    ecmaVersion: 2020,
-    sourceType: 'module',
   },
-};
+} as RuleTesterConfig;
 
-const ruleTester = new RuleTester(testConfig as any);
+const ruleTester = new RuleTester(testConfig);
 interface TestCase {
   name: string;
   filename: string;
@@ -40,7 +42,13 @@ interface InvalidTestCase extends TestCase {
 }
 await (async function setupEsLintRuleTesters() {
   // list './test' directory content and set up one RuleTester per directory
-  const testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  let testDir = join(dirname(new URL(import.meta.url).pathname), './tests');
+  const isWindows = process.platform === 'win32';
+  if (isWindows && testDir.startsWith('\\')) {
+    // in Windows testDir starts with a \ causing errors
+    testDir = testDir.substring(1);
+  }
+
   const ruleNames = await readdir(testDir);
   for (const ruleName of ruleNames) {
     const rule = rules[ruleName];

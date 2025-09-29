@@ -1,18 +1,28 @@
 {
-  "description": "Use Tailwind in your Qwik app",
+  "description": "Use Tailwind v4 in your Qwik app",
   "__qwik__": {
-    "displayName": "Integration: Tailwind (styling)",
+    "displayName": "Integration: Tailwind v4 (styling)",
     "priority": -10,
-    "viteConfig": {},
+    "viteConfig": {
+      "imports": [
+        {
+          "defaultImport": "tailwindcss",
+          "importPath": "@tailwindcss/vite"
+        }
+      ],
+      "vitePlugins": [
+        "tailwindcss()"
+      ]
+    },
     "docs": [
-      "https://qwik.dev/integrations/integration/tailwind/",
+      "https://qwik.dev/integrations/tailwind/",
       "https://tailwindcss.com/docs/utility-first"
     ]
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.39",
-    "prettier-plugin-tailwindcss": "^0.5.4",
-    "tailwindcss": "^3.4.6"
-  }
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^4.1.4",
+    "@tailwindcss/vite": "^4.1.4"
+  },
+  "type": "module"
 }

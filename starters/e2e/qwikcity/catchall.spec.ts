@@ -28,4 +28,11 @@ function tests() {
     const status = response.status();
     expect(status).toBe(404);
   });
+
+  test("Error Catchall", async ({ context }) => {
+    const page = await context.newPage();
+    const response = (await page.goto("/qwikcity-test/catchall-error/"))!;
+    const status = response.status();
+    expect(status).toBe(500);
+  });
 }

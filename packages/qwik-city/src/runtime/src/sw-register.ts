@@ -1,65 +1,22 @@
-/* eslint-disable */
-import type { QPrefetchData, QPrefetchMessage } from './service-worker/types';
-
 // Source for what becomes innerHTML to the <ServiceWorkerRegister/> script
 
-((
-  queuedEventDetails: any[],
-  swReg?: QwikServiceWorkerRegistration,
-  sendPrefetch?: (data: QPrefetchData) => void,
-  initServiceWorker?: () => void
-) => {
-  sendPrefetch = (data) => {
-    const qBase = document.querySelector('[q\\:base]')!;
-    if (qBase) {
-      swReg!.active &&
-        swReg!.active.postMessage({
-          type: 'qprefetch',
-          base: qBase.getAttribute('q:base')!,
-          ...data,
-        });
-    }
-  };
-
-  document.addEventListener('qprefetch', (ev) => {
-    const detail = (ev as CustomEvent<QPrefetchData>).detail;
-    if (swReg) {
-      sendPrefetch!(detail);
-    } else {
-      queuedEventDetails.push(detail);
-    }
-  });
-
+(() => {
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('__url')
-      .then((reg) => {
-        initServiceWorker = () => {
-          swReg = reg;
-          queuedEventDetails.forEach(sendPrefetch!);
-          sendPrefetch!({ bundles: queuedEventDetails });
-        };
-
-        if (reg.installing) {
-          reg.installing.addEventListener('statechange', (ev: any) => {
-            if (ev.target.state == 'activated') {
-              initServiceWorker!();
-            }
-          });
-        } else if (reg.active) {
-          initServiceWorker!();
-        }
-      })
-      .catch((e) => console.error(e));
+    navigator.serviceWorker.register('__url').catch((e) => console.error(e));
+    // We need to delete the cache since we are using modulepreload by default in qwik 1.14 and above
+    if ('caches' in window) {
+      caches
+        .keys()
+        .then((names) => {
+          const cacheName = names.find((name) => name.startsWith('QwikBuild'));
+          if (cacheName) {
+            caches.delete(cacheName).catch(console.error);
+          }
+        })
+        .catch(console.error);
+    }
   } else {
+    // eslint-disable-next-line no-console
     console.log('Service worker not supported in this browser.');
   }
-})([]);
-
-interface QwikServiceWorker extends ServiceWorker {
-  postMessage(data: QPrefetchMessage): void;
-}
-
-interface QwikServiceWorkerRegistration extends ServiceWorkerRegistration {
-  active: QwikServiceWorker | null;
-}
+})();

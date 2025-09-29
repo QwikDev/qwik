@@ -1,5 +1,5 @@
 declare module '@qwik-client-manifest' {
-  const manifest: import('.').QwikManifest;
+  const manifest: import('.').ServerQwikManifest;
   export { manifest };
 }
 // MD

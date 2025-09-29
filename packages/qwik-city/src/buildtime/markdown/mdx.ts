@@ -5,6 +5,7 @@ import type { BuildContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
 import { getExtension } from '../../utils/fs';
 import type { CompileOptions } from '@mdx-js/mdx';
+import { createHash } from 'node:crypto';
 
 export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
   const { compile } = await import('@mdx-js/mdx');
@@ -69,11 +70,25 @@ export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransf
       const file = new VFile({ value: code, path: id });
       const compiled = await compile(file, options);
       const output = String(compiled.value);
-      const addImport = `import { jsx } from '@builder.io/qwik';\n`;
+      const hasher = createHash('sha256');
+      const key = hasher
+        .update(output)
+        .digest('base64')
+        .slice(0, 8)
+        .replace('+', '-')
+        .replace('/', '_');
+      const addImport = `import { jsx, _jsxC, RenderOnce } from '@builder.io/qwik';\n`;
+      // the _missingMdxReference call is automatically added by mdxjs
       const newDefault = `
-const WrappedMdxContent = () => {
-  const content = _createMdxContent({});
-  return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
+function _missingMdxReference(id, component, place) {
+  throw new Error("${id}: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+}
+const WrappedMdxContent = (props = {}) => {
+  const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, ${JSON.stringify(key)});
+  if (typeof MDXLayout === 'function'){
+      return jsx(MDXLayout, {children: content});
+  }
+  return content;
 };
 export default WrappedMdxContent;
 `;

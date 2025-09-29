@@ -60,7 +60,8 @@ export const jsxKey = {
   },
 
   create(context) {
-    const modifyJsxSource = context.sourceCode
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
+    const modifyJsxSource = sourceCode
       .getAllComments()
       .some((c) => c.value.includes('@jsxImportSource'));
     if (modifyJsxSource) {
@@ -247,7 +248,7 @@ export const jsxKey = {
       },
 
       // Array.prototype.map
-      // eslint-disable-next-line no-multi-str
+
       'CallExpression[callee.type="MemberExpression"][callee.property.name="map"],\
        CallExpression[callee.type="OptionalMemberExpression"][callee.property.name="map"],\
        OptionalCallExpression[callee.type="MemberExpression"][callee.property.name="map"],\

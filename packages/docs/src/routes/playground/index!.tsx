@@ -1,20 +1,20 @@
 import { $, component$, useStyles$, useStore, useVisibleTask$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler, DocumentHead } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/repl';
+import { Repl } from '../../repl/ui';
 import { Header } from '../../components/header/header';
 import styles from './playground.css?inline';
 import playgroundApp from '@playground-data';
 import type { ReplAppInput } from '../../repl/types';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/repl-share-url';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@builder.io/qwik';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
 
   const store = useStore<PlaygroundStore>(() => {
     const initStore: PlaygroundStore = {
-      buildId: 0,
       files: playgroundApp.inputs,
       version: '',
       buildMode: 'development',
@@ -43,11 +43,10 @@ export default component$(() => {
   });
 
   useTask$(({ track }) => {
-    track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
-    track(() => store.files);
     track(() => store.version);
+    track(() => store.files.forEach((f) => f.code));
 
     if (isBrowser) {
       if (store.version) {
@@ -131,11 +130,11 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
   });
+
+  setReplCorsHeaders(headers);
 };

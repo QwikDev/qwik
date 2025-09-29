@@ -17,7 +17,7 @@ created_at: '2023-03-20T23:45:13Z'
 
 Each `layout.ts` and `index.ts` file inside the `src/routes` directory has the ability to access the current HTTP request, response, and URL. This allows you to retrieve and modify data, and even respond with custom content.
 
-Qwik City implements a middleware system based on the hirarchy of the `src/routes` directory. The middleware system is used to handle HTTP requests and responses and is available to pages, layouts, and [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
+Qwik City implements a middleware system based on the hierarchy of the `src/routes` directory. The middleware system is used to handle HTTP requests and responses and is available to pages, layouts, and [endpoints](/docs/(qwikcity)/endpoints/index.mdx).
 
 Each route can add HTTP request and response handlers, allowing developers to retrieve and modify data. The handlers can also be used by [endpoints](/docs/(qwikcity)/endpoints/index.mdx), which only respond with data rather than a page's HTML.
 
@@ -109,7 +109,7 @@ export interface CookieOptions {
 For more information on these attributes and their values, please refer to [the MDN article on the Set-Cookie header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#attributes).
 
 **delete**
-Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browers to remove it.
+Appends a header with the provided key to the cookie. The new header will have an expired date in the `expires` field, telling the browsers to remove it.
 
 ```tsx
 cookie.delete('my-cookie');

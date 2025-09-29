@@ -19,7 +19,6 @@ use swc_ecmascript::visit::VisitMut;
 /// - Then the code needs to be simplified by you
 /// - Then it removes all top-level expressions that are not marked. Those will be expressions that were
 ///   assigned to unused variables etc.
-
 pub struct Treeshaker {
 	pub marker: CleanMarker,
 	pub cleaner: CleanSideEffects,

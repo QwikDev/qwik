@@ -1,19 +1,25 @@
 /* eslint-disable no-console */
 import type { Render, RenderToStreamOptions } from '@builder.io/qwik/server';
-import { magenta } from 'kleur/colors';
 import type { IncomingMessage, ServerResponse } from 'http';
+import { magenta } from 'kleur/colors';
 
 import type { Connect, ViteDevServer } from 'vite';
-import type { OptimizerSystem, Path, QwikManifest, SymbolMapper, SymbolMapperFn } from '../types';
-import { type NormalizedQwikPluginOptions, parseId, makeNormalizePath } from './plugin';
-import type { QwikViteDevResponse } from './vite';
-import { formatError } from './vite-utils';
-import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
-import imageDevTools from './image-size-runtime.html?raw';
-import clickToComponent from './click-to-component.html?raw';
-import perfWarning from './perf-warning.html?raw';
-import errorHost from './error-host.html?raw';
 import { SYNC_QRL } from '../../../core/qrl/qrl-class';
+import type {
+  OptimizerSystem,
+  Path,
+  ServerQwikManifest,
+  SymbolMapper,
+  SymbolMapperFn,
+} from '../types';
+import clickToComponent from './click-to-component.html?raw';
+import errorHost from './error-host.html?raw';
+import imageDevTools from './image-size-runtime.html?raw';
+import perfWarning from './perf-warning.html?raw';
+import { type NormalizedQwikPluginOptions } from './plugin';
+import type { QwikViteDevResponse } from './vite';
+import { VITE_ERROR_OVERLAY_STYLES } from './vite-error';
+import { formatError, parseId } from './vite-utils';
 
 function getOrigin(req: IncomingMessage) {
   const { PROTOCOL_HEADER, HOST_HEADER } = process.env;
@@ -27,22 +33,7 @@ function getOrigin(req: IncomingMessage) {
   return `${protocol}://${host}`;
 }
 
-// We must encode the chunk so that e.g. + doesn't get converted to space etc
-const encode = (url: string) =>
-  encodeURIComponent(url)
-    .replaceAll('%2F', '/')
-    .replaceAll('%40', '@')
-    .replaceAll('%3A', ':')
-    .replaceAll('%5B', '[')
-    .replaceAll('%5D', ']')
-    .replaceAll('%2C', ',');
-function createSymbolMapper(
-  base: string,
-  opts: NormalizedQwikPluginOptions,
-  path: Path,
-  sys: OptimizerSystem
-): SymbolMapperFn {
-  const normalizePath = makeNormalizePath(sys);
+function createSymbolMapper(base: string): SymbolMapperFn {
   return (
     symbolName: string,
     _mapper: SymbolMapper | undefined,
@@ -58,14 +49,10 @@ function createSymbolMapper(
       );
       return [symbolName, `${base}${symbolName}.js`];
     }
-    // on windows, absolute paths don't start with a slash
-    const parentPath = normalizePath(path.dirname(parent));
-    const parentFile = path.basename(parent);
-    const qrlPath = parentPath.startsWith(opts.rootDir)
-      ? normalizePath(path.relative(opts.rootDir, parentPath))
-      : `@fs/${parentPath}`;
-    const qrlFile = encode(`${qrlPath}/${parentFile}_${symbolName}.js`);
-    return [symbolName, `${base}${qrlFile}`];
+    // In dev mode, the `parent` is the Vite URL for the parent, not the real absolute path.
+    // It is always absolute but when on Windows that's without a /
+    const qrlFile = `${base}${parent.startsWith('/') ? parent.slice(1) : parent}_${symbolName}.js`;
+    return [symbolName, qrlFile];
   };
 }
 
@@ -96,7 +83,7 @@ export async function configureDevServer(
   clientDevInput: string | undefined,
   devSsrServer: boolean
 ) {
-  symbolMapper = lazySymbolMapper = createSymbolMapper(base, opts, path, sys);
+  symbolMapper = lazySymbolMapper = createSymbolMapper(base);
   if (!devSsrServer) {
     // we just needed the symbolMapper
     return;
@@ -104,6 +91,10 @@ export async function configureDevServer(
   const hasQwikCity = server.config.plugins?.some(
     (plugin) => plugin.name === 'vite-plugin-qwik-city'
   );
+
+  // to maintain css importers after HMR
+  const cssImportedByCSS = new Set<string>();
+
   // qwik middleware injected BEFORE vite internal middlewares
   server.middlewares.use(async (req, res, next) => {
     try {
@@ -150,16 +141,16 @@ export async function configureDevServer(
         const render: Render = ssrModule.default ?? ssrModule.render;
 
         if (typeof render === 'function') {
-          const manifest: QwikManifest = {
+          const manifest: ServerQwikManifest = {
             manifestHash: '',
-            symbols: {},
             mapping: {},
-            bundles: {},
             injections: [],
-            version: '1',
           };
 
           const added = new Set();
+          const CSS_EXTENSIONS = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
+          const JS_EXTENSIONS = /\.[mc]?[tj]sx?$/;
+
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
               const segment = v.info?.meta?.segment;
@@ -172,21 +163,43 @@ export async function configureDevServer(
               }
 
               const { pathId, query } = parseId(v.url);
-              if (
-                query === '' &&
-                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
-                  pathId.endsWith(ext)
-                )
-              ) {
-                added.add(v.url);
-                manifest.injections!.push({
-                  tag: 'link',
-                  location: 'head',
-                  attributes: {
-                    rel: 'stylesheet',
-                    href: `${base}${url.slice(1)}`,
-                  },
+
+              if (query === '' && CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))) {
+                const isEntryCSS = v.importers.size === 0;
+                const hasCSSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+
+                  const isCSS =
+                    importerPath && CSS_EXTENSIONS.some((ext) => importerPath.endsWith(ext));
+
+                  if (isCSS && v.url) {
+                    cssImportedByCSS.add(v.url);
+                  }
+
+                  return isCSS;
                 });
+
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
+                });
+
+                if (
+                  (isEntryCSS || hasJSImporter) &&
+                  !hasCSSImporter &&
+                  !cssImportedByCSS.has(v.url) &&
+                  !added.has(v.url)
+                ) {
+                  added.add(v.url);
+                  manifest.injections!.push({
+                    tag: 'link',
+                    location: 'head',
+                    attributes: {
+                      rel: 'stylesheet',
+                      href: `${base}${url.slice(1)}`,
+                    },
+                  });
+                }
               }
             });
           });
@@ -198,7 +211,6 @@ export async function configureDevServer(
             snapshot: !isClientDevOnly,
             manifest: isClientDevOnly ? undefined : manifest,
             symbolMapper: isClientDevOnly ? undefined : symbolMapper,
-            prefetchStrategy: null,
             serverData,
             containerAttributes: { ...serverData.containerAttributes },
           };
@@ -211,6 +223,11 @@ export async function configureDevServer(
 
           const result = await render(renderOpts);
 
+          // End stream
+          if ('html' in result) {
+            res.write((result as any).html);
+          }
+
           // Sometimes new CSS files are added after the initial render
           Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach((entry) => {
             entry[1].forEach((v) => {
@@ -218,19 +235,39 @@ export async function configureDevServer(
               if (
                 !added.has(v.url) &&
                 query === '' &&
-                ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'].some((ext) =>
-                  pathId.endsWith(ext)
-                )
+                CSS_EXTENSIONS.some((ext) => pathId.endsWith(ext))
               ) {
-                res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                const isEntryCSS = v.importers.size === 0;
+                const hasCSSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+
+                  const isCSS =
+                    importerPath && CSS_EXTENSIONS.some((ext) => importerPath.endsWith(ext));
+
+                  if (isCSS && v.url) {
+                    cssImportedByCSS.add(v.url);
+                  }
+
+                  return isCSS;
+                });
+
+                const hasJSImporter = Array.from(v.importers).some((importer) => {
+                  const importerPath = (importer as typeof v).url || (importer as typeof v).file;
+                  return importerPath && JS_EXTENSIONS.test(importerPath);
+                });
+
+                if (
+                  (isEntryCSS || hasJSImporter) &&
+                  !hasCSSImporter &&
+                  !cssImportedByCSS.has(v.url)
+                ) {
+                  res.write(`<link rel="stylesheet" href="${base}${v.url.slice(1)}">`);
+                  added.add(v.url);
+                }
               }
             });
           });
 
-          // End stream
-          if ('html' in result) {
-            res.write((result as any).html);
-          }
           res.write(
             END_SSR_SCRIPT(opts, opts.srcDir ? opts.srcDir : path.join(opts.rootDir, 'src'))
           );
@@ -262,8 +299,9 @@ export async function configureDevServer(
   });
 
   setTimeout(() => {
-    console.log(`\n  ❗️ ${magenta('Expect significant performance loss in development.')}`);
-    console.log(`  ❗️ ${magenta("Disabling the browser's cache results in waterfall requests.")}`);
+    console.log(
+      `\n  🚧 ${magenta('Please note that development mode is slower than production.')}`
+    );
   }, 1000);
 }
 
@@ -351,6 +389,9 @@ const shouldSsrRender = (req: IncomingMessage, url: URL) => {
     return false;
   }
   if (pathname.includes('__open-in-editor')) {
+    return false;
+  }
+  if (pathname.includes('?editor:')) {
     return false;
   }
   if (url.searchParams.has('html-proxy')) {

@@ -65,6 +65,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		input: vec![TransformModuleInput {
 			code: input.code.clone(),
 			path: input.filename,
+			dev_path: input.dev_path,
 		}],
 		source_maps: true,
 		minify: input.minify,
@@ -72,7 +73,6 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		transpile_jsx: input.transpile_jsx,
 		preserve_filenames: input.preserve_filenames,
 		explicit_extensions: input.explicit_extensions,
-		manual_chunks: input.manual_chunks,
 		entry_strategy: input.entry_strategy,
 		mode: input.mode,
 		scope: input.scope,
@@ -82,6 +82,7 @@ fn test_input_fn(input: TestInput) -> Result<TransformOutput, anyhow::Error> {
 		reg_ctx_name,
 		strip_event_handlers: input.strip_event_handlers,
 		is_server: input.is_server,
+		// filler to maintain line offsets
 	})
 }
 
@@ -1640,12 +1641,12 @@ export const Child = component$(() => {
 });
 "#
 		.to_string(),
+		// filler to maintain line offsets
+		// this is a test for manual chunks
+		// which are no longer used in the optimizer
+		//
 		transpile_ts: true,
 		transpile_jsx: true,
-		manual_chunks: Some(HashMap::from_iter(vec![
-			("C5XE49Nqd3A".into(), "chunk_clicks".into()),
-			("elliVSnAiOQ".into(), "chunk_clicks".into()),
-		])),
 		entry_strategy: EntryStrategy::Smart,
 		..TestInput::default()
 	});
@@ -2618,15 +2619,15 @@ export const foo = () => console.log('foo');
 fn example_build_server() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useStore } from '@builder.io/qwik';
-import { isServer, isBrowser } from '@builder.io/qwik/build';
+import { component$, useStore, isDev, isServer as isServer2 } from '@builder.io/qwik';
+import { isServer, isBrowser as isb } from '@builder.io/qwik/build';
 import { mongodb } from 'mondodb';
 import { threejs } from 'threejs';
 
 import L from 'leaflet';
 
 export const functionThatNeedsWindow = () => {
-  if (isBrowser) {
+  if (isb) {
     console.log('l', L);
     console.log('hey');
     window.alert('hey');
@@ -2638,14 +2639,14 @@ export const App = component$(() => {
         if (isServer) {
             console.log('server', mongodb());
         }
-        if (isBrowser) {
+        if (isb) {
             console.log('browser', new threejs());
         }
     });
     return (
         <Cmp>
-            {isServer && <p>server</p>}
-            {isBrowser && <p>server</p>}
+            {isServer2 && <p>server</p>}
+            {isb && <p>server</p>}
         </Cmp>
     );
 });
@@ -3276,17 +3277,19 @@ export const Local = component$(() => {
 			TransformModuleInput {
 				code: dep.into(),
 				path: "../../node_modules/dep/dist/lib.mjs".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
 		minify: MinifyMode::Simplify,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3355,10 +3358,12 @@ export const Greeter = component$(() => {
 			TransformModuleInput {
 				code: code.into(),
 				path: "main.tsx".into(),
+				dev_path: None,
 			},
 			TransformModuleInput {
 				code: code.into(),
 				path: "components/main.tsx".into(),
+				dev_path: None,
 			},
 		],
 		source_maps: true,
@@ -3366,7 +3371,7 @@ export const Greeter = component$(() => {
 		root_dir: None,
 		explicit_extensions: true,
 		mode: EmitMode::Test,
-		manual_chunks: None,
+		// filler to maintain line offsets
 		entry_strategy: EntryStrategy::Segment,
 		transpile_ts: true,
 		transpile_jsx: true,
@@ -3393,10 +3398,12 @@ export const Greeter = component$(() => {
 				TransformModuleInput {
 					code: code.into(),
 					path: "main.tsx".into(),
+					dev_path: None,
 				},
 				TransformModuleInput {
 					code: code.into(),
 					path: "components/main.tsx".into(),
+					dev_path: None,
 				},
 			],
 			root_dir: None,
@@ -3404,7 +3411,7 @@ export const Greeter = component$(() => {
 			minify: MinifyMode::Simplify,
 			explicit_extensions: true,
 			mode: option.0,
-			manual_chunks: None,
+			// filler to maintain line offsets
 			entry_strategy: option.1,
 			transpile_ts: option.2,
 			transpile_jsx: option.2,
@@ -3528,6 +3535,7 @@ export const App = component$(() => {
 "#
 		.to_string(),
 		mode: EmitMode::Dev,
+		dev_path: Some("/hello/from/dev/test.tsx".into()),
 		transpile_ts: true,
 		transpile_jsx: true,
 		strip_event_handlers: true,
@@ -3621,9 +3629,9 @@ fn get_hash(name: &str) -> String {
 struct TestInput {
 	pub code: String,
 	pub filename: String,
+	pub dev_path: Option<String>,
 	pub src_dir: String,
 	pub root_dir: Option<String>,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub entry_strategy: EntryStrategy,
 	pub minify: MinifyMode,
 	pub transpile_ts: bool,
@@ -3645,10 +3653,10 @@ impl TestInput {
 	pub fn default() -> Self {
 		Self {
 			filename: "test.tsx".to_string(),
+			dev_path: None,
 			src_dir: "/user/qwik/src/".to_string(),
 			root_dir: None,
 			code: "/user/qwik/src/".to_string(),
-			manual_chunks: None,
 			entry_strategy: EntryStrategy::Segment,
 			minify: MinifyMode::Simplify,
 			transpile_ts: false,

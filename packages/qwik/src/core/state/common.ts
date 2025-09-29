@@ -150,7 +150,8 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  */
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
-  if (input != null) {
+  // only add supported values to the noSerializeSet, prevent console errors
+  if ((typeof input === 'object' && input !== null) || typeof input === 'function') {
     noSerializeSet.add(input);
   }
   return input as any;
@@ -170,7 +171,12 @@ export const isConnected = (sub: SubscriberEffect | SubscriberHost): boolean => 
   }
 };
 
-/** @public */
+/**
+ * Get the target value of the Proxy. Useful if you want to clone a store (structureClone,
+ * IndexedDB,...)
+ *
+ * @public
+ */
 export const unwrapProxy = <T>(proxy: T): T => {
   return isObject(proxy) ? (getProxyTarget<any>(proxy) ?? proxy) : proxy;
 };

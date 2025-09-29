@@ -48,7 +48,7 @@ import {
   stringifyStyle,
 } from '../execute-component';
 import { Virtual, _jsxC, _jsxQ, createJSXError, isJSXNode } from '../jsx/jsx-runtime';
-import type { FunctionComponent, JSXNode, JSXOutput } from '../jsx/types/jsx-node';
+import type { FunctionComponent, JSXNode, JSXNodeInternal, JSXOutput } from '../jsx/types/jsx-node';
 import type { ClassList, JSXChildren } from '../jsx/types/jsx-qwik-attributes';
 import { InternalSSRStream, SSRRaw } from '../jsx/utils.public';
 import type { RenderContext } from '../types';
@@ -193,7 +193,7 @@ export const _renderSSR = async (node: JSXOutput, opts: RenderSSROptions) => {
 const hash = () => Math.random().toString(36).slice(2);
 
 const renderRoot = async (
-  node: JSXNode,
+  node: JSXNodeInternal,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -459,8 +459,11 @@ const renderSSRComponent = (
           listeners.push(...elCtx.li);
           elCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
           placeholderCtx.$id$ = getNextIndex(rCtx);
+          /**
+           * This is a placeholder for qwik attributes when the component does not have a DOM
+           * element. We keep it empty, so it can be a script tag without type.
+           */
           const attributes: Record<string, string> = {
-            type: 'placeholder',
             hidden: '',
             'q:id': placeholderCtx.$id$,
           };
@@ -531,7 +534,7 @@ const createMockQContext = (nodeType: 1 | 111) => {
 };
 
 const renderNode = (
-  node: JSXNode,
+  node: JSXNodeInternal,
   rCtx: RenderContext,
   ssrCtx: SSRContext,
   stream: StreamWriter,
@@ -837,11 +840,17 @@ This goes against the HTML spec: https://html.spec.whatwg.org/multipage/dom.html
   }
 
   if (tagName === SSRRaw) {
-    stream.write((node as JSXNode<typeof SSRRaw>).props.data);
+    stream.write((node as JSXNodeInternal<typeof SSRRaw>).props.data);
     return;
   }
   if (tagName === InternalSSRStream) {
-    return renderGenerator(node as JSXNode<typeof InternalSSRStream>, rCtx, ssrCtx, stream, flags);
+    return renderGenerator(
+      node as JSXNodeInternal<typeof InternalSSRStream>,
+      rCtx,
+      ssrCtx,
+      stream,
+      flags
+    );
   }
   // Inline component
   const res = invoke(

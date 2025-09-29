@@ -2,7 +2,7 @@ import type { ClientSPAWindow } from './qwik-city-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import type { ScrollState } from './types';
 
-import { isDev } from '@builder.io/qwik/build';
+import { isDev } from '@builder.io/qwik';
 import { event$ } from '@builder.io/qwik';
 
 // TODO Dedupe handler code from here and QwikCityProvider?
@@ -202,8 +202,8 @@ export default event$((_: Event, el: Element) => {
     win[scrollEnabled] = true;
 
     setTimeout(() => {
-      addEventListener('popstate', win[initPopstate]!);
-      addEventListener('scroll', win[initScroll]!, { passive: true });
+      win.addEventListener('popstate', win[initPopstate]!);
+      win.addEventListener('scroll', win[initScroll]!, { passive: true });
       document.body.addEventListener('click', win[initAnchors]!);
 
       if (!(win as any).navigation) {

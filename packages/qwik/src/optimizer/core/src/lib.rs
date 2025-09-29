@@ -38,7 +38,6 @@ use std::fs;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::Path;
 use std::str;
 use swc_atoms::JsWord;
@@ -61,7 +60,6 @@ pub struct TransformFsOptions {
 	pub glob: Option<String>,
 	pub minify: MinifyMode,
 	pub entry_strategy: EntryStrategy,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub source_maps: bool,
 	pub transpile_ts: bool,
 	pub transpile_jsx: bool,
@@ -82,6 +80,7 @@ pub struct TransformFsOptions {
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
 	pub path: String,
+	pub dev_path: Option<String>,
 	pub code: String,
 }
 
@@ -97,7 +96,6 @@ pub struct TransformModulesOptions {
 	pub transpile_jsx: bool,
 	pub preserve_filenames: bool,
 	pub entry_strategy: EntryStrategy,
-	pub manual_chunks: Option<HashMap<String, JsWord>>,
 	pub explicit_extensions: bool,
 	pub mode: EmitMode,
 	pub scope: Option<String>,
@@ -119,7 +117,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
 	let mut paths = vec![];
-	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
+	let entry_policy = &*parse_entry_strategy(&config.entry_strategy);
 	crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
 
 	#[cfg(feature = "parallel")]
@@ -137,6 +135,7 @@ pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error
 				src_dir,
 				root_dir,
 				relative_path: relative_path.to_str().unwrap(),
+				dev_path: None,
 				minify: config.minify,
 				code: &code,
 				explicit_extensions: config.explicit_extensions,
@@ -171,18 +170,20 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 	let src_dir = std::path::Path::new(&config.src_dir);
 	let root_dir = config.root_dir.as_ref().map(Path::new);
 
-	let entry_policy = &*parse_entry_strategy(&config.entry_strategy, config.manual_chunks);
+	let entry_policy = &*parse_entry_strategy(&config.entry_strategy);
+
 	#[cfg(feature = "parallel")]
 	let iterator = config.input.par_iter();
-
 	#[cfg(not(feature = "parallel"))]
 	let iterator = config.input.iter();
-	let iterator = iterator.map(|path| -> Result<TransformOutput, Error> {
+
+	let iterator = iterator.map(|input| -> Result<TransformOutput, Error> {
 		transform_code(TransformCodeOptions {
 			src_dir,
 			root_dir,
-			relative_path: &path.path,
-			code: &path.code,
+			relative_path: &input.path,
+			dev_path: input.dev_path.as_deref(),
+			code: &input.code,
 			minify: config.minify,
 			source_maps: config.source_maps,
 			transpile_ts: config.transpile_ts,

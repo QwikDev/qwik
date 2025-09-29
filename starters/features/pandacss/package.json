@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@builder.io/vite-plugin-macro": "~0.0.7",
-    "@pandacss/dev": "^0.36.1"
+    "@pandacss/dev": "^0.54.0"
   },
   "scripts": {
     "prebuild.pandacss": "panda codegen --silent"

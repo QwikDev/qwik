@@ -126,6 +126,11 @@
       "title": "Vercel",
       "href": "/docs/deployments/vercel-edge/",
       "imgSrc": "/ecosystem/vercel.svg"
+    },
+    {
+      "title": "Azion",
+      "href": "/docs/deployments/azion/",
+      "imgSrc": "/ecosystem/azion.svg"
     }
   ],
   "libraries": [
@@ -230,6 +235,14 @@
       "width": 231,
       "height": 90,
       "description": "UI library that helps developers create storefronts"
+    },
+    {
+      "title": "flowbite-qwik",
+      "github": "https://flowbite-qwik.com/",
+      "imgSrc": "/ecosystem/flowbite.svg",
+      "width": 90,
+      "height": 90,
+      "description": "UI component Library based on the utility-first Tailwind CSS."
     }
   ],
   "communities": [

@@ -31,12 +31,13 @@ export const jsxNoScriptUrl = {
     },
   },
   create(context) {
+    const sourceCode = context.sourceCode ?? context.getSourceCode();
     return {
       JSXAttribute(node) {
         if (node.name.type === 'JSXIdentifier' && node.value) {
           const link = getStaticValue(
             node.value.type === 'JSXExpressionContainer' ? node.value.expression : node.value,
-            context.getScope()
+            sourceCode.getScope ? sourceCode.getScope(node) : context.getScope()
           );
           if (link && typeof link.value === 'string' && isJavaScriptProtocol.test(link.value)) {
             context.report({

@@ -1,4 +1,4 @@
-import type { DevJSX, FunctionComponent, JSXNode } from './types/jsx-node';
+import type { DevJSX, FunctionComponent, JSXNode, JSXNodeInternal } from './types/jsx-node';
 import type { QwikJSX } from './types/jsx-qwik';
 import { qDev, qRuntimeQrl, seal } from '../../util/qdev';
 import { logError, logOnceWarn, logWarn } from '../../util/log';
@@ -12,6 +12,7 @@ import { isPromise } from '../../util/promises';
 import { SkipRender } from './utils.public';
 import { EMPTY_OBJ } from '../../util/flyweight';
 import { _IMMUTABLE } from '../../internal';
+// keep this import from qwik/build so the cjs build works
 import { isBrowser } from '@builder.io/qwik/build';
 import { assertString } from '../../error/assert';
 import { static_subtree } from '../execute-component';
@@ -33,7 +34,7 @@ export const _jsxQ = <T extends string>(
   flags: number,
   key: string | number | null,
   dev?: DevJSX
-): JSXNode<T> => {
+): JSXNodeInternal<T> => {
   assertString(type, 'jsx type must be a string');
   const processed = key == null ? null : String(key);
   const node = new JSXNodeImpl<T>(
@@ -67,7 +68,7 @@ export const _jsxS = <T extends string>(
   flags: number,
   key: string | number | null,
   dev?: DevJSX
-): JSXNode<T> => {
+): JSXNodeInternal<T> => {
   let children: JSXChildren = null;
   if (mutableProps && 'children' in mutableProps) {
     children = mutableProps.children as JSXChildren;
@@ -87,7 +88,7 @@ export const _jsxC = <T extends string | FunctionComponent<Record<any, unknown>>
   flags: number,
   key: string | number | null,
   dev?: JsxDevOpts
-): JSXNode<T> => {
+): JSXNodeInternal<T> => {
   const processed = key == null ? null : String(key);
   const props = mutableProps ?? ({} as NonNullable<typeof mutableProps>);
   // In dynamic components, type could be a string
@@ -195,7 +196,7 @@ export const RenderOnce: FunctionComponent<{
   return new JSXNodeImpl(Virtual, EMPTY_OBJ, null, props.children, static_subtree, key);
 };
 
-const validateJSXNode = (node: JSXNode) => {
+const validateJSXNode = (node: JSXNodeInternal) => {
   if (qDev) {
     const { type, props, immutableProps, children } = node;
     invoke(undefined, () => {
@@ -300,7 +301,7 @@ const validateJSXNode = (node: JSXNode) => {
 In order to disable content escaping use '<style dangerouslySetInnerHTML={content}/>'
 
 However, if the use case is to inject component styleContent, use 'useStyles$()' instead, it will be a lot more efficient.
-See https://qwik.dev/docs/components/styles/#usestyles for more information.`);
+See https://qwik.dev/docs/core/styles/#usestyles for more information.`);
           }
         }
         if (type === 'script') {
@@ -320,7 +321,7 @@ const printObjectLiteral = (obj: Record<string, unknown>) => {
     .join(', ')} }`;
 };
 
-export const isJSXNode = (n: unknown): n is JSXNode => {
+export const isJSXNode = (n: unknown): n is JSXNodeInternal => {
   if (qDev) {
     if (n instanceof JSXNodeImpl) {
       return true;

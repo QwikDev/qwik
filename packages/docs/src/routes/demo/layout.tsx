@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { component$, Slot } from '@builder.io/qwik';
 import { useStyles$ } from '@builder.io/qwik';
 import STYLES from './demo-reset.css?inline';
@@ -21,6 +20,7 @@ function logQSymbols() {
   const consoleUl = document.getElementById('console')!;
   consoleUl.className = 'console';
   consoleUl.innerHTML = '<h1>Console</h1>';
+  // eslint-disable-next-line no-constant-binary-expression
   false &&
     document.addEventListener('qsymbol', (e) => {
       const detail = (e as any as { detail: { symbol: string } }).detail;
@@ -30,7 +30,7 @@ function logQSymbols() {
       }
       console.info('QSymbol', symbol);
     });
-  function interceptLogFn(name: 'debug' | 'error' | 'info' | 'log' | 'warn') {
+  for (const name of ['debug', 'error', 'info', 'log', 'warn'] as const) {
     const delegate = console[name];
     console[name] = function (...args: any[]) {
       const li = document.createElement('li');
@@ -53,5 +53,4 @@ function logQSymbols() {
       return delegate.apply(console, args);
     };
   }
-  (['debug', 'error', 'info', 'log', 'warn'] as const).forEach(interceptLogFn);
 }

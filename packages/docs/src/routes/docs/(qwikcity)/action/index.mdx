@@ -25,6 +25,7 @@ contributors:
   - gioboa
   - jemsco
   - tzdesign
+  - shairez
 updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
@@ -144,6 +145,54 @@ export default component$(() => {
 ```
 
 In the example above, the `addUser` action is triggered when the user clicks the button. The `action.submit()` method returns a `Promise` that resolves when the action is done.
+
+### Uploading files
+
+When using `<Form>` with a file input, the submission will be sent as a `multipart/form-data` request.
+
+But when using actions programmatically, you can still upload files by passing a `File` object to the `action.submit()` method by creating a `FormData` object and appending the file to it.
+
+```tsx title="src/routes/index.tsx"
+
+import { component$ } from '@builder.io/qwik';
+import { routeAction$ } from '@builder.io/qwik-city';
+
+export const useUploadFile = routeAction$(async ({file}) => {
+  // save the file somewhere...
+  return {
+    success: true,
+  };
+});
+
+export default component$(() => {
+  const action = useUploadFile();
+  const fileUploadRef = useSignal<HTMLInputElement | undefined>();
+  return (
+    <section>
+      <input type="file" ref={fileUploadRef}/>
+      <button
+        onClick$={async () => {
+          
+          const file = fileUploadRef.value?.files?.[0];
+
+          if (file){
+            const formData = new FormData();
+            formData.append('file', file);
+            const { value } = await action.submit(formData);
+            console.log(value);
+          }
+        }}
+      >
+        Upload file
+      </button>
+      
+    </section>
+  );
+});
+
+```
+
+
 
 ## Actions with Event Handlers
 

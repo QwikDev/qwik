@@ -1,16 +1,26 @@
 import path, { resolve } from 'node:path';
 import type { Rollup } from 'vite';
-import { assert, expect, suite, test } from 'vitest';
+import { assert, test } from 'vitest';
 import { normalizePath } from '../../../testing/util';
-import type { OptimizerOptions, QwikBundle, QwikManifest } from '../types';
-import {
-  convertManifestToBundleGraph,
-  qwikVite,
-  type QwikVitePlugin,
-  type QwikVitePluginOptions,
-} from './vite';
+import type { OptimizerOptions } from '../types';
+import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 
 const cwd = process.cwd();
+
+const chunkInfoMocks = [
+  {
+    exports: [''],
+    name: 'chunk.tsx',
+    facadeModuleId: 'chunk.tsx',
+    moduleIds: ['chunk.tsx'],
+  },
+  {
+    exports: [''],
+    name: cwd + '/app/chunk.tsx',
+    facadeModuleId: cwd + '/app/chunk.tsx',
+    moduleIds: [cwd + '/app/chunk.tsx'],
+  },
+] as Rollup.PreRenderedChunk[];
 
 function mockOptimizerOptions(): OptimizerOptions {
   return {
@@ -51,16 +61,29 @@ const excludeDeps = [
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
   (qwikVite(opts) as any)[0] as QwikVitePlugin;
 
+// undefined for Vite 5 - 6, an object for Vite 7
+const configHookPluginContext = undefined as any;
+
 test('command: serve, mode: development', async () => {
   const initOpts = {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'serve', mode: 'development' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'serve', mode: 'development' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -71,8 +94,10 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, normalizePath(resolve(cwd, 'src', 'entry.dev')));
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
   assert.deepEqual(outputOptions.format, 'es');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
@@ -91,7 +116,11 @@ test('command: serve, mode: production', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'serve', mode: 'production' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'serve', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -126,11 +155,21 @@ test('command: build, mode: development', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'build', mode: 'development' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'development' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
   const outputOptions = rollupOptions.output as Rollup.OutputOptions;
+  const chunkFileNames = outputOptions.chunkFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
+  const entryFileNames = outputOptions.entryFileNames as (
+    chunkInfo: Rollup.PreRenderedChunk
+  ) => string;
 
   assert.deepEqual(opts.target, 'client');
   assert.deepEqual(opts.buildMode, 'development');
@@ -144,8 +183,10 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(rollupOptions.input, [normalizePath(resolve(cwd, 'src', 'root'))]);
 
   assert.deepEqual(outputOptions.assetFileNames, 'assets/[hash]-[name].[ext]');
-  assert.deepEqual(outputOptions.chunkFileNames, 'build/[name].js');
-  assert.deepEqual(outputOptions.entryFileNames, 'build/[name].js');
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
+  assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
+  assert.deepEqual(entryFileNames(chunkInfoMocks[1]), 'build/app-chunk.tsx.js');
 
   assert.deepEqual(build.dynamicImportVarsOptions?.exclude, [/./]);
   assert.deepEqual(build.ssr, undefined);
@@ -165,7 +206,11 @@ test('command: build, mode: production', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
+  const c = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -210,7 +255,11 @@ test('command: build, --mode production (client)', async () => {
   };
 
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config({}, { command: 'build', mode: 'production' }))!;
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
+    {},
+    { command: 'build', mode: 'production' }
+  ))!;
   const opts = await plugin.api?.getOptions();
   const build = c.build!;
   const rollupOptions = build!.rollupOptions!;
@@ -228,7 +277,8 @@ test('command: build, --ssr entry.server.tsx', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c = (await plugin.config(
+  const c = (await plugin.config.call(
+    configHookPluginContext,
     { build: { ssr: resolve(cwd, 'src', 'entry.server.tsx') } },
     { command: 'build', mode: '' }
   ))!;
@@ -273,7 +323,8 @@ test('command: serve, --mode ssr', async () => {
     },
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { emptyOutDir: true } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -301,7 +352,8 @@ test('command: serve, --mode ssr with build.assetsDir', async () => {
     },
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { emptyOutDir: true, assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'ssr' }
   ))!;
@@ -325,7 +377,8 @@ test('should use the dist/ fallback with client target', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { assetsDir: 'my-assets-dir/' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -338,7 +391,8 @@ test('should use build.outDir config with client target', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { outDir: 'my-dist/', assetsDir: 'my-assets-dir' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -354,7 +408,8 @@ test('should use build.outDir config when assetsDir is _astro', async () => {
   const plugin = getPlugin(initOpts);
 
   // Astro sets a build.assetsDir of _astro, but we don't want to change that
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     { build: { assetsDir: '_astro' } },
     { command: 'serve', mode: 'development' }
   ))!;
@@ -367,7 +422,8 @@ test('command: build, --mode lib', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     {
       build: {
         lib: {
@@ -402,7 +458,8 @@ test('command: build, --mode lib with multiple outputs', async () => {
     optimizerOptions: mockOptimizerOptions(),
   };
   const plugin = getPlugin(initOpts);
-  const c: any = (await plugin.config(
+  const c: any = (await plugin.config.call(
+    configHookPluginContext,
     {
       build: {
         lib: {
@@ -454,30 +511,4 @@ test('command: build, --mode lib with multiple outputs', async () => {
   assert.deepEqual(c.build.outDir, normalizePath(resolve(cwd, 'lib')));
   assert.deepEqual(build.emptyOutDir, undefined);
   assert.deepEqual(opts.resolveQwikBuild, true);
-});
-
-suite('convertManifestToBundleGraph', () => {
-  test('empty', () => {
-    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
-  });
-
-  test('simple file set', () => {
-    const manifest = {
-      bundles: {
-        'a.js': {
-          size: 0,
-          imports: ['b.js'],
-          dynamicImports: ['c.js'],
-        },
-        'b.js': {
-          size: 0,
-          dynamicImports: ['c.js'],
-        },
-        'c.js': {
-          size: 0,
-        },
-      } as Record<string, QwikBundle>,
-    } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual(['a.js', 2, 'b.js', 'c.js']);
-  });
 });

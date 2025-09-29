@@ -93,7 +93,7 @@ export async function dbGetManifestHashes(
         eq(edgeTable.manifestHash, manifestTable.hash)
       )
     )
-    .where(and(eq(manifestTable.publicApiKey, publicApiKey)))
+    .where(eq(manifestTable.publicApiKey, publicApiKey))
     .groupBy(manifestTable.hash)
     .orderBy(sql`${manifestTable.timestamp} DESC`)
     .limit(1000)

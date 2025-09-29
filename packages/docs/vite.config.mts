@@ -1,13 +1,19 @@
-import { partytownVite } from '@builder.io/partytown/utils';
 import { qwikCity } from '@builder.io/qwik-city/vite';
 import { qwikInsights } from '@builder.io/qwik-labs/vite';
 import { qwikReact } from '@builder.io/qwik-react/vite';
 import { qwikVite } from '@builder.io/qwik/optimizer';
+import { partytownVite } from '@qwik.dev/partytown/utils';
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
+import shikiRehype from '@shikijs/rehype';
+import darkPlus from '@shikijs/themes/dark-plus';
+import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs/transformers';
+import type { ShikiTransformer } from '@shikijs/types';
+import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
-import { defineConfig, loadEnv, type Plugin } from 'vite';
-import Inspect from 'vite-plugin-inspect';
+import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -52,20 +58,91 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
   };
 };
 
-export default defineConfig(async () => {
-  const { default: rehypePrettyCode } = await import('rehype-pretty-code');
+function transformerShowEmptyLines(): ShikiTransformer {
+  return {
+    line(node) {
+      if (node.children.length === 0) {
+        node.children = [{ type: 'text', value: ' ' }];
+        return node;
+      }
+    },
+  };
+}
 
+function transformerMetaShowTitle(): ShikiTransformer {
+  return {
+    root(node) {
+      const meta = this.options.meta?.__raw;
+      if (!meta) {
+        return;
+      }
+      const titleMatch = meta.match(/title="([^"]*)"/);
+      if (!titleMatch) {
+        return;
+      }
+      const title = titleMatch[1] ?? '';
+      if (title.length > 0) {
+        node.children.unshift({
+          type: 'element',
+          tagName: 'div',
+          properties: {
+            class: 'shiki-title',
+          },
+          children: [{ type: 'text', value: title }],
+        });
+      }
+      meta.replace(titleMatch[0], '');
+    },
+  };
+}
+
+function overrideManualChunksForRepl(): Plugin {
+  return {
+    name: 'override-manual-chunks-for-repl',
+    enforce: 'post',
+    config(userConfig) {
+      const prevOutput = userConfig.build?.rollupOptions?.output;
+      const prevManualChunks: Rollup.ManualChunksOption | undefined =
+        prevOutput && !Array.isArray(prevOutput)
+          ? (prevOutput as Rollup.OutputOptions).manualChunks
+          : undefined;
+
+      return {
+        build: {
+          rollupOptions: {
+            output: {
+              manualChunks: (id, meta) => {
+                const moduleInfo = meta.getModuleInfo(id);
+                if (moduleInfo) {
+                  // Prevent the similar optimizer plugin logic from running on the repl
+                  if (id.includes('repl') && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
+                    return null;
+                  }
+                }
+
+                if (typeof prevManualChunks === 'function') {
+                  return prevManualChunks(id, meta);
+                }
+              },
+            },
+          },
+        },
+      };
+    },
+  };
+}
+
+export default defineConfig(() => {
   const routesDir = resolve('src', 'routes');
   return {
-    dev: {
-      headers: {
-        'Cache-Control': 'public, max-age=0',
-      },
-    },
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
       },
+    },
+    define: {
+      // The rolldown deps use this
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
     resolve: {
       alias: [
@@ -80,7 +157,13 @@ export default defineConfig(async () => {
           find: '@supabase/node-fetch',
           replacement: path.resolve(__dirname, 'src', 'empty.ts'),
         },
+        {
+          find: '@docsearch/css',
+          replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+        },
       ],
+      // Make sure to get the browser version of @rolldown/browser
+      conditions: ['browser', 'worker', 'import', 'default'],
     },
     ssr: {
       noExternal: [
@@ -95,6 +178,9 @@ export default defineConfig(async () => {
         '@algolia/autocomplete-core/dist/esm/reshape',
         'algoliasearch/dist/algoliasearch-lite.esm.browser',
       ],
+      resolve: {
+        conditions: ['import', 'worker', 'default'],
+      },
     },
 
     plugins: [
@@ -104,6 +190,7 @@ export default defineConfig(async () => {
         ['MODULE_LEVEL_DIRECTIVE', 'use client'],
       ]),
       rawSource(),
+      compiledStringPlugin(),
       qwikCity({
         mdxPlugins: {
           rehypeSyntaxHighlight: false,
@@ -113,52 +200,22 @@ export default defineConfig(async () => {
         mdx: {
           rehypePlugins: [
             [
-              rehypePrettyCode as any,
+              shikiRehype,
               {
-                theme: 'dark-plus',
-                onVisitLine(node: any) {
-                  // Prevent lines from collapsing in `display: grid` mode, and
-                  // allow empty lines to be copy/pasted
-                  if (node.children.length === 0) {
-                    node.children = [{ type: 'text', value: ' ' }];
-                  }
-                },
-                onVisitHighlightedLine(node: any) {
-                  // Each line node by default has `class="line"`.
-                  if (node.properties.className) {
-                    node.properties.className.push('line--highlighted');
-                  }
-                },
-                onVisitHighlightedWord(node: any, id: string) {
-                  // Each word node has no className by default.
-                  node.properties.className = ['word'];
-                  if (id) {
-                    const backgroundColor = {
-                      a: 'rgb(196 42 94 / 59%)',
-                      b: 'rgb(0 103 163 / 56%)',
-                      c: 'rgb(100 50 255 / 35%)',
-                    }[id];
-
-                    const color = {
-                      a: 'rgb(255 225 225 / 100%)',
-                      b: 'rgb(175 255 255 / 100%)',
-                      c: 'rgb(225 200 255 / 100%)',
-                    }[id];
-                    if (node.properties['data-rehype-pretty-code-wrapper']) {
-                      node.children.forEach((childNode: any) => {
-                        childNode.properties.style = ``;
-                        childNode.properties.className = '';
-                      });
-                    }
-                    node.properties.style = `background-color: ${backgroundColor}; color: ${color};`;
-                  }
-                },
+                theme: darkPlus,
+                transformers: [
+                  transformerMetaHighlight(),
+                  transformerMetaWordHighlight(),
+                  transformerColorizedBrackets(),
+                  transformerShowEmptyLines(),
+                  transformerMetaShowTitle(),
+                ],
               },
             ],
           ],
         },
       }),
-      qwikVite(),
+      qwikVite({ debug: false }),
       partytownVite({
         dest: resolve('dist', '~partytown'),
       }),
@@ -167,20 +224,37 @@ export default defineConfig(async () => {
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),
-      Inspect(),
       qwikInsights({ publicApiKey: PUBLIC_QWIK_INSIGHTS_KEY }),
+      tailwindcss(),
+      overrideManualChunksForRepl(),
     ],
+    optimizeDeps: {
+      include: ['@docsearch/css'],
+      exclude: [
+        // optimizing breaks the wasm import
+        '@rolldown/browser',
+      ],
+    },
     build: {
       sourcemap: true,
       rollupOptions: {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
+        external: ['@docsearch/css'],
       },
+    },
+    worker: {
+      format: 'es' as const,
     },
     clearScreen: false,
     server: {
       port: 3000,
+      // Needed for the REPL SharedArrayBuffer
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
     },
   };
 });

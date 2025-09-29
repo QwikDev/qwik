@@ -1,10 +1,9 @@
 import { intro, isCancel, log, outro, select, spinner } from '@clack/prompts';
 import { bgBlue, bgMagenta, blue, bold, cyan, magenta } from 'kleur/colors';
-import type { IntegrationData, UpdateAppResult } from '../types';
+import type { IntegrationData, UpdateAppOptions, UpdateAppResult } from '../types';
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
-import { bye, getPackageManager, note, panic, printHeader } from '../utils/utils';
+import { bye, getPackageManager, note, panic } from '../utils/utils';
 
-/* eslint-disable no-console */
 import { relative } from 'node:path';
 import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';
@@ -15,8 +14,6 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
   const pkgManager = getPackageManager();
   const integrations = await loadIntegrations();
   let integration: IntegrationData | undefined;
-
-  printHeader();
 
   if (typeof id === 'string') {
     // cli passed a flag with the integration id to add
@@ -62,11 +59,17 @@ export async function runAddInteractive(app: AppCommand, id: string | undefined)
     runInstall = true;
   }
 
-  const result = await updateApp(pkgManager, {
+  const updateAppOptions: UpdateAppOptions = {
     rootDir: app.rootDir,
     integration: integration.id,
     installDeps: runInstall,
-  });
+  };
+  const projectDir = app.getArg('projectDir');
+  if (projectDir) {
+    updateAppOptions.projectDir = projectDir;
+  }
+
+  const result = await updateApp(pkgManager, updateAppOptions);
 
   if (app.getArg('skipConfirmation') !== 'true') {
     await logUpdateAppResult(pkgManager, result);

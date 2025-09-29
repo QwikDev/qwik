@@ -1,7 +1,8 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2141
+assertion_line: 2142
 expression: output
+snapshot_kind: text
 ---
 ==INPUT==
 
@@ -26,15 +27,15 @@ export const App = component$(() => {
 
 import { componentQrl } from "@builder.io/qwik";
 import { qrl } from "@builder.io/qwik";
-export let Thing;
-(function(Thing) {
+export var Thing = /*#__PURE__*/ function(Thing) {
     Thing[Thing["A"] = 0] = "A";
     Thing[Thing["B"] = 1] = "B";
-})(Thing || (Thing = {}));
+    return Thing;
+}({});
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_ckEPmXZlub0"), "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;UAGY;;;GAAA,UAAA;AAKZ,OAAO,MAAM,oBAAM,iHAOhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,IAAA,AAAK,+BAAA;;;WAAA;MAGX;AAED,OAAO,MAAM,oBAAM,iHAOhB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@builder.io/qwik/jsx-runtime";

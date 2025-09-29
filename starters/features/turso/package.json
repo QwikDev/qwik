@@ -5,7 +5,7 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.dev/integrations/integration/turso/",
+      "https://qwik.dev/integrations/turso/",
       "https://docs.turso.tech"
     ],
     "nextSteps": {
@@ -19,7 +19,10 @@
         " To get an authentication token for the database, run:",
         "   turso db tokens create <db-name>"
       ]
-    }
+    },
+    "alwaysInRoot": [
+      ".env.local"
+    ]
   },
   "dependencies": {
     "@libsql/client": "latest"

@@ -4,7 +4,7 @@
     "displayName": "Integration: Storybook",
     "priority": -10,
     "docs": [
-      "https://qwik.dev/integrations/integration/storybook/",
+      "https://qwik.dev/integrations/storybook/",
       "https://storybook.js.org/docs/qwik/get-started/why-storybook"
     ]
   },

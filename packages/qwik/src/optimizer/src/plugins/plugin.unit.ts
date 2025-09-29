@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createPlugin } from './plugin';
+import { ExperimentalFeatures, createQwikPlugin } from './plugin';
 import { normalizePath } from '../../../testing/util';
 import { qwikVite } from './vite';
 
@@ -88,6 +88,12 @@ test('debug true', async () => {
   const plugin = await mockPlugin();
   const opts = plugin.normalizeOptions({ debug: true });
   assert.deepEqual(opts.debug, true);
+});
+
+test('csr', async () => {
+  const plugin = await mockPlugin();
+  const opts = plugin.normalizeOptions({ csr: true });
+  assert.deepEqual(opts.outDir, '');
 });
 
 test('override entryStrategy', async () => {
@@ -221,7 +227,7 @@ test('experimental[]', async () => {
 describe('resolveId', () => {
   test('qrls', async () => {
     const plugin = await mockPlugin();
-    expect(plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
+    expect(await plugin.resolveId(null!, 'foo', undefined)).toBeFalsy();
     const ctx = { resolve: async () => ({ id: 'Yey' }) } as any;
     await expect(
       plugin.resolveId(
@@ -236,7 +242,7 @@ describe('resolveId', () => {
     expect(
       await plugin.resolveId(ctx, '/root/src/routes/layout.tsx_s_7xk04rim0vu.js', undefined)
     ).toHaveProperty('id', '/root/src/routes/layout.tsx_s_7xk04rim0vu.js');
-    expect(plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
+    expect(await plugin.resolveId(null!, './foo', '/root/src/routes/layout.tsx')).toBeFalsy();
     expect(
       await plugin.resolveId(
         ctx,
@@ -263,7 +269,11 @@ describe('resolveId', () => {
     const plugin = await mockPlugin('win32');
     expect(
       await plugin.resolveId(
-        { resolve: async () => 'Yey' } as any,
+        {
+          resolve: async () => ({
+            id: 'Yey',
+          }),
+        } as any,
         'C:\\src\\routes\\layout.tsx_s_7xk04rim0vu.js',
         undefined
       )
@@ -271,23 +281,23 @@ describe('resolveId', () => {
   });
   test('libs', async () => {
     const plugin = await mockPlugin();
-    expect(plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId(null!, '@builder.io/qwik/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '@builder.io/qwik/build'
     );
-    expect(plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
+    expect(await plugin.resolveId(null!, '/@builder.io/qwik/build', undefined)).toHaveProperty(
       'id',
-      '/@builder.io/qwik/build'
+      '@builder.io/qwik/build'
     );
-    expect(plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
+    expect(await plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
       'id',
-      '/@qwik-client-manifest'
+      '@qwik-client-manifest'
     );
   });
 });
 
 async function mockPlugin(os = process.platform) {
-  const plugin = createPlugin({
+  const plugin = createQwikPlugin({
     sys: {
       cwd: () => process.cwd(),
       env: 'node',

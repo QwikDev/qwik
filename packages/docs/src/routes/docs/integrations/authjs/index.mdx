@@ -89,7 +89,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
       const session: Session | null = event.sharedMap.get('session');
       if (!session || new Date(session.expires) < new Date()) {
     -    throw event.redirect(302, `/api/auth/signin?redirectTo=${event.url.pathname}`);
-    +    throw event.redirect(302, `/auth/signin?redirectTo=${event.url.pathname}`);
+    +    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
       }
     };
     ```
@@ -106,7 +106,16 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
     +export const { onRequest, useSession, useSignIn, useSignOut } = 
     +  QwikAuth$(({ env }) => ({
    ```
-
+3. Update your `vite.config.ts` to include `"@auth/qwik"` to avoid potentials import issues
+```diff 
+   export default defineConfig(({ command, mode }): UserConfig => {
+  return {
+    plugins: [qwikCity(), qwikVite(), tsconfigPaths({ root: '.' })],
+    // This tells Vite which dependencies to pre-build in dev mode.
+    optimizeDeps: {
+      include: ["@auth/qwik"],
+    },
+```
 
 
 ## Qwik API
@@ -281,8 +290,8 @@ export const { onRequest, useSession, useSignIn, useSignOut } = QwikAuth$(
 3. Create or edit the `.env.local` file at the root of your project to store secrets
 
 ```bash title=".env.local"
-GITHUB_ID=
-GITHUB_SECRET=
+AUTH_GITHUB_ID=
+AUTH_GITHUB_SECRET=
 AUTH_SECRET=
 ```
 
@@ -344,7 +353,7 @@ Session data can be accessed via the route `event.sharedMap`.  So a route can be
 export const onRequest: RequestHandler = (event) => {
   const session: Session | null = event.sharedMap.get('session');
   if (!session || new Date(session.expires) < new Date()) {
-    throw event.redirect(302, `/auth/signin?redirectTo=${event.url.pathname}`);
+    throw event.redirect(302, `/auth/signin?callbackUrl=${event.url.pathname}`);
   }
 };
 ```

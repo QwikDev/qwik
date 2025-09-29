@@ -10,7 +10,7 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2022-08-02T12:07:45Z'
 ---
 
-Styling is an important part of the design of a web application. Qwik is responsible for loading the style information when a component is mounted. Use [`useStyles$()`](/docs/(qwik)/components/styles/index.mdx#usestyles) to tell Qwik which style should be loaded.
+Styling is an important part of the design of a web application. Qwik is responsible for loading the style information when a component is mounted. Use [`useStyles$()`](/docs/(qwik)/core/styles/index.mdx#usestyles) to tell Qwik which style should be loaded.
 
 ## Why not inline styles?
 
@@ -32,7 +32,7 @@ The problem with this approach is that we will load styles twice.
 1. The styles are inserted into the HTML as part of the SSR.
 2. Then when the component is invalidated and needs to be re-rendered, the styles are loaded again because they are inlined.
 
-What is needed is to load the styles independently from the component. This is what [`useStyles$()`](/docs/(qwik)/components/styles/index.mdx#usestyles) is for. There are two scenarios:
+What is needed is to load the styles independently from the component. This is what [`useStyles$()`](/docs/(qwik)/core/styles/index.mdx#usestyles) is for. There are two scenarios:
 
 1. The component is rendered on the server and the styles are inserted into `<head>` as part of the SSR.
    > Adding a new instance of a component to the application does not require that we load the styles as they are already included as part of SSR.

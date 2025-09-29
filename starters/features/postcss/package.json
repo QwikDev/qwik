@@ -5,8 +5,11 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.dev/integrations/integration/postcss/",
+      "https://qwik.dev/integrations/postcss/",
       "https://github.com/postcss/postcss-load-config"
+    ],
+    "alwaysInRoot": [
+      ".vscode"
     ]
   },
   "devDependencies": {

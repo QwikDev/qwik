@@ -1,29 +1,38 @@
-import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
-import { manifest } from '@qwik-client-manifest';
+import type { PreloaderOptions, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream } from '@builder.io/qwik/server';
 import Root from './root';
 
+// You can pass these as query parameters, as well as `preloadDebug`
+const preloaderSettings = ['ssrPreloads', 'ssrPreloadProbability', 'maxIdlePreloads'] as const;
+
 export default function (opts: RenderToStreamOptions) {
+  const { serverData } = opts;
+  const urlStr = serverData?.url;
+  if (urlStr) {
+    const { searchParams } = new URL(urlStr);
+    if (searchParams.size) {
+      const newOpts = {
+        ...opts,
+        preloader: {
+          ...(typeof opts.preloader === 'object' ? opts.preloader : undefined),
+        },
+      } as Omit<RenderToStreamOptions, 'preloader'> & { preloader: PreloaderOptions };
+      if (searchParams.has('preloaderDebug')) {
+        newOpts.preloader!.debug = true;
+      }
+      for (const type of preloaderSettings) {
+        if (searchParams.has(type)) {
+          newOpts.preloader[type] = Number(searchParams.get(type));
+        }
+      }
+      opts = newOpts;
+    }
+  }
   return renderToStream(<Root />, {
-    manifest,
-    qwikLoader: {
-      // The docs can be long so make sure to intercept events before the end of the document.
-      position: 'top',
-    },
     ...opts,
     containerAttributes: {
       lang: 'en',
       ...opts.containerAttributes,
-    },
-    // Core Web Vitals experiment until November 8: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
-    prefetchStrategy: {
-      implementation: {
-        linkInsert: 'html-append',
-        linkRel: 'modulepreload',
-      },
-    },
-    // Core Web Vitals experiment until November 8: Do not remove! Reach out to @maiieul first if you believe you have a good reason to change this.
-    qwikPrefetchServiceWorker: {
-      include: false,
     },
   });
 }

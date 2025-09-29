@@ -22,7 +22,8 @@ If you're interested in helping out with triaging issues, please follow the [Tri
 
 ### Branch Organization
 
-We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch because we do not use separate branches for development or for the versions we release.
+We adopt [trunk-based development](https://trunkbaseddevelopment.com/) therefore all Pull Requests are made against the main branch.
+Before releasing, we merge `main` into a release branch, for testing purposes.
 
 ### Good first issue
 
@@ -68,7 +69,7 @@ You need to have these tools up and running in your local machine:
 - one of the following:
   - [Nix](https://nixos.org)
   - [Docker](https://www.docker.com/)
-  - Locally installed NodeJS v18+ and optionally Rust
+  - Locally installed NodeJS v22+ and optionally Rust
 
 #### Nix
 
@@ -93,6 +94,15 @@ Alternatively you can use [devcontainers/cli](https://github.com/devcontainers/c
 - Install devcontainers following their documentation.
 - In your terminal navigate to the Qwik's project root directory.
 - Then run `devcontainer up --workspace-folder .`. This command will start a Docker container with all required environment dependencies.
+
+> [!TIP]
+> If you are using Podman, be sure to update the [VSCode dev container settings](https://code.visualstudio.com/remote/advancedcontainers/docker-options#_podman). Don't forget to allocate enough resources to the Podman machine to avoid slow builds.
+
+> [!NOTE]
+> You may run into an `EEXISTS` error when the Dev Container runs the "updateContentCommand" script. This may happen if pnpm gets installed automatically during the setup process. You can ignore the error because the container will be setup correctly, then run `pnpm install` in the project root once the container is connected and the terminal is available.
+
+> [!CAUTION]
+> The Dev Container may not work on Windows properly due to a difference with Windows container host volume permissions and ownership. It's recommended to use Mac or Linux instead, or configure your environment to build the project without Dev Containers.
 
 ##### Using development container without Dev Containers and VSCode
 
@@ -144,7 +154,7 @@ Furthermore, to build the optimizer you optionally need Rust.
 
 1. Make sure [Rust](https://www.rust-lang.org/tools/install) is installed.
 2. Install [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) with `cargo install wasm-pack` .
-3. Node version >= `18`.
+3. Node version >= `22`.
 4. Make sure you have [pnpm](https://pnpm.io/installation) installed.
 5. run `pnpm install`
 
@@ -162,6 +172,9 @@ pnpm install && pnpm build.local
 ```
 
 If you want to work on the Rust code, use `build.full` instead of `build.local`.
+
+> [!NOTE]
+> After running `build.local`, you may see Git diffs for API-related files and `JSXNode`. You should run the `api.update` script to resolve them.
 
 ### Fast build
 
@@ -320,7 +333,6 @@ For larger PRs, it would really help if you follow these guidelines.
   For example: `feat(qwik-city): confetti animations` or `chore: pnpm api.update`
 
   Common types include:
-
   - feat: A new feature
   - fix: A bug fix
   - docs: Documentation only changes
@@ -366,7 +378,7 @@ For your convenience, we prepared a video tutorial that covers the process of ad
 Make sure the PR follows all the guidelines in this document. Once you think the PR is good to merge, if the commits are "nice", you can merge the PR. If not, squash the PR.
 
 In case the PR is stuck waiting for the original author to apply a trivial
-change (a typo, capitalisation change, etc.) and the author allowed the members
+change (a typo, capitalization change, etc.) and the author allowed the members
 to modify the PR, consider applying it yourself (or commit the existing review
 suggestion). You should pay extra attention to make sure the addition doesn't go
 against the idea of the original PR and would not be opposed by the author.

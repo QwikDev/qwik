@@ -1,0 +1,494 @@
+---
+title: Qwik Hybrid Native App Overview | Guides
+description: Learn to build hybrid native apps with Qwik.
+keywords: 'Capacitor, native, mobile'
+contributors:
+  - srapport
+updated_at: '2024-12-30T03:28:00Z'
+created_at: '2024-12-28T09:56:54Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Qwik for iOS and Android
+
+## Modernizing Mobile Development with a Hybrid Approach
+
+Traditionally, building native mobile applications meant managing two separate codebases: **Swift/Objective-C** for iOS and **Kotlin/Java** for Android. While this approach offers deep integration with each platform, it comes with significant drawbacks, including **increased development time**, **higher costs**, and **doubled maintenance efforts** for every feature or bug fix.
+
+This new hybrid approach combines **[Qwik's](https://qwik.dev/) performance-optimized framework** with **[Capacitor's](https://capacitorjs.com/) native runtime** and **[Capawesome's](https://capawesome.io/) rich plugin ecosystem**, enabling developers to build high-performance mobile applications from a **single TypeScript codebase**. This architecture bridges the gap between web and native development, allowing:
+
+- Single codebase for iOS and Android
+- Reduced development and maintenance costs
+- Streamlined update process
+- Broad device compatibility
+- Access to native device features
+- Minimal code duplication
+
+## How It Works
+
+The architecture combines three complementary technologies—**Qwik**, **Capacitor**, and a robust **plugin ecosystem**—to create a streamlined, high-performance hybrid mobile development platform. This approach prioritizes **speed**, **native integration**, and **efficient resource usage**, ensuring a smooth experience for both developers and end-users.
+
+### **1. Qwik Static Site Generation (SSG)**
+
+At the core of this stack, your application is built as a **Qwik Static Site**. Qwik's **[Static Site Generation (SSG)](https://qwik.dev/docs/guides/static-site-generation/)** approach ensures that most of the application is pre-rendered at build time, resulting in **lightweight assets** that are optimized for mobile devices.
+
+**Why Static for Capacitor?**
+- **On-Device Hosting:** The static assets are served directly from the device's file system, eliminating the need for a remote server.  
+- **Offline Availability:** Since the assets are bundled within the app, no network connection is required to load the initial UI.  
+- **Faster Startup Times:** Pre-rendered assets minimize processing overhead, allowing the app to launch quickly.  
+- **Improved Stability:** Reduced reliance on external servers leads to fewer points of failure.  
+
+**Key Benefits of Qwik SSG:**
+- **Resumable Rendering:** Qwik's architecture allows code to execute only where and when it’s needed.  
+- **Minimal Resource Usage:** Efficient rendering keeps CPU and memory usage low.  
+- **Scalable Design:** Performance remains consistent across devices with varying capabilities.
+
+Together, Qwik SSG and Capacitor enable an architecture where your app's web content behaves like native assets, loaded directly from the device with no dependency on external servers.
+
+### **2. Capacitor Integration**
+
+Capacitor acts as the bridge between your Qwik-generated static assets and native mobile APIs. It wraps your app in a native runtime, making it possible to access native device capabilities directly from your TypeScript code.
+
+**Why Capacitor is Essential:**
+- **Seamless Web-to-Native Bridge:** Native APIs (e.g., camera, storage, geolocation) are exposed to your Qwik app through JavaScript-friendly plugins.  
+- **Local Asset Hosting:** Your app is served from local files, avoiding the latency and reliability issues of remote servers.  
+- **Unified Build Workflow:** The same codebase is built for both iOS and Android, reducing duplication and maintenance overhead.  
+- **Modern Tooling:** Capacitor integrates smoothly with build tools like Vite and development environments like VSCode.
+
+**Key Benefits of Capacitor:**
+- **Simplified Build Process:** Fewer steps and tools are required to compile and deploy native apps.  
+- **Effortless Platform Management:** Easily add and manage platform-specific dependencies with Capacitor CLI.  
+- **Native Runtime Stability:** Ensures that native code executes predictably across different devices.
+
+By using Capacitor, your static Qwik app becomes a self-contained mobile app that can interact with device hardware and APIs as if it were built natively. Please refer to the official [Capacitor documentation](https://capacitorjs.com/docs) for more information on how to use Capacitor.
+
+### **3. Accessing Native Features**
+
+Capacitor enables your Qwik app to interact with native device features through an extensive ecosystem of **plugins**. These plugins act as modular bridges that translate JavaScript API calls into native commands, allowing seamless access to hardware and platform-specific functionality like the camera, GPS, or file system.
+
+#### **Capacitor Plugins:**  
+- Developed and maintained by the Capacitor core team.  
+- Provide robust APIs for essential device features, such as the camera, geolocation, file system, and push notifications.  
+- Frequently updated to ensure compatibility with the latest iOS and Android versions.  
+- Supported by comprehensive documentation and examples, making them easy to implement and maintain.
+
+Capacitor Plugins can be found [here](https://capacitorjs.com/docs/plugins).
+
+#### **Capawesome Plugins:**  
+
+Capawesome expands Capacitor’s functionality with a collection of plugins designed to address advanced and specialized use cases not always covered by Capacitor's core plugin set. Two notable examples demonstrate its unique value:
+
+- **Live Updates:** Enables over-the-air updates for the app's web layer, allowing developers to deliver bug fixes, improvements, and new features without requiring users to download a new version from the app store. This reduces release cycle friction and ensures users always have the latest experience.
+
+- **Bluetooth Low Energy (BLE):** Offers reliable APIs for communicating with Bluetooth Low Energy peripherals, supporting secure and efficient interactions with devices such as fitness trackers, medical sensors, and smart IoT equipment.
+
+Capawesome plugins are built with a **TypeScript-first philosophy**, ensuring strong type safety, modern development standards, and seamless integration with development tools and workflows. This focus results in plugins that are easier to maintain, debug, and scale across projects.
+
+Many more Capawesome Plugins can be found [here](https://capawesome.io/plugins/).
+
+#### **Cordova Plugins:**  
+- Provide access to a large library of plugins from the Cordova ecosystem, offering compatibility with legacy hybrid solutions.  
+- Ideal for leveraging specialized or less commonly used native features not yet supported by Capacitor or Capawesome.  
+- Capacitor’s compatibility layer ensures smooth integration, but long-term support may vary based on the plugin.
+
+Cordova Plugins can be found [here](https://cordova.apache.org/plugins/).
+
+## **Prerequisites and Initial Setup**
+
+### **Required Tools**
+- **Node.js** (18.x or later)  
+- **npm** or **pnpm**  
+- **iOS Requirements:**  
+   - macOS computer  
+   - Xcode (latest version)
+   - CocoaPods  
+- **Android Requirements:**  
+   - Android Studio  
+   - Android SDK  
+   - Gradle  
+
+Please refer to each platform's official documentation for installation instructions and application build process.
+
+### **Environment Setup**
+
+1. **Create a Qwik Project**  
+   Start by creating a new Qwik project using the CLI:  
+   ```bash
+   pnpm create qwik@latest
+   ```
+
+2. **Add the Static Adapter**  
+   To prepare your Qwik app for static site generation (SSG), install the **static adapter**:  
+   ```bash
+   pnpm run qwik add static
+   ```
+   This step ensures your app generates pre-rendered static files suitable for Capacitor.
+
+3. **Add Capacitor to Your Qwik Project**  
+   Install Capacitor dependencies and initialize Capacitor:  
+   ```bash
+   pnpm i @capacitor/cli @capacitor/core
+   npx cap init
+   ```
+
+4. **Configure Capacitor**  
+   Your `capacitor.config.ts` file should looks something like this:  
+   ```typescript
+    import type { CapacitorConfig } from '@capacitor/cli';
+
+    const config: CapacitorConfig = {
+      appId: 'com.example.app',
+      appName: 'my-qwik-empty-starter',
+      webDir: 'dist',
+      server: {
+        iosScheme: 'capacitor',
+        androidScheme: 'https'
+      }
+    };
+
+    export default config;
+   ```
+
+5. **Install Platform-Specific Dependencies**  
+   Add support for iOS and Android platforms:  
+   ```bash
+   pnpm i @capacitor/ios @capacitor/android
+   ```
+
+6. **Initialize Native Platforms**  
+   Create the native project files:  
+   ```bash
+   npx cap add ios
+   npx cap add android
+   ```
+
+## Development Workflow
+
+### Building and Running
+
+In this section, we’ll walk through the process of creating a **production-ready build** of your Qwik application, syncing it with native platforms using **Capacitor**, and deploying it to an **iOS simulator** or **Android emulator**. This workflow ensures that your app is packaged with optimized static assets, making it ready for testing and deployment on mobile devices. Whether you're verifying functionality, refining the user experience, or preparing for final distribution, running the app in a native simulator or emulator is an essential step in validating its performance and behavior across platforms.
+
+1. Create a production build of your Qwik app:
+```bash
+pnpm run build
+```
+
+2. Sync web assets to native platforms:
+```bash
+npx cap sync
+```
+
+3. Run the app in simulator/emulator:
+```bash
+npx cap run ios     # Runs the app in an iOS simulator
+npx cap run android # Runs the app in an Android emulator
+```
+
+Alternatively you can open native IDEs:
+```bash
+npx cap open ios     # Opens Xcode
+npx cap open android # Opens Android Studio
+```
+
+## **How to Use Native Functionality with Plugins**
+
+The **Device Plugin** is a straightforward example of how to integrate native functionality into your Qwik app using Capacitor. This plugin allows you to access key device-specific information, such as the model, operating system, and OS version. This data can be valuable for debugging, adapting your app's behavior based on the device's capabilities, or collecting insights for analytics. Importantly, the Device plugin works seamlessly in both iOS simulators and Android emulators, making it an ideal choice for testing native integration without requiring additional configuration.
+### Install the Device Plugin
+
+1. Add the Device plugin to your project:
+
+```bash
+pnpm i @capacitor/device
+```
+
+2. Add the plugin to your `capacitor.config.ts` file:
+
+```TypeScript
+plugins: {
+  Device: {
+    // No configuration required
+  },
+},
+```
+
+3. Update your Qwik component `index.tsx` to use the Device plugin:
+
+```tsx
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { Device } from '@capacitor/device';
+
+export const DeviceInfoComponent = component$(() => {
+  const deviceInfo = useSignal<string | null>(null);
+
+  useVisibleTask$(async () => {
+    const info = await Device.getInfo();
+    deviceInfo.value = `Model: ${info.model}, OS: ${info.operatingSystem}, Version: ${info.osVersion}`;
+  });
+
+  return (
+    <div style={{ paddingTop: "40px" }}>
+      <h2>Device Information</h2>
+      {deviceInfo.value ? (
+        <p>{deviceInfo.value}</p>
+      ) : (
+        <p>Loading device information...</p>
+      )}
+    </div>
+  );
+});
+```
+
+4. Update the native platforms:
+
+You will need to update the native platforms to ensure that the plugin is properly integrated into your app. This step ensures that the native code is available for the Qwik app.
+
+***NOTE:** As of the time of writing this guide, a bug exists in XCode that requires you to delete the iOS app before redeploying.*
+
+```bash
+npx cap sync
+npx cap run ios     # Runs the app in an iOS simulator
+npx cap run android # Runs the app in an Android emulator
+```
+
+
+## 📚 **Over-the-Air Updates with Capawesome**
+
+This is a highly simplified example of how to self-host a live update from your local system. To implement a robust OTA update system please follow the guides provided at Capawesome.
+
+1. Install the Live Update plugin:
+
+```bash
+pnpm i @capawesome/capacitor-live-update
+```
+
+2. Update your `capacitor.config.ts` file to enable live reload:
+
+```typescript
+  plugins: {
+    ...
+    LiveUpdate: {
+      appId: "YOUR_APP_ID",
+      // publicKey:
+      //   "-----BEGIN PUBLIC KEY-----\nYOUR_PUBLIC_KEY\n-----END PUBLIC KEY-----",
+    },
+  },
+```
+
+3. Update your `index.tsx` as follows and be sure to set `YOUR_IP`. When the user clicks the button, it will update the app.
+
+```tsx
+import {
+  $,
+  component$,
+  useComputed$,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
+import type { DocumentHead } from "@builder.io/qwik-city";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
+
+const VERSION = "1.0.0";
+const OTA_SERVER_URL = "http://YOUR_IP:8000";
+const wait = () => new Promise((resolve) => setTimeout(resolve, 1000));
+
+export default component$(() => {
+  const version = useSignal<string>(VERSION);
+  const updateStatus = useSignal<string | null>(null);
+  const otaUrl = useComputed$(() => `${OTA_SERVER_URL}/${version.value}.zip`);
+
+  const handleUpdate = $(async () => {
+    try {
+      updateStatus.value = `Checking for existing bundle...`;
+      console.log(updateStatus.value);
+      await wait();
+
+      const { bundleIds } = await LiveUpdate.getBundles();
+      const bundleExists = bundleIds.includes(version.value);
+
+      if (bundleExists) {
+        updateStatus.value = `Bundle ${version.value} already exists. Switching to it...`;
+        console.log(updateStatus.value);
+        await wait();
+
+        await LiveUpdate.setNextBundle({ bundleId: version.value });
+        await LiveUpdate.reload();
+
+        updateStatus.value = `Switched to existing bundle ${version.value}!`;
+        console.log(updateStatus.value);
+        await wait();
+      } else {
+        updateStatus.value = `Downloading update from ${otaUrl.value}...`;
+        console.log(updateStatus.value);
+        await wait();
+
+        await LiveUpdate.downloadBundle({
+          url: otaUrl.value,
+          bundleId: version.value,
+        });
+
+        updateStatus.value = "Applying update...";
+        console.log(updateStatus.value);
+        await wait();
+
+        await LiveUpdate.setNextBundle({ bundleId: version.value });
+        await LiveUpdate.reload();
+
+        updateStatus.value = "Update applied successfully!";
+        console.log(updateStatus.value);
+        await wait();
+      }
+    } catch (error) {
+      updateStatus.value = `Update to ${otaUrl.value} failed. Error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`;
+      console.error(updateStatus.value);
+      await wait();
+    }
+  });
+
+  useVisibleTask$(async () => {
+    try {
+      updateStatus.value = "App ready";
+      console.log(updateStatus.value);
+      await wait();
+
+      LiveUpdate.ready();
+    } catch (error) {
+      (updateStatus.value = "Error notifying app readiness:"), error;
+      console.error(updateStatus.value);
+      await wait();
+    }
+  });
+
+  return (
+    <div style={{ padding: "40px" }}>
+      <h2>OTA Update</h2>
+      <h3>Current Version: {VERSION}</h3>
+      <p>Enter the version you want to update to and click the button below.</p>
+
+      <div style={{ marginBottom: "20px" }}>
+        <label>
+          Version:
+          <input
+            value={version.value}
+            onInput$={(event) =>
+              (version.value = (event.target as HTMLInputElement).value)
+            }
+            style={{
+              marginLeft: "10px",
+              padding: "8px",
+              fontSize: "14px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+            }}
+          />
+        </label>
+      </div>
+
+      <button
+        onClick$={handleUpdate}
+        style={{
+          marginTop: "10px",
+          padding: "10px 20px",
+          fontSize: "14px",
+          cursor: "pointer",
+          borderRadius: "5px",
+          border: "none",
+          backgroundColor: "#0078D4",
+          color: "#fff",
+        }}
+      >
+        Update Now
+      </button>
+
+      {updateStatus.value && (
+        <p style={{ marginTop: "20px" }}>{updateStatus.value}</p>
+      )}
+    </div>
+  );
+});
+
+export const head: DocumentHead = {
+  title: "Dynamic OTA Update with Capawesome",
+  meta: [
+    {
+      name: "description",
+      content: "Qwik app with OTA updates.",
+    },
+  ],
+};
+```
+
+4. Build the initial app and deploy it to your device.
+
+Build and deploy the app to your device.
+
+```bash
+pnpm run build
+npx cap sync
+npx cap run ios     # Runs the app in an iOS simulator
+npx cap run android # Runs the app in an Android emulator
+```
+
+5. Build OTA update bundles.
+
+Update the version number in the `index.tsx` file and zip it with the same version number (i.e. `1.0.1.zip`). You can build multiple versions and switch between them.
+
+```bash
+mkdir -p ota_bundles # Only required the first time
+pnpm run build
+zip -r ota_bundles/VERSION.zip dist/*
+```
+
+6. Start a simple OTA Bundle Server to host your compressed bundles.
+
+```bash
+npx serve ota_bundles -l 8000
+```
+
+7. Test Over-the-Air Updates from the OTA Bundle Server.
+
+Once the app is updated, the new version will be used across app launches. You can repeat step 5 to create a new bundles.
+
+
+#### **Capawesome Cloud**
+
+If you are using [Capawesome Cloud](https://capawesome.io/cloud/), you can use the Live Update plugin to update your app without having to build and host a new version of the app. This is a great option for production environments.
+
+### Live Development
+
+Live development is a critical part of building modern hybrid mobile applications, allowing developers to make changes to their code and see the results in real-time on a connected device or simulator. With Capacitor’s live reload feature, you can bridge the gap between rapid web development workflows and native mobile deployment. Instead of waiting through lengthy build and redeployment cycles, live development enables instant feedback, making it easier to fine-tune UI elements, test native functionality, and troubleshoot platform-specific behaviors. This approach reduces development friction, accelerates iteration, and fosters a smoother experience when building, testing, and refining Qwik-powered mobile apps.
+
+1. Update `vite.config.ts` to enable access to the dev server from the local network:
+```typescript
+ server: {
+  ...
+  host: true, // Enables access from the local network
+ }
+ ```
+
+2. Update `capacitor.config.ts` to enable live reload from the dev server's network accessible IP address:
+```typescript
+const config: CapacitorConfig = {
+  ...
+  server: {
+    url: 'http://YOUR_IP:5172',
+    cleartext: true
+  }
+};
+```
+
+3. Run the app in simulator/emulator:
+```bash
+npx cap run ios
+npx cap run android
+```
+
+4. Start Qwik's dev server:
+```bash
+pnpm run dev
+```
+
+**NOTE:** After you run the dev server, you will need to restart the native IDEs to see the changes.
+

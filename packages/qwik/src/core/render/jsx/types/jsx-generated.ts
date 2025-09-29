@@ -596,7 +596,7 @@ type SpecialAttrs = {
      * For type: HTMLInputTypeAttribute, excluding 'button' | 'reset' | 'submit' | 'checkbox' |
      * 'radio'
      */
-    'bind:value'?: Signal<string | undefined>;
+    'bind:value'?: Signal<string | undefined | number>;
     enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send' | undefined;
     height?: Size | undefined;
     max?: number | string | undefined;
@@ -711,7 +711,7 @@ type SpecialAttrs = {
     form?: string | undefined;
     value?: string | ReadonlyArray<string> | number | undefined;
     'bind:value'?: Signal<string | undefined>;
-    children?: undefined;
+    children?: string;
   };
   track: {
     children?: undefined;

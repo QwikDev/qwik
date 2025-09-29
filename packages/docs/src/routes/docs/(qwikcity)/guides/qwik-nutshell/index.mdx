@@ -616,7 +616,7 @@ If you want to access browser APIs, such as `window`, `document`, `localStorage`
 
 ```tsx
 import { component$, useTask$, useVisibleTask$, useSignal } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@builder.io/qwik';
 
 export default component$(() => {
   const ref = useSignal<Element>();
@@ -667,7 +667,7 @@ Sometimes you need to run code only on the server, such as fetching data or acce
 ```tsx
 import { component$, useTask$ } from '@builder.io/qwik';
 import { server$, routeLoader$ } from '@builder.io/qwik/qwik-city';
-import { isServer } from '@builder.io/qwik/build';
+import { isServer } from '@builder.io/qwik';
 
 
 export const useGetProducts = routeLoader$((requestEvent) => {
@@ -686,7 +686,7 @@ const encryptOnServer = server$(function(message: string) {
 
 export default component$(() => {
   useTask$(() => {
-    if () {
+    if (isServer) {
       // This code will only run on the server only when the component is first rendered in the server
     }
   });
@@ -729,7 +729,7 @@ The `server$()` is a special way to declare functions that only run on the serve
 
 ### `isServer` & `isBrowser` conditionals
 
-Instead of `if(typeof window !== 'undefined')`, it is recommended to use the `isServer` and `isBrowser` boolean helpers exported from `@builder.io/qwik/build` to ensure your code only runs in the browser. They contain slightly more robust checks to better detect the browser environment.
+Instead of `if(typeof window !== 'undefined')`, it is recommended to use the `isServer` and `isBrowser` boolean helpers exported from `@builder.io/qwik` to ensure your code only runs in the browser. They contain slightly more robust checks to better detect the browser environment.
 
 Here is the source code for reference:
 
@@ -746,7 +746,7 @@ export const isServer: boolean = !isBrowser;
 Here is how you import these for reference:
 
 ```tsx
-import {isServer, isBrowser} from '@builder.io/qwik/build';
+import {isServer, isBrowser} from '@builder.io/qwik';
 
 // inside component$
 

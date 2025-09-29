@@ -5,8 +5,8 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "vite": "5.3.5",
-    "vite-plugin-static-copy": "1.0.6"
+    "vite": "7.1.7",
+    "vite-plugin-static-copy": "3.1.2"
   },
   "engines": {
     "node": ">=16.8.0 <18.0.0 || >=18.11"
@@ -35,6 +35,7 @@
   "scripts": {
     "build": "vite build --mode lib"
   },
+  "sideEffects": false,
   "type": "module",
   "types": "./lib/types/index.d.ts"
 }

@@ -26,7 +26,7 @@ describe('mdx', async () => {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx } from '@builder.io/qwik';
+        "code": "import { jsx, _jsxC, RenderOnce } from '@builder.io/qwik';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -61,9 +61,15 @@ describe('mdx', async () => {
         });
       }
 
-      const WrappedMdxContent = () => {
-        const content = _createMdxContent({});
-        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
+      const WrappedMdxContent = (props = {}) => {
+        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, "eB2HIyA1");
+        if (typeof MDXLayout === 'function'){
+            return jsx(MDXLayout, {children: content});
+        }
+        return content;
       };
       export default WrappedMdxContent;
       ",
@@ -95,7 +101,7 @@ export default function Layout({ children: content }) {
 
     expect(result).toMatchInlineSnapshot(`
       {
-        "code": "import { jsx } from '@builder.io/qwik';
+        "code": "import { jsx, _jsxC, RenderOnce } from '@builder.io/qwik';
       import {Fragment as _Fragment, jsx as _jsx, jsxs as _jsxs} from "@builder.io/qwik/jsx-runtime";
       export const headings = [{
         "text": "Hello",
@@ -135,9 +141,15 @@ export default function Layout({ children: content }) {
         });
       }
 
-      const WrappedMdxContent = () => {
-        const content = _createMdxContent({});
-        return typeof MDXLayout === 'function' ? jsx(MDXLayout, {children: content}) : content;
+      function _missingMdxReference(id, component, place) {
+        throw new Error("file.mdx: Expected " + (component ? "component" : "object") + " \`" + id + "\` to be defined: you likely forgot to import, pass, or provide it." + (place ? "\\nIt’s referenced in your code at \`" + place + "\`" : ""));
+      }
+      const WrappedMdxContent = (props = {}) => {
+        const content = _jsxC(RenderOnce, {children: _jsxC(_createMdxContent, props, 3, null)}, 3, "UdQmQWC3");
+        if (typeof MDXLayout === 'function'){
+            return jsx(MDXLayout, {children: content});
+        }
+        return content;
       };
       export default WrappedMdxContent;
       ",

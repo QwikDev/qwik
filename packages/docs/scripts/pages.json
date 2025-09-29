@@ -113,10 +113,6 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://reduced.to",
-    "tags": "app"
-  },
-  {
     "href": "https://sanyamjainqwik.vercel.app/",
     "tags": "portfolio"
   },
@@ -130,16 +126,8 @@
     "tags": "saas"
   },
   {
-    "href": "https://promptle.art/",
-    "tags": "game"
-  },
-  {
     "href": "https://abdhashem.com",
     "tags": "portfolio"
-  },
-  {
-    "href": "https://puzzledbycsharp.com/",
-    "tags": "site"
   },
   {
     "href": "https://necatikcl.dev/",
@@ -174,14 +162,6 @@
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
-  },
-  {
-    "href": "https://radixstream.com/",
-    "tags": "site"
-  },
-  {
-    "href": "https://www.anirbandas.in/",
-    "tags": "portfolio"
   },
   {
     "href": "https://getpolaris.ai/",

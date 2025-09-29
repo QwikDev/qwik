@@ -205,10 +205,9 @@ import {
   type PlatformCloudflarePages,
 } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
-import { manifest } from '@qwik-client-manifest';
 import render from './entry.ssr';
 
-const fetch = createQwikCity({ render, qwikCityPlan, manifest });
+const fetch = createQwikCity({ render, qwikCityPlan });
 
 export { fetch };
 ```
@@ -221,7 +220,7 @@ import { fetch } from "../server/entry.cloudflare-pages";
 export default { fetch };
 ```
 
-- [Cloudflare Pages Middleware Source](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/middleware/cloudflare-pages/index.ts)
+- [Cloudflare Pages Middleware Source](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/middleware/cloudflare-pages/index.ts)
 - [Cloudflare Pages Advanced Mode](https://developers.cloudflare.com/pages/platform/functions/advanced-mode/)
 - [Function Invocation Route Config](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)
 

@@ -1,14 +1,20 @@
 import { ChildProcess, exec, execSync } from 'child_process';
-import { dirSync } from 'tmp';
-import { existsSync, mkdirSync, readFileSync, rmSync, rmdirSync, writeFileSync } from 'fs';
-import { promisify } from 'util';
-import { resolve, join, dirname } from 'path';
-import treeKill from 'tree-kill';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { yellow } from 'kleur/colors';
+import { dirname, join, resolve } from 'path';
+import { dirSync } from 'tmp';
+import treeKill from 'tree-kill';
+import { promisify } from 'util';
 import { createDocument } from '../../../packages/qwik/src/testing/document';
 
-export function scaffoldQwikProject(): { tmpDir: string; cleanupFn: () => void } {
-  const tmpHostDirData = getTmpDirSync(process.env.TEMP_E2E_PATH);
+export type QwikProjectType = 'playground' | 'library' | 'empty';
+export function scaffoldQwikProject(type: QwikProjectType): {
+  tmpDir: string;
+  cleanupFn: () => void;
+} {
+  const tmpHostDirData = getTmpDirSync(
+    process.env.TEMP_E2E_PATH ? `${process.env.TEMP_E2E_PATH}/${type}` : undefined
+  );
   const cleanupFn = () => {
     if (!tmpHostDirData.overridden) {
       cleanup(tmpHostDirData.path);
@@ -17,7 +23,7 @@ export function scaffoldQwikProject(): { tmpDir: string; cleanupFn: () => void }
     }
   };
   try {
-    const tmpDir = runCreateQwikCommand(tmpHostDirData.path);
+    const tmpDir = runCreateQwikCommand(tmpHostDirData.path, type);
     log(`Created test application at "${tmpDir}"`);
     replacePackagesWithLocalOnes(tmpDir);
     return { cleanupFn, tmpDir };
@@ -52,10 +58,10 @@ function getTmpDirSync(tmpDirOverride?: string) {
   return { path: dirSync({ prefix: 'qwik_e2e' }).name, overridden: false };
 }
 
-function runCreateQwikCommand(tmpDir: string): string {
+function runCreateQwikCommand(tmpDir: string, type: 'playground' | 'library' | 'empty'): string {
   const appDir = 'e2e-app';
   execSync(
-    `node "${workspaceRoot}/packages/create-qwik/create-qwik.cjs" playground "${join(tmpDir, appDir)}"`
+    `node "${workspaceRoot}/packages/create-qwik/create-qwik.cjs" ${type} "${join(tmpDir, appDir)}"`
   );
   return join(tmpDir, appDir);
 }
@@ -67,10 +73,10 @@ function replacePackagesWithLocalOnes(tmpDir: string) {
   for (const { name, absolutePath } of tarballConfig) {
     patchPackageJsonForPlugin(tmpDir, name, absolutePath);
   }
-  execSync('npm i', {
+  execSync('pnpm i', {
     cwd: tmpDir,
     // only output errors
-    stdio: ['ignore', 'ignore', 'inherit'],
+    stdio: ['ignore', 'inherit', 'inherit'],
   });
 }
 
@@ -106,6 +112,7 @@ export function runCommandUntil(
 
     function checkCriteria(c: any) {
       output += c.toString();
+      console.warn(output);
       if (criteria(stripConsoleColors(output)) && !complete) {
         complete = true;
         res(p);
@@ -152,11 +159,15 @@ export async function assertHostUnused(host: string): Promise<void> {
 // promisify fails to get the proper type overload, so manually enforcing the type
 const _promisifiedTreeKill = promisify(treeKill) as (pid: number, signal: string) => Promise<void>;
 
-export const promisifiedTreeKill = (pid: number, signal: string) => {
+export const promisifiedTreeKill = async (pid: number, signal: string) => {
   try {
-    return _promisifiedTreeKill(pid, signal);
+    return await _promisifiedTreeKill(pid, signal);
   } catch (error) {
-    console.error('Failed to kill the process ' + pid, error);
+    // Don't treat process termination failures as test failures
+    // This is especially important on Windows where processes may already be gone
+    // or may not be properly terminated with tree-kill
+    log(`Process ${pid} could not be killed, but continuing: ${error.message}`);
+    return Promise.resolve();
   }
 };
 

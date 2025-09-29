@@ -1,0 +1,161 @@
+---
+title: 'Qwik 1.14.0: Introducing the Preloader'
+authors:
+  - 'Wout Mertens'
+  - 'Maïeul Chevalier'
+  - 'Shai Reznik'
+tags: ['Web development']
+date: 'May 23, 2025'
+canonical: 'https://qwik.dev/blog/qwik-1-14-preloader'
+---
+
+import { ArticleBlock } from '~/routes/(blog)/blog/components/mdx/article-block';
+import { DiscordLink } from '~/routes/(blog)/blog/components/mdx/discord-link';
+import { Image } from 'qwik-image';
+import CodeSandbox from '~/components/code-sandbox/index.tsx';
+import serviceWorkerDelayDemo from './service-worker-delay-demo-crop.webm';
+import modulepreloadNoDelayDemo from './modulepreload-no-delay-demo-crop.webm';
+import serviceWorkerVsModulepreloadIllustration from './service-worker-vs-modulepreload-illustration.webp';
+import serviceWorkerRegistrationPenalty from './service-worker-registration-penalty.webp';
+
+<ArticleBlock>
+
+We're super excited to announce the release of Qwik 1.14.0, our most fundamental update to Qwik since the release of 1.0.0!
+
+You can try it out on a new Qwik project with `npm create qwik@latest` or update your existing project with `npm i @builder.io/qwik@latest @builder.io/qwik-city@latest eslint-plugin-qwik@latest`.
+
+## A Qwik recap
+
+One of the core features that makes Qwik so... well... quick... is what we call "**Javascript Streaming**" - the unique ability to execute a part of the code as soon as it is ready, before all the code has been downloaded - speeding up your website's [TTI (Time To Interactive)](https://developer.mozilla.org/en-US/docs/Glossary/Time_to_interactive) similarly to how [video streaming](https://www.cloudflare.com/learning/video/what-is-buffering/) is significantly faster than downloading an entire video and then playing it thanks to buffering and on demand delivery.
+
+This mechanism is first enabled at build-time thanks to the [Qwik optimizer](https://qwik.dev/docs/advanced/optimizer/#optimizer), which looks for $ signs and splits your application code into smaller pieces (called "segments"). Then the bundler ([Rollup](https://rollupjs.org/)) groups these segments into small javascript files (called "bundles") that hold related segments together. 
+
+The goal is to have bundles neither too big nor small, where each corresponds to an interactive part of the UI.
+
+Then at runtime, the framework can leverage a service-worker to prefetch and cache all the bundles available on the page so that when a user interacts with a certain component, the code for it is already buffered and can be "lazy-executed" **right away** (unlike "lazy loaded" on demand). 
+
+If the user interacts but the network is really slow and therefore prefetching is still going on, Qwik will prioritize downloading those bundles and will execute them as soon as they're available.
+
+In comparison, the other frameworks need to execute at least all of the visible UI code to attach the event listeners, and therefore they must download all of that code before executing it in a process called "hydration".
+
+For hydration based apps on a slow 3G network, TTI often reaches ~20s, and even 60s plus for more complex applications as it increases proportionally to the amount of components that need to hydrate. 
+
+On the other hand with Qwik on a slow 3G network, TTI can often be as fast as ~5s (and even faster) no matter how complex the application becomes.
+
+JavaScript Streaming enables **loading time performance that scales seamlessly**, from simple marketing websites to enterprise level applications.
+
+### A long standing "buffering" issue
+
+In Qwik 1.11.0 and 1.13.0, we fixed some long lasting bugs that were leading to "under-prefetching" and "over-prefetching" under certain conditions. With those fixes, we made sure that all and only the bundles required for the user interactions available on a page are prefetched, therefore preventing any sort of network delays.
+
+But there were still 2 somewhat hidden issues we only uncovered recently through manual testing on a used up low-end smartphone. It turns out there is a small cost to serving bundles from the cache through the service worker:
+
+- **For old/low-end devices with poor CPUs** the first interactions on Qwik components would lead to small delays, even with a good network connection.  
+-  **A small startup penalty** to register the service worker, preventing any reprioritization of the bundles before the registration.
+
+Thankfully, using a service worker isn't the only way we can prefetch and cache javascript bundles on the client, and we have found an even better alternative to it.
+
+## What's new: a better way to "buffer" javascript bundles
+
+In Qwik 1.14, we've transitioned away from using a service worker in favor of a solution leveraging [`<link rel="modulepreload">`](https://devdocs.io/html/reference/attributes/rel/modulepreload) as the new default. 
+
+The solution consists of a small script called the "Qwik Preloader". Once it is downloaded on the client, it adds the `<link rel="modulepreload" href="my-bundle.js#segment123456">` to the html `<head>`, which tells the browser to preload and buffer the corresponding JavaScript bundles.
+
+By doing so, we not only get rid of any startup penalty, but also make any interaction on Qwik components absolutely instant once the bundles for it have been preloaded, even on devices with poor CPUs 🚀
+
+### No more first interaction delays on old/low-end devices
+
+On our tests on a pretty used up Xiaomi note 7 pro, the delays only reached ~100ms and were barely noticeable to the human eye. This means that only very old or used-up devices should have suffered from this bottleneck, but this is still an area we wanted to improve upon.
+
+<div class="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center">
+  <figure>
+    <video src={serviceWorkerDelayDemo} controls muted class="lg:max-w-md sm:max-w-xs max-w-full" />
+    <figcaption class="text-center mt-2">Service Worker delay</figcaption>
+  </figure>
+
+  <figure>
+    <video src={modulepreloadNoDelayDemo} controls muted class="lg:max-w-md sm:max-w-xs max-w-full" />
+    <figcaption class="text-center mt-2">modulepreload</figcaption>
+  </figure>
+</div>
+
+It is hard to feel on a screen recording, but if you look closely at the two recordings above, you will notice that with the service worker, the first interaction on the Accordion component is a little slower. With modulepreload, all interactions are instant. (You might want to set the video to 0.5x speed to better see the difference.)
+
+The reason why there is such a delay with the service worker on devices where the CPU is slow is because retrieving a chunk from the CacheControl with the Service Worker doesn't always take 1ms, but sometimes 10ms or more. So for example to retrieve 15 bundles on a first click, an old device can in total take 150ms or more instead of 15ms. Once the bundles have been executed and live in the browser memory or disk cache, the interactions are instant.
+
+In contrast, modulepreloaded bundles are downloaded and compiled by the browser. They live in memory and are ready to be executed instantly on request. So if all the bundles required for an interaction have been preloaded, the interaction will be instant. There is no network request, no service worker interception, no retrieving of bundles from the CacheStorage.
+
+Here's a small Excalidraw to illustrate the difference:
+
+<Image src={serviceWorkerVsModulepreloadIllustration} alt="Service Worker vs modulepreload illustration" />
+
+### No more startup penalty
+
+The Service Worker had to be registered before any prefetching could happen. Not only did this negatively affect TTI and [TBT (Total Blocking Time)](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-total-blocking-time#:~:text=Blocking%20Time%20audit-,What%20TBT%20measures,Paint%20and%20Time%20to%20Interactive.) a little, but it also prevented Qwik from reprioritizing bundles if the user interacted before the registration.
+<Image src={serviceWorkerRegistrationPenalty} alt="Service Worker registration penalty" />
+
+With modulepreload, we can now start preloading bundles as soon as the html is rendered. The default makes sure that [FCP (First Contentful Paint)](https://web.dev/articles/fcp) and [LCP (Largest Contentful Paint)](https://web.dev/articles/optimize-lcp#:~:text=Largest%20Contentful%20Paint%20(LCP)%20is,is%20rendered%20within%20the%20viewport.) remain as fast as possible, and slightly improves TTI and TBT scores over the service worker.
+
+### Even better prioritization based on heuristics
+
+A powerful feature that already existed in the Qwik service worker that is also implemented in the Qwik Preloader is the ability to "**reprioritize**" bundles on user interaction. If some bundles are at the bottom of the preload queue, we can tell the browser to start preloading them right away. This means that no matter what, TTI remains constant as it doesn't increase proportionally to the number and size of bundles that need to be loaded.
+
+But it's even better if the framework can already know ahead of time what to "buffer" in which order. Qwik can now out of the box guess which bundles are more likely to be requested by the user based on what is most likely to be interacted with first.
+
+It is not perfect (for that we have [Qwik Insights](https://qwik.dev/docs/labs/insights/)), but it's quite a bit better than before! Qwik now gives "better scores" to more important things like "user events" or "above the fold" components over things it assumes are less important.
+
+For example, Qwik assumes that the search input on the navbar above the fold is more likely to be used sooner than a Button on a footer far down below the fold, but if a user on a very slow network scrolls and clicks the button on the footer, Qwik will **re-prioritize** its bundles before the search input so that the button code is executed as soon as possible. 
+
+### Faster CI times
+
+Thanks to the performance improvements above, our full CI tests on [qwik.dev](<http://qwik.dev>) now run in about ~10 minutes instead of ~15, and most of it can be attributed to the E2E tests which do many renders in a browser and were therefore bootstrapping a lot of service workers.
+## **How do I get all of this goodness?** (**Migration steps)**
+
+Migrating to Qwik 1.14.0 with the Qwik Preloader as the new default should not require much effort on your end, but there are a few changes you should know about. 
+
+Currently 93% of browsers support "modulepreload", which wasn't the case when we started using the service worker for "buffering". For non-supported devices, the preloader will fallback to `<link rel=preload>`, which doesn't compile the code in advance but still works and brings the support to 100%. In effect, you can rest assured all your users will experience lightning speed regardless of their device.
+
+Here are the Steps you need to follow:
+
+### 1. Unregister the service worker
+
+The service worker is no longer used, but to make sure it is being uninstalled from your user's browser (to prevent it making your app slower) we recommend waiting a few weeks/months before removing the `<ServiceWorkerRegister />` from your root component.
+
+Both the qwik-city service worker and the experimental Qwik prefetch service worker have been updated to do this automatically for you.
+
+So do not remove the service worker registration (in `root.tsx`) from your app just yet. Wait until your users have loaded your site at least once, or long enough for their browser to have cleared the site data.
+
+### 2. IMPORTANT: Configure your Cache-Control headers
+
+With the service worker no longer forcibly caching bundles, it's important that you configure appropriate HTTP caching headers using your cloud provider's recommended way of setting them up, for example using vercel.json for Vercel or netlify.toml for Netlify.
+
+The bundles and assets are normally served at `/build` and `/assets`, respectively. Their filenames contain a content-based hash, making them immutable. If they change, their name changes as well. You can therefore set long-lived caching headers for these.
+
+The recommended header is:
+
+```json
+Cache-Control: public, max-age=31536000, immutable
+```
+
+> 💡 tip: You can re-add the starter for your deployment target with `npx qwik add`, which should update the deployment configuration to use the correct headers.
+
+### 3. Configure translations caching
+
+If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), translated bundles (`build/[locale]/*.js`) might retain identical filenames across builds, even when translations change. Consider how long you want to cache these files for so users get the latest translations.
+
+Note that this was also a problem with the service worker, and now you have the ability to configure the cache headers for these files, so it's a positive change.
+
+### 4. Enjoy a much faster experience!
+
+We've worked countless hours for the past few months, manually testing fixes on simulated and real (old phones) environments in order to pin-point all the issues and make sure Qwik holds true to its promise of delivering the best user experience.. 
+
+Now that this is fixed, we are shifting our focus back to the upcoming release of Qwik V2. 
+
+So stay tuned!
+
+*In the meantime, we'd love your feedback* — let us know how this update improves your apps on our discord <DiscordLink/>. 
+
+</ArticleBlock>
+
+
+

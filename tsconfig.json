@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target": "ES2020",
-    "module": "ES2020",
+    "target": "ESNext",
+    "module": "ESNext",
     "lib": ["es2021", "DOM", "webworker", "DOM.Iterable"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
@@ -51,6 +51,7 @@
     "starters/apps/todo-test",
     "starters/apps/e2e",
     "starters/apps/qwikcity-test/**/*",
+    "starters/apps/qwikcity-test.prod/**/*",
     "starters/dev-server.ts",
     "packages/qwik-react/vite",
     "@types/deno.d.ts",

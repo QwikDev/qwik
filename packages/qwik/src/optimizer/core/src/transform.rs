@@ -18,7 +18,6 @@ use std::fmt::Write as _;
 use std::hash::Hash;
 use std::hash::Hasher; // import without risk of name clashing
 use std::iter;
-use std::path::Path;
 use std::str;
 use swc_atoms::{js_word, JsWord};
 use swc_common::comments::{Comments, SingleThreadedComments};
@@ -118,6 +117,7 @@ pub struct QwikTransform<'a> {
 
 pub struct QwikTransformOptions<'a> {
 	pub path_data: &'a PathData,
+	pub dev_path: Option<&'a str>,
 	pub entry_policy: &'a dyn EntryPolicy,
 	pub extension: JsWord,
 	pub core_module: JsWord,
@@ -265,7 +265,11 @@ impl<'a> QwikTransform<'a> {
 
 	fn get_dev_location(&self, span: Span) -> ast::ExprOrSpread {
 		let loc = self.options.cm.lookup_char_pos(span.lo);
-		let file_name = self.options.path_data.rel_path.to_slash_lossy().to_string();
+		let file_name = self
+			.options
+			.dev_path
+			.map(|p| p.to_string())
+			.unwrap_or_else(|| self.options.path_data.rel_path.to_slash_lossy().to_string());
 		ast::ExprOrSpread {
 			spread: None,
 			expr: Box::new(ast::Expr::Object(ast::ObjectLit {
@@ -748,11 +752,10 @@ impl<'a> QwikTransform<'a> {
 		let canonical_filename = get_canonical_filename(&segment_data.display_name, &symbol_name);
 
 		// We import from the segment file directly but store the entry for later chunking by the bundler
-		let entry = self.options.entry_policy.get_entry_for_sym(
-			&segment_data.hash,
-			&self.stack_ctxt,
-			&segment_data,
-		);
+		let entry = self
+			.options
+			.entry_policy
+			.get_entry_for_sym(&self.stack_ctxt, &segment_data);
 
 		let mut import_path = ["./", &canonical_filename].concat();
 		if self.options.explicit_extensions {
@@ -952,7 +955,11 @@ impl<'a> QwikTransform<'a> {
 		];
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				segment_data,
 				span,
 			));
@@ -1020,7 +1027,11 @@ impl<'a> QwikTransform<'a> {
 
 		let fn_callee = if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				&segment_data,
 				&span,
 			));
@@ -1286,17 +1297,59 @@ impl<'a> QwikTransform<'a> {
 													),
 												),
 												op: ast::AssignOp::Assign,
-												right: Box::new(ast::Expr::Member(
-													ast::MemberExpr {
-														obj: Box::new(ast::Expr::Ident(elm)),
-														prop: ast::MemberProp::Ident(
-															ast::IdentName::new(
-																prop_name, DUMMY_SP,
-															),
-														),
+												right: Box::new(ast::Expr::Cond(ast::CondExpr {
+													test: Box::new(ast::Expr::Bin(ast::BinExpr {
+														left: Box::new(ast::Expr::Member(
+															ast::MemberExpr {
+																obj: Box::new(ast::Expr::Ident(
+																	elm.clone(),
+																)),
+																prop: ast::MemberProp::Ident(
+																	ast::IdentName::new(
+																		"type".into(),
+																		DUMMY_SP,
+																	),
+																),
+																span: DUMMY_SP,
+															},
+														)),
 														span: DUMMY_SP,
-													},
-												)),
+														op: ast::BinaryOp::EqEq,
+														right: Box::new(ast::Expr::Lit(
+															ast::Lit::Str(ast::Str {
+																value: "number".into(),
+																span: DUMMY_SP,
+																raw: None,
+															}),
+														)),
+													})),
+													cons: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(
+																elm.clone(),
+															)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	"valueAsNumber".into(),
+																	DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													alt: Box::new(ast::Expr::Member(
+														ast::MemberExpr {
+															obj: Box::new(ast::Expr::Ident(elm)),
+															prop: ast::MemberProp::Ident(
+																ast::IdentName::new(
+																	prop_name, DUMMY_SP,
+																),
+															),
+															span: DUMMY_SP,
+														},
+													)),
+													span: DUMMY_SP,
+												})),
 												span: DUMMY_SP,
 											}),
 										))),
@@ -1668,7 +1721,11 @@ impl<'a> QwikTransform<'a> {
 		let mut fn_name: &JsWord = &_NOOP_QRL;
 		if self.options.mode == EmitMode::Dev {
 			args.push(get_qrl_dev_obj(
-				&self.options.path_data.abs_path,
+				JsWord::from(
+					self.options
+						.dev_path
+						.unwrap_or(&self.options.path_data.abs_path.to_slash_lossy()),
+				),
 				&segment_data,
 				&DUMMY_SP,
 			));
@@ -2339,7 +2396,7 @@ fn parse_symbol_name(
 	(s_n, display_name.into(), hash.into())
 }
 
-fn get_qrl_dev_obj(abs_path: &Path, segment: &SegmentData, span: &Span) -> ast::Expr {
+fn get_qrl_dev_obj(abs_path: JsWord, segment: &SegmentData, span: &Span) -> ast::Expr {
 	ast::Expr::Object(ast::ObjectLit {
 		span: DUMMY_SP,
 		props: vec![
@@ -2347,7 +2404,7 @@ fn get_qrl_dev_obj(abs_path: &Path, segment: &SegmentData, span: &Span) -> ast::
 				key: ast::PropName::Ident(ast::IdentName::new(js_word!("file"), DUMMY_SP)),
 				value: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
 					span: DUMMY_SP,
-					value: abs_path.to_str().unwrap().into(),
+					value: abs_path,
 					raw: None,
 				}))),
 			}))),

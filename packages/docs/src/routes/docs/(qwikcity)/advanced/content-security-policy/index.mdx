@@ -48,7 +48,7 @@ src/
 
 ```typescript title="src/routes/plugin@csp.ts"
 import type { RequestHandler } from "@builder.io/qwik-city";
-import { isDev } from "@builder.io/qwik/build";
+import { isDev } from "@builder.io/qwik";
 
 export const onRequest: RequestHandler = event => {
   if (isDev) return; // Will not return CSP headers in dev mode
@@ -67,39 +67,6 @@ export const onRequest: RequestHandler = event => {
 
   event.headers.set("Content-Security-Policy", csp.join("; "));
 };
-```
-
-### Add it to the service worker as well
-
-```tsx {12,22} /nonce/ title="src/root.ts"
-import { component$, useServerData } from "@builder.io/qwik";
-import {
-  QwikCityProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
-} from "@builder.io/qwik-city";
-import { RouterHead } from "./components/router-head/router-head";
-import { isDev } from "@builder.io/qwik/build";
-
-import "./global.css";
-
-export default component$(() => {
-  const nonce = useServerData<string | undefined>("nonce");
-  return (
-    <QwikCityProvider>
-      <head>
-        <meta charSet="utf-8" />
-        {!isDev && <link rel="manifest" href={`${import.meta.env.BASE_URL}manifest.json`} />}
-
-        <RouterHead />
-      </head>
-      <body lang="en">
-        <RouterOutlet />
-        {!isDev && <ServiceWorkerRegister nonce={nonce} />}
-      </body>
-    </QwikCityProvider>
-  );
-});
 ```
 
 ### Custom scripts

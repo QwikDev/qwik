@@ -37,8 +37,8 @@ import { serializeDerivedSignalFunc } from '../qrl/inlined-fn';
 import type { QwikElement } from '../render/dom/virtual-element';
 import { assertString, assertTrue } from '../error/assert';
 import { Fragment, JSXNodeImpl, isJSXNode } from '../render/jsx/jsx-runtime';
-import type { JSXNode } from '@builder.io/qwik/jsx-runtime';
 import { Slot } from '../render/jsx/slot.public';
+import type { JSXNodeInternal } from '../render/jsx/types/jsx-node';
 
 /**
  * - 0, 8, 9, A, B, C, D
@@ -383,7 +383,7 @@ const FormDataSerializer = /*#__PURE__*/ serializer<FormData>({
   },
 });
 
-const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNode>({
+const JSXNodeSerializer = /*#__PURE__*/ serializer<JSXNodeInternal>({
   $prefix$: '\u0017',
   $test$: (v) => isJSXNode(v),
   $collect$: (node, collector, leaks) => {

@@ -432,6 +432,45 @@ test.describe("actions", () => {
       await expect(href).toHaveAttribute("href", site);
     });
 
+    test("issue7182", async ({ page, javaScriptEnabled }) => {
+      await page.goto("/qwikcity-test/issue7182");
+      const input1 = await page.locator("#input1");
+      await input1.fill("4");
+      await input1.dispatchEvent("change");
+      const input2 = await page.locator("#input2");
+      await input2.fill("4");
+      await input2.dispatchEvent("change");
+      const result = await page.locator("#result");
+      if (javaScriptEnabled) {
+        await expect(result).toHaveText("8");
+      } else {
+        await expect(result).toHaveText("3");
+      }
+    });
+    test("issue7732 link/useNavigate with query params should not override loader/middleware redirect with query params", async ({
+      page,
+    }) => {
+      await page.goto("/qwikcity-test/issue7732/a/");
+      const link = page.locator("#issue7732-link-b");
+      await link.click();
+      await expect(page).toHaveURL(
+        "/qwikcity-test/issue7732/c/?redirected=true",
+      );
+    });
+    test("action with redirect without query params in a route with query param should redirect to route without query params", async ({
+      page,
+    }) => {
+      await page.goto(
+        "/qwikcity-test/action-redirect-without-search-params/?test=test",
+      );
+      const button = page.locator("button");
+      await button.click();
+      await page.waitForURL(
+        "/qwikcity-test/action-redirect-without-search-params-target/",
+      );
+      const searchParams = new URL(page.url()).searchParams;
+      expect(searchParams.size).toBe(0);
+    });
     test("media in home page", async ({ page }) => {
       await page.goto("/qwikcity-test/");
 
@@ -481,6 +520,22 @@ test.describe("actions", () => {
       );
 
       await expect(page.locator("#redirected-result")).toHaveText("true");
+    });
+
+    test.only("server plugin q-data redirect from /redirectme to /", async ({
+      baseURL,
+    }) => {
+      const res = await fetch(
+        new URL("/qwikcity-test/redirectme/q-data.json", baseURL),
+        {
+          redirect: "manual",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+      expect(res.status).toBe(301);
+      expect(res.headers.get("Location")).toBe("/qwikcity-test/q-data.json");
     });
   }
 });

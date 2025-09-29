@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .docs .panel {
   @apply rounded-md;
   @apply mt-4;

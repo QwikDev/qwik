@@ -47,6 +47,7 @@ import {
   type VirtualElement,
 } from './virtual-element';
 
+// keep this import from qwik/build so the cjs build works
 import { isBrowser } from '@builder.io/qwik/build';
 import {
   getProxyTarget,
@@ -1171,10 +1172,15 @@ export const executeContextWithScrollAndTransition = async (ctx: RenderStaticCon
     if (document.__q_view_transition__) {
       document.__q_view_transition__ = undefined;
       if (document.startViewTransition) {
-        await document.startViewTransition(() => {
+        const transition = document.startViewTransition(() => {
           executeDOMRender(ctx);
           restoreScroll();
-        }).finished;
+        });
+        const event = new CustomEvent('qviewTransition', {
+          detail: transition,
+        });
+        document.dispatchEvent(event);
+        await transition.finished;
         return;
       }
     }

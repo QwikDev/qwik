@@ -24,7 +24,7 @@ Nested items can be created by separating the items with `.` (dot) in the name. 
 
 ### Arrays
 
-Arrays, either top level or nested are created by specifying the zero-based index in the name.  For example `person.pets.0` would be converted to `{ person: { pets: [ 'cat' ] } }`.
+Arrays, either top-level or nested are created by specifying the zero-based index in the name.  For example `person.pets.0` would be converted to `{ person: { pets: [ 'cat' ] } }`.
 
 ### Example
 
@@ -52,7 +52,7 @@ The key to creating a complex form is in the naming of the inputs. Below would b
 
 #### Output object
 
-The after submitting the form the data would be parsed in an object like this:
+After submitting the form the data would be parsed in an object like this:
 ```json
 {
   "person": [

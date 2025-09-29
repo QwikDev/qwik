@@ -1,4 +1,4 @@
-import type { QwikManifest, QwikViteDevResponse } from '@builder.io/qwik/optimizer';
+import type { QwikViteDevResponse } from '@builder.io/qwik/optimizer';
 import fs from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -9,11 +9,7 @@ import {
   resolveRequestHandlers,
 } from '../../middleware/request-handler/resolve-request-handlers';
 import { getQwikCityServerData } from '../../middleware/request-handler/response-page';
-import {
-  getRouteMatchPathname,
-  QDATA_JSON,
-  runQwikCity,
-} from '../../middleware/request-handler/user-response';
+import { getRouteMatchPathname, runQwikCity } from '../../middleware/request-handler/user-response';
 import { matchRoute } from '../../runtime/src/route-matcher';
 import { getMenuLoader } from '../../runtime/src/routing';
 import type {
@@ -25,6 +21,7 @@ import type {
   MenuModule,
   MenuModuleLoader,
   PathParams,
+  RebuildRouteInfoInternal,
   RequestEvent,
   RouteModule,
 } from '../../runtime/src/types';
@@ -125,16 +122,18 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
     ] satisfies LoadedRoute;
     return { serverPlugins, loadedRoute };
   };
-  const resolveRoute = (routeModulePaths: WeakMap<RouteModule<unknown>, string>, url: URL) => {
-    const matchPathname = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
-    routePs[matchPathname] ||= _resolveRoute(routeModulePaths, matchPathname).finally(() => {
-      delete routePs[matchPathname];
+  const resolveRoute = (
+    routeModulePaths: WeakMap<RouteModule<unknown>, string>,
+    pathname: string
+  ) => {
+    routePs[pathname] ||= _resolveRoute(routeModulePaths, pathname).finally(() => {
+      delete routePs[pathname];
     });
-    return routePs[matchPathname];
+    return routePs[pathname];
   };
 
   // Preload the modules needed to handle /, so that they load faster on first request.
-  resolveRoute(new WeakMap(), new URL('/', 'http://localhost')).catch((e: unknown) => {
+  resolveRoute(new WeakMap(), '/').catch((e: unknown) => {
     if (e instanceof Error) {
       server.ssrFixStacktrace(e);
       formatError(e);
@@ -149,32 +148,34 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
         next();
         return;
       }
+      const { pathname, isInternal } = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
 
-      // Normally, entries are served statically, so in dev mode we need to handle them here.
-      const matchRouteName = url.pathname.slice(1);
-      const entry = ctx.entries.find((e) => e.routeName === matchRouteName);
-      if (entry) {
-        const entryContents = await server.transformRequest(
-          `/@fs${entry.filePath.startsWith('/') ? '' : '/'}${entry.filePath}`
-        );
+      if (!isInternal) {
+        // Normally, entries are served statically, so in dev mode we need to handle them here.
+        const matchRouteName = url.pathname.slice(1);
+        const entry = ctx.entries.find((e) => e.routeName === matchRouteName);
+        if (entry) {
+          const entryContents = await server.transformRequest(
+            `/@fs${entry.filePath.startsWith('/') ? '' : '/'}${entry.filePath}`
+          );
 
-        if (entryContents) {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end(entryContents.code);
-        } else {
-          next();
+          if (entryContents) {
+            res.setHeader('Content-Type', 'text/javascript');
+            res.end(entryContents.code);
+          } else {
+            next();
+          }
+          return;
         }
-        return;
       }
 
       const routeModulePaths = new WeakMap<RouteModule, string>();
       try {
-        const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, url);
+        const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, pathname);
 
         const renderFn = async (requestEv: RequestEvent) => {
           // routeResult && requestEv.sharedMap.set('@routeName', routeResult.route.pathname);
-          const isPageDataReq = requestEv.pathname.endsWith(QDATA_JSON);
-          if (!isPageDataReq) {
+          if (!isInternal) {
             const serverData = getQwikCityServerData(requestEv);
 
             res.statusCode = requestEv.status();
@@ -216,31 +217,41 @@ export function ssrDevMiddleware(ctx: BuildContext, server: ViteDevServer) {
           loadedRoute,
           req.method ?? 'GET',
           false,
-          renderFn
+          renderFn,
+          isInternal
         );
 
         if (requestHandlers.length > 0) {
           const serverRequestEv = await fromNodeHttp(url, req, res, 'dev');
           Object.assign(serverRequestEv.platform, ctx.opts.platform);
 
-          const manifest: QwikManifest = {
-            manifestHash: '',
-            symbols: {},
-            mapping: {},
-            bundles: {},
-            injections: [],
-            version: '1',
-          };
-
           const { _deserializeData, _serializeData, _verifySerializable } =
             await server.ssrLoadModule('@qwik-serializer');
           const qwikSerializer = { _deserializeData, _serializeData, _verifySerializable };
+
+          const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
+            const { pathname } = getRouteMatchPathname(url.pathname, ctx.opts.trailingSlash);
+            const { serverPlugins, loadedRoute } = await resolveRoute(routeModulePaths, pathname);
+            const requestHandlers = resolveRequestHandlers(
+              serverPlugins,
+              loadedRoute,
+              req.method ?? 'GET',
+              false,
+              renderFn,
+              isInternal
+            );
+
+            return {
+              loadedRoute,
+              requestHandlers,
+            };
+          };
 
           const { completion, requestEv } = runQwikCity(
             serverRequestEv,
             loadedRoute,
             requestHandlers,
-            manifest,
+            rebuildRouteInfo,
             ctx.opts.trailingSlash,
             ctx.opts.basePathname,
             qwikSerializer

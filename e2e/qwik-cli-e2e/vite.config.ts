@@ -1,8 +1,32 @@
-import { defineConfig } from 'vitest/config';
+import { existsSync, mkdirSync } from 'fs';
+import { resolve } from 'path';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
+
+// if we're running in github CI
+if (process.env.CI) {
+  // Workaround for npm/pnpm crashing in scaffoldQwikProject because "name is too long"
+  const testPath = resolve(process.cwd(), 'e2e-test-tmp');
+
+  // Create base directory if it doesn't exist
+  if (!existsSync(testPath)) {
+    mkdirSync(testPath);
+  }
+
+  // Create subdirectories for each template type
+  const templateTypes = ['empty', 'playground'];
+  for (const type of templateTypes) {
+    const templatePath = resolve(testPath, type);
+    if (!existsSync(templatePath)) {
+      mkdirSync(templatePath);
+    }
+  }
+
+  process.env.TEMP_E2E_PATH = testPath;
+}
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ ignoreConfigErrors: true, root: '../../' })],
+  plugins: [tsconfigPaths({ root: '../../' })],
   test: {
     include: ['./tests/*.spec.?(c|m)[jt]s?(x)'],
     setupFiles: ['./utils/setup.ts'],

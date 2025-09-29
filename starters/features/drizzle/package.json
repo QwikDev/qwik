@@ -5,13 +5,14 @@
     "priority": -10,
     "viteConfig": {},
     "docs": [
-      "https://qwik.dev/integrations/integration/drizzle/",
+      "https://qwik.dev/integrations/drizzle/",
       "https://orm.drizzle.team/docs/overview"
     ],
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
         " Drizzle was installed with a simple DB schema and some demo routes,",
+        " now you need to run `npm run drizzle:migrate` to setup the database.",
         "",
         " better-sqlite3 was configured by default, but in production",
         " you'll want to use Postgres or MySQL.",
@@ -22,20 +23,23 @@
         " Check out the Drizzle docs for more info:",
         "   - https://orm.drizzle.team/docs/overview"
       ]
-    }
+    },
+    "alwaysInRoot": []
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.9",
-    "drizzle-kit": "^0.20.14"
-  },
-  "dependencies": {
-    "better-sqlite3": "^9.4.3",
-    "drizzle-orm": "^0.29.4"
+    "@types/better-sqlite3": "^7.6.12",
+    "drizzle-kit": "^0.30.3",
+    "better-sqlite3": "^11.8.1",
+    "drizzle-orm": "^0.39.0"
   },
   "scripts": {
-    "postinstall": "drizzle-kit generate:sqlite",
-    "drizzle:generate": "drizzle-kit generate:sqlite",
-    "drizzle:migrate": "drizzle-kit push:sqlite",
-    "drizzle:studio": "drizzle-kit studio --host 127.0.0.1"
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
+    "drizzle:push": "drizzle-kit push",
+    "drizzle:pull": "drizzle-kit pull",
+    "drizzle:check": "drizzle-kit check",
+    "drizzle:up": "drizzle-kit up",
+    "drizzle:studio": "drizzle-kit studio",
+    "postinstall": "drizzle-kit generate"
   }
 }

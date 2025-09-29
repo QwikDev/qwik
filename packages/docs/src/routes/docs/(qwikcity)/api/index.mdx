@@ -245,6 +245,9 @@ export const BackButton = component$(() => {
 
 The fallback in the nav function ensures that if the previous URL (loc.prevUrl) is not available, the user is redirected to a default path (eg. the root path /). This is useful in scenarios where the navigation history might not include a previous URL, such as when the user directly lands on a specific page without navigating from another page within the app.
 
+> Notice that the **loc.prevUrl** is only available when the user navigates to a page using the [`useNavigate()`](#usenavigate) or [`<Link>`](/docs/cookbook/nav-link). It is not available when the user navigates to a page using [`the anchor element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a).
+
+
 ## `routeLoader$()`
 
 The `routeLoader$()` function is used to declare a new Server Loader in the given page/middleware or layout. Qwik City will execute all the declared loaders for the given route match. Qwik Components can later reference the loaders by importing them and calling the returned custom hook function in order to retrieve the data.
@@ -273,6 +276,19 @@ The `routeAction$()` function is used to declare a new Server Action in the give
 
 Please refer to the [Server Actions](/docs/(qwikcity)/action/index.mdx) section for more information.
 
+## List all routes with qwikCityPlan.routes
+
+The `qwikCityPlan.routes` property is used to retrieve the route list of your application.
+
+```tsx
+import qwikCityPlan from '@qwik-city-plan';
+
+const routes = qwikCityPlan.routes;
+for (const route of routes) {
+	// your logic here
+}
+```
+
 ## `<QwikCityProvider>`
 
 The `QwikCityProvider` component initializes Qwik City in the existing document, providing the necessary context for Qwik City to work, such as [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) and `useLocation()`.
@@ -297,7 +313,6 @@ export default component$(() => {
       </head>
       <body lang="en">
         <RouterOutlet />
-        <ServiceWorkerRegister />
       </body>
     </QwikCityProvider>
   );
@@ -460,7 +475,7 @@ Whether Qwik should prefetch and cache the target page of this `Link`, this incl
 
 This **improves UX performance** for client-side (**SPA**) navigations.
 
-Prefetching occurs when a the Link enters the viewport in production (`on:qvisibile`), or with `mouseover`/`focus` during dev.
+Prefetching occurs when a the Link enters the viewport in production (`on:qvisible`), or with `mouseover`/`focus` during dev.
 
 Prefetching will not occur if the user has the **data saver** setting enabled.
 

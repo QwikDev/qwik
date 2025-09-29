@@ -64,6 +64,7 @@ export { server$, serverQrl } from './server-functions';
 export { valibot$, valibotQrl } from './server-functions';
 export { zod$, zodQrl } from './server-functions';
 export { validator$, validatorQrl } from './server-functions';
+export { ErrorBoundary } from './error-boundary';
 
 export { z } from 'zod';
 

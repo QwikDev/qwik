@@ -59,6 +59,18 @@ test.describe("events", () => {
     await expect(countWrapped).toHaveText("countAnchor: 1");
   });
 
+  test(`GIVEN "stoppropagation" is set as a attribute 
+        THEN it should stop propagation`, async ({ page }) => {
+    const stoppedPropagationButton = page.locator("#stop-propagation");
+
+    const countPropagation = page.locator("#count-propagation");
+    await expect(countPropagation).toHaveText("countPropagationStopped: 0");
+
+    await stoppedPropagationButton.click();
+
+    await expect(countPropagation).toHaveText("countPropagationStopped: 1");
+  });
+
   test("issue 3948", async ({ page }) => {
     const always = page.locator("#issue-3948-always");
     const toggle = page.locator("#issue-3948-toggle");

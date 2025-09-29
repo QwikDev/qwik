@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import { QwikEslintExamples } from '../examples';
 
@@ -40,7 +39,7 @@ export const loaderLocation: Rule.RuleModule = {
 (docs: https://qwik.dev/docs/route-loader/).
 
 This {{fnName}}() is declared outside of the route boundaries. This may be useful when you want to create reusable logic or a library. In such a case, it is essential that this function is re-exported from within the router boundary otherwise it will not run.
-(docs: https://qwik.dev/docs/cookbook/re-exporting-loaders/).
+(docs: https://qwik.dev/docs/re-exporting-loaders/).
 
 If you understand this, you can disable this warning with:
 // eslint-disable-next-line qwik/loader-location
@@ -55,7 +54,7 @@ If you understand this, you can disable this warning with:
   },
   create(context) {
     const routesDir = context.options?.[0]?.routesDir ?? 'src/routes';
-    const path = normalizePath(context.getFilename());
+    const path = normalizePath(context.filename ?? context.getFilename());
     const isLayout = /\/layout(|!|-.+)\.(j|t)sx?$/.test(path);
     const isIndex = /\/index(|!|@.+)\.(j|t)sx?$/.test(path);
     const isPlugin = /\/plugin(|@.+)\.(j|t)sx?$/.test(path);

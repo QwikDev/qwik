@@ -261,7 +261,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
     async transform(code, id) {
       const isVirtualId = id.startsWith('\0');
-
       if (isVirtualId) {
         return;
       }

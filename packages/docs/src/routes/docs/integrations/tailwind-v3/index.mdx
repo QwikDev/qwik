@@ -1,0 +1,71 @@
+---
+title: Tailwind | Integrations
+keywords: 'styles, styling'
+contributors:
+  - manucorporat
+  - leifermendez
+  - reemardelarosa
+  - mhevery
+  - nickclark
+  - igorbabko
+  - Benny-Nottonson
+  - mrhoodz
+  - NickClark
+  - adamdbradley
+  - sreeisalso
+  - maiieul
+updated_at: '2025-03-08T18:53:23Z'
+created_at: '2023-04-06T21:28:28Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Tailwind
+Tailwind is a CSS framework that provides us with single-purpose utility classes which are
+opinionated for the most part, and which help us design our web pages from right inside our
+markup or `.js/.jsx/.ts/.tsx/.mdx` files. [Tailwindcss Website](https://tailwindcss.com/)
+## Usage
+You can add Tailwind easily by using the following Qwik starter script:
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add tailwind-v3
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add tailwind-v3
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add tailwind-v3
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add tailwind-v3
+```
+</span>
+</PackageManagerTabs>
+
+The previous command updates your app with the necessary dependencies.
+
+It also adds new files to your project folder:
+
+- `postcss.config.js`
+- `tailwind.config.js`
+- `.vscode/settings.json`
+
+and modifies your `src/global.css` to include
+
+```css title="src/global.css"
+
+# global.css file
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+...stuff...
+```

@@ -149,3 +149,17 @@ export function generateCodeFrame(
 export function isWin(os: string): boolean {
   return os === 'win32';
 }
+
+export function parseId(originalId: string) {
+  const [pathId, query] = originalId.split('?');
+  const queryStr = query || '';
+  return {
+    originalId,
+    pathId,
+    query: queryStr ? `?${query}` : '',
+    params: new URLSearchParams(queryStr),
+  };
+}
+
+export const getSymbolHash = (symbolName: string) =>
+  /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];

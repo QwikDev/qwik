@@ -8,15 +8,22 @@ import { log, spinner } from '@clack/prompts';
 export async function updateDependencies() {
   // TODO(migrate-v2): rely on workspaceRoot instead?
   const packageJson = await readPackageJson(process.cwd());
-  const devDependencies = (packageJson.devDependencies ??= {});
-  const dependencies = (packageJson.dependencies ??= {});
 
   const version = getPackageTag();
 
+  const dependencyNames = [
+    'dependencies',
+    'devDependencies',
+    'peerDependencies',
+    'optionalDependencies',
+  ] as const;
+
   for (const name of packageNames) {
-    if (dependencies[name] || devDependencies[name]) {
-      delete dependencies[name];
-      devDependencies[name] = version;
+    for (const propName of dependencyNames) {
+      const prop = packageJson[propName];
+      if (prop && prop[name]) {
+        prop[name] = version;
+      }
     }
   }
 
@@ -72,7 +79,7 @@ export async function installTsMorph() {
   }
   const loading = spinner();
   loading.start('Fetching migration tools..');
-  (packageJson.devDependencies ??= {})['ts-morph'] = 'latest';
+  (packageJson.devDependencies ??= {})['ts-morph'] = '23';
   await writePackageJson(process.cwd(), packageJson);
   await runInstall();
   loading.stop('Migration tools have been loaded');

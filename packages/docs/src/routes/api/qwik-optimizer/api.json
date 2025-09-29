@@ -16,8 +16,22 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\next\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nbasename(path: string, ext?: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\next\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.basename.md"
+    },
+    {
+      "name": "BundleGraphAdder",
+      "id": "bundlegraphadder",
+      "hierarchy": [
+        {
+          "name": "BundleGraphAdder",
+          "id": "bundlegraphadder"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "A function that returns a map of bundle names to their dependencies.\n\n\n```typescript\nexport type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {\n    imports?: string[];\n    dynamicImports?: string[];\n}>;\n```\n**References:** [QwikManifest](#qwikmanifest)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/bundle-graph.ts",
+      "mdFile": "qwik.bundlegraphadder.md"
     },
     {
       "name": "ComponentEntryStrategy",
@@ -43,7 +57,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptimizerOptions\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
+      "content": "```typescript\ncreateOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\noptimizerOptions\n\n\n</td><td>\n\n[OptimizerOptions](#optimizeroptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[Optimizer](#optimizer)<!-- -->&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/optimizer.ts",
       "mdFile": "qwik.createoptimizer.md"
     },
@@ -89,8 +103,25 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\ndirname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.dirname.md"
+    },
+    {
+      "name": "enableRequestRewrite",
+      "id": "experimentalfeatures-enablerequestrewrite",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-enablerequestrewrite"
+        },
+        {
+          "name": "enableRequestRewrite",
+          "id": "experimentalfeatures-enablerequestrewrite"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik.experimentalfeatures.enablerequestrewrite.md"
     },
     {
       "name": "EntryStrategy",
@@ -116,7 +147,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Disable SPA navigation handler in Qwik City\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Disable SPA navigation handler in Qwik City\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "qwik.experimentalfeatures.md"
     },
@@ -134,7 +165,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nextname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nextname(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.extname.md"
     },
     {
@@ -151,7 +182,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npathObject\n\n\n</td><td>\n\n{ root: string; dir: string; base: string; ext: string; name: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nformat(pathObject: {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    }): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npathObject\n\n\n</td><td>\n\n{ root: string; dir: string; base: string; ext: string; name: string; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.format.md"
     },
     {
@@ -183,20 +214,6 @@
       "mdFile": "qwik.inlineentrystrategy.md"
     },
     {
-      "name": "InsightManifest",
-      "id": "insightmanifest",
-      "hierarchy": [
-        {
-          "name": "InsightManifest",
-          "id": "insightmanifest"
-        }
-      ],
-      "kind": "Interface",
-      "content": "```typescript\nexport interface InsightManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[manual](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[prefetch](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ route: string; symbols: string\\[\\]; }\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[type](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'smart'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
-      "mdFile": "qwik.insightmanifest.md"
-    },
-    {
       "name": "isAbsolute",
       "id": "path-isabsolute",
       "hierarchy": [
@@ -210,7 +227,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nboolean",
+      "content": "```typescript\nisAbsolute(path: string): boolean;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nboolean",
       "mdFile": "qwik.path.isabsolute.md"
     },
     {
@@ -227,7 +244,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\njoin(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.join.md"
     },
     {
@@ -258,7 +275,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nnormalize(path: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.normalize.md"
     },
     {
@@ -334,7 +351,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
+      "content": "```typescript\nparse(path: string): {\n        root: string;\n        dir: string;\n        base: string;\n        ext: string;\n        name: string;\n    };\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npath\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ root: string; dir: string; base: string; ext: string; name: string; }",
       "mdFile": "qwik.path.parse.md"
     },
     {
@@ -367,6 +384,20 @@
       "kind": "EnumMember",
       "content": "",
       "mdFile": "qwik.experimentalfeatures.preventnavigate.md"
+    },
+    {
+      "name": "QwikAsset",
+      "id": "qwikasset",
+      "hierarchy": [
+        {
+          "name": "QwikAsset",
+          "id": "qwikasset"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikAsset \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[name](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| undefined\n\n\n</td><td>\n\nName of the asset\n\n\n</td></tr>\n<tr><td>\n\n[size](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nSize of the asset\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.qwikasset.md"
     },
     {
       "name": "QwikBuildMode",
@@ -406,9 +437,23 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikBundle \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[dynamicImports?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[imports?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[isTask?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ Not precise, but an indication of whether this import may be a task\n\n\n</td></tr>\n<tr><td>\n\n[origins?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[size](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[symbols?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikBundle \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[dynamicImports?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Dynamic imports\n\n\n</td></tr>\n<tr><td>\n\n[imports?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Direct imports\n\n\n</td></tr>\n<tr><td>\n\n[interactivity?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_ Interactivity score of the bundle\n\n\n</td></tr>\n<tr><td>\n\n[origins?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Source files of the bundle\n\n\n</td></tr>\n<tr><td>\n\n[size](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nSize of the bundle\n\n\n</td></tr>\n<tr><td>\n\n[symbols?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n_(Optional)_ Symbols in the bundle\n\n\n</td></tr>\n<tr><td>\n\n[total](#)\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\nTotal size of this bundle's static import graph\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.qwikbundle.md"
+    },
+    {
+      "name": "QwikBundleGraph",
+      "id": "qwikbundlegraph",
+      "hierarchy": [
+        {
+          "name": "QwikBundleGraph",
+          "id": "qwikbundlegraph"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Bundle graph.\n\nFormat: \\[ 'bundle-a.js', 3, 5 // Depends on 'bundle-b.js' and 'bundle-c.js' 'bundle-b.js', 5, // Depends on 'bundle-c.js' 'bundle-c.js', \\]\n\n\n```typescript\nexport type QwikBundleGraph = Array<string | number>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.qwikbundlegraph.md"
     },
     {
       "name": "QwikManifest",
@@ -420,7 +465,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "The metadata of the build. One of its uses is storing where QRL symbols are located.\n\n\n```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\nAll code bundles, used to know the import graph\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ CSS etc to inject in the document head\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nContent hash of the manifest, if this changes, the code changed\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\nWhere QRLs are located\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { \\[key: string\\]: any; }; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\nQRL symbols\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "The metadata of the build. One of its uses is storing where QRL symbols are located.\n\n\n```typescript\nexport interface QwikManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[assets?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikAsset](#qwikasset)<!-- -->; }\n\n\n</td><td>\n\n_(Optional)_ All assets. The key is the fileName relative to the rootDir\n\n\n</td></tr>\n<tr><td>\n\n[bundleGraph?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikBundleGraph](#qwikbundlegraph)\n\n\n</td><td>\n\n_(Optional)_ All bundles in a compact graph format with probabilities\n\n\n</td></tr>\n<tr><td>\n\n[bundleGraphAsset?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The bundle graph fileName\n\n\n</td></tr>\n<tr><td>\n\n[bundles](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[fileName: string\\]: [QwikBundle](#qwikbundle)<!-- -->; }\n\n\n</td><td>\n\nAll code bundles, used to know the import graph. The key is the bundle fileName relative to \"build/\"\n\n\n</td></tr>\n<tr><td>\n\n[core?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The Qwik core bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[injections?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n_(Optional)_ CSS etc to inject in the document head\n\n\n</td></tr>\n<tr><td>\n\n[manifestHash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nContent hash of the manifest, if this changes, the code changed\n\n\n</td></tr>\n<tr><td>\n\n[mapping](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: string; }\n\n\n</td><td>\n\nWhere QRLs are located. The key is the symbol name, the value is the bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[options?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ target?: string; buildMode?: string; entryStrategy?: { type: [EntryStrategy](#entrystrategy)<!-- -->\\['type'\\]; }; }\n\n\n</td><td>\n\n_(Optional)_ The options used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[platform?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n_(Optional)_ The platform used to build the manifest\n\n\n</td></tr>\n<tr><td>\n\n[preloader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The preloader bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[qwikLoader?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ The Qwik loader bundle fileName\n\n\n</td></tr>\n<tr><td>\n\n[symbols](#)\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[symbolName: string\\]: [QwikSymbol](#qwiksymbol)<!-- -->; }\n\n\n</td><td>\n\nQRL symbols\n\n\n</td></tr>\n<tr><td>\n\n[version](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe version of the manifest\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.qwikmanifest.md"
     },
@@ -434,7 +479,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikRollupOpts\n\n\n</td><td>\n\n[QwikRollupPluginOptions](#qwikrolluppluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "```typescript\nexport declare function qwikRollup(qwikRollupOpts?: QwikRollupPluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikRollupOpts\n\n\n</td><td>\n\n[QwikRollupPluginOptions](#qwikrolluppluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/rollup.ts",
       "mdFile": "qwik.qwikrollup.md"
     },
@@ -462,7 +507,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[canonicalFilename](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[captures](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxKind](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'function' \\| 'event'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[displayName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[hash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loc](#)\n\n\n</td><td>\n\n\n</td><td>\n\n\\[number, number\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[origin](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikSymbol \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[canonicalFilename](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[captures](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxKind](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'function' \\| 'eventHandler'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[displayName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[hash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loc](#)\n\n\n</td><td>\n\n\n</td><td>\n\n\\[number, number\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[origin](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.qwiksymbol.md"
     },
@@ -476,7 +521,7 @@
         }
       ],
       "kind": "Function",
-      "content": "The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`<!-- -->, and if you search the plugin by name you'll get the `QwikVitePlugin`<!-- -->.\n\n\n```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nany",
+      "content": "The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`<!-- -->, and if you search the plugin by name you'll get the `QwikVitePlugin`<!-- -->.\n\n\n```typescript\nexport declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqwikViteOpts\n\n\n</td><td>\n\n[QwikVitePluginOptions](#qwikvitepluginoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nany",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvite.md"
     },
@@ -518,7 +563,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[getAssetsDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientPublicOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getInsightsManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(clientOutDir?: string \\| null) =&gt; Promise&lt;[InsightManifest](#insightmanifest) \\| null&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [QwikManifest](#qwikmanifest) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptimizer](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [Optimizer](#optimizer) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptions](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; NormalizedQwikPluginOptions\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getRootDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikVitePluginApi \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[getAssetsDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getClientPublicOutDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getManifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [QwikManifest](#qwikmanifest) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptimizer](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; [Optimizer](#optimizer) \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getOptions](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; NormalizedQwikPluginOptions\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[getRootDir](#)\n\n\n</td><td>\n\n\n</td><td>\n\n() =&gt; string \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[registerBundleGraphAdder](#)\n\n\n</td><td>\n\n\n</td><td>\n\n(adder: [BundleGraphAdder](#bundlegraphadder)<!-- -->) =&gt; void\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/vite.ts",
       "mdFile": "qwik.qwikvitepluginapi.md"
     },
@@ -550,7 +595,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfrom\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nto\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nrelative(from: string, to: string): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfrom\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nto\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.relative.md"
     },
     {
@@ -567,7 +612,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nstring",
+      "content": "```typescript\nresolve(...paths: string[]): string;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\npaths\n\n\n</td><td>\n\nstring\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nstring",
       "mdFile": "qwik.path.resolve.md"
     },
     {
@@ -580,7 +625,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ResolvedManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[manifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[QwikManifest](#qwikmanifest)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[mapper](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[SymbolMapper](#symbolmapper)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ResolvedManifest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[injections](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[GlobalInjections](#globalinjections)<!-- -->\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[manifest](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[ServerQwikManifest](#serverqwikmanifest)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[mapper](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[SymbolMapper](#symbolmapper)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.resolvedmanifest.md"
     },
@@ -594,7 +639,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SegmentAnalysis \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[canonicalFilename](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[captures](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxKind](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'event' \\| 'function'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[displayName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[entry](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[extension](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[hash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loc](#)\n\n\n</td><td>\n\n\n</td><td>\n\n\\[number, number\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[name](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[origin](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface SegmentAnalysis \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[canonicalFilename](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[captures](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxKind](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'eventHandler' \\| 'function'\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[ctxName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[displayName](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[entry](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[extension](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[hash](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[loc](#)\n\n\n</td><td>\n\n\n</td><td>\n\n\\[number, number\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[name](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[origin](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[parent](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.segmentanalysis.md"
     },
@@ -611,6 +656,20 @@
       "content": "```typescript\nexport interface SegmentEntryStrategy \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[manual?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[type](#)\n\n\n</td><td>\n\n\n</td><td>\n\n'segment'\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
       "mdFile": "qwik.segmententrystrategy.md"
+    },
+    {
+      "name": "ServerQwikManifest",
+      "id": "serverqwikmanifest",
+      "hierarchy": [
+        {
+          "name": "ServerQwikManifest",
+          "id": "serverqwikmanifest"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "The manifest values that are needed for SSR.\n\n\n```typescript\nexport type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;\n```\n**References:** [QwikManifest](#qwikmanifest)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/types.ts",
+      "mdFile": "qwik.serverqwikmanifest.md"
     },
     {
       "name": "SingleEntryStrategy",
@@ -738,7 +797,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFs(opts: TransformFsOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFs(opts: TransformFsOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
       "mdFile": "qwik.optimizer.transformfs.md"
     },
     {
@@ -769,7 +828,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFsSync(opts: TransformFsOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "content": "Transforms the directory from the file system.\n\n\n```typescript\ntransformFsSync(opts: TransformFsOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformFsOptions](#transformfsoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
       "mdFile": "qwik.optimizer.transformfssync.md"
     },
     {
@@ -814,7 +873,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModules(opts: TransformModulesOptions): Promise<TransformOutput>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[TransformOutput](#transformoutput)<!-- -->&gt;",
       "mdFile": "qwik.optimizer.transformmodules.md"
     },
     {
@@ -845,7 +904,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModulesSync(opts: TransformModulesOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\n[TransformOutput](#transformoutput)",
+      "content": "Transforms the input code string, does not access the file system.\n\n\n```typescript\ntransformModulesSync(opts: TransformModulesOptions): TransformOutput;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[TransformModulesOptions](#transformmodulesoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[TransformOutput](#transformoutput)",
       "mdFile": "qwik.optimizer.transformmodulessync.md"
     },
     {

@@ -51,7 +51,7 @@ export const NavLink = component$(
     return (
       <Link
         {...props}
-        class={`${props.class || ''} ${isActive && activeClass ? activeClass : ''}`}
+        class={[props.class, isActive && activeClass ? activeClass : ""]}
         
       >
         <Slot />

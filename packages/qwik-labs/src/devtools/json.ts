@@ -1,6 +1,12 @@
 // IMPORTANT: This file should have no external imports!!!
+// It runs in the browser and is compiled to a string
 
-export function runQwikJsonDebug(window: Window, document: Document, debug: typeof qwikJsonDebug) {
+// required for side effects
+export {};
+
+runQwikJsonDebug(window, document, qwikJsonDebug);
+
+function runQwikJsonDebug(window: Window, document: Document, debug: typeof qwikJsonDebug) {
   const parseQwikJSON = () => {
     const rawData = JSON.parse(document.querySelector('script[type="qwik/json"]')!.textContent!);
     const derivedFns =
@@ -20,11 +26,7 @@ export function runQwikJsonDebug(window: Window, document: Document, debug: type
   }
 }
 
-export function qwikJsonDebug(
-  document: Document,
-  qwikJson: QwikJson,
-  derivedFns: Function[]
-): DebugState {
+function qwikJsonDebug(document: Document, qwikJson: QwikJson, derivedFns: Function[]): DebugState {
   class Base {
     constructor(
       public __id: number,
@@ -251,7 +253,9 @@ export function qwikJsonDebug(
       }
       idx = num;
     }
-    while (objs.length < idx) objs.push(null);
+    while (objs.length < idx) {
+      objs.push(null);
+    }
     let obj: undefined | Base = objs[idx];
     if (!obj) {
       const rawValue = qwikJson.objs[idx];
@@ -399,7 +403,9 @@ export function qwikJsonDebug(
   }
 
   function splitParse(text: string | null, sep: string, fn: (part: string) => any): any[] {
-    if (!text) return [];
+    if (!text) {
+      return [];
+    }
     return text.split(sep).map(fn);
   }
 
@@ -434,7 +440,7 @@ export function qwikJsonDebug(
   }
 }
 
-export interface QwikJson {
+interface QwikJson {
   refs: Record<string, string>;
   ctx: Record<
     string,
@@ -448,34 +454,34 @@ export interface QwikJson {
   objs: Array<QwikJsonObjsPrimitives | QwikJsonObjsObj>;
   subs: Array<Array<string>>;
 }
-export type QwikJsonObjsPrimitives = string | boolean | number | null;
-export type QwikJsonObjsObj = Record<string, QwikJsonObjsPrimitives>;
+type QwikJsonObjsPrimitives = string | boolean | number | null;
+type QwikJsonObjsObj = Record<string, QwikJsonObjsPrimitives>;
 
-export interface Base {
+interface Base {
   __id: number;
   __backRefs: any[];
 }
 
-export interface QRL extends Base {
+interface QRL extends Base {
   chunk: string;
   symbol: string;
   capture: any[];
 }
 
-export interface QRefs {
+interface QRefs {
   element: Element;
   refMap: any[];
   listeners: Listener[];
 }
 
-export interface Listener {
+interface Listener {
   event: string;
   qrl: QRL;
 }
 
-export interface SubscriberEffect {}
+interface SubscriberEffect {}
 
-export interface QContext {
+interface QContext {
   element: Node | null;
   props: Record<string, any> | null;
   componentQrl: QRL | null;
@@ -486,39 +492,9 @@ export interface QContext {
   scopeIds: string[] | null;
 }
 
-export interface DebugState {
+interface DebugState {
   refs: Record<string, QRefs>;
   ctx: Record<string, QContext>;
   objs: any[];
   subs: unknown;
 }
-
-export type QwikType =
-  | 'string'
-  | 'number'
-  | 'bigint'
-  | 'boolean'
-  | 'function'
-  | 'undefined'
-  | 'object'
-  | 'symbol'
-  // Qwik custom types
-  | 'QRL'
-  | 'Signal'
-  | 'SignalWrapper'
-  | 'Task'
-  | 'Resource'
-  | 'URL'
-  | 'Date'
-  | 'Regex'
-  | 'Error'
-  | 'DerivedSignal'
-  | 'FormData'
-  | 'URLSearchParams'
-  | 'Component'
-  | 'NoFiniteNumber'
-  | 'JSXNode'
-  | 'BigInt'
-  | 'Set'
-  | 'Map'
-  | 'Document';

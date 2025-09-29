@@ -134,11 +134,12 @@ export { version } from './version';
 // Qwik Events
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
-  KnownEventNames as KnownEventNames,
+  KnownEventNames,
   QwikSymbolEvent,
   QwikVisibleEvent,
   QwikIdleEvent,
   QwikInitEvent,
+  QwikTransitionEvent,
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,
@@ -166,7 +167,6 @@ export type {
   QwikTouchEvent,
   QwikUIEvent,
   QwikWheelEvent,
-  QwikTransitionEvent,
 } from './render/jsx/types/jsx-qwik-events';
 
 //////////////////////////////////////////////////////////////////////////////////////////

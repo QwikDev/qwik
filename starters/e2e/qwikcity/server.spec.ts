@@ -112,11 +112,41 @@ test.describe("server$", () => {
         "POST--MyCustomValue-GET--MyCustomValue",
       );
     });
-    test("should allow for ServerError", async ({ page }) => {
+    test("should modify ServerError in middleware", async ({ page }) => {
       await page.goto("/qwikcity-test/server-func/server-error");
       const serverConfigContainer = page.locator("#server-error");
 
-      await expect(serverConfigContainer).toContainText("my errorPOST");
+      await expect(serverConfigContainer).toContainText(
+        "my errorserver-error-caughtPOST",
+      );
     });
+    test("should catch ServerError in routeLoader", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/server-error/loader");
+      const serverConfigContainer = page.locator("#server-error");
+      await expect(serverConfigContainer).toContainText("loader-error-data");
+    });
+    test("should allow primitive ServerError data", async ({ page }) => {
+      await page.goto("/qwikcity-test/server-func/server-error/primitive");
+      const serverConfigContainer = page.locator("#server-error");
+      await expect(serverConfigContainer).toContainText("1error");
+    });
+  });
+
+  test("should return 500 on invalid request", async ({ page, request }) => {
+    const notExistingServerFunction = await request.post(
+      "/qwikcity-test.prod/?qfunc=ThisDoesNotExist",
+      {
+        headers: {
+          "X-Qrl": "ThisDoesNotExist",
+          "Content-Type": "application/qwik-json",
+        },
+        data: {
+          _entry: "2",
+          _objs: ["\u0002_#s_ThisDoesNotExist", 1, ["0", "1"]],
+        },
+      },
+    );
+
+    expect(notExistingServerFunction.status()).toBe(500);
   });
 });

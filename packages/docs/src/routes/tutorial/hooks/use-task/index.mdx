@@ -10,14 +10,14 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2022-12-19T12:14:17Z'
 ---
 
-Use [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) is asynchronous, the rendering will happen before the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) is fully executed.
+Use [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) to execute a function before the initial render and whenever the tracking values change. The function executes before rendering, but it can't delay rendering, so if [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) is asynchronous, the rendering will happen before the [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) is fully executed.
 
 ## Tracking store changes
 
-The [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) hook receives a `track()` function used for setting up subscriptions that will automatically rerun the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) hook. The set of `track()` properties resets on each [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) to subscribe to different properties over time.
+The [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) hook receives a `track()` function used for setting up subscriptions that will automatically rerun the [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) hook. The set of `track()` properties resets on each [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) execution, therefore it is important to always use `track()` to set up subscriptions anew. Because of this it is possible for the [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) to subscribe to different properties over time.
 
 ## Cleanup
 
-The [`useTask$()`](/docs/(qwik)/components/tasks/index.mdx#usetask) hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
+The [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) hook can return a cleanup callback. This is useful for cleaning up any resources before new execution.
 
 ### Example

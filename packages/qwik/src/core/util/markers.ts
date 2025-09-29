@@ -29,7 +29,7 @@ export const getQFuncs = (document: Document, hash: string): Function[] => {
 
 export const QLocaleAttr = 'q:locale';
 export const QContainerAttr = 'q:container';
-
+export const QBaseAttr = 'q:base';
 export const QContainerSelector = '[q\\:container]';
 
 export const ResourceEvent = 'qResource';

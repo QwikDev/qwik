@@ -1,9 +1,10 @@
+import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { Action, FailReturn, Loader, QwikCityPlan } from '@builder.io/qwik-city';
 import type { Render, RenderOptions } from '@builder.io/qwik/server';
-import type { QwikCityPlan, FailReturn, Action, Loader } from '@builder.io/qwik-city';
-import type { ErrorResponse } from './error-handler';
+import type { ServerError } from './server-error';
 import type { AbortMessage, RedirectMessage } from './redirect-handler';
 import type { RequestEventInternal } from './request-event';
-import type { _deserializeData, _serializeData, _verifySerializable } from '@builder.io/qwik';
+import type { RewriteMessage } from './rewrite-handler';
 
 /** @public */
 export interface EnvGetter {
@@ -51,13 +52,13 @@ export interface ServerRenderOptions extends RenderOptions {
    * Protection against cross-site request forgery (CSRF) attacks.
    *
    * When `true`, for every incoming POST, PUT, PATCH, or DELETE form submissions, the request
-   * origin is checked to match the server's origin.
+   * origin is checked to match the server's origin. `lax-proto` is for SSL-terminating proxies
    *
    * Be careful when disabling this option as it may lead to CSRF attacks.
    *
    * Defaults to `true`.
    */
-  checkOrigin?: boolean;
+  checkOrigin?: boolean | 'lax-proto';
 }
 
 /** @public */
@@ -154,7 +155,8 @@ export type ClientErrorCode =
   | 428 // Precondition Required
   | 429 // Too Many Requests
   | 431 // Request Header Fields Too Large
-  | 451; // Unavailable For Legal Reasons
+  | 451 // Unavailable For Legal Reasons
+  | 499; // Client closed request
 
 /**
  * HTTP Server Error Status Codes Status codes in the 5xx range indicate that the server encountered
@@ -201,11 +203,20 @@ export interface RequestEventCommon<PLATFORM = QwikCityPlatform>
   readonly redirect: (statusCode: RedirectCode, url: string) => RedirectMessage;
 
   /**
+   * When called, qwik-city will execute the path's matching route flow.
+   *
+   * The url in the browser will remain unchanged.
+   *
+   * @param pathname - The pathname to rewrite to.
+   */
+  readonly rewrite: (pathname: string) => RewriteMessage;
+
+  /**
    * When called, the response will immediately end with the given status code. This could be useful
    * to end a response with `404`, and use the 404 handler in the routes directory. See
    * https://developer.mozilla.org/en-US/docs/Web/HTTP/Status for which status code should be used.
    */
-  readonly error: (statusCode: ErrorCodes, message: string) => ErrorResponse;
+  readonly error: <T = any>(statusCode: ErrorCodes, message: T) => ServerError<T>;
 
   /**
    * Convenience method to send an text body response. The response will be automatically set the
@@ -285,6 +296,19 @@ export interface RequestEventBase<PLATFORM = QwikCityPlatform> {
 
   /** HTTP request URL. */
   readonly url: URL;
+
+  /**
+   * The original HTTP request URL.
+   *
+   * This property was introduced to support the rewrite feature.
+   *
+   * If rewrite is called, the url property will be changed to the rewritten url. while originalUrl
+   * will stay the same(e.g the url inserted to the address bar).
+   *
+   * If rewrite is never called as part of the request, the url property and the originalUrl are
+   * equal.
+   */
+  readonly originalUrl: URL;
 
   /** The base pathname of the request, which can be configured at build time. Defaults to `/`. */
   readonly basePathname: string;

@@ -9,6 +9,7 @@ import render from "../entry.ssr";
 export interface FastifyQwikOptions {
   distDir: string;
   buildDir: string;
+  assetsDir: string;
 }
 
 const { router, notFound } = createQwikCity({ render, qwikCityPlan });
@@ -17,7 +18,7 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   fastify,
   options,
 ) => {
-  const { buildDir, distDir } = options;
+  const { buildDir, distDir, assetsDir } = options;
 
   fastify.register(fastifyStatic, {
     root: buildDir,
@@ -28,10 +29,19 @@ const qwikPlugin: FastifyPluginAsync<FastifyQwikOptions> = async (
   });
 
   fastify.register(fastifyStatic, {
+    root: assetsDir,
+    prefix: "/assets",
+    immutable: true,
+    maxAge: "1y",
+  });
+
+  fastify.register(fastifyStatic, {
     root: distDir,
     redirect: false,
     decorateReply: false,
   });
+
+  fastify.removeAllContentTypeParsers();
 
   fastify.setNotFoundHandler(async (request, response) => {
     await router(request.raw, response.raw, (err) => fastify.log.error(err));

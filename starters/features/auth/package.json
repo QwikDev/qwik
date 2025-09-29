@@ -9,7 +9,7 @@
     ],
     "nextSteps": {
       "lines": [
-        " Please add `optimizeDeps: { include: ['@auth/core'] }`",
+        " Please add `optimizeDeps: { include: ['@auth/qwik'] }`",
         " to your vite.config.ts file.",
         " Have a look at the docs for more info: ",
         " https://qwik.dev/docs/integrations/authjs/"
@@ -17,6 +17,6 @@
     }
   },
   "devDependencies": {
-    "@auth/qwik": "0.5.4"
+    "@auth/qwik": "0.8.0"
   }
 }

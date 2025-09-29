@@ -22,7 +22,7 @@ export default component$(() => {
     <div class="flex min-h-screen justify-center gap-8 bg-gray-50 p-8">
       <div
         data-dropzone
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         preventdefault:dragover
         preventdefault:drop
         onDragOver$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
@@ -53,7 +53,9 @@ export default component$(() => {
                 const targetId = parseInt(
                   (e.target as HTMLDivElement).dataset.id || '0'
                 );
-                if (targetId === 0) return;
+                if (targetId === 0) {
+                  return;
+                }
 
                 const targetIndex = items1.value.findIndex(
                   (i) => i.id === targetId
@@ -68,7 +70,9 @@ export default component$(() => {
                   items1.value = newItems;
                 } else {
                   // Sorting between containers
-                  if (!item) return;
+                  if (!item) {
+                    return;
+                  }
                   items2.value = items2.value.filter((i) => i.id !== itemId);
                   insertElement(newItems, targetIndex, item);
                   items1.value = newItems;
@@ -100,7 +104,7 @@ export default component$(() => {
       </div>
 
       <div
-        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-sm transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
+        class="h-[25em] w-80 rounded-xl border-2 border-dashed border-gray-300 bg-white p-6 shadow-xs transition-all duration-300 hover:border-gray-400 [&[data-over]]:border-blue-300 [&[data-over]]:bg-blue-50"
         data-dropzone
         preventdefault:dragover
         preventdefault:drop
@@ -133,7 +137,9 @@ export default component$(() => {
                 const targetId = parseInt(
                   (e.target as HTMLDivElement).dataset.id || '0'
                 );
-                if (targetId === 0) return;
+                if (targetId === 0) {
+                  return;
+                }
                 const newItems = [...items2.value];
                 const draggedIndex = items2.value.findIndex(
                   (i) => i.id === itemId
@@ -147,7 +153,9 @@ export default component$(() => {
                   items2.value = newItems;
                 } else {
                   // Sorting between containers
-                  if (!item) return;
+                  if (!item) {
+                    return;
+                  }
                   items1.value = items1.value.filter((i) => i.id !== itemId);
                   insertElement(newItems, targetIndex, item);
                   items2.value = newItems;

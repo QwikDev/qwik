@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Rule } from 'eslint';
 import { QwikEslintExamples } from '../examples';
 

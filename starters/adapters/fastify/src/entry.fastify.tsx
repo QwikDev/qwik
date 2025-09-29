@@ -15,12 +15,13 @@ import { fileURLToPath } from "node:url";
 import FastifyQwik from "./plugins/fastify-qwik";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  type QwikCityPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located
 const distDir = join(fileURLToPath(import.meta.url), "..", "..", "dist");
 const buildDir = join(distDir, "build");
+const assetsDir = join(distDir, "assets");
 
 // Allow for dynamic port and host
 const PORT = parseInt(process.env.PORT ?? "3000");
@@ -39,7 +40,7 @@ const start = async () => {
   // await fastify.register(import('@fastify/compress'))
 
   // Handle Qwik City using a plugin
-  await fastify.register(FastifyQwik, { distDir, buildDir });
+  await fastify.register(FastifyQwik, { distDir, buildDir, assetsDir });
 
   // Start the fastify server
   await fastify.listen({ port: PORT, host: HOST });

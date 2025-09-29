@@ -213,11 +213,11 @@ async function updatePackageJson(config: BuildConfig, destDir: string) {
     pkgJson.devDependencies['eslint-plugin-qwik'] = qwikVersion;
   }
 
-  setVersionFromRoot('@types/eslint');
   setVersionFromRoot('@types/node');
-  setVersionFromRoot('@typescript-eslint/eslint-plugin');
-  setVersionFromRoot('@typescript-eslint/parser');
+  setVersionFromRoot('typescript-eslint');
+  setVersionFromRoot('globals');
   setVersionFromRoot('eslint');
+  setVersionFromRoot('eslint/js');
   setVersionFromRoot('prettier');
   setVersionFromRoot('typescript');
   setVersionFromRoot('node-fetch');

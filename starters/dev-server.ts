@@ -60,7 +60,13 @@ Error.stackTraceLimit = 1000;
 const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
-    const url = new URL(req.url, address);
+    let url;
+    try {
+      url = new URL(req.url, address);
+    } catch {
+      res.status(404).send();
+      return;
+    }
     if (existsSync(url.pathname)) {
       const relPath = relative(startersAppsDir, url.pathname);
       if (!relPath.startsWith(".")) {
@@ -210,7 +216,7 @@ export {
         optimizer.qwikVite({
           /**
            * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik city imports
+           * because it causes it to try to lookup the special qwik city imports
            * even when we're not actually importing qwik-city
            */
           disableVendorScan: true,
@@ -223,7 +229,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
     }),
@@ -240,7 +246,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
       define: {

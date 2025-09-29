@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as ESLintUtils from '@typescript-eslint/utils/eslint-utils';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
@@ -36,6 +35,7 @@ export const validLexicalScope = createRule({
             type: 'boolean',
           },
         },
+        additionalProperties: false,
         default: {
           allowAny: true,
         },
@@ -75,6 +75,11 @@ export const validLexicalScope = createRule({
           if (variableType === 'ImportBinding') {
             return;
           }
+
+          if (isQwikHook(declaredVariable, context)) {
+            return;
+          }
+
           let dollarScope: Scope.Scope | null = ref.from;
           let dollarIdentifier: string | undefined;
           while (dollarScope) {
@@ -476,6 +481,41 @@ function getContent(symbol: ts.Symbol, sourceCode: string) {
     return redent(text, 2);
   }
   return '';
+}
+
+function isQwikHook(variable, context) {
+  const def = variable.defs[0];
+  if (!def || def.type !== 'Variable') {
+    return false;
+  }
+
+  const init = def.node.init;
+  if (
+    init?.type === 'CallExpression' &&
+    init.callee.type === 'Identifier' &&
+    /^use[A-Z]/.test(init.callee.name)
+  ) {
+    const hookName = init.callee.name;
+    const scope = context.sourceCode.getScope(def.node);
+    const ref = scope.references.find((r) => r.identifier.name === hookName);
+
+    return ref?.resolved && isFromQwikModule(ref.resolved, context);
+  }
+  return false;
+}
+
+function isFromQwikModule(resolvedVar) {
+  return resolvedVar.defs.some((def) => {
+    if (def.type !== 'ImportBinding') {
+      return false;
+    }
+    const importSource = def.parent.source.value;
+
+    return (
+      importSource.startsWith('@builder.io/qwik') ||
+      importSource.startsWith('@builder.io/qwik-city')
+    );
+  });
 }
 
 const ALLOWED_CLASSES = {

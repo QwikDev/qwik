@@ -21,7 +21,7 @@ import type {
 } from '../types';
 import { convertManifestToBundleGraph } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import { isWin, parseId } from './vite-utils';
+import { isVirtualId, isWin, parseId } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
 
@@ -448,7 +448,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    if (id.startsWith('\0')) {
+    if (isVirtualId(id)) {
       return;
     }
 
@@ -638,7 +638,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
     }
-    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+    if (isVirtualId(id) || id.startsWith('/@fs/')) {
       return;
     }
     const count = loadCount++;
@@ -724,7 +724,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
   ): Promise<Rollup.TransformResult> {
-    if (id.startsWith('\0')) {
+    if (isVirtualId(id)) {
       return;
     }
     const count = transformCount++;

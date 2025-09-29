@@ -260,7 +260,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      if (id.startsWith('\0')) {
+      const isVirtualId = id.startsWith('\0');
+      if (isVirtualId) {
         return;
       }
       const ext = extname(id).toLowerCase();

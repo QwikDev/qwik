@@ -123,6 +123,7 @@ export const vnode_diff = (
   /// and is not connected to the tree.
   let vNewNode: VNode | null = null;
 
+  let vSiblings: Map<string, VNode> | null = null;
   /// The array even indices will contains keys and odd indices the non keyed siblings.
   let vSiblingsArray: Array<string | VNode | null> | null = null;
 
@@ -319,6 +320,7 @@ export const vnode_diff = (
     if (descendVNode) {
       assertDefined(vCurrent || vNewNode, 'Expecting vCurrent to be defined.');
       vSideBuffer = null;
+      vSiblings = null;
       vSiblingsArray = null;
       vParent = (vNewNode || vCurrent!) as ElementVNode | VirtualVNode;
       vCurrent = vnode_getFirstChild(vParent);
@@ -331,6 +333,7 @@ export const vnode_diff = (
     const descendVNode = stack.pop(); // boolean: descendVNode
     if (descendVNode) {
       vSideBuffer = stack.pop();
+      vSiblings = stack.pop();
       vSiblingsArray = stack.pop();
       vNewNode = stack.pop();
       vCurrent = stack.pop();
@@ -346,7 +349,7 @@ export const vnode_diff = (
   function stackPush(children: JSXChildren, descendVNode: boolean) {
     stack.push(jsxChildren, jsxIdx, jsxCount, jsxValue);
     if (descendVNode) {
-      stack.push(vParent, vCurrent, vNewNode, vSiblingsArray, vSideBuffer);
+      stack.push(vParent, vCurrent, vNewNode, vSiblingsArray, vSiblings, vSideBuffer);
     }
     stack.push(descendVNode);
     if (Array.isArray(children)) {
@@ -926,94 +929,85 @@ export const vnode_diff = (
     }
   }
 
-  /**
-   * This function is used to retrieve the child with the given key. If the child is not found, it
-   * will return null.
-   *
-   * We will also collect all the keyed siblings found before the target key and add them to the
-   * side buffer. This is done to optimize the search for the next child with the specified key.
-   *
-   * @param nodeName - The name of the node.
-   * @param key - The key of the node.
-   * @returns The child with the given key or null if not found.
-   */
   function retrieveChildWithKey(
     nodeName: string | null,
     key: string | null
   ): ElementVNode | VirtualVNode | null {
     let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
-
-    // if key is null we need to:
-    // - if this is the first time fill the vSiblingsArray with all siblings
-    // - if not then find the node we are interested in
-
-    if (key == null && vSiblingsArray != null) {
-      for (let i = 0; i < vSiblingsArray.length; i += 2) {
-        if (vSiblingsArray[i] === nodeName) {
-          vNodeWithKey = vSiblingsArray![i + 1] as ElementVNode | VirtualVNode;
-          vSiblingsArray.splice(i, 2);
-          break;
+    if (vSiblings === null) {
+      // it is not materialized; so materialize it.
+      vSiblings = new Map<string, VNode>();
+      vSiblingsArray = [];
+      let vNode = vCurrent;
+      while (vNode) {
+        const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
+        const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
+        if (vNodeWithKey === null && vKey == key && name == nodeName) {
+          vNodeWithKey = vNode as ElementVNode | VirtualVNode;
+        } else {
+          if (vKey === null) {
+            vSiblingsArray.push(name, vNode);
+          } else {
+            // we only add the elements which we did not find yet.
+            vSiblings.set(getSideBufferKey(name, vKey), vNode);
+          }
+        }
+        vNode = vNode.nextSibling as VNode | null;
+      }
+    } else {
+      if (key === null) {
+        for (let i = 0; i < vSiblingsArray!.length; i += 2) {
+          if (vSiblingsArray![i] === nodeName) {
+            vNodeWithKey = vSiblingsArray![i + 1] as ElementVNode | VirtualVNode;
+            vSiblingsArray!.splice(i, 2);
+            break;
+          }
+        }
+      } else {
+        const siblingsKey = getSideBufferKey(nodeName, key);
+        if (vSiblings.has(siblingsKey)) {
+          vNodeWithKey = vSiblings.get(siblingsKey) as ElementVNode | VirtualVNode;
+          vSiblings.delete(siblingsKey);
         }
       }
-      return vNodeWithKey;
     }
 
-    const fillSiblingsArray = vSiblingsArray == null;
-    let vNode = vCurrent;
-    let foundTarget = false;
-    let keyedSiblingsBeforeTarget: Array<{
-      sideBufferKey: string;
-      vNode: VNode;
-    }> | null = null;
+    collectSideBufferSiblings(vNodeWithKey);
 
-    while (vNode) {
+    return vNodeWithKey;
+  }
+
+  function collectSideBufferSiblings(targetNode: VNode | null): void {
+    if (!targetNode) {
+      if (vCurrent) {
+        const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
+        const vKey = getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
+        if (vKey != null) {
+          const sideBufferKey = getSideBufferKey(name, vKey);
+          vSideBuffer ||= new Map();
+          vSideBuffer.set(sideBufferKey, vCurrent);
+          vSiblings?.delete(sideBufferKey);
+        }
+      }
+
+      return;
+    }
+
+    // Walk from vCurrent up to the target node and collect all keyed siblings
+    let vNode = vCurrent;
+    while (vNode && vNode !== targetNode) {
       const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
       const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
 
-      if (vNodeWithKey === null && vKey == key && name == nodeName) {
-        vNodeWithKey = vNode as ElementVNode | VirtualVNode;
-        foundTarget = true;
-        if (keyedSiblingsBeforeTarget && keyedSiblingsBeforeTarget.length > 0) {
-          vSideBuffer ||= new Map();
-          // Add all collected keyed siblings to side buffer now that we found the target
-          for (const sibling of keyedSiblingsBeforeTarget) {
-            vSideBuffer.set(sibling.sideBufferKey, sibling.vNode);
-          }
-        }
-        if (!fillSiblingsArray) {
-          break;
-        }
-      } else {
-        if (vKey == null) {
-          if (fillSiblingsArray) {
-            // Unkeyed sibling - add to siblings array
-            vSiblingsArray ||= [];
-            vSiblingsArray.push(name, vNode);
-          }
-        } else {
-          if (!foundTarget) {
-            keyedSiblingsBeforeTarget ||= [];
-            const sideBufferKey = getSideBufferKey(name, vKey);
-            // Collect keyed sibling found before target
-            keyedSiblingsBeforeTarget.push({ sideBufferKey, vNode });
-          }
-        }
+      if (vKey != null) {
+        const sideBufferKey = getSideBufferKey(name, vKey);
+        vSideBuffer ||= new Map();
+        vSideBuffer.set(sideBufferKey, vNode);
+        vSiblings?.delete(sideBufferKey);
       }
 
       vNode = vNode.nextSibling as VNode | null;
     }
-
-    // add current to the side buffer if it is not the target
-    if (!foundTarget && vCurrent) {
-      const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
-      const vKey = getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
-      if (vKey != null) {
-        const sideBufferKey = getSideBufferKey(name, vKey);
-        vSideBuffer ||= new Map();
-        vSideBuffer.set(sideBufferKey, vCurrent);
-      }
-    }
-    return vNodeWithKey;
   }
 
   function getSideBufferKey(nodeName: string | null, key: string): string;
@@ -1055,6 +1049,7 @@ export const vnode_diff = (
   ): any {
     // 1) Try to find the node among upcoming siblings
     vNewNode = retrieveChildWithKey(nodeName, lookupKey);
+
     if (vNewNode) {
       vCurrent = vNewNode;
       vNewNode = null;

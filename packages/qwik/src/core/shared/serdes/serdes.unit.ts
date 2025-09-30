@@ -958,6 +958,21 @@ describe('shared-serialization', () => {
         (42 chars)"
       `);
     });
+    it('should dedupe identical root qrls', async () => {
+      const fn = () => 'hi';
+      const a = {};
+      const qrl1 = inlinedQrl(fn, 'dump_qrl', [a]);
+      const qrl2 = inlinedQrl(fn, 'dump_qrl', [a]);
+      expect(qrl1).not.toBe(qrl2);
+      const objs = await serialize(qrl1, qrl2);
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 QRL "mock-chunk#dump_qrl[2]"
+        1 RootRef 0
+        2 Object []
+        (38 chars)"
+      `);
+    });
   });
 
   describe('Serialization Weak Ref', () => {

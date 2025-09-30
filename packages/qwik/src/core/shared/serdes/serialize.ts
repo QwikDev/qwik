@@ -170,11 +170,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
           const existing = qrlMap.get(qrl);
           if (existing) {
             // We encountered the same QRL again, make it a root
-            $addRoot$(existing);
-            // We need to force because we might be adding the same root again
-            if (outputAsRootRef(existing, 0)) {
-              return;
-            }
+            const ref = $addRoot$(existing);
+            output(TypeIds.RootRef, ref);
+            return;
           } else {
             qrlMap.set(qrl, value);
           }

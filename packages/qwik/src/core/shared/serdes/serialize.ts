@@ -70,7 +70,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   const preloadQrls = new Set<QRLInternal>();
   const s11nWeakRefs = new Map<unknown, number>();
   let parent: unknown = null;
-  const isRootObject = () => depth === 0;
+  const qrlMap = new Map<string, QRLInternal>();
 
   const outputArray = (value: unknown[], writeFn: (value: unknown, idx: number) => void) => {
     $writer$.write('[');
@@ -168,13 +168,21 @@ export async function serialize(serializationContext: SerializationContext): Pro
       } else if (isQrl(value)) {
         if (!outputAsRootRef(value)) {
           const qrl = qrlToString(serializationContext, value);
-          const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
-          if (isRootObject()) {
-            output(type, qrl);
+
+          // Since we map QRLs to strings, we need to keep track of this secondary mapping
+          const existing = qrlMap.get(qrl);
+          if (existing) {
+            // We encountered the same QRL again, make it a root
+            $addRoot$(existing);
+            // We need to force because we might be adding the same root again
+            if (outputAsRootRef(existing, 0, true)) {
+              return;
+            }
           } else {
-            const id = serializationContext.$addRoot$(qrl);
-            output(type, id);
+            qrlMap.set(qrl, value);
           }
+          const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
+          output(type, qrl);
         }
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
@@ -672,7 +680,8 @@ export function shouldTrackObj(obj: unknown) {
      */
     (typeof obj === 'string' && obj.length > 1) ||
     /** Same reasoning but for bigint */
-    (typeof obj === 'bigint' && (obj > 9 || obj < 0))
+    (typeof obj === 'bigint' && (obj > 9 || obj < 0)) ||
+    isQrl(obj)
   );
 } /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time
@@ -697,8 +706,5 @@ export function isResource<T = unknown>(value: object): value is ResourceReturnI
 }
 
 export const frameworkType = (obj: any) => {
-  return (
-    (isObject(obj) && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
-    isQrl(obj)
-  );
+  return obj && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj));
 };

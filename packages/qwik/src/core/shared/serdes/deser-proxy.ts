@@ -1,4 +1,4 @@
-import { TypeIds } from './index';
+import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
 import { vnode_isVNode } from '../../client/vnode';
 import { isObject } from '../utils/types';

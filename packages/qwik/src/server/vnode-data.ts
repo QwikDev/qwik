@@ -2,7 +2,7 @@ import type { ISsrNode, SsrAttrs } from './qwik-types';
 import { SsrNode } from './ssr-node';
 import type { CleanupQueue } from './ssr-container';
 import { VNodeDataFlag } from './types';
-import { _EMPTY_ARRAY } from '@qwik.dev/core';
+import { _EMPTY_ARRAY } from '@qwik.dev/core/internal';
 
 /**
  * Array of numbers which describes virtual nodes in the tree.

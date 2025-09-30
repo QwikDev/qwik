@@ -6,9 +6,9 @@ import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { _SharedContainer } from '../shared/shared-container';
-import { getObjectById, inflateQRL, parseQRL, preprocessState } from '../shared/serdes/index';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
+import { _inflateQRL, getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
+import { _SharedContainer } from '../shared/shared-container';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import {
@@ -60,7 +60,7 @@ import {
   vnode_newUnMaterializedElement,
   type VNodeJournal,
 } from './vnode';
-import type { ElementVNode, VirtualVNode, VNode } from './vnode-impl';
+import type { ElementVNode, VNode, VirtualVNode } from './vnode-impl';
 
 /** @public */
 export function getDomContainer(element: Element | VNode): IClientContainer {
@@ -165,7 +165,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   }
 
   parseQRL<T = unknown>(qrl: string): QRL<T> {
-    return inflateQRL(this, parseQRL(qrl)) as QRL<T>;
+    return _inflateQRL(this, parseQRL(qrl)) as QRL<T>;
   }
 
   handleError(err: any, host: VNode | null): void {

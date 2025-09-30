@@ -6,7 +6,7 @@ import {
   _jsxSplit,
   _walkJSX,
   isSignal,
-} from '@qwik.dev/core';
+} from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {

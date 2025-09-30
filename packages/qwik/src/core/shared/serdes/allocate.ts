@@ -1,7 +1,6 @@
-import { TypeIds, _constants, type Constants, parseQRL, resolvers } from './index';
 import type { DomContainer } from '../../client/dom-container';
+import { ensureMaterialized, vnode_getNode, vnode_isVNode, vnode_locate } from '../../client/vnode';
 import type { ElementVNode, VNode } from '../../client/vnode-impl';
-import { vnode_isVNode, ensureMaterialized, vnode_getNode, vnode_locate } from '../../client/vnode';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -14,12 +13,15 @@ import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
-import { JSXNodeImpl, createPropsProxy } from '../jsx/jsx-runtime';
+import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-runtime';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
+import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
+import { createQRLWithBackChannel } from './qrl-to-string';
 
-export const pendingStoreTargents = new Map<object, { t: TypeIds; v: unknown }>();
+export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
+export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {
@@ -46,13 +48,17 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.Object:
       return {};
     case TypeIds.QRL:
-    case TypeIds.PreloadQRL:
-      const qrl =
-        typeof value === 'number'
-          ? // root reference
-            container.$getObjectById$(value)
-          : value;
-      return parseQRL(qrl as string);
+    case TypeIds.PreloadQRL: {
+      if (typeof value === 'string') {
+        const data = value.split(' ').map(Number);
+        const chunk = container.$getObjectById$(data[0]) as string;
+        const symbol = container.$getObjectById$(data[1]) as string;
+        const captureIds = data.length > 2 ? data.slice(2) : null;
+        return createQRLWithBackChannel(chunk, symbol, captureIds);
+      } else {
+        return createQRLWithBackChannel('', String(value));
+      }
+    }
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.Resource: {
@@ -96,7 +102,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargents.set(store, { t, v });
+        pendingStoreTargets.set(store, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;

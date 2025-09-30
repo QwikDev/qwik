@@ -10,7 +10,6 @@ import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
 import { QRL as QRL_2 } from './qrl.public';
-import type { StreamWriter as StreamWriter_2 } from '@qwik.dev/core';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -899,11 +898,6 @@ export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
-
-// Warning: (ae-forgotten-export) The symbol "SerializationWeakRef" needs to be exported by the entry point index.d.ts
-//
-// @internal (undocumented)
-export const _serializationWeakRef: (obj: unknown) => SerializationWeakRef;
 
 // @internal
 export function _serialize(data: unknown[]): Promise<string>;

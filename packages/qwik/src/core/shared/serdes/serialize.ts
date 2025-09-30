@@ -164,20 +164,27 @@ export async function serialize(serializationContext: SerializationContext): Pro
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
         if (!outputAsRootRef(value)) {
-          const qrl = qrlToString(serializationContext, value);
-
-          // Since we map QRLs to strings, we need to keep track of this secondary mapping
-          const existing = qrlMap.get(qrl);
-          if (existing) {
-            // We encountered the same QRL again, make it a root
-            const ref = $addRoot$(existing);
-            output(TypeIds.RootRef, ref);
-            return;
+          const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
+          let data: string | number;
+          if (chunk !== '') {
+            // not a sync QRL, replace all parts with string references
+            data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
+            // Since we map QRLs to strings, we need to keep track of this secondary mapping
+            const existing = qrlMap.get(data);
+            if (existing) {
+              // We encountered the same QRL again, make it a root
+              const ref = $addRoot$(existing);
+              output(TypeIds.RootRef, ref);
+              return;
+            } else {
+              qrlMap.set(data, value);
+            }
           } else {
-            qrlMap.set(qrl, value);
+            data = Number(symbol);
           }
+
           const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
-          output(type, qrl);
+          output(type, data);
         }
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];

@@ -18,7 +18,7 @@ import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
-import { parseQRL } from './qrl-to-string';
+import { createQRLWithBackChannel } from './qrl-to-string';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
 export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
@@ -48,13 +48,17 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.Object:
       return {};
     case TypeIds.QRL:
-    case TypeIds.PreloadQRL:
-      const qrl =
-        typeof value === 'number'
-          ? // root reference
-            container.$getObjectById$(value)
-          : value;
-      return parseQRL(qrl as string);
+    case TypeIds.PreloadQRL: {
+      if (typeof value === 'string') {
+        const data = value.split(' ').map(Number);
+        const chunk = container.$getObjectById$(data[0]) as string;
+        const symbol = container.$getObjectById$(data[1]) as string;
+        const captureIds = data.length > 2 ? data.slice(2) : null;
+        return createQRLWithBackChannel(chunk, symbol, captureIds);
+      } else {
+        return createQRLWithBackChannel('', String(value));
+      }
+    }
     case TypeIds.Task:
       return new Task(-1, -1, null!, null!, null!, null);
     case TypeIds.Resource: {

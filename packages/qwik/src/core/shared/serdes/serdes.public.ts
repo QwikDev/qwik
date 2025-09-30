@@ -1,4 +1,4 @@
-import { createSerializationContext } from '.';
+import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
 import { isNode, isElement } from '../utils/element';

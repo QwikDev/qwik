@@ -1,7 +1,7 @@
 import type { VNodeData } from '../../../server/vnode-data';
 import type { _EFFECT_BACK_REF } from '../../internal';
 import type { EffectProperty, EffectSubscription } from '../../reactive-primitives/types';
-import type { ISsrNode, SymbolToChunkResolver, StreamWriter } from '../../ssr/ssr-types';
+import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
 import type { ResourceReturnInternal } from '../../use/use-resource';
 import { qError, QError } from '../error/error';
 import type { QRL } from '../qrl/qrl.public';

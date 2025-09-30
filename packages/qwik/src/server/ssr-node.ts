@@ -1,9 +1,5 @@
-import {
-  _isJSXNode as isJSXNode,
-  type JSXNode,
-  _EMPTY_ARRAY,
-  _EFFECT_BACK_REF,
-} from '@qwik.dev/core';
+import type { JSXNode } from '@qwik.dev/core';
+import { _isJSXNode as isJSXNode, _EMPTY_ARRAY, _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,

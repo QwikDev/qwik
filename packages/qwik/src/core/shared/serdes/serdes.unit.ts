@@ -1,34 +1,33 @@
 import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _fnSignal, _serializationWeakRef, _UNINITIALIZED, _wrapProp } from '../../internal';
+import { _createDeserializeContainer } from './serdes.public';
+import { _dumpState } from './dump-state';
+import { createSerializationContext } from './serialization-context';
+import { _typeIdNames } from './constants';
+import { TypeIds } from './constants';
+import { _fnSignal, _wrapProp } from '../../internal';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import { createStore } from '../../reactive-primitives/impl/store';
+import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import {
   createComputedQrl,
   createSerializerQrl,
   createSignal,
   isSignal,
 } from '../../reactive-primitives/signal.public';
-import { createStore } from '../../reactive-primitives/impl/store';
-import { createResourceReturn } from '../../use/use-resource';
-import { Task } from '../../use/use-task';
-import { inlinedQrl } from '../qrl/qrl';
-import { createQRL, type QRLInternal } from '../qrl/qrl-class';
-import {
-  TypeIds,
-  _constants,
-  _createDeserializeContainer,
-  _typeIdNames,
-  createSerializationContext,
-  dumpState,
-} from '.';
-import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
-import { isQrl } from '../qrl/qrl-utils';
-import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import { StoreFlags } from '../../reactive-primitives/types';
-import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
-import { retryOnPromise } from '../utils/promises';
+import { createResourceReturn } from '../../use/use-resource';
+import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
+import { inlinedQrl } from '../qrl/qrl';
+import { createQRL, type QRLInternal } from '../qrl/qrl-class';
+import { isQrl } from '../qrl/qrl-utils';
+import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+import { retryOnPromise } from '../utils/promises';
+import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
+import { _constants } from './constants';
+import { _serializationWeakRef } from './serialize';
 
 const DEBUG = false;
 
@@ -40,7 +39,7 @@ describe('shared-serialization', () => {
   const shared2 = { shared: 2 };
 
   describe('serialize types', () => {
-    const dump = async (...value: any) => dumpState(await serialize(...value));
+    const dump = async (...value: any) => _dumpState(await serialize(...value));
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "
@@ -109,7 +108,7 @@ describe('shared-serialization', () => {
     });
     it(title(TypeIds.Object), async () => {
       const objs = await serialize({ foo: shared1 }, { bar: shared1, shared: true });
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "foo"
@@ -397,7 +396,7 @@ describe('shared-serialization', () => {
     });
     it(title(TypeIds.Signal), async () => {
       const objs = await serialize({ foo: createSignal('hi') });
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "foo"
@@ -418,7 +417,7 @@ describe('shared-serialization', () => {
         _fnSignal((p0) => p0 + 1, [3], '(p0)=>p0+1'),
         propSignal
       );
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 WrappedSignal [
           {number} 0
@@ -465,7 +464,7 @@ describe('shared-serialization', () => {
       expect(never.value).toBe(2);
       expect(always.value).toBe(2);
       const objs = await serialize(dirty, clean, never, always);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ComputedSignal [
           RootRef 4
@@ -512,7 +511,7 @@ describe('shared-serialization', () => {
       // Force the value to be created
       custom.value.inc();
       const objs = await serialize(custom);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
         1 PreloadQRL "mock-chunk#custom_createSerializer_qrl"
@@ -574,7 +573,7 @@ describe('shared-serialization', () => {
       });
 
       const objs = await serialize(dirty, clean, never, always);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncComputedSignal [
           RootRef 4
@@ -921,7 +920,7 @@ describe('shared-serialization', () => {
         9n,
         9n,
       ]);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
           {string} "hello"
@@ -949,7 +948,7 @@ describe('shared-serialization', () => {
       const qrl2 = inlinedQrl(fn, 'dump_qrl', [a]);
       expect(qrl1).not.toBe(qrl2);
       const objs = await serialize(qrl1, [qrl2]);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 QRL "mock-chunk#dump_qrl[2]"
         1 Array [
@@ -962,7 +961,7 @@ describe('shared-serialization', () => {
   });
 
   describe('Serialization Weak Ref', () => {
-    const dump = async (...value: any) => dumpState(await serialize(...value));
+    const dump = async (...value: any) => _dumpState(await serialize(...value));
     it('should not serialize object', async () => {
       const parent = {
         child: { should: 'serialize' },
@@ -1043,7 +1042,7 @@ describe('shared-serialization', () => {
   describe('circular references', () => {
     it('should not detect any circular references', async () => {
       const objs = await serialize({ a: 1 });
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "a"
@@ -1060,7 +1059,7 @@ describe('shared-serialization', () => {
       (obj1 as any)['obj2'] = obj2;
 
       const objs = await serialize([obj1, obj2]);
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
           Object [
@@ -1084,7 +1083,7 @@ describe('shared-serialization', () => {
     });
     it('should scan Promise results', async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1));
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
         1 ForwardRef 1
@@ -1110,7 +1109,7 @@ describe('shared-serialization', () => {
     });
     it('should await Promises in Promises', async () => {
       const objs = await serialize(Promise.resolve({ hi: Promise.resolve(shared1) }));
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
         1 Promise [
@@ -1136,7 +1135,7 @@ describe('shared-serialization', () => {
     });
     it('should dedupe function sub-data', async () => {
       const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, null, [shared1]));
-      expect(dumpState(objs)).toMatchInlineSnapshot(`
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
           Object [
@@ -1184,7 +1183,7 @@ describe('shared-serialization', () => {
     it('should ignore noSerialize', async () => {
       const obj = { hi: true };
       const state = await serialize(noSerialize(obj));
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Constant undefined
         (5 chars)"
@@ -1193,7 +1192,7 @@ describe('shared-serialization', () => {
     it('should ignore functions in noSerialize set', async () => {
       const obj = { hi: true, ignore: noSerialize(() => console.warn()) };
       const state = await serialize(obj);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "hi"
@@ -1207,7 +1206,7 @@ describe('shared-serialization', () => {
       (ignore as any)[NoSerializeSymbol] = true;
       const obj = { hi: true, ignore };
       const state = await serialize(obj);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "hi"
@@ -1219,7 +1218,7 @@ describe('shared-serialization', () => {
     it('should ignore NoSerializeSymbol', async () => {
       const obj = { hi: true, [NoSerializeSymbol]: true };
       const state = await serialize(obj);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Constant undefined
         (5 chars)"
@@ -1234,7 +1233,7 @@ describe('shared-serialization', () => {
         }
       }
       const state = await serialize([obj, new Foo(), new MyCustomSerializable(1)]);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Array [
           {string} "obj"
@@ -1247,7 +1246,7 @@ describe('shared-serialization', () => {
     it('should not use SerializerSymbol if not function', async () => {
       const obj = { hi: 'orig', [SerializerSymbol]: 'hey' };
       const state = await serialize(obj);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Object [
           {string} "hi"
@@ -1264,7 +1263,7 @@ describe('shared-serialization', () => {
         }
       }
       const state = await serialize(new Foo());
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
         1 {string} "promise"
@@ -1286,7 +1285,7 @@ describe('shared-serialization', () => {
         }
       }
       const state = await serialize([promise, new Foo()]);
-      expect(dumpState(state)).toMatchInlineSnapshot(`
+      expect(_dumpState(state)).toMatchInlineSnapshot(`
         "
         0 Array [
           ForwardRef 0

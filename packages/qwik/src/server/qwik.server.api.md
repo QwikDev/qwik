@@ -8,7 +8,7 @@ import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import type { SnapshotResult } from '@qwik.dev/core';
-import type { StreamWriter } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core/internal';
 import type { SymbolMapperFn } from '@qwik.dev/core/optimizer';
 
 // @public

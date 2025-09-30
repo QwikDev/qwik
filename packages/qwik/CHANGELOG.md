@@ -1,5 +1,15 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.11
+
+### Patch Changes
+
+- 🐞🩹 Better configuration of Vite's optimizeDeps, preventing false duplication warnings, and verifying that Qwik dependencies are not in optimizeDeps. (by [@wmertens](https://github.com/wmertens) in [#7998](https://github.com/QwikDev/qwik/pull/7998))
+
+- 🐞🩹 resuming app with non-qwik elements inside (by [@Varixo](https://github.com/Varixo) in [#7991](https://github.com/QwikDev/qwik/pull/7991))
+
+- 🐞🩹 During deserialization, stores now correctly handle cyclic references to themselves (by [@wmertens](https://github.com/wmertens) in [#7998](https://github.com/QwikDev/qwik/pull/7998))
+
 ## 2.0.0-beta.10
 
 ### Minor Changes

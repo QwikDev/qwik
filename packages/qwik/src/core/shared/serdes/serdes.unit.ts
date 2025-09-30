@@ -909,6 +909,43 @@ describe('shared-serialization', () => {
     });
   });
 
+  describe('dedupe', () => {
+    it('should dedupe identical objects/strings', async () => {
+      const a = { hello: 1 };
+      const objs = await serialize([
+        'hello',
+        'hello',
+        a,
+        a,
+        12345678901234567890n,
+        12345678901234567890n,
+        // small bigint are not deduped
+        9n,
+        9n,
+      ]);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          {string} "hello"
+          RootRef 1
+          Object [
+            RootRef 1
+            {number} 1
+          ]
+          RootRef 2
+          BigInt "12345678901234567890"
+          RootRef 3
+          BigInt "9"
+          BigInt "9"
+        ]
+        1 RootRef "0 0"
+        2 RootRef "0 2"
+        3 RootRef "0 4"
+        (103 chars)"
+      `);
+    });
+  });
+
   describe('Serialization Weak Ref', () => {
     const dump = async (...value: any) => dumpState(await serialize(...value));
     it('should not serialize object', async () => {

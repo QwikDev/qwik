@@ -155,7 +155,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
     if (fastSkipSerialize(value as object | Function)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (typeof value === 'bigint') {
-      output(TypeIds.BigInt, value.toString());
+      if (!outputAsRootRef(value)) {
+        output(TypeIds.BigInt, value.toString());
+      }
     } else if (typeof value === 'boolean') {
       output(TypeIds.Constant, value ? Constants.True : Constants.False);
     } else if (typeof value === 'function') {
@@ -667,7 +669,10 @@ export function shouldTrackObj(obj: unknown) {
      * We track all strings greater than 1 character, because those take at least 6 bytes to encode
      * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
      * the map bigger so we want to strike a balance
-     */ (typeof obj === 'string' && obj.length > 1)
+     */
+    (typeof obj === 'string' && obj.length > 1) ||
+    /** Same reasoning but for bigint */
+    (typeof obj === 'bigint' && (obj > 9 || obj < 0))
   );
 } /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time

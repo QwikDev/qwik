@@ -1,5 +1,18 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.11
+
+### Major Changes
+
+- 💥 Breaking (slightly): The order of head export merging has been slightly. Plain objects now override outer ones. Functions still are run inner-first. (by [@wmertens](https://github.com/wmertens) in [#7970](https://github.com/QwikDev/qwik/pull/7970))
+
+### Patch Changes
+
+- 🐞🩹 trim script added by vite in dev mode (by [@Varixo](https://github.com/Varixo) in [#7981](https://github.com/QwikDev/qwik/pull/7981))
+
+- Updated dependencies [[`ceaa368`](https://github.com/QwikDev/qwik/commit/ceaa36852711ca0fdf9045cea039bec6ac24a560), [`0581cba`](https://github.com/QwikDev/qwik/commit/0581cba3d902af54434230357d870481d99d626e), [`991cec0`](https://github.com/QwikDev/qwik/commit/991cec0ba8ede1782e26ac9c25061855a9e6f07c)]:
+  - @qwik.dev/core@2.0.0-beta.11
+
 ## 2.0.0-beta.10
 
 ### Minor Changes

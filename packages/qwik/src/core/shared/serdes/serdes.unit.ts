@@ -345,7 +345,7 @@ describe('shared-serialization', () => {
       ).toMatchInlineSnapshot(`
         "
         0 Task [
-          QRL 2
+          QRL "mock-chunk#task_qrl[1]"
           {number} 0
           {number} 0
           RootRef 1
@@ -356,12 +356,11 @@ describe('shared-serialization', () => {
           ]
         ]
         1 Object [
-          RootRef 3
+          RootRef 2
           {number} 1
         ]
-        2 {string} "mock-chunk#task_qrl[1]"
-        3 RootRef "0 5 0"
-        (95 chars)"
+        2 RootRef "0 5 0"
+        (91 chars)"
       `);
     });
     it(title(TypeIds.Resource), async () => {
@@ -390,10 +389,9 @@ describe('shared-serialization', () => {
         `
         "
         0 Component [
-          QRL 1
+          QRL "mock-chunk#dump_component"
         ]
-        1 {string} "mock-chunk#dump_component"
-        (41 chars)"
+        (37 chars)"
       `
       );
     });
@@ -942,6 +940,23 @@ describe('shared-serialization', () => {
         2 RootRef "0 2"
         3 RootRef "0 4"
         (103 chars)"
+      `);
+    });
+    it('should dedupe identical qrls', async () => {
+      const fn = () => 'hi';
+      const a = {};
+      const qrl1 = inlinedQrl(fn, 'dump_qrl', [a]);
+      const qrl2 = inlinedQrl(fn, 'dump_qrl', [a]);
+      expect(qrl1).not.toBe(qrl2);
+      const objs = await serialize(qrl1, [qrl2]);
+      expect(dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 QRL "mock-chunk#dump_qrl[2]"
+        1 Array [
+          RootRef 0
+        ]
+        2 Object []
+        (42 chars)"
       `);
     });
   });

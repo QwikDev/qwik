@@ -24,8 +24,10 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
 import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
-import { pendingStoreTargents } from './allocate';
-import { deserializeData, inflateQRL, resolvers, TypeIds } from './index';
+import { allocate, pendingStoreTargets } from './allocate';
+import { needsInflation } from './deser-proxy';
+import { resolvers } from './allocate';
+import { TypeIds } from './constants';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -55,12 +57,12 @@ export const inflate = (
       break;
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
-      inflateQRL(container, target as QRLInternal<any>);
+      _inflateQRL(container, target as QRLInternal<any>);
       break;
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = inflateQRL(container, v[0]);
+      task.$qrl$ = _inflateQRL(container, v[0]);
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -87,9 +89,9 @@ export const inflate = (
     case TypeIds.Store: {
       // Inflate the store target
       const store = target as object;
-      const storeTarget = pendingStoreTargents.get(store);
+      const storeTarget = pendingStoreTargets.get(store);
       if (storeTarget) {
-        pendingStoreTargents.delete(store);
+        pendingStoreTargets.delete(store);
         inflate(container, store, storeTarget.t, storeTarget.v);
       }
       /**
@@ -273,3 +275,21 @@ export const _eagerDeserializeArray = (
   }
   return output;
 };
+export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
+  const captureIds = qrl.$capture$;
+  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
+  if (container.element) {
+    qrl.$setContainer$(container.element);
+  }
+  return qrl;
+}
+export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
+  if (typeId === TypeIds.Plain) {
+    return value;
+  }
+  const propValue = allocate(container, typeId, value);
+  if (needsInflation(typeId)) {
+    inflate(container, propValue, typeId, value);
+  }
+  return propValue;
+}

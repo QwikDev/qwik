@@ -1,6 +1,5 @@
-import { component$, useSignal, useComputed$, useStyles$ } from '@qwik.dev/core';
-import { _getDomContainer } from '@qwik.dev/core/internal';
-import { _dumpState, _preprocessState, _vnode_toString } from '@qwik.dev/core/internal';
+import { component$, useComputed$, useSignal, useStyles$ } from '@qwik.dev/core';
+import { _getDomContainer, _vnode_toString } from '@qwik.dev/core/internal';
 import type { DocumentHead } from '@qwik.dev/router';
 
 export default component$(() => {

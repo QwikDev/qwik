@@ -1,7 +1,6 @@
-import { TypeIds, _constants, type Constants, parseQRL, resolvers } from './index';
 import type { DomContainer } from '../../client/dom-container';
+import { ensureMaterialized, vnode_getNode, vnode_isVNode, vnode_locate } from '../../client/vnode';
 import type { ElementVNode, VNode } from '../../client/vnode-impl';
-import { vnode_isVNode, ensureMaterialized, vnode_getNode, vnode_locate } from '../../client/vnode';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -14,12 +13,15 @@ import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
-import { JSXNodeImpl, createPropsProxy } from '../jsx/jsx-runtime';
+import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-runtime';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
+import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
+import { parseQRL } from './qrl-to-string';
 
-export const pendingStoreTargents = new Map<object, { t: TypeIds; v: unknown }>();
+export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
+export const pendingStoreTargets = new Map<object, { t: TypeIds; v: unknown }>();
 
 export const allocate = (container: DeserializeContainer, typeId: number, value: unknown): any => {
   switch (typeId) {
@@ -96,7 +98,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargents.set(store, { t, v });
+        pendingStoreTargets.set(store, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;

@@ -13,7 +13,7 @@ import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { TypeIds } from '../shared/serdes/index';
+import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';

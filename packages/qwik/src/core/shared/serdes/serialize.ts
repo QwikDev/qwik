@@ -11,6 +11,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectSubscriptionProp,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
@@ -34,14 +35,10 @@ import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from '../utils/serialize-utils';
 import { isObject } from '../utils/types';
-import {
-  Constants,
-  filterEffectBackRefs,
-  qrlToString,
-  serializeWrappingFn,
-  TypeIds,
-  type SerializationContext,
-} from './index';
+import { type SerializationContext } from './serialization-context';
+import { Constants } from './constants';
+import { TypeIds } from './constants';
+import { qrlToString } from './qrl-to-string';
 
 /**
  * Format:
@@ -175,7 +172,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             // We encountered the same QRL again, make it a root
             $addRoot$(existing);
             // We need to force because we might be adding the same root again
-            if (outputAsRootRef(existing, 0, true)) {
+            if (outputAsRootRef(existing, 0)) {
               return;
             }
           } else {
@@ -708,3 +705,35 @@ export function isResource<T = unknown>(value: object): value is ResourceReturnI
 export const frameworkType = (obj: any) => {
   return obj && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj));
 };
+
+export function serializeWrappingFn(
+  serializationContext: SerializationContext,
+  value: WrappedSignalImpl<any>
+) {
+  // if value is an object then we need to wrap this in ()
+  if (value.$funcStr$ && value.$funcStr$[0] === '{') {
+    value.$funcStr$ = `(${value.$funcStr$})`;
+  }
+  const syncFnId = serializationContext.$addSyncFn$(
+    value.$funcStr$,
+    value.$args$.length,
+    value.$func$
+  );
+  // TODO null if no args
+  return [syncFnId, value.$args$] as const;
+}
+
+export function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
+  let effectBackRefToSerialize: Map<string, EffectSubscription> | null = null;
+  if (effectBackRef) {
+    for (const [effectProp, effect] of effectBackRef) {
+      if (effect[EffectSubscriptionProp.BACK_REF]) {
+        effectBackRefToSerialize ||= new Map<string, EffectSubscription>();
+        effectBackRefToSerialize.set(effectProp, effect);
+      }
+    }
+  }
+  return effectBackRefToSerialize;
+} /** @internal */
+
+export const _serializationWeakRef = (obj: unknown) => new SerializationWeakRef(obj);

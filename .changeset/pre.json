@@ -11,8 +11,7 @@
     "@qwik.dev/dom": "2.1.19",
     "@qwik.dev/react": "2.0.0-0",
     "supabase-auth-helpers-qwik": "0.0.3",
-    "qwik-cli-e2e": "0.0.0",
-    "docs-e2e": "1.0.0"
+    "qwik-cli-e2e": "0.0.0"
   },
   "branch": "build/v2",
   "changesets": [

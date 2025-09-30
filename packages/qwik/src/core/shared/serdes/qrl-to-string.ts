@@ -9,7 +9,17 @@ import { assertDefined } from '../error/assert';
 export function qrlToString(
   serializationContext: SerializationContext,
   value: QRLInternal | SyncQRLInternal
-) {
+): string;
+export function qrlToString(
+  serializationContext: SerializationContext,
+  value: QRLInternal | SyncQRLInternal,
+  raw: true
+): [string, string, string[] | null];
+export function qrlToString(
+  serializationContext: SerializationContext,
+  value: QRLInternal | SyncQRLInternal,
+  raw?: true
+): string | [string, string, string[] | null] {
   let symbol = value.$symbol$;
   let chunk = value.$chunk$;
 
@@ -52,24 +62,35 @@ export function qrlToString(
     symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
 
+  if (!value.$capture$ && Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
+    // We refer by id so every capture needs to be a root
+    value.$capture$ = value.$captureRef$.map((ref) => `${serializationContext.$addRoot$(ref)}`);
+  }
+  if (raw) {
+    return [chunk, symbol, value.$capture$];
+  }
   let qrlStringInline = `${chunk}#${symbol}`;
-  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
-    let serializedReferences = '';
-    // hot-path optimization
-    for (let i = 0; i < value.$captureRef$.length; i++) {
-      if (i > 0) {
-        serializedReferences += ' ';
-      }
-      // We refer by id so every capture needs to be a root
-      serializedReferences += serializationContext.$addRoot$(value.$captureRef$[i]);
-    }
-    qrlStringInline += `[${serializedReferences}]`;
-  } else if (value.$capture$ && value.$capture$.length > 0) {
+  if (value.$capture$ && value.$capture$.length > 0) {
     qrlStringInline += `[${value.$capture$.join(' ')}]`;
   }
   return qrlStringInline;
-} /** Parses "chunk#hash[...rootRef]" */
+}
 
+export function createQRLWithBackChannel(
+  chunk: string,
+  symbol: string,
+  captureIds?: number[] | null
+): QRLInternal<any> {
+  let qrlRef = null;
+  if (isDev && chunk === QRL_RUNTIME_CHUNK) {
+    const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
+    assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
+    qrlRef = backChannel.get(symbol);
+  }
+  return createQRL(chunk, symbol, qrlRef, null, captureIds!, null);
+}
+
+/** Parses "chunk#hash[...rootRef]" */
 export function parseQRL(qrl: string): QRLInternal<any> {
   const hashIdx = qrl.indexOf('#');
   const captureStart = qrl.indexOf('[', hashIdx);
@@ -85,12 +106,7 @@ export function parseQRL(qrl: string): QRLInternal<any> {
           .filter((v) => v.length)
           .map((s) => parseInt(s, 10))
       : null;
-  let qrlRef = null;
-  if (isDev && chunk === QRL_RUNTIME_CHUNK) {
-    const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
-    assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
-    qrlRef = backChannel.get(symbol);
-  }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds, null);
+  return createQRLWithBackChannel(chunk, symbol, captureIds);
 }
+
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

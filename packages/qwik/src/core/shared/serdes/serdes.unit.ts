@@ -323,10 +323,12 @@ describe('shared-serialization', () => {
       expect(await dump(inlinedQrl(() => myVar + other, 'dump_qrl', [myVar, other])))
         .toMatchInlineSnapshot(`
           "
-          0 QRL "mock-chunk#dump_qrl[1 2]"
+          0 QRL "3 4 1 2"
           1 {number} 123
           2 {string} "hello"
-          (47 chars)"
+          3 {string} "mock-chunk"
+          4 {string} "dump_qrl"
+          (58 chars)"
         `);
     });
     it(title(TypeIds.Task), async () => {
@@ -344,7 +346,7 @@ describe('shared-serialization', () => {
       ).toMatchInlineSnapshot(`
         "
         0 Task [
-          QRL "mock-chunk#task_qrl[1]"
+          QRL "2 3 1"
           {number} 0
           {number} 0
           RootRef 1
@@ -355,11 +357,13 @@ describe('shared-serialization', () => {
           ]
         ]
         1 Object [
-          RootRef 2
+          RootRef 4
           {number} 1
         ]
-        2 RootRef "0 5 0"
-        (91 chars)"
+        2 {string} "mock-chunk"
+        3 {string} "task_qrl"
+        4 RootRef "0 5 0"
+        (102 chars)"
       `);
     });
     it(title(TypeIds.Resource), async () => {
@@ -388,9 +392,11 @@ describe('shared-serialization', () => {
         `
         "
         0 Component [
-          QRL "mock-chunk#dump_component"
+          QRL "1 2"
         ]
-        (37 chars)"
+        1 {string} "mock-chunk"
+        2 {string} "dump_component"
+        (49 chars)"
       `
       );
     });
@@ -484,14 +490,19 @@ describe('shared-serialization', () => {
           Constant null
           {number} 2
         ]
-        4 PreloadQRL "mock-chunk#dirty[8]"
-        5 PreloadQRL "mock-chunk#clean[8]"
-        6 PreloadQRL "mock-chunk#never[8]"
-        7 PreloadQRL "mock-chunk#always[8]"
+        4 PreloadQRL "9 10 8"
+        5 PreloadQRL "9 11 8"
+        6 PreloadQRL "9 12 8"
+        7 PreloadQRL "9 13 8"
         8 Signal [
           {number} 1
         ]
-        (171 chars)"
+        9 {string} "mock-chunk"
+        10 {string} "dirty"
+        11 {string} "clean"
+        12 {string} "never"
+        13 {string} "always"
+        (174 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -514,16 +525,18 @@ describe('shared-serialization', () => {
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
-        1 PreloadQRL "mock-chunk#custom_createSerializer_qrl"
+        1 PreloadQRL "3 4"
         2 SerializerSignal [
           RootRef 1
           Constant null
           {number} 4
         ]
-        3 ForwardRefs [
+        3 {string} "mock-chunk"
+        4 {string} "custom_createSerializer_qrl"
+        5 ForwardRefs [
           2
         ]
-        (73 chars)"
+        (85 chars)"
       `);
     });
     it(title(TypeIds.AsyncComputedSignal), async () => {
@@ -608,14 +621,19 @@ describe('shared-serialization', () => {
           Constant null
           {number} 2
         ]
-        4 PreloadQRL "mock-chunk#dirty[8]"
-        5 PreloadQRL "mock-chunk#clean[8]"
-        6 PreloadQRL "mock-chunk#never[8]"
-        7 PreloadQRL "mock-chunk#always[8]"
+        4 PreloadQRL "9 10 8"
+        5 PreloadQRL "9 11 8"
+        6 PreloadQRL "9 12 8"
+        7 PreloadQRL "9 13 8"
         8 Signal [
           {number} 1
         ]
-        (231 chars)"
+        9 {string} "mock-chunk"
+        10 {string} "dirty"
+        11 {string} "clean"
+        12 {string} "never"
+        13 {string} "always"
+        (234 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -950,12 +968,14 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, [qrl2]);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "mock-chunk#dump_qrl[2]"
+        0 QRL "3 4 2"
         1 Array [
           RootRef 0
         ]
         2 Object []
-        (42 chars)"
+        3 {string} "mock-chunk"
+        4 {string} "dump_qrl"
+        (53 chars)"
       `);
     });
     it('should dedupe identical root qrls', async () => {
@@ -967,10 +987,12 @@ describe('shared-serialization', () => {
       const objs = await serialize(qrl1, qrl2);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 QRL "mock-chunk#dump_qrl[2]"
+        0 QRL "3 4 2"
         1 RootRef 0
         2 Object []
-        (38 chars)"
+        3 {string} "mock-chunk"
+        4 {string} "dump_qrl"
+        (49 chars)"
       `);
     });
   });
@@ -1014,15 +1036,17 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 QRL "mock-chunk#dump_qrl[2]"
+        1 QRL "3 4 2"
         2 Object [
           {string} "should"
           {string} "serialize"
         ]
-        3 ForwardRefs [
+        3 {string} "mock-chunk"
+        4 {string} "dump_qrl"
+        5 ForwardRefs [
           2
         ]
-        (83 chars)"
+        (94 chars)"
       `);
     });
     it('should serialize object after qrl', async () => {
@@ -1037,7 +1061,7 @@ describe('shared-serialization', () => {
       const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
       expect(await dump(qrl, parent)).toMatchInlineSnapshot(`
         "
-        0 QRL "mock-chunk#dump_qrl[2]"
+        0 QRL "3 4 2"
         1 Object [
           {string} "child"
           ForwardRef 0
@@ -1046,10 +1070,12 @@ describe('shared-serialization', () => {
           {string} "should"
           {string} "serialize"
         ]
-        3 ForwardRefs [
+        3 {string} "mock-chunk"
+        4 {string} "dump_qrl"
+        5 ForwardRefs [
           2
         ]
-        (83 chars)"
+        (94 chars)"
       `);
     });
   });
@@ -1158,9 +1184,11 @@ describe('shared-serialization', () => {
             {number} 1
           ]
         ]
-        1 QRL "mock-chunk#foo[2]"
+        1 QRL "3 4 2"
         2 RootRef "0 0"
-        (55 chars)"
+        3 {string} "mock-chunk"
+        4 {string} "foo"
+        (66 chars)"
       `);
       // make sure shared1 is only serialized once
       expect([objs[4], objs[5]]).toEqual([TypeIds.RootRef, '0 0']);

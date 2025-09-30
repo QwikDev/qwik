@@ -1,7 +1,7 @@
 {
   "name": "docs-e2e",
   "description": "",
-  "version": "1.0.0",
+  "private": true,
   "author": "",
   "devDependencies": {
     "@playwright/test": "1.54.1",

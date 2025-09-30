@@ -8,6 +8,7 @@ import type {
 import { getErrorHtml } from './error-handler';
 import { createRequestEvent, getRequestMode, type RequestEventInternal } from './request-event';
 import { encoder } from './resolve-request-handlers';
+import { withLocale } from '@qwik.dev/core';
 import type { ServerRequestEvent, StatusCodes } from './types';
 // Import separately to avoid duplicate imports in the vite dev server
 import {
@@ -16,12 +17,6 @@ import {
   RewriteMessage,
   ServerError,
 } from '@qwik.dev/router/middleware/request-handler';
-
-export interface QwikRouterRun<T> {
-  response: Promise<T | null>;
-  requestEv: RequestEvent;
-  completion: Promise<unknown>;
-}
 
 let asyncStore: AsyncStore | undefined;
 import('node:async_hooks')
@@ -36,6 +31,11 @@ import('node:async_hooks')
       err
     );
   });
+export interface QwikRouterRun<T> {
+  response: Promise<T | null>;
+  requestEv: RequestEvent;
+  completion: Promise<unknown>;
+}
 
 export function runQwikRouter<T>(
   serverRequestEv: ServerRequestEvent<T>,
@@ -57,9 +57,12 @@ export function runQwikRouter<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
-      : runNext(requestEv, rebuildRouteInfo, resolve!),
+    completion: withLocale(
+      requestEv.locale(),
+      asyncStore
+        ? () => asyncStore!.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+        : () => runNext(requestEv, rebuildRouteInfo, resolve!)
+    ),
   };
 }
 

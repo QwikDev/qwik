@@ -1,4 +1,5 @@
-import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
+import type { SnapshotResult } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core/internal';
 import type {
   QwikManifest,
   ServerQwikManifest,

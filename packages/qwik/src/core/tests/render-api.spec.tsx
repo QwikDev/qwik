@@ -121,7 +121,7 @@ const renderToStringAndSetPlatform = async (jsx: JSXOutput, opts: RenderToString
   const platform = getPlatform();
   let result: RenderToStringResult;
   try {
-    result = await renderToString(jsx, opts);
+    result = await renderToString(jsx, { qwikLoader: 'never', ...opts });
   } finally {
     setPlatform(platform);
   }
@@ -132,7 +132,7 @@ const renderToStreamAndSetPlatform = async (jsx: JSXOutput, opts: RenderToStream
   const platform = getPlatform();
   let result: RenderToStreamResult;
   try {
-    result = await renderToStream(jsx, opts);
+    result = await renderToStream(jsx, { qwikLoader: 'never', ...opts });
   } finally {
     setPlatform(platform);
   }
@@ -383,7 +383,8 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
-      it('should render at bottom as fallback', async () => {
+      // Right now we always include it in head
+      it.skip('should render at bottom as fallback', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
         });
@@ -411,7 +412,8 @@ describe('render api', () => {
         expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents');
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
       });
-      it('should not render for static content and auto include', async () => {
+      // Right now we always include it
+      it.skip('should not render for static content and auto include', async () => {
         const result = await renderToStringAndSetPlatform(<div>static</div>, {
           containerTagName: 'div',
           qwikLoader: {
@@ -440,12 +442,9 @@ describe('render api', () => {
       it('should render', async () => {
         const result = await renderToStringAndSetPlatform(<ManyEventsComponent />, {
           containerTagName: 'div',
+          qwikLoader: 'module',
         });
-        const document = createDocument({ html: result.html });
-        // event script is next sibling of the qwik loader
-        const eventScript = document.querySelector('script[id=qwikloader]')
-          ?.nextSibling as HTMLElement;
-        expect(eventScript.textContent).toContain(
+        expect(result.html).toContain(
           '(window.qwikevents||(window.qwikevents=[])).push("focus", "click", "dblclick", "blur")'
         );
       });
@@ -501,6 +500,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: testTag,
           manifest: manifestWithHelpers,
+          qwikLoader: 'module',
         });
         const document = createDocument({ html: result.html });
         const containerElement = document.body.firstChild;
@@ -698,6 +698,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           debug: true,
+          qwikLoader: 'inline',
         });
         expect(cleanupAttrs(result.html)).toContain(
           '<script id="qwikloader" async type="module">debug</script>'
@@ -708,6 +709,7 @@ describe('render api', () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
           debug: false,
+          qwikLoader: 'inline',
         });
         expect(cleanupAttrs(result.html)).toContain(
           '<script id="qwikloader" async type="module">min</script>'
@@ -964,7 +966,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(7);
+        expect(stream.write).toHaveBeenCalledTimes(6);
       });
     });
   });

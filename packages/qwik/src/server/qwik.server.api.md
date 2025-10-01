@@ -88,11 +88,10 @@ export interface PreloaderOptions {
 }
 
 // @public (undocumented)
-export interface QwikLoaderOptions {
+export type QwikLoaderOptions = 'module' | 'inline' | 'never' | {
     include?: 'always' | 'never' | 'auto';
-    // @deprecated (undocumented)
     position?: 'top' | 'bottom';
-}
+};
 
 // @public (undocumented)
 export type Render = RenderToString | RenderToStream;
@@ -106,7 +105,6 @@ export interface RenderOptions extends SerializeDocumentOptions {
     locale?: string | ((options: RenderOptions) => string);
     // @deprecated (undocumented)
     prefetchStrategy?: PrefetchStrategy | null;
-    // (undocumented)
     preloader?: PreloaderOptions | false;
     qwikLoader?: QwikLoaderOptions;
     serverData?: Record<string, any>;

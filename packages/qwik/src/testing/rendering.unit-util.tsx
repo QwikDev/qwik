@@ -104,10 +104,12 @@ function getStylesFactory(document: Document) {
 export async function ssrRenderToDom(
   jsx: JSXOutput,
   opts: {
-    /// Print debug information to console.
+    /** Print debug information to console. */
     debug?: boolean;
-    /// Treat JSX as raw, (don't wrap in in head/body)
+    /** Treat JSX as raw, (don't wrap in in head/body) */
     raw?: boolean;
+    /** Include QwikLoader */
+    qwikLoader?: boolean;
   } = {}
 ) {
   let html = '';
@@ -121,7 +123,9 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString(jsxToRender);
+    const result = await renderToString(jsxToRender, {
+      qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+    });
     html = result.html;
   } finally {
     setPlatform(platform);

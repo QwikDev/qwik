@@ -129,8 +129,11 @@ function processJSXNode(
     } else if (isSignal(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.WrappedSignal] : EMPTY_ARRAY);
       const signalNode = ssr.getOrCreateLastNode();
+      const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
       enqueue(ssr.closeFragment);
-      enqueue(() => trackSignalAndAssignHost(value, signalNode, EffectProperty.VNODE, ssr));
+      enqueue(() =>
+        trackSignalAndAssignHost(unwrappedSignal, signalNode, EffectProperty.VNODE, ssr)
+      );
       enqueue(MaybeAsyncSignal);
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? [DEBUG_TYPE, VirtualType.Awaited] : EMPTY_ARRAY);

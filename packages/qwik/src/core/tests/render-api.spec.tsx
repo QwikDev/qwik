@@ -800,7 +800,7 @@ describe('render api', () => {
               }}
             >
               <Resource value={rsrc} onResolved={(v) => <span>{v}</span>} />
-              {sig.value}
+              {sig.value + 'test'}
             </button>
           );
         });
@@ -1012,7 +1012,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(6);
+        expect(stream.write).toHaveBeenCalledTimes(5);
       });
     });
   });

@@ -4,6 +4,7 @@ import type { Container, HostElement } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { trackSignal } from '../../use/use-core';
 import type { BackRef } from '../cleanup';
+import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import {
   _EFFECT_BACK_REF,
@@ -12,7 +13,7 @@ import {
   SignalFlags,
   WrappedSignalFlags,
 } from '../types';
-import { scheduleEffects } from '../utils';
+import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
@@ -106,6 +107,13 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       this.$untrackedValue$ = untrackedValue;
     }
   }
+
+  $unwrapIfSignal$(): SignalImpl<T> | WrappedSignalImpl<T> {
+    return this.$func$ === getValueProp && isSignal(this.$args$[0])
+      ? (this.$args$[0] as SignalImpl<T>)
+      : this;
+  }
+
   // Make this signal read-only
   set value(_: any) {
     throw qError(QError.wrappedReadOnly);

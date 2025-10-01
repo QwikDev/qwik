@@ -3,6 +3,10 @@ import { CodeBlock } from '../../components/code-block/code-block';
 import { $, component$, useSignal } from '@qwik.dev/core';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
+type TransformModuleV2 = TransformModule & {
+  segment?: { canonicalFilename: string; paramNames: string[]; captureNames: string[] };
+};
+
 export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {
   const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
   const pathInView$ = $((path: string) => {
@@ -38,7 +42,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
         </div>
       </div>
       <div class="file-modules" id={FILE_MODULE_DIV_ID}>
-        {segments.map((o, i) => (
+        {(segments as TransformModuleV2[]).map((o, i) => (
           <div class="file-item" data-symbol-item={i} key={o.path}>
             <div class="file-info">
               <span>{o.segment?.canonicalFilename}</span>

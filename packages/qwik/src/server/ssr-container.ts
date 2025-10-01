@@ -114,7 +114,7 @@ export interface SSRRenderOptions {
 enum QwikLoaderInclude {
   Module,
   Inline,
-  Never,
+  Done,
 }
 
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
@@ -255,12 +255,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.qlInclude = qlOpt
       ? typeof qlOpt === 'object'
         ? qlOpt.include === 'never'
-          ? QwikLoaderInclude.Never
+          ? QwikLoaderInclude.Done
           : QwikLoaderInclude.Module
         : qlOpt === 'inline'
           ? QwikLoaderInclude.Inline
           : qlOpt === 'never'
-            ? QwikLoaderInclude.Never
+            ? QwikLoaderInclude.Done
             : QwikLoaderInclude.Module
       : QwikLoaderInclude.Module;
     if (this.qlInclude === QwikLoaderInclude.Module) {
@@ -387,6 +387,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
+    if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
+      // We waited long enough, on slow connections the page is already partially visible
+      this.emitQwikLoaderInline();
+    }
+
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
     const isQwikStyle =
@@ -897,6 +902,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   emitQwikLoaderAtTopIfNeeded() {
     if (this.qlInclude === QwikLoaderInclude.Module) {
+      this.qlInclude = QwikLoaderInclude.Done;
       // always emit the preload+import. It will probably be used at some point on the site
       const qwikLoaderBundle = this.$buildBase$ + this.resolvedManifest.manifest.qwikLoader!;
       const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
@@ -913,31 +919,39 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
       this.openElement('script', scriptAttrs);
       this.closeElement();
-    } else if (this.qlInclude === QwikLoaderInclude.Inline) {
-      // TODO send at the end or after 30kB generated
-      // if at the end, only include when snapshot is not static
-      const qwikLoaderScript = getQwikLoaderScript({ debug: this.renderOptions.debug });
-      // module + async lets it run asap without waiting for DOM, even when inline
-      const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
-      }
-      this.openElement('script', scriptAttrs);
-      this.write(qwikLoaderScript);
-      this.closeElement();
     }
   }
 
+  emitQwikLoaderInline() {
+    this.qlInclude = QwikLoaderInclude.Done;
+    // if at the end, only include when snapshot is not static
+    const qwikLoaderScript = getQwikLoaderScript({ debug: this.renderOptions.debug });
+    // module + async lets it run asap without waiting for DOM, even when inline
+    const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+    }
+    this.openElement('script', scriptAttrs);
+    this.write(qwikLoaderScript);
+    this.closeElement();
+  }
+
   private emitQwikLoaderAtBottomIfNeeded() {
-    // emit the used events so the loader can subscribe to them
-    this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
+    if (!this.isStatic()) {
+      if (this.qlInclude !== QwikLoaderInclude.Done) {
+        this.emitQwikLoaderInline();
+      }
+      // emit the used events so the loader can subscribe to them
+      this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
+    }
   }
 
   private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs = this.renderOptions.serverData?.nonce
-        ? ['nonce', this.renderOptions.serverData.nonce]
-        : null;
+      const scriptAttrs = ['async', true, 'type', 'module'];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
       this.openElement('script', scriptAttrs);
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');

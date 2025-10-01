@@ -33,6 +33,11 @@ import * as qError from '../shared/error/error';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
+});
+
 /**
  * Below are helper functions that are constant. They have to be in the top level scope so that the
  * optimizer doesn't consider them as captured scope. It would be great if the optimizer could

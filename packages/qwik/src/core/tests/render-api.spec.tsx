@@ -383,59 +383,68 @@ describe('render api', () => {
       });
     });
     describe('qwikLoader', () => {
-      // Right now we always include it in head
-      it.skip('should render at bottom as fallback', async () => {
+      describe('inline', () => {
+        it('should render at bottom as fallback', async () => {
+          const result = await renderToStringAndSetPlatform(<Counter />, {
+            containerTagName: 'div',
+            qwikLoader: 'inline',
+          });
+          const document = createDocument({ html: result.html });
+          // qwik loader is one before last
+          const qwikLoaderScriptElement = document.body.firstChild?.lastChild
+            ?.previousSibling as HTMLElement;
+          expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
+          expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
+          // qwik events should be the last script of body
+          const eventsScriptElement = document.body.lastChild as HTMLElement;
+          expect(eventsScriptElement.textContent).toContain(
+            '(window.qwikevents||(window.qwikevents=[]))'
+          );
+        });
+        it('should not render for static content and auto include', async () => {
+          const result = await renderToStringAndSetPlatform(<div>static</div>, {
+            containerTagName: 'div',
+            qwikLoader: 'inline',
+          });
+          const document = createDocument({ html: result.html });
+          // should not contain qwik events script for top position
+          expect(document.head.lastChild?.textContent ?? '').not.toContain(
+            'window.qwikevents.push'
+          );
+          expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
+        });
+        it('should render after 30kB of SSR', async () => {
+          const bigText = 'hello world '.repeat(3000); // ~30kB of text
+          const result = await renderToStringAndSetPlatform(
+            <div>
+              <Counter />
+              <div>{bigText}</div>
+              <div>{bigText}</div>
+            </div>,
+            {
+              containerTagName: 'div',
+              qwikLoader: 'inline',
+            }
+          );
+          const document = createDocument({ html: result.html });
+          expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
+          const notQwikLoaderScriptElement = document.body.firstChild?.lastChild
+            ?.previousSibling as HTMLElement;
+          expect(notQwikLoaderScriptElement?.id).not.toEqual('qwikloader');
+          // qwik events should still be the last script of body
+          const eventsScriptElement = document.body.lastChild as HTMLElement;
+          expect(eventsScriptElement.textContent).toContain(
+            '(window.qwikevents||(window.qwikevents=[]))'
+          );
+        });
+      });
+      it('should support never render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {
           containerTagName: 'div',
-        });
-        const document = createDocument({ html: result.html });
-        // qwik loader is one before last
-        const qwikLoaderScriptElement = document.body.firstChild?.lastChild
-          ?.previousSibling as HTMLElement;
-        expect(qwikLoaderScriptElement?.tagName.toLowerCase()).toEqual('script');
-        expect(qwikLoaderScriptElement?.getAttribute('id')).toEqual('qwikloader');
-        // qwik events should be the last script of body
-        const eventsScriptElement = document.body.lastChild as HTMLElement;
-        expect(eventsScriptElement.textContent).toContain(
-          '(window.qwikevents||(window.qwikevents=[]))'
-        );
-      });
-      it('should always render', async () => {
-        const result = await renderToStringAndSetPlatform(<div>static</div>, {
-          containerTagName: 'div',
-          qwikLoader: {
-            include: 'always',
-          },
-        });
-        const document = createDocument({ html: result.html });
-        // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents');
-        expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
-      });
-      // Right now we always include it
-      it.skip('should not render for static content and auto include', async () => {
-        const result = await renderToStringAndSetPlatform(<div>static</div>, {
-          containerTagName: 'div',
-          qwikLoader: {
-            include: 'auto',
-          },
-        });
-        const document = createDocument({ html: result.html });
-        // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
-        expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
-      });
-      it('should never render', async () => {
-        const result = await renderToStringAndSetPlatform(<Counter />, {
-          containerTagName: 'div',
-          qwikLoader: {
-            include: 'never',
-          },
+          qwikLoader: 'never',
         });
         const document = createDocument({ html: result.html });
         expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(0);
-        // should not contain qwik events script for top position
-        expect(document.head.lastChild?.textContent ?? '').not.toContain('window.qwikevents.push');
       });
     });
     describe('qwikEvents', () => {

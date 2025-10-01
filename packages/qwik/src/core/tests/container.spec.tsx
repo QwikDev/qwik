@@ -1,6 +1,6 @@
 import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
@@ -21,6 +21,11 @@ import { type SSRContainer } from '../ssr/ssr-types';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { SignalFlags } from '../reactive-primitives/types';
 import type { VNode } from '../client/vnode-impl';
+
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
+});
 
 describe('serializer v2', () => {
   describe('rendering', () => {

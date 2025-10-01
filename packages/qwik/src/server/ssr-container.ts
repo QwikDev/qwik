@@ -183,6 +183,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
+  public size = 0;
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
@@ -1106,7 +1107,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   ////////////////////////////////////
-  private write(text: string) {
+  write(text: string) {
+    this.size += text.length;
     this.writer.write(text);
   }
 

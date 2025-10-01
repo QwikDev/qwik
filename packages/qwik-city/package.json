@@ -12,7 +12,7 @@
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
     "vite": ">=5 <8",
-    "vite-imagetools": "^7",
+    "vite-imagetools": "^8.0.0",
     "zod": "3.25.48"
   },
   "devDependencies": {
@@ -41,7 +41,7 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.0.0",
     "uvu": "0.5.6",
-    "vite": "7.1.5",
+    "vite": "7.1.7",
     "yaml": "2.6.1"
   },
   "engines": {

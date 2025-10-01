@@ -83,10 +83,10 @@ import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-import { EffectProperty } from '../reactive-primitives/types';
+import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { _CONST_PROPS, _VAR_PROPS } from '../internal';
+import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
 import { isSyncQrl } from '../shared/qrl/qrl-utils';
 import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
 
@@ -184,15 +184,22 @@ export const vnode_diff = (
             descend(jsxValue, false);
           } else if (isSignal(jsxValue)) {
             expectVirtual(VirtualType.WrappedSignal, null);
-            descend(
-              trackSignalAndAssignHost(
-                jsxValue as Signal,
-                (vNewNode || vCurrent)!,
-                EffectProperty.VNODE,
-                container
-              ),
-              true
-            );
+            const unwrappedSignal =
+              jsxValue instanceof WrappedSignalImpl ? jsxValue.$unwrapIfSignal$() : jsxValue;
+            const currentSignal = vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
+              EffectSubscriptionProp.CONSUMER
+            ];
+            if (currentSignal !== unwrappedSignal) {
+              descend(
+                trackSignalAndAssignHost(
+                  unwrappedSignal,
+                  (vNewNode || vCurrent)!,
+                  EffectProperty.VNODE,
+                  container
+                ),
+                true
+              );
+            }
           } else if (isPromise(jsxValue)) {
             expectVirtual(VirtualType.Awaited, null);
             asyncQueue.push(jsxValue, vNewNode || vCurrent);

@@ -314,10 +314,10 @@ importers:
         version: 4.14.3
       '@builder.io/qwik':
         specifier: npm:@qwik.dev/core@*
-        version: '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
+        version: '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@builder.io/qwik-city':
         specifier: npm:@qwik.dev/router
-        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2)'
+        version: '@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.1.13)(react@19.1.1)
@@ -326,7 +326,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1)
       '@modular-forms/qwik':
         specifier: 0.29.1
-        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2))(typescript@5.9.2)
+        version: 0.29.1(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(typescript@5.9.2)
       '@mui/material':
         specifier: 7.3.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -338,7 +338,7 @@ importers:
         version: 8.11.3(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mui/system@7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@qwik-ui/headless':
         specifier: 0.6.7
-        version: 0.6.7(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))
+        version: 0.6.7(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))
       '@qwik.dev/core':
         specifier: workspace:*
         version: link:../qwik
@@ -395,7 +395,7 @@ importers:
         version: 0.0.42
       '@unpic/qwik':
         specifier: 0.0.38
-        version: 0.0.38(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))
+        version: 0.0.38(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))
       algoliasearch:
         specifier: 4.16.0
         version: 4.16.0
@@ -504,7 +504,7 @@ importers:
         version: 0.15.15
       '@modular-forms/qwik':
         specifier: ^0.29.1
-        version: 0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2))(typescript@5.9.2)
+        version: 0.29.1(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(typescript@5.9.2)
       '@typescript/analyze-trace':
         specifier: ^0.10.1
         version: 0.10.1
@@ -523,10 +523,10 @@ importers:
     devDependencies:
       '@builder.io/qwik':
         specifier: npm:@qwik.dev/core@*
-        version: '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
+        version: '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@builder.io/qwik-city':
         specifier: npm:@qwik.dev/router
-        version: '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2)'
+        version: '@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@eslint/js':
         specifier: 9.33.0
         version: 9.33.0
@@ -2806,8 +2806,8 @@ packages:
     peerDependencies:
       '@builder.io/qwik': '>=1.3.1'
 
-  '@qwik.dev/core@2.0.0-beta.9':
-    resolution: {integrity: sha512-MemsRTsLbqF17c/rfTWAojZTCpdKg6tWXs/xjpgeMcCzcmDwoqm3KrQ3GqgrBNu+7gMBPSWK0cb7hrd7q9uTQg==}
+  '@qwik.dev/core@2.0.0-beta.11':
+    resolution: {integrity: sha512-D2RT/LKln2/2QgkTpeDkXjpX7mCUGYFXHT0W04JlpNDBiJ1vj4jfcTZqcauFWnSS+TwOE6u22Mz4HbvxiFMyTQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     hasBin: true
     peerDependencies:
@@ -2825,9 +2825,12 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  '@qwik.dev/router@2.0.0-beta.9':
-    resolution: {integrity: sha512-lLNZov52LTGUZaC+ZWxdnFxd6FBf10gM1ZFhI0rvJwtWAuE0GlqG5ILa63jkvmDsg7cPTmbsCZnazCFxSqbAng==}
+  '@qwik.dev/router@2.0.0-beta.11':
+    resolution: {integrity: sha512-YwvE1laJpaV4T65ncL1dZOJCNH0P5WyajQFfx3b5/idvQ/anXuS5CichyCCAv0SRFYUjKGHCnBuQIChzWYESXQ==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    peerDependencies:
+      '@qwik.dev/core': ^2.0.0-beta.11
+      vite: '>=5 <8'
 
   '@rolldown/browser@1.0.0-beta.36':
     resolution: {integrity: sha512-IMG0sSqiM1DT/fxRVeUTu02szosEUH0eywp5LMedsA4BuDYGQjBZi/ywnkeQGp31cPvQRAxDwljOXorq+gGg4w==}
@@ -5917,10 +5920,6 @@ packages:
     engines: {node: '>=16.x'}
     hasBin: true
 
-  imagetools-core@7.1.0:
-    resolution: {integrity: sha512-8Aa4NecBBGmTkaAUjcuRYgTPKHCsBEWYmCnvKCL6/bxedehtVVFyZPdXe8DD0Nevd6UWBq85ifUaJ8498lgqNQ==}
-    engines: {node: '>=18.0.0'}
-
   imagetools-core@8.0.0:
     resolution: {integrity: sha512-5i4Cx5vrBpVdvT3gvkSGAzzkUCrg/5Jm54UwWbDUSTMp4AjDI4IxiC6dI4+X1PRJYi6eKqWuE+684NJY2iOn3w==}
     engines: {node: '>=18.0.0'}
@@ -8762,10 +8761,6 @@ packages:
     resolution: {integrity: sha512-gBLkYIlEnSp8pFbT64yFgGE6UIB9tAkhukC23PmMDCe5Nd+cRqKxSjw5y54MK2AZMgZfJWMaNE4nYUHgi1XEOw==}
     engines: {node: '>=18.17'}
 
-  undici@7.16.0:
-    resolution: {integrity: sha512-QEg3HPMll0o3t2ourKwOeUAZ159Kn9mx5pnzHRQO8+Wixmh88YdZRiIwat0iNzNNXn0yoEtXJqFpyW7eM8BV7g==}
-    engines: {node: '>=20.18.1'}
-
   unenv-nightly@1.10.0-1717606461.a117952:
     resolution: {integrity: sha512-u3TfBX02WzbHTpaEfWEKwDijDSFAHcgXkayUZ+MVDrjhLFvgAJzFGTSTmwlEhwWi2exyRQey23ah9wELMM6etg==}
 
@@ -8995,10 +8990,6 @@ packages:
     resolution: {integrity: sha512-7SpgZmU7R+dDnSmvXE1mfDtnHLHQSisdySVR7lO8ceAXvM0otZeuQQ6C8LrS5d/aYyP/QZ0hI0L+dIPrm4YlFQ==}
     peerDependencies:
       vite: ^2.6.0 || ^3.0.0 || ^4.0.0 || ^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0
-
-  vite-imagetools@7.1.1:
-    resolution: {integrity: sha512-6Dz0ZD2u1u59dw0ryid4beaDcCNNiTfLXUg6XLxx9n7Qm4BgAAm8TozYUnIH0aT4FDAADZqHsh9ZtISzAs4eKA==}
-    engines: {node: '>=18.0.0'}
 
   vite-imagetools@8.0.0:
     resolution: {integrity: sha512-3bkkA0vQ57tMynsetY2j4QhCnZKrxFv0RScaZipzYgkjkkUBEmZL5UIVHOUHhVMfwCetAeM9e3DNwyPK1ff4xg==}
@@ -9485,7 +9476,7 @@ snapshots:
       '@babel/types': 7.28.4
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@10.2.2)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -10704,10 +10695,10 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@modular-forms/qwik@0.29.1(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2))(typescript@5.9.2)':
+  '@modular-forms/qwik@0.29.1(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))(typescript@5.9.2)':
     dependencies:
-      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
-      '@builder.io/qwik-city': '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2)'
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
+      '@builder.io/qwik-city': '@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       decode-formdata: 0.8.0
       valibot: 1.1.0(typescript@5.9.2)
     transitivePeerDependencies:
@@ -11090,7 +11081,7 @@ snapshots:
   '@netlify/edge-functions@2.17.4':
     dependencies:
       '@netlify/dev-utils': 4.1.3
-      '@netlify/edge-bundler': 14.5.5
+      '@netlify/edge-bundler': 14.5.6
       '@netlify/edge-functions-bootstrap': 2.17.1
       '@netlify/runtime-utils': 2.1.0
       '@netlify/types': 2.0.3
@@ -11488,7 +11479,7 @@ snapshots:
 
   '@pnpm/tabtab@0.5.4':
     dependencies:
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@10.2.2)
       enquirer: 2.4.1
       minimist: 1.2.8
       untildify: 4.0.0
@@ -11514,18 +11505,19 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@qwik-ui/headless@0.6.7(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))':
+  '@qwik-ui/headless@0.6.7(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))':
     dependencies:
-      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
       '@floating-ui/core': 1.7.3
       '@floating-ui/dom': 1.7.4
       '@oddbird/popover-polyfill': 0.4.3
       body-scroll-lock-upgrade: 1.1.0
       focus-trap: 7.5.4
 
-  '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))':
+  '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))':
     dependencies:
       csstype: 3.1.3
+      launch-editor: 2.11.1
       rollup: 4.52.3
       vite: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
     optionalDependencies:
@@ -11536,22 +11528,40 @@ snapshots:
     dependencies:
       dotenv: 16.5.0
 
-  '@qwik.dev/router@2.0.0-beta.9(acorn@8.15.0)(rollup@4.52.3)(typescript@5.9.2)':
+  '@qwik.dev/router@2.0.0-beta.11(@qwik.dev/core@packages+qwik)(acorn@8.15.0)(rollup@4.52.3)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))':
     dependencies:
+      '@azure/functions': 3.5.1
       '@mdx-js/mdx': 3.1.0(acorn@8.15.0)
+      '@netlify/edge-functions': 2.17.0
+      '@qwik.dev/core': link:packages/qwik
       '@types/mdx': 2.0.13
+      estree-util-value-to-estree: 3.4.0
+      github-slugger: 2.0.0
+      hast-util-heading-rank: 2.1.1
+      hast-util-to-string: 2.0.0
+      kleur: 4.1.5
+      marked: 12.0.2
+      mdast-util-mdx: 3.0.0
+      refractor: 4.9.0
+      rehype-autolink-headings: 7.1.0
+      remark-frontmatter: 5.0.0
+      remark-gfm: 4.0.1
+      set-cookie-parser: 2.7.1
       source-map: 0.7.6
       svgo: 3.3.2
-      undici: 7.16.0
+      typescript: 5.9.2
+      unified: 11.0.5
+      unist-util-visit: 5.0.0
       valibot: 1.1.0(typescript@5.9.2)
       vfile: 6.0.3
-      vite-imagetools: 7.1.1(rollup@4.52.3)
+      vite: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
+      vite-imagetools: 8.0.0(rollup@4.52.3)
+      yaml: 2.8.1
       zod: 3.25.48
     transitivePeerDependencies:
       - acorn
       - rollup
       - supports-color
-      - typescript
 
   '@rolldown/browser@1.0.0-beta.36':
     dependencies:
@@ -12115,8 +12125,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.38.0(typescript@5.9.2)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.38.0(typescript@5.9.2)
-      '@typescript-eslint/types': 8.38.0
+      '@typescript-eslint/tsconfig-utils': 8.45.0(typescript@5.9.2)
+      '@typescript-eslint/types': 8.45.0
       debug: 4.4.3(supports-color@10.2.2)
       typescript: 5.9.2
     transitivePeerDependencies:
@@ -12124,8 +12134,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.41.0(typescript@5.9.2)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.41.0(typescript@5.9.2)
-      '@typescript-eslint/types': 8.41.0
+      '@typescript-eslint/tsconfig-utils': 8.45.0(typescript@5.9.2)
+      '@typescript-eslint/types': 8.45.0
       debug: 4.4.3(supports-color@10.2.2)
       typescript: 5.9.2
     transitivePeerDependencies:
@@ -12312,9 +12322,9 @@ snapshots:
     dependencies:
       unpic: 3.22.0
 
-  '@unpic/qwik@0.0.38(@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))':
+  '@unpic/qwik@0.0.38(@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)))':
     dependencies:
-      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.9(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
+      '@builder.io/qwik': '@qwik.dev/core@2.0.0-beta.11(prettier@3.6.2)(vite@7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))'
 
   '@vercel/nft@0.29.4(rollup@4.52.3)(supports-color@10.2.2)':
     dependencies:
@@ -12597,7 +12607,7 @@ snapshots:
 
   ajv-formats@3.0.1:
     dependencies:
-      ajv: 8.13.0
+      ajv: 8.17.1
 
   ajv@6.12.6:
     dependencies:
@@ -13436,11 +13446,9 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.1(supports-color@10.2.2):
+  debug@4.4.1:
     dependencies:
       ms: 2.1.3
-    optionalDependencies:
-      supports-color: 10.2.2
 
   debug@4.4.3(supports-color@10.2.2):
     dependencies:
@@ -14353,7 +14361,7 @@ snapshots:
 
   extract-zip@2.0.1:
     dependencies:
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@10.2.2)
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -14568,7 +14576,7 @@ snapshots:
 
   follow-redirects@1.15.11(debug@4.4.1):
     optionalDependencies:
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.1
 
   for-each@0.3.5:
     dependencies:
@@ -15030,7 +15038,7 @@ snapshots:
   https-proxy-agent@7.0.6(supports-color@10.2.2):
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -15067,8 +15075,6 @@ snapshots:
       queue: 6.0.2
 
   image-size@2.0.2: {}
-
-  imagetools-core@7.1.0: {}
 
   imagetools-core@8.0.0: {}
 
@@ -16477,7 +16483,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 1.0.2
       cron-parser: 4.9.0
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.1
       decache: 4.6.2
       dot-prop: 9.0.0
       dotenv: 17.2.2
@@ -18462,8 +18468,6 @@ snapshots:
 
   undici@6.21.3: {}
 
-  undici@7.16.0: {}
-
   unenv-nightly@1.10.0-1717606461.a117952:
     dependencies:
       consola: 3.4.2
@@ -18651,14 +18655,6 @@ snapshots:
     dependencies:
       vite: 7.1.7(@types/node@24.3.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
 
-  vite-imagetools@7.1.1(rollup@4.52.3):
-    dependencies:
-      '@rollup/pluginutils': 5.3.0(rollup@4.52.3)
-      imagetools-core: 7.1.0
-      sharp: 0.34.4
-    transitivePeerDependencies:
-      - rollup
-
   vite-imagetools@8.0.0(rollup@4.52.3):
     dependencies:
       '@rollup/pluginutils': 5.3.0(rollup@4.52.3)
@@ -18798,7 +18794,7 @@ snapshots:
     dependencies:
       chalk: 4.1.2
       commander: 9.5.0
-      debug: 4.4.1(supports-color@10.2.2)
+      debug: 4.4.3(supports-color@10.2.2)
     transitivePeerDependencies:
       - supports-color
 

@@ -15,7 +15,6 @@
   "devDependencies": {
     "@builder.io/qwik": "npm:@qwik.dev/core@*",
     "@builder.io/qwik-city": "npm:@qwik.dev/router@*",
-    "@builder.io/vite-plugin-macro": "0.0.7",
     "@eslint/js": "9.33.0",
     "@netlify/edge-functions": "2.17.0",
     "@qwik.dev/core": "workspace:*",

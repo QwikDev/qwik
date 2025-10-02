@@ -589,59 +589,15 @@ Defaults to `5`
 ## QwikLoaderOptions
 
 ```typescript
-export interface QwikLoaderOptions
+export type QwikLoaderOptions =
+  | "module"
+  | "inline"
+  | "never"
+  | {
+      include?: "always" | "never" | "auto";
+      position?: "top" | "bottom";
+    };
 ```
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[include?](#)
-
-</td><td>
-
-</td><td>
-
-'always' \| 'never' \| 'auto'
-
-</td><td>
-
-_(Optional)_ Whether to include the qwikloader script in the document. Normally you don't need to worry about this, but in case of multi-container apps using different Qwik versions, you might want to only enable it on one of the containers.
-
-Defaults to `'auto'`.
-
-</td></tr>
-<tr><td>
-
-[position?](#)
-
-</td><td>
-
-</td><td>
-
-'top' \| 'bottom'
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/server/types.ts)
 
@@ -767,7 +723,7 @@ _(Optional)_
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Specifies how preloading is handled. This ensures that code is instantly available when needed.
 
 </td></tr>
 <tr><td>
@@ -782,9 +738,17 @@ _(Optional)_
 
 </td><td>
 
-_(Optional)_ Specifies if the Qwik Loader script is added to the document or not.
+_(Optional)_ Specifies how the Qwik Loader is included in the document. This enables interactivity and lazy loading.
 
-Defaults to `{ include: true }`.
+`module`: Use a `<script>` tag to load the Qwik Loader. Subsequent page loads will have the script cached and instantly running.
+
+`inline`: This embeds the Qwik Loader script directly in the document. This adds about 3kB before compression, which typically is reduced to about 1.6kB with gzip.
+
+`never`: Do not include the Qwik Loader script. This is mostly useful when embedding multiple containers on the same page.
+
+Defaults to `module`.
+
+Note that the Qwik Loader is absolutely required for Qwik to work. There must be an instance of it loaded for any interactivity to happen.
 
 </td></tr>
 <tr><td>

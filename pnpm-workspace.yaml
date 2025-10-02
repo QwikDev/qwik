@@ -29,6 +29,5 @@ overrides:
 patchedDependencies:
   density-clustering@1.3.0: patches/density-clustering@1.3.0.patch
   domino@2.1.6: patches/domino@2.1.6.patch
-  rollup@4.52.2: patches/rollup@4.52.2.patch
 
 shellEmulator: true

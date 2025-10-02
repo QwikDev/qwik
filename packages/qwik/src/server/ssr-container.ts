@@ -1024,11 +1024,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  // Keep in sync with process-vnode-data.unit.ts
   private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
     let skipCount = elementIdx - lastSerializedIdx;
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
-      if (skipCount > 4096) {
+      if (skipCount >= 8192) {
         this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {

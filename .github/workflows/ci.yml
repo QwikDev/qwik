@@ -685,8 +685,9 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          - host: windows-2022
-            browser: chromium
+          # flaky. Updating node version or sharp/sqlite3 related deps might help.
+          # - host: windows-2022
+          #   browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 

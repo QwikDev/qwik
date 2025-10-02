@@ -136,15 +136,20 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (!internalOptimizer) {
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
-      try {
-        // only try once, don't spam the console
-        if (maybeFs === undefined) {
-          maybeFs = await internalOptimizer.sys.dynamicImport('node:fs');
+      if (
+        internalOptimizer.sys.env !== 'browsermain' &&
+        internalOptimizer.sys.env !== 'webworker'
+      ) {
+        try {
+          // only try once, don't spam the console
+          if (maybeFs === undefined) {
+            maybeFs = await internalOptimizer.sys.dynamicImport('node:fs');
+          }
+        } catch {
+          // eslint-disable-next-line no-console
+          console.log('node:fs not available, disabling automatic manifest reading');
+          maybeFs = null;
         }
-      } catch {
-        // eslint-disable-next-line no-console
-        console.log('node:fs not available, disabling automatic manifest reading');
-        maybeFs = null;
       }
     }
   };
@@ -709,14 +714,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
-  /** Optimized deps can contain Qwik libraries, process them too */
-  const isOptimizedQwikDep = (id: string, code: string) => {
-    if (devServer && id.includes('.vite/deps/') && code.slice(0, 10000).includes('qwik')) {
-      return true;
-    }
-    return false;
-  };
-
   let transformCount = 0;
   const transform = async function (
     ctx: Rollup.PluginContext,
@@ -743,7 +740,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
-    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId) || isOptimizedQwikDep(id, code)) {
+    if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       debug(

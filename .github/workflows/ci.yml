@@ -685,9 +685,8 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          # flaky. Updating node version or sharp/sqlite3 related deps might help.
-          # - host: windows-2022
-          #   browser: chromium
+          - host: windows-2022
+            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -699,8 +698,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          cache: 'pnpm'
+          node-version: 20.19
+          cache: ${{ runner.os != 'windows-2022' && 'pnpm' || '' }}
           registry-url: https://registry.npmjs.org/
 
       - name: Download Build Artifacts

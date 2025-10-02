@@ -431,6 +431,30 @@ describe('vNode-diff', () => {
       expect(b1).toBe(selectB1());
       expect(b2).toBe(selectB2());
     });
+
+    it('should remove or add keyed nodes', () => {
+      const { vNode, vParent, container } = vnode_fromJSX(
+        _jsxSorted(
+          'test',
+          {},
+          null,
+          [_jsxSorted('b', {}, null, '1', 0, '1'), _jsxSorted('b', {}, null, '2', 0, null)],
+          0,
+          'KA_6'
+        )
+      );
+      const test = _jsxSorted(
+        'test',
+        {},
+        null,
+        [_jsxSorted('b', {}, null, '2', 0, null), _jsxSorted('b', {}, null, '2', 0, '2')],
+        0,
+        'KA_6'
+      );
+      vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vNode).toMatchVDOM(test);
+    });
   });
   describe('fragments', () => {
     it('should not rerender signal wrapper fragment', async () => {

@@ -101,7 +101,7 @@ export const executeComponent = (
           container.setHostProp(renderHost, USE_ON_LOCAL_SEQ_IDX, null);
         }
 
-        if (vnode_isVNode(renderHost)) {
+        if (retryCount > 0 && vnode_isVNode(renderHost)) {
           clearAllEffects(container, renderHost);
         }
 

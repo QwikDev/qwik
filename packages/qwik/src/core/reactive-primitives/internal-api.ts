@@ -2,18 +2,34 @@ import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
 import { isSignal, type Signal } from './signal.public';
-import { getStoreTarget } from './impl/store';
+import { getStoreTarget, isStore } from './impl/store';
 import { isPropsProxy } from '../shared/jsx/jsx-runtime';
 import { WrappedSignalFlags } from './types';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import type { SignalImpl } from './impl/signal-impl';
 
 // Keep these properties named like this so they're the same as from wrapSignal
-const getValueProp = <T>(p0: { value: T }) => p0.value;
+export const getValueProp = <T>(p0: { value: T }) => p0.value;
 const getProp = <T extends object, P extends keyof T>(p0: T, p1: P) => p0[p1];
 
-const getWrapped = <T extends object>(args: [T, (keyof T | undefined)?]) =>
-  new WrappedSignalImpl(null, args.length === 1 ? getValueProp : getProp, args, null);
+const getWrapped = <T extends object>(args: [T, (keyof T | undefined)?]) => {
+  if (args.length === 1) {
+    if (isSignal(args[0])) {
+      return ((args[0] as unknown as SignalImpl).$wrappedSignal$ ||= new WrappedSignalImpl(
+        null,
+        getValueProp,
+        args,
+        null
+      ));
+    } else if (isStore(args[0])) {
+      return new WrappedSignalImpl(null, getValueProp, args, null);
+    }
+    return (args[0] as { value: T }).value;
+  } else {
+    return new WrappedSignalImpl(null, getProp, args, null);
+  }
+};
 
 type PropType<T extends object, P extends keyof T> = P extends keyof T
   ? T[P]

@@ -78,6 +78,7 @@ export function getTestPlatform(): TestPlatform;
 export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
     raw?: boolean;
+    qwikLoader?: boolean;
 }): Promise<{
     container: _DomContainer;
     document: Document;

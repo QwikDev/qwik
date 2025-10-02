@@ -61,6 +61,7 @@ export type SymbolToChunkResolver = (symbol: string) => string;
 export interface SSRContainer extends Container {
   readonly tag: string;
   readonly isHtml: boolean;
+  readonly size: number;
   readonly writer: StreamWriter;
   readonly serializationCtx: SerializationContext;
   readonly symbolToChunkResolver: SymbolToChunkResolver;
@@ -68,6 +69,8 @@ export interface SSRContainer extends Container {
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   unclaimedProjectionComponentFrameQueue: ISsrComponentFrame[];
+
+  write(text: string): void;
 
   openContainer(): void;
   closeContainer(): ValueOrPromise<void>;

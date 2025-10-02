@@ -111,6 +111,12 @@ export interface SSRRenderOptions {
   renderOptions?: RenderOptions;
 }
 
+enum QwikLoaderInclude {
+  Module,
+  Inline,
+  Done,
+}
+
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   opts.renderOptions ||= {};
   return new SSRContainer({
@@ -177,6 +183,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
+  public size = 0;
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
@@ -220,6 +227,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
+  private qlInclude: QwikLoaderInclude;
 
   constructor(opts: Required<SSRRenderOptions>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -242,6 +250,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+
+    const qlOpt = this.renderOptions.qwikLoader;
+    this.qlInclude = qlOpt
+      ? typeof qlOpt === 'object'
+        ? qlOpt.include === 'never'
+          ? QwikLoaderInclude.Done
+          : QwikLoaderInclude.Module
+        : qlOpt === 'inline'
+          ? QwikLoaderInclude.Inline
+          : qlOpt === 'never'
+            ? QwikLoaderInclude.Done
+            : QwikLoaderInclude.Module
+      : QwikLoaderInclude.Module;
+    if (this.qlInclude === QwikLoaderInclude.Module) {
+      const qwikLoaderChunk = this.resolvedManifest?.manifest.qwikLoader;
+      if (!qwikLoaderChunk) {
+        this.qlInclude = QwikLoaderInclude.Inline;
+      }
+    }
 
     this.$processInjectionsFromManifest$();
   }
@@ -360,6 +387,11 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
+    if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
+      // We waited long enough, on slow connections the page is already partially visible
+      this.emitQwikLoaderInline();
+    }
+
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
     const isQwikStyle =
@@ -868,67 +900,58 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$eventQrls$.size === 0;
   }
 
-  private getQwikLoaderIncludeMode() {
-    return this.renderOptions.qwikLoader?.include ?? 'auto';
+  emitQwikLoaderAtTopIfNeeded() {
+    if (this.qlInclude === QwikLoaderInclude.Module) {
+      this.qlInclude = QwikLoaderInclude.Done;
+      // always emit the preload+import. It will probably be used at some point on the site
+      const qwikLoaderBundle = this.$buildBase$ + this.resolvedManifest.manifest.qwikLoader!;
+      const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+      const nonce = this.renderOptions.serverData?.nonce;
+      if (nonce) {
+        linkAttrs.push('nonce', nonce);
+      }
+      this.openElement('link', linkAttrs);
+      this.closeElement();
+      // browser must support modules for Qwik to work
+      const scriptAttrs = ['async', true, 'type', 'module', 'src', qwikLoaderBundle];
+      if (nonce) {
+        scriptAttrs.push('nonce', nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.closeElement();
+    }
   }
 
-  emitQwikLoaderAtTopIfNeeded() {
-    const includeMode = this.getQwikLoaderIncludeMode();
-    const includeLoader = includeMode !== 'never';
-    if (includeLoader) {
-      let qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
-      if (qwikLoaderBundle) {
-        // always emit the preload+import. It will probably be used at some point on the site
-        qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
-        const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
-        const nonce = this.renderOptions.serverData?.nonce;
-        if (nonce) {
-          linkAttrs.push('nonce', nonce);
-        }
-        this.openElement('link', linkAttrs);
-        this.closeElement();
-        const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
-        if (nonce) {
-          scriptAttrs.push('nonce', nonce);
-        }
-        this.openElement('script', scriptAttrs);
-        this.closeElement();
-      }
+  emitQwikLoaderInline() {
+    this.qlInclude = QwikLoaderInclude.Done;
+    // if at the end, only include when snapshot is not static
+    const qwikLoaderScript = getQwikLoaderScript({ debug: this.renderOptions.debug });
+    // module + async lets it run asap without waiting for DOM, even when inline
+    const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
+    this.openElement('script', scriptAttrs);
+    this.write(qwikLoaderScript);
+    this.closeElement();
   }
 
   private emitQwikLoaderAtBottomIfNeeded() {
-    const qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
-    if (!qwikLoaderBundle) {
-      /** We didn't emit the preload+import, so we need to emit the script in the html as a fallback */
-      const needLoader = !this.isStatic();
-      const includeMode = this.getQwikLoaderIncludeMode();
-      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-      if (includeLoader) {
-        const qwikLoaderScript = getQwikLoaderScript({
-          debug: this.renderOptions.debug,
-        });
-        // async allows executing while the DOM is being handled
-        const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
-        const nonce = this.renderOptions.serverData?.nonce;
-        if (nonce) {
-          scriptAttrs.push('nonce', nonce);
-        }
-        this.openElement('script', scriptAttrs);
-        this.write(qwikLoaderScript);
-        this.closeElement();
+    if (!this.isStatic()) {
+      if (this.qlInclude !== QwikLoaderInclude.Done) {
+        this.emitQwikLoaderInline();
       }
+      // emit the used events so the loader can subscribe to them
+      this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
     }
-
-    // emit the used events so the loader can subscribe to them
-    this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
   }
 
   private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs = this.renderOptions.serverData?.nonce
-        ? ['nonce', this.renderOptions.serverData.nonce]
-        : null;
+      const scriptAttrs = ['async', true, 'type', 'module'];
+      if (this.renderOptions.serverData?.nonce) {
+        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      }
       this.openElement('script', scriptAttrs);
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
@@ -1099,7 +1122,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   ////////////////////////////////////
-  private write(text: string) {
+  write(text: string) {
+    this.size += text.length;
     this.writer.write(text);
   }
 

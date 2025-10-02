@@ -1,4 +1,3 @@
-import { macroPlugin } from '@builder.io/vite-plugin-macro';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
@@ -23,7 +22,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    macroPlugin({ preset: 'pandacss' }),
     qwikRouter(),
     qwikVite({
       experimental: ['insights'],

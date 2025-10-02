@@ -827,7 +827,20 @@ export const vnode_diff = (
       }
 
       if (isSignal(value)) {
-        value = trackSignalAndAssignHost(value, vnode, key, container, NON_CONST_SUBSCRIPTION_DATA);
+        const unwrappedSignal =
+          value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
+        const currentSignal =
+          vnode?.[_EFFECT_BACK_REF]?.get(key)?.[EffectSubscriptionProp.CONSUMER];
+        if (currentSignal === unwrappedSignal) {
+          return;
+        }
+        value = trackSignalAndAssignHost(
+          unwrappedSignal,
+          vnode,
+          key,
+          container,
+          NON_CONST_SUBSCRIPTION_DATA
+        );
       }
 
       vnode.setAttr(

@@ -16,7 +16,7 @@ const getProp = <T extends object, P extends keyof T>(p0: T, p1: P) => p0[p1];
 const getWrapped = <T extends object>(args: [T, (keyof T | undefined)?]) => {
   if (args.length === 1) {
     if (isSignal(args[0])) {
-      return ((args[0] as SignalImpl).$wrappedSignal$ ||= new WrappedSignalImpl(
+      return ((args[0] as unknown as SignalImpl).$wrappedSignal$ ||= new WrappedSignalImpl(
         null,
         getValueProp,
         args,
@@ -25,7 +25,7 @@ const getWrapped = <T extends object>(args: [T, (keyof T | undefined)?]) => {
     } else if (isStore(args[0])) {
       return new WrappedSignalImpl(null, getValueProp, args, null);
     }
-    return args[0].value;
+    return (args[0] as { value: T }).value;
   } else {
     return new WrappedSignalImpl(null, getProp, args, null);
   }

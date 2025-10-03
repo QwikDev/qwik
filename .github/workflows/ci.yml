@@ -74,7 +74,7 @@ jobs:
         run: echo event_name=${{ github.event_name }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -207,7 +207,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -272,7 +272,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -391,7 +391,7 @@ jobs:
 
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         if: needs.changes.outputs.build-others == 'true'
@@ -517,7 +517,7 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -569,7 +569,7 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -629,7 +629,7 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -693,7 +693,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -757,7 +757,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -791,7 +791,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
@@ -871,7 +871,7 @@ jobs:
           path: cli-e2e-tests-completed.txt
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node

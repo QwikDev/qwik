@@ -211,7 +211,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -281,7 +281,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -397,7 +397,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -536,7 +536,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -573,7 +573,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -633,7 +633,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -697,7 +697,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -761,7 +761,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -795,7 +795,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'
@@ -875,7 +875,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20.x
           cache: 'pnpm'

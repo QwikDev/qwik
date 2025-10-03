@@ -66,13 +66,13 @@ export default component$(() => {
           <nav class="nav">
             <LinkCmp href="/">Home</LinkCmp>
             <LinkCmp href="/form/">Form</LinkCmp>
-            <LinkCmp href="/about/">About</LinkCmp>
-            <LinkCmp
-              href="/counters/"
-              onQVisible$={() => console.log("visible")}
-            >
+            <LinkCmp href="/about/" onQVisible$={() => console.log("visible")}>
+              About
+            </LinkCmp>
+            <LinkCmp href="/counters/" fallbackToMpa={false}>
               Counters
             </LinkCmp>
+            <LinkCmp href="/fallback/">Fallback to MPA</LinkCmp>
           </nav>
           <label class="toggle-label">
             <input type="checkbox" bind:checked={isSPA} />

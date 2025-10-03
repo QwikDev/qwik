@@ -9,6 +9,7 @@ import {
   untrack,
   type EventHandler,
   type QwikVisibleEvent,
+  useContext,
 } from '@builder.io/qwik';
 import { getClientNavPath, shouldPreload } from './utils';
 import { loadClientData } from './use-endpoint';
@@ -17,6 +18,7 @@ import { preloadRouteBundles } from './client-navigate';
 import { isDev } from '@builder.io/qwik';
 // @ts-expect-error we don't have types for the preloader yet
 import { p as preload, f as setMpaFallbackHref } from '@builder.io/qwik/preloader';
+import { fallbackToMpaContext } from './contexts';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -35,10 +37,11 @@ export const Link = component$<LinkProps>((props) => {
     ...linkProps
   } = (() => props)();
 
-  // We need an RFC to assess whether or not we want to provide the ability to pass a number to customize the MPA fallback threshold.
-  // This depends on how well this feature is received in real projects, but also on what the threshold is based on: number of bundles needed to be preloaded for the next route, or the size of these bundles.
-  // In the future, we might be able to speed up SPA so much that falling back to MPA will never make sense.
-  const fallbackToMpa = untrack(() => Boolean(fallbackToMpaProp ?? true));
+  const defaultFallbackToMpa = useContext(fallbackToMpaContext).default;
+
+  const fallbackToMpa = __EXPERIMENTAL__.enableFallbackToMpa
+    ? untrack(() => Boolean(fallbackToMpaProp ?? defaultFallbackToMpa))
+    : undefined;
 
   const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
   linkProps.href = clientNavPath || originalHref;
@@ -74,11 +77,8 @@ export const Link = component$<LinkProps>((props) => {
     : undefined;
 
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
+    ? sync$((event: MouseEvent) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
-          if (fallbackToMpa) {
-            setMpaFallbackHref(target.href);
-          }
           event.preventDefault();
         }
       })
@@ -96,15 +96,15 @@ export const Link = component$<LinkProps>((props) => {
             await nav(elm.href, { forceReload: reload, replaceState, scroll });
             elm.removeAttribute('aria-pressed');
           }
-          if (fallbackToMpa) {
-            setMpaFallbackHref(null);
-          }
         }
       })
     : undefined;
 
-  const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
-    const url = new URL(elm.href);
+  const handlePreload = $((_: any, target: HTMLAnchorElement) => {
+    if (fallbackToMpa) {
+      setMpaFallbackHref(target.href);
+    }
+    const url = new URL(target.href);
     preloadRouteBundles(url.pathname, 1);
   });
 

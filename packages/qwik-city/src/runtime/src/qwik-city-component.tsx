@@ -24,6 +24,7 @@ import {
   DocumentHeadContext,
   RouteActionContext,
   RouteInternalContext,
+  fallbackToMpaContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -89,6 +90,12 @@ export interface QwikCityProps {
    * @see https://caniuse.com/mdn-api_viewtransition
    */
   viewTransition?: boolean;
+
+  /**
+   * Whether Qwik should fallback to MPA navigation if too many bundles are queued for preloading
+   * during SPA navigation.
+   */
+  fallbackToMpa?: { default: boolean };
 }
 
 // Gets populated by registerPreventNav on the client
@@ -307,6 +314,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
+  useContextProvider(fallbackToMpaContext, props.fallbackToMpa ?? { default: false });
 
   useTask$(({ track }) => {
     async function run() {
@@ -646,6 +654,7 @@ export interface QwikCityMockProps {
   url?: string;
   params?: Record<string, string>;
   goto?: RouteNavigate;
+  fallbackToMpa?: { default: boolean };
 }
 
 /** @public */
@@ -693,6 +702,8 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
+  console.log('props.fallbackToMpa', props.fallbackToMpa?.default);
+  useContextProvider(fallbackToMpaContext, props.fallbackToMpa ?? { default: false });
 
   return <Slot />;
 });

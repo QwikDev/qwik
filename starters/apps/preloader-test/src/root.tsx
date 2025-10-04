@@ -13,7 +13,7 @@ export default component$(() => {
    */
 
   return (
-    <QwikCityProvider>
+    <QwikCityProvider fallbackToMpa={{ default: true }}>
       <head>
         <meta charset="utf-8" />
         <RouterHead />

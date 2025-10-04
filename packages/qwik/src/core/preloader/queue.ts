@@ -74,6 +74,11 @@ export const trigger = () => {
   }
   sortQueue();
   while (queue.length) {
+    const userEventPreloads = queue.filter((item) => item.$inverseProbability$ <= 0.1);
+    dispatchEvent(
+      new CustomEvent('userEventPreloads', { detail: { count: userEventPreloads.length } })
+    );
+
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
@@ -203,7 +208,21 @@ export const adjustProbabilities = (
        * too.
        */
       let newInverseProbability: number;
-      if (probability === 1 || (probability >= 0.99 && depsCount < 100)) {
+
+      /**
+       * 100 deps to be preloaded at once would mean a ~10s delay on chrome 3G throttling.
+       *
+       * This can happen for Link components as they load all of the route bundles at once, but in
+       * this case we fallback to MPA.
+       *
+       * This should never happen for a normal component. But in case it happens, we set the limit
+       * based on OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD + 1 === 101 (to ensure the
+       * fallback works), because if the user has to wait for 10s before anything happens it is
+       * possible that they try to click on something else, in which case we don't want to block
+       * reprioritization of this new event bundles for too long. (If browsers supported aborting
+       * modulepreloads, we wouldn't have to do this.)
+       */
+      if (probability === 1 || (probability >= 0.99 && depsCount <= 101)) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
@@ -225,6 +244,7 @@ export const adjustProbabilities = (
 export const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle && bundle.$inverseProbability$ > inverseProbability) {
+    // prioritize the event bundles first
     adjustProbabilities(bundle, inverseProbability);
   }
 };

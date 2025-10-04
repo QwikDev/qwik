@@ -277,6 +277,7 @@ export const Link: Component<LinkProps>;
 //
 // @public (undocumented)
 export interface LinkProps extends AnchorAttributes {
+    fallbackToMpa?: boolean;
     prefetch?: boolean | 'js';
     // (undocumented)
     reload?: boolean;
@@ -331,6 +332,10 @@ export const QWIK_CITY_SCROLLER = "_qCityScroller";
 // @public (undocumented)
 export interface QwikCityMockProps {
     // (undocumented)
+    fallbackToMpa?: {
+        default: boolean;
+    };
+    // (undocumented)
     goto?: RouteNavigate;
     // (undocumented)
     params?: Record<string, string>;
@@ -359,6 +364,9 @@ export interface QwikCityPlan {
 
 // @public (undocumented)
 export interface QwikCityProps {
+    fallbackToMpa?: {
+        default: boolean;
+    };
     viewTransition?: boolean;
 }
 

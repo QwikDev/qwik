@@ -1668,23 +1668,18 @@ export const vnode_getProps = (vnode: ElementVNode | VirtualVNode): unknown[] =>
 };
 
 export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
-  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode);
+  let parent: VNode | null = vnode_getProjectionParentOrParent(vnode);
   while (parent) {
     if (parent === ancestor) {
       return true;
     }
-    parent = vnode_getParentOrProjectionParent(parent);
+    parent = vnode_getProjectionParentOrParent(parent);
   }
   return false;
 };
 
-export const vnode_getParentOrProjectionParent = (vnode: VNode): VNode | null => {
-  const parentProjection: VNode | null = vnode.slotParent;
-  if (parentProjection) {
-    // This is a projection, so we need to check the parent of the projection
-    return parentProjection;
-  }
-  return vnode.parent;
+export const vnode_getProjectionParentOrParent = (vnode: VNode): VNode | null => {
+  return vnode.slotParent || vnode.parent;
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {

@@ -14,9 +14,16 @@ export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;
 let queueDirty: boolean;
 let preloadCount = 0;
-let pendingHref: string | undefined;
 const queue: BundleImport[] = [];
-const MPA_FALLBACK_THRESHOLD = 100;
+
+/**
+ * On chrome 3G throttling, 10kb takes ~1s to download Bundles weight ~1kb on average, so 100
+ * bundles is ~100kb which takes ~10s to download.
+ *
+ * This can serve to fallback to MPA when SPA navigation takes more than 10s. Or in extreme cases,
+ * if a component needs more than a 100 bundles, display a spinner.
+ */
+const OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD = 100;
 
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
@@ -76,6 +83,11 @@ export const trigger = () => {
   }
   sortQueue();
   while (queue.length) {
+    const userEventPreloads = queue.filter((item) => item.$inverseProbability$ <= 0.1);
+    if (userEventPreloads.length >= OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD) {
+      dispatchEvent(new CustomEvent('overlySlowReprioritizedPreloading'));
+    }
+
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
@@ -213,13 +225,17 @@ export const adjustProbabilities = (
        * this case we fallback to MPA.
        *
        * This should never happen for a normal component. But in case it happens, we set the limit
-       * based on MPA_FALLBACK_THRESHOLD + 1 === 101 (to ensure the fallback works), because if the
-       * user has to wait for 10s before anything happens it is possible that they try to click on
-       * something else, in which case we don't want to block reprioritization of this new event
-       * bundles for too long. (If browsers supported aborting modulepreloads, we wouldn't have to
-       * do this.)
+       * based on OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD + 1 === 101 (to ensure the
+       * fallback works), because if the user has to wait for 10s before anything happens it is
+       * possible that they try to click on something else, in which case we don't want to block
+       * reprioritization of this new event bundles for too long. (If browsers supported aborting
+       * modulepreloads, we wouldn't have to do this.)
        */
-      if (probability === 1 || (probability >= 0.99 && depsCount <= MPA_FALLBACK_THRESHOLD + 1)) {
+      if (
+        probability === 1 ||
+        (probability >= 0.99 &&
+          depsCount <= OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD + 1)
+      ) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
@@ -232,8 +248,6 @@ export const adjustProbabilities = (
         newInverseProbability = Math.max(0.02, depBundle.$inverseProbability$ * factor);
         dep.$factor$ = factor;
       }
-
-      fallbackToMpa();
 
       adjustProbabilities(depBundle, newInverseProbability, seen);
     }
@@ -286,49 +300,3 @@ if (isBrowser) {
     }
   });
 }
-
-/**
- * On chrome 3G throttling, 10kb takes ~1s to download Bundles weight ~1kb on average, so 100
- * bundles is ~100kb which takes ~10s to download.
- *
- * We want to fallback to MPA if more than 100 bundles are queued because MPA is always faster than
- * ~10s (usually between 3-7s).
- *
- * Note: if the next route bundles have already been preloaded, the fallback won't be triggered.
- */
-const fallbackToMpa = () => {
-  if (!pendingHref) {
-    return;
-  }
-  const nextRouteBundles = queue.filter((item) => item.$inverseProbability$ <= 0.1);
-  if (nextRouteBundles.length >= MPA_FALLBACK_THRESHOLD) {
-    if (pendingHref !== window.location.href) {
-      window.location.href = pendingHref;
-    }
-  }
-};
-
-/**
- * Sets the MPA fallback href. When too many bundles are queued for preloading, the preloader will
- * redirect to this href using the browser navigation.
- *
- * @param href - The target URL for MPA fallback. Should be an absolute URL string or null/undefined
- *   to clear it.
- * @returns Void
- */
-export const setMpaFallbackHref = (href: string | null | undefined) => {
-  if (!href || typeof href !== 'string') {
-    pendingHref = undefined;
-    return;
-  }
-
-  try {
-    const url = new URL(href, window.location.origin);
-    pendingHref = url.href;
-  } catch (error) {
-    pendingHref = undefined;
-    if (config.$DEBUG$) {
-      console.warn('[Qwik Preloader] Invalid href provided to setSpaPendingHref:', href);
-    }
-  }
-};

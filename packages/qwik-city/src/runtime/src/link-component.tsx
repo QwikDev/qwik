@@ -17,7 +17,7 @@ import { useLocation, useNavigate } from './use-functions';
 import { preloadRouteBundles } from './client-navigate';
 import { isDev } from '@builder.io/qwik';
 // @ts-expect-error we don't have types for the preloader yet
-import { p as preload, f as setMpaFallbackHref } from '@builder.io/qwik/preloader';
+import { p as preload } from '@builder.io/qwik/preloader';
 import { fallbackToMpaContext } from './contexts';
 
 /** @public */
@@ -101,11 +101,14 @@ export const Link = component$<LinkProps>((props) => {
     : undefined;
 
   const handlePreload = $((_: any, target: HTMLAnchorElement) => {
-    if (fallbackToMpa) {
-      setMpaFallbackHref(target.href);
+    if (!target?.href) {
+      return;
     }
+    const onTooMany = () => location.assign(target.href);
+    window.addEventListener('overlySlowReprioritizedPreloading', onTooMany);
     const url = new URL(target.href);
     preloadRouteBundles(url.pathname, 1);
+    window.removeEventListener('overlySlowReprioritizedPreloading', onTooMany);
   });
 
   useVisibleTask$(({ track }) => {

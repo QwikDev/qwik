@@ -45,7 +45,7 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import type { DomContainer } from './dom-container';
-import { VNodeFlags, type ClientAttrKey, type ClientAttrs, type ClientContainer } from './types';
+import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
 import {
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
@@ -783,11 +783,7 @@ export const vnode_diff = (
     vnode_ensureElementInflated(vnode);
     const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
     let srcIdx = 0;
-    const srcLength = srcAttrs.length;
     let dstIdx = 0;
-    let dstLength = dstAttrs.length;
-    let srcKey: ClientAttrKey | null = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-    let dstKey: ClientAttrKey | null = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
     let patchEventDispatch = false;
 
     const record = (key: string, value: any) => {
@@ -820,10 +816,6 @@ export const vnode_diff = (
         value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
         journal
       );
-      if (value === null) {
-        // if we set `null` than attribute was removed and we need to shorten the dstLength
-        dstLength = dstAttrs.length;
-      }
     };
 
     const recordJsxEvent = (key: string, value: any) => {
@@ -846,73 +838,70 @@ export const vnode_diff = (
       }
     };
 
-    while (srcKey !== null || dstKey !== null) {
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
-        // These are a special keys which we use to mark the event handlers as immutable or
-        // element key we need to ignore them.
-        dstIdx++; // skip the destination value, we don't care about it.
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      } else if (srcKey == null) {
-        // Source has more keys, so we need to remove them from destination
-        if (dstKey && isHtmlAttributeAnEventName(dstKey)) {
-          dstIdx++;
-        } else {
-          record(dstKey!, null);
-          dstIdx--;
-        }
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      } else if (dstKey == null) {
-        // Destination has more keys, so we need to insert them from source.
-        const isEvent = isJsxPropertyAnEventName(srcKey);
-        if (isEvent) {
-          // Special handling for events
-          patchEventDispatch = true;
-          recordJsxEvent(srcKey, srcAttrs[srcIdx]);
-        } else {
-          record(srcKey!, srcAttrs[srcIdx]);
-        }
-        srcIdx++;
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-        // we need to increment dstIdx too, because we added destination key and value to the VNode
-        // and dstAttrs is a reference to the VNode
-        dstIdx++;
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      } else if (srcKey == dstKey) {
-        const srcValue = srcAttrs[srcIdx++];
-        const dstValue = dstAttrs[dstIdx++];
-        if (srcValue !== dstValue) {
-          record(dstKey, srcValue);
-        }
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      } else if (srcKey < dstKey) {
-        // Destination is missing the key, so we need to insert it.
-        if (isJsxPropertyAnEventName(srcKey)) {
-          // Special handling for events
-          patchEventDispatch = true;
-          recordJsxEvent(srcKey, srcAttrs[srcIdx]);
-        } else {
-          record(srcKey, srcAttrs[srcIdx]);
-        }
+    // Two-pointer merge algorithm: both arrays are sorted by key
+    // Note: dstAttrs mutates during iteration (setAttr uses splice), so we re-read keys each iteration
+    while (srcIdx < srcAttrs.length || dstIdx < dstAttrs.length) {
+      const srcKey = srcIdx < srcAttrs.length ? (srcAttrs[srcIdx] as string) : undefined;
+      const dstKey = dstIdx < dstAttrs.length ? (dstAttrs[dstIdx] as string) : undefined;
 
-        srcIdx++;
-        // advance srcValue
-        srcKey = srcIdx < srcLength ? srcAttrs[srcIdx++] : null;
-        // we need to increment dstIdx too, because we added destination key and value to the VNode
-        // and dstAttrs is a reference to the VNode
-        dstIdx++;
-        dstLength = dstAttrs.length;
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
-      } else {
-        // Source is missing the key, so we need to remove it from destination.
-        if (isHtmlAttributeAnEventName(dstKey)) {
-          patchEventDispatch = true;
-          dstIdx++;
+      // Skip special keys in destination (HANDLER_PREFIX, Q_PREFIX)
+      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
+        dstIdx += 2; // skip key and value
+        continue;
+      }
+
+      if (srcKey === undefined) {
+        // Source exhausted: remove remaining destination keys
+        if (isHtmlAttributeAnEventName(dstKey!)) {
+          // HTML event attributes are immutable and not removed from DOM
+          dstIdx += 2; // skip key and value
         } else {
           record(dstKey!, null);
-          dstIdx--;
+          // After removal, dstAttrs shrinks by 2, so don't advance dstIdx
         }
-        dstKey = dstIdx < dstLength ? dstAttrs[dstIdx++] : null;
+      } else if (dstKey === undefined) {
+        // Destination exhausted: add remaining source keys
+        const srcValue = srcAttrs[srcIdx + 1];
+        if (isJsxPropertyAnEventName(srcKey)) {
+          patchEventDispatch = true;
+          recordJsxEvent(srcKey, srcValue);
+        } else {
+          record(srcKey, srcValue);
+        }
+        srcIdx += 2; // skip key and value
+        // After addition, dstAttrs grows by 2 at sorted position, advance dstIdx
+        dstIdx += 2;
+      } else if (srcKey === dstKey) {
+        // Keys match: update if values differ
+        const srcValue = srcAttrs[srcIdx + 1];
+        const dstValue = dstAttrs[dstIdx + 1];
+        if (srcValue !== dstValue) {
+          record(srcKey, srcValue);
+          // Update in place doesn't change array length
+        }
+        srcIdx += 2; // skip key and value
+        dstIdx += 2; // skip key and value
+      } else if (srcKey < dstKey) {
+        // Source has a key not in destination: add it
+        const srcValue = srcAttrs[srcIdx + 1];
+        if (isJsxPropertyAnEventName(srcKey)) {
+          patchEventDispatch = true;
+          recordJsxEvent(srcKey, srcValue);
+        } else {
+          record(srcKey, srcValue);
+        }
+        srcIdx += 2; // skip key and value
+        // After addition, dstAttrs grows at sorted position (before dstIdx), advance dstIdx
+        dstIdx += 2;
+      } else {
+        // Destination has a key not in source: remove it (dstKey > srcKey)
+        if (isHtmlAttributeAnEventName(dstKey)) {
+          // HTML event attributes are immutable and not removed from DOM
+          dstIdx += 2; // skip key and value
+        } else {
+          record(dstKey, null);
+          // After removal, dstAttrs shrinks at dstIdx, so don't advance dstIdx
+        }
       }
     }
     return patchEventDispatch;

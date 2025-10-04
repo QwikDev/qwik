@@ -1,5 +1,5 @@
 import {
-  vnode_getParentOrProjectionParent,
+  vnode_getProjectionParentOrParent,
   vnode_isDescendantOf,
   vnode_isVNode,
 } from '../client/vnode';
@@ -138,7 +138,7 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
   const isNormalQueue = type === ChoreSetType.CHORES;
   // Walk up the ancestor tree and check the map
   let current: VNode | null = host;
-  current = vnode_getParentOrProjectionParent(current);
+  current = vnode_getProjectionParentOrParent(current);
   while (current) {
     const blockingChores = isNormalQueue ? current.chores : current.blockedChores;
     if (blockingChores) {
@@ -148,7 +148,7 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
         }
       }
     }
-    current = vnode_getParentOrProjectionParent(current);
+    current = vnode_getProjectionParentOrParent(current);
   }
   return null;
 }

@@ -36,11 +36,6 @@ export class ChoreArray extends Array<Chore> {
   }
 
   delete(value: Chore) {
-    // const idx = this.sortedFindIndex(this, value);
-    // if (idx >= 0) {
-    //   this.splice(idx, 1);
-    // }
-    // return idx;
     const idx = this.indexOf(value);
     if (idx >= 0) {
       this.splice(idx, 1);

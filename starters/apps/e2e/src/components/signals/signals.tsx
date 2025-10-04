@@ -1,20 +1,21 @@
 import {
-  component$,
-  type Signal,
-  useSignal,
-  createSignal,
-  useConstant,
-  useStore,
-  useVisibleTask$,
-  useTask$,
-  Slot,
-  useStyles$,
-  useResource$,
-  type QwikIntrinsicElements,
   Resource,
-  useComputed$,
+  Slot,
+  component$,
   createComputed$,
-} from "@builder.io/qwik";
+  createSignal,
+  isBrowser,
+  useComputed$,
+  useConstant,
+  useResource$,
+  useSignal,
+  useStore,
+  useStyles$,
+  useTask$,
+  useVisibleTask$,
+  type QwikIntrinsicElements,
+  type Signal,
+} from "@qwik.dev/core";
 import { delay } from "../resource/resource";
 import {
   TestAC,
@@ -27,7 +28,6 @@ import {
   TestCStr,
   TestCWithFlag,
 } from "./utils/utils";
-import { isBrowser } from "@builder.io/qwik";
 
 export const Signals = component$(() => {
   const rerender = useSignal(0);
@@ -36,6 +36,7 @@ export const Signals = component$(() => {
       <button id="rerender" onClick$={() => rerender.value++}>
         Rerender
       </button>
+      <span id="rerender-count">Renders: {rerender.value}</span>
       <SignalsChildren key={rerender.value} />
     </>
   );

@@ -1,7 +1,7 @@
-import { component$ } from '@builder.io/qwik';
-import { QwikLogo } from '~/components/svgs/qwik-logo';
+import { component$ } from '@qwik.dev/core';
 import { DiscordLogo } from '~/components/svgs/discord-logo';
 import { GithubLogo } from '~/components/svgs/github-logo';
+import { QwikLogo } from '~/components/svgs/qwik-logo';
 import { TwitterLogo } from '~/components/svgs/twitter-logo';
 import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 
@@ -9,7 +9,7 @@ const baseUrl = 'https://qwik.dev';
 const linkColumns = [
   [
     { title: 'Docs', href: `${baseUrl}/docs/` },
-    { title: 'Qwik City', href: `${baseUrl}/docs/qwikcity/` },
+    { title: 'Qwik Router', href: `${baseUrl}/docs/qwikrouter/` },
     { title: 'Ecosystem', href: `${baseUrl}/ecosystem/` },
     { title: 'Playground', href: `${baseUrl}/playground/` },
   ],

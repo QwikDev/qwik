@@ -8,15 +8,14 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformNode,
-} from "@builder.io/qwik-city/middleware/node";
-import qwikCityPlan from "@qwik-city-plan";
+} from "@qwik.dev/router/middleware/node";
 import { createServer } from "node:http";
 import render from "./entry.ssr";
 
 declare global {
-  type QwikCityPlatform = PlatformNode;
+  type QwikRouterPlatform = PlatformNode;
 }
 
 /** The default headers used by helmet */
@@ -48,10 +47,8 @@ const DEFAULT_HEADERS = {
   "X-XSS-Protection": "0",
 };
 
-// Create the Qwik City router
-const { router, notFound, staticFile } = createQwikCity({
+const { router, notFound, staticFile } = createQwikRouter({
   render,
-  qwikCityPlan,
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },

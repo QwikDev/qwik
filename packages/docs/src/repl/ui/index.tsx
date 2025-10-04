@@ -7,7 +7,7 @@ import {
   useVisibleTask$,
   $,
   useOnWindow,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';

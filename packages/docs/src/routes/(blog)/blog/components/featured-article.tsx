@@ -1,7 +1,7 @@
 import { Image } from 'qwik-image';
 import { ClockIcon } from '../icons/clock-icon';
 import { blogArticles } from '../../data';
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const FeaturedArticle = component$(() => {
   return (

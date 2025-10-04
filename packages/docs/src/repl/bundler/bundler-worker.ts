@@ -40,7 +40,7 @@ export interface ErrorMessage extends MessageBase {
 type IncomingMessage = InitMessage | BundleMessage;
 export type OutgoingMessage = ReadyMessage | ResultMessage | ErrorMessage;
 
-let qwikOptimizer: typeof import('@builder.io/qwik/optimizer') | null = null;
+let qwikOptimizer: typeof import('@qwik.dev/core/optimizer') | null = null;
 let binding: any = null;
 let loaded: Promise<void> | null = null;
 let deps: PkgUrls;
@@ -144,7 +144,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     const loc = warning.loc;
     if (loc && loc.file) {
       diagnostic.file = loc.file;
-      diagnostic.highlights.push({
+      diagnostic.highlights!.push({
         startCol: loc.column,
         endCol: loc.column + 1,
         startLine: loc.line,

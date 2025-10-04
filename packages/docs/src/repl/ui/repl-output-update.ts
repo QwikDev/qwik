@@ -1,4 +1,4 @@
-import { unwrapStore } from '@builder.io/qwik';
+import { unwrapStore } from '@qwik.dev/core/internal';
 import type { ReplResult, ReplStore } from '../types';
 
 // Maybe we should change useStore to recursively notify subscribers when a top-level property changes

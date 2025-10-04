@@ -1,2 +1,1 @@
-export { jsx, jsxs, jsxDEV, Fragment } from './core';
-export type { JSX, JSXNode, FunctionComponent } from './core';
+export { jsx, jsx as jsxs, jsxDEV, Fragment, type QwikJSX as JSX } from '@qwik.dev/core';

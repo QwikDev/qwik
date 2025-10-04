@@ -1,5 +1,5 @@
-import { component$, Slot, useSignal, useStyles$ } from "@builder.io/qwik";
-import { Link, type DocumentHead } from "@builder.io/qwik-city";
+import { component$, Slot, useSignal, useStyles$ } from "@qwik.dev/core";
+import { Link, type DocumentHead } from "@qwik.dev/router";
 
 export default component$(() => {
   useStyles$(`
@@ -69,6 +69,7 @@ export default component$(() => {
             <LinkCmp href="/about">About</LinkCmp>
             <LinkCmp
               href="/counters"
+              // eslint-disable-next-line no-console
               onQVisible$={() => console.log("visible")}
             >
               Counters
@@ -84,7 +85,7 @@ export default component$(() => {
       <main class="main container">
         <Slot />
       </main>
-      {/* workaround: invisible Link to ensure qwik city context inclusion */}
+      {/* workaround: invisible Link to ensure qwik Router context inclusion */}
       <Link href="/" />
     </div>
   );

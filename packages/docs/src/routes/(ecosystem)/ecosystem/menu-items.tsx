@@ -1,4 +1,4 @@
-import { $ } from '@builder.io/qwik';
+import { $ } from '@qwik.dev/core';
 
 export const MenuItems = () => {
   const scrollIntoView = $((_: any, elm: HTMLAnchorElement) => {

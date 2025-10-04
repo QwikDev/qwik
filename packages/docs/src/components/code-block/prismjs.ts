@@ -1,5 +1,7 @@
 import prismjs from 'prismjs';
+import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-tsx';
 
 export const highlight = (code?: string, language?: string) => {

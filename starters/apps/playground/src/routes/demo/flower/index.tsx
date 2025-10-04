@@ -1,10 +1,10 @@
+import { type DocumentHead, useLocation } from "@qwik.dev/router";
 import {
   component$,
-  useVisibleTask$,
   useStore,
   useStylesScoped$,
-} from "@builder.io/qwik";
-import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
+  useVisibleTask$,
+} from "@qwik.dev/core";
 import styles from "./flower.css?inline";
 
 export default component$(() => {
@@ -16,7 +16,6 @@ export default component$(() => {
     number: 20,
   });
 
-  // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(({ cleanup }) => {
     const timeout = setTimeout(() => (state.count = 1), 500);
     cleanup(() => clearTimeout(timeout));

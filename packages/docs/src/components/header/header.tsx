@@ -1,28 +1,23 @@
-import { useLocation } from '@builder.io/qwik-city';
 import {
   component$,
-  useStyles$,
   useContext,
+  useStyles$,
+  useSignal,
   useVisibleTask$,
   type PropsOf,
-  useSignal,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
+import { useLocation } from '@qwik.dev/router';
+import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
+import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
+import { ThemeToggle } from '../theme-toggle/theme-toggle';
 import styles from './header.css?inline';
-import { GlobalStore } from '../../context';
-import {
-  colorSchemeChangeListener,
-  getColorPreference,
-  setPreference,
-  ThemeToggle,
-} from '../theme-toggle/theme-toggle';
-import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { getPkgManagerPreference } from '../package-manager-tabs';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
@@ -48,11 +43,6 @@ export const Header = component$(() => {
 
   useVisibleTask$(() => {
     globalStore.pkgManager = getPkgManagerPreference();
-    globalStore.theme = getColorPreference();
-    return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
-    });
   });
 
   return (

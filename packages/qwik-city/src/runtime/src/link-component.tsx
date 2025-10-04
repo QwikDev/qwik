@@ -9,7 +9,6 @@ import {
   untrack,
   type EventHandler,
   type QwikVisibleEvent,
-  useContext,
 } from '@builder.io/qwik';
 import { getClientNavPath, shouldPreload } from './utils';
 import { loadClientData } from './use-endpoint';
@@ -18,7 +17,7 @@ import { preloadRouteBundles } from './client-navigate';
 import { isDev } from '@builder.io/qwik';
 // @ts-expect-error we don't have types for the preloader yet
 import { p as preload } from '@builder.io/qwik/preloader';
-import { fallbackToMpaContext } from './contexts';
+// import { fallbackToMpaContext } from './contexts';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -37,11 +36,11 @@ export const Link = component$<LinkProps>((props) => {
     ...linkProps
   } = (() => props)();
 
-  const defaultFallbackToMpa = useContext(fallbackToMpaContext).default;
+  // const defaultFallbackToMpa = useContext(fallbackToMpaContext).default;
 
-  const fallbackToMpa = __EXPERIMENTAL__.enableFallbackToMpa
-    ? untrack(() => Boolean(fallbackToMpaProp ?? defaultFallbackToMpa))
-    : undefined;
+  // const fallbackToMpa = __EXPERIMENTAL__.enableFallbackToMpa
+  //   ? untrack(() => Boolean(fallbackToMpaProp ?? defaultFallbackToMpa))
+  //   : undefined;
 
   const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
   linkProps.href = clientNavPath || originalHref;
@@ -104,11 +103,23 @@ export const Link = component$<LinkProps>((props) => {
     if (!target?.href) {
       return;
     }
-    const onTooMany = () => location.assign(target.href);
-    window.addEventListener('overlySlowReprioritizedPreloading', onTooMany);
+    const onTooMany = (event: Event) => {
+      const userEventPreloads = (event as CustomEvent).detail;
+      /**
+       * On chrome 3G throttling, 10kb takes ~1s to download. Bundles weight ~1kb on average, so 100
+       * bundles is ~100kb which takes ~10s to download.
+       *
+       * This can serve to fallback to MPA when SPA navigation takes more than 10s. Or in extreme
+       * cases, if a component needs more than a 100 bundles, display a spinner.
+       */
+      if (userEventPreloads.count >= 100) {
+        location.assign(target.href);
+      }
+    };
+    window.addEventListener('userEventPreloads', onTooMany);
     const url = new URL(target.href);
     preloadRouteBundles(url.pathname, 1);
-    window.removeEventListener('overlySlowReprioritizedPreloading', onTooMany);
+    window.removeEventListener('userEventPreloads', onTooMany);
   });
 
   useVisibleTask$(({ track }) => {

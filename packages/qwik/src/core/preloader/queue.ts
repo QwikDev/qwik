@@ -16,15 +16,6 @@ let queueDirty: boolean;
 let preloadCount = 0;
 const queue: BundleImport[] = [];
 
-/**
- * On chrome 3G throttling, 10kb takes ~1s to download Bundles weight ~1kb on average, so 100
- * bundles is ~100kb which takes ~10s to download.
- *
- * This can serve to fallback to MPA when SPA navigation takes more than 10s. Or in extreme cases,
- * if a component needs more than a 100 bundles, display a spinner.
- */
-const OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD = 100;
-
 export const log = (...args: any[]) => {
   // eslint-disable-next-line no-console
   console.log(
@@ -84,9 +75,9 @@ export const trigger = () => {
   sortQueue();
   while (queue.length) {
     const userEventPreloads = queue.filter((item) => item.$inverseProbability$ <= 0.1);
-    if (userEventPreloads.length >= OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD) {
-      dispatchEvent(new CustomEvent('overlySlowReprioritizedPreloading'));
-    }
+    dispatchEvent(
+      new CustomEvent('userEventPreloads', { detail: { count: userEventPreloads.length } })
+    );
 
     const bundle = queue[0];
     const inverseProbability = bundle.$inverseProbability$;
@@ -231,11 +222,7 @@ export const adjustProbabilities = (
        * reprioritization of this new event bundles for too long. (If browsers supported aborting
        * modulepreloads, we wouldn't have to do this.)
        */
-      if (
-        probability === 1 ||
-        (probability >= 0.99 &&
-          depsCount <= OVERLY_SLOW_REPRIORITIZED_PRELOADING_DEFAULT_THRESHOLD + 1)
-      ) {
+      if (probability === 1 || (probability >= 0.99 && depsCount <= 101)) {
         depsCount++;
         // we're loaded at max probability, so elevate dynamic imports to 99% sure
         newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);

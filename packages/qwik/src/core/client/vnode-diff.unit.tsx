@@ -840,6 +840,328 @@ describe('vNode-diff', () => {
           expect(firstChild).toMatchVDOM(<span class="test"></span>);
         });
       });
+
+      describe('edge cases and complex scenarios', () => {
+        it('should handle empty source to multiple attributes', () => {
+          const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const test = _jsxSorted(
+            'span',
+            { about: 'a', class: 'test', id: 'b', title: 't' },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle multiple attributes to empty', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted(
+              'span',
+              { about: 'a', class: 'test', id: 'b', title: 't' },
+              null,
+              [],
+              0,
+              null
+            )
+          );
+          const test = _jsxSorted('span', {}, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle removing first and last attributes while keeping middle', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted(
+              'span',
+              { about: 'a', class: 'test', id: 'b', title: 't' },
+              null,
+              [],
+              0,
+              null
+            )
+          );
+          const test = _jsxSorted('span', { class: 'test', id: 'b' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle adding first and last attributes while keeping middle', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { class: 'test', id: 'b' }, null, [], 0, null)
+          );
+          const test = _jsxSorted(
+            'span',
+            { about: 'a', class: 'test', id: 'b', title: 't' },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle interleaved add/remove/update operations', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { about: 'old', class: 'old', name: 'remove' }, null, [], 0, null)
+          );
+          const test = _jsxSorted(
+            'span',
+            { about: 'new', id: 'add', title: 'add2' },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle multiple consecutive removals at beginning', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3', z: '26' }, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', { z: '26' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle multiple consecutive additions at beginning', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { z: '26' }, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', { a: '1', b: '2', c: '3', z: '26' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle alternating src and dst keys', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { b: '2', d: '4', f: '6' }, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', { a: '1', c: '3', e: '5' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle mixed normal attrs and events without special prefixes', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted(
+              'span',
+              { about: 'a', class: 'old', onClick$: () => null },
+              null,
+              [],
+              0,
+              null
+            )
+          );
+          const test = _jsxSorted(
+            'span',
+            { class: 'new', id: 'b', onMouseOver$: () => null },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span class="new" id="b"></span>);
+          const element = vnode_getNode(firstChild) as QElement;
+          expect(element.qDispatchEvent).toBeDefined();
+        });
+
+        it('should handle multiple HTML event attributes being removed', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted(
+              'span',
+              { 'on:click': 'a', 'on:focus': 'b', 'on:mouseover': 'c', id: 'test' },
+              null,
+              [],
+              0,
+              null
+            )
+          );
+          const test = _jsxSorted('span', { id: 'test' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(test);
+          const element = vnode_getNode(firstChild) as QElement;
+          expect(element.qDispatchEvent).not.toBeDefined();
+        });
+
+        it('should handle replacing HTML events with JSX events', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { 'on:click': 'a', 'on:mouseover': 'b' }, null, [], 0, null)
+          );
+          const test = _jsxSorted(
+            'span',
+            { onClick$: () => null, onMouseOver$: () => null },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          const element = vnode_getNode(firstChild) as QElement;
+          expect(element.qDispatchEvent).toBeDefined();
+        });
+
+        it('should handle all attributes being updated to different values', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', { a: '10', b: '20', c: '30' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle attributes with same values (no updates)', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          // Journal should be empty since no changes were made
+          expect(container.$journal$.length).toEqual(0);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+
+        it('should handle single attribute changes in various positions', () => {
+          // Change first
+          const { vParent: vParent1, container: container1 } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null)
+          );
+          const test1 = _jsxSorted('span', { a: 'NEW', b: '2', c: '3' }, null, [], 0, null);
+          vnode_diff(container1, test1, vParent1, null);
+          vnode_applyJournal(container1.$journal$);
+          expect(vnode_getFirstChild(vParent1)).toMatchVDOM(test1);
+
+          // Change middle
+          const { vParent: vParent2, container: container2 } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null)
+          );
+          const test2 = _jsxSorted('span', { a: '1', b: 'NEW', c: '3' }, null, [], 0, null);
+          vnode_diff(container2, test2, vParent2, null);
+          vnode_applyJournal(container2.$journal$);
+          expect(vnode_getFirstChild(vParent2)).toMatchVDOM(test2);
+
+          // Change last
+          const { vParent: vParent3, container: container3 } = vnode_fromJSX(
+            _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null)
+          );
+          const test3 = _jsxSorted('span', { a: '1', b: '2', c: 'NEW' }, null, [], 0, null);
+          vnode_diff(container3, test3, vParent3, null);
+          vnode_applyJournal(container3.$journal$);
+          expect(vnode_getFirstChild(vParent3)).toMatchVDOM(test3);
+        });
+
+        it('should handle scoped events with different scopes', () => {
+          const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const test = _jsxSorted(
+            'span',
+            { 'document:onClick$': () => null, 'window:onScroll$': () => null },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span on-document:click on-window:scroll></span>);
+          const element = vnode_getNode(firstChild) as QElement;
+          expect(element.qDispatchEvent).toBeDefined();
+        });
+
+        it('should handle complex mix: add/remove/update/keep', () => {
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted(
+              'span',
+              {
+                about: 'remove',
+                class: 'update-old',
+                id: 'keep',
+                name: 'also-remove',
+              },
+              null,
+              [],
+              0,
+              null
+            )
+          );
+          const test = _jsxSorted(
+            'span',
+            {
+              class: 'update-new',
+              id: 'keep',
+              onClick$: () => null,
+              title: 'add',
+            },
+            null,
+            [],
+            0,
+            null
+          );
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span class="update-new" id="keep" title="add"></span>);
+          const element = vnode_getNode(firstChild) as QElement;
+          expect(element.qDispatchEvent).toBeDefined();
+        });
+
+        it('should handle updating signal attribute values', () => {
+          const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+          const signal1 = createSignal('value1');
+          const test1 = _jsxSorted('span', { class: signal1 }, null, [], 0, null);
+          vnode_diff(container, test1, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          const firstChild = vnode_getFirstChild(vParent);
+          expect(firstChild).toMatchVDOM(<span class="value1"></span>);
+
+          // Update with different signal
+          const signal2 = createSignal('value2');
+          const test2 = _jsxSorted('span', { class: signal2 }, null, [], 0, null);
+          container.$journal$ = [];
+          vnode_diff(container, test2, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(firstChild).toMatchVDOM(<span class="value2"></span>);
+        });
+
+        it('should handle very long attribute list', () => {
+          const manyAttrs: Record<string, string> = {};
+          const manyAttrsUpdated: Record<string, string> = {};
+          for (let i = 0; i < 50; i++) {
+            const key = `attr${String(i).padStart(3, '0')}`;
+            manyAttrs[key] = `value${i}`;
+            manyAttrsUpdated[key] = `updated${i}`;
+          }
+
+          const { vParent, container } = vnode_fromJSX(
+            _jsxSorted('span', manyAttrs, null, [], 0, null)
+          );
+          const test = _jsxSorted('span', manyAttrsUpdated, null, [], 0, null);
+          vnode_diff(container, test, vParent, null);
+          vnode_applyJournal(container.$journal$);
+          expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
+        });
+      });
     });
   });
 

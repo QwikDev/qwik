@@ -113,7 +113,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     serializationContext.$addRoot$(qrl);
   };
 
-  const outputAsRootRef = (value: unknown, rootDepth = 0): boolean => {
+  const outputAsRootRef = (value: unknown, rootDepth = 0, weak = false): boolean => {
     const seen = $wasSeen$(value);
     const rootRefPath = $objectPathStringCache$.get(value);
 
@@ -130,7 +130,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       // Otherwise serialize as normal
       output(TypeIds.RootRef, seen.$rootIndex$);
       return true;
-    } else if (s11nWeakRefs.has(value)) {
+    } else if (!weak && s11nWeakRefs.has(value)) {
       const forwardRefId = s11nWeakRefs.get(value)!;
       // We see the object again, we must now make it a root and update the forward ref
       if (rootDepth === depth) {
@@ -512,10 +512,16 @@ export async function serialize(serializationContext: SerializationContext): Pro
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
     } else if (value instanceof SerializationWeakRef) {
-      const forwardRefId = forwardRefsId++;
-      s11nWeakRefs.set(value.$obj$, forwardRefId);
-      forwardRefs[forwardRefId] = -1;
-      output(TypeIds.ForwardRef, forwardRefId);
+      const obj = value.$obj$;
+      if (!outputAsRootRef(obj, 0, true)) {
+        let forwardRefId = s11nWeakRefs.get(obj);
+        if (forwardRefId === undefined) {
+          forwardRefId = forwardRefsId++;
+          s11nWeakRefs.set(obj, forwardRefId);
+          forwardRefs[forwardRefId] = -1;
+        }
+        output(TypeIds.ForwardRef, forwardRefId);
+      }
     } else if (vnode_isVNode(value)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else {
@@ -575,11 +581,20 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
 
     if (forwardRefs.length) {
-      $writer$.write(',');
-      $writer$.write(TypeIds.ForwardRefs + ',');
-      outputArray(forwardRefs, (value) => {
-        $writer$.write(String(value));
-      });
+      let lastIdx = forwardRefs.length - 1;
+      while (lastIdx >= 0 && forwardRefs[lastIdx] === -1) {
+        lastIdx--;
+      }
+      if (lastIdx >= 0) {
+        $writer$.write(',');
+        $writer$.write(TypeIds.ForwardRefs + ',');
+        const out =
+          lastIdx === forwardRefs.length - 1 ? forwardRefs : forwardRefs.slice(0, lastIdx + 1);
+        // We could also implement RLE of -1 values
+        outputArray(out, (value) => {
+          $writer$.write(String(value));
+        });
+      }
     }
 
     $writer$.write(']');

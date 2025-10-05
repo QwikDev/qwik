@@ -31,10 +31,10 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       return container.$getObjectById$(value as number);
     case TypeIds.ForwardRef:
       if (!container.$forwardRefs$) {
-        throw qError(QError.serializeErrorCannotAllocate, ['forward ref']);
+        return _UNINITIALIZED;
       }
       const rootRef = container.$forwardRefs$[value as number];
-      if (rootRef === -1) {
+      if (rootRef === -1 || rootRef === undefined) {
         return _UNINITIALIZED;
       } else {
         return container.$getObjectById$(rootRef);

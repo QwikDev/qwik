@@ -3,7 +3,7 @@ import { assertEqual } from '../shared/error/assert';
 import { isObject } from '../shared/utils/types';
 import { isSignal, type Signal } from './signal.public';
 import { getStoreTarget, isStore } from './impl/store';
-import { isPropsProxy } from '../shared/jsx/jsx-runtime';
+import { isPropsProxy } from '../shared/jsx/jsx-node';
 import { WrappedSignalFlags } from './types';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';

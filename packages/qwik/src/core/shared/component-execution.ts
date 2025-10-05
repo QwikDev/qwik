@@ -7,7 +7,9 @@ import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { Fragment, JSXNodeImpl, _jsxSorted, isJSXNode, type Props } from './jsx/jsx-runtime';
+import { Fragment, type Props } from './jsx/jsx-runtime';
+import { _jsxSorted } from './jsx/jsx-internal';
+import { JSXNodeImpl, isJSXNode } from './jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import type { QRLInternal } from './qrl/qrl-class';
@@ -298,5 +300,5 @@ function injectPlaceholderElement(
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', {}, { hidden: '' }, null, 3);
+  return new JSXNodeImpl('script', null, { hidden: '' });
 }

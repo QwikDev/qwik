@@ -1,4 +1,5 @@
-import { Fragment, _jsxSorted } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { _jsxSorted } from '../shared/jsx/jsx-internal';
 import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';

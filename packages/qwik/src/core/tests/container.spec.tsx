@@ -8,7 +8,8 @@ import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
 import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
-import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-node';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
@@ -493,11 +494,13 @@ describe('serializer v2', () => {
 
     describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
       it('should serialize and deserialize', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, { n: 2, t: 'test' });
+        const obj = createPropsProxy(
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' })
+        );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
       it('should serialize and deserialize with null const props', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, null);
+        const obj = createPropsProxy(new JSXNodeImpl('div', { number: 1, text: 'abc' }));
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });

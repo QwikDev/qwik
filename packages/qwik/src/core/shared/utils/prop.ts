@@ -1,4 +1,6 @@
-import { createPropsProxy, type Props, type PropsProxy } from '../jsx/jsx-runtime';
+import { type Props } from '../jsx/jsx-runtime';
+import { type PropsProxy } from '../jsx/jsx-node';
+import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-node';
 import { _CONST_PROPS, _VAR_PROPS } from './constants';
 import { NON_SERIALIZABLE_MARKER_PREFIX } from './markers';
 
@@ -26,5 +28,5 @@ export const _restProps = (props: PropsProxy, omit: string[] = [], target: Props
     }
   }
 
-  return createPropsProxy(varPropsTarget, constPropsTarget);
+  return createPropsProxy(new JSXNodeImpl(null, varPropsTarget, constPropsTarget));
 };

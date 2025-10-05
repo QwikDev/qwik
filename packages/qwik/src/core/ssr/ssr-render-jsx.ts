@@ -1,7 +1,8 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/queue-qrl';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { directGetPropsProxyProp } from '../shared/jsx/jsx-node';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -171,6 +172,7 @@ function processJSXNode(
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
             key: jsx.key,
+            toSort: jsx.toSort,
           }),
           constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
@@ -311,6 +313,7 @@ interface SsrAttrsOptions {
   serializationCtx: SerializationContext;
   styleScopedId: string | null;
   key?: string | null;
+  toSort?: boolean;
 }
 
 export function varPropsToSsrAttrs(
@@ -330,18 +333,6 @@ export function constPropsToSsrAttrs(
 }
 
 export function toSsrAttrs(
-  record: Record<string, unknown>,
-  anotherRecord: Record<string, unknown>,
-  isConst: boolean,
-  options: SsrAttrsOptions
-): SsrAttrs;
-export function toSsrAttrs(
-  record: Record<string, unknown> | null | undefined,
-  anotherRecord: Record<string, unknown> | null | undefined,
-  isConst: boolean,
-  options: SsrAttrsOptions
-): SsrAttrs | null;
-export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
   isConst: boolean,
@@ -352,8 +343,7 @@ export function toSsrAttrs(
   }
   const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
-  for (const key in record) {
-    let value = record[key];
+  const handleProp = (key: string, value: unknown) => {
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {
         /**
@@ -382,7 +372,7 @@ export function toSsrAttrs(
             // merge values from the const props with the var props
             value = getMergedEventPropValues(value, anotherValue);
           } else {
-            continue;
+            return;
           }
         }
       }
@@ -390,7 +380,7 @@ export function toSsrAttrs(
       if (eventValue) {
         ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
-      continue;
+      return;
     }
 
     if (isSignal(value)) {
@@ -402,7 +392,7 @@ export function toSsrAttrs(
         ssrAttrs.push(key, value);
       }
 
-      continue;
+      return;
     }
 
     if (isPreventDefault(key)) {
@@ -412,6 +402,16 @@ export function toSsrAttrs(
     value = serializeAttribute(key, value, options.styleScopedId);
 
     ssrAttrs.push(key, value as string);
+  };
+  if (options.toSort) {
+    const keys = Object.keys(record).sort();
+    for (const key of keys) {
+      handleProp(key, record[key]);
+    }
+  } else {
+    for (const key in record) {
+      handleProp(key, record[key]);
+    }
   }
   if (options.key != null) {
     ssrAttrs.push(ELEMENT_KEY, options.key);

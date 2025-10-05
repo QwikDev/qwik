@@ -13,7 +13,7 @@ import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { componentQrl } from '../component.public';
 import { qError, QError } from '../error/error';
-import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-runtime';
+import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-node';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
 import { _constants, TypeIds, type Constants } from './constants';
@@ -114,7 +114,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.FormData:
       return new FormData();
     case TypeIds.JSXNode:
-      return new JSXNodeImpl(null!, null!, null!, null!, -1, null);
+      return new JSXNodeImpl(null!);
     case TypeIds.BigInt:
       return BigInt(value as string);
     case TypeIds.Set:
@@ -139,7 +139,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const decodedLength = blocks * 3 + (rest ? rest - 1 : 0);
       return new Uint8Array(decodedLength);
     case TypeIds.PropsProxy:
-      return createPropsProxy(null!, null);
+      return createPropsProxy(null!);
     case TypeIds.VNode:
       return retrieveVNodeOrDocument(container, value);
     case TypeIds.RefVNode:

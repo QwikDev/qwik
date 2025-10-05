@@ -3,14 +3,9 @@ import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public'
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  Fragment,
-  JSXNodeImpl,
-  directGetPropsProxyProp,
-  isJSXNode,
-  type Props,
-  type PropsProxy,
-} from '../shared/jsx/jsx-runtime';
+import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { type PropsProxy } from '../shared/jsx/jsx-node';
+import { JSXNodeImpl, directGetPropsProxyProp, isJSXNode } from '../shared/jsx/jsx-node';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -390,7 +385,7 @@ export const vnode_diff = (
   function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
     const projectionChildren = Array.isArray(children) ? children : [children];
     const createProjectionJSXNode = (slotName: string) => {
-      return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+      return new JSXNodeImpl(Projection, null, null, [], slotName);
     };
 
     const projections: Array<string | JSXNodeInternal> = [];
@@ -742,10 +737,20 @@ export const vnode_diff = (
 
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
-    for (const key in props) {
-      const value = props[key];
-      if (value != null) {
-        mapArray_set(jsxAttrs, key, value, 0);
+    if (jsx.toSort) {
+      const keys = Object.keys(props).sort();
+      for (const key of keys) {
+        const value = props[key];
+        if (value != null) {
+          mapArray_set(jsxAttrs, key, value, 0);
+        }
+      }
+    } else {
+      for (const key in props) {
+        const value = props[key];
+        if (value != null) {
+          mapArray_set(jsxAttrs, key, value, 0);
+        }
       }
     }
     if (jsxKey !== null) {

@@ -12,7 +12,7 @@ import {
 import { Task, TaskFlags } from '../use/use-task';
 import type { Props } from './jsx/jsx-runtime';
 import type { QRLInternal } from './qrl/qrl-class';
-import { createScheduler, type Chore } from './scheduler';
+import { addChore, createScheduler, type Chore } from './scheduler';
 import { ChoreType } from './util-chore-type';
 import type { HostElement } from './types';
 import { ELEMENT_SEQ, QContainerAttr } from './utils/markers';
@@ -408,6 +408,240 @@ describe('scheduler', () => {
       ]);
 
       expect(nextTickSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('addChore', () => {
+    let choreArray: ChoreArray;
+    let vHost: VirtualVNode;
+
+    beforeEach(() => {
+      choreArray = new ChoreArray();
+      vHost = vnode_newVirtual();
+      vHost.setProp('q:id', 'testHost');
+    });
+
+    it('should add a new chore to the choreArray', () => {
+      const task = mockTask(vHost, { qrl: $(() => testLog.push('task1')) });
+      const chore: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: task,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      addChore(chore, choreArray);
+
+      expect(choreArray.length).toBe(1);
+      expect(choreArray[0]).toBe(chore);
+    });
+
+    it('should add chore to vnode host.chores when idx is negative', () => {
+      const task = mockTask(vHost, { qrl: $(() => testLog.push('task1')) });
+      const chore: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: task,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      addChore(chore, choreArray);
+
+      expect(vHost.chores).toBeDefined();
+      expect(vHost.chores!.length).toBe(1);
+      expect(vHost.chores![0]).toBe(chore);
+    });
+
+    it('should not add to vnode host.chores when chore already exists (idx >= 0)', () => {
+      const task = mockTask(vHost, { qrl: $(() => testLog.push('task1')) });
+      const chore1: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: task,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      const chore2: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: task,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      addChore(chore1, choreArray);
+      addChore(chore2, choreArray);
+
+      // choreArray should only have 1 chore (the existing one with updated payload)
+      expect(choreArray.length).toBe(1);
+      // vHost.chores should only have 1 chore (from first add)
+      expect(vHost.chores!.length).toBe(1);
+    });
+
+    it('should not add to host.chores when host is not a VNode', () => {
+      const nonVNodeHost = {} as HostElement;
+      const task = mockTask(vHost, { qrl: $(() => testLog.push('task1')) });
+      const chore: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task.$index$,
+        $host$: nonVNodeHost,
+        $target$: null,
+        $payload$: task,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      addChore(chore, choreArray);
+
+      expect(choreArray.length).toBe(1);
+      expect((nonVNodeHost as any).chores).toBeUndefined();
+    });
+
+    it('should maintain correct sort order when adding multiple chores', () => {
+      const task1 = mockTask(vAHost, { qrl: $(() => testLog.push('a1')), index: 0 });
+      const task2 = mockTask(vBHost1, { qrl: $(() => testLog.push('b1')), index: 0 });
+      const task3 = mockTask(vAHost, { qrl: $(() => testLog.push('a2')), index: 1 });
+
+      const chore1: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task1.$index$,
+        $host$: vAHost as HostElement,
+        $target$: null,
+        $payload$: task1,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      const chore2: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task2.$index$,
+        $host$: vBHost1 as HostElement,
+        $target$: null,
+        $payload$: task2,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      const chore3: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task3.$index$,
+        $host$: vAHost as HostElement,
+        $target$: null,
+        $payload$: task3,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      // Add in non-sorted order
+      addChore(chore2, choreArray);
+      addChore(chore3, choreArray);
+      addChore(chore1, choreArray);
+
+      expect(choreArray.length).toBe(3);
+      // Should be sorted: vAHost tasks before vBHost1 tasks, and by index within same host
+      expect(choreArray[0]).toBe(chore1); // vAHost, index 0
+      expect(choreArray[1]).toBe(chore3); // vAHost, index 1
+      expect(choreArray[2]).toBe(chore2); // vBHost1, index 0
+    });
+
+    it('should add chores of different types in correct macro order', () => {
+      const task1 = mockTask(vHost, { qrl: $(() => testLog.push('task')), index: 0 });
+      const visibleTask = mockTask(vHost, {
+        qrl: $(() => testLog.push('visible')),
+        index: 0,
+        visible: true,
+      });
+
+      const taskChore: Chore = {
+        $type$: ChoreType.TASK,
+        $idx$: task1.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: task1,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      const visibleChore: Chore = {
+        $type$: ChoreType.VISIBLE,
+        $idx$: visibleTask.$index$,
+        $host$: vHost as HostElement,
+        $target$: null,
+        $payload$: visibleTask,
+        $state$: 0,
+        $blockedChores$: null,
+        $startTime$: undefined,
+        $endTime$: undefined,
+        $resolve$: undefined,
+        $reject$: undefined,
+        $returnValue$: null!,
+      };
+
+      // Add visible task first
+      addChore(visibleChore, choreArray);
+      // Add regular task second
+      addChore(taskChore, choreArray);
+
+      expect(choreArray.length).toBe(2);
+      // TASK should come before VISIBLE (different macro order)
+      expect(choreArray[0]).toBe(taskChore);
+      expect(choreArray[1]).toBe(visibleChore);
     });
   });
 });

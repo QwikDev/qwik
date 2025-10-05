@@ -79,7 +79,7 @@ export function normalizePath(path: string) {
 export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar
-  const isExtendedLengthPath = /^\\\\\?\\/.test(path);
+  const isExtendedLengthPath = path.startsWith('\\\\?\\');
   const hasNonAscii = /[^\u0000-\u0080]+/.test(path); // eslint-disable-line no-control-regex
 
   if (isExtendedLengthPath || hasNonAscii) {
@@ -139,17 +139,17 @@ export function createFileId(
 const PAGE_MODULE_EXTS: { [type: string]: boolean } = {
   '.tsx': true,
   '.jsx': true,
-};
+} as const;
 
 const MODULE_EXTS: { [type: string]: boolean } = {
   '.ts': true,
   '.js': true,
-};
+} as const;
 
 const MARKDOWN_EXTS: { [type: string]: boolean } = {
   '.md': true,
   '.mdx': true,
-};
+} as const;
 
 export function isIndexModule(extlessName: string) {
   return /^index(|!|@.+)$/.test(extlessName);
@@ -192,13 +192,7 @@ export function isEntryName(extlessName: string) {
 }
 
 export function isErrorName(extlessName: string) {
-  try {
-    const statusCode = parseInt(extlessName, 10);
-    return statusCode >= 400 && statusCode <= 599;
-  } catch (e) {
-    //
-  }
-  return false;
+  return /^[45][0-9]{2}$/.test(extlessName);
 }
 
 export function isGroupedLayoutName(dirName: string, warn = true) {

@@ -11,6 +11,7 @@ import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
 import type { QwikRouterConfig } from '@qwik.dev/router';
+import { RedirectMessage as RedirectMessage_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';

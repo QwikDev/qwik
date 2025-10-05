@@ -1,6 +1,6 @@
 import { type QwikBundle, type QwikManifest } from '@qwik.dev/core/optimizer';
 import { describe, expect, test } from 'vitest';
-import type { BuildLayout, BuildRoute } from '../types';
+import type { BuiltLayout, BuiltRoute } from '../types';
 import { getRouteImports } from './get-route-imports';
 
 describe('modifyBundleGraph', () => {
@@ -33,7 +33,7 @@ describe('modifyBundleGraph', () => {
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
-    const fakeRoutes: BuildRoute[] = [
+    const fakeRoutes: BuiltRoute[] = [
       {
         routeName: '/',
         filePath: '/home/qwik-app/src/routes/index.tsx',
@@ -45,9 +45,9 @@ describe('modifyBundleGraph', () => {
           {
             filePath: '/home/qwik-app/src/routes/layout.tsx',
           },
-        ] as BuildLayout[],
+        ] as BuiltLayout[],
       },
-    ] as BuildRoute[];
+    ] as BuiltRoute[];
 
     const actualResult = getRouteImports(fakeRoutes, fakeManifest);
     expect(actualResult).toMatchInlineSnapshot(`
@@ -87,12 +87,12 @@ describe('modifyBundleGraph', () => {
       } as Record<string, QwikBundle>,
     } as QwikManifest;
 
-    const fakeRoutes: BuildRoute[] = [
+    const fakeRoutes: BuiltRoute[] = [
       {
         routeName: '/',
         filePath: '/home/qwik-app/src/routes/index.tsx',
       },
-    ] as BuildRoute[];
+    ] as BuiltRoute[];
 
     const actualResult = getRouteImports(fakeRoutes, fakeManifest);
 

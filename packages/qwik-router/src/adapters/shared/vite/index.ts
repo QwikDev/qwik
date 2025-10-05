@@ -3,7 +3,7 @@ import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-rout
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
-import type { BuildRoute } from '../../../buildtime/types';
+import type { BuiltRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
 /**
@@ -299,7 +299,7 @@ interface ViteAdapterPluginOptions {
     clientPublicOutDir: string;
     serverOutDir: string;
     basePathname: string;
-    routes: BuildRoute[];
+    routes: BuiltRoute[];
     assetsDir?: string;
     warn: (message: string) => void;
     error: (message: string) => void;

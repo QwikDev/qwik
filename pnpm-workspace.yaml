@@ -23,7 +23,7 @@ overrides:
   '@builder.io/qwik-city': npm:@qwik.dev/router
   '@types/estree': 1.0.8
   prettier: 3.6.2
-  typescript: 5.9.2
+  typescript: 5.9.3
   vfile: 6.0.3
 
 patchedDependencies:

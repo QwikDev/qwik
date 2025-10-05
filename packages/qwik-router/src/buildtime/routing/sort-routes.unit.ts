@@ -1,4 +1,4 @@
-import type { BuildRoute } from '../types';
+import type { BuiltRoute } from '../types';
 import { createFileId } from '../../utils/fs';
 import { parseRoutePathname } from './parse-pathname';
 import { routeSortCompare } from './sort-routes';
@@ -44,7 +44,7 @@ test('routeSortCompare', () => {
 
 function route(r: TestRoute) {
   const pathname = r.pathname || '/';
-  const route: BuildRoute = {
+  const route: BuiltRoute = {
     id: createFileId('', pathname, 'Route'),
     filePath: pathname,
     pathname,

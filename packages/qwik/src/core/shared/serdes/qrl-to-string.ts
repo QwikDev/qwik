@@ -40,11 +40,10 @@ export function qrlToString(
     }
     // in Dev mode we need to keep track of the symbols
     if (isDev) {
-      let backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
-      if (!backChannel) {
-        backChannel = (globalThis as any).__qrl_back_channel__ = new Map();
-      }
-      backChannel.set(value.$symbol$, (value as any)._devOnlySymbolRef);
+      const backChannel: Map<string, unknown> = ((globalThis as any).__qrl_back_channel__ ||=
+        new Map());
+      // During tests the resolved value is always available
+      backChannel.set(value.$symbol$, value.resolved);
       if (!chunk) {
         chunk = QRL_RUNTIME_CHUNK;
       }

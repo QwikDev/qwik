@@ -1,10 +1,10 @@
 import { dirname } from 'node:path';
 import { resolveMenu } from '../markdown/menu';
 import type {
-  BuildEntry,
-  BuildLayout,
-  BuildRoute,
-  BuildServerPlugin,
+  BuiltEntry,
+  BuiltLayout,
+  BuiltRoute,
+  BuiltServerPlugin,
   NormalizedPluginOptions,
   RouteSourceFile,
 } from '../types';
@@ -93,7 +93,7 @@ export function resolveLayout(opts: NormalizedPluginOptions, layoutSourceFile: R
     layoutName = '';
   }
 
-  const layout: BuildLayout = {
+  const layout: BuiltLayout = {
     id: createFileId(opts.routesDir, filePath),
     filePath,
     dirPath,
@@ -110,11 +110,11 @@ const LAYOUT_TOP_SUFFIX = '!';
 
 export function resolveRoute(
   opts: NormalizedPluginOptions,
-  appLayouts: BuildLayout[],
+  appLayouts: BuiltLayout[],
   sourceFile: RouteSourceFile
 ) {
   const filePath = sourceFile.filePath;
-  const layouts: BuildLayout[] = [];
+  const layouts: BuiltLayout[] = [];
   const routesDir = opts.routesDir;
   const { layoutName, layoutStop } = parseRouteIndexName(sourceFile.extlessName);
   let pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
@@ -129,7 +129,7 @@ export function resolveRoute(
     const hasNamedLayout = layoutName !== '';
 
     for (let i = 0; i < 20; i++) {
-      let layout: BuildLayout | undefined = undefined;
+      let layout: BuiltLayout | undefined = undefined;
 
       if (hasNamedLayout && !hasFoundNamedLayout) {
         layout = appLayouts.find((l) => l.dirPath === currentDir && l.layoutName === layoutName);
@@ -155,7 +155,7 @@ export function resolveRoute(
     }
   }
 
-  const buildRoute: BuildRoute = {
+  const buildRoute: BuiltRoute = {
     id: createFileId(opts.routesDir, filePath, 'Route'),
     filePath,
     pathname,
@@ -169,7 +169,7 @@ export function resolveRoute(
 
 export function resolveServerPlugin(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile) {
   const filePath = sourceFile.filePath;
-  const buildRoute: BuildServerPlugin = {
+  const buildRoute: BuiltServerPlugin = {
     id: createFileId(opts.serverPluginsDir, filePath, 'Plugin'),
     filePath,
     ext: sourceFile.ext,
@@ -181,7 +181,7 @@ function resolveEntry(opts: NormalizedPluginOptions, sourceFile: RouteSourceFile
   const pathname = getPathnameFromDirPath(opts, sourceFile.dirPath);
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
-  const buildEntry: BuildEntry = {
+  const buildEntry: BuiltEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath, 'Route'),
     filePath: sourceFile.filePath,
     chunkFileName,
@@ -196,7 +196,7 @@ function resolveServiceWorkerEntry(opts: NormalizedPluginOptions, sourceFile: Ro
   const pathname = dirPathname + sourceFile.extlessName + '.js';
   const chunkFileName = pathname.slice(opts.basePathname.length);
 
-  const buildEntry: BuildEntry = {
+  const buildEntry: BuiltEntry = {
     id: createFileId(opts.routesDir, sourceFile.filePath, 'ServiceWorker'),
     filePath: sourceFile.filePath,
     chunkFileName,

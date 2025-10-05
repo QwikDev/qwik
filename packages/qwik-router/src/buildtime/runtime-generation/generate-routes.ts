@@ -1,10 +1,10 @@
 import type { QwikManifest, QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import { isModuleExt, isPageExt, removeExtension } from '../../utils/fs';
-import type { BuildContext, BuildRoute } from '../types';
+import type { RoutingContext, BuiltRoute } from '../types';
 import { getImportPath } from './utils';
 
 export function createRoutes(
-  ctx: BuildContext,
+  ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
   c: string[],
   esmImports: string[],
@@ -30,33 +30,33 @@ export function createRoutes(
   c.push(`export const routes = [`);
 
   for (const route of ctx.routes) {
-    const loaders = [];
+    const layouts = [];
 
     if (isPageExt(route.ext)) {
       // page module or markdown
       for (const layout of route.layouts) {
-        loaders.push(layout.id);
+        layouts.push(layout.id);
       }
 
       const importPath = getImportPath(route.filePath);
       if (dynamicImports) {
-        loaders.push(`()=>import(${JSON.stringify(importPath)})`);
+        layouts.push(`()=>import(${JSON.stringify(importPath)})`);
       } else {
         esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
-        loaders.push(`()=>${route.id}`);
+        layouts.push(`()=>${route.id}`);
       }
     } else if (includeEndpoints && isModuleExt(route.ext)) {
       // include endpoints, and this is a module
       const importPath = getImportPath(route.filePath);
       esmImports.push(`import * as ${route.id} from ${JSON.stringify(importPath)};`);
       for (const layout of route.layouts) {
-        loaders.push(layout.id);
+        layouts.push(layout.id);
       }
-      loaders.push(`()=>${route.id}`);
+      layouts.push(`()=>${route.id}`);
     }
 
-    if (loaders.length > 0) {
-      c.push(`  ${createRouteData(qwikPlugin, route, loaders, isSSR)},`);
+    if (layouts.length > 0) {
+      c.push(`  ${createRouteData(qwikPlugin, route, layouts, isSSR)},`);
     }
   }
 
@@ -65,12 +65,12 @@ export function createRoutes(
 
 function createRouteData(
   qwikPlugin: QwikVitePlugin,
-  r: BuildRoute,
-  loaders: string[],
+  r: BuiltRoute,
+  layouts: string[],
   isSsr: boolean
 ) {
   const routeName = JSON.stringify(r.routeName);
-  const moduleLoaders = `[ ${loaders.join(', ')} ]`;
+  const moduleLayouts = `[ ${layouts.join(', ')} ]`;
 
   // Use RouteData interface
 
@@ -79,14 +79,16 @@ function createRouteData(
     const clientBundleNames = JSON.stringify(getClientRouteBundleNames(qwikPlugin, r));
 
     // SSR also adds the originalPathname and clientBundleNames to the RouteData
-    return `[ ${routeName}, ${moduleLoaders}, ${originalPathname}, ${clientBundleNames} ]`;
+    //  ["qwikrouter-test/loaders-serialization/", [Layout, () => __vitePreload(() => import("./index58.js"), true ? [] : void 0)]],
+    return `[ ${routeName}, ${moduleLayouts}, ${originalPathname}, ${clientBundleNames} ]`;
   }
 
   // simple RouteData, only route name and module loaders
-  return `[ ${routeName}, ${moduleLoaders} ]`;
+  return `[ ${routeName}, ${moduleLayouts} ]`;
 }
 
-function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuildRoute) {
+// TODO is this still used? We have the preloader now. Maybe this is what generates the data for it?
+function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuiltRoute) {
   const bundlesNames: string[] = [];
 
   const manifest: QwikManifest = qwikPlugin.api.getManifest()!;

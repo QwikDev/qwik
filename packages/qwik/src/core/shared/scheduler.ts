@@ -154,7 +154,7 @@ export interface Chore<T extends ChoreType = ChoreType> {
   $target$: ChoreTarget | null;
   $payload$: unknown;
   $state$: ChoreState;
-  $blockedChores$: Chore[] | null;
+  $blockedChores$: ChoreArray | null;
   $startTime$: number | undefined;
   $endTime$: number | undefined;
 
@@ -782,8 +782,8 @@ export function addBlockedChore(
       undefined,
       blockedChores
     );
-  blockingChore.$blockedChores$ ||= [];
-  blockingChore.$blockedChores$.push(blockedChore);
+  blockingChore.$blockedChores$ ||= new ChoreArray();
+  blockingChore.$blockedChores$.add(blockedChore);
   blockedChores.add(blockedChore);
   if (vnode_isVNode(blockedChore.$host$)) {
     (blockedChore.$host$.blockedChores ||= new ChoreArray()).add(blockedChore);

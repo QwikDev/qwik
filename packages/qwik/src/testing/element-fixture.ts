@@ -159,7 +159,7 @@ export const dispatch = async (
       event.stopPropagation();
     }
     if ('qDispatchEvent' in (element as QElement)) {
-      await (element as QElement).qDispatchEvent!(event, scope);
+      (element as QElement).qDispatchEvent!(event, scope);
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {

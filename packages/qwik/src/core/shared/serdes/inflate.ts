@@ -19,11 +19,13 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
-import type { JSXNodeImpl } from '../jsx/jsx-runtime';
+import { Fragment, Props } from '../jsx/jsx-runtime';
+import { PropsProxy } from '../jsx/jsx-node';
+import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
-import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
+import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
 import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
@@ -202,13 +204,13 @@ export const inflate = (
     }
     case TypeIds.JSXNode: {
       const jsx = target as JSXNodeImpl<unknown>;
-      const [type, varProps, constProps, children, flags, key] = data as any[];
+      const [type, key, varProps, constProps, children, toSort] = data as any[];
       jsx.type = type;
-      jsx.varProps = varProps;
-      jsx.constProps = constProps;
-      jsx.children = children;
-      jsx.flags = flags;
       jsx.key = key;
+      jsx.varProps = varProps;
+      jsx.constProps = constProps || null;
+      jsx.children = children;
+      jsx.toSort = !!toSort;
       break;
     }
     case TypeIds.Set: {
@@ -247,9 +249,14 @@ export const inflate = (
       }
       break;
     case TypeIds.PropsProxy:
-      const propsProxy = target as any;
-      propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
-      propsProxy[_CONST_PROPS] = (data as any)[1];
+      const propsProxy = target as PropsProxy;
+      const d = data as [JSXNodeImpl | typeof _UNINITIALIZED, Props, Props | null];
+      let owner = d[0];
+      if (owner === _UNINITIALIZED) {
+        owner = new JSXNodeImpl(Fragment, d[1], d[2]);
+        owner._proxy = propsProxy;
+      }
+      propsProxy[_OWNER] = owner;
       break;
     case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;

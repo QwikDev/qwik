@@ -1,5 +1,5 @@
 import { QSlotS } from '../utils/markers';
-import { Virtual, _jsxSorted } from './jsx-runtime';
+import { _jsxSorted, Virtual } from './jsx-internal';
 import type { FunctionComponent } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 

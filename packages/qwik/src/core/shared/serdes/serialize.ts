@@ -25,11 +25,13 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
-import { Fragment, isJSXNode, isPropsProxy } from '../jsx/jsx-runtime';
+import { Fragment } from '../jsx/jsx-runtime';
+import { isPropsProxy } from '../jsx/jsx-node';
+import { isJSXNode } from '../jsx/jsx-node';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
-import { _CONST_PROPS, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
+import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
@@ -257,14 +259,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
     // handle custom serializers
     // add to the seen map
     if (isPropsProxy(value)) {
-      const varProps = value[_VAR_PROPS];
-      const constProps = value[_CONST_PROPS];
-      const out = constProps
-        ? [varProps, constProps]
-        : Object.keys(varProps).length
-          ? [varProps]
-          : 0;
-      output(TypeIds.PropsProxy, out);
+      const owner = value[_OWNER];
+      output(TypeIds.PropsProxy, [_serializationWeakRef(owner), owner.varProps, owner.constProps]);
     } else if (value instanceof SubscriptionData) {
       output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
@@ -463,14 +459,18 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
       output(TypeIds.Map, combined);
     } else if (isJSXNode(value)) {
-      output(TypeIds.JSXNode, [
+      const out = [
         value.type,
+        value.key,
         value.varProps,
         value.constProps,
         value.children,
-        value.flags,
-        value.key,
-      ]);
+        value.toSort || null,
+      ];
+      while (out[out.length - 1] == null) {
+        out.pop();
+      }
+      output(TypeIds.JSXNode, out);
     } else if (value instanceof Task) {
       const out: unknown[] = [
         value.$qrl$,

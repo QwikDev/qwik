@@ -400,15 +400,13 @@ describe('serializer v2', () => {
         const [qrl0, qrl1, qrl2] = container.$getObjectById$(0);
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
         expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
-        expect(qrl0._devOnlySymbolRef).toEqual((obj[0] as any)._devOnlySymbolRef);
+        expect(qrl0.resolved).toEqual((obj[0] as any).resolved);
         expect(qrl1.$hash$).toEqual(obj[1].$hash$);
         expect(qrl1.$captureRef$).toEqual(obj[1].$captureRef$);
-        expect(qrl1._devOnlySymbolRef).toEqual((obj[1] as any)._devOnlySymbolRef);
+        expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
         expect(qrl2.$captureRef$).toEqual(obj[2].$captureRef$);
-        expect(qrl2._devOnlySymbolRef.toString()).toEqual(
-          (obj[2] as any)._devOnlySymbolRef.toString()
-        );
+        expect(qrl2.resolved.toString()).toEqual((obj[2] as any).resolved.toString());
       });
     });
 
@@ -434,7 +432,7 @@ describe('serializer v2', () => {
         expect(dstQrl.$captureRef$).toEqual(
           srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
         );
-        expect(dstQrl._devOnlySymbolRef).toEqual((srcQrl as any)._devOnlySymbolRef);
+        expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });
     });
 

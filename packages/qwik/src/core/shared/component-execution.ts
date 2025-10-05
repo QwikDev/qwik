@@ -76,7 +76,7 @@ export const executeComponent = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
-    if (props.children) {
+    if ('children' in props) {
       delete props.children;
     }
     componentFn = componentQRL.getFn(iCtx);
@@ -211,18 +211,15 @@ function addUseOnEvent(
   key: string,
   value: EventQRL<KnownEventNames>[]
 ) {
-  let props = jsxElement.props;
-  if (props === EMPTY_OBJ) {
-    props = jsxElement.props = {};
-  }
-  let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
+  const props = jsxElement.props;
+  const propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
   if (propValue === undefined) {
-    propValue = [];
-  } else if (!Array.isArray(propValue)) {
-    propValue = [propValue];
+    props[key] = value;
+  } else if (Array.isArray(propValue)) {
+    propValue.push(...value);
+  } else {
+    props[key] = [propValue, ...value];
   }
-  propValue.push(...value);
-  props[key] = propValue;
 }
 
 /**

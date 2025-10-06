@@ -55,6 +55,7 @@ export enum ExperimentalFeatures {
     enableRequestRewrite = "enableRequestRewrite",
     noSPA = "noSPA",
     preventNavigate = "preventNavigate",
+    usePreloaderInfo = "usePreloaderInfo",
     valibot = "valibot"
 }
 

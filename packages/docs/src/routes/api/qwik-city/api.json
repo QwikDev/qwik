@@ -899,6 +899,20 @@
       "mdFile": "qwik-city.usenavigate.md"
     },
     {
+      "name": "usePreloaderInfo",
+      "id": "usepreloaderinfo",
+      "hierarchy": [
+        {
+          "name": "usePreloaderInfo",
+          "id": "usepreloaderinfo"
+        }
+      ],
+      "kind": "Function",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nReactive hook exposing the current number of high-priority user-event preloads. Updates whenever the preloader recalculates the queue on the client.\n\n\n```typescript\nusePreloaderInfo: () => {\n    userEventPreloadsCount: ReadonlySignal<number>;\n    activePreloadsLength: ReadonlySignal;\n}\n```\n**Returns:**\n\n{ userEventPreloadsCount: ReadonlySignal&lt;number&gt;; activePreloadsLength: ReadonlySignal; }",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/use-functions.ts",
+      "mdFile": "qwik-city.usepreloaderinfo.md"
+    },
+    {
       "name": "usePreventNavigate$",
       "id": "usepreventnavigate_",
       "hierarchy": [

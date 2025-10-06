@@ -5,27 +5,32 @@
     "priority": -10,
     "docs": [
       "https://www.geldata.com/docs/quickstart"
-    ]
-  },
-  "viteConfig": {},
-  "nextSteps": {
-    "title": "Next Steps",
-    "lines": [
-      " Gel was installed with a simple DB schema and some demo routes,",
-      " now you need to run `npm run gel:migrate` to setup the database.",
-      "",
-      "",
-      "",
-      " Gel ui was also added which you can access by running `npm run gel:ui`,",
-      "",
-      " Check out the Gel docs for more info:",
-      "   - https://www.geldata.com/docs/overview"
-    ]
+    ],
+    "viteConfig": {},
+    "nextSteps": {
+      "lines": [
+        " Gel was installed with a simple DB schema and some demo routes,",
+        "",
+        "",
+        "",
+        " Run `npm run gel:ui` to access the Gel UI and see the database schema.",
+        "Other useful commands are:",
+        "  - `npm run gel:migrate` to create and run migrations",
+        "  - `npm run gel:generate:all` to generate queries, types, and query builders",
+        "  - `npm run gel:generate:queries` to generate queries",
+        "  - `npm run gel:generate:types` to generate types and query builders",
+        "",
+        " Check out the Gel docs for more info:",
+        "   - https://www.geldata.com/docs/overview"
+      ]
+    }
   },
   "scripts": {
-    "gel:generate": "pnpm run gel generate:queries && pnpm run gel generate:queries --file && pnpm run gel generate:interfaces && pnpm run gel generate:edgeql-js",
-    "gel:migrate": "pnpm run gel migrate",
-    "gel:ui": "pnpm run gel ui"
+    "gel:migrate": "gel migration create && gel migrate ",
+    "gel:generate:queries": "generate queries && generate queries --file",
+    "gel:generate:types": "generate interfaces && generate edgeql-js",
+    "gel:generate:all": "gel:generate:queries &&  gel:generate:types",
+    "gel:ui": "gel ui"
   },
   "dependencies": {
     "@gel/generate": "^0.6.4",

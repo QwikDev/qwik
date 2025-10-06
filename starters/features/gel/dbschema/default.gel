@@ -1,0 +1,29 @@
+module default {
+  abstract type Timestamped {
+    last_updated: datetime {
+      rewrite insert, update using (datetime_of_statement());
+    };
+  }
+
+  type User extending Timestamped{
+    errmessage := 'A user with that name already exists!';
+    required name: str {
+      constraint exclusive;
+    };
+    description: str;
+    has_profile: bool;
+    multi emails: Email;
+
+    index on (.name);
+
+  }
+
+  type Email {
+    errmessage := 'an email with that address already exists!';
+    required address: str {
+      constraint exclusive;
+    };
+    provider: str;
+    required user: User;
+  }
+}

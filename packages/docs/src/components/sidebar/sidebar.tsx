@@ -1,5 +1,11 @@
 import { component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
-import { type ContentMenu, useContent, useLocation, routeLoader$ } from '@builder.io/qwik-city';
+import {
+  type ContentMenu,
+  useContent,
+  useLocation,
+  routeLoader$,
+  Link,
+} from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { CloseIcon } from '../svgs/close-icon';
 import styles from './sidebar.css?inline';
@@ -44,20 +50,6 @@ type MDX = {
   updated_at: string;
 };
 
-const DAYS = 24 * 60 * 60 * 1000;
-
-const renderUpdated = (itemHref: string, markdownItems: MarkdownItems) => {
-  const updatedAt = markdownItems[itemHref]?.updated_at;
-
-  if (updatedAt) {
-    const isUpdated = new Date(updatedAt).getTime() + 14 * DAYS > new Date().getTime();
-
-    return isUpdated ? <div class="updated"></div> : null;
-  }
-
-  return null;
-};
-
 export const SideBar = component$((props: { allOpen?: boolean }) => {
   useStyles$(styles);
 
@@ -99,14 +91,6 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           pathname={url.pathname}
           allOpen={allOpen}
           markdownItems={markdownItems.value}
-          onClick$={sync$(() => {
-            try {
-              const scrollTop = document.getElementById('qwik-sidebar')!.scrollTop;
-              sessionStorage.setItem('qwik-sidebar', String(scrollTop));
-            } catch (err) {
-              //
-            }
-          })}
         />
       </nav>
     </aside>
@@ -118,13 +102,11 @@ export function Items({
   pathname,
   allOpen,
   markdownItems,
-  onClick$,
 }: {
   items?: ContentMenu[];
   pathname: string;
   allOpen?: boolean;
   markdownItems: MarkdownItems;
-  onClick$?: any;
 }) {
   return (
     <ul>
@@ -138,68 +120,23 @@ export function Items({
                 <summary>
                   <h5>{item.text}</h5>
                 </summary>
-                <Items
-                  items={item.items}
-                  pathname={pathname}
-                  markdownItems={markdownItems}
-                  onClick$={onClick$}
-                />
+                <Items items={item.items} pathname={pathname} markdownItems={markdownItems} />
               </details>
             ) : (
-              <a
+              <Link
                 href={item.href}
-                class={{
-                  'is-active': pathname === item.href,
-                }}
-                // Prefetch server request on hover
-                onMouseOver$={sync$(
-                  (_evt: Event, target: HTMLAnchorElement & { __prefetchLink: number }): void => {
-                    // Constants
-                    const fiveMinutesInMilliseconds = 5 * 60 * 1000;
-                    const dateNow = Date.now();
-
-                    // Check if hover is possible in the current environment
-                    const canHover = window.matchMedia('(hover: hover)').matches;
-                    if (!canHover) {
-                      // console.log('Skipping prefetch because hover is not supported');
-                      return;
-                    }
-
-                    // Check valid target
-                    if (!target?.href) {
-                      // console.error('Invalid target or target.href');
-                      return;
-                    }
-
-                    // Calculate timeGap
-                    const timeGap = dateNow - (target.__prefetchLink || 0);
-
-                    if (timeGap < fiveMinutesInMilliseconds) {
-                      // console.log(
-                      //   'NO Prefetching... Wait for 5 minutes since the last one',
-                      //   target.href
-                      // );
-                      return;
-                    }
-
-                    // console.log('Prefetching...', target.href);
-                    // Prefetch & Update '__prefetchLink'
-                    const prefetchLink = document.createElement('link');
-                    prefetchLink.href = target.href;
-                    prefetchLink.rel = 'prefetch';
-                    document.head.appendChild(prefetchLink);
-
-                    target.__prefetchLink = dateNow; // Update prefetch timestamp
-                  }
-                )}
-                onClick$={onClick$}
-                style={{ display: 'flex', position: 'relative' }}
+                class={[
+                  'flex relative',
+                  {
+                    'is-active': pathname === item.href,
+                  },
+                ]}
               >
                 <>
-                  {renderUpdated(item.href!, markdownItems)}
+                  {/* {renderUpdated(item.href!, markdownItems)} */}
                   {item.text}
                 </>
-              </a>
+              </Link>
             )}
           </li>
         ))}

@@ -1,5 +1,6 @@
 import { component$, useSignal } from '@builder.io/qwik';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
+import { Link } from '@builder.io/qwik-city';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
   let solutionViewSig = useSignal(false);
@@ -35,14 +36,14 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
       </div>
       <nav>
         {store.prev ? (
-          <a title={store.prev.title} href={`/tutorial/${store.prev.id}/`} class="nav-link prev">
+          <Link title={store.prev.title} href={`/tutorial/${store.prev.id}/`} class="nav-link prev">
             &lt; Previous
-          </a>
+          </Link>
         ) : null}
         {store.next ? (
-          <a title={store.next.title} href={`/tutorial/${store.next.id}/`} class="nav-link next">
+          <Link title={store.next.title} href={`/tutorial/${store.next.id}/`} class="nav-link next">
             Next &gt;
-          </a>
+          </Link>
         ) : null}
       </nav>
     </div>

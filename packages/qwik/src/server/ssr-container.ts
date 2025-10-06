@@ -380,6 +380,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
+  private $noScriptHere$ = 0;
+
   /** Renders opening tag for DOM element */
   openElement(
     elementName: string,
@@ -387,9 +389,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
-    if (this.qlInclude === QwikLoaderInclude.Inline && this.size > 30 * 1024) {
-      // We waited long enough, on slow connections the page is already partially visible
-      this.emitQwikLoaderInline();
+    if (this.qlInclude === QwikLoaderInclude.Inline) {
+      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024) {
+        // We waited long enough, on slow connections the page is already partially visible
+        this.emitQwikLoaderInline();
+      }
+      // keep track of noscript and template
+      else if (elementName === 'noscript' || elementName === 'template') {
+        this.$noScriptHere$++;
+      }
     }
 
     let innerHTML: string | undefined = undefined;
@@ -482,6 +490,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('>');
     }
     this.lastNode = null;
+    if (this.qlInclude === QwikLoaderInclude.Inline) {
+      // keep track of noscript and template
+      if (elementName === 'noscript' || elementName === 'template') {
+        this.$noScriptHere$--;
+      }
+    }
   }
 
   /** Writes opening data to vNodeData for fragment boundaries */

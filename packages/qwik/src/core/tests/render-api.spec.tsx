@@ -437,6 +437,43 @@ describe('render api', () => {
             '(window.qwikevents||(window.qwikevents=[]))'
           );
         });
+        it('should not render inside template', async () => {
+          const bigText = 'hello world '.repeat(3000); // ~30kB of text
+          const result = await renderToStringAndSetPlatform(
+            <div>
+              <Counter />
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <template>
+                        <div>{bigText}</div>
+                        {bigText}
+                      </template>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Before here is safe</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>,
+            {
+              containerTagName: 'div',
+              qwikLoader: 'inline',
+            }
+          );
+          const document = createDocument({ html: result.html });
+          expect(document.querySelectorAll('script[id=qwikloader]')).toHaveLength(1);
+          const notQwikLoaderScriptElement = document.body.firstChild?.lastChild
+            ?.previousSibling as HTMLElement;
+          expect(notQwikLoaderScriptElement?.id).not.toEqual('qwikloader');
+          // qwik events should still be the last script of body
+          const eventsScriptElement = document.body.lastChild as HTMLElement;
+          expect(eventsScriptElement.textContent).toContain(
+            '(window.qwikevents||(window.qwikevents=[]))'
+          );
+        });
       });
       it('should support never render', async () => {
         const result = await renderToStringAndSetPlatform(<Counter />, {

@@ -223,6 +223,8 @@ function isInTable(text: string): TagNesting {
     case 'tbody':
     case 'tfoot':
       return TagNesting.TABLE_BODY;
+    case 'script':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }
@@ -232,6 +234,8 @@ function isInTableBody(text: string): TagNesting {
   switch (text) {
     case 'tr':
       return TagNesting.TABLE_ROW;
+    case 'script':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }
@@ -242,6 +246,8 @@ function isInTableRow(text: string): TagNesting {
     case 'td':
     case 'th':
       return TagNesting.ANYTHING;
+    case 'script':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }
@@ -251,6 +257,8 @@ function isInTableColGroup(text: string): TagNesting {
   switch (text) {
     case 'col':
       return TagNesting.EMPTY;
+    case 'script':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }
@@ -262,6 +270,8 @@ function isInPicture(text: string): TagNesting {
       return TagNesting.EMPTY;
     case 'img':
       return TagNesting.EMPTY;
+    case 'script':
+      return TagNesting.TEXT;
     default:
       return TagNesting.NOT_ALLOWED;
   }
@@ -331,7 +341,6 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'ruby':
     case 's':
     case 'samp':
-    case 'script':
     case 'select':
     case 'slot':
     case 'small':
@@ -346,6 +355,7 @@ function isInPhrasing(text: string, allowInput: boolean): TagNesting {
     case 'video':
     case 'wbr':
       return allowInput ? TagNesting.PHRASING_ANY : TagNesting.PHRASING_INSIDE_INPUT;
+    case 'script':
     case 'style':
       return TagNesting.TEXT;
     case 'picture':

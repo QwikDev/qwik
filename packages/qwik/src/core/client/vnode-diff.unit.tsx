@@ -1,4 +1,4 @@
-import { Fragment, _fnSignal, _jsxSorted } from '@qwik.dev/core';
+import { Fragment, _fnSignal, _jsxSorted, component$ } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode } from './vnode';
@@ -8,6 +8,20 @@ import { createSignal } from '../reactive-primitives/signal-api';
 import { QError, qError } from '../shared/error/error';
 import { VNodeFlags } from './types';
 import type { VirtualVNode } from './vnode-impl';
+import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import {
+  _hasStoreEffects,
+  getStoreHandler,
+  getOrCreateStore,
+} from '../reactive-primitives/impl/store';
+import { StoreFlags } from '../reactive-primitives/types';
+import type { Scheduler } from '../shared/scheduler';
+import { ChoreType } from '../shared/util-chore-type';
+
+async function waitForDrain(scheduler: Scheduler) {
+  await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+}
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -431,6 +445,30 @@ describe('vNode-diff', () => {
       expect(b1).toBe(selectB1());
       expect(b2).toBe(selectB2());
     });
+
+    it('should remove or add keyed nodes', () => {
+      const { vNode, vParent, container } = vnode_fromJSX(
+        _jsxSorted(
+          'test',
+          {},
+          null,
+          [_jsxSorted('b', {}, null, '1', 0, '1'), _jsxSorted('b', {}, null, '2', 0, null)],
+          0,
+          'KA_6'
+        )
+      );
+      const test = _jsxSorted(
+        'test',
+        {},
+        null,
+        [_jsxSorted('b', {}, null, '2', 0, null), _jsxSorted('b', {}, null, '2', 0, '2')],
+        0,
+        'KA_6'
+      );
+      vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vNode).toMatchVDOM(test);
+    });
   });
   describe('fragments', () => {
     it('should not rerender signal wrapper fragment', async () => {
@@ -838,6 +876,362 @@ describe('vNode-diff', () => {
           vnode_applyJournal(container.$journal$);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="test"></span>);
+        });
+
+        describe('cleanup', () => {
+          it('should cleanup effects when signal attribute is replaced with non-signal', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const signal = createSignal('initial') as SignalImpl;
+            const test1 = _jsxSorted('span', { class: signal }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="initial"></span>);
+
+            // Verify signal has effects registered
+            expect(signal.$effects$).toBeDefined();
+            expect(signal.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace signal with regular string value
+            const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="static"></span>);
+
+            // Verify effects have been cleaned up
+            expect(signal.$effects$!.size).toBe(0);
+          });
+
+          it('should cleanup effects when signal attribute is replaced with another signal', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const signal1 = createSignal('first') as SignalImpl;
+            const test1 = _jsxSorted('span', { class: signal1 }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="first"></span>);
+
+            // Verify first signal has effects registered
+            expect(signal1.$effects$).toBeDefined();
+            expect(signal1.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace with another signal
+            const signal2 = createSignal('second') as SignalImpl;
+            const test2 = _jsxSorted('span', { class: signal2 }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="second"></span>);
+
+            // Verify first signal's effects have been cleaned up
+            expect(signal1.$effects$!.size).toBe(0);
+            // Verify second signal has effects registered
+            expect(signal2.$effects$).toBeDefined();
+            expect(signal2.$effects$!.size).toBeGreaterThan(0);
+          });
+
+          it('should cleanup effects when attribute is removed', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const signal = createSignal('test') as SignalImpl;
+            const test1 = _jsxSorted('span', { class: signal }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="test"></span>);
+
+            // Verify signal has effects registered
+            expect(signal.$effects$).toBeDefined();
+            expect(signal.$effects$!.size).toBeGreaterThan(0);
+
+            // Remove the attribute entirely
+            const test2 = _jsxSorted('span', {}, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span></span>);
+
+            // Verify effects have been cleaned up
+            expect(signal.$effects$!.size).toBe(0);
+          });
+        });
+
+        describe('wrapped cleanup', () => {
+          it('should cleanup effects when wrapped signal attribute is replaced with non-signal', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const inner = createSignal('initial') as SignalImpl;
+            const wrapped1 = _fnSignal(
+              () => inner.value,
+              [],
+              '() => inner.value'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="initial"></span>);
+
+            // Verify inner signal has effects registered via wrapped signal
+            expect(inner.$effects$).toBeDefined();
+            expect(inner.$effects$!.size).toBeGreaterThan(0);
+            // Verify wrapped signal has effects registered
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace wrapped signal with regular string value
+            const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="static"></span>);
+
+            // Verify inner signal's effects have been cleaned up
+            expect(inner.$effects$!.size).toBe(0);
+            // Verify wrapped signal's effects have been cleaned up
+            expect(wrapped1.$effects$!.size).toBe(0);
+          });
+
+          it('should cleanup effects when wrapped signal attribute is replaced with another wrapped signal', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const inner1 = createSignal('first') as SignalImpl;
+            const wrapped1 = _fnSignal(
+              () => inner1.value,
+              [],
+              '() => inner1.value'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="first"></span>);
+
+            // Verify first inner signal has effects registered
+            expect(inner1.$effects$).toBeDefined();
+            expect(inner1.$effects$!.size).toBeGreaterThan(0);
+            // Verify first wrapped signal has effects registered
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace with another wrapped signal using a different inner signal
+            const inner2 = createSignal('second') as SignalImpl;
+            const wrapped2 = _fnSignal(
+              () => inner2.value,
+              [],
+              '() => inner2.value'
+            ) as WrappedSignalImpl<any>;
+            const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="second"></span>);
+
+            // Verify first inner signal's effects have been cleaned up
+            expect(inner1.$effects$!.size).toBe(0);
+            // Verify first wrapped signal's effects have been cleaned up
+            expect(wrapped1.$effects$!.size).toBe(0);
+            // Verify second inner signal has effects registered
+            expect(inner2.$effects$).toBeDefined();
+            expect(inner2.$effects$!.size).toBeGreaterThan(0);
+            // Verify second wrapped signal has effects registered
+            expect(wrapped2.$effects$).toBeDefined();
+            expect(wrapped2.$effects$!.size).toBeGreaterThan(0);
+          });
+
+          it('should cleanup effects when wrapped signal attribute is removed', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const inner = createSignal('test') as SignalImpl;
+            const wrapped = _fnSignal(
+              () => inner.value,
+              [],
+              '() => inner.value'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="test"></span>);
+
+            // Verify inner signal has effects registered
+            expect(inner.$effects$).toBeDefined();
+            expect(inner.$effects$!.size).toBeGreaterThan(0);
+            // Verify wrapped signal has effects registered
+            expect(wrapped.$effects$).toBeDefined();
+            expect(wrapped.$effects$!.size).toBeGreaterThan(0);
+
+            // Remove the attribute entirely
+            const test2 = _jsxSorted('span', {}, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span></span>);
+
+            // Verify effects have been cleaned up
+            expect(inner.$effects$!.size).toBe(0);
+            expect(wrapped.$effects$!.size).toBe(0);
+          });
+        });
+
+        describe('store wrapped cleanup', () => {
+          it('should cleanup effects when store wrapped attribute is replaced with non-signal', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const store = getOrCreateStore({ cls: 'initial' }, StoreFlags.RECURSIVE, container);
+            const wrapped1 = _fnSignal(
+              () => store.cls,
+              [],
+              '() => store.cls'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="initial"></span>);
+
+            // Verify store has effects registered for the property via wrapped signal
+            expect(_hasStoreEffects(store as any, 'cls')).toBe(true);
+            // Verify wrapped signal has effects registered
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace wrapped signal with regular string value
+            const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="static"></span>);
+
+            // Verify store's effects have been cleaned up
+            expect(_hasStoreEffects(store, 'cls')).toBe(false);
+            // Verify wrapped signal's effects have been cleaned up
+            expect(wrapped1.$effects$!.size).toBe(0);
+          });
+
+          it('should cleanup effects when store wrapped attribute is replaced with another store wrapped attribute', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const store1 = getOrCreateStore({ cls: 'first' }, StoreFlags.RECURSIVE, container);
+            const wrapped1 = _fnSignal(
+              () => store1.cls,
+              [],
+              '() => store1.cls'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="first"></span>);
+
+            // Verify first store has effects registered and wrapped has effects
+            expect(_hasStoreEffects(store1 as any, 'cls')).toBe(true);
+            expect(wrapped1.$effects$).toBeDefined();
+            expect(wrapped1.$effects$!.size).toBeGreaterThan(0);
+
+            // Replace with another wrapped signal using a different store
+            const store2 = getOrCreateStore({ cls: 'second' }, StoreFlags.RECURSIVE, container);
+            const wrapped2 = _fnSignal(
+              () => store2.cls,
+              [],
+              '() => store2.cls'
+            ) as WrappedSignalImpl<any>;
+            const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span class="second"></span>);
+
+            // Verify first store/ wrapped effects have been cleaned up
+            expect(_hasStoreEffects(store1 as any, 'cls')).toBe(false);
+            expect(wrapped1.$effects$!.size).toBe(0);
+            // Verify second store/ wrapped have effects registered
+            expect(_hasStoreEffects(store2 as any, 'cls')).toBe(true);
+            expect(wrapped2.$effects$).toBeDefined();
+            expect(wrapped2.$effects$!.size).toBeGreaterThan(0);
+          });
+
+          it('should cleanup effects when store wrapped attribute is removed', () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
+            const store = getOrCreateStore({ cls: 'test' }, StoreFlags.RECURSIVE, container);
+            const wrapped = _fnSignal(
+              () => store.cls,
+              [],
+              '() => store.cls'
+            ) as WrappedSignalImpl<any>;
+            const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
+            vnode_diff(container, test1, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            const firstChild = vnode_getFirstChild(vParent);
+            expect(firstChild).toMatchVDOM(<span class="test"></span>);
+
+            // Verify store and wrapped have effects registered
+            expect(_hasStoreEffects(store as any, 'cls')).toBe(true);
+            expect(wrapped.$effects$).toBeDefined();
+            expect(wrapped.$effects$!.size).toBeGreaterThan(0);
+
+            // Remove the attribute entirely
+            const test2 = _jsxSorted('span', {}, null, [], 0, null);
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            vnode_applyJournal(container.$journal$);
+            expect(firstChild).toMatchVDOM(<span></span>);
+
+            // Verify effects have been cleaned up
+            expect(_hasStoreEffects(store as any, 'cls')).toBe(false);
+            expect(wrapped.$effects$!.size).toBe(0);
+          });
+        });
+
+        describe('component props differ subscriptions', () => {
+          it('should not create duplicate subscription for wrapped signal prop when props differ', async () => {
+            const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
+
+            const inner = createSignal('cls') as SignalImpl<string>;
+            const wrapped = _fnSignal(
+              () => inner.value,
+              [],
+              '() => inner.value'
+            ) as WrappedSignalImpl<any>;
+
+            const Child = component$((props: any) => {
+              return <span class={props.cls.value}></span>;
+            });
+
+            // Initial render with wrapped signal prop
+            const test1 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped, foo: 1 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            vnode_diff(container, test1, vParent, null);
+            await waitForDrain(container.$scheduler$);
+            vnode_applyJournal(container.$journal$);
+
+            // Ensure one subscription exists for both wrapped and inner
+            expect(wrapped.$effects$).not.toBeNull();
+            const wrappedEffectsAfterFirst = wrapped.$effects$!.size;
+            expect(wrappedEffectsAfterFirst).toBeGreaterThan(0);
+            expect(inner.$effects$).not.toBeNull();
+            const innerEffectsAfterFirst = inner.$effects$!.size;
+            expect(innerEffectsAfterFirst).toBeGreaterThan(0);
+
+            // Update unrelated prop to trigger propsDiffer without touching wrapped signal prop
+            const test2 = _jsxSorted(
+              Child as unknown as any,
+              null,
+              { cls: wrapped, foo: 2 } as any,
+              null,
+              3,
+              null
+            ) as any;
+            container.$journal$ = [];
+            vnode_diff(container, test2, vParent, null);
+            await waitForDrain(container.$scheduler$);
+            vnode_applyJournal(container.$journal$);
+
+            // The number of effects should not increase (no duplicate subscriptions)
+            expect(wrapped.$effects$!.size).toBe(wrappedEffectsAfterFirst);
+            expect(inner.$effects$!.size).toBe(innerEffectsAfterFirst);
+          });
         });
       });
 

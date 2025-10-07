@@ -13,6 +13,7 @@ import {
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 import { ChoreType } from '../../shared/util-chore-type';
+import type { WrappedSignalImpl } from './wrapped-signal-impl';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -23,8 +24,8 @@ export class SignalImpl<T = any> implements Signal<T> {
 
   /** Store a list of effects which are dependent on this signal. */
   $effects$: null | Set<EffectSubscription> = null;
-
   $container$: Container | null = null;
+  $wrappedSignal$: WrappedSignalImpl<T> | null = null;
 
   constructor(container: Container | null, value: T) {
     this.$container$ = container;

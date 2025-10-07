@@ -1,0 +1,142 @@
+# Core
+
+In order to be super fast at load time Qwik only load the framework itself (let's call it "core") when it needs it.
+If you want to squeeze the last bit of loadtime performance, you can delay its execution until you really need it.
+
+⚠️ Delaying core execution should **not** affect your UX or devX, this is an advance performance trick ⚠️
+
+## useVisibleTask$
+
+`useVisibleTask$` will **always** execute core before it's callback is called.
+
+```jsx
+// Requires core when component is visible in the viewport
+useVisibleTask$(() => {
+  console.log('Hello core');
+});
+
+// Requires core on requestIdleCallback
+useVisibleTask$(
+  () => {
+    console.log('Hello core');
+  },
+  {
+    strategy: 'document-idle',
+  }
+);
+```
+
+In **some** cases you can replace `useVisibleTask$` with either `useOn` or `useTask$`
+
+## useOn
+
+Replace `useVisibleTask$` with `useOn('qvisible')` / `useOn('qidle')` if
+
+- You only need to trigger a callback on init
+- The code must run on the client
+
+`useOn`, `useOnDocument` & `useOnWindow` execute core if they use a variable from the component scope :
+
+```jsx
+import { libId } from 'library';
+const globalId = 'global-id';
+const Component = component$(() => {
+  const ref = useSignal();
+  const id = useId();
+  // Executes core at load time
+  useOn('qidle', $(() => console.log(ref)));
+  // Executes core at load time
+  useOn('qidle', $(() => console.log(id)));
+  // Do not execute core at load time
+  useOn('qidle', $(() => console.log(globalId)));
+  // Do not execute core at load time
+  useOn('qidle', $(() => console.log(libId)));
+  // Do not execute core at load time
+  useOn('qidle', $(() => console.log('id')));
+
+  return (
+    <p ref={ref}></p>
+    <p id={id}></p>
+    <p id={globalId}></p>
+    <p id={libId}></p>
+    <p id="id"></p>
+  )
+})
+```
+
+## useTask$
+
+Replace `useVisibleTask$` with `useTask$` if
+
+- You need to listen on state changes
+- The code can execute on the server
+
+```jsx
+const Component = component$(() => {
+  const search = useSignal();
+  // Do not execute core at load time
+  useTask$(({ track }) => {
+    track(search);
+    console.log(search);
+  });
+  return <input bind:value={search} type="search" />;
+});
+```
+
+## useOn + useTask$
+
+A classic usecase of `useVisibleTask$` is to start listening on browser specific event:
+
+```jsx
+const isMobile = useSignal(false);
+useVisibleTask$(({ cleanup }) => {
+  const query = window.matchMedia('(max-width: 400px)');
+  const handler = (event) => {
+    isMobile.value = event.matches;
+  };
+  query.addEventListener('change', handler);
+  cleanup(() => query.removeEventListener('change', handler));
+});
+```
+
+In this case we actually need core when the handler is triggered. Here is how to delay core execution :
+
+```jsx
+const isMobile = useSignal(false);
+// On idle, start listening on the event
+useOn(
+  'qidle',
+  $(() => {
+    const query = window.matchMedia('(max-width: 400px)');
+    // Store mediaQuery & handler to cleanup later
+    globalThis['media-query:(max-width: 400px)'] = {
+      query,
+      handler: (event) => {
+        // Forward the event to the document
+        const copy = new e.constructor('media-query:(max-width: 400px)', event);
+        document.dispatchEvent(copy);
+      },
+    };
+    query.addEventListener('change', globalThis['media-query:(max-width: 400px)'].handler);
+  })
+);
+
+// useOnDocument execute core when it actually needs it
+useOnDocument(
+  'media-query:(max-width: 400px)',
+  $((event) => {
+    isMobile.value = event.matches;
+  })
+);
+
+// useTask$ is used to cleanup event listeners
+useTas$(({ cleanup }) => {
+  cleanup(() => {
+    if (!globalThis['media-query:(max-width: 400px)']) return;
+    const { query, handler } = globalThis['media-query:(max-width: 400px)'];
+    query.removeEventListener('(max-width: 400px)', handler);
+  });
+});
+```
+
+As we can see, this is a LOT of work, and a not a great dev experience !

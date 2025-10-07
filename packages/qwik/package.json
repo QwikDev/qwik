@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",
-    "@croct/json5-parser": "0.2.0",
+    "@croct/json5-parser": "0.2.1",
     "domino": "2.1.6",
     "ignore": "5.3.1",
     "image-size": "1.2.1",

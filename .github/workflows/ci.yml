@@ -261,8 +261,7 @@ jobs:
           - host: macos-latest
             target: aarch64-apple-darwin
 
-          # Note: 2025 image breaks rollup
-          - host: windows-2022
+          - host: windows-latest
             target: x86_64-pc-windows-msvc
 
     name: Build optimizer ${{ matrix.settings.target }}
@@ -686,8 +685,8 @@ jobs:
           - host: macos-latest
             browser: webkit
           # flaky. Updating node version or sharp/sqlite3 related deps might help.
-          # - host: windows-2022
-          #   browser: chromium
+          - host: windows-latest
+            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -733,7 +732,7 @@ jobs:
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: Validate Create Qwik Cli
-        if: matrix.settings.host != 'windows-2022'
+        if: matrix.settings.host != 'windows-latest'
         run: pnpm cli.validate
 
   ############ E2E CLI TEST ############
@@ -751,7 +750,7 @@ jobs:
         settings:
           - host: ubuntu-latest
           - host: macos-latest
-          - host: windows-2022
+          - host: windows-latest
 
     runs-on: ${{ matrix.settings.host }}
 

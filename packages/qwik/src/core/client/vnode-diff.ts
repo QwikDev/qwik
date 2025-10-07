@@ -79,7 +79,7 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import { executeComponent } from '../shared/component-execution';
 import { isSlotProp } from '../shared/utils/prop';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects } from '../reactive-primitives/cleanup';
+import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { serializeAttribute } from '../shared/utils/styles';
 import { QError, qError } from '../shared/error/error';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -811,6 +811,12 @@ export const vnode_diff = (
         return;
       }
 
+      // Clear current effect subscription if it exists
+      const currentEffect = vnode?.[_EFFECT_BACK_REF]?.get(key);
+      if (currentEffect) {
+        clearEffectSubscription(container, currentEffect);
+      }
+
       if (key === 'ref') {
         const element = vnode.element;
         if (isSignal(value)) {
@@ -834,6 +840,7 @@ export const vnode_diff = (
         if (currentSignal === unwrappedSignal) {
           return;
         }
+        clearAllEffects(container, vnode);
         value = trackSignalAndAssignHost(
           unwrappedSignal,
           vnode,
@@ -1185,7 +1192,15 @@ export const vnode_diff = (
         );
         let propsAreDifferent = false;
         if (!shouldRender) {
-          propsAreDifferent = propsDiffer(jsxProps, vNodeProps);
+          propsAreDifferent =
+            propsDiffer(
+              (jsxProps as PropsProxy)[_CONST_PROPS],
+              (vNodeProps as PropsProxy)?.[_CONST_PROPS]
+            ) ||
+            propsDiffer(
+              (jsxProps as PropsProxy)[_VAR_PROPS],
+              (vNodeProps as PropsProxy)?.[_VAR_PROPS]
+            );
           shouldRender = shouldRender || propsAreDifferent;
         }
 
@@ -1380,7 +1395,10 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
  */
 function Projection() {}
 
-function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolean {
+function propsDiffer(
+  src: Record<string, any> | null | undefined,
+  dst: Record<string, any> | null | undefined
+): boolean {
   const srcEmpty = isPropsEmpty(src);
   const dstEmpty = isPropsEmpty(dst);
   if (srcEmpty && dstEmpty) {
@@ -1390,22 +1408,22 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     return true;
   }
 
-  const srcKeys = Object.keys(src);
-  const dstKeys = Object.keys(dst);
+  const srcKeys = Object.keys(src!);
+  const dstKeys = Object.keys(dst!);
 
   let srcLen = srcKeys.length;
   let dstLen = dstKeys.length;
 
-  if ('children' in src) {
+  if ('children' in src!) {
     srcLen--;
   }
-  if (QBackRefs in src) {
+  if (QBackRefs in src!) {
     srcLen--;
   }
-  if ('children' in dst) {
+  if ('children' in dst!) {
     dstLen--;
   }
-  if (QBackRefs in dst) {
+  if (QBackRefs in dst!) {
     dstLen--;
   }
 
@@ -1417,7 +1435,7 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
     if (key === 'children' || key === QBackRefs) {
       continue;
     }
-    if (!Object.prototype.hasOwnProperty.call(dst, key) || src[key] !== dst[key]) {
+    if (!Object.prototype.hasOwnProperty.call(dst, key) || src![key] !== dst![key]) {
       return true;
     }
   }
@@ -1425,7 +1443,7 @@ function propsDiffer(src: Record<string, any>, dst: Record<string, any>): boolea
   return false;
 }
 
-function isPropsEmpty(props: Record<string, any>): boolean {
+function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {
   if (!props) {
     return true;
   }

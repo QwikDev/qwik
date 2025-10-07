@@ -1,6 +1,7 @@
 # Core
 
 In order to be super fast at load time Qwik only load the framework itself (let's call it "core") when it needs it.
+
 If you want to squeeze the last bit of loadtime performance, you can delay its execution until you really need it.
 
 ⚠️ Delaying core execution should **not** affect your UX or devX, this is an advance performance trick ⚠️
@@ -17,12 +18,8 @@ useVisibleTask$(() => {
 
 // Requires core on requestIdleCallback
 useVisibleTask$(
-  () => {
-    console.log('Hello core');
-  },
-  {
-    strategy: 'document-idle',
-  }
+  () => console.log('Hello core'),
+  { strategy: 'document-idle' }
 );
 ```
 
@@ -32,7 +29,7 @@ In **some** cases you can replace `useVisibleTask$` with either `useOn` or `useT
 
 Replace `useVisibleTask$` with `useOn('qvisible')` / `useOn('qidle')` if
 
-- You only need to trigger a callback on init
+- You only need to trigger a callback once
 - The code must run on the client
 
 `useOn`, `useOnDocument` & `useOnWindow` execute core if they use a variable from the component scope :
@@ -43,6 +40,7 @@ const globalId = 'global-id';
 const Component = component$(() => {
   const ref = useSignal();
   const id = useId();
+
   // Executes core at load time
   useOn('qidle', $(() => console.log(ref)));
   // Executes core at load time
@@ -139,4 +137,4 @@ useTas$(({ cleanup }) => {
 });
 ```
 
-As we can see, this is a LOT of work, and a not a great dev experience !
+As we can see, this is a LOT of work, and it's not a great dev experience !

@@ -26,20 +26,24 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
     return;
   }
   for (const [, effect] of effects) {
-    const backRefs = effect[EffectSubscriptionProp.BACK_REF];
-    if (!backRefs) {
-      return;
-    }
-    for (const producer of backRefs) {
-      if (producer instanceof SignalImpl) {
-        clearSignal(container, producer, effect);
-      } else if (producer instanceof AsyncComputedSignalImpl) {
-        clearAsyncComputedSignal(producer, effect);
-      } else if (container.$storeProxyMap$.has(producer)) {
-        const target = container.$storeProxyMap$.get(producer)!;
-        const storeHandler = getStoreHandler(target)!;
-        clearStore(storeHandler, effect);
-      }
+    clearEffectSubscription(container, effect);
+  }
+}
+
+export function clearEffectSubscription(container: Container, effect: EffectSubscription) {
+  const backRefs = effect[EffectSubscriptionProp.BACK_REF];
+  if (!backRefs) {
+    return;
+  }
+  for (const producer of backRefs) {
+    if (producer instanceof SignalImpl) {
+      clearSignal(container, producer, effect);
+    } else if (producer instanceof AsyncComputedSignalImpl) {
+      clearAsyncComputedSignal(producer, effect);
+    } else if (container.$storeProxyMap$.has(producer)) {
+      const target = container.$storeProxyMap$.get(producer)!;
+      const storeHandler = getStoreHandler(target)!;
+      clearStore(storeHandler, effect);
     }
   }
 }

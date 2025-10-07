@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "serve": "latest",
+    "vite-plugin-static-copy": "latest",
     "vite": "latest"
   },
   "scripts": {

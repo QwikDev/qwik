@@ -132,10 +132,7 @@ export function Items({
                   },
                 ]}
               >
-                <>
-                  {/* {renderUpdated(item.href!, markdownItems)} */}
-                  {item.text}
-                </>
+                {item.text}
               </Link>
             )}
           </li>

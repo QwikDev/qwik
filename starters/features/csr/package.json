@@ -1,7 +1,7 @@
 {
-  "description": "Use Qwik in browser-only mode",
+  "description": "Use Qwik in SPA mode (client side rendering)",
   "__qwik__": {
-    "displayName": "Integration: Qwik in browser-only mode",
+    "displayName": "Integration: Qwik in SPA mode (client side rendering)",
     "priority": -10,
     "viteConfig": {},
     "docs": [
@@ -16,14 +16,13 @@
       ]
     }
   },
-  "dependencies": {
-    "@qwik.dev/core": "workspace:*"
-  },
   "devDependencies": {
+    "serve": "latest",
     "vite": "latest"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite build && serve dist"
   }
 }

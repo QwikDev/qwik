@@ -213,7 +213,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -282,7 +282,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -398,7 +398,7 @@ jobs:
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -537,7 +537,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -574,7 +574,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -634,7 +634,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -697,7 +697,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -761,7 +761,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -795,7 +795,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -875,7 +875,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

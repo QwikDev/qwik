@@ -128,7 +128,7 @@ useOnDocument(
 );
 
 // useTask$ is used to cleanup event listeners
-useTas$(({ cleanup }) => {
+useTask$(({ cleanup }) => {
   cleanup(() => {
     if (!globalThis['media-query:(max-width: 400px)']) return;
     const { query, handler } = globalThis['media-query:(max-width: 400px)'];

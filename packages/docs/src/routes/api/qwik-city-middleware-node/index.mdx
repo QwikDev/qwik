@@ -131,61 +131,6 @@ true
 
 </td><td>
 
-
-<tr><td colspan="4">
-
-### getOrigin — recommended usage and examples
-
-If your application is running behind a proxy (for example Cloud Run, API Gateway, or a load balancer) or in an environment where the public origin is known ahead of time, provide a `getOrigin` function to reliably reconstruct the origin (scheme + host + optional port). This is used to resolve relative URLs and to validate the request origin when performing CSRF checks.
-
-By default the middleware will use the `ORIGIN` environment variable when set. If `ORIGIN` is not present, the middleware will attempt to derive the origin from the incoming request (not recommended for production).
-
-Examples
-
-1) Simple static origin from environment (recommended for production if you know the origin):
-
-```ts
-// Provide ORIGIN=https://example.com in your environment
-createQwikCity({
-  origin: process.env.ORIGIN,
-});
-```
-
-2) Compute origin using forwarded headers (common when behind proxies). Use the headers your proxy provides, e.g. `X-Forwarded-Proto` and `X-Forwarded-Host`:
-
-```ts
-createQwikCity({
-  getOrigin(req) {
-    const proto = req.headers['x-forwarded-proto'] as string | undefined;
-    const host = req.headers['x-forwarded-host'] as string | undefined || (req.headers.host as string | undefined);
-    if (!host) return null;
-    return `${proto ?? 'https'}://${host}`;
-  }
-});
-```
-
-3) Example: Cloud Run adapter (reconstructs the origin from forwarded headers)
-
-```ts
-// starters/adapters/cloud-run entry (illustrative)
-createQwikCity({
-  getOrigin(req) {
-    // Cloud Run sets X-Forwarded-Proto and Host headers
-    const proto = req.headers['x-forwarded-proto'] as string | undefined;
-    const host = (req.headers['host'] || req.headers['x-forwarded-host']) as string | undefined;
-    if (!host) return null;
-    return `${proto ?? 'https'}://${host}`;
-  }
-});
-```
-
-Notes and best practices
-
-- Prefer a static `ORIGIN` environment variable for production whenever possible. It is the most reliable and secure option.
-- When relying on forwarded headers, ensure your proxy/ALB sets them and consider locking the trusted proxy list so attackers cannot spoof them.
-- Return `null` from `getOrigin` when the origin cannot be determined; the middleware will fall back to deriving it from the request.
-
-</td></tr>
 _(Optional)_
 
 </td></tr>

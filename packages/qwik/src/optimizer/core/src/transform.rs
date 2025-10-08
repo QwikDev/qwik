@@ -314,7 +314,7 @@ impl<'a> QwikTransform<'a> {
 		}
 		display_name = escape_sym(&display_name);
 		let first_char = display_name.chars().next();
-		if first_char.map_or(false, |c| c.is_ascii_digit()) {
+		if first_char.is_some_and(|c| c.is_ascii_digit()) {
 			display_name = format!("_{}", display_name);
 		}
 		let index = match self.segment_names.get_mut(&display_name) {
@@ -1832,11 +1832,12 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_var_declarator(&mut self, node: ast::VarDeclarator) -> ast::VarDeclarator {
-		let mut stacked = false;
-		if let ast::Pat::Ident(ref ident) = node.name {
+		let stacked = if let ast::Pat::Ident(ref ident) = node.name {
 			self.stack_ctxt.push(ident.id.sym.to_string());
-			stacked = true;
-		}
+			true
+		} else {
+			false
+		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
@@ -2076,12 +2077,12 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_jsx_element(&mut self, node: ast::JSXElement) -> ast::JSXElement {
-		let mut stacked = false;
-
-		if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
+		let stacked = if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
 			self.stack_ctxt.push(ident.sym.to_string());
-			stacked = true;
-		}
+			true
+		} else {
+			false
+		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
@@ -2373,7 +2374,7 @@ fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>
 }
 
 fn get_canonical_filename(display_name: &JsWord, symbol_name: &JsWord) -> JsWord {
-	let hash = symbol_name.split('_').last().unwrap();
+	let hash = symbol_name.split('_').next_back().unwrap();
 	JsWord::from(format!("{}_{}", display_name, hash))
 }
 

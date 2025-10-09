@@ -811,12 +811,6 @@ export const vnode_diff = (
         return;
       }
 
-      // Clear current effect subscription if it exists
-      const currentEffect = vnode?.[_EFFECT_BACK_REF]?.get(key);
-      if (currentEffect) {
-        clearEffectSubscription(container, currentEffect);
-      }
-
       if (key === 'ref') {
         const element = vnode.element;
         if (isSignal(value)) {
@@ -832,15 +826,19 @@ export const vnode_diff = (
         }
       }
 
+      const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
       if (isSignal(value)) {
         const unwrappedSignal =
           value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-        const currentSignal =
-          vnode?.[_EFFECT_BACK_REF]?.get(key)?.[EffectSubscriptionProp.CONSUMER];
+        const currentSignal = currentEffect?.[EffectSubscriptionProp.CONSUMER];
         if (currentSignal === unwrappedSignal) {
           return;
         }
-        clearAllEffects(container, vnode);
+        if (currentEffect) {
+          // Clear current effect subscription if it exists
+          // Only if we want to track the signal again
+          clearEffectSubscription(container, currentEffect);
+        }
         value = trackSignalAndAssignHost(
           unwrappedSignal,
           vnode,
@@ -848,6 +846,13 @@ export const vnode_diff = (
           container,
           NON_CONST_SUBSCRIPTION_DATA
         );
+      } else {
+        if (currentEffect) {
+          // Clear current effect subscription if it exists
+          // and the value is not a signal
+          // It means that the previous value was a signal and we need to clear the effect subscription
+          clearEffectSubscription(container, currentEffect);
+        }
       }
 
       vnode.setAttr(

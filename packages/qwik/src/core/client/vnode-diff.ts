@@ -1,33 +1,34 @@
 import { isDev } from '@qwik.dev/core/build';
+import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
+import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
+import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
+import { QError, qError } from '../shared/error/error';
+import {
+  JSXNodeImpl,
+  directGetPropsProxyProp,
+  isJSXNode,
+  type PropsProxy,
+} from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
-import { type PropsProxy } from '../shared/jsx/jsx-node';
-import { JSXNodeImpl, directGetPropsProxyProp, isJSXNode } from '../shared/jsx/jsx-node';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignalAndAssignHost } from '../use/use-core';
-import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
-import { EMPTY_OBJ } from '../shared/utils/flyweight';
-import {
-  ELEMENT_KEY,
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  OnRenderProp,
-  QContainerAttr,
-  QDefaultSlot,
-  QSlot,
-  QBackRefs,
-  QTemplate,
-  Q_PREFIX,
-  dangerouslySetInnerHTML,
-} from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
-import { isArray, type ValueOrPromise } from '../shared/utils/types';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { isSyncQrl } from '../shared/qrl/qrl-utils';
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
+import { escapeHTML } from '../shared/utils/character-escaping';
+import { _OWNER } from '../shared/utils/constants';
 import {
   getEventNameFromJsxEvent,
   getEventNameScopeFromJsxEvent,
@@ -35,12 +36,30 @@ import {
   isJsxPropertyAnEventName,
   jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
-import { ChoreType } from '../shared/util-chore-type';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import {
+  ELEMENT_KEY,
+  ELEMENT_PROPS,
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QBackRefs,
+  QContainerAttr,
+  QDefaultSlot,
+  QSlot,
+  QTemplate,
+  Q_PREFIX,
+  dangerouslySetInnerHTML,
+} from '../shared/utils/markers';
+import { isPromise } from '../shared/utils/promises';
+import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
-import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { serializeAttribute } from '../shared/utils/styles';
+import { isArray, type ValueOrPromise } from '../shared/utils/types';
+import { trackSignalAndAssignHost } from '../use/use-core';
+import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import type { DomContainer } from './dom-container';
 import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
+import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import {
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
@@ -66,25 +85,8 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
-import { mapApp_findIndx } from './util-mapArray';
-import { mapArray_set } from './util-mapArray';
+import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
-import { isSignal } from '../reactive-primitives/utils';
-import type { Signal } from '../reactive-primitives/signal.public';
-import { executeComponent } from '../shared/component-execution';
-import { isSlotProp } from '../shared/utils/prop';
-import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
-import { serializeAttribute } from '../shared/utils/styles';
-import { QError, qError } from '../shared/error/error';
-import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
-import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
-import { isSyncQrl } from '../shared/qrl/qrl-utils';
-import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
-import { _OWNER } from '../shared/utils/constants';
 
 export const vnode_diff = (
   container: ClientContainer,

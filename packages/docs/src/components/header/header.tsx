@@ -6,6 +6,7 @@ import {
   useVisibleTask$,
   type PropsOf,
   useSignal,
+  $,
 } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
@@ -55,6 +56,10 @@ export const Header = component$(() => {
     });
   });
 
+  const closeHeaderMenuOpen = $(() => {
+    globalStore.headerMenuOpen = false;
+  });
+
   return (
     <>
       <header
@@ -96,12 +101,20 @@ export const Header = component$(() => {
           </button>
           <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
             <li>
-              <Link href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
+              <Link
+                href="/docs/"
+                class={{ active: pathname.startsWith('/docs') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Docs</span>
               </Link>
             </li>
             <li>
-              <Link href="/ecosystem/" class={{ active: pathname.startsWith('/ecosystem') }}>
+              <Link
+                href="/ecosystem/"
+                class={{ active: pathname.startsWith('/ecosystem') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Ecosystem</span>
               </Link>
             </li>
@@ -129,6 +142,7 @@ export const Header = component$(() => {
                 href="/blog/"
                 class={{ active: pathname.startsWith('/blog') }}
                 aria-label="Qwik blog"
+                onClick$={closeHeaderMenuOpen}
               >
                 <span>Blog</span>
               </Link>

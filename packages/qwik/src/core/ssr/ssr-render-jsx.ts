@@ -344,6 +344,9 @@ export function toSsrAttrs(
   const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
   const handleProp = (key: string, value: unknown) => {
+    if (value == null) {
+      return;
+    }
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {
         /**

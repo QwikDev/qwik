@@ -9,6 +9,7 @@ import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
+import { JSXNode as JSXNode_2 } from './types/jsx-node';
 import { QRL as QRL_2 } from './qrl.public';
 
 // @public
@@ -447,24 +448,22 @@ export function _isStringifiable(value: unknown): value is _Stringifiable;
 // @internal (undocumented)
 export const _isTask: (value: any) => value is Task;
 
+// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
+//
 // @public
-const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>;
-export { jsx }
-export { jsx as jsxs }
+export const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @internal (undocumented)
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal @deprecated (undocumented)
-export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
+export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode_2<any>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
 
-// Warning: (ae-forgotten-export) The symbol "JsxDevOpts" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const jsxDEV: <T extends string | FunctionComponent<Props>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>;
+// @public
+export const jsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @public
 export interface JSXNode<T extends string | FunctionComponent | unknown = unknown> {
@@ -484,28 +483,34 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
 //
 // @internal
 export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown> extends JSXNode<T> {
-    // (undocumented)
-    constProps: Record<any, unknown> | null;
-    // (undocumented)
-    flags: number;
-    // (undocumented)
-    varProps: Record<any, unknown>;
+    children: JSXChildren;
+    constProps: Props | null;
+    dev?: DevJSX & {
+        stack: string | undefined;
+    };
+    key: string | null;
+    toSort: boolean;
+    type: T;
+    varProps: Props;
 }
 
 // @public
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal @deprecated (undocumented)
-export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode<any>;
+export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode_2<any>;
 
 // @internal @deprecated (undocumented)
-export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
+export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode_2<any>;
+
+// @public
+export const jsxs: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>;
 
 // @internal
 export const _jsxSorted: <T>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null, flags: number, key: string | number | null | undefined, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @internal
-export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
+export const _jsxSplit: <T extends string | FunctionComponent<any>>(type: T, varProps: Props | null, constProps: Props | null, children: JSXChildren | null | undefined, flags: number, key?: string | number | null, dev?: DevJSX) => JSXNodeInternal<T>;
 
 // @public (undocumented)
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;

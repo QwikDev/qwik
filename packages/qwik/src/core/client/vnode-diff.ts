@@ -745,14 +745,14 @@ export const vnode_diff = (
       for (const key of keys) {
         const value = props[key];
         if (value != null) {
-          mapArray_set(jsxAttrs, key, value, 0);
+          jsxAttrs.push(key, value as any);
         }
       }
     } else {
       for (const key in props) {
         const value = props[key];
         if (value != null) {
-          mapArray_set(jsxAttrs, key, value, 0);
+          jsxAttrs.push(key, value as any);
         }
       }
     }

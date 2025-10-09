@@ -8,7 +8,7 @@ If you want to squeeze the last bit of loadtime performance, you can delay its e
 
 ## useVisibleTask$
 
-`useVisibleTask$` will **always** execute core before it's callback is called.
+`useVisibleTask$` will **always** execute core before its callback is called.
 
 ```jsx
 // Requires core when component is visible in the viewport
@@ -45,11 +45,11 @@ const Component = component$(() => {
   useOn('qidle', $(() => console.log(ref)));
   // Executes core at load time
   useOn('qidle', $(() => console.log(id)));
-  // Do not execute core at load time
+  // Does not execute core at load time
   useOn('qidle', $(() => console.log(globalId)));
-  // Do not execute core at load time
+  // Does not execute core at load time
   useOn('qidle', $(() => console.log(libId)));
-  // Do not execute core at load time
+  // Does not execute core at load time
   useOn('qidle', $(() => console.log('id')));
 
   return (
@@ -72,10 +72,10 @@ Replace `useVisibleTask$` with `useTask$` if
 ```jsx
 const Component = component$(() => {
   const search = useSignal();
-  // Do not execute core at load time
+  // Does not execute until `search` changes
   useTask$(({ track }) => {
     track(search);
-    console.log(search);
+    console.log(search.value);
   });
   return <input bind:value={search} type="search" />;
 });
@@ -104,18 +104,18 @@ const isMobile = useSignal(false);
 // On idle, start listening on the event
 useOn(
   'qidle',
-  $(() => {
+  sync$(() => {
     const query = window.matchMedia('(max-width: 400px)');
-    // Store mediaQuery & handler to cleanup later
-    globalThis['media-query:(max-width: 400px)'] = {
-      query,
-      handler: (event) => {
-        // Forward the event to the document
-        const copy = new e.constructor('media-query:(max-width: 400px)', event);
-        document.dispatchEvent(copy);
-      },
+    const handler = (event) => {
+      // Forward the event to the document
+      const copy = new event.constructor('media-query:(max-width: 400px)', event);
+      document.dispatchEvent(copy);
     };
-    query.addEventListener('change', globalThis['media-query:(max-width: 400px)'].handler);
+    // Store mediaQuery & handler to cleanup later
+    document['cleanup:media-query:(max-width: 400px)'] = () => {
+      query.removeEventListener('change', handler)
+    };
+    query.addEventListener('change', handler);
   })
 );
 
@@ -130,9 +130,9 @@ useOnDocument(
 // useTask$ is used to cleanup event listeners
 useTask$(({ cleanup }) => {
   cleanup(() => {
-    if (!globalThis['media-query:(max-width: 400px)']) return;
-    const { query, handler } = globalThis['media-query:(max-width: 400px)'];
-    query.removeEventListener('(max-width: 400px)', handler);
+    if (!document['cleanup:media-query:(max-width: 400px)']) return;
+    document['cleanup:media-query:(max-width: 400px)']();
+    delete document['cleanup:media-query:(max-width: 400px)'];
   });
 });
 ```

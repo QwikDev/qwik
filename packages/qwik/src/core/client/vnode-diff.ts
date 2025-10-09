@@ -812,7 +812,7 @@ export const vnode_diff = (
       }
 
       // Clear current effect subscription if it exists
-      const currentEffect = vnode?.[_EFFECT_BACK_REF]?.get(key);
+      const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
       if (currentEffect) {
         clearEffectSubscription(container, currentEffect);
       }
@@ -835,12 +835,10 @@ export const vnode_diff = (
       if (isSignal(value)) {
         const unwrappedSignal =
           value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-        const currentSignal =
-          vnode?.[_EFFECT_BACK_REF]?.get(key)?.[EffectSubscriptionProp.CONSUMER];
+        const currentSignal = vnode[_EFFECT_BACK_REF]?.get(key)?.[EffectSubscriptionProp.CONSUMER];
         if (currentSignal === unwrappedSignal) {
           return;
         }
-        clearAllEffects(container, vnode);
         value = trackSignalAndAssignHost(
           unwrappedSignal,
           vnode,

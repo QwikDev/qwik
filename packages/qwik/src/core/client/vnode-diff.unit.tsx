@@ -10,11 +10,7 @@ import { VNodeFlags } from './types';
 import type { VirtualVNode } from './vnode-impl';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import {
-  _hasStoreEffects,
-  getStoreHandler,
-  getOrCreateStore,
-} from '../reactive-primitives/impl/store';
+import { _hasStoreEffects, getOrCreateStore } from '../reactive-primitives/impl/store';
 import { StoreFlags } from '../reactive-primitives/types';
 import type { Scheduler } from '../shared/scheduler';
 import { ChoreType } from '../shared/util-chore-type';

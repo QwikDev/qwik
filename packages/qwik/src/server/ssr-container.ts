@@ -962,9 +962,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs = ['async', true, 'type', 'module'];
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
+      // TODO fix qwikloader so it handles qvisible added after init
+      // const scriptAttrs = ['async', true, 'type', 'module'];
+      const scriptAttrs = [];
+      const nonce = this.renderOptions.serverData?.nonce;
+      if (nonce) {
+        scriptAttrs.push('nonce', nonce);
       }
       this.openElement('script', scriptAttrs);
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);

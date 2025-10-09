@@ -1,23 +1,19 @@
 import { Fragment, _fnSignal, _jsxSorted, component$ } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
+import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { _hasStoreEffects, getOrCreateStore } from '../reactive-primitives/impl/store';
+import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { createSignal } from '../reactive-primitives/signal-api';
+import { StoreFlags } from '../reactive-primitives/types';
+import { QError, qError } from '../shared/error/error';
+import type { Scheduler } from '../shared/scheduler';
+import type { QElement } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
+import { VNodeFlags } from './types';
 import { vnode_applyJournal, vnode_getFirstChild, vnode_getNode } from './vnode';
 import { vnode_diff } from './vnode-diff';
-import type { QElement } from '../shared/types';
-import { createSignal } from '../reactive-primitives/signal-api';
-import { QError, qError } from '../shared/error/error';
-import { VNodeFlags } from './types';
 import type { VirtualVNode } from './vnode-impl';
-import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import {
-  _hasStoreEffects,
-  getStoreHandler,
-  getOrCreateStore,
-} from '../reactive-primitives/impl/store';
-import { StoreFlags } from '../reactive-primitives/types';
-import type { Scheduler } from '../shared/scheduler';
-import { ChoreType } from '../shared/util-chore-type';
 
 async function waitForDrain(scheduler: Scheduler) {
   await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;

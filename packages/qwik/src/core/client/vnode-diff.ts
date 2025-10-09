@@ -84,6 +84,7 @@ import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-im
 import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
 import { isSyncQrl } from '../shared/qrl/qrl-utils';
 import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
+import { _OWNER } from '../shared/utils/constants';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -1218,6 +1219,7 @@ export const vnode_diff = (
               // if any signal is there.
               vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
               vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
+              vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
             } else if (jsxProps) {
               // If there is no props instance, create a new one.
               // We can do this because we are not using the props instance for anything else.

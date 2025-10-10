@@ -1,6 +1,6 @@
+import { JSXNodeImpl } from '../jsx/jsx-node';
 import { type Props } from '../jsx/jsx-runtime';
-import { type PropsProxy } from '../jsx/jsx-node';
-import { createPropsProxy, JSXNodeImpl } from '../jsx/jsx-node';
+import { createPropsProxy, type PropsProxy } from '../jsx/props-proxy';
 import { _CONST_PROPS, _VAR_PROPS } from './constants';
 import { NON_SERIALIZABLE_MARKER_PREFIX } from './markers';
 

@@ -1,13 +1,17 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/queue-qrl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { EffectProperty } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
-import { directGetPropsProxyProp } from '../shared/jsx/jsx-node';
+import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
@@ -34,13 +38,9 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { isSignal } from '../reactive-primitives/utils';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { isQrl } from '../shared/qrl/qrl-utils';
-import { EffectProperty } from '../reactive-primitives/types';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 class ParentComponentData {
   constructor(

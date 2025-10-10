@@ -20,7 +20,7 @@ import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
 import { Fragment, Props } from '../jsx/jsx-runtime';
-import { PropsProxy } from '../jsx/jsx-node';
+import { PropsProxy } from '../jsx/props-proxy';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';

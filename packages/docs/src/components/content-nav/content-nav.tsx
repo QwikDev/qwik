@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from '@qwik.dev/core';
-import { type ContentMenu, useContent, useLocation } from '@qwik.dev/router';
+import { component$, useSignal, useStyles$, useTask$ } from '@qwik.dev/core';
+import { type ContentMenu, Link, useContent, useLocation } from '@qwik.dev/router';
 import styles from './content-nav.css?inline';
 
 export const ContentNav = component$(() => {
@@ -14,24 +14,30 @@ export const ContentNav = component$(() => {
 
   const items = flattenMenu(menu);
 
-  const prev = getNav(items, url.pathname, -1);
-  const next = getNav(items, url.pathname, 1);
+  const prev = useSignal<ContentMenu | undefined>(undefined);
+  const next = useSignal<ContentMenu | undefined>(undefined);
+
+  useTask$(({ track }) => {
+    track(() => url.pathname);
+    prev.value = getNav(items, url.pathname, -1);
+    next.value = getNav(items, url.pathname, 1);
+  });
 
   return (
     <nav class="content-nav border-t border-slate-300 flex flex-wrap py-4">
       <div class="flex-1">
-        {prev ? (
-          <a class="px-3 py-1 prev" href={prev.href}>
-            {prev.text}
-          </a>
+        {prev.value ? (
+          <Link class="px-3 py-1 prev" href={prev.value?.href}>
+            {prev.value?.text}
+          </Link>
         ) : null}
       </div>
 
       <div class="flex-1 text-right">
-        {next ? (
-          <a class="px-3 py-1 next" href={next.href}>
-            {next.text}
-          </a>
+        {next.value ? (
+          <Link class="px-3 py-1 next" href={next.value?.href}>
+            {next.value?.text}
+          </Link>
         ) : null}
       </div>
     </nav>

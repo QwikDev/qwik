@@ -24,10 +24,3 @@ getrandom = { version = "0.2", features = ["js"] }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
-
-[profile.release]
-debug = 0
-lto=true
-codegen-units=1
-opt-level="z"
-panic="abort"

@@ -1,4 +1,5 @@
 import { $, component$, isBrowser, useOn, useSignal, useStore, useTask$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { toSnakeCase } from '../../utils/utils';
 
 // TODO: load the content of these files using fs instead of importing them
@@ -161,7 +162,7 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
             (kind in filters && !filters[kind] && 'hidden') || ''
           }`}
         >
-          <a href={`${data.id}#${name}`}>{member.name}</a>
+          <Link href={`${data.id}#${name}`}>{member.name}</Link>
         </li>
       );
     })}

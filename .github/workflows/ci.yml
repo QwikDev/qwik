@@ -684,7 +684,6 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          # flaky. Updating node version or sharp/sqlite3 related deps might help.
           - host: windows-latest
             browser: chromium
 

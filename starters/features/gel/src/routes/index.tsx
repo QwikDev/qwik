@@ -10,6 +10,7 @@ export default component$(() => {
         <br />
         Happy coding.
       </div>
+      <h2>Get started with Gel</h2>
       <nav style={{ marginTop: "2rem" }}>
         <ul>
           <li>

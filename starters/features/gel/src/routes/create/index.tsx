@@ -1,57 +1,57 @@
 import { component$ } from "@builder.io/qwik";
 import { routeAction$, zod$, z, Form } from "@builder.io/qwik-city";
-import { executeQuery } from "../../actions/client";
-import * as queries from "../../../dbschema/queries";
+import { insertUser } from "../../actions/user";
 
 export const useCreateUser = routeAction$(
-  async (data) => {
-    // GEL implementation: use EdgeQL query to insert or update user
-    // Map form data to EdgeQL parameters
-    const params = {
-      name: data.name,
-      package_version: "", // You may want to collect this from the form or set a default
-      has_profile: true, // You may want to collect this from the form or set a default
-      dependencies: [
-        {
-          address: data.email,
-          provider: "email", // You may want to collect this from the form or set a default
-        },
-      ],
-    };
-    const user = await executeQuery(queries.insertOrUpdateUser, params);
-    return user;
+  async ({ name, email }) => {
+    const user = await insertUser(name, email, true);
+    if (!user)
+      return { error: "A user already exists with that email.", user: null };
+    return { error: null, user };
   },
   zod$({
-    name: z.string(),
-    email: z.string().email(),
+    name: z.string().min(1, { message: "Name is required" }),
+    email: z.string().email({ message: "Invalid email address" }),
   }),
 );
 
 export default component$(() => {
-  const createUserAction = useCreateUser();
+  const action = useCreateUser();
+  const errors = action.value?.fieldErrors;
+  const customError = action.value?.error;
+
   return (
     <section>
       <h1>Create User</h1>
-      <Form action={createUserAction}>
+      <Form action={action}>
         <label>
           Name
-          <input
-            name="name"
-            value={createUserAction.formData?.get("name") ?? ""}
-          />
+          <input name="name" value={action.formData?.get("name") ?? ""} />
         </label>
         <label>
           Email
-          <input
-            name="email"
-            value={createUserAction.formData?.get("email") ?? ""}
-          />
+          <input name="email" value={action.formData?.get("email") ?? ""} />
         </label>
         <button type="submit">Create</button>
       </Form>
-      {createUserAction.value && (
-        <div>
-          <h2>User created successfully!</h2>
+      {action.value?.user && <h2>User created successfully!</h2>}
+      {(errors || customError) && (
+        <div style={{ color: "red" }}>
+          {errors?.name && (
+            <div>
+              <h2>{errors.name}</h2>
+            </div>
+          )}
+          {errors?.email && (
+            <div>
+              <h2>{errors.email}</h2>
+            </div>
+          )}
+          {customError && (
+            <div>
+              <h2>{customError}</h2>
+            </div>
+          )}
         </div>
       )}
     </section>

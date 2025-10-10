@@ -7,22 +7,19 @@ export const getAllUsers = server$(async () => {
 });
 
 export const getUserByName = server$(async (name: string) => {
-  return await executeQuery(queries.getUserByName, { name: name });
+  return await executeQuery(queries.getUser, { name: name });
 });
 
 export const getUserByEmail = server$(async (email: string) => {
-  return await executeQuery(queries.getUserByEmail, { email: email });
+  return await executeQuery(queries.getUser, { email: email });
 });
 
-export const deleteUser = server$(async (name: string) => {
-  return await executeQuery(queries.deleteUser, { name: name });
-});
-
-export const insertOrUpdateUser = server$(
-  async (name: string, email: string) => {
-    return await executeQuery(queries.insertOrUpdateUser, {
+export const insertUser = server$(
+  async (name: string, email: string, has_profile: boolean) => {
+    return await executeQuery(queries.insertUser, {
       name: name,
       email: email,
+      has_profile: has_profile,
     });
   },
 );

@@ -6,18 +6,12 @@ module default {
   }
 
   type User extending Timestamped {
-    required name: str {
-      constraint exclusive {
-        errmessage := 'A user with that name already exists!';
-      };
-    };
+    required name: str;
     email: str {
-      constraint exclusive {
-        errmessage := 'A user with that email already exists!';
-      };
+      constraint exclusive;
     };
     has_profile: bool;
 
-    index on (.name);
+    index on (.email);
   }
 }

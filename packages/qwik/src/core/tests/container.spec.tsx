@@ -7,21 +7,22 @@ import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
 import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import type { VNode } from '../client/vnode-impl';
+import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
+import { SignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
+import { JSXNodeImpl } from '../shared/jsx/jsx-node';
 import { Fragment } from '../shared/jsx/jsx-runtime';
-import { JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-node';
+import { createPropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { _qrlSync } from '../shared/qrl/qrl.public';
 import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
-import { _qrlSync } from '../shared/qrl/qrl.public';
-import { SignalFlags } from '../reactive-primitives/types';
-import type { VNode } from '../client/vnode-impl';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');

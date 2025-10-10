@@ -42,7 +42,8 @@ export {
   type Stringifiable as _Stringifiable,
 } from './shared-types';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
-export { _getConstProps, _getVarProps, isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
+export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
+export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';
 export { _fnSignal } from './shared/qrl/inlined-fn';
 export {
   _deserialize,

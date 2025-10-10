@@ -26,7 +26,7 @@ import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
 import { Fragment } from '../jsx/jsx-runtime';
-import { isPropsProxy } from '../jsx/jsx-node';
+import { isPropsProxy } from '../jsx/props-proxy';
 import { isJSXNode } from '../jsx/jsx-node';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';

@@ -10,13 +10,9 @@ import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
-import {
-  JSXNodeImpl,
-  directGetPropsProxyProp,
-  isJSXNode,
-  type PropsProxy,
-} from '../shared/jsx/jsx-node';
+import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { directGetPropsProxyProp, type PropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';

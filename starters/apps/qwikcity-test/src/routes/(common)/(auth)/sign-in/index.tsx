@@ -11,7 +11,7 @@ import {
   zod$,
 } from "@builder.io/qwik-city";
 import { isUserAuthenticated, signIn } from "../../../../auth/auth";
-import { z } from "zod";
+import * as z from "zod";
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {
   if (await isUserAuthenticated(cookie)) {

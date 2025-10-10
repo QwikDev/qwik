@@ -1,5 +1,5 @@
 import { component$, sync$ } from '@builder.io/qwik';
-import { z } from 'zod';
+import * as z from 'zod';
 
 export interface InsightsPayload {
   /** Qwik version */

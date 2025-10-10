@@ -29,6 +29,9 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 // @public (undocumented)
 export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
+// @internal
+export const _chk: (_: any, element: HTMLInputElement) => void;
+
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
@@ -335,7 +338,7 @@ export type FunctionComponent<P = unknown> = {
 // Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
-// @internal (undocumented)
+// @internal
 export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
@@ -364,7 +367,7 @@ export const getPlatform: () => CorePlatform;
 // @internal (undocumented)
 export function _getQContainerElement(element: Element | _VNode): Element | null;
 
-// @internal (undocumented)
+// @internal
 export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @public
@@ -1813,6 +1816,9 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 //
 // @internal (undocumented)
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
+
+// @internal
+export const _val: (_: any, element: HTMLInputElement) => void;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

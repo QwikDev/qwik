@@ -41,6 +41,7 @@ export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,
 } from './shared-types';
+export { _chk, _val } from './shared/jsx/bind-handlers';
 export { _jsxC, _jsxQ, _jsxS, _jsxSorted, _jsxSplit } from './shared/jsx/jsx-internal';
 export { isJSXNode as _isJSXNode } from './shared/jsx/jsx-node';
 export { _getConstProps, _getVarProps } from './shared/jsx/props-proxy';

@@ -1,11 +1,16 @@
+import { createQRL } from '../qrl/qrl-class';
 import { EMPTY_OBJ } from '../utils/flyweight';
 import { logOnceWarn, logWarn } from '../utils/log';
 import { qDev, seal } from '../utils/qdev';
 import { isObject } from '../utils/types';
+import { _chk, _val } from './bind-handlers';
 import { type Props } from './jsx-runtime';
 import { createPropsProxy } from './props-proxy';
 import type { DevJSX, FunctionComponent, JSXNodeInternal } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
+
+const BIND_VALUE = 'bind:value';
+const BIND_CHECKED = 'bind:checked';
 
 // TODO store props as the arrays the vnodes also use?
 export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
@@ -41,6 +46,22 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     }
 
     if (typeof type === 'string') {
+      // bind:*
+      if (BIND_CHECKED in this.varProps) {
+        toSort ||= handleBindProp(this.varProps, BIND_CHECKED)!;
+      } else if (BIND_VALUE in this.varProps) {
+        toSort ||= handleBindProp(this.varProps, BIND_VALUE)!;
+      } else if (this.constProps) {
+        if (BIND_CHECKED in this.constProps) {
+          handleBindProp(this.constProps, BIND_CHECKED);
+        } else {
+          if (BIND_VALUE in this.constProps) {
+            handleBindProp(this.constProps, BIND_VALUE);
+          }
+        }
+      }
+
+      // TODO let the optimizer do this instead
       if ('className' in this.varProps) {
         this.varProps.class = this.varProps.className;
         this.varProps.className = undefined;
@@ -93,4 +114,19 @@ const isEmpty = (obj: Record<string, unknown>) => {
     }
   }
   return true;
+};
+
+const handleBindProp = (props: Props, prop: string) => {
+  const value = props[prop];
+  props[prop] = undefined;
+  if (value) {
+    if (prop === BIND_CHECKED) {
+      props.checked = value;
+      props.onInput$ = createQRL(null, '_chk', _chk, null, null, [value]);
+    } else {
+      props.value = value;
+      props.onInput$ = createQRL(null, '_val', _val, null, null, [value]);
+    }
+    return true;
+  }
 };

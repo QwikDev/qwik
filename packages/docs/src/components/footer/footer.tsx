@@ -1,29 +1,30 @@
 import { component$ } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+
 import { QwikLogo } from '~/components/svgs/qwik-logo';
 import { DiscordLogo } from '~/components/svgs/discord-logo';
 import { GithubLogo } from '~/components/svgs/github-logo';
 import { TwitterLogo } from '~/components/svgs/twitter-logo';
 import { BlueskyLogo } from '~/components/svgs/bluesky-logo';
 
-const baseUrl = 'https://qwik.dev';
 const linkColumns = [
   [
-    { title: 'Docs', href: `${baseUrl}/docs/` },
-    { title: 'Qwik City', href: `${baseUrl}/docs/qwikcity/` },
-    { title: 'Ecosystem', href: `${baseUrl}/ecosystem/` },
-    { title: 'Playground', href: `${baseUrl}/playground/` },
+    { title: 'Docs', href: `/docs/` },
+    { title: 'Qwik City', href: `/docs/qwikcity/` },
+    { title: 'Ecosystem', href: `/ecosystem/` },
+    { title: 'Playground', href: `/playground/` },
   ],
   [
-    { title: 'Integrations', href: `${baseUrl}/ecosystem/#integrations` },
-    { title: 'Deployments', href: `${baseUrl}/ecosystem/#deployments` },
-    { title: 'Media', href: `${baseUrl}/ecosystem/#videos` },
-    { title: 'Showcase', href: `${baseUrl}/showcase/` },
+    { title: 'Integrations', href: `/ecosystem/#integrations` },
+    { title: 'Deployments', href: `/ecosystem/#deployments` },
+    { title: 'Media', href: `/ecosystem/#videos` },
+    { title: 'Showcase', href: `/showcase/` },
   ],
   [
-    { title: 'Tutorial', href: `${baseUrl}/ecosystem/#courses` },
-    { title: 'Presentations', href: `${baseUrl}/ecosystem/#presentations` },
-    { title: 'Community', href: `${baseUrl}/ecosystem/#community` },
-    { title: 'Press', href: `${baseUrl}/press` },
+    { title: 'Tutorial', href: `/ecosystem/#courses` },
+    { title: 'Presentations', href: `/ecosystem/#presentations` },
+    { title: 'Community', href: `/ecosystem/#community` },
+    { title: 'Press', href: `/press/` },
   ],
 ];
 
@@ -67,13 +68,13 @@ export const FooterLinks = component$(() => {
       {linkColumns.map((column, colIndex) => (
         <div key={colIndex} class="flex flex-col gap-4 flex-1">
           {column.map((link, linkIndex) => (
-            <a
+            <Link
               key={linkIndex}
               class="text-[color:var(--text-color)] hover:text-interactive-blue z-[10]"
               href={link.href}
             >
               {link.title}
-            </a>
+            </Link>
           ))}
         </div>
       ))}

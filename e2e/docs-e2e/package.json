@@ -3,7 +3,7 @@
   "description": "",
   "author": "",
   "devDependencies": {
-    "@playwright/test": "1.50.1",
+    "@playwright/test": "1.54.1",
     "@types/node": "20.19.0"
   },
   "keywords": [],

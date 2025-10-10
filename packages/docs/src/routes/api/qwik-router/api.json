@@ -796,7 +796,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type RouteData = [routeName: string, loaders: ModuleLoader[]] | [\n    routeName: string,\n    loaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
+      "content": "```typescript\nexport type RouteData = [\n    routeName: string,\n    moduleLoaders: ModuleLoader[]\n] | [\n    routeName: string,\n    moduleLoaders: ModuleLoader[],\n    originalPathname: string,\n    routeBundleNames: string[]\n];\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.routedata.md"
     },

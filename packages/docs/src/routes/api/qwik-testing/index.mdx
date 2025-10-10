@@ -121,7 +121,7 @@ export declare function domRender(
   },
 ): Promise<{
   document: Document;
-  container: import("@qwik.dev/core/internal").ClientContainer;
+  container: import("@qwik.dev/core").ClientContainer;
   vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
@@ -168,7 +168,7 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ document: Document; container: import("@qwik.dev/core/internal").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;\{ document: Document; container: import("@qwik.dev/core").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -435,6 +435,7 @@ export declare function ssrRenderToDom(
   opts?: {
     debug?: boolean;
     raw?: boolean;
+    qwikLoader?: boolean;
   },
 ): Promise<{
   container: _DomContainer;
@@ -474,7 +475,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; }
 
 </td><td>
 

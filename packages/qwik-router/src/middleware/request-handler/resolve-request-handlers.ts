@@ -32,12 +32,20 @@ import { IsQData, QDATA_JSON } from './user-response';
 // Import separately to avoid duplicate imports in the vite dev server
 import { RedirectMessage, ServerError } from '@qwik.dev/router/middleware/request-handler';
 
+/**
+ * This generates the handlers that will be run. They run in the order they are defined. If one
+ * calls `.exit()`, the rest of the handlers will be skipped.
+ *
+ * By awaiting `.next()`, handlers can wait for all subsequent handlers to complete before
+ * continuing.
+ */
 export const resolveRequestHandlers = (
   serverPlugins: RouteModule[] | undefined,
   route: LoadedRoute | null,
   method: string,
   checkOrigin: boolean | 'lax-proto',
-  renderHandler: RequestHandler
+  renderHandler: RequestHandler,
+  isInternal: boolean
 ) => {
   const routeLoaders: LoaderInternal[] = [];
   const routeActions: ActionInternal[] = [];
@@ -45,7 +53,13 @@ export const resolveRequestHandlers = (
   const requestHandlers: RequestHandler[] = [];
 
   const isPageRoute = !!(route && isLastModulePageRoute(route[LoadedRouteProp.Mods]));
+
+  // Always handle QData redirects (server plugins might redirect)
+  if (isInternal) {
+    requestHandlers.push(handleQDataRedirect);
+  }
   if (serverPlugins) {
+    // Serverplugins run even if no route is matched
     _resolveRequestHandlers(
       routeLoaders,
       routeActions,
@@ -57,6 +71,15 @@ export const resolveRequestHandlers = (
   }
 
   if (route) {
+    const routeModules = route[LoadedRouteProp.Mods];
+    _resolveRequestHandlers(
+      routeLoaders,
+      routeActions,
+      requestHandlers,
+      routeModules,
+      isPageRoute,
+      method
+    );
     const routeName = route[LoadedRouteProp.RouteName];
     if (
       checkOrigin &&
@@ -69,24 +92,20 @@ export const resolveRequestHandlers = (
       }
     }
     if (isPageRoute) {
-      // server$
+      // `server$()` can only be called from existing page routes
       if (method === 'POST' || method === 'GET') {
-        requestHandlers.push(pureServerFunction);
+        requestHandlers.push(runServerFunction);
       }
 
+      // Note that we don't care about trailing slash on `server$()` calls
       requestHandlers.push(fixTrailingSlash);
-      requestHandlers.push(renderQData);
+
+      // If this is a QData request, we short-circuit after running all the loaders/middleware
+      if (isInternal) {
+        requestHandlers.push(renderQData);
+      }
     }
-    const routeModules = route[LoadedRouteProp.Mods];
-    requestHandlers.push(handleRedirect);
-    _resolveRequestHandlers(
-      routeLoaders,
-      routeActions,
-      requestHandlers,
-      routeModules,
-      isPageRoute,
-      method
-    );
+
     if (isPageRoute) {
       requestHandlers.push((ev) => {
         // Set the current route name
@@ -236,20 +255,7 @@ export function loadersMiddleware(routeLoaders: LoaderInternal[]): RequestHandle
     const loaders = getRequestLoaders(requestEv);
     const isDev = getRequestMode(requestEv) === 'dev';
     if (routeLoaders.length > 0) {
-      let currentLoaders: LoaderInternal[] = [];
-      if (requestEv.query.has(QLOADER_KEY)) {
-        const selectedLoaderIds = requestEv.query.getAll(QLOADER_KEY);
-        for (const loader of routeLoaders) {
-          if (selectedLoaderIds.includes(loader.__id)) {
-            currentLoaders.push(loader);
-          } else {
-            loaders[loader.__id] = _UNINITIALIZED;
-          }
-        }
-      } else {
-        currentLoaders = routeLoaders;
-      }
-      const resolvedLoadersPromises = currentLoaders.map((loader) =>
+      const resolvedLoadersPromises = routeLoaders.map((loader) =>
         getRouteLoaderPromise(loader, loaders, requestEv, isDev)
       );
       await Promise.all(resolvedLoadersPromises);
@@ -332,7 +338,7 @@ function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {
   return obj ? typeof obj === 'object' && Symbol.asyncIterator in obj : false;
 }
 
-async function pureServerFunction(ev: RequestEvent) {
+async function runServerFunction(ev: RequestEvent) {
   const fn = ev.query.get(QFN_KEY);
   if (
     fn &&
@@ -546,12 +552,8 @@ export function renderQwikMiddleware(render: Render) {
   };
 }
 
-export async function handleRedirect(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.sharedMap.has(IsQData);
-  if (!isPageDataReq) {
-    return;
-  }
-
+/** Restore q-data.json on redirect */
+async function handleQDataRedirect(requestEv: RequestEvent) {
   try {
     await requestEv.next();
   } catch (err) {
@@ -580,11 +582,7 @@ export async function handleRedirect(requestEv: RequestEvent) {
   }
 }
 
-export async function renderQData(requestEv: RequestEvent) {
-  const isPageDataReq = requestEv.sharedMap.has(IsQData);
-  if (!isPageDataReq) {
-    return;
-  }
+async function renderQData(requestEv: RequestEvent) {
   await requestEv.next();
 
   if (requestEv.headersSent || requestEv.exited) {
@@ -638,11 +636,13 @@ export async function renderQData(requestEv: RequestEvent) {
 
 function makeQDataPath(href: string) {
   if (href.startsWith('/')) {
-    const append = QDATA_JSON;
-    const url = new URL(href, 'http://localhost');
+    if (!href.includes(QDATA_JSON)) {
+      const url = new URL(href, 'http://localhost');
 
-    const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
-    return pathname + (append.startsWith('/') ? '' : '/') + append + url.search;
+      const pathname = url.pathname.endsWith('/') ? url.pathname.slice(0, -1) : url.pathname;
+      return pathname + QDATA_JSON + url.search;
+    }
+    return href;
   } else {
     return undefined;
   }

@@ -1,14 +1,14 @@
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 
-export interface BuildContext {
+export interface RoutingContext {
   rootDir: string;
   opts: NormalizedPluginOptions;
-  routes: BuildRoute[];
-  serverPlugins: BuildServerPlugin[];
-  layouts: BuildLayout[];
-  entries: BuildEntry[];
-  serviceWorkers: BuildEntry[];
-  menus: BuildMenu[];
+  routes: BuiltRoute[];
+  serverPlugins: BuiltServerPlugin[];
+  layouts: BuiltLayout[];
+  entries: BuiltEntry[];
+  serviceWorkers: BuiltEntry[];
+  menus: BuiltMenu[];
   frontmatter: Map<string, FrontmatterAttrs>;
   diagnostics: Diagnostic[];
   target: 'ssr' | 'client' | undefined;
@@ -45,7 +45,7 @@ export interface RouteSourceFileName {
 
 export type RouteSourceType = 'route' | 'layout' | 'entry' | 'menu' | 'service-worker';
 
-export interface BuildRoute extends ParsedPathname {
+export interface BuiltRoute extends ParsedPathname {
   /** Unique id built from its relative file system path */
   id: string;
   /** Local file system path */
@@ -53,10 +53,10 @@ export interface BuildRoute extends ParsedPathname {
   ext: string;
   /** URL Pathname */
   pathname: string;
-  layouts: BuildLayout[];
+  layouts: BuiltLayout[];
 }
 
-export interface BuildServerPlugin {
+export interface BuiltServerPlugin {
   /** Unique id built from its relative file system path */
   id: string;
   /** Local file system path */
@@ -79,7 +79,7 @@ export interface PathnameSegmentPart {
   rest: boolean;
 }
 
-export interface BuildLayout {
+export interface BuiltLayout {
   filePath: string;
   dirPath: string;
   id: string;
@@ -87,13 +87,13 @@ export interface BuildLayout {
   layoutName: string;
 }
 
-export interface BuildEntry extends ParsedPathname {
+export interface BuiltEntry extends ParsedPathname {
   id: string;
   chunkFileName: string;
   filePath: string;
 }
 
-export interface BuildMenu {
+export interface BuiltMenu {
   pathname: string;
   filePath: string;
 }
@@ -112,13 +112,13 @@ export interface RewriteRouteOption {
 
 /** @public */
 export interface PluginOptions {
-  /** Directory of the `routes`. Defaults to `src/routes`. */
+  /** Directory of the `routes`. Defaults to `"src/routes"`. */
   routesDir?: string;
-  /** Directory of the `server plugins`. Defaults to `src/server-plugins`. */
+  /** Directory of the `server plugins`. Defaults to `routesDir`. */
   serverPluginsDir?: string;
   /**
    * The base pathname is used to create absolute URL paths up to the `hostname`, and must always
-   * start and end with a `/`. Defaults to `/`.
+   * start and end with a `/`. Defaults to `"/""`.
    */
   basePathname?: string;
   /**

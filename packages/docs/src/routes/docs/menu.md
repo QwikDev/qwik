@@ -9,14 +9,14 @@
 
 ## Components
 
-- [Overview](</docs/(qwik)/components/overview/index.mdx>)
-- [State](</docs/(qwik)/components/state/index.mdx>)
-- [Events](</docs/(qwik)/components/events/index.mdx>)
-- [Tasks & Lifecycle](</docs/(qwik)/components/tasks/index.mdx>)
-- [Context](</docs/(qwik)/components/context/index.mdx>)
-- [Slots](</docs/(qwik)/components/slots/index.mdx>)
-- [Rendering](</docs/(qwik)/components/rendering/index.mdx>)
-- [Styling](</docs/(qwik)/components/styles/index.mdx>)
+- [Overview](</docs/(qwik)/core/overview/index.mdx>)
+- [State](</docs/(qwik)/core/state/index.mdx>)
+- [Events](</docs/(qwik)/core/events/index.mdx>)
+- [Tasks & Lifecycle](</docs/(qwik)/core/tasks/index.mdx>)
+- [Context](</docs/(qwik)/core/context/index.mdx>)
+- [Slots](</docs/(qwik)/core/slots/index.mdx>)
+- [Rendering](</docs/(qwik)/core/rendering/index.mdx>)
+- [Styling](</docs/(qwik)/core/styles/index.mdx>)
 - [API Reference](/api/qwik/)
 
 ## Qwik Router

@@ -55,9 +55,8 @@ export { _fnSignal } from './shared/qrl/inlined-fn';
 export { _SharedContainer } from './shared/shared-container';
 export {
   _deserialize,
-  dumpState as _dumpState,
+  _dumpState,
   preprocessState as _preprocessState,
-  _serializationWeakRef,
   _serialize,
 } from './shared/serdes/index';
 export { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS, _UNINITIALIZED } from './shared/utils/constants';

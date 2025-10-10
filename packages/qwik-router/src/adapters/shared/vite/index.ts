@@ -3,7 +3,7 @@ import type { StaticGenerateOptions, SsgRenderOptions } from 'packages/qwik-rout
 import type { QwikRouterPlugin } from '@qwik.dev/router/vite';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { Plugin, UserConfig } from 'vite';
-import type { BuildRoute } from '../../../buildtime/types';
+import type { BuiltRoute } from '../../../buildtime/types';
 import { postBuild } from './post-build';
 
 /**
@@ -20,6 +20,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
   let renderModulePath: string | null = null;
   let qwikRouterConfigModulePath: string | null = null;
   let isSsrBuild = false;
+  let viteCommand: string | undefined;
   const outputEntries: string[] = [];
 
   const plugin: Plugin<never> = {
@@ -40,6 +41,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
 
     configResolved(config) {
       isSsrBuild = !!config.build.ssr;
+      viteCommand = config.command;
 
       if (isSsrBuild) {
         qwikRouterPlugin = config.plugins.find(
@@ -74,17 +76,19 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
     buildStart() {
       if (isSsrBuild && opts.ssg !== null) {
         const { srcDir } = qwikVitePlugin!.api!.getOptions()!;
-        // TODO don't rely on entry points for SSG, somehow
-        this.emitFile({
-          id: '@qwik-router-config',
-          type: 'chunk',
-          fileName: '@qwik-router-config.js',
-        });
-        this.emitFile({
-          id: `${srcDir}/entry.ssr`,
-          type: 'chunk',
-          fileName: 'entry.ssr.js',
-        });
+        if (viteCommand === 'build' && serverOutDir && srcDir) {
+          // TODO don't rely on entry points for SSG, somehow
+          this.emitFile({
+            id: '@qwik-router-config',
+            type: 'chunk',
+            fileName: '@qwik-router-config.js',
+          });
+          this.emitFile({
+            id: `${srcDir}/entry.ssr`,
+            type: 'chunk',
+            fileName: 'entry.ssr.js',
+          });
+        }
       }
     },
     generateBundle(_, bundles) {
@@ -222,6 +226,37 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
              * For now, we'll force exit the process after SSG with some delay.
              */
             setTimeout(() => {
+              console.warn(
+                'SSG seems to be hanging after completion, forcing process to exit. Everything is likely fine.'
+              );
+              process.exit(0);
+            }, 5000).unref();
+          }
+          if (opts.ssg !== null) {
+            /**
+             * HACK: for some reason the build hangs after SSG. `why-is-node-running` shows 4
+             * culprits:
+             *
+             * ```
+             * There are 4 handle(s) keeping the process running.
+             *
+             * # CustomGC
+             * ./node_modules/.pnpm/lightningcss@1.30.1/node_modules/lightningcss/node/index.js:20 - module.exports = require(`lightningcss-${parts.join('-')}`);
+             *
+             * # CustomGC
+             * ./node_modules/.pnpm/@tailwindcss+oxide@4.1.12/node_modules/@tailwindcss/oxide/index.js:229 - return require('@tailwindcss/oxide-linux-x64-gnu')
+             *
+             * # Timeout
+             * node_modules/.vite-temp/vite.config.timestamp-1755270314169-a2a97ad5233f9.mjs:357
+             * ./node_modules/.pnpm/vite@7.1.2_@types+node@24.3.0_jiti@2.5.1_lightningcss@1.30.1_terser@5.43.1_tsx@4.20.4_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:36657 - return (await import(pathToFileURL(tempFileName).href)).default;
+             *
+             * # CustomGC
+             * ./packages/qwik/dist/optimizer.mjs:1328 - const mod2 = module.default.createRequire(import.meta.url)(`../bindings/${triple.platformArchABI}`);
+             * ```
+             *
+             * For now, we'll force exit the process after SSG with some delay.
+             */
+            setTimeout(() => {
               process.exit(0);
             }, 5000).unref();
           }
@@ -264,7 +299,7 @@ interface ViteAdapterPluginOptions {
     clientPublicOutDir: string;
     serverOutDir: string;
     basePathname: string;
-    routes: BuildRoute[];
+    routes: BuiltRoute[];
     assetsDir?: string;
     warn: (message: string) => void;
     error: (message: string) => void;

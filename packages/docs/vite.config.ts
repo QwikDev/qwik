@@ -138,6 +138,9 @@ export default defineConfig(() => {
     optimizeDeps: {
       entries: ['./src/routes/**/index.tsx', './src/routes/**/layout.tsx'],
       exclude: [
+        '@modular-forms/qwik',
+        '@qwik-ui/headless',
+        'qwik-image',
         // optimizing breaks the wasm import
         '@rolldown/browser',
       ],
@@ -251,7 +254,7 @@ export default defineConfig(() => {
       },
     },
     worker: {
-      format: 'es',
+      format: 'es' as const,
     },
     clearScreen: false,
     server: {

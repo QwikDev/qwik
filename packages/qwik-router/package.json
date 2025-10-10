@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.11",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -22,12 +22,12 @@
     "set-cookie-parser": "^2.7.1",
     "source-map": "^0.7.6",
     "svgo": "^3.3.2",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite-imagetools": "^7.1.0",
+    "vite-imagetools": "^9.0.0",
     "yaml": "^2.8.1",
     "zod": "^3.25.40"
   },

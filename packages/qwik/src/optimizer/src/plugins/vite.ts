@@ -27,8 +27,17 @@ import {
 } from './plugin';
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configurePreviewServer, getViteIndexTags } from './dev';
+import { isVirtualId } from './vite-utils';
 
-const DEDUPE = [QWIK_CORE_ID, QWIK_JSX_RUNTIME_ID, QWIK_JSX_DEV_RUNTIME_ID];
+const DEDUPE = [
+  QWIK_CORE_ID,
+  QWIK_JSX_RUNTIME_ID,
+  QWIK_JSX_DEV_RUNTIME_ID,
+  QWIK_CORE_INTERNAL_ID,
+  '@builder.io/qwik',
+  '@builder.io/qwik/jsx-runtime',
+  '@builder.io/qwik/jsx-dev-runtime',
+];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
 const FONTS = ['.woff', '.woff2', '.ttf'];
@@ -237,10 +246,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_JSX_DEV_RUNTIME_ID,
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
-            // v1 imports, they are removed during transform but vite doesn't know that
             '@builder.io/qwik',
-            '@builder.io/qwik-city',
           ],
+          // Enforce scanning our input even when overridden later
+          entries:
+            input &&
+            (typeof input === 'string'
+              ? [input]
+              : typeof input === 'object'
+                ? Object.values(input)
+                : input),
         },
         build: {
           modulePreload: false,
@@ -278,7 +293,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           ...updatedViteConfig.build!.rollupOptions,
-          output: normalizeRollupOutputOptions(
+          output: await normalizeRollupOutputOptions(
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
@@ -369,14 +384,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'resolveId')) {
+      const shouldResolveFile = fileFilter(id, 'resolveId');
+      if (isVirtualId(id) || !shouldResolveFile) {
         return null;
       }
       return qwikPlugin.resolveId(this, id, importer, resolveIdOpts);
     },
 
     load(id, loadOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'load')) {
+      const shouldLoadFile = fileFilter(id, 'load');
+      if (isVirtualId(id) || !shouldLoadFile) {
         return null;
       }
 
@@ -391,7 +408,23 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     transform(code, id, transformOpts) {
-      if (id.startsWith('\0') || !fileFilter(id, 'transform') || id.includes('?raw')) {
+      if (
+        id.includes('.vite/deps/') &&
+        code.slice(0, 5000).includes('qwik') &&
+        /import[^\n]*qwik[^\n]*\n/.test(code)
+      ) {
+        const relPath = rootDir && id.startsWith(rootDir) ? id.slice(rootDir.length) : id;
+        throw new Error(
+          `\n\n==============\n\n` +
+            `⚠️ IMPORTANT: This dependency was pre-bundled by Vite, but it seems to use Qwik, which needs processing by the optimizer.\n\n` +
+            `👉 Please add the original modulename to the "optimizeDeps.exclude" array in your Vite config\n` +
+            `👉   ${relPath}\n\n` +
+            `==============\n\n`
+        );
+      }
+      const shouldTransformFile = fileFilter(id, 'transform');
+      const isStringImportId = id.includes('?raw');
+      if (isVirtualId(id) || !shouldTransformFile || isStringImportId) {
         return null;
       }
 
@@ -630,11 +663,30 @@ async function checkExternals() {
     configResolved: (config) => {
       rootDir = config.root;
     },
+    // Attempt to mark the Qwik dependencies as non-optimizeable
+    config: {
+      order: 'post',
+      async handler(config) {
+        const toExclude = [];
+        const externals = [config.ssr?.noExternal, config.environments?.ssr?.resolve?.noExternal]
+          .flat()
+          .filter((t) => typeof t === 'string');
+        const optimizeDepsExclude = config.optimizeDeps?.exclude ?? [];
+        for (const dep of externals) {
+          if (!optimizeDepsExclude.includes(dep)) {
+            if (await isQwikDep(dep, config.root || process.cwd())) {
+              toExclude.push(dep);
+            }
+          }
+        }
+        return { optimizeDeps: { exclude: toExclude } };
+      },
+    },
     // We check all SSR build lookups for external Qwik deps
     resolveId: {
       order: 'pre',
       async handler(source, importer, options) {
-        if (!options.ssr || /^([./]|node:|[^a-z])/.test(source) || seen.has(source)) {
+        if (!options.ssr || /^([./]|node:|[^a-z@])/i.test(source) || seen.has(source)) {
           return;
         }
         const packageName = (
@@ -646,19 +698,27 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
-        const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
-        if (result?.external) {
-          // Qwik deps should not be external
-          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
-            // TODO link to docs
-            throw new Error(
-              `\n==============\n${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik.\nPlease add the package to "ssr.noExternal" in the Vite config. \n==============`
-            );
+        try {
+          const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
+          if (result?.external) {
+            // Qwik deps should not be external
+            if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
+              // TODO link to docs
+              throw new Error(
+                `\n==============\n` +
+                  `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
+                  `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
+                  `==============\n`
+              );
+            }
           }
-        }
-        if (packageName === source) {
-          // We already resolved it, so return that result
-          return result;
+          if (packageName === source) {
+            // We already resolved it, so return that result
+            return result;
+          }
+        } catch {
+          /* ignore, let vite figure it out */
+          return;
         }
       },
     },
@@ -770,7 +830,7 @@ interface QwikVitePluginCommonOptions {
    * Predicate function to filter out files from the optimizer. hook for resolveId, load, and
    * transform
    */
-  fileFilter?: (id: string, hook: string) => boolean;
+  fileFilter?: (id: string, hook: keyof VitePlugin) => boolean;
   /**
    * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
    * large projects. Defaults to `true`

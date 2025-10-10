@@ -17,6 +17,11 @@ import { ELEMENT_BACKPATCH_DATA } from '../../server/qwik-copy';
 const debug = false; //true;
 Error.stackTraceLimit = 100;
 
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_BACKPATCH_EXECUTOR_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_BACKPATCH_EXECUTOR_DEBUG', 'debug');
+});
+
 describe('SSR Backpatching', () => {
   it('should handle basic backpatching', async () => {
     const Ctx = createContextId<{ descId: Signal<string> }>('bp-ctx-1');

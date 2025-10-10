@@ -16,8 +16,8 @@ This example features a store that contains other objects rather than just primi
 
 Because `useStore()` tracks deep reactivity by default, Arrays and Objects inside the store will also be reactive. 
 
-For [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) to track all nested properties, it needs to allocate a lot of [Proxy](/docs/(qwik)/concepts/reactivity/index.mdx#proxy) objects. This can be a performance issue if you have a lot of nested properties. 
+For [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) to track all nested properties, it needs to allocate a lot of [Proxy](/docs/(qwik)/concepts/reactivity/index.mdx#proxy) objects. This can be a performance issue if you have a lot of nested properties. 
 
 In that case, you can pass the additional argument: `{deep: false}` to `useStore` to only track the top-level properties.
 
-> **Your task:** Add `{deep: false}` as a second argument to the [`useStore()`](/docs/(qwik)/components/state/index.mdx#usestore) function and modify event handlers to assign new values to the top-level properties of the store.
+> **Your task:** Add `{deep: false}` as a second argument to the [`useStore()`](/docs/(qwik)/core/state/index.mdx#usestore) function and modify event handlers to assign new values to the top-level properties of the store.

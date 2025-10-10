@@ -183,8 +183,9 @@ export const enum VNodeJournalOpCode {
   SetText = 1, // ------ [SetAttribute, target, text]
   SetAttribute = 2, // - [SetAttribute, target, ...(key, values)]]
   HoistStyles = 3, // -- [HoistStyles, document]
-  Remove = 4, // ------- [Insert, target(parent), ...nodes]
-  Insert = 5, // ------- [Insert, target(parent), reference, ...nodes]
+  Remove = 4, // ------- [Remove, target(parent), ...nodes]
+  RemoveAll = 5, // ------- [RemoveAll, target(parent)]
+  Insert = 6, // ------- [Insert, target(parent), reference, ...nodes]
 }
 
 export type VNodeJournal = Array<
@@ -968,6 +969,15 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           idx++;
         }
         break;
+      case VNodeJournalOpCode.RemoveAll:
+        const removeAllParent = journal[idx++] as Element;
+        if (removeAllParent.replaceChildren) {
+          removeAllParent.replaceChildren();
+        } else {
+          // fallback if replaceChildren is not supported
+          removeAllParent.textContent = '';
+        }
+        break;
       case VNodeJournalOpCode.Insert:
         const insertParent = journal[idx++] as Element;
         const insertBefore = journal[idx++] as Element | Text | null;
@@ -1220,8 +1230,14 @@ export const vnode_truncate = (
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDomParent(vParent);
-  const children = vnode_getDOMChildNodes(journal, vDelete);
-  parent && children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
+  if (parent) {
+    if (vnode_isElementVNode(vParent)) {
+      journal.push(VNodeJournalOpCode.RemoveAll, parent);
+    } else {
+      const children = vnode_getDOMChildNodes(journal, vParent);
+      children.length && journal.push(VNodeJournalOpCode.Remove, parent, ...children);
+    }
+  }
   const vPrevious = vDelete.previousSibling;
   if (vPrevious) {
     vPrevious.nextSibling = null;
@@ -1668,23 +1684,18 @@ export const vnode_getProps = (vnode: ElementVNode | VirtualVNode): unknown[] =>
 };
 
 export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => {
-  let parent: VNode | null = vnode_getParentOrProjectionParent(vnode);
+  let parent: VNode | null = vnode_getProjectionParentOrParent(vnode);
   while (parent) {
     if (parent === ancestor) {
       return true;
     }
-    parent = vnode_getParentOrProjectionParent(parent);
+    parent = vnode_getProjectionParentOrParent(parent);
   }
   return false;
 };
 
-export const vnode_getParentOrProjectionParent = (vnode: VNode): VNode | null => {
-  const parentProjection: VNode | null = vnode.slotParent;
-  if (parentProjection) {
-    // This is a projection, so we need to check the parent of the projection
-    return parentProjection;
-  }
-  return vnode.parent;
+export const vnode_getProjectionParentOrParent = (vnode: VNode): VNode | null => {
+  return vnode.slotParent || vnode.parent;
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {

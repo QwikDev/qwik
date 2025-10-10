@@ -24,7 +24,10 @@ import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
 import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
-import { deserializeData, inflateQRL, resolvers, TypeIds } from './index';
+import { allocate, pendingStoreTargets } from './allocate';
+import { needsInflation } from './deser-proxy';
+import { resolvers } from './allocate';
+import { TypeIds } from './constants';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -54,12 +57,12 @@ export const inflate = (
       break;
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
-      inflateQRL(container, target as QRLInternal<any>);
+      _inflateQRL(container, target as QRLInternal<any>);
       break;
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = inflateQRL(container, v[0]);
+      task.$qrl$ = _inflateQRL(container, v[0]);
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -84,15 +87,19 @@ export const inflate = (
       (target as any)[SERIALIZABLE_STATE][0] = (data as any[])[0];
       break;
     case TypeIds.Store: {
+      // Inflate the store target
+      const store = target as object;
+      const storeTarget = pendingStoreTargets.get(store);
+      if (storeTarget) {
+        pendingStoreTargets.delete(store);
+        inflate(container, store, storeTarget.t, storeTarget.v);
+      }
       /**
-       * Note that cycles between stores and their targets can cause this inflation to happen on
-       * already inflated stores, but that's ok because the flags and effects are still the same.
-       *
-       * Also note that we don't do anything with the innerstores we added during serialization,
-       * because they are already inflated in the first step of inflate().
+       * Note that we don't do anything with the innerstores we added during serialization, because
+       * they are already inflated in the deserialize of the data, above.
        */
       const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(target as object)!;
+      const storeHandler = getStoreHandler(store)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
       break;
@@ -268,3 +275,21 @@ export const _eagerDeserializeArray = (
   }
   return output;
 };
+export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
+  const captureIds = qrl.$capture$;
+  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
+  if (container.element) {
+    qrl.$setContainer$(container.element);
+  }
+  return qrl;
+}
+export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
+  if (typeId === TypeIds.Plain) {
+    return value;
+  }
+  const propValue = allocate(container, typeId, value);
+  if (needsInflation(typeId)) {
+    inflate(container, propValue, typeId, value);
+  }
+  return propValue;
+}

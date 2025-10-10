@@ -18,7 +18,8 @@ export const loadRoute = async (
   routes: RouteData[] | undefined,
   menus: MenuData[] | undefined,
   cacheModules: boolean | undefined,
-  pathname: string
+  pathname: string,
+  isInternal?: boolean
 ): Promise<LoadedRoute | null> => {
   if (!Array.isArray(routes)) {
     return null;
@@ -29,12 +30,12 @@ export const loadRoute = async (
     if (!params) {
       continue;
     }
-    const loaders = routeData[RouteDataProp.Loaders];
+    const moduleLoaders = routeData[RouteDataProp.ModuleLoaders];
     const routeBundleNames = routeData[RouteDataProp.RouteBundleNames];
-    const modules: RouteModule[] = new Array(loaders.length);
+    const modules: RouteModule[] = new Array(moduleLoaders.length);
     const pendingLoads: Promise<any>[] = [];
 
-    loaders.forEach((moduleLoader, i) => {
+    moduleLoaders.forEach((moduleLoader, i) => {
       loadModule<RouteModule>(
         moduleLoader,
         pendingLoads,
@@ -43,16 +44,18 @@ export const loadRoute = async (
       );
     });
 
-    const menuLoader = getMenuLoader(menus, pathname);
     let menu: ContentMenu | undefined = undefined;
+    // No need to load menu for internal QData requests
+    if (!isInternal) {
+      const menuLoader = getMenuLoader(menus, pathname);
 
-    loadModule<MenuModule>(
-      menuLoader,
-      pendingLoads,
-      (menuModule) => (menu = menuModule?.default),
-      cacheModules
-    );
-
+      loadModule<MenuModule>(
+        menuLoader,
+        pendingLoads,
+        (menuModule) => (menu = menuModule?.default),
+        cacheModules
+      );
+    }
     if (pendingLoads.length > 0) {
       await Promise.all(pendingLoads);
     }
@@ -93,10 +96,9 @@ const loadModule = <T>(
 export const getMenuLoader = (menus: MenuData[] | undefined, pathname: string) => {
   if (menus) {
     pathname = pathname.endsWith('/') ? pathname : pathname + '/';
+    // The menus are sorted longest to shortest so first match wins
     const menu = menus.find(
-      (m) =>
-        m[MenuDataProp.Pathname] === pathname ||
-        pathname.startsWith(m[MenuDataProp.Pathname] + (pathname.endsWith('/') ? '' : '/'))
+      (m) => m[MenuDataProp.Pathname] === pathname || pathname.startsWith(m[MenuDataProp.Pathname])
     );
     if (menu) {
       return menu[MenuDataProp.MenuLoader];

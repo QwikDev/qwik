@@ -20,7 +20,7 @@ A typical way to deal with these limitations is to split the event handling into
 2. `$()` which is called asynchronously and can close over the state and call other functions, and has no restriction on the size.
 
 Because `sync$()` can't access the state what is the best strategy to deal with it? The answer is to use element attributes to pass state into the `sync$()` function.
-> **NOTE:** If you only need to prevent the default behavior, you can simply use the standard [`preventDefault:{eventName}`](/docs/components/events/#prevent-default) syntax. This is strictly for when you need to chain events together synchronously
+> **NOTE:** If you only need to prevent the default behavior, you can simply use the standard [`preventDefault:{eventName}`](/docs/core/events/#prevent-default) syntax. This is strictly for when you need to chain events together synchronously
 
 ## Example: `sync$()` with state
 

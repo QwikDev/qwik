@@ -5,14 +5,14 @@ import { basename, extname, join, resolve } from 'node:path';
 import type { Plugin, PluginOption, Rollup, UserConfig, ViteDevServer } from 'vite';
 import { loadEnv } from 'vite';
 import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
-import { build } from '../build';
+import { parseRoutesDir } from '../build';
 import { createBuildContext, resetBuildContext } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
@@ -42,7 +42,7 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
 }
 
 function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
-  let ctx: BuildContext | null = null;
+  let ctx: RoutingContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
@@ -52,6 +52,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
   let devServer: ViteDevServer | null = null;
 
   let devSsrServer = userOpts?.devSsrServer;
+  const routesDir = userOpts?.routesDir ?? 'src/routes';
+  const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -81,6 +83,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         },
         appType: 'custom',
         resolve: {
+          dedupe: [QWIK_ROUTER, '@builder.io/qwik-city'],
           alias: [
             { find: '@builder.io/qwik-city', replacement: '@qwik.dev/router' },
             { find: /^@builder\.io\/qwik-city\/(.*)/, replacement: '@qwik.dev/router/$1' },
@@ -90,6 +93,13 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           ],
         },
         optimizeDeps: {
+          // Let Vite find all app deps, these are not part of the static imports from `src/root`
+          entries: [
+            `${routesDir}/**/index*`,
+            `${routesDir}/**/layout*`,
+            `${serverPluginsDir}/plugin@*`,
+          ],
+          // These need processing by the optimizer during dev
           exclude: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,
@@ -226,7 +236,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
           if (ctx.isDirty) {
-            await build(ctx);
+            await parseRoutesDir(ctx);
 
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
@@ -250,7 +260,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      if (id.startsWith('\0')) {
+      const isVirtualId = id.startsWith('\0');
+      if (isVirtualId) {
         return;
       }
       const ext = extname(id).toLowerCase();

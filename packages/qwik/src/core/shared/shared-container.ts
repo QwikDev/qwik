@@ -5,7 +5,10 @@ import type { SubscriptionData } from '../reactive-primitives/subscription-data'
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import { createScheduler, Scheduler, type Chore } from './scheduler';
-import { createSerializationContext, type SerializationContext } from './serdes/index';
+import {
+  createSerializationContext,
+  type SerializationContext,
+} from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
 import { ChoreArray } from '../client/chore-array';
 

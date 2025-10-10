@@ -1,4 +1,5 @@
-import type { SnapshotResult, StreamWriter } from '@qwik.dev/core';
+import type { SnapshotResult } from '@qwik.dev/core';
+import type { StreamWriter } from '@qwik.dev/core/internal';
 import type {
   QwikManifest,
   ServerQwikManifest,
@@ -128,18 +129,16 @@ export interface RenderResult {
 }
 
 /** @public */
-export interface QwikLoaderOptions {
-  /**
-   * Whether to include the qwikloader script in the document. Normally you don't need to worry
-   * about this, but in case of multi-container apps using different Qwik versions, you might want
-   * to only enable it on one of the containers.
-   *
-   * Defaults to `'auto'`.
-   */
-  include?: 'always' | 'never' | 'auto';
-  /** @deprecated No longer used, the qwikloader is always loaded as soon as possible */
-  position?: 'top' | 'bottom';
-}
+export type QwikLoaderOptions =
+  | 'module'
+  | 'inline'
+  | 'never'
+  | {
+      /** @deprecated No longer used. */
+      include?: 'always' | 'never' | 'auto';
+      /** @deprecated No longer used. */
+      position?: 'top' | 'bottom';
+    };
 
 /** @public */
 export interface RenderOptions extends SerializeDocumentOptions {
@@ -156,12 +155,26 @@ export interface RenderOptions extends SerializeDocumentOptions {
   locale?: string | ((options: RenderOptions) => string);
 
   /**
-   * Specifies if the Qwik Loader script is added to the document or not.
+   * Specifies how the Qwik Loader is included in the document. This enables interactivity and lazy
+   * loading.
    *
-   * Defaults to `{ include: true }`.
+   * `module`: Use a `<script>` tag to load the Qwik Loader. Subsequent page loads will have the
+   * script cached and instantly running.
+   *
+   * `inline`: This embeds the Qwik Loader script directly in the document. This adds about 3kB
+   * before compression, which typically is reduced to about 1.6kB with gzip.
+   *
+   * `never`: Do not include the Qwik Loader script. This is mostly useful when embedding multiple
+   * containers on the same page.
+   *
+   * Defaults to `module`.
+   *
+   * Note that the Qwik Loader is absolutely required for Qwik to work. There must be an instance of
+   * it loaded for any interactivity to happen.
    */
   qwikLoader?: QwikLoaderOptions;
 
+  /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
   preloader?: PreloaderOptions | false;
 
   /** @deprecated Use `preloader` instead */

@@ -1,15 +1,17 @@
 import {
+  $,
   component$,
   useContext,
-  useStyles$,
   useSignal,
+  useStyles$,
   useVisibleTask$,
   type PropsOf,
 } from '@qwik.dev/core';
-import { useLocation } from '@qwik.dev/router';
+import { Link, useLocation } from '@qwik.dev/router';
 import { GlobalStore } from '../../context';
 import { DocSearch } from '../docsearch/doc-search';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
+import { getPkgManagerPreference } from '../package-manager-tabs';
 import { CloseIcon } from '../svgs/close-icon';
 import { DiscordLogo } from '../svgs/discord-logo';
 import { GithubLogo } from '../svgs/github-logo';
@@ -18,7 +20,6 @@ import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
 import { ThemeToggle } from '../theme-toggle/theme-toggle';
 import styles from './header.css?inline';
-import { getPkgManagerPreference } from '../package-manager-tabs';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -45,6 +46,10 @@ export const Header = component$(() => {
     globalStore.pkgManager = getPkgManagerPreference();
   });
 
+  const closeHeaderMenuOpen = $(() => {
+    globalStore.headerMenuOpen = false;
+  });
+
   return (
     <>
       <header
@@ -55,10 +60,10 @@ export const Header = component$(() => {
       >
         <div class="header-inner">
           <div class="header-logo">
-            <a href="/">
+            <Link href="/">
               <span class="sr-only">Qwik Homepage</span>
               <QwikLogo width={130} height={44} />
-            </a>
+            </Link>
           </div>
           <div class="flex items-center lg:hidden">
             <SearchButton
@@ -86,14 +91,22 @@ export const Header = component$(() => {
           </button>
           <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
             <li>
-              <a href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
+              <Link
+                href="/docs/"
+                class={{ active: pathname.startsWith('/docs') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Docs</span>
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/ecosystem/" class={{ active: pathname.startsWith('/ecosystem') }}>
+              <Link
+                href="/ecosystem/"
+                class={{ active: pathname.startsWith('/ecosystem') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Ecosystem</span>
-              </a>
+              </Link>
             </li>
             <li>
               <a
@@ -115,13 +128,14 @@ export const Header = component$(() => {
               </a>
             </li>
             <li>
-              <a
+              <Link
                 href="/blog/"
                 class={{ active: pathname.startsWith('/blog') }}
                 aria-label="Qwik blog"
+                onClick$={closeHeaderMenuOpen}
               >
                 <span>Blog</span>
-              </a>
+              </Link>
             </li>
             <li class="hidden lg:flex">
               <SearchButton

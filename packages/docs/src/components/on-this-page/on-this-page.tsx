@@ -1,5 +1,5 @@
 import { $, component$, useOnDocument, useSignal, useStyles$ } from '@qwik.dev/core';
-import { useContent, useLocation } from '@qwik.dev/router';
+import { Link, useContent, useLocation } from '@qwik.dev/router';
 import styles from './on-this-page.css?inline';
 import { OnThisPageMore } from './on-this-page-more';
 
@@ -160,13 +160,17 @@ export const OnThisPage = component$(() => {
           <h6>On This Page</h6>
           <ul class="px-2 font-medium text-[var(--interactive-text-color)]">
             {contentHeadings.map((h) => (
-              <li key={h.id} class="hover:bg-(--on-this-page-hover-bg-color)">
+              <li
+                key={h.id}
+                style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
+                class="hover:bg-(--on-this-page-hover-bg-color)"
+              >
                 {activeId.value === h.id ? (
                   <span class="on-this-page-item">{h.text}</span>
                 ) : (
-                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-0' : null} on-this-page-item`}>
+                  <Link href={`#${h.id}`} class={`on-this-page-item`}>
                     {h.text}
-                  </a>
+                  </Link>
                 )}
               </li>
             ))}

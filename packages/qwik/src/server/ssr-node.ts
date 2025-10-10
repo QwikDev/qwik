@@ -121,10 +121,12 @@ export class SsrNode implements ISsrNode {
   }
 
   setTreeNonUpdatable(): void {
-    this.flags &= ~SsrNodeFlags.Updatable;
-    if (this.children) {
-      for (const child of this.children) {
-        (child as SsrNode).setTreeNonUpdatable();
+    if (this.flags & SsrNodeFlags.Updatable) {
+      this.flags &= ~SsrNodeFlags.Updatable;
+      if (this.children) {
+        for (const child of this.children) {
+          (child as SsrNode).setTreeNonUpdatable();
+        }
       }
     }
   }

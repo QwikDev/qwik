@@ -1,4 +1,5 @@
 import { component$, useSignal } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
@@ -35,14 +36,14 @@ export const TutorialContentFooter = component$(({ store }: TutorialContentFoote
       </div>
       <nav>
         {store.prev ? (
-          <a title={store.prev.title} href={`/tutorial/${store.prev.id}/`} class="nav-link prev">
+          <Link title={store.prev.title} href={`/tutorial/${store.prev.id}/`} class="nav-link prev">
             &lt; Previous
-          </a>
+          </Link>
         ) : null}
         {store.next ? (
-          <a title={store.next.title} href={`/tutorial/${store.next.id}/`} class="nav-link next">
+          <Link title={store.next.title} href={`/tutorial/${store.next.id}/`} class="nav-link next">
             Next &gt;
-          </a>
+          </Link>
         ) : null}
       </nav>
     </div>

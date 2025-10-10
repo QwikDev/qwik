@@ -25,11 +25,13 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
-import { Fragment, isJSXNode, isPropsProxy } from '../jsx/jsx-runtime';
+import { Fragment } from '../jsx/jsx-runtime';
+import { isPropsProxy } from '../jsx/props-proxy';
+import { isJSXNode } from '../jsx/jsx-node';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
-import { _CONST_PROPS, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
+import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
@@ -113,7 +115,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     serializationContext.$addRoot$(qrl);
   };
 
-  const outputAsRootRef = (value: unknown, rootDepth = 0): boolean => {
+  const outputAsRootRef = (value: unknown, rootDepth = 0, weak = false): boolean => {
     const seen = $wasSeen$(value);
     const rootRefPath = $objectPathStringCache$.get(value);
 
@@ -130,7 +132,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       // Otherwise serialize as normal
       output(TypeIds.RootRef, seen.$rootIndex$);
       return true;
-    } else if (s11nWeakRefs.has(value)) {
+    } else if (!weak && s11nWeakRefs.has(value)) {
       const forwardRefId = s11nWeakRefs.get(value)!;
       // We see the object again, we must now make it a root and update the forward ref
       if (rootDepth === depth) {
@@ -257,14 +259,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
     // handle custom serializers
     // add to the seen map
     if (isPropsProxy(value)) {
-      const varProps = value[_VAR_PROPS];
-      const constProps = value[_CONST_PROPS];
-      const out = constProps
-        ? [varProps, constProps]
-        : Object.keys(varProps).length
-          ? [varProps]
-          : 0;
-      output(TypeIds.PropsProxy, out);
+      const owner = value[_OWNER];
+      output(TypeIds.PropsProxy, [_serializationWeakRef(owner), owner.varProps, owner.constProps]);
     } else if (value instanceof SubscriptionData) {
       output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {
@@ -463,14 +459,18 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
       output(TypeIds.Map, combined);
     } else if (isJSXNode(value)) {
-      output(TypeIds.JSXNode, [
+      const out = [
         value.type,
+        value.key,
         value.varProps,
         value.constProps,
         value.children,
-        value.flags,
-        value.key,
-      ]);
+        value.toSort || null,
+      ];
+      while (out[out.length - 1] == null) {
+        out.pop();
+      }
+      output(TypeIds.JSXNode, out);
     } else if (value instanceof Task) {
       const out: unknown[] = [
         value.$qrl$,
@@ -512,10 +512,16 @@ export async function serialize(serializationContext: SerializationContext): Pro
       const out = btoa(buf).replace(/=+$/, '');
       output(TypeIds.Uint8Array, out);
     } else if (value instanceof SerializationWeakRef) {
-      const forwardRefId = forwardRefsId++;
-      s11nWeakRefs.set(value.$obj$, forwardRefId);
-      forwardRefs[forwardRefId] = -1;
-      output(TypeIds.ForwardRef, forwardRefId);
+      const obj = value.$obj$;
+      if (!outputAsRootRef(obj, 0, true)) {
+        let forwardRefId = s11nWeakRefs.get(obj);
+        if (forwardRefId === undefined) {
+          forwardRefId = forwardRefsId++;
+          s11nWeakRefs.set(obj, forwardRefId);
+          forwardRefs[forwardRefId] = -1;
+        }
+        output(TypeIds.ForwardRef, forwardRefId);
+      }
     } else if (vnode_isVNode(value)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else {
@@ -575,11 +581,20 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
 
     if (forwardRefs.length) {
-      $writer$.write(',');
-      $writer$.write(TypeIds.ForwardRefs + ',');
-      outputArray(forwardRefs, (value) => {
-        $writer$.write(String(value));
-      });
+      let lastIdx = forwardRefs.length - 1;
+      while (lastIdx >= 0 && forwardRefs[lastIdx] === -1) {
+        lastIdx--;
+      }
+      if (lastIdx >= 0) {
+        $writer$.write(',');
+        $writer$.write(TypeIds.ForwardRefs + ',');
+        const out =
+          lastIdx === forwardRefs.length - 1 ? forwardRefs : forwardRefs.slice(0, lastIdx + 1);
+        // We could also implement RLE of -1 values
+        outputArray(out, (value) => {
+          $writer$.write(String(value));
+        });
+      }
     }
 
     $writer$.write(']');

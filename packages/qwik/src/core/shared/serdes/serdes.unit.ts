@@ -1014,10 +1014,7 @@ describe('shared-serialization', () => {
           {string} "child"
           ForwardRef 0
         ]
-        1 ForwardRefs [
-          -1
-        ]
-        (27 chars)"
+        (19 chars)"
       `);
     });
     it('should serialize object before qrl', async () => {
@@ -1059,13 +1056,13 @@ describe('shared-serialization', () => {
       });
 
       const qrl = inlinedQrl(() => parent.child.should, 'dump_qrl', [parent.child]);
-      expect(await dump(qrl, parent)).toMatchInlineSnapshot(`
+      expect(await dump(parent, qrl)).toMatchInlineSnapshot(`
         "
-        0 QRL "3 4 2"
-        1 Object [
+        0 Object [
           {string} "child"
           ForwardRef 0
         ]
+        1 QRL "3 4 2"
         2 Object [
           {string} "should"
           {string} "serialize"
@@ -1076,6 +1073,27 @@ describe('shared-serialization', () => {
           2
         ]
         (94 chars)"
+      `);
+    });
+    it('should not serialize multipe same weak ref', async () => {
+      const parent = {
+        child: { should: 'serialize' },
+      };
+
+      (parent as any)[SerializerSymbol] = () => ({
+        child1: _serializationWeakRef(parent.child),
+        child2: _serializationWeakRef(parent.child),
+      });
+
+      expect(await dump(parent)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "child1"
+          ForwardRef 0
+          {string} "child2"
+          ForwardRef 0
+        ]
+        (35 chars)"
       `);
     });
   });

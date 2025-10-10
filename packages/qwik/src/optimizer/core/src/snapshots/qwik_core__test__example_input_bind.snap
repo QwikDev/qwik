@@ -28,10 +28,9 @@ export const Greeter = component$(() => {
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const value = useSignal(0);
@@ -39,31 +38,13 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     const stuff = useSignal();
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("input", null, {
-            "value": value,
-            "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                const [value] = useLexicalScope();
-                return value.value = elm.type == "number" ? elm.valueAsNumber : elm.value;
-            }, "s_6IZeYpXCNXA", [
-                value
-            ])
+            "bind:value": value
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("input", null, {
-            "checked": checked,
-            "onInput$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                const [checked] = useLexicalScope();
-                return checked.value = elm.type == "number" ? elm.valueAsNumber : elm.checked;
-            }, "s_JPI3bLCVnso", [
-                checked
-            ])
+            "bind:checked": checked
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("input", null, {
-            "stuff": stuff,
-            "onChange$": /*#__PURE__*/ inlinedQrl((_, elm)=>{
-                const [stuff] = useLexicalScope();
-                return stuff.value = elm.type == "number" ? elm.valueAsNumber : elm.stuff;
-            }, "s_eyREJ0lZTFw", [
-                stuff
-            ])
+            "bind:stuff": stuff
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, value, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(value), 3, null)
@@ -71,7 +52,7 @@ export const Greeter = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "s_n7HuG2hhU0Q"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;qBAAkB;;;uBAAA;;;;;sBACnB,WAAC;uBAAoB;;;uBAAA;;;;;sBACrB,WAAC;qBAAkB;;;uBAAA;;;;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT,qBAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,wBAAU,sCAAW;IACjC,MAAM,QAAQ,UAAU;IACxB,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ;IACd,qBACC;sBACC,WAAC;YAAD,cAAmB;;sBACnB,WAAC;YAAD,gBAAqB;;sBACrB,WAAC;YAAD,cAAmB;;sBACnB,WAAC,mBAAK;sBACN,WAAC,6BAAK;;AAIT,qBAAG\"}")
 == DIAGNOSTICS ==
 
 []

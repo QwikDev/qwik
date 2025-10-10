@@ -1,12 +1,13 @@
-import { isDomRef } from './serialization-context';
-import { isStore, getStoreTarget } from '../../reactive-primitives/impl/store';
+import { getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
 import { untrack } from '../../use/use-core';
 import { isTask } from '../../use/use-task';
 import { isQwikComponent } from '../component.public';
-import { isPropsProxy, isJSXNode } from '../jsx/jsx-runtime';
+import { isJSXNode } from '../jsx/jsx-node';
+import { isPropsProxy } from '../jsx/props-proxy';
 import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
+import { isDomRef } from './serialization-context';
 
 export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
   if (

@@ -3,6 +3,10 @@ import { CodeBlock } from '../../components/code-block/code-block';
 import { $, component$, useSignal } from '@builder.io/qwik';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
+type TransformModuleV2 = TransformModule & {
+  segment?: { canonicalFilename: string; paramNames: string[]; captureNames: string[] };
+};
+
 export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps) => {
   const selectedPath = useSignal(outputs.length ? outputs[0].path : '');
   const pathInView$ = $((path: string) => {
@@ -14,7 +18,7 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
   return (
     <div class="output-result output-modules">
       <div class="file-tree">
-        <div class="file-tree-header">Symbols</div>
+        <div class="file-tree-header">Segments</div>
         <div class="file-tree-items">
           {segments.map((o, i) => (
             <div key={o.path}>
@@ -38,10 +42,20 @@ export const ReplOutputSymbols = component$(({ outputs }: ReplOutputSymbolsProps
         </div>
       </div>
       <div class="file-modules" id={FILE_MODULE_DIV_ID}>
-        {segments.map((o, i) => (
+        {(segments as TransformModuleV2[]).map((o, i) => (
           <div class="file-item" data-symbol-item={i} key={o.path}>
             <div class="file-info">
               <span>{o.segment?.canonicalFilename}</span>
+              {o.segment!.paramNames && (
+                <div>
+                  Params: <code>{o.segment!.paramNames.join(', ')}</code>
+                </div>
+              )}
+              {o.segment!.captureNames && (
+                <div>
+                  Captures: <code>{o.segment!.captureNames.join(', ')}</code>
+                </div>
+              )}
             </div>
             <div class="file-text">
               <CodeBlock

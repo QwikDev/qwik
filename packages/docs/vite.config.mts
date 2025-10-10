@@ -245,7 +245,7 @@ export default defineConfig(() => {
       },
     },
     worker: {
-      format: 'es',
+      format: 'es' as const,
     },
     clearScreen: false,
     server: {

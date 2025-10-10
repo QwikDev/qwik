@@ -1,5 +1,5 @@
 import { $, component$, useContext, useOnDocument, useSignal, useStyles$ } from '@builder.io/qwik';
-import { useContent, useLocation } from '@builder.io/qwik-city';
+import { Link, useContent, useLocation } from '@builder.io/qwik-city';
 import { GlobalStore } from '../../context';
 import { AlertIcon } from '../svgs/alert-icon';
 import { ChatIcon } from '../svgs/chat-icon';
@@ -198,6 +198,7 @@ export const OnThisPage = component$(() => {
             {contentHeadings.map((h) => (
               <li
                 key={h.id}
+                style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
                 class={`${
                   theme.theme === 'light'
                     ? 'hover:bg-[var(--qwik-light-blue)]'
@@ -207,9 +208,9 @@ export const OnThisPage = component$(() => {
                 {activeId.value === h.id ? (
                   <span class="on-this-page-item">{h.text}</span>
                 ) : (
-                  <a href={`#${h.id}`} class={`${h.level > 2 ? 'ml-0' : null} on-this-page-item`}>
+                  <Link href={`#${h.id}`} class={`on-this-page-item`}>
                     {h.text}
-                  </a>
+                  </Link>
                 )}
               </li>
             ))}

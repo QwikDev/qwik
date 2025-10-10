@@ -1,4 +1,5 @@
 import { component$, Slot } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import type { InternalDocSearchHit, StoredDocSearchHit } from './types';
 
 interface HitProps {
@@ -7,8 +8,8 @@ interface HitProps {
 
 export const Hit = component$((props: HitProps) => {
   return (
-    <a href={props.hit.url}>
+    <Link href={props.hit.url}>
       <Slot />
-    </a>
+    </Link>
   );
 });

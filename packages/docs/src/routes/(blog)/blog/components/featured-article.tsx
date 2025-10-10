@@ -1,12 +1,13 @@
-import { Image } from 'qwik-image';
-import { ClockIcon } from '../icons/clock-icon';
-import { blogArticles } from '../../data';
 import { component$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+import { Image } from 'qwik-image';
+import { blogArticles } from '../../data';
+import { ClockIcon } from '../icons/clock-icon';
 
 export const FeaturedArticle = component$(() => {
   return (
     <article class="relative group cursor-pointer">
-      <a href={blogArticles[0].path}>
+      <Link href={blogArticles[0].path}>
         <div class="relative max-w-[1200px] overflow-hidden rounded-xl">
           <Image
             layout="fullWidth"
@@ -45,7 +46,7 @@ export const FeaturedArticle = component$(() => {
             </div>
           </div>
         </div>
-      </a>
+      </Link>
     </article>
   );
 });

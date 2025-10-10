@@ -10,4 +10,8 @@ resolver = "2"
 
 [profile.release]
 debug = 0
+lto = true
+codegen-units = 1
+opt-level = "z"
+panic = "abort"
 

@@ -237,7 +237,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen overflow-auto;
+  @apply antialiased h-screen;
   scrollbar-gutter: stable;
 }
 

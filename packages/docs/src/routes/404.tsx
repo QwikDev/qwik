@@ -1,4 +1,6 @@
 import { component$, useStyles$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
+
 import { Header } from '../components/header/header';
 import catVideo from '../media/images/404-cat.mp4?url';
 
@@ -112,12 +114,12 @@ export default component$(() => {
               </div>
             </div>
             <div class="cxoynd0">
-              <a href="/" target="_self" class="creulwa">
+              <Link href="/" target="_self" class="creulwa">
                 Go home
-              </a>
-              <a href="/docs/" target="_self" class="c5p6san">
+              </Link>
+              <Link href="/docs/" target="_self" class="c5p6san">
                 Explore the docs
-              </a>
+              </Link>
             </div>
           </div>
         </section>

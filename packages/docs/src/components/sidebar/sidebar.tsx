@@ -1,4 +1,4 @@
-import { component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
+import { $, component$, sync$, useContext, useOnDocument, useStyles$ } from '@builder.io/qwik';
 import {
   type ContentMenu,
   useContent,
@@ -76,14 +76,14 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
     })
   );
 
+  const closeSideMenuOpen = $(() => {
+    globalStore.sideMenuOpen = false;
+  });
+
   return (
     <aside class="sidebar">
       <nav id="qwik-sidebar" class="menu">
-        <button
-          class="menu-close lg:hidden"
-          onClick$={() => (globalStore.sideMenuOpen = !globalStore.sideMenuOpen)}
-          type="button"
-        >
+        <button class="menu-close lg:hidden" onClick$={closeSideMenuOpen} type="button">
           <CloseIcon width={24} height={24} />
         </button>
         <Items
@@ -91,6 +91,7 @@ export const SideBar = component$((props: { allOpen?: boolean }) => {
           pathname={url.pathname}
           allOpen={allOpen}
           markdownItems={markdownItems.value}
+          onLinkClick$={closeSideMenuOpen}
         />
       </nav>
     </aside>
@@ -102,11 +103,13 @@ export function Items({
   pathname,
   allOpen,
   markdownItems,
+  onLinkClick$,
 }: {
   items?: ContentMenu[];
   pathname: string;
   allOpen?: boolean;
   markdownItems: MarkdownItems;
+  onLinkClick$: () => void;
 }) {
   return (
     <ul>
@@ -120,7 +123,12 @@ export function Items({
                 <summary>
                   <h5>{item.text}</h5>
                 </summary>
-                <Items items={item.items} pathname={pathname} markdownItems={markdownItems} />
+                <Items
+                  items={item.items}
+                  pathname={pathname}
+                  markdownItems={markdownItems}
+                  onLinkClick$={onLinkClick$}
+                />
               </details>
             ) : (
               <Link
@@ -131,6 +139,7 @@ export function Items({
                     'is-active': pathname === item.href,
                   },
                 ]}
+                onClick$={onLinkClick$}
               >
                 {item.text}
               </Link>

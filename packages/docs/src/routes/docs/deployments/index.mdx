@@ -127,3 +127,55 @@ The various deployment platforms have different ways of configuring this, and th
 To verify proper caching, you can visit your site and open the developer tools to inspect the network requests. When you reload the page, you should see that all requests for assets are coming from the browser cache and are not contacting the server. Even a `304 Not Modified` response is not good enough, because it means that the browser is still unsure that the content is cached.
 
  ⚠️ **Note**: If your app uses [`compiled-i18n`](https://github.com/wmertens/compiled-i18n) or [`qwik-speak`](https://github.com/robisim74/qwik-speak), then translated bundles (`build/[locale]/*.js`) can retain identical filenames between builds even when translations change. Consider how long you want to cache these files for so users get the latest translations.
+
+## Origin
+
+We recommend setting the `ORIGIN` environment variable to the origin of your site (e.g. `https://example.com/`). This is used to resolve relative URLs and to validate the request origin when performing CSRF checks.
+
+However, if the origin of your application is not static because you're hosting multiple sites, the Node.js based middleware provides a `getOrigin()` callback option to reliably reconstruct the origin (scheme + host + optional port).
+
+
+### Examples
+
+1) Simple static origin from environment (recommended for production if you know the origin):
+
+```ts
+// Provide ORIGIN=https://example.com in your environment
+createQwikCity({
+  origin: process.env.ORIGIN,
+});
+```
+
+2) Compute origin using forwarded headers (common when behind proxies). Use the headers your proxy provides, e.g. `X-Forwarded-Proto` and `X-Forwarded-Host`:
+
+```ts
+createQwikCity({
+  getOrigin(req) {
+    const proto = req.headers['x-forwarded-proto'] as string | undefined;
+    const host = req.headers['x-forwarded-host'] as string | undefined || (req.headers.host as string | undefined);
+    if (!host) return null;
+    return `${proto ?? 'https'}://${host}`;
+  }
+});
+```
+
+3) Example: Cloud Run adapter (reconstructs the origin from forwarded headers)
+
+```ts
+// starters/adapters/cloud-run entry (illustrative)
+createQwikCity({
+  getOrigin(req) {
+    // Cloud Run sets X-Forwarded-Proto and Host headers
+    const proto = req.headers['x-forwarded-proto'] as string | undefined;
+    const host = (req.headers['host'] || req.headers['x-forwarded-host']) as string | undefined;
+    if (!host) return null;
+    return `${proto ?? 'https'}://${host}`;
+  }
+});
+```
+
+### Notes and best practices
+
+- Prefer a static `ORIGIN` environment variable for production whenever possible. It is the most reliable and secure option.
+- When relying on forwarded headers, ensure your proxy/ALB sets them and consider locking the trusted proxy list so attackers cannot spoof them.
+- Return `null` from `getOrigin` when the origin cannot be determined; the middleware will fall back to deriving it from the request.

@@ -70,7 +70,12 @@ export const replResolver = (
         if (pkgName === '/build') {
           return `/qwik/build`;
         }
-        if (!pkgName || pkgName === '/jsx-runtime' || pkgName === '/jsx-dev-runtime') {
+        if (
+          !pkgName ||
+          pkgName === '/jsx-runtime' ||
+          pkgName === '/jsx-dev-runtime' ||
+          pkgName === '/internal'
+        ) {
           return resolveQwik('/dist/core.mjs');
         }
         if (pkgName === '/server') {

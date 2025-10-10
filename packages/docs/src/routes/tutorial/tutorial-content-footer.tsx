@@ -1,6 +1,6 @@
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 import { ensureDefaultFiles, type TutorialStore } from './layout';
-import { Link } from '@builder.io/qwik-city';
 
 export const TutorialContentFooter = component$(({ store }: TutorialContentFooterProps) => {
   let solutionViewSig = useSignal(false);

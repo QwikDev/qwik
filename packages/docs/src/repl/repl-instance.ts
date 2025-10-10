@@ -1,6 +1,7 @@
 /** Maintains the state for a REPL instance */
 
-import { isServer, unwrapStore } from '@builder.io/qwik';
+import { isServer } from '@qwik.dev/core';
+import { unwrapStore } from '@qwik.dev/core/internal';
 import { getBundler } from './bundler';
 import { registerReplSW } from './register-repl-sw';
 import type { RequestMessage, ResponseMessage } from './repl-sw';

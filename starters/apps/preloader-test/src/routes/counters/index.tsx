@@ -1,5 +1,5 @@
-import { component$ } from "@builder.io/qwik";
-import { Link } from "@builder.io/qwik-city";
+import { component$ } from "@qwik.dev/core";
+import { Link } from "@qwik.dev/router";
 import Counter1 from "~/components/generated/counter1";
 import Counter2 from "~/components/generated/counter2";
 import Counter3 from "~/components/generated/counter3";
@@ -215,6 +215,7 @@ export default component$(() => {
       <Counter100 />
       <Link
         href="/hidden"
+        // eslint-disable-next-line no-console
         onQVisible$={() => console.log("visible below fold")}
       >
         Home

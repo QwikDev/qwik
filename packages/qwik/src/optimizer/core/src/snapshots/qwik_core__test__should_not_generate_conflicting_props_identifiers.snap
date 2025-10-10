@@ -1,0 +1,56 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4552
+expression: output
+snapshot_kind: text
+---
+==INPUT==
+
+
+		import { component$, useComputed$, useTask$ } from '@qwik.dev/core'
+
+		export default component$(({ color, ...props }) => {
+		useComputed$(() => color)
+
+		useTask$(() => {
+			props.checked
+		})
+
+		return 'hi'
+		})
+		
+============================= test.js ==
+
+import { _restProps } from "@qwik.dev/core";
+import { componentQrl } from "@qwik.dev/core";
+import { useComputedQrl } from "@qwik.dev/core";
+import { useLexicalScope } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { useTaskQrl } from "@qwik.dev/core";
+const test_component_useComputed_PYU291PvidQ = ()=>{
+    const [_rawProps] = useLexicalScope();
+    return _rawProps.color;
+};
+const test_component_useTask_jewzFYh3XmQ = ()=>{
+    const [props] = useLexicalScope();
+    props.checked;
+};
+const test_component_LUXeXe0DQrg = (_rawProps)=>{
+    const props = _restProps(_rawProps, [
+        "color"
+    ]);
+    useComputedQrl(/*#__PURE__*/ inlinedQrl(test_component_useComputed_PYU291PvidQ, "test_component_useComputed_PYU291PvidQ", [
+        _rawProps
+    ]));
+    useTaskQrl(/*#__PURE__*/ inlinedQrl(test_component_useTask_jewzFYh3XmQ, "test_component_useTask_jewzFYh3XmQ", [
+        props
+    ]));
+    return 'hi';
+};
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(test_component_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;+CAIe;;qBADgB;;2CAGpB;;IACR,MAAM,OAAO;;mCAJY;;;;IAC1B;;;IAEA;;;IAIA,OAAO;AACP;AARA,6BAAe,iGAQb\"}")
+== DIAGNOSTICS ==
+
+[]

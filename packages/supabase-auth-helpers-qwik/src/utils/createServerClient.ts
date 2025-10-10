@@ -5,7 +5,7 @@ import type {
   GenericSchema,
   SupabaseClientOptions,
 } from '@supabase/supabase-js/dist/module/lib/types';
-import type { RequestEventBase } from 'packages/qwik-city/lib';
+import type { RequestEventBase } from '@qwik.dev/router';
 
 export function createServerClient<
   Database = any,

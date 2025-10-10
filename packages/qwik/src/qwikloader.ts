@@ -2,17 +2,13 @@ import type {
   QwikErrorEvent,
   QwikSymbolEvent,
   QwikVisibleEvent,
-} from './core/render/jsx/types/jsx-qwik-events';
-import type { QContainerElement } from './core/container/container';
-import type { QContext } from './core/state/context';
-
-type qWindow = Window & {
-  qwikevents: {
-    events: Set<string>;
-    roots: Set<Node>;
-    push: (...e: (string | (EventTarget & ParentNode))[]) => void;
-  };
-};
+} from './core/shared/jsx/types/jsx-qwik-events';
+import type {
+  QContainerElement,
+  QElement,
+  QwikLoaderEventScope,
+  qWindow,
+} from './core/shared/types';
 
 /**
  * Set up event listening for browser.
@@ -45,9 +41,10 @@ const findShadowRoots = (fragment: EventTarget & ParentNode) => {
   });
 };
 
-const isPromise = (promise: Promise<any>) => promise && typeof promise.then === 'function';
+const isPromise = (promise: any): promise is Promise<any> =>
+  promise && typeof promise.then === 'function';
 
-const broadcast = (infix: string, ev: Event, type = ev.type) => {
+const broadcast = (infix: QwikLoaderEventScope, ev: Event, type = ev.type) => {
   querySelectorAll('[on' + infix + '\\:' + type + ']').forEach((el) => {
     dispatch(el, infix, ev, type);
   });
@@ -75,20 +72,22 @@ const createEvent = <T extends CustomEvent = any>(eventName: string, detail?: T[
   }) as T;
 
 const dispatch = async (
-  element: Element & { _qc_?: QContext | undefined },
-  onPrefix: string,
+  element: Element,
+  scope: QwikLoaderEventScope,
   ev: Event,
   eventName = ev.type
 ) => {
-  const attrName = 'on' + onPrefix + ':' + eventName;
+  const attrName = 'on' + scope + ':' + eventName;
   if (element.hasAttribute('preventdefault:' + eventName)) {
     ev.preventDefault();
   }
   if (element.hasAttribute('stoppropagation:' + eventName)) {
     ev.stopPropagation();
   }
-  const ctx = element._qc_;
-  const relevantListeners = ctx && ctx.li.filter((li) => li[0] === attrName);
+  // <DELETE ME LATER>: After Qwik 2.0 release
+  // This needs to be here for backward compatibility with Qwik 1.0, but at some point we can drop it.
+  const ctx = (element as any)._qc_;
+  const relevantListeners = ctx && ctx.li.filter((li: string) => li[0] === attrName);
   if (relevantListeners && relevantListeners.length > 0) {
     for (const listener of relevantListeners) {
       // listener[1] holds the QRL
@@ -105,8 +104,15 @@ const dispatch = async (
     return;
   }
   const attrValue = element.getAttribute(attrName);
+  // </DELETE ME LATER>
+  const qDispatchEvent = (element as QElement).qDispatchEvent;
+  if (qDispatchEvent) {
+    return qDispatchEvent(ev, scope);
+  }
   if (attrValue) {
-    const container = element.closest('[q\\:container]')! as QContainerElement;
+    const container = element.closest(
+      '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
+    )! as QContainerElement;
     const qBase = container.getAttribute('q:base')!;
     const qVersion = container.getAttribute('q:version') || 'unknown';
     const qManifest = container.getAttribute('q:manifest-hash') || 'dev';

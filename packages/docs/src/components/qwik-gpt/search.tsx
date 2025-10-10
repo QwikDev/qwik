@@ -1,4 +1,4 @@
-// import { server$ } from '@builder.io/qwik-city';
+// import { server$ } from '@qwik.dev/router';
 // import { createClient } from '@supabase/supabase-js';
 import gpt from './gpt.md?raw';
 // import { chatCompletion } from './streaming-gpt';

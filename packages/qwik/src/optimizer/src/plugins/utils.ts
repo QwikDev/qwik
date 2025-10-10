@@ -1,6 +1,9 @@
 import type { OptimizerSystem } from '../types';
 
 export async function findDepPkgJsonPath(sys: OptimizerSystem, dep: string, parent: string) {
+  if (sys.env === 'browsermain' || sys.env === 'webworker') {
+    return undefined;
+  }
   const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
   let root = parent;
   while (root) {

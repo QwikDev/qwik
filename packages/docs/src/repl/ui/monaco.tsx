@@ -7,6 +7,7 @@ import { getTheme } from '../../components/theme-toggle/theme-toggle';
 import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
 import { isServer } from '@qwik.dev/core';
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import cssTypes from '../../../../qwik/node_modules/csstype/index.d.ts?raw';
 
 export const initMonacoEditor = async (
   containerElm: any,
@@ -213,6 +214,7 @@ export const addQwikLibs = async (version: string) => {
     '/node_modules/@qwik.dev/core/dist/jsx-runtime.d.ts'
   );
   typescriptDefaults.addExtraLib(CLIENT_LIB);
+  typescriptDefaults.addExtraLib(cssTypes, '/node_modules/csstype/index.d.ts');
 };
 
 const loadDeps = async (pkgVersion: string) => {

@@ -1,13 +1,13 @@
 import type { Render } from '@qwik.dev/core/server';
 import type { RendererOptions } from '@qwik.dev/router';
 import type { Connect, ModuleNode, ViteDevServer } from 'vite';
-import { build } from '../build';
-import type { BuildContext } from '../types';
+import { updateRoutingContext } from '../build';
+import type { RoutingContext } from '../types';
 import { formatError } from './format-error';
 import { wrapResponseForHtmlTransform } from './html-transform-wrapper';
 
 export const makeRouterDevMiddleware =
-  (server: ViteDevServer, ctx: BuildContext): Connect.NextHandleFunction =>
+  (server: ViteDevServer, ctx: RoutingContext): Connect.NextHandleFunction =>
   async (req, res, next) => {
     // This middleware is the fallback for Vite dev mode; it renders the application
 
@@ -20,7 +20,7 @@ export const makeRouterDevMiddleware =
     }
     const renderer = mod.default;
     if (ctx!.isDirty) {
-      await build(ctx!);
+      await updateRoutingContext(ctx!);
       ctx!.isDirty = false;
     }
 
@@ -53,6 +53,8 @@ export const makeRouterDevMiddleware =
       return;
     }
 
+    // We'll be reloading the Qwik module, that's fine, don't let it warn
+    (globalThis as any).__qwik = undefined;
     // Now we can stream the render
     const { createQwikRouter } = (await server.ssrLoadModule(
       '@qwik.dev/router/middleware/node'

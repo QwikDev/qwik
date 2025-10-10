@@ -12,13 +12,13 @@ import CodeSandbox from '../../../../components/code-sandbox/index.tsx';
 When using the onLoad$ property on an \<img\> tag in a Qwik component, you might encounter an issue where the onLoad$ event doesn't fire when the image is already cached in the browser.<br/>
 In that case the onLoad$ logic is not being triggered.<br/>
 This behavior is observed during normal navigation, but not when browser caching is disabled, indicating the cache's impact on the event.<br/>
-The key point here is to [get hold of a DOM element](https://qwik.dev/docs/components/overview/#getting-hold-of-dom-element) to detect onLoad correctly.
+The key point here is to [get hold of a DOM element](https://qwik.dev/docs/core/overview/#getting-hold-of-dom-element) to detect onLoad correctly.
 
 ### Basic example
 
 <CodeSandbox src="/src/routes/demo/cookbook/detect-img-tag-onload" style={{ height: '20em' }}>
 ```tsx
-import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const imgRef = useSignal<HTMLImageElement>();

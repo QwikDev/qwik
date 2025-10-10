@@ -5,11 +5,19 @@ import { version } from './version';
 if ((globalThis as any).__qwik) {
   console.error(
     `==============================================\n` +
-      `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}. Verify external vs bundled imports etc. This can lead to issues due to duplicated shared structures.\n` +
+      `Qwik version ${(globalThis as any).__qwik} already imported while importing ${version}.\n` +
+      `This can lead to issues due to duplicated shared structures.\n` +
+      `Verify that the Qwik libraries you're using are in "resolve.noExternal[]" and in "optimizeDeps.exclude".\n` +
       `==============================================\n`
   );
 }
 (globalThis as any).__qwik = version;
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    (globalThis as any).__qwik = undefined;
+  });
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Developer Core API

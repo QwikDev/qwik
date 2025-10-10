@@ -1,18 +1,16 @@
 /* eslint-disable no-console */
+import { Slot, componentQrl, render, type JSXOutput, type OnRenderFn } from '@qwik.dev/core';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
   _DomContainer,
   _VNode,
   _VirtualVNode,
 } from '@qwik.dev/core/internal';
-import {
-  Slot,
-  _getDomContainer,
-  componentQrl,
-  render,
-  type OnRenderFn,
-  type JSXOutput,
-} from '@qwik.dev/core';
+import { transformSync } from 'esbuild';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
 import { expect } from 'vitest';
 import {
   vnode_getElementName,
@@ -27,12 +25,13 @@ import {
   vnode_toString,
   type VNodeJournal,
 } from '../core/client/vnode';
+import type { VNode, VirtualVNode } from '../core/client/vnode-impl';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
+import { _dumpState, preprocessState } from '../core/shared/serdes/index';
 import { ChoreType } from '../core/shared/util-chore-type';
-import { dumpState, preprocessState } from '../core/shared/serdes/index';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -43,17 +42,12 @@ import {
   QStyle,
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '../core/use/use-context';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement, QRLInternal } from '../server/qwik-types';
 import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
-import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
-import { transformSync } from 'esbuild';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import type { VirtualVNode, VNode } from '../core/client/vnode-impl';
 
 /** @public */
 export async function domRender(
@@ -110,10 +104,12 @@ function getStylesFactory(document: Document) {
 export async function ssrRenderToDom(
   jsx: JSXOutput,
   opts: {
-    /// Print debug information to console.
+    /** Print debug information to console. */
     debug?: boolean;
-    /// Treat JSX as raw, (don't wrap in in head/body)
+    /** Treat JSX as raw, (don't wrap in in head/body) */
     raw?: boolean;
+    /** Include QwikLoader */
+    qwikLoader?: boolean;
   } = {}
 ) {
   let html = '';
@@ -127,7 +123,9 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString(jsxToRender);
+    const result = await renderToString(jsxToRender, {
+      qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+    });
     html = result.html;
   } finally {
     setPlatform(platform);
@@ -152,7 +150,7 @@ export async function ssrRenderToDom(
       container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
     );
     preprocessState(origState, container);
-    console.log(origState ? dumpState(origState, true, '', null) : 'No state found', '\n');
+    console.log(origState ? _dumpState(origState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {

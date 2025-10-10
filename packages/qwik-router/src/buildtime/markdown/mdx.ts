@@ -1,12 +1,12 @@
 import type { CompileOptions } from '@mdx-js/mdx';
 import { SourceMapGenerator } from 'source-map';
 import { getExtension } from '../../utils/fs';
-import type { BuildContext } from '../types';
+import type { RoutingContext } from '../types';
 import { parseFrontmatter } from './frontmatter';
 import { rehypePage, rehypeSlug, renameClassname, wrapTableWithDiv } from './rehype';
 import { rehypeSyntaxHighlight } from './syntax-highlight';
 
-export async function createMdxTransformer(ctx: BuildContext): Promise<MdxTransform> {
+export async function createMdxTransformer(ctx: RoutingContext): Promise<MdxTransform> {
   const { compile } = await import('@mdx-js/mdx');
   const { default: remarkFrontmatter } = await import('remark-frontmatter');
   const { default: remarkGfm } = await import('remark-gfm');

@@ -1,5 +1,15 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.11
+
+### Patch Changes
+
+- 🐞🩹 Better configuration of Vite's optimizeDeps, preventing false duplication warnings, and verifying that Qwik dependencies are not in optimizeDeps. (by [@wmertens](https://github.com/wmertens) in [#7998](https://github.com/QwikDev/qwik/pull/7998))
+
+- 🐞🩹 resuming app with non-qwik elements inside (by [@Varixo](https://github.com/Varixo) in [#7991](https://github.com/QwikDev/qwik/pull/7991))
+
+- 🐞🩹 During deserialization, stores now correctly handle cyclic references to themselves (by [@wmertens](https://github.com/wmertens) in [#7998](https://github.com/QwikDev/qwik/pull/7998))
+
 ## 2.0.0-beta.10
 
 ### Minor Changes
@@ -419,6 +429,30 @@
 ### Patch Changes
 
 - 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
+
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 The entry.ssr renderToStream `preloader.preloadProbability` option is now deprecated because this could cause performance issues with bundles fetched on click instead of being preloaded ahead of time. (The preloader still relies on probabilities to know preload the most likely bundles first) (by [@maiieul](https://github.com/maiieul) in [#7847](https://github.com/QwikDev/qwik/pull/7847))
+
+- 🐞🩹 Link prefetch now always preloads Link prefetch bundles on monorepos (by [@maiieul](https://github.com/maiieul) in [#7835](https://github.com/QwikDev/qwik/pull/7835))
+
+- 🐞🩹 Rollup's hoistTranstiveImports is now set to `false` because the hoisting added unnecessary bundles to be preloaded to the bundle-graph static imports graph. This could lead to a suboptimal preloading experience. (by [@maiieul](https://github.com/maiieul) in [#7850](https://github.com/QwikDev/qwik/pull/7850))
+
+- 🛠 Add check-client command to verify bundle freshness (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7517](https://github.com/QwikDev/qwik/pull/7517))
+
+- ✨ All qwik packages are now marked as side effect free in their package.json. This should remove a few unecessary empty imports added by rollup and then not tree-shaken like `import "./preloader.js"`. (by [@maiieul](https://github.com/maiieul) in [#7908](https://github.com/QwikDev/qwik/pull/7908))
+
+- 🐞🩹 unmount qwikify react root alongside with qwik component (by [@sashkashishka](https://github.com/sashkashishka) in [#7864](https://github.com/QwikDev/qwik/pull/7864))
+
+- 🐞🩹 preloader now preloads bundles as long as they are part of the current viewport's bundles graph, even if their probability is very small (by [@maiieul](https://github.com/maiieul) in [#7836](https://github.com/QwikDev/qwik/pull/7836))
+
+- ✨ maxIdlePreloads is now constant over time so you know for sure how many bundles will be preloaded concurrently during idle. (by [@maiieul](https://github.com/maiieul) in [#7846](https://github.com/QwikDev/qwik/pull/7846))
+
+- 🛠 use patched domino instead of qwik-dom (by [@gioboa](https://github.com/gioboa) in [#7842](https://github.com/QwikDev/qwik/pull/7842))
+
+- 🐞🩹 Qwik is now smarter at bundling non QRL source files and qwik libraries modules (e.g. helpers, enums, inline components, etc.) together. (by [@maiieul](https://github.com/maiieul) in [#7888](https://github.com/QwikDev/qwik/pull/7888))
 
 ## 1.16.0
 

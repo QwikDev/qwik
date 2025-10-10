@@ -21,7 +21,7 @@ import type {
 } from '../types';
 import { convertManifestToBundleGraph } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
-import { isWin, parseId } from './vite-utils';
+import { isVirtualId, isWin, parseId } from './vite-utils';
 
 const REG_CTX_NAME = ['server'];
 
@@ -136,15 +136,20 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (!internalOptimizer) {
       internalOptimizer = await createOptimizer(optimizerOptions);
       lazyNormalizePath = makeNormalizePath(internalOptimizer.sys);
-      try {
-        // only try once, don't spam the console
-        if (maybeFs === undefined) {
-          maybeFs = await internalOptimizer.sys.dynamicImport('node:fs');
+      if (
+        internalOptimizer.sys.env !== 'browsermain' &&
+        internalOptimizer.sys.env !== 'webworker'
+      ) {
+        try {
+          // only try once, don't spam the console
+          if (maybeFs === undefined) {
+            maybeFs = await internalOptimizer.sys.dynamicImport('node:fs');
+          }
+        } catch {
+          // eslint-disable-next-line no-console
+          console.log('node:fs not available, disabling automatic manifest reading');
+          maybeFs = null;
         }
-      } catch {
-        // eslint-disable-next-line no-console
-        console.log('node:fs not available, disabling automatic manifest reading');
-        maybeFs = null;
       }
     }
   };
@@ -448,7 +453,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
   ) => {
-    if (id.startsWith('\0')) {
+    if (isVirtualId(id)) {
       return;
     }
 
@@ -638,7 +643,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
     }
-    if (id.startsWith('\0') || id.startsWith('/@fs/')) {
+    if (isVirtualId(id) || id.startsWith('/@fs/')) {
       return;
     }
     const count = loadCount++;
@@ -716,7 +721,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
   ): Promise<Rollup.TransformResult> {
-    if (id.startsWith('\0')) {
+    if (isVirtualId(id)) {
       return;
     }
     const count = transformCount++;
@@ -813,6 +818,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
+        // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
           debug(`transform(${count})`, `segment ${key}`, mod.segment!.displayName);

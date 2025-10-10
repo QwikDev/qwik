@@ -11,6 +11,7 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectSubscriptionProp,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
@@ -34,14 +35,10 @@ import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from '../utils/serialize-utils';
 import { isObject } from '../utils/types';
-import {
-  Constants,
-  filterEffectBackRefs,
-  qrlToString,
-  serializeWrappingFn,
-  TypeIds,
-  type SerializationContext,
-} from './index';
+import { type SerializationContext } from './serialization-context';
+import { Constants } from './constants';
+import { TypeIds } from './constants';
+import { qrlToString } from './qrl-to-string';
 
 /**
  * Format:
@@ -70,7 +67,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   const preloadQrls = new Set<QRLInternal>();
   const s11nWeakRefs = new Map<unknown, number>();
   let parent: unknown = null;
-  const isRootObject = () => depth === 0;
+  const qrlMap = new Map<string, QRLInternal>();
 
   const outputArray = (value: unknown[], writeFn: (value: unknown, idx: number) => void) => {
     $writer$.write('[');
@@ -155,7 +152,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
     if (fastSkipSerialize(value as object | Function)) {
       output(TypeIds.Constant, Constants.Undefined);
     } else if (typeof value === 'bigint') {
-      output(TypeIds.BigInt, value.toString());
+      if (!outputAsRootRef(value)) {
+        output(TypeIds.BigInt, value.toString());
+      }
     } else if (typeof value === 'boolean') {
       output(TypeIds.Constant, value ? Constants.True : Constants.False);
     } else if (typeof value === 'function') {
@@ -165,14 +164,27 @@ export async function serialize(serializationContext: SerializationContext): Pro
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
         if (!outputAsRootRef(value)) {
-          const qrl = qrlToString(serializationContext, value);
-          const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
-          if (isRootObject()) {
-            output(type, qrl);
+          const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
+          let data: string | number;
+          if (chunk !== '') {
+            // not a sync QRL, replace all parts with string references
+            data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
+            // Since we map QRLs to strings, we need to keep track of this secondary mapping
+            const existing = qrlMap.get(data);
+            if (existing) {
+              // We encountered the same QRL again, make it a root
+              const ref = $addRoot$(existing);
+              output(TypeIds.RootRef, ref);
+              return;
+            } else {
+              qrlMap.set(data, value);
+            }
           } else {
-            const id = serializationContext.$addRoot$(qrl);
-            output(type, id);
+            data = Number(symbol);
           }
+
+          const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
+          output(type, data);
         }
       } else if (isQwikComponent(value)) {
         const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
@@ -667,7 +679,11 @@ export function shouldTrackObj(obj: unknown) {
      * We track all strings greater than 1 character, because those take at least 6 bytes to encode
      * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
      * the map bigger so we want to strike a balance
-     */ (typeof obj === 'string' && obj.length > 1)
+     */
+    (typeof obj === 'string' && obj.length > 1) ||
+    /** Same reasoning but for bigint */
+    (typeof obj === 'bigint' && (obj > 9 || obj < 0)) ||
+    isQrl(obj)
   );
 } /**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time
@@ -692,8 +708,37 @@ export function isResource<T = unknown>(value: object): value is ResourceReturnI
 }
 
 export const frameworkType = (obj: any) => {
-  return (
-    (isObject(obj) && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj))) ||
-    isQrl(obj)
-  );
+  return obj && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj));
 };
+
+export function serializeWrappingFn(
+  serializationContext: SerializationContext,
+  value: WrappedSignalImpl<any>
+) {
+  // if value is an object then we need to wrap this in ()
+  if (value.$funcStr$ && value.$funcStr$[0] === '{') {
+    value.$funcStr$ = `(${value.$funcStr$})`;
+  }
+  const syncFnId = serializationContext.$addSyncFn$(
+    value.$funcStr$,
+    value.$args$.length,
+    value.$func$
+  );
+  // TODO null if no args
+  return [syncFnId, value.$args$] as const;
+}
+
+export function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
+  let effectBackRefToSerialize: Map<string, EffectSubscription> | null = null;
+  if (effectBackRef) {
+    for (const [effectProp, effect] of effectBackRef) {
+      if (effect[EffectSubscriptionProp.BACK_REF]) {
+        effectBackRefToSerialize ||= new Map<string, EffectSubscription>();
+        effectBackRefToSerialize.set(effectProp, effect);
+      }
+    }
+  }
+  return effectBackRefToSerialize;
+} /** @internal */
+
+export const _serializationWeakRef = (obj: unknown) => new SerializationWeakRef(obj);

@@ -1,9 +1,9 @@
 import type { QwikBundle, QwikManifest } from '@qwik.dev/core/optimizer';
 import { removeExtension } from '../../utils/fs';
-import type { BuildRoute } from '../types';
+import type { BuiltRoute } from '../types';
 import { QWIK_ROUTER_CONFIG_ID } from './plugin';
 
-export function getRouteImports(routes: BuildRoute[], manifest: QwikManifest) {
+export function getRouteImports(routes: BuiltRoute[], manifest: QwikManifest) {
   const result: Record<string, { imports?: string[]; dynamicImports?: string[] }> = {};
   routes.forEach((route) => {
     const routePath = removeExtension(route.filePath);

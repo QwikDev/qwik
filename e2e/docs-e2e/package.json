@@ -1,10 +1,10 @@
 {
   "name": "docs-e2e",
   "description": "",
-  "version": "1.0.0",
+  "private": true,
   "author": "",
   "devDependencies": {
-    "@playwright/test": "1.50.1",
+    "@playwright/test": "1.54.1",
     "@types/node": "24.3.0"
   },
   "keywords": [],

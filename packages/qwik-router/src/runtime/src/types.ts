@@ -252,22 +252,34 @@ export interface ContentHeading {
 
 export type ContentModuleLoader = () => Promise<ContentModule>;
 export type EndpointModuleLoader = () => Promise<RouteModule>;
-export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader;
+// export type RouteLoaderLoader = () => Promise<LoaderInternal>;
+export type ModuleLoader = ContentModuleLoader | EndpointModuleLoader; //| RouteLoaderLoader;
 export type MenuModuleLoader = () => Promise<MenuModule>;
 
+export type RouteLoaderInfo = [qrl: string, expires: number, live?: true];
 /** @public */
 export type RouteData =
-  | [routeName: string, loaders: ModuleLoader[]]
+  // SSR side
   | [
       routeName: string,
-      loaders: ModuleLoader[],
+      moduleLoaders: ModuleLoader[],
+      // , routeLoaderModules: ModuleLoader[]
+    ]
+  // Client side
+  | [
+      routeName: string,
+      moduleLoaders: ModuleLoader[],
+      // routeLoaderModules: ModuleLoader[],
+      /** The actual src/routes pathname, not rewritten */
       originalPathname: string,
+      /** The bundles that contain the loaders */
       routeBundleNames: string[],
     ];
 
 export const enum RouteDataProp {
   RouteName,
-  Loaders,
+  ModuleLoaders,
+  // RouteLoaderModules,
   OriginalPathname,
   RouteBundleNames,
 }
@@ -812,6 +824,8 @@ export interface LoaderInternal extends Loader<any> {
   __id: string;
   __validators: DataValidator[] | undefined;
   __serializationStrategy: SerializationStrategy;
+  __expires: number;
+  // __live: boolean;
   (): LoaderSignal<unknown>;
 }
 

@@ -42,7 +42,7 @@ export const replResolver = (
     }
     return {
       // Make sure this matches the regexes in manifest.ts
-      id: `/node_modules/@qwik.dev/core${id}`,
+      id: `/qwik${id}`,
       sideEffects: false,
       // It would be nice to load qwik as external, but
       // we import core and core/build so we need processing
@@ -59,7 +59,8 @@ export const replResolver = (
       if (id.startsWith('http')) {
         return { id, external: true };
       }
-      if (id.startsWith('/node_modules/@qwik.dev/core/')) {
+      // re-resolve
+      if (id.startsWith('/qwik/')) {
         return id;
       }
       const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
@@ -67,9 +68,14 @@ export const replResolver = (
         const pkgName = match[2];
 
         if (pkgName === '/build') {
-          return `/node_modules/@qwik.dev/core/build`;
+          return `/qwik/build`;
         }
-        if (!pkgName || pkgName === '/jsx-runtime' || pkgName === '/jsx-dev-runtime') {
+        if (
+          !pkgName ||
+          pkgName === '/jsx-runtime' ||
+          pkgName === '/jsx-dev-runtime' ||
+          pkgName === '/internal'
+        ) {
           return resolveQwik('/dist/core.mjs');
         }
         if (pkgName === '/server') {
@@ -108,8 +114,8 @@ export const replResolver = (
       if (input && typeof input.code === 'string') {
         return input.code;
       }
-      if (id.startsWith('/node_modules/@qwik.dev/core/')) {
-        const path = id.slice('/node_modules/@qwik.dev/core'.length);
+      if (id.startsWith('/qwik/')) {
+        const path = id.slice('/qwik'.length);
         if (path === '/build') {
           // Virtual module for Qwik build
           const isDev = options.buildMode === 'development';

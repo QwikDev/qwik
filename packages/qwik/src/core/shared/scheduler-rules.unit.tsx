@@ -969,13 +969,30 @@ describe('addBlockedChore', () => {
     const blockedChore1 = createMockChore(ChoreType.VISIBLE, { el: 'host1' });
     const blockedChore2 = createMockChore(ChoreType.TASK, { el: 'host2' });
     const blockingChore = createMockChore(ChoreType.NODE_DIFF, { el: 'host3' });
-    blockingChore.$blockedChores$ = [blockedChore1];
+    blockingChore.$blockedChores$ = new ChoreArray();
+    blockingChore.$blockedChores$.add(blockedChore1);
     const blockedChores = new Set<Chore>([blockedChore1]);
 
     addBlockedChore(blockedChore2, blockingChore, blockedChores);
 
-    expect(blockingChore.$blockedChores$).toEqual([blockedChore1, blockedChore2]);
+    expect(blockingChore.$blockedChores$).toEqual([blockedChore2, blockedChore1]);
     expect(blockedChores.has(blockedChore1)).toBe(true);
     expect(blockedChores.has(blockedChore2)).toBe(true);
+  });
+
+  it('should not add duplicate blocked chores', () => {
+    const blockedChore = createMockChore(ChoreType.VISIBLE, { el: 'host1' });
+    const blockingChore = createMockChore(ChoreType.NODE_DIFF, { el: 'host2' });
+    const blockedChores = new Set<Chore>();
+
+    // Add the same blocked chore twice
+    addBlockedChore(blockedChore, blockingChore, blockedChores);
+    addBlockedChore(blockedChore, blockingChore, blockedChores);
+
+    // Should only contain the chore once
+    expect(blockingChore.$blockedChores$).toEqual([blockedChore]);
+    expect(blockingChore.$blockedChores$?.length).toBe(1);
+    expect(blockedChores.has(blockedChore)).toBe(true);
+    expect(blockedChores.size).toBe(1);
   });
 });

@@ -154,7 +154,7 @@ export interface Chore<T extends ChoreType = ChoreType> {
   $target$: ChoreTarget | null;
   $payload$: unknown;
   $state$: ChoreState;
-  $blockedChores$: Chore[] | null;
+  $blockedChores$: ChoreArray | null;
   $startTime$: number | undefined;
   $endTime$: number | undefined;
 
@@ -361,10 +361,7 @@ This is often caused by modifying a signal in an already rendered component duri
       return chore;
     }
     if (!isRunningChore(chore)) {
-      const idx = choreQueue.add(chore);
-      if (idx < 0 && vnode_isVNode(chore.$host$)) {
-        (chore.$host$.chores ||= new ChoreArray()).add(chore);
-      }
+      addChore(chore, choreQueue);
     }
     DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
@@ -460,7 +457,8 @@ This is often caused by modifying a signal in an already rendered component duri
             if (vnode_isVNode(blockedChore.$host$)) {
               blockedChore.$host$.blockedChores?.delete(blockedChore);
             }
-            choreQueue.add(blockedChore);
+            addChore(blockedChore, choreQueue);
+            DEBUG && debugTrace('schedule.UNBLOCKED', blockedChore, choreQueue, blockedChores);
             blockedChoresScheduled = true;
           }
         }
@@ -784,11 +782,18 @@ export function addBlockedChore(
       undefined,
       blockedChores
     );
-  blockingChore.$blockedChores$ ||= [];
-  blockingChore.$blockedChores$.push(blockedChore);
+  blockingChore.$blockedChores$ ||= new ChoreArray();
+  blockingChore.$blockedChores$.add(blockedChore);
   blockedChores.add(blockedChore);
   if (vnode_isVNode(blockedChore.$host$)) {
     (blockedChore.$host$.blockedChores ||= new ChoreArray()).add(blockedChore);
+  }
+}
+
+export function addChore(chore: Chore, choreArray: ChoreArray) {
+  const idx = choreArray.add(chore);
+  if (idx < 0 && vnode_isVNode(chore.$host$)) {
+    (chore.$host$.chores ||= new ChoreArray()).add(chore);
   }
 }
 

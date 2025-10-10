@@ -9,6 +9,7 @@ import {
 import type { ChoreArray } from './chore-array';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 import { BackRef } from '../reactive-primitives/cleanup';
+import { isDev } from '@qwik.dev/core/build';
 
 /** @internal */
 export abstract class VNode extends BackRef {
@@ -91,8 +92,11 @@ export abstract class VNode extends BackRef {
     }
   }
 
-  toString() {
-    return vnode_toString.call(this);
+  toString(): string {
+    if (isDev) {
+      return vnode_toString.call(this);
+    }
+    return String(this);
   }
 }
 

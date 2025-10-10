@@ -211,6 +211,52 @@ describe('processVnodeData', () => {
   });
 });
 
+describe('emitVNodeSeparators', () => {
+  it('should encode binary correctly', () => {
+    expect(emitVNodeSeparators(0, 1)).toBe(VNodeDataSeparator.ADVANCE_1_CH);
+    expect(emitVNodeSeparators(0, 2)).toBe(VNodeDataSeparator.ADVANCE_2_CH);
+    expect(emitVNodeSeparators(0, 4)).toBe(VNodeDataSeparator.ADVANCE_4_CH);
+    expect(emitVNodeSeparators(0, 8)).toBe(VNodeDataSeparator.ADVANCE_8_CH);
+    expect(emitVNodeSeparators(0, 16)).toBe(VNodeDataSeparator.ADVANCE_16_CH);
+    expect(emitVNodeSeparators(0, 32)).toBe(VNodeDataSeparator.ADVANCE_32_CH);
+    expect(emitVNodeSeparators(0, 64)).toBe(VNodeDataSeparator.ADVANCE_64_CH);
+    expect(emitVNodeSeparators(0, 128)).toBe(VNodeDataSeparator.ADVANCE_128_CH);
+    expect(emitVNodeSeparators(0, 256)).toBe(VNodeDataSeparator.ADVANCE_256_CH);
+    expect(emitVNodeSeparators(0, 512)).toBe(VNodeDataSeparator.ADVANCE_512_CH);
+    expect(emitVNodeSeparators(0, 1024)).toBe(VNodeDataSeparator.ADVANCE_1024_CH);
+    expect(emitVNodeSeparators(0, 2048)).toBe(VNodeDataSeparator.ADVANCE_2048_CH);
+    expect(emitVNodeSeparators(0, 4096)).toBe(VNodeDataSeparator.ADVANCE_4096_CH);
+    expect(emitVNodeSeparators(0, 8192)).toBe(VNodeDataSeparator.ADVANCE_8192_CH);
+  });
+  it('should encode combinations correctly', () => {
+    expect(emitVNodeSeparators(0, 3)).toBe(
+      VNodeDataSeparator.ADVANCE_2_CH + VNodeDataSeparator.ADVANCE_1_CH
+    );
+    expect(emitVNodeSeparators(0, 7)).toBe(
+      VNodeDataSeparator.ADVANCE_4_CH +
+        VNodeDataSeparator.ADVANCE_2_CH +
+        VNodeDataSeparator.ADVANCE_1_CH
+    );
+    expect(emitVNodeSeparators(0, 15)).toBe(
+      VNodeDataSeparator.ADVANCE_8_CH +
+        VNodeDataSeparator.ADVANCE_4_CH +
+        VNodeDataSeparator.ADVANCE_2_CH +
+        VNodeDataSeparator.ADVANCE_1_CH
+    );
+    expect(emitVNodeSeparators(0, 4097)).toBe(
+      VNodeDataSeparator.ADVANCE_4096_CH + VNodeDataSeparator.ADVANCE_1_CH
+    );
+    expect(emitVNodeSeparators(0, 8193)).toBe(
+      VNodeDataSeparator.ADVANCE_8192_CH + VNodeDataSeparator.ADVANCE_1_CH
+    );
+    expect(emitVNodeSeparators(0, 16385)).toBe(
+      VNodeDataSeparator.ADVANCE_8192_CH +
+        VNodeDataSeparator.ADVANCE_8192_CH +
+        VNodeDataSeparator.ADVANCE_1_CH
+    );
+  });
+});
+
 const qContainerPaused = { [QContainerAttr]: QContainerValue.RESUMED };
 const qContainerHtml = { [QContainerAttr]: QContainerValue.HTML };
 function process(html: string): ClientContainer[] {
@@ -261,12 +307,13 @@ function encodeVNode(data: Record<number, string> = {}) {
   return `<script type="qwik/vnode">${result}</script>`;
 }
 
+// Keep in sync with ssr-container.ts
 function emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): string {
   let result = '';
   let skipCount = elementIdx - lastSerializedIdx;
   // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
   while (skipCount != 0) {
-    if (skipCount > 4096) {
+    if (skipCount >= 8192) {
       result += VNodeDataSeparator.ADVANCE_8192_CH;
       skipCount -= 8192;
     } else {

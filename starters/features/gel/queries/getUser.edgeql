@@ -1,5 +1,12 @@
-select User { **
-} filter assert_exists(User.name) ?= <optional str>$name;
+select User {
+  **
+}
+filter
+  (
+    exists(<optional str>$name) and .name = <optional str>$name
+  )
+  or
+  (
+    exists(<optional str>$email) and .email = <optional str>$email
+  );
 
-# Filter here is optional. 
-# If no filter is provided, all Users will be returned.

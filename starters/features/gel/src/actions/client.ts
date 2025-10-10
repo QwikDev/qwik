@@ -28,10 +28,8 @@ const closeClient = (): void => {
 // Main client management functions
 export const getClient = (): Executor => {
   if (!client) {
-    closeClient();
     client = createNewClient();
   }
-
   return client;
 };
 

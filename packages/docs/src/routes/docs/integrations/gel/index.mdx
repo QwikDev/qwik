@@ -13,18 +13,17 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 [GelDB](https://www.geldata.com/) Gel is a scalable, integrated data platform on top of Postgres. 
 
-Gel gives the relational model a fresh facelift, solves n+1, simplifies migrations, 
-
-and streamlines your entire database workflow.
+Gel gives the relational model a fresh facelift, solves n+1, simplifies migrations, and streamlines your entire database workflow.
 
 Gel can be used in Qwik with `routeLoader$`, `routeAction$` and `server$` functions. These are Qwik APIs to allow code to execute only on the server-side.
 
-The easiest way to add Gel to Qwik is using the Qwik CLI command. This will install the required dependencies and create a `gel` folder with the gel schema.
+The simplest way to add Gel to your Qwik project is by running the Qwik CLI command. This will automatically install all necessary dependencies, set up a basic schema in the `dbschema` folder, and generate a `queries` directory to help you start building your own API queries. Additionally, it will scaffold `actions` and `hooks` folders with example routes and files, giving you a ready-to-use foundation for working with Gel in your app.
 
-It will also create a `gel.toml` file to configure the gel instance. Everything you need to get started is there.
+It will also create a `gel.toml` file to configure the gel instance. Everything you need to start building your app with Gel is there.
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
+
 ```shell
 pnpm run qwik add gel
 ```
@@ -50,13 +49,92 @@ bun run qwik add gel
 
 ## Auto-generating queries
 
-Gel lets you automatically generate queries for your database schema by using
+Gel lets you automatically generate queries for your database schema by using their query language EdgeQL.
+It is already installed for you and you can use the following scripts to utilize it:  
 
-their query language EdgeQL combined with `npm install @gel/generate  --save-dev`.
+*** Before you start, make sure you have run the following command:
+```shell
+pnpm run gel:generate:all
+```
 
 The following `<generator>`s are currently supported:
 
-- `queries`: Generate typed functions from *.edgeql files
-- `interfaces`: Generate interfaces for your schema types
-- `edgeql-js`: Generate the query builder
+- Command: `gel:generate:queries` > 
+    - `queries`: Generate typed functions from *.edgeql files
+- Command: `gel:generate:types` > 
+    - `interfaces`: Generate interfaces for your schema types 
+    - `edgeql-js`: Generate the query builder
+- Command: `gel:generate:all` > 
+    - `queries` + `interfaces` + `edgeql-js`
+
+
+
+
+## Gel UI
+
+You can also use the Gel UI to view and edit your database schema, query your data, among other things.
+To do so, run the following command:
+<PackageManagerTabs>
+<span q:slot="pnpm">
+
+```shell
+pnpm run gel:ui
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run gel:ui
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run gel:ui
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run gel:ui
+```
+</span>
+</PackageManagerTabs>
+
+## Listing users
+
+We will use `routeLoader$` to query all users in the DB, using `db.query.users.findMany()`, and returning the result.
+
+```tsx {7} /Gel/ title="src/routes/users/index.tsx"
+import { component$ } from "@builder.io/qwik";
+import { routeLoader$ } from "@builder.io/qwik-city";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import { schema } from "../../../drizzle/schema";
+
+export const useGetUsers = routeLoader$(async () => {
+  const sqlite = new Database("./drizzle/db/db.sqlite");
+  const db = drizzle(sqlite, { schema });
+  const users = await db.query.users.findMany();
+  return users;
+});
+
+export default component$(() => {
+  const users = useGetUsers();
+  return (
+    <section>
+      <h1>User's directory</h1>
+      <ul>
+        {users.value.map((user) => (
+          <li key={user.id}>
+            <a href={`/users/${user.id}`}>
+              {user.name} ({user.email})
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+});
+
+```
+
+
 

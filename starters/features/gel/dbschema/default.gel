@@ -5,25 +5,19 @@ module default {
     };
   }
 
-  type User extending Timestamped{
-    errmessage := 'A user with that name already exists!';
+  type User extending Timestamped {
     required name: str {
-      constraint exclusive;
+      constraint exclusive {
+        errmessage := 'A user with that name already exists!';
+      };
     };
-    description: str;
+    email: str {
+      constraint exclusive {
+        errmessage := 'A user with that email already exists!';
+      };
+    };
     has_profile: bool;
-    multi emails: Email;
 
     index on (.name);
-
-  }
-
-  type Email {
-    errmessage := 'an email with that address already exists!';
-    required address: str {
-      constraint exclusive;
-    };
-    provider: str;
-    required user: User;
   }
 }

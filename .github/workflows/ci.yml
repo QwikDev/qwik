@@ -665,9 +665,6 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          # flaky. Updating node version or sharp/sqlite3 related deps might help.
-          - host: windows-latest
-            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -706,17 +703,6 @@ jobs:
       - name: Playwright E2E Tests
         run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
-      - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
-
-      - name: Playwright E2E Qwik React Tests
-        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
-
-      - name: Validate Create Qwik Cli
-        if: matrix.settings.host != 'windows-latest'
-        run: pnpm cli.validate
-
-  ############ E2E CLI TEST ############
   test-cli-e2e:
     name: E2E CLI Tests
     if: always() && needs.changes.outputs.build-cli-e2e == 'true'
@@ -730,8 +716,11 @@ jobs:
       matrix:
         settings:
           - host: ubuntu-latest
+            browser: chromium
           - host: macos-latest
+            browser: webkit
           - host: windows-latest
+            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -759,8 +748,21 @@ jobs:
           mv artifact-create-qwik/* packages/create-qwik/dist/
           mkdir -p packages/eslint-plugin-qwik/dist/
           mv artifact-eslint-plugin-qwik/* packages/eslint-plugin-qwik/dist/
+          mkdir -p packages/qwik-react/lib/
+          mv artifact-qwikreact/lib/* packages/qwik-react/lib/
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: npx playwright install ${{ matrix.settings.browser }} --with-deps
+
+      - name: Playwright E2E Integration Tests
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+
+      - name: Playwright E2E Qwik React Tests
+        # This just fails constantly on Windows due to weird segfaults
+        if: matrix.settings.host != 'windows-latest'
+        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: CLI E2E Tests
         run: pnpm run test.e2e.cli

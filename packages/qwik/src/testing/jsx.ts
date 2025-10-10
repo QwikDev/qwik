@@ -1,5 +1,5 @@
 import type { JSXOutput } from '@qwik.dev/core';
-import { isJSXNode } from '../core/shared/jsx/jsx-runtime';
+import { isJSXNode } from '../core/shared/jsx/jsx-node';
 import { ELEMENT_KEY, Q_PROPS_SEPARATOR } from '../core/shared/utils/markers';
 import { isSelfClosingTag } from '../server/tag-nesting';
 import { serializeAttribute } from '../core/shared/utils/styles';

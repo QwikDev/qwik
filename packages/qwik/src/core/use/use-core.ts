@@ -181,7 +181,17 @@ export const newInvokeContext = (
  * @public
  */
 export const untrack = <T>(fn: () => T): T => {
-  return invoke(undefined, fn);
+  if (_context) {
+    const sub = _context.$effectSubscriber$;
+    try {
+      _context.$effectSubscriber$ = undefined;
+      return fn();
+    } finally {
+      _context.$effectSubscriber$ = sub;
+    }
+  } else {
+    return fn();
+  }
 };
 
 const trackInvocation = /*#__PURE__*/ newInvokeContext(

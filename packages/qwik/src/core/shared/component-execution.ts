@@ -7,7 +7,9 @@ import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { Fragment, JSXNodeImpl, _jsxSorted, isJSXNode, type Props } from './jsx/jsx-runtime';
+import { Fragment, type Props } from './jsx/jsx-runtime';
+import { _jsxSorted } from './jsx/jsx-internal';
+import { JSXNodeImpl, isJSXNode } from './jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
 import type { QRLInternal } from './qrl/qrl-class';
@@ -76,7 +78,7 @@ export const executeComponent = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
-    if (props.children) {
+    if ('children' in props) {
       delete props.children;
     }
     componentFn = componentQRL.getFn(iCtx);
@@ -211,18 +213,15 @@ function addUseOnEvent(
   key: string,
   value: EventQRL<KnownEventNames>[]
 ) {
-  let props = jsxElement.props;
-  if (props === EMPTY_OBJ) {
-    props = jsxElement.props = {};
-  }
-  let propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
+  const props = jsxElement.props;
+  const propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
   if (propValue === undefined) {
-    propValue = [];
-  } else if (!Array.isArray(propValue)) {
-    propValue = [propValue];
+    props[key] = value;
+  } else if (Array.isArray(propValue)) {
+    propValue.push(...value);
+  } else {
+    props[key] = [propValue, ...value];
   }
-  propValue.push(...value);
-  props[key] = propValue;
 }
 
 /**
@@ -301,5 +300,5 @@ function injectPlaceholderElement(
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', {}, { hidden: '' }, null, 3);
+  return new JSXNodeImpl('script', null, { hidden: '' });
 }

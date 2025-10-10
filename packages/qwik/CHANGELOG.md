@@ -1,5 +1,15 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.12
+
+### Patch Changes
+
+- 🐞🩹 adding and removing attributes on vnodes (by [@Varixo](https://github.com/Varixo) in [#8030](https://github.com/QwikDev/qwik/pull/8030))
+
+- 🐞🩹 memory leak for reactive attributes (by [@Varixo](https://github.com/Varixo) in [#7997](https://github.com/QwikDev/qwik/pull/7997))
+
+- 🐞🩹 scheduling previously blocked chore (by [@Varixo](https://github.com/Varixo) in [#8028](https://github.com/QwikDev/qwik/pull/8028))
+
 ## 2.0.0-beta.11
 
 ### Patch Changes

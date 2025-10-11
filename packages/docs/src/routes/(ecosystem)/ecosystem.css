@@ -18,6 +18,18 @@
   filter: invert(1);
 }
 
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    .qwik-plus-logo-text {
+      filter: invert(1);
+    }
+    .ecosystem h2,
+    .ecosystem-menu h3 {
+      border-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
 .ecosystem .purple-gradient {
   position: fixed;
   width: 1400px;

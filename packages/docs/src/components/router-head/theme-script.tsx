@@ -3,11 +3,10 @@ export const themeStorageKey = 'theme-preference';
 export const ThemeScript = () => {
   const themeScript = `
         try {
-          document.firstElementChild
-              .setAttribute('data-theme',
-                  localStorage.getItem('${themeStorageKey}') ??
-                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-              );
+          const getItem = localStorage.getItem('${themeStorageKey}')
+          if(getItem === 'light' || getItem === 'dark'){
+              document.firstElementChild.setAttribute('data-theme', getItem);
+          }
         } catch (err) { }`;
   return <script dangerouslySetInnerHTML={themeScript} />;
 };

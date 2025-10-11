@@ -65,6 +65,7 @@ import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
 
 import type { FormSubmitCompletedDetail } from './form-component';
 import { deepFreeze } from './deepFreeze';
+import { qcAsyncRequestStore } from '../../middleware/request-handler/async-hooks';
 
 /** @internal */
 export const routeActionQrl = ((
@@ -421,7 +422,7 @@ export const serverQrl = <T extends ServerFunction>(
 
       if (isServer) {
         // Running during SSR, we can call the function directly
-        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+        let requestEvent = qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
 
         if (!requestEvent) {
           const contexts = [useQwikRouterEnv()?.ev, this, _getContextEvent()] as RequestEvent[];

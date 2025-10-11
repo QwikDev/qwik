@@ -209,6 +209,27 @@
     --media-video-shadow-color: var(--qwik-blue);
 
     --panel-toggle-background-color: var(--qwik-dark-blue);
+    .builder .dark-mode :is(img, iframe, video) {
+      filter: invert(100%) hue-rotate(180deg);
+    }
+
+    /* Temporary workaround */
+    .builder .csoetdv,
+    .builder .cvha93q {
+      filter: invert(90%) hue-rotate(180deg);
+    }
+
+    .builder .dark-mode {
+      filter: invert(90%) hue-rotate(180deg);
+    }
+
+    .dark-mode-invert {
+      filter: invert(100%) hue-rotate(180deg);
+    }
+
+    .dark-mode-hide {
+      display: none !important;
+    }
   }
 }
 

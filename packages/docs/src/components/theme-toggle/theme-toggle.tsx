@@ -1,8 +1,6 @@
-import { component$, event$, isServer, useContext, useStyles$ } from '@builder.io/qwik';
-import { SunAndMoon } from './sun-and-moon';
+import { component$, event$, isServer, useStyles$ } from '@builder.io/qwik';
 import { themeStorageKey } from '../router-head/theme-script';
 import themeToggle from './theme-toggle.css?inline';
-import { GlobalStore } from '../../context';
 import { SunIcon } from './Sun';
 import { MoonIcon } from './Moon';
 import { BrillianceIcon } from './Brilliance';

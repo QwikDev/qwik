@@ -1,4 +1,4 @@
-import { component$, type QwikIntrinsicElements } from '@builder.io/qwik';
+import { component$ } from '@builder.io/qwik';
 
 interface MoonIconProps {
   class?: string;

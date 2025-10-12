@@ -30,7 +30,12 @@ import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
 import { TypeIds } from './constants';
-import { vnode_getFirstChild, vnode_getText, vnode_isTextVNode } from '../../client/vnode';
+import {
+  vnode_getFirstChild,
+  vnode_getText,
+  vnode_isTextVNode,
+  vnode_isVNode,
+} from '../../client/vnode';
 import type { VirtualVNode } from '../../client/vnode-impl';
 import { isString } from '../utils/types';
 
@@ -67,7 +72,7 @@ export const inflate = (
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = _inflateQRL(container, v[0]);
+      task.$qrl$ = v[0];
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -288,8 +293,14 @@ export const _eagerDeserializeArray = (
   return output;
 };
 export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
+  if (qrl.$captureRef$) {
+    // early return if capture references are already set and qrl is already inflated
+    return qrl;
+  }
   const captureIds = qrl.$capture$;
   qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
+  // clear serialized capture references
+  qrl.$capture$ = null;
   if (container.element) {
     qrl.$setContainer$(container.element);
   }
@@ -306,7 +317,7 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
   return propValue;
 }
 export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
-  if (signal.$hostElement$ !== null) {
+  if (signal.$hostElement$ !== null && vnode_isVNode(signal.$hostElement$)) {
     const hostVNode = signal.$hostElement$ as VirtualVNode;
     const effects = signal.$effects$;
     let hasAttrValue = false;

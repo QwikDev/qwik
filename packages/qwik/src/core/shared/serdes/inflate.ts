@@ -7,11 +7,11 @@ import { getStoreHandler } from '../../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
   type AllSignalFlags,
   type AsyncComputeQRL,
-  type EffectProperty,
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
@@ -30,6 +30,9 @@ import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
 import { TypeIds } from './constants';
+import { vnode_getFirstChild, vnode_getText, vnode_isTextVNode } from '../../client/vnode';
+import type { VirtualVNode } from '../../client/vnode-impl';
+import { isString } from '../utils/types';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -131,6 +134,8 @@ export const inflate = (
       signal.$flags$ |= SignalFlags.INVALID;
       signal.$hostElement$ = d[4];
       signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
+
+      inflateWrappedSignalValue(signal);
       break;
     }
     case TypeIds.AsyncComputedSignal: {
@@ -299,4 +304,37 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
     inflate(container, propValue, typeId, value);
   }
   return propValue;
+}
+export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
+  if (signal.$hostElement$ !== null) {
+    const hostVNode = signal.$hostElement$ as VirtualVNode;
+    const effects = signal.$effects$;
+    let hasAttrValue = false;
+    if (effects) {
+      // Find string keys (attribute names) in the effect back refs
+      for (const [_, key] of effects) {
+        if (isString(key)) {
+          // This is an attribute name, try to read its value
+          const attrValue = hostVNode.getAttr(key);
+          if (attrValue !== null) {
+            signal.$untrackedValue$ = attrValue;
+            hasAttrValue = true;
+            break; // Take first non-null attribute value
+          }
+        }
+      }
+    }
+
+    if (!hasAttrValue) {
+      // If no attribute value found, check if this is a text content signal
+      const firstChild = vnode_getFirstChild(hostVNode);
+      if (
+        firstChild &&
+        hostVNode.firstChild === hostVNode.lastChild &&
+        vnode_isTextVNode(firstChild)
+      ) {
+        signal.$untrackedValue$ = vnode_getText(firstChild);
+      }
+    }
+  }
 }

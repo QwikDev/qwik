@@ -1268,8 +1268,7 @@ export const vnode_getElementName = (vnode: ElementVNode): string => {
   return elementName;
 };
 
-export const vnode_getText = (vnode: TextVNode): string => {
-  const textVNode = ensureTextVNode(vnode);
+export const vnode_getText = (textVNode: TextVNode): string => {
   let text = textVNode.text;
   if (text === undefined) {
     text = textVNode.text = textVNode.textNode!.nodeValue!;

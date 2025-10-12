@@ -7,11 +7,11 @@ import { getStoreHandler } from '../../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
   type AllSignalFlags,
   type AsyncComputeQRL,
-  type EffectProperty,
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
@@ -30,6 +30,14 @@ import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
 import { TypeIds } from './constants';
+import {
+  vnode_getFirstChild,
+  vnode_getText,
+  vnode_isTextVNode,
+  vnode_isVNode,
+} from '../../client/vnode';
+import type { VirtualVNode } from '../../client/vnode-impl';
+import { isString } from '../utils/types';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -64,7 +72,7 @@ export const inflate = (
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = _inflateQRL(container, v[0]);
+      task.$qrl$ = v[0];
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -131,6 +139,8 @@ export const inflate = (
       signal.$flags$ |= SignalFlags.INVALID;
       signal.$hostElement$ = d[4];
       signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
+
+      inflateWrappedSignalValue(signal);
       break;
     }
     case TypeIds.AsyncComputedSignal: {
@@ -283,8 +293,14 @@ export const _eagerDeserializeArray = (
   return output;
 };
 export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
+  if (qrl.$captureRef$) {
+    // early return if capture references are already set and qrl is already inflated
+    return qrl;
+  }
   const captureIds = qrl.$capture$;
   qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
+  // clear serialized capture references
+  qrl.$capture$ = null;
   if (container.element) {
     qrl.$setContainer$(container.element);
   }
@@ -299,4 +315,37 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
     inflate(container, propValue, typeId, value);
   }
   return propValue;
+}
+export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
+  if (signal.$hostElement$ !== null && vnode_isVNode(signal.$hostElement$)) {
+    const hostVNode = signal.$hostElement$ as VirtualVNode;
+    const effects = signal.$effects$;
+    let hasAttrValue = false;
+    if (effects) {
+      // Find string keys (attribute names) in the effect back refs
+      for (const [_, key] of effects) {
+        if (isString(key)) {
+          // This is an attribute name, try to read its value
+          const attrValue = hostVNode.getAttr(key);
+          if (attrValue !== null) {
+            signal.$untrackedValue$ = attrValue;
+            hasAttrValue = true;
+            break; // Take first non-null attribute value
+          }
+        }
+      }
+    }
+
+    if (!hasAttrValue) {
+      // If no attribute value found, check if this is a text content signal
+      const firstChild = vnode_getFirstChild(hostVNode);
+      if (
+        firstChild &&
+        hostVNode.firstChild === hostVNode.lastChild &&
+        vnode_isTextVNode(firstChild)
+      ) {
+        signal.$untrackedValue$ = vnode_getText(firstChild);
+      }
+    }
+  }
 }

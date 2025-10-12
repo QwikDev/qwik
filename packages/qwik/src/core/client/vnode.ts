@@ -690,15 +690,22 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     // We need to find the vnode.
     let parent = refElement;
     const elementPath: Element[] = [refElement];
-    while (parent && parent !== containerElement) {
+    while (parent && parent !== containerElement && !(parent as QElement).vNode) {
       parent = parent.parentElement!;
       elementPath.push(parent);
+    }
+    if ((parent as QElement).vNode) {
+      vNode = (parent as QElement).vNode as ElementVNode;
     }
     // Start at rootVNode and follow the `elementPath` to find the vnode.
     for (let i = elementPath.length - 2; i >= 0; i--) {
       vNode = vnode_getVNodeForChildNode(vNode as ElementVNode, elementPath[i]);
     }
-    elementOffset != -1 && qVNodeRefs!.set(elementOffset, vNode as ElementVNode);
+
+    if (elementOffset != -1) {
+      (refElement as QElement).vNode = vNode;
+      qVNodeRefs!.set(elementOffset, vNode as ElementVNode);
+    }
   } else {
     vNode = refElement;
   }
@@ -1261,8 +1268,7 @@ export const vnode_getElementName = (vnode: ElementVNode): string => {
   return elementName;
 };
 
-export const vnode_getText = (vnode: TextVNode): string => {
-  const textVNode = ensureTextVNode(vnode);
+export const vnode_getText = (textVNode: TextVNode): string => {
   let text = textVNode.text;
   if (text === undefined) {
     text = textVNode.text = textVNode.textNode!.nodeValue!;

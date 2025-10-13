@@ -59,6 +59,10 @@ export const inflate = (
       _eagerDeserializeArray(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
+      if (data === 0) {
+        // Special case, was an empty object
+        break;
+      }
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];

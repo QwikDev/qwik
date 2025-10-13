@@ -349,8 +349,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             }
           }
         }
-        // TODO if !out.length, output 0 and restore as {}
-        output(TypeIds.Object, out);
+        output(TypeIds.Object, out.length ? out : 0);
       }
     } else if ($isDomRef$(value)) {
       value.$ssrNode$.vnodeData[0] |= VNodeDataFlag.SERIALIZE;

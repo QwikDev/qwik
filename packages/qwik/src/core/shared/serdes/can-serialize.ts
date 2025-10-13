@@ -1,4 +1,5 @@
 import { getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
+import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive-primitives/types';
 import { untrack } from '../../use/use-core';
 import { isTask } from '../../use/use-task';
@@ -10,7 +11,6 @@ import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
 import { isDomRef } from './serialization-context';
-import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 // Keep last
 import { Fragment } from '../jsx/jsx-runtime';
 

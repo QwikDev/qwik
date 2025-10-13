@@ -37,7 +37,7 @@ import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from '../utils/serialize-utils';
 import { isObject } from '../utils/types';
-import { type SerializationContext } from './serialization-context';
+import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';
 import { Constants } from './constants';
 import { TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
@@ -58,19 +58,20 @@ export async function serialize(serializationContext: SerializationContext): Pro
     $isDomRef$,
     $storeProxyMap$,
     $addRoot$,
-    $objectPathStringCache$,
-    $wasSeen$,
+    $promoteToRoot$,
+    getSeenRef,
+    $markSeen$,
   } = serializationContext;
-  let depth = 0;
   let rootIdx = 0;
   const forwardRefs: number[] = [];
   let forwardRefsId = 0;
   const promises: Set<Promise<unknown>> = new Set();
   const preloadQrls = new Set<QRLInternal>();
   const s11nWeakRefs = new Map<unknown, number>();
-  let parent: unknown = null;
+  let parent: SeenRef | undefined;
   const qrlMap = new Map<string, QRLInternal>();
 
+  /** Helper to output an array */
   const outputArray = (value: unknown[], writeFn: (value: unknown, idx: number) => void) => {
     $writer$.write('[');
     let separator = false;
@@ -86,6 +87,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     $writer$.write(']');
   };
 
+  /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
   const output = (type: number, value: number | string | any[]) => {
     $writer$.write(`${type},`);
     if (typeof value === 'number') {
@@ -101,12 +103,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
       $writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
     } else {
-      depth++;
       outputArray(value, (valueItem, idx) => {
-        discoverRoots(serializationContext, valueItem, parent, idx);
-        writeValue(valueItem);
+        writeValue(valueItem, idx);
       });
-      depth--;
     }
   };
 
@@ -115,57 +114,70 @@ export async function serialize(serializationContext: SerializationContext): Pro
     serializationContext.$addRoot$(qrl);
   };
 
-  const outputAsRootRef = (value: unknown, rootDepth = 0, weak = false): boolean => {
-    const seen = $wasSeen$(value);
-    const rootRefPath = $objectPathStringCache$.get(value);
+  const getSeenRefOrOutput = (
+    value: unknown,
+    index: number,
+    keepWeak?: boolean
+  ): SeenRef | undefined => {
+    let seen = getSeenRef(value);
 
-    // Objects are the only way to create circular dependencies.
-    // So the first thing to to is to see if we have a circular dependency.
-    // (NOTE: For root objects we need to serialize them regardless if we have seen
-    //        them before, otherwise the root object reference will point to itself.)
-    // Also note that depth will be 1 for objects in root
-    if (rootDepth === depth && seen && seen.$parent$ !== null && rootRefPath) {
-      output(TypeIds.RootRef, rootRefPath);
-      return true;
-    } else if (depth > rootDepth && seen && seen.$rootIndex$ !== -1) {
-      // We have seen this object before, so we can serialize it as a reference.
-      // Otherwise serialize as normal
-      output(TypeIds.RootRef, seen.$rootIndex$);
-      return true;
-    } else if (!weak && s11nWeakRefs.has(value)) {
-      const forwardRefId = s11nWeakRefs.get(value)!;
-      // We see the object again, we must now make it a root and update the forward ref
-      if (rootDepth === depth) {
-        // It's already a root
-        forwardRefs[forwardRefId] = rootIdx;
+    const forwardRefIdx = !keepWeak && s11nWeakRefs.get(value);
+
+    if (!seen) {
+      if (keepWeak) {
+        // we're testing a weakref, so don't mark it as seen yet
+        return true as unknown as SeenRef;
+      }
+      // Maybe it's a weakref and that should count as seen
+      if (typeof forwardRefIdx === 'number') {
+        // Yes, no longer a weakref
+        seen = $addRoot$(value, true);
       } else {
-        // ref
-        const rootRef = $addRoot$(value);
-        output(TypeIds.RootRef, rootRef);
-        forwardRefs[forwardRefId] = rootRef;
-        return true;
+        return $markSeen$(value, parent, index);
       }
     }
 
-    return false;
+    // Now that we saw it a second time, make sure it's a root
+    if (seen.$parent$) {
+      // Note, this means it was output before
+      $promoteToRoot$(seen);
+    }
+
+    // Now we know it's a root and we should output a RootRef
+    const rootIdx = seen.$index$;
+
+    // Check if there was a weakref to us
+    if (typeof forwardRefIdx === 'number') {
+      forwardRefs[forwardRefIdx] = rootIdx;
+      s11nWeakRefs.delete(value);
+    }
+
+    // But make sure we do output ourselves
+    if (!parent && rootIdx === index) {
+      return seen;
+    }
+    output(TypeIds.RootRef, rootIdx);
   };
 
-  const writeValue = (value: unknown) => {
-    if (fastSkipSerialize(value as object | Function)) {
+  // First check for scalars, then do objects with seen checks
+  // Make sure to only get the SeenRef once, it's expensive
+  const writeValue = (value: unknown, index: number) => {
+    if (fastSkipSerialize(value)) {
       output(TypeIds.Constant, Constants.Undefined);
-    } else if (typeof value === 'bigint') {
-      if (!outputAsRootRef(value)) {
-        output(TypeIds.BigInt, value.toString());
-      }
+      // TODO make this if() a switch
     } else if (typeof value === 'boolean') {
       output(TypeIds.Constant, value ? Constants.True : Constants.False);
+    } else if (typeof value === 'bigint') {
+      if ((value < 10 && value > 0) || getSeenRefOrOutput(value, index)) {
+        output(TypeIds.BigInt, value.toString());
+      }
     } else if (typeof value === 'function') {
       if (value === Slot) {
         output(TypeIds.Constant, Constants.Slot);
       } else if (value === Fragment) {
         output(TypeIds.Constant, Constants.Fragment);
       } else if (isQrl(value)) {
-        if (!outputAsRootRef(value)) {
+        if (getSeenRefOrOutput(value, index)) {
           const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
           let data: string | number;
           if (chunk !== '') {
@@ -219,45 +231,43 @@ export async function serialize(serializationContext: SerializationContext): Pro
         output(TypeIds.Constant, Constants.EMPTY_OBJ);
       } else if (value === null) {
         output(TypeIds.Constant, Constants.Null);
+      } else if (value instanceof BackRef) {
+        output(TypeIds.RootRef, value.$path$);
       } else {
-        depth++;
-        const oldParent = parent;
-        parent = value;
-        writeObjectValue(value);
-        parent = oldParent;
-        depth--;
+        const newSeenRef = getSeenRefOrOutput(value, index);
+        if (newSeenRef) {
+          const oldParent = parent;
+          parent = newSeenRef;
+          writeObjectValue(value, oldParent, index);
+          parent = oldParent;
+        }
       }
     } else if (typeof value === 'string') {
       if (value.length === 0) {
         output(TypeIds.Constant, Constants.EmptyString);
       } else {
-        if (!outputAsRootRef(value)) {
+        // If the string is short, we output directly
+        // Very short strings add overhead to tracking
+        if (value.length < 4 || getSeenRefOrOutput(value, index)) {
           output(TypeIds.Plain, value);
         }
       }
     } else if (typeof value === 'undefined') {
       output(TypeIds.Constant, Constants.Undefined);
-    } else if (value === NEEDS_COMPUTATION) {
-      output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
-    } else if (value === STORE_ALL_PROPS) {
-      output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
-    } else if (value === _UNINITIALIZED) {
-      output(TypeIds.Constant, Constants.UNINITIALIZED);
+    } else if (typeof value === 'symbol') {
+      if (value === NEEDS_COMPUTATION) {
+        output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
+      } else if (value === STORE_ALL_PROPS) {
+        output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
+      } else if (value === _UNINITIALIZED) {
+        output(TypeIds.Constant, Constants.UNINITIALIZED);
+      }
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }
   };
 
-  const writeObjectValue = (value: {}) => {
-    /**
-     * The object writer outputs an array object (without type prefix) and this increases the depth
-     * for the objects within (depth 1).
-     */
-    if (outputAsRootRef(value, 1)) {
-      return;
-    }
-    // handle custom serializers
-    // add to the seen map
+  const writeObjectValue = (value: {}, oldParent: SeenRef | undefined, index: number) => {
     if (isPropsProxy(value)) {
       const owner = value[_OWNER];
       output(TypeIds.PropsProxy, [_serializationWeakRef(owner), owner.varProps, owner.constProps]);
@@ -307,9 +317,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
         });
         output(TypeIds.ForwardRef, forwardRef);
       } else {
-        depth--;
-        writeValue(result);
-        depth++;
+        // We replace ourselves with this value
+        parent = oldParent;
+        writeValue(result, index);
       }
     } else if (isObjectLiteral(value)) {
       if (Array.isArray(value)) {
@@ -317,11 +327,11 @@ export async function serialize(serializationContext: SerializationContext): Pro
       } else {
         const out: any[] = [];
         for (const key in value) {
-          if (
-            Object.prototype.hasOwnProperty.call(value, key) &&
-            !fastSkipSerialize((value as any)[key])
-          ) {
-            out.push(key, (value as any)[key]);
+          if (Object.prototype.hasOwnProperty.call(value, key)) {
+            const subVal = (value as any)[key];
+            if (!fastSkipSerialize(subVal)) {
+              out.push(key, subVal);
+            }
           }
         }
         // TODO if !out.length, output 0 and restore as {}
@@ -374,6 +384,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
         } else if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         }
+        // TODO just instanceof again when outputting
         addPreloadQrl(value.$computeQrl$);
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
@@ -496,7 +507,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
         if (value.$qrl$) {
           output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
         } else if (value.$resolved$) {
-          writeValue(value.$value$);
+          // We replace ourselves with this value
+          parent = oldParent;
+          writeValue(value.$value$, index);
         } else {
           console.error(value.$value$);
           throw qError(QError.serializerSymbolRejectedPromise);
@@ -513,7 +526,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
       output(TypeIds.Uint8Array, out);
     } else if (value instanceof SerializationWeakRef) {
       const obj = value.$obj$;
-      if (!outputAsRootRef(obj, 0, true)) {
+      // This will return a fake SeenRef if it's not been seen before
+      if (getSeenRefOrOutput(obj, index, true)) {
         let forwardRefId = s11nWeakRefs.get(obj);
         if (forwardRefId === undefined) {
           forwardRefId = forwardRefsId++;
@@ -552,21 +566,20 @@ export async function serialize(serializationContext: SerializationContext): Pro
 
   const outputRoots = async () => {
     $writer$.write('[');
-
-    let rootsLength = serializationContext.$roots$.length;
-    while (rootIdx < rootsLength || promises.size) {
+    const { $roots$ } = serializationContext;
+    while (rootIdx < $roots$.length || promises.size) {
       if (rootIdx !== 0) {
         $writer$.write(',');
       }
 
       let separator = false;
-      for (; rootIdx < rootsLength; rootIdx++) {
+      for (; rootIdx < $roots$.length; rootIdx++) {
         if (separator) {
           $writer$.write(',');
         } else {
           separator = true;
         }
-        writeValue(serializationContext.$roots$[rootIdx]);
+        writeValue($roots$[rootIdx], rootIdx);
       }
 
       if (promises.size) {
@@ -576,8 +589,6 @@ export async function serialize(serializationContext: SerializationContext): Pro
           // ignore rejections, they will be serialized as rejected promises
         }
       }
-
-      rootsLength = serializationContext.$roots$.length;
     }
 
     if (forwardRefs.length) {
@@ -614,24 +625,6 @@ export class PromiseResult {
     public $qrl$: QRLInternal | null = null
   ) {}
 }
-function discoverRoots(
-  serializationContext: SerializationContext,
-  obj: unknown,
-  parent: unknown,
-  index: number
-): void {
-  const { $wasSeen$, $seen$, $addRoot$ } = serializationContext;
-  if (!(shouldTrackObj(obj) || frameworkType(obj))) {
-    return;
-  }
-  const seen = $wasSeen$(obj);
-  if (seen === undefined) {
-    // First time seeing this object, track its parent and index
-    $seen$(obj, parent, index);
-  } else {
-    $addRoot$(obj, parent);
-  }
-}
 function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
   return new Promise((resolve) => {
     (signal.$computeQrl$ as QRLInternal<SerializerArg<T, S>>).resolve().then((arg) => {
@@ -648,9 +641,7 @@ function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, va
     });
   });
 }
-export class SerializationWeakRef {
-  constructor(public $obj$: unknown) {}
-}
+
 const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
   for (const value of vnodeData) {
     if (isSsrAttrs(value)) {
@@ -671,36 +662,11 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
     }
   }
 };
-const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
-  Array.isArray(value) && value.length > 0; /**
- * Tracking all objects in the map would be expensive. For this reason we only track some of the
- * objects.
- *
- * For example we skip:
- *
- * - Short strings
- * - Anything which is not an object. (ie. number, boolean, null, undefined)
- *
- * @param obj
- * @returns
- */
 
-export function shouldTrackObj(obj: unknown) {
-  return (
-    // THINK: Not sure if we need to keep track of functions (QRLs) Let's skip them for now.
-    // and see if we have a test case which requires them.
-    isObject(obj) ||
-    /**
-     * We track all strings greater than 1 character, because those take at least 6 bytes to encode
-     * and even with 999 root objects it saves one byte per reference. Tracking more objects makes
-     * the map bigger so we want to strike a balance
-     */
-    (typeof obj === 'string' && obj.length > 1) ||
-    /** Same reasoning but for bigint */
-    (typeof obj === 'bigint' && (obj > 9 || obj < 0)) ||
-    isQrl(obj)
-  );
-} /**
+const isSsrAttrs = (value: number | SsrAttrs): value is SsrAttrs =>
+  Array.isArray(value) && value.length > 0;
+
+/**
  * When serializing the object we need check if it is URL, RegExp, Map, Set, etc. This is time
  * consuming. So if we could know that this is a basic object literal we could skip the check, and
  * only run the checks for objects which are not object literals.
@@ -709,8 +675,7 @@ export function shouldTrackObj(obj: unknown) {
  *
  * @param obj
  */
-
-export function isObjectLiteral(obj: unknown): obj is object {
+function isObjectLiteral(obj: unknown): obj is object {
   // We are an object literal if:
   // - we are a direct instance of object OR
   // - we are an array
@@ -718,15 +683,12 @@ export function isObjectLiteral(obj: unknown): obj is object {
   const prototype = Object.getPrototypeOf(obj);
   return prototype == null || prototype === Object.prototype || prototype === Array.prototype;
 }
-export function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
+
+function isResource<T = unknown>(value: object): value is ResourceReturnInternal<T> {
   return '__brand' in value && value.__brand === 'resource';
 }
 
-export const frameworkType = (obj: any) => {
-  return obj && (obj instanceof SignalImpl || obj instanceof Task || isJSXNode(obj));
-};
-
-export function serializeWrappingFn(
+function serializeWrappingFn(
   serializationContext: SerializationContext,
   value: WrappedSignalImpl<any>
 ) {
@@ -743,7 +705,7 @@ export function serializeWrappingFn(
   return [syncFnId, value.$args$] as const;
 }
 
-export function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
+function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
   let effectBackRefToSerialize: Map<string, EffectSubscription> | null = null;
   if (effectBackRef) {
     for (const [effectProp, effect] of effectBackRef) {
@@ -754,6 +716,11 @@ export function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscripti
     }
   }
   return effectBackRefToSerialize;
-} /** @internal */
+}
 
+class SerializationWeakRef {
+  constructor(public $obj$: unknown) {}
+}
+
+/** @internal */
 export const _serializationWeakRef = (obj: unknown) => new SerializationWeakRef(obj);

@@ -25,7 +25,7 @@ import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { retryOnPromise } from '../utils/promises';
-import { NoSerializeSymbol, SerializerSymbol } from '../utils/serialize-utils';
+import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from '../utils/serialize-utils';
 import { _constants } from './constants';
 import { _serializationWeakRef } from './serialize';
 
@@ -39,7 +39,7 @@ describe('shared-serialization', () => {
   const shared2 = { shared: 2 };
 
   describe('serialize types', () => {
-    const dump = async (...value: any) => _dumpState(await serialize(...value));
+    const dump = async (...value: any) => _dumpState(await serialize(...verifySerializable(value)));
     it(title(TypeIds.Plain), async () => {
       expect(await dump('hi', 123.456)).toMatchInlineSnapshot(`
         "

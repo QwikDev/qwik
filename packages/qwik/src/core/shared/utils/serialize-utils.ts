@@ -63,10 +63,6 @@ const _verifySerializable = <T>(
           return value;
         }
         break;
-      case 'boolean':
-      case 'string':
-      case 'number':
-        return value;
     }
     let message: string;
     if (preMessage) {
@@ -98,9 +94,9 @@ export const shouldSerialize = (obj: unknown): boolean => {
   return true;
 };
 
-export const fastSkipSerialize = (obj: object | Function): boolean => {
+export const fastSkipSerialize = (obj: unknown): boolean => {
   return (
-    obj &&
+    !!obj &&
     (isObject(obj) || typeof obj === 'function') &&
     (NoSerializeSymbol in obj || noSerializeSet.has(obj))
   );

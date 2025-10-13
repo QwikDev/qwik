@@ -758,6 +758,7 @@ This is often caused by modifying a signal in an already rendered component duri
       for (const runningChore of runningChores) {
         const comp = choreComparator(chore, runningChore);
         if (comp === 0) {
+          addBlockedChore(chore, runningChore, blockedChores);
           return true;
         }
       }

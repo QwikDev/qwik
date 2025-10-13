@@ -124,8 +124,8 @@ describe('shared-serialization', () => {
           Constant true
         ]
         2 RootRef "0 1"
-        3 RootRef "0 1 0"
-        (74 chars)"
+        3 RootRef "2 0"
+        (72 chars)"
       `);
       expect(objs).toHaveLength(8);
     });
@@ -656,8 +656,8 @@ describe('shared-serialization', () => {
           RootRef 2
         ]
         1 RootRef "0 0"
-        2 RootRef "0 0 1 3"
-        (95 chars)"
+        2 RootRef "1 1 3"
+        (93 chars)"
       `);
     });
     it.todo(title(TypeIds.FormData));
@@ -710,6 +710,51 @@ describe('shared-serialization', () => {
       const objs = await serialize(sharedObj, obj);
       const arr = deserialize(objs);
       expect((arr[0] as any).bar).toBe((arr[1] as any).test);
+    });
+    it(title(TypeIds.RootRef) + ' - backrefs', async () => {
+      const a = { a: 1 };
+      const b = { b: { a } };
+      const c = { c: { a, b } };
+      const objs = await serialize([a, [c], [b], c]);
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 Array [
+          Object [
+            {string} "a"
+            {number} 1
+          ]
+          Array [
+            Object [
+              {string} "c"
+              Object [
+                {string} "a"
+                RootRef 1
+                {string} "b"
+                Object [
+                  {string} "b"
+                  Object [
+                    {string} "a"
+                    RootRef 1
+                  ]
+                ]
+              ]
+            ]
+          ]
+          Array [
+            RootRef 2
+          ]
+          RootRef 3
+        ]
+        1 RootRef "0 0"
+        2 RootRef "0 1 0 1 3"
+        3 RootRef "0 1 0"
+        (121 chars)"
+      `);
+      const arr = deserialize(objs)[0] as any[];
+      expect(arr[0]).toBe(arr[1][0].c.a);
+      expect(arr[0]).toBe(arr[2][0].b.a);
+      expect(arr[0]).toBe(arr[3].c.a);
+      expect(arr[2][0]).toBe(arr[3].c.b);
     });
     it(title(TypeIds.Constant), async () => {
       const objs = await serialize(..._constants);
@@ -1127,10 +1172,15 @@ describe('shared-serialization', () => {
           RootRef 3
         ]
         1 RootRef "0 0"
-        2 RootRef "0 0 0"
-        3 RootRef "0 0 3"
-        (88 chars)"
+        2 RootRef "1 0"
+        3 RootRef "1 3"
+        (84 chars)"
       `);
+      const result = deserialize(objs)[0] as any[];
+      expect(result[0].self).toBe(result[0]);
+      expect(result[1].self).toBe(result[1]);
+      expect(result[0].obj2).toBe(result[1]);
+      expect(result[1].obj1).toBe(result[0]);
     });
     it('should scan Promise results', async () => {
       const objs = await serialize(Promise.resolve(shared1), Promise.reject(shared1));

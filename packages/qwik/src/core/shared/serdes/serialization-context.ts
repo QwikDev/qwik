@@ -146,13 +146,7 @@ export const createSerializationContext = (
       ref = ref.$parent$;
     }
     // Now we are at root, but it could be a backref
-    const obj = roots[ref.$index$];
-    if (obj instanceof BackRef) {
-      // TODO handle backrefs in preprocessing
-      path.unshift(obj.$path$);
-    } else {
-      path.unshift(ref.$index$);
-    }
+    path.unshift(ref.$index$);
 
     return path.join(' ');
   };

@@ -645,7 +645,7 @@ describe('scheduler', () => {
     });
   });
 
-  describe('isRunningChore', () => {
+  describe('getRunningChore', () => {
     let scheduler: ReturnType<typeof createScheduler> = null!;
     let choreQueue: ChoreArray;
     let blockedChores: Set<Chore>;

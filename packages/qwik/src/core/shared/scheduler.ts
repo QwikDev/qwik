@@ -360,9 +360,12 @@ This is often caused by modifying a signal in an already rendered component duri
       addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
     }
-    if (!isRunningChore(chore)) {
-      addChore(chore, choreQueue);
+    const runningChore = getRunningChore(chore);
+    if (runningChore) {
+      addBlockedChore(chore, runningChore, blockedChores);
+      return chore;
     }
+    addChore(chore, choreQueue);
     DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
@@ -752,18 +755,17 @@ This is often caused by modifying a signal in an already rendered component duri
     return returnValue as any;
   }
 
-  function isRunningChore(chore: Chore): boolean {
+  function getRunningChore(chore: Chore): Chore | null {
     if (runningChores.size) {
       // 1.1. Check if the chore is already running.
       for (const runningChore of runningChores) {
         const comp = choreComparator(chore, runningChore);
         if (comp === 0) {
-          addBlockedChore(chore, runningChore, blockedChores);
-          return true;
+          return runningChore;
         }
       }
     }
-    return false;
+    return null;
   }
 };
 

@@ -168,106 +168,117 @@ export async function serialize(serializationContext: SerializationContext): Pro
   const writeValue = (value: unknown, index: number) => {
     if (fastSkipSerialize(value)) {
       output(TypeIds.Constant, Constants.Undefined);
-      // TODO make this if() a switch
-    } else if (typeof value === 'boolean') {
-      output(TypeIds.Constant, value ? Constants.True : Constants.False);
-    } else if (typeof value === 'bigint') {
-      if ((value < 10 && value > 0) || getSeenRefOrOutput(value, index)) {
-        output(TypeIds.BigInt, value.toString());
-      }
-    } else if (typeof value === 'function') {
-      if (value === Slot) {
-        output(TypeIds.Constant, Constants.Slot);
-      } else if (value === Fragment) {
-        output(TypeIds.Constant, Constants.Fragment);
-      } else if (isQrl(value)) {
-        if (getSeenRefOrOutput(value, index)) {
-          const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
-          let data: string | number;
-          if (chunk !== '') {
-            // not a sync QRL, replace all parts with string references
-            data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
-            // Since we map QRLs to strings, we need to keep track of this secondary mapping
-            const existing = qrlMap.get(data);
-            if (existing) {
-              // We encountered the same QRL again, make it a root
-              const ref = $addRoot$(existing);
-              output(TypeIds.RootRef, ref);
-              return;
-            } else {
-              qrlMap.set(data, value);
-            }
-          } else {
-            data = Number(symbol);
-          }
-
-          const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
-          output(type, data);
-        }
-      } else if (isQwikComponent(value)) {
-        const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
-        serializationContext.$renderSymbols$.add(qrl.$symbol$);
-        output(TypeIds.Component, [qrl]);
-      } else {
-        throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
-      }
-    } else if (typeof value === 'number') {
-      if (Number.isNaN(value)) {
-        output(TypeIds.Constant, Constants.NaN);
-      } else if (!Number.isFinite(value)) {
-        output(
-          TypeIds.Constant,
-          value < 0 ? Constants.NegativeInfinity : Constants.PositiveInfinity
-        );
-      } else if (value === Number.MAX_SAFE_INTEGER) {
-        output(TypeIds.Constant, Constants.MaxSafeInt);
-      } else if (value === Number.MAX_SAFE_INTEGER - 1) {
-        output(TypeIds.Constant, Constants.AlmostMaxSafeInt);
-      } else if (value === Number.MIN_SAFE_INTEGER) {
-        output(TypeIds.Constant, Constants.MinSafeInt);
-      } else {
-        output(TypeIds.Plain, value);
-      }
-    } else if (typeof value === 'object') {
-      if (value === EMPTY_ARRAY) {
-        output(TypeIds.Constant, Constants.EMPTY_ARRAY);
-      } else if (value === EMPTY_OBJ) {
-        output(TypeIds.Constant, Constants.EMPTY_OBJ);
-      } else if (value === null) {
-        output(TypeIds.Constant, Constants.Null);
-      } else if (value instanceof BackRef) {
-        output(TypeIds.RootRef, value.$path$);
-      } else {
-        const newSeenRef = getSeenRefOrOutput(value, index);
-        if (newSeenRef) {
-          const oldParent = parent;
-          parent = newSeenRef;
-          writeObjectValue(value, oldParent, index);
-          parent = oldParent;
-        }
-      }
-    } else if (typeof value === 'string') {
-      if (value.length === 0) {
-        output(TypeIds.Constant, Constants.EmptyString);
-      } else {
-        // If the string is short, we output directly
-        // Very short strings add overhead to tracking
-        if (value.length < 4 || getSeenRefOrOutput(value, index)) {
-          output(TypeIds.Plain, value);
-        }
-      }
-    } else if (typeof value === 'undefined') {
-      output(TypeIds.Constant, Constants.Undefined);
-    } else if (typeof value === 'symbol') {
-      if (value === NEEDS_COMPUTATION) {
-        output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
-      } else if (value === STORE_ALL_PROPS) {
-        output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
-      } else if (value === _UNINITIALIZED) {
-        output(TypeIds.Constant, Constants.UNINITIALIZED);
-      }
     } else {
-      throw qError(QError.serializeErrorUnknownType, [typeof value]);
+      switch (typeof value) {
+        case 'undefined':
+          output(TypeIds.Constant, Constants.Undefined);
+          break;
+        case 'boolean':
+          output(TypeIds.Constant, value ? Constants.True : Constants.False);
+          break;
+        case 'number':
+          if (Number.isNaN(value)) {
+            output(TypeIds.Constant, Constants.NaN);
+          } else if (!Number.isFinite(value)) {
+            output(
+              TypeIds.Constant,
+              value < 0 ? Constants.NegativeInfinity : Constants.PositiveInfinity
+            );
+          } else if (value === Number.MAX_SAFE_INTEGER) {
+            output(TypeIds.Constant, Constants.MaxSafeInt);
+          } else if (value === Number.MAX_SAFE_INTEGER - 1) {
+            output(TypeIds.Constant, Constants.AlmostMaxSafeInt);
+          } else if (value === Number.MIN_SAFE_INTEGER) {
+            output(TypeIds.Constant, Constants.MinSafeInt);
+          } else {
+            output(TypeIds.Plain, value);
+          }
+          break;
+        case 'string':
+          if (value.length === 0) {
+            output(TypeIds.Constant, Constants.EmptyString);
+          } else {
+            // If the string is short, we output directly
+            // Very short strings add overhead to tracking
+            if (value.length < 4 || getSeenRefOrOutput(value, index)) {
+              output(TypeIds.Plain, value);
+            }
+          }
+          break;
+        case 'bigint':
+          if ((value < 10 && value > 0) || getSeenRefOrOutput(value, index)) {
+            output(TypeIds.BigInt, value.toString());
+          }
+          break;
+        case 'symbol':
+          if (value === NEEDS_COMPUTATION) {
+            output(TypeIds.Constant, Constants.NEEDS_COMPUTATION);
+          } else if (value === STORE_ALL_PROPS) {
+            output(TypeIds.Constant, Constants.STORE_ALL_PROPS);
+          } else if (value === _UNINITIALIZED) {
+            output(TypeIds.Constant, Constants.UNINITIALIZED);
+          }
+          break;
+        case 'function':
+          if (value === Slot) {
+            output(TypeIds.Constant, Constants.Slot);
+          } else if (value === Fragment) {
+            output(TypeIds.Constant, Constants.Fragment);
+          } else if (isQrl(value)) {
+            if (getSeenRefOrOutput(value, index)) {
+              const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
+              let data: string | number;
+              if (chunk !== '') {
+                // not a sync QRL, replace all parts with string references
+                data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
+                // Since we map QRLs to strings, we need to keep track of this secondary mapping
+                const existing = qrlMap.get(data);
+                if (existing) {
+                  // We encountered the same QRL again, make it a root
+                  const ref = $addRoot$(existing);
+                  output(TypeIds.RootRef, ref);
+                  return;
+                } else {
+                  qrlMap.set(data, value);
+                }
+              } else {
+                data = Number(symbol);
+              }
+
+              const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
+              output(type, data);
+            }
+          } else if (isQwikComponent(value)) {
+            const [qrl]: [QRLInternal] = (value as any)[SERIALIZABLE_STATE];
+            serializationContext.$renderSymbols$.add(qrl.$symbol$);
+            output(TypeIds.Component, [qrl]);
+          } else {
+            throw qError(QError.serializeErrorCannotSerializeFunction, [value.toString()]);
+          }
+          break;
+        case 'object':
+          if (value === EMPTY_ARRAY) {
+            output(TypeIds.Constant, Constants.EMPTY_ARRAY);
+          } else if (value === EMPTY_OBJ) {
+            output(TypeIds.Constant, Constants.EMPTY_OBJ);
+          } else if (value === null) {
+            output(TypeIds.Constant, Constants.Null);
+          } else if (value instanceof BackRef) {
+            output(TypeIds.RootRef, value.$path$);
+          } else {
+            const newSeenRef = getSeenRefOrOutput(value, index);
+            if (newSeenRef) {
+              const oldParent = parent;
+              parent = newSeenRef;
+              // separate function for readability
+              writeObjectValue(value, oldParent, index);
+              parent = oldParent;
+            }
+          }
+          break;
+        default:
+          throw qError(QError.serializeErrorUnknownType, [typeof value]);
+      }
     }
   };
 

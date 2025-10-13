@@ -1360,13 +1360,12 @@ describe('shared-serialization', () => {
           ]
         ]
         2 RootRef "1 1 0"
-        3 RootRef 4
-        4 RootRef "1 1"
-        5 ForwardRefs [
+        3 RootRef "1 1"
+        4 ForwardRefs [
           1
           3
         ]
-        (70 chars)"
+        (66 chars)"
       `);
       const result = deserialize(state)[0] as any[];
       expect(await result[0]).toBe(result[1]);

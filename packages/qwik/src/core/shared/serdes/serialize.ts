@@ -70,11 +70,24 @@ export async function serialize(serializationContext: SerializationContext): Pro
   const qrlMap = new Map<string, QRLInternal>();
 
   /** Helper to output an array */
-  const outputArray = (value: unknown[], writeFn: (value: unknown, idx: number) => void) => {
+  const outputArray = (
+    value: unknown[],
+    keepNulls: boolean,
+    writeFn: (value: unknown, idx: number) => void
+  ) => {
     $writer$.write('[');
     let separator = false;
-    // TODO only until last non-null value
-    for (let i = 0; i < value.length; i++) {
+    let length;
+    if (keepNulls) {
+      length = value.length;
+    } else {
+      length = value.length - 1;
+      while (length >= 0 && value[length] === null) {
+        length--;
+      }
+      length++;
+    }
+    for (let i = 0; i < length; i++) {
       if (separator) {
         $writer$.write(',');
       } else {
@@ -86,7 +99,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   };
 
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
-  const output = (type: number, value: number | string | any[]) => {
+  const output = (type: number, value: number | string | any[], keepNulls?: boolean) => {
     $writer$.write(`${type},`);
     if (typeof value === 'number') {
       $writer$.write(value.toString());
@@ -101,7 +114,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
       $writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
     } else {
-      outputArray(value, (valueItem, idx) => {
+      outputArray(value, keepNulls!, (valueItem, idx) => {
         writeValue(valueItem, idx);
       });
     }
@@ -398,7 +411,6 @@ export async function serialize(serializationContext: SerializationContext): Pro
         } else if (isInvalid || isSkippable) {
           v = NEEDS_COMPUTATION;
         }
-        // TODO just instanceof again when outputting
         addPreloadQrl(value.$computeQrl$);
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
@@ -616,7 +628,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
         const out =
           lastIdx === forwardRefs.length - 1 ? forwardRefs : forwardRefs.slice(0, lastIdx + 1);
         // We could also implement RLE of -1 values
-        outputArray(out, (value) => {
+        outputArray(out, true, (value) => {
           $writer$.write(String(value));
         });
       }
@@ -715,7 +727,6 @@ function serializeWrappingFn(
     value.$args$.length,
     value.$func$
   );
-  // TODO null if no args
   return [syncFnId, value.$args$] as const;
 }
 

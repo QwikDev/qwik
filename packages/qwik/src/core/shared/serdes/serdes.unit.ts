@@ -972,10 +972,10 @@ describe('shared-serialization', () => {
         1 Array [
           RootRef 0
         ]
-        2 Object []
+        2 Object 0
         3 {string} "mock-chunk"
         4 {string} "dump_qrl"
-        (53 chars)"
+        (52 chars)"
       `);
     });
     it('should dedupe identical root qrls', async () => {
@@ -989,10 +989,10 @@ describe('shared-serialization', () => {
         "
         0 QRL "3 4 2"
         1 RootRef 0
-        2 Object []
+        2 Object 0
         3 {string} "mock-chunk"
         4 {string} "dump_qrl"
-        (49 chars)"
+        (48 chars)"
       `);
     });
   });

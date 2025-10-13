@@ -25,22 +25,20 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
+import { isJSXNode } from '../jsx/jsx-node';
 import { Fragment } from '../jsx/jsx-runtime';
 import { isPropsProxy } from '../jsx/props-proxy';
-import { isJSXNode } from '../jsx/jsx-node';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
-import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
+import { _OWNER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from '../utils/serialize-utils';
-import { isObject } from '../utils/types';
-import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';
-import { Constants } from './constants';
-import { TypeIds } from './constants';
+import { Constants, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
+import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';
 
 /**
  * Format:
@@ -139,18 +137,24 @@ export async function serialize(serializationContext: SerializationContext): Pro
 
     // Now that we saw it a second time, make sure it's a root
     if (seen.$parent$) {
-      // Note, this means it was output before
-      $promoteToRoot$(seen);
+      // Note, this means it was output before so we always need a backref
+      // Special case: we're a root so instead of adding a backref, we replace ourself
+      if (!parent) {
+        $promoteToRoot$(seen, index);
+        value = serializationContext.$roots$[index];
+      } else {
+        $promoteToRoot$(seen);
+      }
     }
-
-    // Now we know it's a root and we should output a RootRef
-    const rootIdx = seen.$index$;
 
     // Check if there was a weakref to us
     if (typeof forwardRefIdx === 'number') {
-      forwardRefs[forwardRefIdx] = rootIdx;
+      forwardRefs[forwardRefIdx] = seen.$index$;
       s11nWeakRefs.delete(value);
     }
+
+    // Now we know it's a root and we should output a RootRef
+    const rootIdx = value instanceof BackRef ? value.$path$ : seen.$index$;
 
     // But make sure we do output ourselves
     if (!parent && rootIdx === index) {

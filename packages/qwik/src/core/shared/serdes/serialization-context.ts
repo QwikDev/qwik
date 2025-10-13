@@ -75,7 +75,7 @@ export interface SerializationContext {
 
   $roots$: unknown[];
 
-  $promoteToRoot$: (ref: SeenRef) => number;
+  $promoteToRoot$: (ref: SeenRef, index?: number) => void;
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
@@ -157,13 +157,14 @@ export const createSerializationContext = (
     return path.join(' ');
   };
 
-  const $promoteToRoot$ = (ref: SeenRef) => {
+  const $promoteToRoot$ = (ref: SeenRef, index?: number) => {
     const path = $getObjectPath$(ref) as string;
-    const idx = roots.length;
-    roots.push(new BackRef(path));
+    if (index === undefined) {
+      index = roots.length;
+    }
+    roots[index] = new BackRef(path);
     ref.$parent$ = null;
-    ref.$index$ = idx;
-    return idx;
+    ref.$index$ = index;
   };
 
   const $addRoot$ = ((obj: any, returnRef?: boolean) => {

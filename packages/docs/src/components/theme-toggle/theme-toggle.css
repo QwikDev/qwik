@@ -1,6 +1,13 @@
 .themeIcon {
   opacity: 0;
   transition: opacity 400ms ease-in-out;
+  width: 25px;
+  height: 25px;
+}
+
+.themeIcon.auto {
+  width: 21px;
+  height: 21px;
 }
 
 html[data-theme='light'] .themeIcon.light,

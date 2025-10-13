@@ -377,12 +377,11 @@ describe('shared-serialization', () => {
         1 Resource [
           Constant true
           {number} 123
-          Constant null
         ]
         2 ForwardRefs [
           1
         ]
-        (31 chars)"
+        (27 chars)"
       `);
     });
     it(title(TypeIds.Component), async () => {
@@ -432,7 +431,6 @@ describe('shared-serialization', () => {
           ]
           Constant null
           {number} 5
-          Constant null
         ]
         1 WrappedSignal [
           {number} 1
@@ -444,9 +442,8 @@ describe('shared-serialization', () => {
           ]
           Constant null
           {number} 7
-          Constant null
         ]
-        (74 chars)"
+        (66 chars)"
       `);
     });
     it(title(TypeIds.ComputedSignal), async () => {
@@ -474,7 +471,6 @@ describe('shared-serialization', () => {
         "
         0 ComputedSignal [
           RootRef 4
-          Constant null
         ]
         1 ComputedSignal [
           RootRef 5
@@ -483,7 +479,6 @@ describe('shared-serialization', () => {
         ]
         2 ComputedSignal [
           RootRef 6
-          Constant null
         ]
         3 ComputedSignal [
           RootRef 7
@@ -502,7 +497,7 @@ describe('shared-serialization', () => {
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (174 chars)"
+        (166 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -594,7 +589,6 @@ describe('shared-serialization', () => {
           Constant null
           Constant null
           Constant false
-          Constant null
         ]
         1 AsyncComputedSignal [
           RootRef 5
@@ -602,7 +596,6 @@ describe('shared-serialization', () => {
           Constant null
           Constant null
           Constant false
-          Constant null
         ]
         2 AsyncComputedSignal [
           RootRef 6
@@ -610,7 +603,6 @@ describe('shared-serialization', () => {
           Constant null
           Constant null
           Constant false
-          Constant null
         ]
         3 AsyncComputedSignal [
           RootRef 7
@@ -633,7 +625,7 @@ describe('shared-serialization', () => {
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (234 chars)"
+        (222 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

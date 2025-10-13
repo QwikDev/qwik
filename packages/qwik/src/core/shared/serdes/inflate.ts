@@ -163,7 +163,7 @@ export const inflate = (
       asyncComputed.$loadingEffects$ = new Set(d[2]);
       asyncComputed.$errorEffects$ = new Set(d[3]);
       asyncComputed.$untrackedLoading$ = d[4];
-      asyncComputed.$untrackedError$ = d[5];
+      asyncComputed.$untrackedError$ = d[5] || null;
       const hasValue = d.length > 6;
       if (hasValue) {
         asyncComputed.$untrackedValue$ = d[6];

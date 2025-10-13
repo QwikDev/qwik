@@ -525,16 +525,16 @@ describe('shared-serialization', () => {
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 ForwardRef 0
-        1 PreloadQRL "3 4"
-        2 SerializerSignal [
+        1 PreloadQRL "2 3"
+        2 {string} "mock-chunk"
+        3 {string} "custom_createSerializer_qrl"
+        4 SerializerSignal [
           RootRef 1
           Constant null
           {number} 4
         ]
-        3 {string} "mock-chunk"
-        4 {string} "custom_createSerializer_qrl"
         5 ForwardRefs [
-          2
+          4
         ]
         (85 chars)"
       `);
@@ -1334,7 +1334,7 @@ describe('shared-serialization', () => {
         (24 chars)"
       `);
     });
-    it('should object returned from SerializerSymbol and from promise be the same', async () => {
+    it('object returned from SerializerSymbol and from promise should be the same', async () => {
       const obj = {
         test: 'test',
       };
@@ -1360,16 +1360,16 @@ describe('shared-serialization', () => {
           ]
         ]
         2 RootRef "1 1 0"
-        3 Object [
-          RootRef 2
-          RootRef 2
-        ]
-        4 ForwardRefs [
+        3 RootRef 4
+        4 RootRef "1 1"
+        5 ForwardRefs [
           1
           3
         ]
         (70 chars)"
       `);
+      const result = deserialize(state)[0] as any[];
+      expect(await result[0]).toBe(result[1]);
     });
   });
   it('should throw rejected promises from SerializerSymbol', async () => {
@@ -1400,7 +1400,7 @@ async function serialize(...roots: any[]): Promise<any[]> {
     null!
   );
   for (const root of roots) {
-    sCtx.$addRoot$(root, null);
+    sCtx.$addRoot$(root);
   }
   await sCtx.$serialize$();
   const objs = JSON.parse(sCtx.$writer$.toString());

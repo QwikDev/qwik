@@ -135,7 +135,7 @@
     "globals": "16.4.0",
     "install": "0.13.0",
     "memfs": "4.49.0",
-    "monaco-editor": "0.52.2",
+    "monaco-editor": "0.54.0",
     "mri": "1.2.0",
     "path-browserify": "1.0.1",
     "prettier": "3.6.2",

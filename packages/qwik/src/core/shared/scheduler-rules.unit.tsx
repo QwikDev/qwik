@@ -641,10 +641,11 @@ describe('findBlockingChore', () => {
 
     it('should not block if candidate chore type is TASK', () => {
       const ancestorTaskChore = createMockChore(ChoreType.TASK, parentVNode);
+      (ancestorTaskChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorTaskChore.$host$ as VNode).chores?.add(ancestorTaskChore);
       const choreQueue = new ChoreArray();
       const blockedChores = new Set<Chore>();
       const runningChores = new Set<Chore>();
-      choreQueue.add(ancestorTaskChore);
       const result = findBlockingChore(
         descendantChore,
         choreQueue,
@@ -653,6 +654,111 @@ describe('findBlockingChore', () => {
         container
       );
       expect(result).toBeNull();
+    });
+
+    it('should not block if candidate chore type is QRL_RESOLVE', () => {
+      const ancestorQrlResolveChore = createMockChore(ChoreType.QRL_RESOLVE, parentVNode);
+      (ancestorQrlResolveChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorQrlResolveChore.$host$ as VNode).chores?.add(ancestorQrlResolveChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should not block if candidate chore type is RUN_QRL', () => {
+      const ancestorRunQrlChore = createMockChore(ChoreType.RUN_QRL, parentVNode);
+      (ancestorRunQrlChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorRunQrlChore.$host$ as VNode).chores?.add(ancestorRunQrlChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBeNull();
+    });
+
+    it('should block if candidate chore type is NODE_DIFF', () => {
+      const ancestorNodeDiffChore = createMockChore(ChoreType.NODE_DIFF, parentVNode);
+      (ancestorNodeDiffChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorNodeDiffChore.$host$ as VNode).chores?.add(ancestorNodeDiffChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorNodeDiffChore);
+    });
+
+    it('should block if candidate chore type is NODE_PROP', () => {
+      const ancestorNodePropChore = createMockChore(ChoreType.NODE_PROP, parentVNode);
+      (ancestorNodePropChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorNodePropChore.$host$ as VNode).chores?.add(ancestorNodePropChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorNodePropChore);
+    });
+
+    it('should block if candidate chore type is COMPONENT', () => {
+      const ancestorComponentChore = createMockChore(ChoreType.COMPONENT, parentVNode);
+      (ancestorComponentChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorComponentChore.$host$ as VNode).chores?.add(ancestorComponentChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorComponentChore);
+    });
+
+    it('should block if candidate chore type is RECOMPUTE_AND_SCHEDULE_EFFECTS', () => {
+      const ancestorRecomputeChore = createMockChore(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        parentVNode
+      );
+      (ancestorRecomputeChore.$host$ as VNode).chores = new ChoreArray();
+      (ancestorRecomputeChore.$host$ as VNode).chores?.add(ancestorRecomputeChore);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      expect(result).toBe(ancestorRecomputeChore);
     });
 
     it('should block if an ancestor is projection parent', () => {
@@ -925,7 +1031,7 @@ describe('findBlockingChoreForVisible', () => {
     });
 
     // probably will not happen in practice
-    it.skip('should handle circular parent references gracefully', () => {
+    it('should handle circular parent references gracefully', () => {
       const vnode1 = vnode_newVirtual();
       const vnode2 = vnode_newVirtual();
       vnode1.parent = vnode2;

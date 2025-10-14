@@ -363,10 +363,10 @@ This is often caused by modifying a signal in an already rendered component duri
     const runningChore = getRunningChore(chore);
     if (runningChore) {
       addBlockedChore(chore, runningChore, blockedChores);
-      return chore;
+    } else {
+      addChore(chore, choreQueue);
+      DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
     }
-    addChore(chore, choreQueue);
-    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 

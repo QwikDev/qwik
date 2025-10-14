@@ -184,14 +184,16 @@ function addUseOnEvents(
         }
         if (targetElement) {
           if (targetElement.type === 'script' && key === qVisibleEvent) {
-            eventKey = 'document:onQInit$';
-            logWarn(
-              'You are trying to add an event "' +
-                key +
-                '" using `useVisibleTask$` hook, ' +
-                'but a node to which you can add an event is not found. ' +
-                'Using document:onQInit$ instead.'
-            );
+            eventKey = 'document:onQinit$';
+            if (isDev) {
+              logWarn(
+                'You are trying to add an event "' +
+                  key +
+                  '" using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
+                  'but a node to which you can add an event is not found. ' +
+                  'Using "document-ready" or "document-idle" instead.'
+              );
+            }
           }
           addUseOnEvent(targetElement, eventKey, useOnEvents[key]);
         }
@@ -213,15 +215,27 @@ function addUseOnEvent(
   key: string,
   value: EventQRL<KnownEventNames>[]
 ) {
-  const props = jsxElement.props;
+  // These handlers are always there, so they go in constProps
+  const props = (jsxElement.constProps ||= {} as Props);
   const propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
-  if (propValue === undefined) {
+  if (propValue == null) {
     props[key] = value;
   } else if (Array.isArray(propValue)) {
     propValue.push(...value);
   } else {
     props[key] = [propValue, ...value];
   }
+  const varProp = jsxElement.varProps[key];
+  if (varProp) {
+    // we need to demote the handlers to varProps
+    if (Array.isArray(propValue)) {
+      propValue.push(...(props[key] as any));
+    } else {
+      jsxElement.varProps[key] = [propValue, ...value];
+    }
+    props[key] = undefined;
+  }
+  console.log('addUseOnEvent', key, jsxElement);
 }
 
 /**

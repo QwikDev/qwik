@@ -15,7 +15,7 @@ import {
   useVisibleTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 
@@ -292,6 +292,28 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should merge multiple visible tasks when empty', async () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const Cmp = component$(() => {
+      useVisibleTask$(
+        () => {
+          console.warn('task1');
+        },
+        { strategy: 'document-ready' }
+      );
+      useVisibleTask$(() => {
+        console.warn('task2');
+      });
+      return <></>;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    consoleSpy.mockRestore();
+    expect(consoleSpy).toHaveBeenCalledTimes(3); // 2 tasks + warning about qvisible;
   });
 
   describe(render.name + ': track', () => {

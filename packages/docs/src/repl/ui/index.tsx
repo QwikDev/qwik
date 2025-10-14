@@ -95,9 +95,8 @@ export const Repl = component$((props: ReplProps) => {
       if (vNew.version !== input.version) {
         input.version = v.version;
       }
-    }
-    // TODO this is broken, doesn't add the handler on the server
-    // { strategy: 'document-ready' }
+    },
+    { strategy: 'document-ready' }
   );
 
   // Track input changes to rebuild the app

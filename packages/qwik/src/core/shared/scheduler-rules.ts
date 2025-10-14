@@ -143,7 +143,12 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
     const blockingChores = isNormalQueue ? current.chores : current.blockedChores;
     if (blockingChores) {
       for (const blockingChore of blockingChores) {
-        if (blockingChore.$type$ < ChoreType.VISIBLE && blockingChore.$type$ !== ChoreType.TASK) {
+        if (
+          blockingChore.$type$ < ChoreType.VISIBLE &&
+          blockingChore.$type$ !== ChoreType.TASK &&
+          blockingChore.$type$ !== ChoreType.QRL_RESOLVE &&
+          blockingChore.$type$ !== ChoreType.RUN_QRL
+        ) {
           return blockingChore;
         }
       }

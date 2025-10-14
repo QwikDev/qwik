@@ -1,23 +1,15 @@
-import { Counter } from "./components/counter/counter";
-import { Logo } from "./components/logo/logo";
+import { QwikRouterProvider, RouterOutlet } from "@qwik.dev/router";
 
 export default () => {
   return (
-    <>
+    <QwikRouterProvider>
       <head>
         <meta charset="utf-8" />
-        <title>Qwik Library Starter</title>
+        <title>Qwik Blank App</title>
       </head>
       <body>
-        <h1>Qwik Library Starter</h1>
-        <p>
-          This is a Qwik library starter. Make your components and export them
-          from `src/index.ts`. This playground app will not be bundled with your
-          library.
-        </p>
-        <Logo />
-        <Counter />
+        <RouterOutlet />
       </body>
-    </>
+    </QwikRouterProvider>
   );
 };

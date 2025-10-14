@@ -148,6 +148,8 @@ export default defineConfig(() => {
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
       },
     },
     define: {

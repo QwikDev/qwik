@@ -28,6 +28,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configurePreviewServer, getViteIndexTags } from './dev';
 import { isVirtualId } from './vite-utils';
+import type { ResolvedId } from 'rollup';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -698,27 +699,28 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
+        let result: ResolvedId | null;
         try {
-          const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
-          if (result?.external) {
-            // Qwik deps should not be external
-            if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
-              // TODO link to docs
-              throw new Error(
-                `\n==============\n` +
-                  `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
-                  `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
-                  `==============\n`
-              );
-            }
-          }
-          if (packageName === source) {
-            // We already resolved it, so return that result
-            return result;
-          }
+          result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         } catch {
           /* ignore, let vite figure it out */
           return;
+        }
+        if (result?.external) {
+          // Qwik deps should not be external
+          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
+            // TODO link to docs
+            throw new Error(
+              `\n==============\n` +
+                `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
+                `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
+                `==============\n`
+            );
+          }
+        }
+        if (packageName === source) {
+          // We already resolved it, so return that result
+          return result;
         }
       },
     },

@@ -284,13 +284,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
 
       if (!qwikViteOpts.csr) {
-        const buildOutputDir =
-          target === 'client' && viteConfig.base
-            ? path.join(opts.outDir, viteConfig.base)
-            : opts.outDir;
-
         updatedViteConfig.build!.cssCodeSplit = false;
-        updatedViteConfig.build!.outDir = buildOutputDir;
+        if (opts.outDir) {
+          updatedViteConfig.build!.outDir = opts.outDir;
+        }
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           ...updatedViteConfig.build!.rollupOptions,
@@ -298,7 +295,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
-            buildOutputDir
+            opts.outDir
           ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {

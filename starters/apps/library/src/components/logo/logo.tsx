@@ -1,6 +1,6 @@
-import { component$ } from "@qwik.dev/core";
+import { component$, PropsOf } from "@qwik.dev/core";
 
-export const Logo = component$(() => {
+export const Logo = component$<PropsOf<"div">>(() => {
   return (
     <div>
       <a href="https://qwik.dev/">

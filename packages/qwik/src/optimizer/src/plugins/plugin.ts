@@ -118,6 +118,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     clientOutDir: undefined as any,
     sourcemap: !!optimizerOptions.sourcemap,
     manifestInput: null,
+    manifestInputPath: null,
     manifestOutput: null,
     transformedModuleOutput: null,
     scope: null,
@@ -964,7 +965,8 @@ export const isDev = ${JSON.stringify(isDev)};
       maybeFs
     ) {
       const path = getPath();
-      let clientManifestPath = path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME);
+      let clientManifestPath =
+        opts.manifestInputPath || path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME);
       if (!(await maybeFs.promises.stat(clientManifestPath).catch(() => false))) {
         clientManifestPath = path.resolve(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME);
       }
@@ -977,7 +979,7 @@ export const isDev = ${JSON.stringify(isDev)};
         console.warn(
           `\n==========\n` +
             `Could not read Qwik client manifest ${clientManifestPath}.\n` +
-            `Make sure you provide it to the SSR renderer via the \`manifest\` argument, or define it in \`globalThis.__QWIK_MANIFEST__\` before the server bundle is loaded, or embed it in the server bundle by replacing \`globalThis.__QWIK_MANIFEST__\`.\n` +
+            `Make sure you provide it to the qwikVite plugin via the \`manifestInput\` \`manifestInputPath\`  arguments, or to the SSR renderer via the \`manifest\` argument, or define it in \`globalThis.__QWIK_MANIFEST__\` before the server bundle is loaded, or embed it in the server bundle by replacing \`globalThis.__QWIK_MANIFEST__\`.\n` +
             `Without the manifest, the SSR renderer will not be able to generate event handlers.\n` +
             `(${e})\n` +
             `==========\n`
@@ -1249,6 +1251,7 @@ export interface QwikPluginOptions {
   vendorRoots?: string[];
   manifestOutput?: ((manifest: QwikManifest) => Promise<void> | void) | null;
   manifestInput?: QwikManifest | null;
+  manifestInputPath?: string | null;
   input?: string[] | string | { [entry: string]: string };
   outDir?: string;
   ssrOutDir?: string;

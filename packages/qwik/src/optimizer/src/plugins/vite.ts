@@ -178,6 +178,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         experimental: qwikViteOpts.experimental,
         input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
+        manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
       };
 
@@ -912,6 +913,8 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      * Default `undefined`
      */
     manifestInput?: QwikManifest;
+    /** Same as `manifestInput` but allows passing the path to the file. */
+    manifestInputPath?: string;
   };
 }
 

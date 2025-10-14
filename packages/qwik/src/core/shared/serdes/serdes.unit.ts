@@ -25,7 +25,7 @@ import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { retryOnPromise } from '../utils/promises';
-import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from '../utils/serialize-utils';
+import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from './verify';
 import { _constants } from './constants';
 import { _serializationWeakRef } from './serialize';
 

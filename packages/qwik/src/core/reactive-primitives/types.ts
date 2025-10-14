@@ -4,7 +4,7 @@ import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
 import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { SerializerSymbol } from '../shared/utils/serialize-utils';
+import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
 import type { AsyncComputedFn } from '../use/use-async-computed';
 import type { Container, SerializationStrategy } from '../shared/types';

@@ -187,11 +187,11 @@ export type { ComputedOptions } from './reactive-primitives/types';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type { ValueOrPromise } from './shared/utils/types';
 export {
+  noSerialize,
   NoSerializeSymbol,
   SerializerSymbol,
   type NoSerialize,
-} from './shared/utils/serialize-utils';
-export { noSerialize } from './shared/utils/serialize-utils';
+} from './shared/serdes/verify';
 export { version } from './version';
 
 //////////////////////////////////////////////////////////////////////////////////////////

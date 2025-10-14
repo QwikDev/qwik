@@ -35,7 +35,7 @@ import { _OWNER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
-import { fastSkipSerialize, SerializerSymbol } from '../utils/serialize-utils';
+import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
 import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';

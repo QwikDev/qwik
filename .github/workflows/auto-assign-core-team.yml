@@ -2,7 +2,7 @@ name: Auto-assign PRs to core team authors
 
 on:
   pull_request_target:
-    types: [opened, reopened, ready_for_review]
+    types: [opened, reopened, ready_for_review, converted_to_draft]
 
 permissions:
   pull-requests: write
@@ -12,7 +12,6 @@ jobs:
   auto_assign:
     name: Assign PR author when core team member
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
     steps:
       - name: Check team membership via REST
         id: team
@@ -55,4 +54,20 @@ jobs:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
 
+      - name: Ensure project + set Status: In progress (draft)
+        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
+        uses: actions/add-to-project@v0.6.1
+        with:
+          project-url: https://github.com/orgs/QwikDev/projects/1
+          github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+          fields: |
+            Status: In progress
 
+      - name: Ensure project + set Status: Waiting For Review (ready)
+        if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
+        uses: actions/add-to-project@v0.6.1
+        with:
+          project-url: https://github.com/orgs/QwikDev/projects/1
+          github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
+          fields: |
+            Status: Waiting For Review

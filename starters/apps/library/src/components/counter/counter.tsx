@@ -1,6 +1,6 @@
-import { component$, PropsOf, useSignal } from "@qwik.dev/core";
+import { component$, useSignal } from "@qwik.dev/core";
 
-export const Counter = component$<PropsOf<"div">>(() => {
+export const Counter = component$(() => {
   const count = useSignal(0);
 
   return (

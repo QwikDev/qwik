@@ -219,7 +219,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
           }
           break;
         case 'bigint':
-          if ((value < 10 && value > 0) || getSeenRefOrOutput(value, index)) {
+          if ((value < 10000 && value > -1000) || getSeenRefOrOutput(value, index)) {
             output(TypeIds.BigInt, value.toString());
           }
           break;

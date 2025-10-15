@@ -1,6 +1,6 @@
 // keep these imports above the rest to prevent circular dep issues
 import { getPlatform, isServerPlatform } from '../platform/platform';
-import { verifySerializable } from '../utils/serialize-utils';
+import { verifySerializable } from '../serdes/verify';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
 import { isBrowser } from '@qwik.dev/core/build';

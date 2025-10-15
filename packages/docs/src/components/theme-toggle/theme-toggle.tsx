@@ -1,5 +1,5 @@
 import { component$, event$, isServer, useSignal, useStyles$ } from '@builder.io/qwik';
-import { themeStorageKey } from '../router-head/theme-script';
+import { themeStorageKey } from './theme-script';
 import themeToggle from './theme-toggle.css?inline';
 import { SunIcon } from './Sun';
 import { MoonIcon } from './Moon';
@@ -44,18 +44,6 @@ export const getColorPreference = (): ThemePreference => {
     //
   }
   return (theme as ThemePreference) || 'auto';
-};
-
-export const colorSchemeChangeListener = (onColorSchemeChange: (isDark: boolean) => void) => {
-  const listener = ({ matches: isDark }: MediaQueryListEvent) => {
-    onColorSchemeChange(isDark);
-  };
-  window
-    .matchMedia('(prefers-color-scheme: dark)')
-    .addEventListener('change', (event) => listener(event));
-
-  return () =>
-    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', listener);
 };
 
 export const ThemeToggle = component$(() => {

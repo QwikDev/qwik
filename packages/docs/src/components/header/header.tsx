@@ -18,7 +18,6 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
 import {
-  colorSchemeChangeListener,
   getColorPreference,
   setPreference,
   ThemeToggle,
@@ -26,6 +25,7 @@ import {
 } from '../theme-toggle/theme-toggle';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { getPkgManagerPreference } from '../package-manager-tabs';
+import { colorSchemeChangeListener } from '../theme-toggle/theme-script';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (

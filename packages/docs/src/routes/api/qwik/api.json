@@ -1154,7 +1154,7 @@
       ],
       "kind": "Function",
       "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
     {
@@ -1168,7 +1168,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
     {
@@ -1182,7 +1182,7 @@
       ],
       "kind": "Variable",
       "content": "If an object has this property, it will not be serialized. Use this on prototypes to avoid having to call `noSerialize()` on every object.\n\n\n```typescript\nNoSerializeSymbol: unique symbol\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserializesymbol.md"
     },
     {
@@ -1910,7 +1910,7 @@
       ],
       "kind": "Variable",
       "content": "If an object has this property as a function, it will be called with the object and should return a serializable value.\n\nThis can be used to clean up, integrate with other libraries, etc.\n\nThe type your object should conform to is:\n\n```ts\n{\n  [SerializerSymbol]: (this: YourType, toSerialize: YourType) => YourSerializableType;\n}\n```\n\n\n```typescript\nSerializerSymbol: unique symbol\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.serializersymbol.md"
     },
     {

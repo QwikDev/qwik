@@ -1,8 +1,9 @@
 import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive-primitives/types';
-import { Fragment } from '../jsx/jsx-runtime';
-import { Slot } from '../jsx/slot.public';
 import { _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
+// Keep last
+import { Slot } from '../jsx/slot.public';
+import { Fragment } from '../jsx/jsx-runtime';
 
 export const enum Constants {
   Undefined,

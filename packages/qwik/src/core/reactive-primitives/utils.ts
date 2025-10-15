@@ -9,7 +9,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, HostElement, SerializationStrategy } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
-import { SerializerSymbol } from '../shared/utils/serialize-utils';
+import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';

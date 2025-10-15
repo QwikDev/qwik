@@ -14,7 +14,7 @@ import {
 } from '@builder.io/qwik';
 
 import * as v from 'valibot';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import { QACTION_KEY, QDATA_KEY, QFN_KEY } from './constants';
 import { RouteStateContext } from './contexts';

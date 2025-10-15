@@ -202,6 +202,7 @@ export {
         optimizer.qwikVite({
           entryStrategy: { type: "segment" },
           client: {
+            outDir: join(appDistDir, appName),
             manifestOutput(manifest) {
               clientManifest = manifest;
             },

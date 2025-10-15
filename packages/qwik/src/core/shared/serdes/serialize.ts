@@ -284,7 +284,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
               const oldParent = parent;
               parent = newSeenRef;
               // separate function for readability
-              writeObjectValue(value, oldParent, index);
+              writeObjectValue(value);
               parent = oldParent;
             }
           }
@@ -295,7 +295,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
   };
 
-  const writeObjectValue = (value: {}, oldParent: SeenRef | undefined, index: number) => {
+  const writeObjectValue = (value: {}) => {
     if (isPropsProxy(value)) {
       const owner = value[_OWNER];
       output(TypeIds.PropsProxy, [_serializationWeakRef(owner), owner.varProps, owner.constProps]);
@@ -346,7 +346,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
         output(TypeIds.ForwardRef, forwardRef);
       } else {
         // We replace ourselves with this value
-        parent = oldParent;
+        const index = parent!.$index$;
+        parent = parent!.$parent$!;
         writeValue(result, index);
       }
     } else if (isObjectLiteral(value)) {
@@ -534,7 +535,8 @@ export async function serialize(serializationContext: SerializationContext): Pro
           output(TypeIds.SerializerSignal, [value.$qrl$, value.$effects$, value.$value$]);
         } else if (value.$resolved$) {
           // We replace ourselves with this value
-          parent = oldParent;
+          const index = parent!.$index$;
+          parent = parent!.$parent$!;
           writeValue(value.$value$, index);
         } else {
           console.error(value.$value$);
@@ -553,7 +555,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     } else if (value instanceof SerializationWeakRef) {
       const obj = value.$obj$;
       // This will return a fake SeenRef if it's not been seen before
-      if (getSeenRefOrOutput(obj, index, true)) {
+      if (getSeenRefOrOutput(obj, parent!.$index$, true)) {
         let forwardRefId = s11nWeakRefs.get(obj);
         if (forwardRefId === undefined) {
           forwardRefId = forwardRefsId++;

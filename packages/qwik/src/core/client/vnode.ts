@@ -168,6 +168,7 @@ import {
 import { mergeMaps } from '../shared/utils/maps';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 import { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
+import { EventNameHtmlScope } from '../shared/utils/event-names';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -399,7 +400,7 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
           mapArray_set(props, 'value', element.value, 0);
         }
-      } else if (!key.startsWith('on:')) {
+      } else if (!key.startsWith(EventNameHtmlScope.on)) {
         const value = attr.value;
         const props = vnode_getProps(elementVNode);
         mapArray_set(props, key, value, 0);

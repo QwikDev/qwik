@@ -15,7 +15,7 @@ export const enum EventNameJSXScope {
   document = 'document:on',
 }
 
-const enum EventNameHtmlScope {
+export const enum EventNameHtmlScope {
   on = 'on:',
   window = 'on-window:',
   document = 'on-document:',
@@ -34,7 +34,11 @@ export const isJsxPropertyAnEventName = (name: string): boolean => {
 };
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
-  return /^on(|-(window|document)):/.test(name);
+  return (
+    name.startsWith(EventNameHtmlScope.on) ||
+    name.startsWith(EventNameHtmlScope.window) ||
+    name.startsWith(EventNameHtmlScope.document)
+  );
 };
 
 /**

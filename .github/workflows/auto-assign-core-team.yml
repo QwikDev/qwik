@@ -50,7 +50,6 @@ jobs:
         if: steps.team.outputs.isCore == 'true'
         uses: actions/add-to-project@v0.6.1
         with:
-          # https://github.com/orgs/QwikDev/projects/1
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
 

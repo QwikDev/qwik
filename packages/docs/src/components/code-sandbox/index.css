@@ -17,26 +17,6 @@
   background-color: #161616;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    .browser iframe {
-      border: 1px solid #333;
-      border-top: none;
-    }
-
-    .browser .bar {
-      background-color: #1f1f1f;
-    }
-
-    .browser .url {
-      background-color: #161616;
-    }
-    .browser .bar > ul > li.edit > a:hover {
-      color: #aaa;
-    }
-  }
-}
-
 .browser .bar > ul {
   display: flex;
   flex-direction: row;

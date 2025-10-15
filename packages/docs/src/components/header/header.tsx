@@ -22,6 +22,7 @@ import {
   getColorPreference,
   setPreference,
   ThemeToggle,
+  getEffectiveTheme,
 } from '../theme-toggle/theme-toggle';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { getPkgManagerPreference } from '../package-manager-tabs';
@@ -49,10 +50,14 @@ export const Header = component$(() => {
 
   useVisibleTask$(() => {
     globalStore.pkgManager = getPkgManagerPreference();
-    globalStore.theme = getColorPreference();
+    const pref = getColorPreference();
+    globalStore.theme = getEffectiveTheme(pref);
     return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
+      const currentPref = getColorPreference();
+      if (currentPref === 'auto') {
+        globalStore.theme = isDark ? 'dark' : 'light';
+        setPreference('auto');
+      }
     });
   });
 

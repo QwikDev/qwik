@@ -267,36 +267,3 @@
 .docs.api .table-wrapper {
   overflow-x: auto;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    .docs.api article a[href*="github.com"] {
-      background: #373737;
-    }
-    .docs.api table {
-      box-shadow: 0 0 30px 0 rgba(80,80,80,0.1);
-    }
-    .docs.api thead tr {
-      background: #373737;
-    }
-    .docs.api tbody tr:hover,
-    .docs.api tbody tr:nth-child(even) {
-      background: black;
-    }
-    .docs.api .section-title {
-      background: #373737;
-    }
-    .docs.api a {
-      color: inherit;
-    }
-    .docs.api a {
-      color: inherit;
-    }
-    .api-detail-section {
-      border-bottom: 1px solid #373737;
-    }
-    .docs.api .filter-item {
-      background: #373737;
-    }
-  }
-}

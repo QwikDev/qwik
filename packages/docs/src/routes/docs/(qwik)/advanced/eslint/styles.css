@@ -140,30 +140,3 @@
   border-color: #575757;
   color: var(--color-text);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    .docs .edit-examples-wrapper .edit-btn {
-      background: #373737;
-      border-color: #575757;
-      color: var(--color-text);
-    }
-    .docs .badge.bad {
-      @apply bg-red-900;
-    }
-    .docs .badge.good {
-      @apply bg-green-900;
-    }
-    .docs .rule-wrapper {
-      border-color: #575757;
-    }
-    .docs .panel .panel-border {
-      border-color: #575757;
-    }
-    .docs .panel {
-      background: #373737;
-      border-color: #575757;
-      color: var(--color-text);
-    }
-  }
-}

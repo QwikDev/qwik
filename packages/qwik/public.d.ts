@@ -19,6 +19,7 @@ export {
   getLocale,
   getPlatform,
   implicit$FirstArg,
+  inlinedQrl,
   isBrowser,
   isDev,
   isServer,

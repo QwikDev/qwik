@@ -53,7 +53,7 @@ jobs:
           project-url: https://github.com/orgs/QwikDev/projects/1
           github-token: ${{ secrets.QWIK_API_TOKEN_GITHUB }}
 
-      - name: Ensure project + set Status: In progress (draft)
+      - name: Ensure project + set Status to "In progress" (draft)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == true
         uses: actions/add-to-project@v0.6.1
         with:
@@ -62,7 +62,7 @@ jobs:
           fields: |
             Status: In progress
 
-      - name: Ensure project + set Status: Waiting For Review (ready)
+      - name: Ensure project + set Status to "Waiting For Review" (ready)
         if: steps.team.outputs.isCore == 'true' && github.event.pull_request.draft == false
         uses: actions/add-to-project@v0.6.1
         with:

@@ -1,4 +1,6 @@
 import { createQRL } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { jsxEventToHtmlAttribute } from '../utils/event-names';
 import { EMPTY_OBJ } from '../utils/flyweight';
 import { logOnceWarn, logWarn } from '../utils/log';
 import { qDev, seal } from '../utils/qdev';
@@ -46,6 +48,25 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     }
 
     if (typeof type === 'string') {
+      // convert onEvent$ to on:event
+      for (const k in this.constProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
+          mergeHandlers(this.constProps, attr, this.constProps[k] as QRL);
+          this.constProps[k] = null;
+        }
+      }
+      for (const k in this.varProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
+          // constProps always wins
+          if (!constProps || !(k in constProps)) {
+            toSort ||= mergeHandlers(this.varProps, attr, this.varProps[k] as QRL);
+          }
+          this.varProps[k] = null;
+        }
+      }
+
       // bind:*
       if (BIND_CHECKED in this.varProps) {
         toSort ||= handleBindProp(this.varProps, BIND_CHECKED)!;
@@ -90,6 +111,21 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     return (this._proxy ||= createPropsProxy(this)) as any;
   }
 }
+
+/** @returns `true` if the event is new to the object */
+export const mergeHandlers = (obj: Props, event: string, handler: QRL) => {
+  let current = obj[event];
+  if (current) {
+    if (Array.isArray(current)) {
+      current.push(handler);
+    } else {
+      current = obj[event] = [current, handler];
+    }
+  } else {
+    obj[event] = handler;
+    return true;
+  }
+};
 
 /** @internal */
 export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {

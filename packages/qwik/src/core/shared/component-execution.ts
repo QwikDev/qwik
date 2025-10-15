@@ -145,7 +145,7 @@ function addUseOnEvents(
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
   const jsxElement = findFirstElementNode(jsx);
   let jsxResult = jsx;
-  const qVisibleEvent = 'onQvisible$';
+  const qVisibleEvent = 'on:qvisible';
   return maybeThen(jsxElement, (jsxElement) => {
     // headless components are components that don't render a real DOM element
     const isHeadless = !jsxElement;
@@ -184,7 +184,7 @@ function addUseOnEvents(
         }
         if (targetElement) {
           if (targetElement.type === 'script' && key === qVisibleEvent) {
-            eventKey = 'document:onQinit$';
+            eventKey = 'on-document:qinit';
             if (isDev) {
               logWarn(
                 'You are trying to add an event "' +
@@ -235,7 +235,6 @@ function addUseOnEvent(
     }
     props[key] = undefined;
   }
-  console.log('addUseOnEvent', key, jsxElement);
 }
 
 /**

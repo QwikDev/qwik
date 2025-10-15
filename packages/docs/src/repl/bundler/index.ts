@@ -2,8 +2,8 @@
 
 import type { ReplInputOptions, ReplResult } from '../types';
 import { getDeps } from './bundled';
-import type { InitMessage, BundleMessage, OutgoingMessage } from './bundler-worker';
-import bundlerWorkerUrl from './bundler-worker?worker&url';
+import type { BundleMessage, InitMessage, OutgoingMessage } from './repl-bundler-worker';
+import bundlerWorkerUrl from './repl-bundler-worker?worker&url';
 
 const bundlers = new Map<string, Bundler>();
 

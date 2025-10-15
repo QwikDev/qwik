@@ -8,17 +8,21 @@ import type { RenderToStringOptions } from './types';
 
 const getBundles = (qrls: QRLInternal[]) => {
   const platform = getPlatform();
-  return qrls
-    ?.map((qrl) => {
-      const symbol = qrl.$symbol$;
-      const chunk = qrl.$chunk$;
-      const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
-      if (result) {
-        return result[1];
-      }
-      return chunk;
-    })
-    .filter(Boolean) as string[];
+  return [
+    ...new Set(
+      qrls
+        ?.map((qrl) => {
+          const symbol = qrl.$symbol$;
+          const chunk = qrl.$chunk$;
+          const result = platform.chunkForSymbol(symbol, chunk, qrl.dev?.file);
+          if (result) {
+            return result[1];
+          }
+          return chunk;
+        })
+        .filter(Boolean) as string[]
+    ),
+  ];
 };
 /** Returns paths to preload relative to the buildBase, with probabilities */
 export function getPreloadPaths(

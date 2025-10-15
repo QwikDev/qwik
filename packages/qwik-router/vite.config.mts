@@ -48,15 +48,6 @@ export default defineConfig(() => {
             entryFileNames: (chunkInfo) =>
               chunkInfo.name === 'index' ? '[name].qwik.mjs' : '[name]/index.mjs',
           },
-          {
-            format: 'cjs',
-            chunkFileNames: (chunkInfo) =>
-              chunkInfo.moduleIds.some((id) => id.includes('runtime'))
-                ? 'chunks/[name].qwik.cjs'
-                : 'chunks/[name].cjs',
-            entryFileNames: (chunkInfo) =>
-              chunkInfo.name === 'index' ? '[name].qwik.cjs' : '[name]/index.cjs',
-          },
         ],
         external: [
           /node:.*/,

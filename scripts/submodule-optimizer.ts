@@ -1,7 +1,7 @@
 import { platformArchTriples } from '@napi-rs/triples';
 import { constants, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { build as viteBuild, type UserConfig } from 'vite';
+import { build as viteBuild } from 'vite';
 import { compiledStringPlugin } from './compiled-string-plugin';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
 import { access, getBanner, target, writeFile, type BuildConfig } from './util';
@@ -16,23 +16,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
   const entryPoint = join(config.optimizerDir, 'index.ts');
   const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
 
-  // Common Vite configuration
-  const commonConfig = {
+  await viteBuild({
     clearScreen: false,
-    build: {
-      emptyOutDir: false,
-      sourcemap: false,
-      target: target,
-      minify: !config.dev, // Minify in production builds
-      rollupOptions: {
-        external: ['node:fs', 'node:path', 'launch-editor'],
-      },
-      lib: {
-        entry: entryPoint,
-        name: 'optimizer',
-        fileName: (format) => `optimizer.${format === 'es' ? 'mjs' : 'cjs'}`,
-      },
-    },
     define: {
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       ...qwikloaderScripts,
@@ -52,59 +37,26 @@ export async function submoduleOptimizer(config: BuildConfig) {
         },
       },
     ],
-  } as const satisfies UserConfig;
-
-  // ESM Build
-  const esmConfig: UserConfig = {
-    ...commonConfig,
     build: {
-      ...commonConfig.build,
+      emptyOutDir: false,
+      sourcemap: false,
+      target: target,
+      minify: !config.dev, // Minify in production builds
       outDir: config.distQwikPkgDir,
       lib: {
-        ...commonConfig.build!.lib,
+        entry: entryPoint,
+        name: 'optimizer',
+        fileName: () => 'optimizer.mjs',
         formats: ['es'],
       },
       rollupOptions: {
-        ...commonConfig.build?.rollupOptions,
+        external: ['node:fs', 'node:path', 'launch-editor'],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
         },
       },
     },
-    define: {
-      ...commonConfig.define,
-      'globalThis.IS_CJS': 'false',
-      'globalThis.IS_ESM': 'true',
-    },
-  };
-
-  // CJS Build
-  const cjsConfig: UserConfig = {
-    ...commonConfig,
-    build: {
-      ...commonConfig.build,
-      outDir: config.distQwikPkgDir,
-      lib: {
-        ...commonConfig.build!.lib,
-        formats: ['cjs'],
-      },
-      rollupOptions: {
-        ...commonConfig.build?.rollupOptions,
-        output: {
-          banner: `globalThis.qwikOptimizer = (function (module) {\n${getBanner('@qwik.dev/core/optimizer', config.distVersion)}`,
-          footer: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-        },
-      },
-    },
-    define: {
-      ...commonConfig.define,
-      'globalThis.IS_CJS': 'true',
-      'globalThis.IS_ESM': 'false',
-    },
-  };
-
-  // Build both formats
-  await Promise.all([viteBuild(esmConfig), viteBuild(cjsConfig)]);
+  });
 
   // Note: Minification is now handled automatically by Vite in production builds
   // The output files will be minified when config.dev is false

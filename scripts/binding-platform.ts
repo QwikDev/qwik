@@ -128,7 +128,6 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
       'qwik.darwin-arm64.node',
       'qwik.darwin-x64.node',
       'qwik.linux-x64-gnu.node',
-      'qwik.wasm.cjs',
       'qwik.wasm.mjs',
       'qwik.win32-x64-msvc.node',
       'qwik_wasm_bg.wasm',

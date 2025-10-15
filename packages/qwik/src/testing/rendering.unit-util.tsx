@@ -1,17 +1,14 @@
 /* eslint-disable no-console */
 import { Slot, componentQrl, render, type JSXOutput, type OnRenderFn } from '@qwik.dev/core';
-import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
   _DomContainer,
   _VNode,
   _VirtualVNode,
 } from '@qwik.dev/core/internal';
-import { transformSync } from 'esbuild';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
+import backpatcher from '../backpatch-executor?compiled-string';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
@@ -279,25 +276,11 @@ export function emulateExecutionOfBackpatch(document: Document) {
     };
   }
 
-  // we need esbuild to transpile from ts to js for the test environment
-  const __dirname = fileURLToPath(new URL('.', import.meta.url));
-  const tsPath = join(__dirname, '../backpatch-executor.ts');
-  const tsSource = readFileSync(tsPath, 'utf8');
-
-  const result = transformSync(tsSource, {
-    loader: 'ts',
-    target: 'es2020',
-    format: 'esm',
-    minify: false,
-    sourcemap: false,
-  });
-
-  const code = `try {${result.code}} catch (e) { console.error(e); }`;
   const script = document.createElement('script');
   document.body.appendChild(script);
   (document as any).currentScript = script;
   try {
-    eval(code);
+    eval(`try {${backpatcher}} catch (e) { console.error(e); }`);
   } finally {
     (document as any).currentScript = null;
     document.body.removeChild(script);

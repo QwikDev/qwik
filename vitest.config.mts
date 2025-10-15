@@ -1,9 +1,11 @@
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
+import { compiledStringPlugin } from './scripts/compiled-string-plugin';
 
 export default defineConfig({
   plugins: [
+    compiledStringPlugin(),
     qwikVite({
       debug: !true,
       srcDir: `./packages/qwik/src`,

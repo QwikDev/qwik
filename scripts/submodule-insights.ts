@@ -17,8 +17,8 @@ async function buildComponents(config: BuildConfig) {
     build: {
       lib: {
         entry: entryPoint,
-        formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+        formats: ['es'],
+        fileName: 'index.qwik.mjs',
       },
       outDir: distBase,
       emptyOutDir: false,
@@ -39,8 +39,8 @@ async function buildVite(config: BuildConfig) {
     build: {
       lib: {
         entry: entryPoint,
-        formats: ['es', 'cjs'],
-        fileName: (format) => (format === 'es' ? 'index.mjs' : 'index.cjs'),
+        formats: ['es'],
+        fileName: 'index.mjs',
       },
       outDir: distBase,
       emptyOutDir: false,

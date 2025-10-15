@@ -46,7 +46,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
-  let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
   let viteCommand: string;
   let devServer: ViteDevServer | null = null;
@@ -159,10 +158,6 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         return getRouteImports(ctx!.routes, manifest);
       });
 
-      // @ts-ignore `format` removed in Vite 5
-      if (config.ssr?.format === 'cjs') {
-        ssrFormat = 'cjs';
-      }
       outDir = config.build?.outDir;
     },
 
@@ -331,7 +326,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       sequential: true,
       async handler() {
         if (ctx?.target === 'ssr' && outDir) {
-          await generateServerPackageJson(outDir, ssrFormat);
+          await generateServerPackageJson(outDir);
         }
       },
     },
@@ -340,7 +335,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
   return plugin;
 }
 
-async function generateServerPackageJson(outDir: string, ssrFormat: 'esm' | 'cjs') {
+async function generateServerPackageJson(outDir: string) {
   await fs.promises.mkdir(outDir, { recursive: true });
   const serverPackageJsonPath = join(outDir, 'package.json');
 
@@ -357,7 +352,7 @@ async function generateServerPackageJson(outDir: string, ssrFormat: 'esm' | 'cjs
 
   packageJson = {
     ...packageJson,
-    type: ssrFormat == 'cjs' ? 'commonjs' : 'module',
+    type: 'module',
   };
   const serverPackageJsonCode = JSON.stringify(packageJson, null, 2);
 

@@ -1,70 +1,52 @@
-import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
-import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
+import { build } from 'vite';
+import { compiledStringPlugin } from './compiled-string-plugin';
 import { writePackageJson } from './package-json';
+import { getBanner, nodeTarget, type BuildConfig, type PackageJSON } from './util';
 
 /** Builds @qwik.dev/core/testing */
 export async function submoduleTesting(config: BuildConfig) {
   const submodule = 'testing';
 
-  const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
-    outdir: join(config.distQwikPkgDir, submodule),
-    sourcemap: config.dev,
-    bundle: true,
-    target,
-    external: [
-      'prettier',
-      'vitest',
-      '@qwik.dev/core',
-      '@qwik.dev/core/build',
-      '@qwik.dev/core/preloader',
-      '@qwik-client-manifest',
-    ],
-    platform: 'node',
-  };
-
-  const esm = build({
-    ...opts,
-    format: 'esm',
-    banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
-    outExtension: { '.js': '.mjs' },
-    plugins: [
-      importPath(/^@qwik\.dev\/core$/, '../core.mjs'),
-      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.mjs'),
-      importPath(/^@qwik\.dev\/core\/server$/, '../server.mjs'),
-      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
-    ],
+  await build({
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
+      lib: {
+        entry: join(config.srcQwikDir, submodule, 'index.ts'),
+        formats: ['es'],
+        fileName: '[name].mjs',
+      },
+      outDir: join(config.distQwikPkgDir, submodule),
+      sourcemap: true,
+      target: 'es2020',
+      rollupOptions: {
+        external: [
+          /node:/,
+          'esbuild',
+          'prettier',
+          'vitest',
+          /@qwik.dev\/core/,
+          '@qwik-client-manifest',
+        ],
+        output: {
+          banner: getBanner('@qwik.dev/core/testing', config.distVersion),
+        },
+      },
+    },
+    plugins: [compiledStringPlugin()],
+    environments: {
+      ssr: {
+        build: {
+          target: nodeTarget,
+        },
+      },
+    },
     define: {
       'globalThis.MODULE_EXT': `"mjs"`,
       'globalThis.RUNNER': `false`,
     },
-    target: 'es2020' /* needed for import.meta */,
   });
-
-  const cjs = build({
-    ...opts,
-    format: 'cjs',
-    outExtension: { '.js': '.cjs' },
-    banner: {
-      js: getBanner('@qwik.dev/core/testing', config.distVersion),
-    },
-    plugins: [
-      importPath(/^@qwik\.dev\/core$/, '../core.cjs'),
-      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.cjs'),
-      importPath(/^@qwik\.dev\/core\/server$/, '../server.cjs'),
-      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
-    ],
-    define: {
-      'globalThis.MODULE_EXT': `"cjs"`,
-      'globalThis.RUNNER': `false`,
-    },
-    platform: 'node',
-    target: nodeTarget,
-  });
-
-  await Promise.all([esm, cjs]);
 
   await generateTestingPackageJson(config);
 

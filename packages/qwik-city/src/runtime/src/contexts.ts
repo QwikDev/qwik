@@ -29,3 +29,5 @@ export const RouteInternalContext =
 
 export const RoutePreventNavigateContext =
   /*#__PURE__*/ createContextId<RoutePreventNavigate>('qc-p');
+
+export const fallbackToMpaContext = /*#__PURE__*/ createContextId<{ default: boolean }>('qc-f');

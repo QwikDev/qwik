@@ -66,6 +66,11 @@ const CLIENT_STRIP_CTX_NAME = [
  * @alpha
  */
 export enum ExperimentalFeatures {
+  /**
+   * Enable falling back to MPA when SPA navigation is slow, which can happen with a big page during
+   * preloading
+   */
+  enableFallbackToMpa = 'enableFallbackToMpa',
   /** Enable the usePreventNavigate hook */
   preventNavigate = 'preventNavigate',
   /** Enable the Valibot form validation */

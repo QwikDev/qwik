@@ -18,13 +18,14 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
 import {
-  colorSchemeChangeListener,
   getColorPreference,
   setPreference,
   ThemeToggle,
+  getEffectiveTheme,
 } from '../theme-toggle/theme-toggle';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { getPkgManagerPreference } from '../package-manager-tabs';
+import { colorSchemeChangeListener } from '../theme-toggle/theme-script';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -49,10 +50,14 @@ export const Header = component$(() => {
 
   useVisibleTask$(() => {
     globalStore.pkgManager = getPkgManagerPreference();
-    globalStore.theme = getColorPreference();
+    const pref = getColorPreference();
+    globalStore.theme = getEffectiveTheme(pref);
     return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
+      const currentPref = getColorPreference();
+      if (currentPref === 'auto') {
+        globalStore.theme = isDark ? 'dark' : 'light';
+        setPreference('auto');
+      }
     });
   });
 

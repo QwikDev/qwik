@@ -8,6 +8,7 @@ use swc_ecmascript::ast;
 use swc_ecmascript::codegen::text_writer::JsWriter;
 use swc_ecmascript::transforms::fixer;
 use swc_ecmascript::transforms::hygiene::hygiene_with_config;
+use swc_ecmascript::transforms::optimization;
 use swc_ecmascript::visit::{Visit, VisitWith};
 use swc_ecmascript::{
 	utils::private_ident,
@@ -199,6 +200,10 @@ pub fn render_expr(expr: &ast::Expr) -> String {
 	};
 	expr.visit_mut_with(&mut hygiene_with_config(Default::default()));
 	expr.visit_mut_with(&mut fixer(None));
+	expr.visit_mut_with(&mut optimization::simplify::dce::dce(
+		Default::default(),
+		Default::default(),
+	));
 	emitter
 		.emit_module(&ast::Module {
 			span: DUMMY_SP,

@@ -16,6 +16,7 @@ import {
   RedirectMessage,
   RewriteMessage,
   ServerError,
+  _asyncRequestStore,
 } from '@qwik.dev/router/middleware/request-handler';
 
 export interface QwikRouterRun<T> {
@@ -35,20 +36,6 @@ export interface QwikRouterRun<T> {
    */
   completion: Promise<RedirectMessage | Error | undefined>;
 }
-
-let asyncStore: AsyncStore | undefined;
-import('node:async_hooks')
-  .then((module) => {
-    const AsyncLocalStorage = module.AsyncLocalStorage;
-    asyncStore = new AsyncLocalStorage<RequestEventInternal>();
-    globalThis.qcAsyncRequestStore = asyncStore;
-  })
-  .catch((err) => {
-    console.warn(
-      'AsyncLocalStorage not available, continuing without it. This might impact concurrent server calls.',
-      err
-    );
-  });
 
 export function runQwikRouter<T>(
   serverRequestEv: ServerRequestEvent<T>,
@@ -70,8 +57,8 @@ export function runQwikRouter<T>(
   return {
     response: responsePromise,
     requestEv,
-    completion: asyncStore
-      ? asyncStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
+    completion: _asyncRequestStore
+      ? _asyncRequestStore.run(requestEv, runNext, requestEv, rebuildRouteInfo, resolve!)
       : runNext(requestEv, rebuildRouteInfo, resolve!),
   };
 }

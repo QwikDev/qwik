@@ -5,6 +5,7 @@
 ```ts
 
 import type { Action } from '@qwik.dev/router';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
@@ -23,6 +24,11 @@ import type { ValueOrPromise } from '@qwik.dev/core';
 // @public (undocumented)
 export class AbortMessage {
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -240,8 +246,6 @@ export interface ServerRequestEvent<T = unknown> {
 // @public (undocumented)
 export type ServerRequestMode = 'dev' | 'static' | 'server';
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
 

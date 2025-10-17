@@ -221,6 +221,7 @@ export type DocumentScript = (
 /** @public */
 export interface DocumentHeadProps extends RouteLocation {
   readonly head: ResolvedDocumentHead;
+  /** @deprecated This is not necessary, it works correctly without */
   readonly withLocale: <T>(fn: () => T) => T;
   readonly resolveValue: ResolveSyncValue;
 }

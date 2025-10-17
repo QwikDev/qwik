@@ -1,6 +1,11 @@
 /* eslint-disable no-var */
 // Globals used by qwik-router, for internal use only
 
+declare module '*?compiled-string' {
+  const str: string;
+  export default str;
+}
+
 type RequestEventInternal =
   import('./middleware/request-handler/request-event').RequestEventInternal;
 type AsyncStore = import('node:async_hooks').AsyncLocalStorage<RequestEventInternal>;

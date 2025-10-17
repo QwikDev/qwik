@@ -1,4 +1,4 @@
-import swRegister from '@qwik-router-sw-register-build';
+import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';

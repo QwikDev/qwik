@@ -339,10 +339,10 @@ function isAsyncIterator(obj: unknown): obj is AsyncIterable<unknown> {
 }
 
 async function runServerFunction(ev: RequestEvent) {
-  const fn = ev.query.get(QFN_KEY);
+  const serverFnHash = ev.query.get(QFN_KEY);
   if (
-    fn &&
-    ev.request.headers.get('X-QRL') === fn &&
+    serverFnHash &&
+    ev.request.headers.get('X-QRL') === serverFnHash &&
     ev.request.headers.get('Content-Type') === 'application/qwik-json'
   ) {
     ev.exit();
@@ -350,7 +350,7 @@ async function runServerFunction(ev: RequestEvent) {
     const data = await ev.parseBody();
     if (Array.isArray(data)) {
       const [qrl, ...args] = data;
-      if (isQrl(qrl) && qrl.getHash() === fn) {
+      if (isQrl(qrl) && qrl.getHash() === serverFnHash) {
         let result: unknown;
         try {
           if (isDev) {
@@ -364,6 +364,7 @@ async function runServerFunction(ev: RequestEvent) {
           if (err instanceof ServerError) {
             throw ev.error(err.status as ErrorCodes, err.data);
           }
+          console.error(`Server function ${serverFnHash} failed:`, err);
           throw ev.error(500, 'Invalid request');
         }
         if (isAsyncIterator(result)) {

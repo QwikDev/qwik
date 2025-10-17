@@ -31,7 +31,7 @@ export const updateReplOutput = async (store: ReplStore, result: ReplResult) => 
   deepUpdate(store.clientBundles, result.clientBundles);
   deepUpdate(store.ssrModules, result.ssrModules);
 
-  if (result.diagnostics.length === 0) {
+  if (!result.diagnostics.some((d) => d.category === 'error' || d.category === 'sourceError')) {
     if (result.html && store.html !== result.html) {
       store.html = result.html;
       store.events = result.events;

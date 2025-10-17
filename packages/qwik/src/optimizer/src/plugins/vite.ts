@@ -265,6 +265,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             exclude: [/./],
           },
           rollupOptions: {
+            external: ['node:async_hooks'],
             /**
              * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
              * to impact the build time.

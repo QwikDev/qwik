@@ -1171,7 +1171,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           continue;
         }
 
-        if (isClassAttr(key) && Array.isArray(value)) {
+        if (key === 'class' && Array.isArray(value)) {
           // value is a signal and key is a class, we need to retrieve data first
           const [signalValue, styleId] = value;
           value = signalValue;

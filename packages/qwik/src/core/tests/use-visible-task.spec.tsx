@@ -294,6 +294,27 @@ describe.each([
     );
   });
 
+  it('should merge multiple visible tasks when empty', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(
+        () => {
+          (globalThis as any).log.push('task1');
+        },
+        { strategy: 'document-ready' }
+      );
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task2');
+      });
+      return <></>;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task1', 'task2']);
+  });
+
   describe(render.name + ': track', () => {
     it('should rerun on track', async () => {
       const Counter = component$(() => {

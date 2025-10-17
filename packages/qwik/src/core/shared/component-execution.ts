@@ -29,7 +29,7 @@ import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './ut
 import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
-import { EventNameJSXScope } from './utils/event-names';
+import { EventNameHtmlScope } from './utils/event-names';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -145,7 +145,7 @@ function addUseOnEvents(
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
   const jsxElement = findFirstElementNode(jsx);
   let jsxResult = jsx;
-  const qVisibleEvent = 'onQvisible$';
+  const qVisibleEvent = 'on:qvisible';
   return maybeThen(jsxElement, (jsxElement) => {
     // headless components are components that don't render a real DOM element
     const isHeadless = !jsxElement;
@@ -160,8 +160,8 @@ function addUseOnEvents(
           // if the component is headless, we need to add the event to the placeholder element
           if (
             key === qVisibleEvent ||
-            key.startsWith(EventNameJSXScope.document) ||
-            key.startsWith(EventNameJSXScope.window)
+            key.startsWith(EventNameHtmlScope.document) ||
+            key.startsWith(EventNameHtmlScope.window)
           ) {
             if (!placeholderElement) {
               const [createdElement, newJsx] = injectPlaceholderElement(jsxResult);
@@ -184,14 +184,16 @@ function addUseOnEvents(
         }
         if (targetElement) {
           if (targetElement.type === 'script' && key === qVisibleEvent) {
-            eventKey = 'document:onQInit$';
-            logWarn(
-              'You are trying to add an event "' +
-                key +
-                '" using `useVisibleTask$` hook, ' +
-                'but a node to which you can add an event is not found. ' +
-                'Using document:onQInit$ instead.'
-            );
+            eventKey = 'on-document:qinit';
+            if (isDev) {
+              logWarn(
+                'You are trying to add an event "' +
+                  key +
+                  '" using the `useVisibleTask$` hook with the "intersection-observer" strategy, ' +
+                  'but a node to which you can add an event is not found. ' +
+                  'Using "document-ready" or "document-idle" instead.'
+              );
+            }
           }
           addUseOnEvent(targetElement, eventKey, useOnEvents[key]);
         }
@@ -213,14 +215,25 @@ function addUseOnEvent(
   key: string,
   value: EventQRL<KnownEventNames>[]
 ) {
-  const props = jsxElement.props;
+  // These handlers are always there, so they go in constProps
+  const props = (jsxElement.constProps ||= {} as Props);
   const propValue = props[key] as UseOnMap['any'] | UseOnMap['any'][0] | undefined;
-  if (propValue === undefined) {
+  if (propValue == null) {
     props[key] = value;
   } else if (Array.isArray(propValue)) {
     propValue.push(...value);
   } else {
     props[key] = [propValue, ...value];
+  }
+  const varProp = jsxElement.varProps[key];
+  if (varProp) {
+    // we need to demote the handlers to varProps
+    if (Array.isArray(propValue)) {
+      propValue.push(...(props[key] as any));
+    } else {
+      jsxElement.varProps[key] = [propValue, ...value];
+    }
+    props[key] = undefined;
   }
 }
 

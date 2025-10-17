@@ -15,7 +15,7 @@ export const enum EventNameJSXScope {
   document = 'document:on',
 }
 
-const enum EventNameHtmlScope {
+export const enum EventNameHtmlScope {
   on = 'on:',
   window = 'on-window:',
   document = 'on-document:',
@@ -208,4 +208,16 @@ export function isPreventDefault(key: string): boolean {
 
 export const fromCamelToKebabCase = (text: string): string => {
   return text.replace(/([A-Z-])/g, '-$1').toLowerCase();
+};
+
+export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] | null => {
+  const data = /^on(|-(window|document)):(.+)$/.exec(htmlKey);
+  return data
+    ? [
+        data[1]
+          // remove `-` from prefix
+          .substring(1),
+        data[3],
+      ]
+    : null;
 };

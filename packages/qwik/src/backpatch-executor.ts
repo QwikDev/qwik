@@ -5,6 +5,9 @@
  * same container and applying the patches to the DOM elements.
  */
 
+// needed to make this a module and make compiled-string-plugin work
+export {};
+
 const BACKPATCH_DATA_SELECTOR = 'script[type="qwik/backpatch"]';
 
 const executorScript = document.currentScript;

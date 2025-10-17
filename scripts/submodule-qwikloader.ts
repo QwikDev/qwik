@@ -83,7 +83,7 @@ export const getLoaderJsonString = async (config: BuildConfig, name: string) => 
   return JSON.stringify(cleaned);
 };
 
-/** Load each of the qwik scripts to be inlined with esbuild "define" as const variables. */
+/** Load each of the qwik scripts to be inlined with "define" as const variables. */
 export async function inlineQwikScriptsEsBuild(config: BuildConfig) {
   const variableToFileMap = [
     ['QWIK_LOADER_DEFAULT_MINIFIED', 'qwikloader.js'],
@@ -111,11 +111,6 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   ];
 
   const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
-  const cjsCode = [
-    ...code,
-    `exports.QWIK_LOADER = QWIK_LOADER;`,
-    `exports.QWIK_LOADER_DEBUG = QWIK_LOADER_DEBUG;`,
-  ];
   const dtsCode = [
     `export declare const QWIK_LOADER: string;`,
     `export declare const QWIK_LOADER_DEBUG: string;`,
@@ -123,7 +118,6 @@ async function generateLoaderSubmodule(config: BuildConfig) {
 
   ensureDir(loaderDistDir);
   await writeFile(join(loaderDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
-  await writeFile(join(loaderDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {

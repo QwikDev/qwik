@@ -573,6 +573,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (!key) {
           throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
         }
+        // handlers.mjs is to ensure these core exports don't get renamed
         ctx.emitFile({
           id: key.id,
           type: 'chunk',

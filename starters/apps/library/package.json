@@ -10,7 +10,6 @@
   "exports": {
     ".": {
       "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs",
       "types": "./lib-types/index.d.ts"
     }
   },

@@ -1,4 +1,3 @@
-// keep this import from core/build so the cjs build works
 import { isServer } from '@qwik.dev/core/build';
 import { QError, qError } from '../error/error';
 import { getSymbolHash } from '../qrl/qrl-utils';

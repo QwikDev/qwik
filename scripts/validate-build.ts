@@ -43,11 +43,8 @@ export async function validateBuild(config: BuildConfig) {
 
       switch (ext) {
         case '.cjs':
-          const f = basename(filePath);
-          if (f !== 'qwik.cjs') {
-            require(filePath);
-            console.log(`✅ ${filePath}`);
-          }
+          require(filePath);
+          console.log(`✅ ${filePath}`);
           break;
         case '.mjs':
           if (config.esmNode) {

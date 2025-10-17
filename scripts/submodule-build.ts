@@ -1,4 +1,4 @@
-import { build, type BuildOptions } from 'esbuild';
+import { build } from 'vite';
 import { join } from 'node:path';
 import { writePackageJson } from './package-json';
 import { type BuildConfig, copyFile, ensureDir, type PackageJSON, target } from './util';
@@ -35,33 +35,25 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
 
   ensureDir(buildDestDir);
 
-  const opts: BuildOptions = {
-    entryPoints: [join(config.srcQwikDir, 'build', `${entryName}.ts`)],
-    entryNames: entryName,
-    outdir: buildDestDir,
-    bundle: true,
-    sourcemap: true,
-    target,
-  };
-
-  const esm = build({
-    ...opts,
-    format: 'esm',
-    outExtension: { '.js': '.mjs' },
-  });
-
-  const cjs = build({
-    ...opts,
-    format: 'cjs',
-
-    banner: {
-      js: `globalThis.qwikBuild = (function (module) {`,
+  await build({
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
+      lib: {
+        entry: join(config.srcQwikDir, 'build', `${entryName}.ts`),
+        name: 'qwikBuild',
+      },
+      outDir: buildDestDir,
+      sourcemap: true,
+      target,
+      rollupOptions: {
+        output: [
+          {
+            format: 'es',
+            entryFileNames: `${entryName}.mjs`,
+          },
+        ],
+      },
     },
-    footer: {
-      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-    },
-    outExtension: { '.js': '.cjs' },
   });
-
-  await Promise.all([esm, cjs]);
 }

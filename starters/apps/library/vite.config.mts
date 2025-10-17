@@ -13,10 +13,9 @@ export default defineConfig(() => {
       target: "es2020",
       lib: {
         entry: "./src/index",
-        formats: ["es", "cjs"] as const,
+        formats: ["es"] as const,
         // This adds .qwik so all files are processed by the optimizer
-        fileName: (format, entryName) =>
-          `${entryName}.qwik.${format === "es" ? "mjs" : "cjs"}`,
+        fileName: (_format, entryName) => `${entryName}.qwik.mjs`,
       },
       rollupOptions: {
         output: {

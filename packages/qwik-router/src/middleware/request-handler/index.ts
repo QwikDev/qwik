@@ -1,4 +1,4 @@
-export { requestHandler } from './request-handler';
+export { requestHandler, _asyncRequestStore } from './request-handler';
 
 export { getErrorHtml } from './error-handler';
 export { getNotFound } from './not-found-paths';

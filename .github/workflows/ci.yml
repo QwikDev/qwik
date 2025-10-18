@@ -682,6 +682,8 @@ jobs:
           # too slow and flaky. Perhaps better in v2?
           # - host: ubuntu-latest
           #   browser: firefox
+          - host: windows-latest
+            browser: chromium
           - host: macos-latest
             browser: webkit
           # - host: windows-latest

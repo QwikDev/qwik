@@ -10,7 +10,7 @@ import type {
 import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { isAbsolute, resolve } from 'node:path';
+import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
 import { createSingleThreadWorker } from '../worker-thread';
@@ -78,14 +78,23 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
 
     let workerFilePath: string | URL;
 
+    // Launch the worker using the package's index module, which bootstraps the worker thread.
     if (typeof __filename === 'string') {
-      workerFilePath = __filename;
+      // CommonJS path
+      const ext = extname(__filename) || '.js';
+      workerFilePath = join(dirname(__filename), `index${ext}`);
     } else {
-      workerFilePath = import.meta.url;
-    }
+      // ESM path (import.meta.url)
+      const thisUrl = new URL(import.meta.url);
+      const pathname = thisUrl.pathname || '';
+      let ext = '.js';
+      if (pathname.endsWith('.ts')) {
+        ext = '.ts';
+      } else if (pathname.endsWith('.mjs')) {
+        ext = '.mjs';
+      }
 
-    if (typeof workerFilePath === 'string' && workerFilePath.startsWith('file://')) {
-      workerFilePath = new URL(workerFilePath);
+      workerFilePath = new URL(`./index${ext}`, thisUrl);
     }
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
@@ -146,7 +155,7 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
     });
 
     nodeWorker.on('exit', (code) => {
-      if (code !== 1) {
+      if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
     });

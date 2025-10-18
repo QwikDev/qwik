@@ -762,8 +762,6 @@ jobs:
         run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: Playwright E2E Qwik React Tests
-        # This just fails constantly on Windows due to weird segfaults
-        if: matrix.settings.host != 'windows-latest'
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: CLI E2E Tests

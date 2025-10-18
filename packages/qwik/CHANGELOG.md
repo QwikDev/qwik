@@ -1,5 +1,31 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.12
+
+### Major Changes
+
+- BREAKING: When using the `base` setting in Vite, the client build will no longer be placed under that base path. Instead, the output directory is always `dist/` by default. If you need to change the output directory, use the `build.outDir` setting in Vite or the `outDir` option in the `qwikVite` plugin under `client` or `ssr`. (by [@wmertens](https://github.com/wmertens) in [#8064](https://github.com/QwikDev/qwik/pull/8064))
+
+### Minor Changes
+
+- ✨ `qwikVite` now accepts `ssr.manifestInputPath` for when the `q-manifest.json` file from the client build is at an unexpected location. (by [@wmertens](https://github.com/wmertens) in [#8064](https://github.com/QwikDev/qwik/pull/8064))
+
+- ✨ `bind:checked` and `bind:value` now also work through spread props, and they result in less code. (by [@wmertens](https://github.com/wmertens) in [#7321](https://github.com/QwikDev/qwik/pull/7321))
+
+### Patch Changes
+
+- 🐞🩹 blocking slot parent and parent order (by [@Varixo](https://github.com/Varixo) in [#8070](https://github.com/QwikDev/qwik/pull/8070))
+
+- ✨ withLocale() uses AsyncLocalStorage for server-side requests when available. This allows async operations to retain the correct locale context. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7826](https://github.com/QwikDev/qwik/pull/7826))
+
+- 🐞🩹 core now throws an error when a qwik lib package is not added to ssr.noExternal (by [@maiieul](https://github.com/maiieul) in [#8062](https://github.com/QwikDev/qwik/pull/8062))
+
+- 🐞🩹 adding and removing attributes on vnodes (by [@Varixo](https://github.com/Varixo) in [#8030](https://github.com/QwikDev/qwik/pull/8030))
+
+- 🐞🩹 memory leak for reactive attributes (by [@Varixo](https://github.com/Varixo) in [#7997](https://github.com/QwikDev/qwik/pull/7997))
+
+- 🐞🩹 scheduling previously blocked chore (by [@Varixo](https://github.com/Varixo) in [#8028](https://github.com/QwikDev/qwik/pull/8028))
+
 ## 2.0.0-beta.11
 
 ### Patch Changes

@@ -686,8 +686,6 @@ jobs:
             browser: chromium
           - host: macos-latest
             browser: webkit
-          # - host: windows-latest
-          #   browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 

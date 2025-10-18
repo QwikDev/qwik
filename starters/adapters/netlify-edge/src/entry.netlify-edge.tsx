@@ -15,7 +15,7 @@ import qwikCityPlan from "@qwik-city-plan";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNetlify {}
+  type QwikCityPlatform = PlatformNetlify;
 }
 
 export default createQwikCity({ render, qwikCityPlan });

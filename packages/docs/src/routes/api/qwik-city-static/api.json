@@ -12,7 +12,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Use this function when SSG should be generated from another module, such as a Vite plugin. This function's should be passed the paths of the entry module and Qwik City Plan.\n\n\n```typescript\nexport declare function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[StaticGenerateOptions](#staticgenerateoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n**Returns:**\n\nPromise&lt;[StaticGenerateResult](#staticgenerateresult)<!-- -->&gt;",
+      "content": "Use this function when SSG should be generated from another module, such as a Vite plugin. This function's should be passed the paths of the entry module and Qwik City Plan.\n\n\n```typescript\nexport declare function generate(opts: StaticGenerateOptions): Promise<StaticGenerateResult>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[StaticGenerateOptions](#staticgenerateoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nPromise&lt;[StaticGenerateResult](#staticgenerateresult)<!-- -->&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/static/index.ts",
       "mdFile": "qwik-city.generate.md"
     },

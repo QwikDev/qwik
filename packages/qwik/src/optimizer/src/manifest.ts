@@ -1,4 +1,4 @@
-import type { OutputBundle } from 'rollup';
+import type { Rollup } from 'vite';
 import { type NormalizedQwikPluginOptions } from './plugins/plugin';
 import type { GlobalInjections, Path, QwikBundle, QwikManifest, SegmentAnalysis } from './types';
 
@@ -388,11 +388,14 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
+const preloaderRegex = /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/;
+const coreRegex = /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/;
+const qwikLoaderRegex = /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/;
 export function generateManifestFromBundles(
   path: Path,
   segments: SegmentAnalysis[],
   injections: GlobalInjections[],
-  outputBundles: OutputBundle,
+  outputBundles: Rollup.OutputBundle,
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
   canonPath: (p: string) => string
@@ -475,6 +478,16 @@ export function generateManifestFromBundles(
       bundle.dynamicImports = bundleDynamicImports;
     }
 
+    // It can happen that our modules end up in facades, not nice but needs handling
+    if (outputBundle.facadeModuleId) {
+      if (preloaderRegex.test(outputBundle.facadeModuleId)) {
+        manifest.preloader = bundleFileName;
+      } else if (coreRegex.test(outputBundle.facadeModuleId)) {
+        manifest.core = bundleFileName;
+      } else if (qwikLoaderRegex.test(outputBundle.facadeModuleId)) {
+        manifest.qwikLoader = bundleFileName;
+      }
+    }
     // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);
     const modulePaths = ids
@@ -483,15 +496,13 @@ export function generateManifestFromBundles(
     if (modulePaths.length > 0) {
       bundle.origins = modulePaths;
       // keep these if statements separate so that weird bundling still works
-      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]preloader\.[cm]js$/.test(m))) {
+      if (!manifest.preloader && modulePaths.some((m) => preloaderRegex.test(m))) {
         manifest.preloader = bundleFileName;
       }
-      if (modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]core\.[^/]*js$/.test(m))) {
+      if (!manifest.core && modulePaths.some((m) => coreRegex.test(m))) {
         manifest.core = bundleFileName;
       }
-      if (
-        modulePaths.some((m) => /[/\\]qwik[/\\]dist[/\\]qwikloader(\.debug)?\.[^/]*js$/.test(m))
-      ) {
+      if (!manifest.qwikLoader && modulePaths.some((m) => qwikLoaderRegex.test(m))) {
         manifest.qwikLoader = bundleFileName;
       }
     }

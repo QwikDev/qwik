@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import FastifyQwik from "./plugins/fastify-qwik";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  type QwikCityPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located

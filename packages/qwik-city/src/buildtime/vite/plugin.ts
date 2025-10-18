@@ -70,7 +70,14 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
         },
         ssr: {
           external: ['node:async_hooks'],
-          noExternal: [QWIK_CITY, QWIK_CITY_PLAN_ID, QWIK_CITY_ENTRIES_ID, QWIK_CITY_SW_REGISTER],
+          noExternal: [
+            QWIK_CITY,
+            QWIK_CITY_PLAN_ID,
+            QWIK_CITY_ENTRIES_ID,
+            QWIK_CITY_SW_REGISTER,
+            // We've had reports of bundling issues with zod
+            'zod',
+          ],
         },
       };
       return updatedViteConfig;
@@ -191,6 +198,7 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           }
         }
       }
+
       return null;
     },
 

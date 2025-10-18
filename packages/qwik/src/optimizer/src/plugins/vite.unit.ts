@@ -7,28 +7,20 @@ import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vit
 
 const cwd = process.cwd();
 
-const chunkInfoMocks: Rollup.PreRenderedChunk[] = [
+const chunkInfoMocks = [
   {
     exports: [''],
     name: 'chunk.tsx',
     facadeModuleId: 'chunk.tsx',
-    isDynamicEntry: false,
-    isEntry: false,
-    isImplicitEntry: false,
     moduleIds: ['chunk.tsx'],
-    type: 'chunk',
   },
   {
     exports: [''],
     name: cwd + '/app/chunk.tsx',
     facadeModuleId: cwd + '/app/chunk.tsx',
-    isDynamicEntry: false,
-    isEntry: false,
-    isImplicitEntry: false,
     moduleIds: [cwd + '/app/chunk.tsx'],
-    type: 'chunk',
   },
-];
+] as Rollup.PreRenderedChunk[];
 
 function mockOptimizerOptions(): OptimizerOptions {
   return {

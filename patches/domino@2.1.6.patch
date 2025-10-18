@@ -1,0 +1,1449 @@
+diff --git a/lib/CSSStyleDeclaration.js b/lib/CSSStyleDeclaration.js
+index cf1dbc6001fa4315fbeaef8028066a61848a5094..d3217735d6799c11815aa742dd1f5195ef32bfd1 100644
+--- a/lib/CSSStyleDeclaration.js
++++ b/lib/CSSStyleDeclaration.js
+@@ -186,11 +186,14 @@ CSSStyleDeclaration.prototype = Object.create(Object.prototype, {
+   }},
+ });
+ 
+-var cssProperties = {
++const cssProperties = {
++  accentColor: "accent-color",
++  additiveSymbols: "additive-symbols",
+   alignContent: "align-content",
+   alignItems: "align-items",
+-  alignmentBaseline: "alignment-baseline",
+   alignSelf: "align-self",
++  alignmentBaseline: "alignment-baseline",
++  all: "all",
+   animation: "animation",
+   animationDelay: "animation-delay",
+   animationDirection: "animation-direction",
+@@ -200,9 +203,15 @@ var cssProperties = {
+   animationName: "animation-name",
+   animationPlayState: "animation-play-state",
+   animationTimingFunction: "animation-timing-function",
++  appRegion: "app-region",
++  appearance: "appearance",
++  ascentOverride: "ascent-override",
++  aspectRatio: "aspect-ratio",
++  backdropFilter: "backdrop-filter",
+   backfaceVisibility: "backface-visibility",
+   background: "background",
+   backgroundAttachment: "background-attachment",
++  backgroundBlendMode: "background-blend-mode",
+   backgroundClip: "background-clip",
+   backgroundColor: "background-color",
+   backgroundImage: "background-image",
+@@ -211,9 +220,25 @@ var cssProperties = {
+   backgroundPositionX: "background-position-x",
+   backgroundPositionY: "background-position-y",
+   backgroundRepeat: "background-repeat",
++  backgroundRepeatX: "background-repeat-x",
++  backgroundRepeatY: "background-repeat-y",
+   backgroundSize: "background-size",
++  basePalette: "base-palette",
+   baselineShift: "baseline-shift",
++  blockSize: "block-size",
+   border: "border",
++  borderBlock: "border-block",
++  borderBlockColor: "border-block-color",
++  borderBlockEnd: "border-block-end",
++  borderBlockEndColor: "border-block-end-color",
++  borderBlockEndStyle: "border-block-end-style",
++  borderBlockEndWidth: "border-block-end-width",
++  borderBlockStart: "border-block-start",
++  borderBlockStartColor: "border-block-start-color",
++  borderBlockStartStyle: "border-block-start-style",
++  borderBlockStartWidth: "border-block-start-width",
++  borderBlockStyle: "border-block-style",
++  borderBlockWidth: "border-block-width",
+   borderBottom: "border-bottom",
+   borderBottomColor: "border-bottom-color",
+   borderBottomLeftRadius: "border-bottom-left-radius",
+@@ -222,12 +247,26 @@ var cssProperties = {
+   borderBottomWidth: "border-bottom-width",
+   borderCollapse: "border-collapse",
+   borderColor: "border-color",
++  borderEndEndRadius: "border-end-end-radius",
++  borderEndStartRadius: "border-end-start-radius",
+   borderImage: "border-image",
+   borderImageOutset: "border-image-outset",
+   borderImageRepeat: "border-image-repeat",
+   borderImageSlice: "border-image-slice",
+   borderImageSource: "border-image-source",
+   borderImageWidth: "border-image-width",
++  borderInline: "border-inline",
++  borderInlineColor: "border-inline-color",
++  borderInlineEnd: "border-inline-end",
++  borderInlineEndColor: "border-inline-end-color",
++  borderInlineEndStyle: "border-inline-end-style",
++  borderInlineEndWidth: "border-inline-end-width",
++  borderInlineStart: "border-inline-start",
++  borderInlineStartColor: "border-inline-start-color",
++  borderInlineStartStyle: "border-inline-start-style",
++  borderInlineStartWidth: "border-inline-start-width",
++  borderInlineStyle: "border-inline-style",
++  borderInlineWidth: "border-inline-width",
+   borderLeft: "border-left",
+   borderLeftColor: "border-left-color",
+   borderLeftStyle: "border-left-style",
+@@ -238,6 +277,8 @@ var cssProperties = {
+   borderRightStyle: "border-right-style",
+   borderRightWidth: "border-right-width",
+   borderSpacing: "border-spacing",
++  borderStartEndRadius: "border-start-end-radius",
++  borderStartStartRadius: "border-start-start-radius",
+   borderStyle: "border-style",
+   borderTop: "border-top",
+   borderTopColor: "border-top-color",
+@@ -252,13 +293,18 @@ var cssProperties = {
+   breakAfter: "break-after",
+   breakBefore: "break-before",
+   breakInside: "break-inside",
++  bufferedRendering: "buffered-rendering",
+   captionSide: "caption-side",
++  caretColor: "caret-color",
+   clear: "clear",
+   clip: "clip",
+   clipPath: "clip-path",
+   clipRule: "clip-rule",
+   color: "color",
++  colorInterpolation: "color-interpolation",
+   colorInterpolationFilters: "color-interpolation-filters",
++  colorRendering: "color-rendering",
++  colorScheme: "color-scheme",
+   columnCount: "column-count",
+   columnFill: "column-fill",
+   columnGap: "column-gap",
+@@ -266,19 +312,33 @@ var cssProperties = {
+   columnRuleColor: "column-rule-color",
+   columnRuleStyle: "column-rule-style",
+   columnRuleWidth: "column-rule-width",
+-  columns: "columns",
+   columnSpan: "column-span",
+   columnWidth: "column-width",
++  columns: "columns",
++  contain: "contain",
++  containIntrinsicBlockSize: "contain-intrinsic-block-size",
++  containIntrinsicHeight: "contain-intrinsic-height",
++  containIntrinsicInlineSize: "contain-intrinsic-inline-size",
++  containIntrinsicSize: "contain-intrinsic-size",
++  containIntrinsicWidth: "contain-intrinsic-width",
++  container: "container",
++  containerName: "container-name",
++  containerType: "container-type",
+   content: "content",
++  contentVisibility: "content-visibility",
+   counterIncrement: "counter-increment",
+   counterReset: "counter-reset",
+-  cssFloat: "float",
++  counterSet: "counter-set",
+   cursor: "cursor",
++  cx: "cx",
++  cy: "cy",
++  d: "d",
++  descentOverride: "descent-override",
+   direction: "direction",
+   display: "display",
+   dominantBaseline: "dominant-baseline",
+   emptyCells: "empty-cells",
+-  enableBackground: "enable-background",
++  fallback: "fallback",
+   fill: "fill",
+   fillOpacity: "fill-opacity",
+   fillRule: "fill-rule",
+@@ -290,19 +350,32 @@ var cssProperties = {
+   flexGrow: "flex-grow",
+   flexShrink: "flex-shrink",
+   flexWrap: "flex-wrap",
++  float: "float",
+   floodColor: "flood-color",
+   floodOpacity: "flood-opacity",
+   font: "font",
++  fontDisplay: "font-display",
+   fontFamily: "font-family",
+   fontFeatureSettings: "font-feature-settings",
++  fontKerning: "font-kerning",
++  fontOpticalSizing: "font-optical-sizing",
++  fontPalette: "font-palette",
+   fontSize: "font-size",
+-  fontSizeAdjust: "font-size-adjust",
+   fontStretch: "font-stretch",
+   fontStyle: "font-style",
++  fontSynthesis: "font-synthesis",
++  fontSynthesisSmallCaps: "font-synthesis-small-caps",
++  fontSynthesisStyle: "font-synthesis-style",
++  fontSynthesisWeight: "font-synthesis-weight",
+   fontVariant: "font-variant",
++  fontVariantCaps: "font-variant-caps",
++  fontVariantEastAsian: "font-variant-east-asian",
++  fontVariantLigatures: "font-variant-ligatures",
++  fontVariantNumeric: "font-variant-numeric",
++  fontVariationSettings: "font-variation-settings",
+   fontWeight: "font-weight",
+-  glyphOrientationHorizontal: "glyph-orientation-horizontal",
+-  glyphOrientationVertical: "glyph-orientation-vertical",
++  forcedColorAdjust: "forced-color-adjust",
++  gap: "gap",
+   grid: "grid",
+   gridArea: "grid-area",
+   gridAutoColumns: "grid-auto-columns",
+@@ -322,25 +395,44 @@ var cssProperties = {
+   gridTemplateColumns: "grid-template-columns",
+   gridTemplateRows: "grid-template-rows",
+   height: "height",
+-  imeMode: "ime-mode",
++  hyphenateCharacter: "hyphenate-character",
++  hyphenateLimitChars: "hyphenate-limit-chars",
++  hyphens: "hyphens",
++  imageOrientation: "image-orientation",
++  imageRendering: "image-rendering",
++  inherits: "inherits",
++  initialLetter: "initial-letter",
++  initialValue: "initial-value",
++  inlineSize: "inline-size",
++  inset: "inset",
++  insetBlock: "inset-block",
++  insetBlockEnd: "inset-block-end",
++  insetBlockStart: "inset-block-start",
++  insetInline: "inset-inline",
++  insetInlineEnd: "inset-inline-end",
++  insetInlineStart: "inset-inline-start",
++  isolation: "isolation",
+   justifyContent: "justify-content",
+-  kerning: "kerning",
+-  layoutGrid: "layout-grid",
+-  layoutGridChar: "layout-grid-char",
+-  layoutGridLine: "layout-grid-line",
+-  layoutGridMode: "layout-grid-mode",
+-  layoutGridType: "layout-grid-type",
++  justifyItems: "justify-items",
++  justifySelf: "justify-self",
+   left: "left",
+   letterSpacing: "letter-spacing",
+   lightingColor: "lighting-color",
+   lineBreak: "line-break",
++  lineGapOverride: "line-gap-override",
+   lineHeight: "line-height",
+   listStyle: "list-style",
+   listStyleImage: "list-style-image",
+   listStylePosition: "list-style-position",
+   listStyleType: "list-style-type",
+   margin: "margin",
++  marginBlock: "margin-block",
++  marginBlockEnd: "margin-block-end",
++  marginBlockStart: "margin-block-start",
+   marginBottom: "margin-bottom",
++  marginInline: "margin-inline",
++  marginInlineEnd: "margin-inline-end",
++  marginInlineStart: "margin-inline-start",
+   marginLeft: "margin-left",
+   marginRight: "margin-right",
+   marginTop: "margin-top",
+@@ -349,57 +441,27 @@ var cssProperties = {
+   markerMid: "marker-mid",
+   markerStart: "marker-start",
+   mask: "mask",
++  maskType: "mask-type",
++  mathDepth: "math-depth",
++  mathShift: "math-shift",
++  mathStyle: "math-style",
++  maxBlockSize: "max-block-size",
+   maxHeight: "max-height",
++  maxInlineSize: "max-inline-size",
+   maxWidth: "max-width",
++  minBlockSize: "min-block-size",
+   minHeight: "min-height",
++  minInlineSize: "min-inline-size",
+   minWidth: "min-width",
+-  msContentZoomChaining: "-ms-content-zoom-chaining",
+-  msContentZooming: "-ms-content-zooming",
+-  msContentZoomLimit: "-ms-content-zoom-limit",
+-  msContentZoomLimitMax: "-ms-content-zoom-limit-max",
+-  msContentZoomLimitMin: "-ms-content-zoom-limit-min",
+-  msContentZoomSnap: "-ms-content-zoom-snap",
+-  msContentZoomSnapPoints: "-ms-content-zoom-snap-points",
+-  msContentZoomSnapType: "-ms-content-zoom-snap-type",
+-  msFlowFrom: "-ms-flow-from",
+-  msFlowInto: "-ms-flow-into",
+-  msFontFeatureSettings: "-ms-font-feature-settings",
+-  msGridColumn: "-ms-grid-column",
+-  msGridColumnAlign: "-ms-grid-column-align",
+-  msGridColumns: "-ms-grid-columns",
+-  msGridColumnSpan: "-ms-grid-column-span",
+-  msGridRow: "-ms-grid-row",
+-  msGridRowAlign: "-ms-grid-row-align",
+-  msGridRows: "-ms-grid-rows",
+-  msGridRowSpan: "-ms-grid-row-span",
+-  msHighContrastAdjust: "-ms-high-contrast-adjust",
+-  msHyphenateLimitChars: "-ms-hyphenate-limit-chars",
+-  msHyphenateLimitLines: "-ms-hyphenate-limit-lines",
+-  msHyphenateLimitZone: "-ms-hyphenate-limit-zone",
+-  msHyphens: "-ms-hyphens",
+-  msImeAlign: "-ms-ime-align",
+-  msOverflowStyle: "-ms-overflow-style",
+-  msScrollChaining: "-ms-scroll-chaining",
+-  msScrollLimit: "-ms-scroll-limit",
+-  msScrollLimitXMax: "-ms-scroll-limit-x-max",
+-  msScrollLimitXMin: "-ms-scroll-limit-x-min",
+-  msScrollLimitYMax: "-ms-scroll-limit-y-max",
+-  msScrollLimitYMin: "-ms-scroll-limit-y-min",
+-  msScrollRails: "-ms-scroll-rails",
+-  msScrollSnapPointsX: "-ms-scroll-snap-points-x",
+-  msScrollSnapPointsY: "-ms-scroll-snap-points-y",
+-  msScrollSnapType: "-ms-scroll-snap-type",
+-  msScrollSnapX: "-ms-scroll-snap-x",
+-  msScrollSnapY: "-ms-scroll-snap-y",
+-  msScrollTranslation: "-ms-scroll-translation",
+-  msTextCombineHorizontal: "-ms-text-combine-horizontal",
+-  msTextSizeAdjust: "-ms-text-size-adjust",
+-  msTouchAction: "-ms-touch-action",
+-  msTouchSelect: "-ms-touch-select",
+-  msUserSelect: "-ms-user-select",
+-  msWrapFlow: "-ms-wrap-flow",
+-  msWrapMargin: "-ms-wrap-margin",
+-  msWrapThrough: "-ms-wrap-through",
++  mixBlendMode: "mix-blend-mode",
++  negative: "negative",
++  objectFit: "object-fit",
++  objectPosition: "object-position",
++  objectViewBox: "object-view-box",
++  offset: "offset",
++  offsetDistance: "offset-distance",
++  offsetPath: "offset-path",
++  offsetRotate: "offset-rotate",
+   opacity: "opacity",
+   order: "order",
+   orphans: "orphans",
+@@ -409,10 +471,26 @@ var cssProperties = {
+   outlineStyle: "outline-style",
+   outlineWidth: "outline-width",
+   overflow: "overflow",
++  overflowAnchor: "overflow-anchor",
++  overflowClipMargin: "overflow-clip-margin",
++  overflowWrap: "overflow-wrap",
+   overflowX: "overflow-x",
+   overflowY: "overflow-y",
++  overrideColors: "override-colors",
++  overscrollBehavior: "overscroll-behavior",
++  overscrollBehaviorBlock: "overscroll-behavior-block",
++  overscrollBehaviorInline: "overscroll-behavior-inline",
++  overscrollBehaviorX: "overscroll-behavior-x",
++  overscrollBehaviorY: "overscroll-behavior-y",
++  pad: "pad",
+   padding: "padding",
++  paddingBlock: "padding-block",
++  paddingBlockEnd: "padding-block-end",
++  paddingBlockStart: "padding-block-start",
+   paddingBottom: "padding-bottom",
++  paddingInline: "padding-inline",
++  paddingInlineEnd: "padding-inline-end",
++  paddingInlineStart: "padding-inline-start",
+   paddingLeft: "padding-left",
+   paddingRight: "padding-right",
+   paddingTop: "padding-top",
+@@ -420,18 +498,63 @@ var cssProperties = {
+   pageBreakAfter: "page-break-after",
+   pageBreakBefore: "page-break-before",
+   pageBreakInside: "page-break-inside",
++  pageOrientation: "page-orientation",
++  paintOrder: "paint-order",
+   perspective: "perspective",
+   perspectiveOrigin: "perspective-origin",
++  placeContent: "place-content",
++  placeItems: "place-items",
++  placeSelf: "place-self",
+   pointerEvents: "pointer-events",
+   position: "position",
++  prefix: "prefix",
+   quotes: "quotes",
++  r: "r",
++  range: "range",
++  resize: "resize",
+   right: "right",
+   rotate: "rotate",
+-  rubyAlign: "ruby-align",
+-  rubyOverhang: "ruby-overhang",
++  rowGap: "row-gap",
+   rubyPosition: "ruby-position",
++  rx: "rx",
++  ry: "ry",
+   scale: "scale",
++  scrollBehavior: "scroll-behavior",
++  scrollMargin: "scroll-margin",
++  scrollMarginBlock: "scroll-margin-block",
++  scrollMarginBlockEnd: "scroll-margin-block-end",
++  scrollMarginBlockStart: "scroll-margin-block-start",
++  scrollMarginBottom: "scroll-margin-bottom",
++  scrollMarginInline: "scroll-margin-inline",
++  scrollMarginInlineEnd: "scroll-margin-inline-end",
++  scrollMarginInlineStart: "scroll-margin-inline-start",
++  scrollMarginLeft: "scroll-margin-left",
++  scrollMarginRight: "scroll-margin-right",
++  scrollMarginTop: "scroll-margin-top",
++  scrollPadding: "scroll-padding",
++  scrollPaddingBlock: "scroll-padding-block",
++  scrollPaddingBlockEnd: "scroll-padding-block-end",
++  scrollPaddingBlockStart: "scroll-padding-block-start",
++  scrollPaddingBottom: "scroll-padding-bottom",
++  scrollPaddingInline: "scroll-padding-inline",
++  scrollPaddingInlineEnd: "scroll-padding-inline-end",
++  scrollPaddingInlineStart: "scroll-padding-inline-start",
++  scrollPaddingLeft: "scroll-padding-left",
++  scrollPaddingRight: "scroll-padding-right",
++  scrollPaddingTop: "scroll-padding-top",
++  scrollSnapAlign: "scroll-snap-align",
++  scrollSnapStop: "scroll-snap-stop",
++  scrollSnapType: "scroll-snap-type",
++  scrollbarGutter: "scrollbar-gutter",
++  shapeImageThreshold: "shape-image-threshold",
++  shapeMargin: "shape-margin",
++  shapeOutside: "shape-outside",
++  shapeRendering: "shape-rendering",
+   size: "size",
++  sizeAdjust: "size-adjust",
++  speak: "speak",
++  speakAs: "speak-as",
++  src: "src",
+   stopColor: "stop-color",
+   stopOpacity: "stop-opacity",
+   stroke: "stroke",
+@@ -442,22 +565,39 @@ var cssProperties = {
+   strokeMiterlimit: "stroke-miterlimit",
+   strokeOpacity: "stroke-opacity",
+   strokeWidth: "stroke-width",
++  suffix: "suffix",
++  symbols: "symbols",
++  syntax: "syntax",
++  system: "system",
++  tabSize: "tab-size",
+   tableLayout: "table-layout",
+   textAlign: "text-align",
+   textAlignLast: "text-align-last",
+   textAnchor: "text-anchor",
++  textCombineUpright: "text-combine-upright",
+   textDecoration: "text-decoration",
++  textDecorationColor: "text-decoration-color",
++  textDecorationLine: "text-decoration-line",
++  textDecorationSkipInk: "text-decoration-skip-ink",
++  textDecorationStyle: "text-decoration-style",
++  textDecorationThickness: "text-decoration-thickness",
++  textEmphasis: "text-emphasis",
++  textEmphasisColor: "text-emphasis-color",
++  textEmphasisPosition: "text-emphasis-position",
++  textEmphasisStyle: "text-emphasis-style",
+   textIndent: "text-indent",
+-  textJustify: "text-justify",
+-  textKashida: "text-kashida",
+-  textKashidaSpace: "text-kashida-space",
++  textOrientation: "text-orientation",
+   textOverflow: "text-overflow",
++  textRendering: "text-rendering",
+   textShadow: "text-shadow",
++  textSizeAdjust: "text-size-adjust",
+   textTransform: "text-transform",
++  textUnderlineOffset: "text-underline-offset",
+   textUnderlinePosition: "text-underline-position",
+   top: "top",
+   touchAction: "touch-action",
+   transform: "transform",
++  transformBox: "transform-box",
+   transformOrigin: "transform-origin",
+   transformStyle: "transform-style",
+   transition: "transition",
+@@ -467,6 +607,9 @@ var cssProperties = {
+   transitionTimingFunction: "transition-timing-function",
+   translate: "translate",
+   unicodeBidi: "unicode-bidi",
++  unicodeRange: "unicode-range",
++  userSelect: "user-select",
++  vectorEffect: "vector-effect",
+   verticalAlign: "vertical-align",
+   visibility: "visibility",
+   webkitAlignContent: "-webkit-align-content",
+@@ -480,25 +623,48 @@ var cssProperties = {
+   webkitAnimationIterationCount: "-webkit-animation-iteration-count",
+   webkitAnimationName: "-webkit-animation-name",
+   webkitAnimationPlayState: "-webkit-animation-play-state",
+-  webkitAnimationTimingFunction: "-webkit-animation-timing-funciton",
++  webkitAnimationTimingFunction: "-webkit-animation-timing-function",
++  webkitAppRegion: "-webkit-app-region",
+   webkitAppearance: "-webkit-appearance",
+   webkitBackfaceVisibility: "-webkit-backface-visibility",
+   webkitBackgroundClip: "-webkit-background-clip",
+   webkitBackgroundOrigin: "-webkit-background-origin",
+   webkitBackgroundSize: "-webkit-background-size",
++  webkitBorderAfter: "-webkit-border-after",
++  webkitBorderAfterColor: "-webkit-border-after-color",
++  webkitBorderAfterStyle: "-webkit-border-after-style",
++  webkitBorderAfterWidth: "-webkit-border-after-width",
++  webkitBorderBefore: "-webkit-border-before",
++  webkitBorderBeforeColor: "-webkit-border-before-color",
++  webkitBorderBeforeStyle: "-webkit-border-before-style",
++  webkitBorderBeforeWidth: "-webkit-border-before-width",
+   webkitBorderBottomLeftRadius: "-webkit-border-bottom-left-radius",
+   webkitBorderBottomRightRadius: "-webkit-border-bottom-right-radius",
++  webkitBorderEnd: "-webkit-border-end",
++  webkitBorderEndColor: "-webkit-border-end-color",
++  webkitBorderEndStyle: "-webkit-border-end-style",
++  webkitBorderEndWidth: "-webkit-border-end-width",
++  webkitBorderHorizontalSpacing: "-webkit-border-horizontal-spacing",
+   webkitBorderImage: "-webkit-border-image",
+   webkitBorderRadius: "-webkit-border-radius",
++  webkitBorderStart: "-webkit-border-start",
++  webkitBorderStartColor: "-webkit-border-start-color",
++  webkitBorderStartStyle: "-webkit-border-start-style",
++  webkitBorderStartWidth: "-webkit-border-start-width",
+   webkitBorderTopLeftRadius: "-webkit-border-top-left-radius",
+   webkitBorderTopRightRadius: "-webkit-border-top-right-radius",
++  webkitBorderVerticalSpacing: "-webkit-border-vertical-spacing",
+   webkitBoxAlign: "-webkit-box-align",
++  webkitBoxDecorationBreak: "-webkit-box-decoration-break",
+   webkitBoxDirection: "-webkit-box-direction",
+   webkitBoxFlex: "-webkit-box-flex",
+   webkitBoxOrdinalGroup: "-webkit-box-ordinal-group",
+   webkitBoxOrient: "-webkit-box-orient",
+   webkitBoxPack: "-webkit-box-pack",
++  webkitBoxReflect: "-webkit-box-reflect",
++  webkitBoxShadow: "-webkit-box-shadow",
+   webkitBoxSizing: "-webkit-box-sizing",
++  webkitClipPath: "-webkit-clip-path",
+   webkitColumnBreakAfter: "-webkit-column-break-after",
+   webkitColumnBreakBefore: "-webkit-column-break-before",
+   webkitColumnBreakInside: "-webkit-column-break-inside",
+@@ -508,9 +674,9 @@ var cssProperties = {
+   webkitColumnRuleColor: "-webkit-column-rule-color",
+   webkitColumnRuleStyle: "-webkit-column-rule-style",
+   webkitColumnRuleWidth: "-webkit-column-rule-width",
+-  webkitColumns: "-webkit-columns",
+   webkitColumnSpan: "-webkit-column-span",
+   webkitColumnWidth: "-webkit-column-width",
++  webkitColumns: "-webkit-columns",
+   webkitFilter: "-webkit-filter",
+   webkitFlex: "-webkit-flex",
+   webkitFlexBasis: "-webkit-flex-basis",
+@@ -519,38 +685,99 @@ var cssProperties = {
+   webkitFlexGrow: "-webkit-flex-grow",
+   webkitFlexShrink: "-webkit-flex-shrink",
+   webkitFlexWrap: "-webkit-flex-wrap",
++  webkitFontFeatureSettings: "-webkit-font-feature-settings",
++  webkitFontSmoothing: "-webkit-font-smoothing",
++  webkitHighlight: "-webkit-highlight",
++  webkitHyphenateCharacter: "-webkit-hyphenate-character",
+   webkitJustifyContent: "-webkit-justify-content",
++  webkitLineBreak: "-webkit-line-break",
++  webkitLineClamp: "-webkit-line-clamp",
++  webkitLocale: "-webkit-locale",
++  webkitLogicalHeight: "-webkit-logical-height",
++  webkitLogicalWidth: "-webkit-logical-width",
++  webkitMarginAfter: "-webkit-margin-after",
++  webkitMarginBefore: "-webkit-margin-before",
++  webkitMarginEnd: "-webkit-margin-end",
++  webkitMarginStart: "-webkit-margin-start",
++  webkitMask: "-webkit-mask",
++  webkitMaskBoxImage: "-webkit-mask-box-image",
++  webkitMaskBoxImageOutset: "-webkit-mask-box-image-outset",
++  webkitMaskBoxImageRepeat: "-webkit-mask-box-image-repeat",
++  webkitMaskBoxImageSlice: "-webkit-mask-box-image-slice",
++  webkitMaskBoxImageSource: "-webkit-mask-box-image-source",
++  webkitMaskBoxImageWidth: "-webkit-mask-box-image-width",
++  webkitMaskClip: "-webkit-mask-clip",
++  webkitMaskComposite: "-webkit-mask-composite",
++  webkitMaskImage: "-webkit-mask-image",
++  webkitMaskOrigin: "-webkit-mask-origin",
++  webkitMaskPosition: "-webkit-mask-position",
++  webkitMaskPositionX: "-webkit-mask-position-x",
++  webkitMaskPositionY: "-webkit-mask-position-y",
++  webkitMaskRepeat: "-webkit-mask-repeat",
++  webkitMaskRepeatX: "-webkit-mask-repeat-x",
++  webkitMaskRepeatY: "-webkit-mask-repeat-y",
++  webkitMaskSize: "-webkit-mask-size",
++  webkitMaxLogicalHeight: "-webkit-max-logical-height",
++  webkitMaxLogicalWidth: "-webkit-max-logical-width",
++  webkitMinLogicalHeight: "-webkit-min-logical-height",
++  webkitMinLogicalWidth: "-webkit-min-logical-width",
++  webkitOpacity: "-webkit-opacity",
+   webkitOrder: "-webkit-order",
+-  webkitPerspective: "-webkit-perspective-origin",
++  webkitPaddingAfter: "-webkit-padding-after",
++  webkitPaddingBefore: "-webkit-padding-before",
++  webkitPaddingEnd: "-webkit-padding-end",
++  webkitPaddingStart: "-webkit-padding-start",
++  webkitPerspective: "-webkit-perspective",
+   webkitPerspectiveOrigin: "-webkit-perspective-origin",
++  webkitPerspectiveOriginX: "-webkit-perspective-origin-x",
++  webkitPerspectiveOriginY: "-webkit-perspective-origin-y",
++  webkitPrintColorAdjust: "-webkit-print-color-adjust",
++  webkitRtlOrdering: "-webkit-rtl-ordering",
++  webkitRubyPosition: "-webkit-ruby-position",
++  webkitShapeImageThreshold: "-webkit-shape-image-threshold",
++  webkitShapeMargin: "-webkit-shape-margin",
++  webkitShapeOutside: "-webkit-shape-outside",
+   webkitTapHighlightColor: "-webkit-tap-highlight-color",
++  webkitTextCombine: "-webkit-text-combine",
++  webkitTextDecorationsInEffect: "-webkit-text-decorations-in-effect",
++  webkitTextEmphasis: "-webkit-text-emphasis",
++  webkitTextEmphasisColor: "-webkit-text-emphasis-color",
++  webkitTextEmphasisPosition: "-webkit-text-emphasis-position",
++  webkitTextEmphasisStyle: "-webkit-text-emphasis-style",
+   webkitTextFillColor: "-webkit-text-fill-color",
++  webkitTextOrientation: "-webkit-text-orientation",
++  webkitTextSecurity: "-webkit-text-security",
+   webkitTextSizeAdjust: "-webkit-text-size-adjust",
+   webkitTextStroke: "-webkit-text-stroke",
+   webkitTextStrokeColor: "-webkit-text-stroke-color",
+   webkitTextStrokeWidth: "-webkit-text-stroke-width",
+   webkitTransform: "-webkit-transform",
+   webkitTransformOrigin: "-webkit-transform-origin",
++  webkitTransformOriginX: "-webkit-transform-origin-x",
++  webkitTransformOriginY: "-webkit-transform-origin-y",
++  webkitTransformOriginZ: "-webkit-transform-origin-z",
+   webkitTransformStyle: "-webkit-transform-style",
+   webkitTransition: "-webkit-transition",
+   webkitTransitionDelay: "-webkit-transition-delay",
+   webkitTransitionDuration: "-webkit-transition-duration",
+   webkitTransitionProperty: "-webkit-transition-property",
+   webkitTransitionTimingFunction: "-webkit-transition-timing-function",
++  webkitUserDrag: "-webkit-user-drag",
+   webkitUserModify: "-webkit-user-modify",
+   webkitUserSelect: "-webkit-user-select",
+   webkitWritingMode: "-webkit-writing-mode",
+   whiteSpace: "white-space",
+   widows: "widows",
+   width: "width",
++  willChange: "will-change",
+   wordBreak: "word-break",
+   wordSpacing: "word-spacing",
+   wordWrap: "word-wrap",
+   writingMode: "writing-mode",
++  x: "x",
++  y: "y",
+   zIndex: "z-index",
+   zoom: "zoom",
+-  resize: "resize",
+-  userSelect: "user-select",
+ };
+ 
+ for(var prop in cssProperties) defineStyleProperty(prop);
+diff --git a/lib/ContainerNode.js b/lib/ContainerNode.js
+index a143ad847d853e235e03065cf5e342304f0bfc8c..b15e482fd6b1a52785cd0632af4435ed70d09cfe 100644
+--- a/lib/ContainerNode.js
++++ b/lib/ContainerNode.js
+@@ -56,6 +56,15 @@ ContainerNode.prototype = Object.create(Node.prototype, {
+     this._firstChild = null; // free memory
+   }},
+ 
++  replaceChildren: {
++    value: function replaceChildren() {
++      this.removeChildren();
++      
++      // Should probably implement here the replace logic as well
++      // but for now we just need the "children" removal ability
++    }
++  },
++
+   // Remove all of this node's children.  This is a minor
+   // optimization that only calls modify() once.
+   removeChildren: { value: function removeChildren() {
+diff --git a/lib/Element.js b/lib/Element.js
+index ecc90a871340ca1e332c432d5486a24226f2f6a8..44d2c818ffbb23724e18e029a98091e4120c9a57 100644
+--- a/lib/Element.js
++++ b/lib/Element.js
+@@ -92,7 +92,21 @@ Element.prototype = Object.create(ContainerNode.prototype, {
+     get: function() {
+       return this.serialize();
+     },
+-    set: utils.nyi
++    set: function(v) {
++      var parser = this.ownerDocument.implementation.mozHTMLParser(
++        this.ownerDocument._address,
++        this);
++      parser.parse(v===null ? '' : String(v), true);
++
++      // Remove any existing children of this node
++      var target = this;
++      while(target.hasChildNodes())
++        target.removeChild(target.firstChild);
++
++      // Now copy newly parsed children to this node
++      target.appendChild(parser._asDocumentFragment());
++
++    },
+   },
+   outerHTML: {
+     get: function() {
+diff --git a/lib/Node.js b/lib/Node.js
+index 66bd6dd53bf6285cc3fc46064584bb087cbe9ae6..4ae8f24b0863528459ce3af29b1b6955656bc693 100644
+--- a/lib/Node.js
++++ b/lib/Node.js
+@@ -57,6 +57,23 @@ Node.prototype = Object.create(EventTarget.prototype, {
+ 
+   lastChild: { get: utils.shouldOverride },
+ 
++  isConnected: {
++    get: function () {
++      let node = this;
++      while (node != null) {
++        if (node.nodeType === Node.DOCUMENT_NODE) {
++          return true;
++        }
++
++        node = node.parentNode;
++        if (node != null && node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
++          node = node.host;
++        }
++      }
++      return false;
++    },
++  },
++
+   previousSibling: { get: function() {
+     var parent = this.parentNode;
+     if (!parent) return null;
+diff --git a/lib/Window.js b/lib/Window.js
+index de5fcc669e055956da8cb35a076b6f6cad729715..146db3e2e27c1793669d0fe755cd44af7ff5dd18 100644
+--- a/lib/Window.js
++++ b/lib/Window.js
+@@ -2,7 +2,6 @@
+ var DOMImplementation = require('./DOMImplementation');
+ var EventTarget = require('./EventTarget');
+ var Location = require('./Location');
+-var sloppy = require('./sloppy');
+ var utils = require('./utils');
+ 
+ module.exports = Window;
+@@ -15,7 +14,6 @@ function Window(document) {
+ }
+ 
+ Window.prototype = Object.create(EventTarget.prototype, {
+-  _run: { value: sloppy.Window_run },
+   console: { value: console },
+   history: { value: {
+     back: utils.nyi,
+diff --git a/lib/cssparser.js b/lib/cssparser.js
+index 80a44b9e4085234944536b602f308df35717e7bf..37c32fdd43478ff46496b31eefc1f919ecdd356d 100644
+--- a/lib/cssparser.js
++++ b/lib/cssparser.js
+@@ -3652,6 +3652,7 @@ var Properties = {
+     "-o-animation-play-state"          : { multi: "running | paused", comma: true },
+ 
+     "appearance"                    : "icon | window | desktop | workspace | document | tooltip | dialog | button | push-button | hyperlink | radio | radio-button | checkbox | menu-item | tab | menu | menubar | pull-down-menu | pop-up-menu | list-menu | radio-group | checkbox-group | outline-tree | range | field | combo-box | signature | password | normal | none | inherit",
++    "aspect-ratio": 1,
+     "azimuth"                       : function (expression) {
+         var simple      = "<angle> | leftwards | rightwards | inherit",
+             direction   = "left-side | far-left | left | center-left | center | center-right | right | far-right | right-side",
+diff --git a/lib/defineElement.js b/lib/defineElement.js
+index 0fd0f19a36963f39dab12928106ecbd6624a52b1..48e57aecf12d27c263fc5ca4d523351fa0ba0059 100644
+--- a/lib/defineElement.js
++++ b/lib/defineElement.js
+@@ -1,7 +1,6 @@
+ "use strict";
+ 
+ var attributes = require('./attributes');
+-var sloppy = require('./sloppy');
+ var isApiWritable = require("./config").isApiWritable;
+ 
+ module.exports = function(spec, defaultConstructor, tagList, tagNameToImpl) {
+@@ -23,7 +22,7 @@ module.exports = function(spec, defaultConstructor, tagList, tagNameToImpl) {
+     if (spec.events) {
+       addEventHandlers(c, spec.events);
+     }
+-    tagList[c.name] = c;
++    tagList[spec.name] = c;
+   }
+   else {
+     c = defaultConstructor;
+@@ -43,7 +42,7 @@ function EventHandlerBuilder(body, document, form, element) {
+   this.element = element;
+ }
+ 
+-EventHandlerBuilder.prototype.build = sloppy.EventHandlerBuilder_build;
++EventHandlerBuilder.prototype.build = function () { return () => {}; };
+ 
+ function EventHandlerChangeHandler(elt, name, oldval, newval) {
+   var doc = elt.ownerDocument || Object.create(null);
+diff --git a/lib/htmlelts.js b/lib/htmlelts.js
+index 697b5c8370d53101e23d6041609b8e4831cb4dc0..7a1ef47849fcc3492dfbe829d2d000c37f411c32 100644
+--- a/lib/htmlelts.js
++++ b/lib/htmlelts.js
+@@ -72,10 +72,16 @@ var HTMLFormElement = function(doc, localName, prefix) {
+ 
+ var HTMLElement = exports.HTMLElement = define({
+   superclass: Element,
++  name: 'HTMLElement',
+   ctor: function HTMLElement(doc, localName, prefix) {
+     Element.call(this, doc, localName, utils.NAMESPACE.HTML, prefix);
+   },
+   props: {
++    dangerouslySetInnerHTML: {
++      set: function (v) {
++        this._innerHTML = v;
++      },
++    },
+     innerHTML: {
+       get: function() {
+         return this.serialize();
+@@ -202,6 +208,7 @@ var HTMLElement = exports.HTMLElement = define({
+ 
+ 
+ var HTMLUnknownElement = define({
++  name: 'HTMLUnknownElement',
+   ctor: function HTMLUnknownElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -217,6 +224,7 @@ var formAssociatedProps = {
+ 
+ define({
+   tag: 'a',
++  name: 'HTMLAnchorElement',
+   ctor: function HTMLAnchorElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -253,6 +261,7 @@ URLUtils._inherit(htmlNameToImpl.a.prototype);
+ 
+ define({
+   tag: 'area',
++  name: 'HTMLAreaElement',
+   ctor: function HTMLAreaElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -279,6 +288,7 @@ URLUtils._inherit(htmlNameToImpl.area.prototype);
+ 
+ define({
+   tag: 'br',
++  name: 'HTMLBRElement',
+   ctor: function HTMLBRElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -290,6 +300,7 @@ define({
+ 
+ define({
+   tag: 'base',
++  name: 'HTMLBaseElement',
+   ctor: function HTMLBaseElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -301,6 +312,7 @@ define({
+ 
+ define({
+   tag: 'body',
++  name: 'HTMLBodyElement',
+   ctor: function HTMLBodyElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -330,6 +342,7 @@ define({
+ 
+ define({
+   tag: 'button',
++  name: 'HTMLButtonElement',
+   ctor: function HTMLButtonElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -349,6 +362,7 @@ define({
+ 
+ define({
+   tag: 'dl',
++  name: 'HTMLDListElement',
+   ctor: function HTMLDListElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -360,6 +374,7 @@ define({
+ 
+ define({
+   tag: 'data',
++  name: 'HTMLDataElement',
+   ctor: function HTMLDataElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -370,6 +385,7 @@ define({
+ 
+ define({
+   tag: 'datalist',
++  name: 'HTMLDataListElement',
+   ctor: function HTMLDataListElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -377,6 +393,7 @@ define({
+ 
+ define({
+   tag: 'details',
++  name: 'HTMLDetailsElement',
+   ctor: function HTMLDetailsElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -387,6 +404,7 @@ define({
+ 
+ define({
+   tag: 'div',
++  name: 'HTMLDivElement',
+   ctor: function HTMLDivElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -398,6 +416,7 @@ define({
+ 
+ define({
+   tag: 'embed',
++  name: 'HTMLEmbedElement',
+   ctor: function HTMLEmbedElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -414,6 +433,7 @@ define({
+ 
+ define({
+   tag: 'fieldset',
++  name: 'HTMLFieldSetElement',
+   ctor: function HTMLFieldSetElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -426,6 +446,7 @@ define({
+ 
+ define({
+   tag: 'form',
++  name: 'HTMLFormElement',
+   ctor: function HTMLFormElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -445,6 +466,7 @@ define({
+ 
+ define({
+   tag: 'hr',
++  name: 'HTMLHRElement',
+   ctor: function HTMLHRElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -460,6 +482,7 @@ define({
+ 
+ define({
+   tag: 'head',
++  name: 'HTMLHeadElement',
+   ctor: function HTMLHeadElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -467,6 +490,7 @@ define({
+ 
+ define({
+   tags: ['h1','h2','h3','h4','h5','h6'],
++  name: 'HTMLHeadingElement',
+   ctor: function HTMLHeadingElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -478,6 +502,7 @@ define({
+ 
+ define({
+   tag: 'html',
++  name: 'HTMLHtmlElement',
+   ctor: function HTMLHtmlElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -489,18 +514,9 @@ define({
+ 
+ define({
+   tag: 'iframe',
++  name: 'HTMLIFrameElement',
+   ctor: function HTMLIFrameElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+-    var Window = require('./Window'); // Avoid circular dependencies.
+-    this._contentWindow = new Window();
+-  },
+-  props: {
+-    contentWindow: { get: function() {
+-      return this._contentWindow;
+-    } },
+-    contentDocument: { get: function() {
+-      return this.contentWindow.document;
+-    } },
+   },
+   attributes: {
+     src: URL,
+@@ -526,6 +542,7 @@ define({
+ 
+ define({
+   tag: 'img',
++  name: 'HTMLImageElement',
+   ctor: function HTMLImageElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -552,6 +569,7 @@ define({
+ 
+ define({
+   tag: 'input',
++  name: 'HTMLInputElement',
+   ctor: function HTMLInputElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -615,6 +633,7 @@ define({
+ 
+ define({
+   tag: 'keygen',
++  name: 'HTMLKeygenElement',
+   ctor: function HTMLKeygenElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -630,6 +649,7 @@ define({
+ 
+ define({
+   tag: 'li',
++  name: 'HTMLLIElement',
+   ctor: function HTMLLIElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -642,6 +662,7 @@ define({
+ 
+ define({
+   tag: 'label',
++  name: 'HTMLLabelElement',
+   ctor: function HTMLLabelElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -653,6 +674,7 @@ define({
+ 
+ define({
+   tag: 'legend',
++  name: 'HTMLLegendElement',
+   ctor: function HTMLLegendElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -664,6 +686,7 @@ define({
+ 
+ define({
+   tag: 'link',
++  name: 'HTMLLinkElement',
+   ctor: function HTMLLinkElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -687,6 +710,7 @@ define({
+ 
+ define({
+   tag: 'map',
++  name: 'HTMLMapElement',
+   ctor: function HTMLMapElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -697,6 +721,7 @@ define({
+ 
+ define({
+   tag: 'menu',
++  name: 'HTMLMenuElement',
+   ctor: function HTMLMenuElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -712,6 +737,7 @@ define({
+ 
+ define({
+   tag: 'meta',
++  name: 'HTMLMetaElement',
+   ctor: function HTMLMetaElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -726,6 +752,7 @@ define({
+ 
+ define({
+   tag: 'meter',
++  name: 'HTMLMeterElement',
+   ctor: function HTMLMeterElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -734,6 +761,7 @@ define({
+ 
+ define({
+   tags: ['ins', 'del'],
++  name: 'HTMLModElement',
+   ctor: function HTMLModElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -745,6 +773,7 @@ define({
+ 
+ define({
+   tag: 'ol',
++  name: 'HTMLOListElement',
+   ctor: function HTMLOListElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -781,6 +810,7 @@ define({
+ 
+ define({
+   tag: 'object',
++  name: 'HTMLObjectElement',
+   ctor: function HTMLObjectElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -809,6 +839,7 @@ define({
+ 
+ define({
+   tag: 'optgroup',
++  name: 'HTMLOptGroupElement',
+   ctor: function HTMLOptGroupElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -820,6 +851,7 @@ define({
+ 
+ define({
+   tag: 'option',
++  name: 'HTMLOptionElement',
+   ctor: function HTMLOptionElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -853,6 +885,7 @@ define({
+ 
+ define({
+   tag: 'output',
++  name: 'HTMLOutputElement',
+   ctor: function HTMLOutputElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -865,6 +898,7 @@ define({
+ 
+ define({
+   tag: 'p',
++  name: 'HTMLParagraphElement',
+   ctor: function HTMLParagraphElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -876,6 +910,7 @@ define({
+ 
+ define({
+   tag: 'param',
++  name: 'HTMLParamElement',
+   ctor: function HTMLParamElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -890,6 +925,7 @@ define({
+ 
+ define({
+   tags: ['pre',/*legacy elements:*/'listing','xmp'],
++  name: 'HTMLPreElement',
+   ctor: function HTMLPreElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -901,6 +937,7 @@ define({
+ 
+ define({
+   tag: 'progress',
++  name: 'HTMLProgressElement',
+   ctor: function HTMLProgressElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -912,6 +949,7 @@ define({
+ 
+ define({
+   tags: ['q', 'blockquote'],
++  name: 'HTMLQuoteElement',
+   ctor: function HTMLQuoteElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -922,6 +960,7 @@ define({
+ 
+ define({
+   tag: 'script',
++  name: 'HTMLScriptElement',
+   ctor: function HTMLScriptElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -958,6 +997,7 @@ define({
+ 
+ define({
+   tag: 'select',
++  name: 'HTMLSelectElement',
+   ctor: function HTMLSelectElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -980,6 +1020,7 @@ define({
+ 
+ define({
+   tag: 'source',
++  name: 'HTMLSourceElement',
+   ctor: function HTMLSourceElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -992,6 +1033,7 @@ define({
+ 
+ define({
+   tag: 'span',
++  name: 'HTMLSpanElement',
+   ctor: function HTMLSpanElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -999,6 +1041,7 @@ define({
+ 
+ define({
+   tag: 'style',
++  name: 'HTMLStyleElement',
+   ctor: function HTMLStyleElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1011,6 +1054,7 @@ define({
+ 
+ define({
+   tag: 'caption',
++  name: 'HTMLTableCaptionElement',
+   ctor: function HTMLTableCaptionElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1022,6 +1066,7 @@ define({
+ 
+ 
+ define({
++  name: 'HTMLTableCellElement',
+   ctor: function HTMLTableCellElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1046,6 +1091,7 @@ define({
+ 
+ define({
+   tags: ['col', 'colgroup'],
++  name: 'HTMLTableColElement',
+   ctor: function HTMLTableColElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1062,6 +1108,7 @@ define({
+ 
+ define({
+   tag: 'table',
++  name: 'HTMLTableElement',
+   ctor: function HTMLTableElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1086,6 +1133,7 @@ define({
+ 
+ define({
+   tag: 'template',
++  name: 'HTMLTemplateElement',
+   ctor: function HTMLTemplateElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+     this._contentFragment = doc._templateDoc.createDocumentFragment();
+@@ -1098,6 +1146,7 @@ define({
+ 
+ define({
+   tag: 'tr',
++  name: 'HTMLTableRowElement',
+   ctor: function HTMLTableRowElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1118,6 +1167,7 @@ define({
+ 
+ define({
+   tags: ['thead', 'tfoot', 'tbody'],
++  name: 'HTMLTableSectionElement',
+   ctor: function HTMLTableSectionElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1137,6 +1187,7 @@ define({
+ 
+ define({
+   tag: 'textarea',
++  name: 'HTMLTextAreaElement',
+   ctor: function HTMLTextAreaElement(doc, localName, prefix) {
+     HTMLFormElement.call(this, doc, localName, prefix);
+   },
+@@ -1179,6 +1230,7 @@ define({
+ 
+ define({
+   tag: 'time',
++  name: 'HTMLTimeElement',
+   ctor: function HTMLTimeElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1190,6 +1242,7 @@ define({
+ 
+ define({
+   tag: 'title',
++  name: 'HTMLTitleElement',
+   ctor: function HTMLTitleElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1202,6 +1255,7 @@ define({
+ 
+ define({
+   tag: 'ul',
++  name: 'HTMLUListElement',
+   ctor: function HTMLUListElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1213,6 +1267,7 @@ define({
+ });
+ 
+ define({
++  name: 'HTMLMediaElement',
+   ctor: function HTMLMediaElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1231,6 +1286,7 @@ define({
+ define({
+   tag: 'audio',
+   superclass: htmlElements.HTMLMediaElement,
++  name: 'HTMLAudioElement',
+   ctor: function HTMLAudioElement(doc, localName, prefix) {
+     htmlElements.HTMLMediaElement.call(this, doc, localName, prefix);
+   }
+@@ -1239,6 +1295,7 @@ define({
+ define({
+   tag: 'video',
+   superclass: htmlElements.HTMLMediaElement,
++  name: 'HTMLVideoElement',
+   ctor: function HTMLVideoElement(doc, localName, prefix) {
+     htmlElements.HTMLMediaElement.call(this, doc, localName, prefix);
+   },
+@@ -1252,6 +1309,7 @@ define({
+ define({
+   tag: 'td',
+   superclass: htmlElements.HTMLTableCellElement,
++  name: 'HTMLTableDataCellElement',
+   ctor: function HTMLTableDataCellElement(doc, localName, prefix) {
+     htmlElements.HTMLTableCellElement.call(this, doc, localName, prefix);
+   }
+@@ -1260,6 +1318,7 @@ define({
+ define({
+   tag: 'th',
+   superclass: htmlElements.HTMLTableCellElement,
++  name: 'HTMLTableHeaderCellElement',
+   ctor: function HTMLTableHeaderCellElement(doc, localName, prefix) {
+     htmlElements.HTMLTableCellElement.call(this, doc, localName, prefix);
+   },
+@@ -1267,6 +1326,7 @@ define({
+ 
+ define({
+   tag: 'frameset',
++  name: 'HTMLFrameSetElement',
+   ctor: function HTMLFrameSetElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -1274,6 +1334,7 @@ define({
+ 
+ define({
+   tag: 'frame',
++  name: 'HTMLFrameElement',
+   ctor: function HTMLFrameElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   }
+@@ -1281,6 +1342,7 @@ define({
+ 
+ define({
+   tag: 'canvas',
++  name: 'HTMLCanvasElement',
+   ctor: function HTMLCanvasElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1300,6 +1362,7 @@ define({
+ 
+ define({
+   tag: 'dialog',
++  name: 'HTMLDialogElement',
+   ctor: function HTMLDialogElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1316,6 +1379,7 @@ define({
+ 
+ define({
+   tag: 'menuitem',
++  name: 'HTMLMenuItemElement',
+   ctor: function HTMLMenuItemElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1354,6 +1418,7 @@ define({
+ 
+ define({
+   tag: 'source',
++  name: 'HTMLSourceElement',
+   ctor: function HTMLSourceElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1368,6 +1433,7 @@ define({
+ 
+ define({
+   tag: 'track',
++  name: 'HTMLTrackElement',
+   ctor: function HTMLTrackElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1391,6 +1457,7 @@ define({
+ define({
+   // obsolete
+   tag: 'font',
++  name: 'HTMLFontElement',
+   ctor: function HTMLFontElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+@@ -1404,6 +1471,7 @@ define({
+ define({
+   // obsolete
+   tag: 'dir',
++  name: 'HTMLDirectoryElement',
+   ctor: function HTMLDirectoryElement(doc, localName, prefix) {
+     HTMLElement.call(this, doc, localName, prefix);
+   },
+diff --git a/lib/index.d.ts b/lib/index.d.ts
+index a0cbb92c03729fcbd9c39213e5e112087baf8289..504150101e24a928ea16b52e46de0bd40ca06846 100644
+--- a/lib/index.d.ts
++++ b/lib/index.d.ts
+@@ -1,5 +1,4 @@
+ declare module "domino" {
+   function createDOMImplementation(): DOMImplementation;
+   function createDocument(html?: string, force?: boolean): Document;
+-  function createWindow(html?: string, address?: string): Window;
+ }
+\ No newline at end of file
+diff --git a/lib/index.js b/lib/index.js
+index 47c758447f251d9bcccc1bd57f40ca540010e55f..3ac6ae207767260334a3c02ef3cf73e041c600f6 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -70,10 +70,4 @@ exports.createIncrementalHTMLParser = function() {
+     };
+ };
+ 
+-exports.createWindow = function(html, address) {
+-  var document = exports.createDocument(html);
+-  if (address !== undefined) { document._address = address; }
+-  return new Window(document);
+-};
+-
+ exports.impl = require('./impl');
+diff --git a/lib/sloppy.js b/lib/sloppy.js
+index b5d8950a8ea98d2d58723c1f96eeabb260699e24..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 100644
+--- a/lib/sloppy.js
++++ b/lib/sloppy.js
+@@ -1,24 +0,0 @@
+-/* Domino uses sloppy-mode features (in particular, `with`) for a few
+- * minor things.  This file encapsulates all the sloppiness; every
+- * other module should be strict. */
+-/* jshint strict: false */
+-/* jshint evil: true */
+-/* jshint -W085 */
+-module.exports = {
+-  Window_run: function _run(code, file) {
+-    if (file) code += '\n//@ sourceURL=' + file;
+-    with(this) eval(code);
+-  },
+-  EventHandlerBuilder_build: function build() {
+-    try {
+-      with(this.document.defaultView || Object.create(null))
+-        with(this.document)
+-          with(this.form)
+-            with(this.element)
+-              return eval("(function(event){" + this.body + "})");
+-    }
+-    catch (err) {
+-      return function() { throw err; };
+-    }
+-  }
+-};
+diff --git a/lib/svg.js b/lib/svg.js
+index 7e5bf0dc5323ed156a4d5220422959227d72cb72..24aca192bea2661701bf43983c1317dc4fcf497c 100644
+--- a/lib/svg.js
++++ b/lib/svg.js
+@@ -18,6 +18,7 @@ function define(spec) {
+ 
+ var SVGElement = define({
+   superclass: Element,
++  name: 'SVGElement',
+   ctor: function SVGElement(doc, localName, prefix) {
+     Element.call(this, doc, localName, utils.NAMESPACE.SVG, prefix);
+   },
+@@ -31,6 +32,7 @@ var SVGElement = define({
+ });
+ 
+ define({
++  name: 'SVGSVGElement',
+   ctor: function SVGSVGElement(doc, localName, prefix) {
+     SVGElement.call(this, doc, localName, prefix);
+   },

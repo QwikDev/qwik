@@ -784,6 +784,97 @@ describe('findBlockingChore', () => {
       );
       expect(result).toBe(ancestorProjectionChore);
     });
+
+    it('should check parent before slotParent when both are set', () => {
+      // This test verifies that vnode_getProjectionParentOrParent checks parent first
+      // Set up: child has both parent and slotParent
+      // parent has a blocking chore, slotParent does not
+      const parentVNode = vnode_newVirtual();
+      const slotParentVNode = vnode_newVirtual();
+      const childVNode = vnode_newVirtual();
+
+      childVNode.parent = parentVNode;
+      childVNode.slotParent = slotParentVNode;
+
+      const blockingChore = createMockChore(ChoreType.COMPONENT, parentVNode);
+      (blockingChore.$host$ as VNode).chores = new ChoreArray();
+      (blockingChore.$host$ as VNode).chores?.add(blockingChore);
+
+      const descendantChore = createMockChore(ChoreType.VISIBLE, childVNode);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      // Should find the blocking chore on parent (not look at slotParent)
+      expect(result).toBe(blockingChore);
+    });
+
+    it('should not find slotParent blocking chore when parent exists', () => {
+      // This test verifies that if parent is set (even if null/no chores),
+      // slotParent is not checked
+      const parentVNode = vnode_newVirtual();
+      const slotParentVNode = vnode_newVirtual();
+      const childVNode = vnode_newVirtual();
+
+      childVNode.parent = parentVNode; // parent set but no blocking chore
+      childVNode.slotParent = slotParentVNode;
+
+      // Put a blocking chore on slotParent
+      const blockingChore = createMockChore(ChoreType.COMPONENT, slotParentVNode);
+      (blockingChore.$host$ as VNode).chores = new ChoreArray();
+      (blockingChore.$host$ as VNode).chores?.add(blockingChore);
+
+      const descendantChore = createMockChore(ChoreType.VISIBLE, childVNode);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      // Should NOT find the blocking chore on slotParent because parent is checked first
+      // and we don't continue to slotParent when parent exists
+      expect(result).toBeNull();
+    });
+
+    it('should fall back to slotParent only when parent is null', () => {
+      // This test verifies that slotParent is checked when parent is null
+      const slotParentVNode = vnode_newVirtual();
+      const childVNode = vnode_newVirtual();
+
+      childVNode.parent = null; // explicitly null
+      childVNode.slotParent = slotParentVNode;
+
+      const blockingChore = createMockChore(ChoreType.COMPONENT, slotParentVNode);
+      (blockingChore.$host$ as VNode).chores = new ChoreArray();
+      (blockingChore.$host$ as VNode).chores?.add(blockingChore);
+
+      const descendantChore = createMockChore(ChoreType.VISIBLE, childVNode);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+
+      const result = findBlockingChore(
+        descendantChore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      // Should find the blocking chore on slotParent since parent is null
+      expect(result).toBe(blockingChore);
+    });
   });
 });
 

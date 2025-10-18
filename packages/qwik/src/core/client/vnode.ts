@@ -1701,7 +1701,7 @@ export const vnode_isDescendantOf = (vnode: VNode, ancestor: VNode): boolean => 
 };
 
 export const vnode_getProjectionParentOrParent = (vnode: VNode): VNode | null => {
-  return vnode.slotParent || vnode.parent;
+  return vnode.parent || vnode.slotParent;
 };
 
 export const vnode_getNode = (vnode: VNode | null): Element | Text | null => {

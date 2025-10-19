@@ -1,23 +1,35 @@
-import { Counter } from "./components/counter/counter";
-import { Logo } from "./components/logo/logo";
+import { component$ } from "@qwik.dev/core";
+import {
+  DocumentHeadTags,
+  RouterOutlet,
+  useLocation,
+  useQwikRouter,
+} from "@qwik.dev/router";
 
-export default () => {
+import "./global.css";
+
+export default component$(() => {
+  useQwikRouter();
+  const { url } = useLocation();
+
+  /**
+   * This is the root of a QwikRouter site. It contains the document's `<head>` and `<body>`. You can adjust them as you see fit.
+   */
+
   return (
     <>
       <head>
         <meta charset="utf-8" />
-        <title>Qwik Library Starter</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+        <DocumentHeadTags />
+
+        <link rel="canonical" href={url.href} />
       </head>
       <body>
-        <h1>Qwik Library Starter</h1>
-        <p>
-          This is a Qwik library starter. Make your components and export them
-          from `src/index.ts`. This playground app will not be bundled with your
-          library.
-        </p>
-        <Logo />
-        <Counter />
+        <RouterOutlet />
       </body>
     </>
   );
-};
+});

@@ -766,7 +766,7 @@
         }
       ],
       "kind": "Function",
-      "content": "The legacy transform, used in special cases like `<div {...props} key=\"key\" />`<!-- -->. Note that the children are spread arguments, instead of a prop like in jsx() calls.\n\nAlso note that this disables optimizations.\n\n\n```typescript\nexport declare function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nPROPS \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nchildren\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;TYPE&gt;",
+      "content": "The legacy transform, used by some JSX transpilers. The optimizer normally replaces this with optimized calls, with the same caveat as `jsx()`<!-- -->.\n\n\n```typescript\nexport declare function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nPROPS \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nchildren\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;TYPE&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
       "mdFile": "core.h.md"
     },
@@ -873,7 +873,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \\_jsxSplit and \\_jsxSorted directly.\n\n\n```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
+      "content": "Used by the JSX transpilers to create a JSXNode. Note that the optimizer will normally not use this, instead using \\_jsxSplit and \\_jsxSorted directly.\n\nThe optimizer will also replace all `jsx()` calls with the more optimized versions.\n\nThe exception is when the props are not a literal object, which can only happen when the `jsx` call is written directly.\n\n\n```typescript\njsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
       "mdFile": "core.jsx.md"
     },
@@ -901,7 +901,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\njsxDEV: <T extends string | FunctionComponent<Props>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key: string | number | null | undefined, _isStatic: boolean, opts: JsxDevOpts, _ctx: unknown) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nopts\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n\\_ctx\n\n\n</td><td>\n\nunknown\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
+      "content": "Alias of `jsx` for development purposes.\n\n\n```typescript\njsxDEV: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
       "mdFile": "core.jsxdev.md"
     },
@@ -932,6 +932,20 @@
       "content": "Any valid output for a component\n\n\n```typescript\nexport type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];\n```\n**References:** [JSXNode](#jsxnode)<!-- -->, [JSXOutput](#jsxoutput)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts",
       "mdFile": "core.jsxoutput.md"
+    },
+    {
+      "name": "jsxs",
+      "id": "jsxs",
+      "hierarchy": [
+        {
+          "name": "jsxs",
+          "id": "jsxs"
+        }
+      ],
+      "kind": "Function",
+      "content": "Alias of `jsx` to support JSX syntax.\n\n\n```typescript\njsxs: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\ntype\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nprops\n\n\n</td><td>\n\nT extends [FunctionComponent](#functioncomponent)<!-- -->&lt;infer PROPS&gt; ? PROPS : Props\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nkey\n\n\n</td><td>\n\nstring \\| number \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n\\_isStatic\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ndev\n\n\n</td><td>\n\nJsxDevOpts\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[JSXNode](#jsxnode)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts",
+      "mdFile": "core.jsxs.md"
     },
     {
       "name": "JSXTagName",
@@ -1140,7 +1154,7 @@
       ],
       "kind": "Function",
       "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
     {
@@ -1154,7 +1168,7 @@
       ],
       "kind": "TypeAlias",
       "content": "Returned type of the `noSerialize()` function. It will be TYPE or undefined.\n\n\n```typescript\nexport type NoSerialize<T> = (T & {\n    __no_serialize__: true;\n}) | undefined;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserialize.md"
     },
     {
@@ -1168,7 +1182,7 @@
       ],
       "kind": "Variable",
       "content": "If an object has this property, it will not be serialized. Use this on prototypes to avoid having to call `noSerialize()` on every object.\n\n\n```typescript\nNoSerializeSymbol: unique symbol\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.noserializesymbol.md"
     },
     {
@@ -1896,7 +1910,7 @@
       ],
       "kind": "Variable",
       "content": "If an object has this property as a function, it will be called with the object and should return a serializable value.\n\nThis can be used to clean up, integrate with other libraries, etc.\n\nThe type your object should conform to is:\n\n```ts\n{\n  [SerializerSymbol]: (this: YourType, toSerialize: YourType) => YourSerializableType;\n}\n```\n\n\n```typescript\nSerializerSymbol: unique symbol\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts",
       "mdFile": "core.serializersymbol.md"
     },
     {

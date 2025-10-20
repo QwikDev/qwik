@@ -97,21 +97,31 @@ impl<'a> PropsDestructuring<'a> {
 							}
 							Some(box ast::Expr::Member(member_expr)) => match &member_expr.obj {
 								box ast::Expr::Ident(ident) => {
-									let new_ident = private_ident!("_unused");
-									let expr = self
-										.identifiers
-										.get(&id!(ident.clone()))
-										.cloned()
-										.unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
-
-									let mut cloned_prop = member_expr.prop.clone();
-									cloned_prop.visit_mut_with(self);
-									let new_replace = ast::Expr::Member(ast::MemberExpr {
-										obj: Box::new(expr),
-										prop: cloned_prop,
-										span: member_expr.span,
-									});
-									Some((new_ident, new_replace, TransformInit::Remove))
+									let should_inline =
+										if self.identifiers.contains_key(&id!(ident.clone())) {
+											true
+										} else {
+											// Inline if property is computed (like obj['key'])
+											matches!(member_expr.prop, ast::MemberProp::Computed(_))
+										};
+									if should_inline {
+										let new_ident = private_ident!("_unused");
+										let expr = self
+											.identifiers
+											.get(&id!(ident.clone()))
+											.cloned()
+											.unwrap_or_else(|| ast::Expr::Ident(ident.clone()));
+										let mut cloned_prop = member_expr.prop.clone();
+										cloned_prop.visit_mut_with(self);
+										let new_replace = ast::Expr::Member(ast::MemberExpr {
+											obj: Box::new(expr),
+											prop: cloned_prop,
+											span: member_expr.span,
+										});
+										Some((new_ident, new_replace, TransformInit::Remove))
+									} else {
+										None
+									}
 								}
 								box ast::Expr::Call(call_expr) => {
 									if let ast::Callee::Expr(box ast::Expr::Ident(ref ident)) =

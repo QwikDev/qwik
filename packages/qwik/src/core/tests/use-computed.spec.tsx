@@ -138,12 +138,12 @@ describe.each([
   it('should not rerun if there are no signal dependencies', async () => {
     (globalThis as any).runCount = 0;
     const DoubleCounter = component$((props: { initial: number }) => {
-      const count = props.initial;
+      const obj = { count: props.initial };
       const doubleCount = useComputed$(() => {
         (globalThis as any).runCount++;
-        return count * 2;
+        return obj.count * 2;
       });
-      return <button onClick$={() => (count as any)++}>Double count: {doubleCount.value}!</button>;
+      return <button onClick$={() => obj.count++}>Double count: {doubleCount.value}!</button>;
     });
 
     const { vNode, container } = await render(<DoubleCounter initial={123} />, { debug });

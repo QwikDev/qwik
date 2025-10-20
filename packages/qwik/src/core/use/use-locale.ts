@@ -1,6 +1,20 @@
 import { tryGetInvokeContext } from './use-core';
+import { isServer } from '@qwik.dev/core/build';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 
 let _locale: string | undefined = undefined;
+
+let localAsyncStore: AsyncLocalStorage<string> | undefined;
+
+if (isServer) {
+  import('node:async_hooks')
+    .then((module) => {
+      localAsyncStore = new module.AsyncLocalStorage();
+    })
+    .catch(() => {
+      // ignore if AsyncLocalStorage is not available
+    });
+}
 
 /**
  * Retrieve the current locale.
@@ -11,6 +25,14 @@ let _locale: string | undefined = undefined;
  * @public
  */
 export function getLocale(defaultLocale?: string): string {
+  // Prefer per-request locale from local AsyncLocalStorage if available (server-side)
+  if (localAsyncStore) {
+    const locale = localAsyncStore.getStore();
+    if (locale) {
+      return locale;
+    }
+  }
+
   if (_locale === undefined) {
     const ctx = tryGetInvokeContext();
     if (ctx && ctx.$locale$) {
@@ -30,6 +52,10 @@ export function getLocale(defaultLocale?: string): string {
  * @public
  */
 export function withLocale<T>(locale: string, fn: () => T): T {
+  if (localAsyncStore) {
+    return localAsyncStore.run(locale, fn);
+  }
+
   const previousLang = _locale;
   try {
     _locale = locale;
@@ -48,5 +74,9 @@ export function withLocale<T>(locale: string, fn: () => T): T {
  * @public
  */
 export function setLocale(locale: string): void {
+  if (localAsyncStore) {
+    localAsyncStore.enterWith(locale);
+    return;
+  }
   _locale = locale;
 }

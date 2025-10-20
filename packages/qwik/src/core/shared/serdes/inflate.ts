@@ -7,11 +7,11 @@ import { getStoreHandler } from '../../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
+  EffectProperty,
   NEEDS_COMPUTATION,
   SignalFlags,
   type AllSignalFlags,
   type AsyncComputeQRL,
-  type EffectProperty,
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
@@ -19,15 +19,25 @@ import type { ResourceReturnInternal } from '../../use/use-resource';
 import type { Task } from '../../use/use-task';
 import { SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
-import type { JSXNodeImpl } from '../jsx/jsx-runtime';
+import { Fragment, Props } from '../jsx/jsx-runtime';
+import { PropsProxy } from '../jsx/props-proxy';
+import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
-import { _CONST_PROPS, _VAR_PROPS } from '../utils/constants';
+import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
 import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
 import { TypeIds } from './constants';
+import {
+  vnode_getFirstChild,
+  vnode_getText,
+  vnode_isTextVNode,
+  vnode_isVNode,
+} from '../../client/vnode';
+import type { VirtualVNode } from '../../client/vnode-impl';
+import { isString } from '../utils/types';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -49,6 +59,10 @@ export const inflate = (
       _eagerDeserializeArray(container, data as unknown[], target as unknown[]);
       break;
     case TypeIds.Object:
+      if (data === 0) {
+        // Special case, was an empty object
+        break;
+      }
       for (let i = 0; i < (data as any[]).length; i += 2) {
         const key = (data as string[])[i];
         const value = (data as unknown[])[i + 1];
@@ -62,7 +76,7 @@ export const inflate = (
     case TypeIds.Task:
       const task = target as Task;
       const v = data as any[];
-      task.$qrl$ = _inflateQRL(container, v[0]);
+      task.$qrl$ = v[0];
       task.$flags$ = v[1];
       task.$index$ = v[2];
       task.$el$ = v[3] as HostElement;
@@ -129,6 +143,8 @@ export const inflate = (
       signal.$flags$ |= SignalFlags.INVALID;
       signal.$hostElement$ = d[4];
       signal.$effects$ = new Set(d.slice(5) as EffectSubscription[]);
+
+      inflateWrappedSignalValue(signal);
       break;
     }
     case TypeIds.AsyncComputedSignal: {
@@ -147,7 +163,7 @@ export const inflate = (
       asyncComputed.$loadingEffects$ = new Set(d[2]);
       asyncComputed.$errorEffects$ = new Set(d[3]);
       asyncComputed.$untrackedLoading$ = d[4];
-      asyncComputed.$untrackedError$ = d[5];
+      asyncComputed.$untrackedError$ = d[5] || null;
       const hasValue = d.length > 6;
       if (hasValue) {
         asyncComputed.$untrackedValue$ = d[6];
@@ -202,13 +218,13 @@ export const inflate = (
     }
     case TypeIds.JSXNode: {
       const jsx = target as JSXNodeImpl<unknown>;
-      const [type, varProps, constProps, children, flags, key] = data as any[];
+      const [type, key, varProps, constProps, children, toSort] = data as any[];
       jsx.type = type;
-      jsx.varProps = varProps;
-      jsx.constProps = constProps;
-      jsx.children = children;
-      jsx.flags = flags;
       jsx.key = key;
+      jsx.varProps = varProps;
+      jsx.constProps = constProps || null;
+      jsx.children = children;
+      jsx.toSort = !!toSort;
       break;
     }
     case TypeIds.Set: {
@@ -247,9 +263,14 @@ export const inflate = (
       }
       break;
     case TypeIds.PropsProxy:
-      const propsProxy = target as any;
-      propsProxy[_VAR_PROPS] = data === 0 ? {} : (data as any)[0];
-      propsProxy[_CONST_PROPS] = (data as any)[1];
+      const propsProxy = target as PropsProxy;
+      const d = data as [JSXNodeImpl | typeof _UNINITIALIZED, Props, Props | null];
+      let owner = d[0];
+      if (owner === _UNINITIALIZED) {
+        owner = new JSXNodeImpl(Fragment, d[1], d[2]);
+        owner._proxy = propsProxy;
+      }
+      propsProxy[_OWNER] = owner;
       break;
     case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;
@@ -276,8 +297,14 @@ export const _eagerDeserializeArray = (
   return output;
 };
 export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
+  if (qrl.$captureRef$) {
+    // early return if capture references are already set and qrl is already inflated
+    return qrl;
+  }
   const captureIds = qrl.$capture$;
   qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
+  // clear serialized capture references
+  qrl.$capture$ = null;
   if (container.element) {
     qrl.$setContainer$(container.element);
   }
@@ -292,4 +319,37 @@ export function deserializeData(container: DeserializeContainer, typeId: number,
     inflate(container, propValue, typeId, value);
   }
   return propValue;
+}
+export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
+  if (signal.$hostElement$ !== null && vnode_isVNode(signal.$hostElement$)) {
+    const hostVNode = signal.$hostElement$ as VirtualVNode;
+    const effects = signal.$effects$;
+    let hasAttrValue = false;
+    if (effects) {
+      // Find string keys (attribute names) in the effect back refs
+      for (const [_, key] of effects) {
+        if (isString(key)) {
+          // This is an attribute name, try to read its value
+          const attrValue = hostVNode.getAttr(key);
+          if (attrValue !== null) {
+            signal.$untrackedValue$ = attrValue;
+            hasAttrValue = true;
+            break; // Take first non-null attribute value
+          }
+        }
+      }
+    }
+
+    if (!hasAttrValue) {
+      // If no attribute value found, check if this is a text content signal
+      const firstChild = vnode_getFirstChild(hostVNode);
+      if (
+        firstChild &&
+        hostVNode.firstChild === hostVNode.lastChild &&
+        vnode_isTextVNode(firstChild)
+      ) {
+        signal.$untrackedValue$ = vnode_getText(firstChild);
+      }
+    }
+  }
 }

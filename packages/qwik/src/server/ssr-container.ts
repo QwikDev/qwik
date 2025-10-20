@@ -702,6 +702,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
+
     for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
       const vNode = vNodeData[elementIdx];
       const flag = vNode[0];
@@ -734,7 +735,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
               depth--;
@@ -743,7 +744,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
               if (fragmentAttrs && fragmentAttrs.length) {
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
-                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
@@ -757,7 +758,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
           while (depth-- > 0) {
             if (fragmentAttrs) {
-              writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+              this.writeFragmentAttrs(fragmentAttrs);
               fragmentAttrs = vNodeAttrsStack.pop()!;
             }
             this.write(VNodeDataChar.CLOSE_CHAR);
@@ -766,79 +767,75 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
 
-    function writeFragmentAttrs(
-      write: (text: string) => void,
-      addRoot: (obj: unknown) => number | undefined,
-      fragmentAttrs: SsrAttrs
-    ): void {
-      for (let i = 0; i < fragmentAttrs.length; ) {
-        const key = fragmentAttrs[i++] as string;
-        let value = fragmentAttrs[i++] as string;
-        let encodeValue = false;
-        // if (key !== DEBUG_TYPE) continue;
-        if (typeof value !== 'string') {
-          const rootId = addRoot(value);
-          // We didn't add the vnode data, so we are only interested in the vnode position
-          if (rootId === undefined) {
-            continue;
-          }
-          value = String(rootId);
+    this.closeElement();
+  }
+
+  private writeFragmentAttrs(fragmentAttrs: SsrAttrs): void {
+    for (let i = 0; i < fragmentAttrs.length; ) {
+      const key = fragmentAttrs[i++] as string;
+      let value = fragmentAttrs[i++] as string;
+      let encodeValue = false;
+      // if (key !== DEBUG_TYPE) continue;
+      if (typeof value !== 'string') {
+        const rootId = this.addRoot(value);
+        // We didn't add the vnode data, so we are only interested in the vnode position
+        if (rootId === undefined) {
+          continue;
         }
-        switch (key) {
-          case QScopedStyle:
-            write(VNodeDataChar.SCOPED_STYLE_CHAR);
-            break;
-          case OnRenderProp:
-            write(VNodeDataChar.RENDER_FN_CHAR);
-            break;
-          case ELEMENT_ID:
-            write(VNodeDataChar.ID_CHAR);
-            break;
-          case ELEMENT_PROPS:
-            write(VNodeDataChar.PROPS_CHAR);
-            break;
-          case ELEMENT_KEY:
-            encodeValue = true;
-            write(VNodeDataChar.KEY_CHAR);
-            break;
-          case ELEMENT_SEQ:
-            write(VNodeDataChar.SEQ_CHAR);
-            break;
-          case ELEMENT_SEQ_IDX:
-            write(VNodeDataChar.SEQ_IDX_CHAR);
-            break;
-          case QBackRefs:
-            write(VNodeDataChar.BACK_REFS_CHAR);
-            break;
-          case QSlotParent:
-            write(VNodeDataChar.SLOT_PARENT_CHAR);
-            break;
-          // Skipping `\` character for now because it is used for escaping.
-          case QCtxAttr:
-            write(VNodeDataChar.CONTEXT_CHAR);
-            break;
-          case QSlot:
-            write(VNodeDataChar.SLOT_CHAR);
-            break;
-          default:
-            write(VNodeDataChar.SEPARATOR_CHAR);
-            write(key);
-            write(VNodeDataChar.SEPARATOR_CHAR);
-        }
-        const encodedValue = encodeValue ? encodeURI(value) : value;
-        const isEncoded = encodeValue ? encodedValue !== value : false;
-        if (isEncoded) {
-          // add separator only before and after the encoded value
-          write(VNodeDataChar.SEPARATOR_CHAR);
-          write(encodedValue);
-          write(VNodeDataChar.SEPARATOR_CHAR);
-        } else {
-          write(value);
-        }
+        value = String(rootId);
+      }
+      switch (key) {
+        case QScopedStyle:
+          this.write(VNodeDataChar.SCOPED_STYLE_CHAR);
+          break;
+        case OnRenderProp:
+          this.write(VNodeDataChar.RENDER_FN_CHAR);
+          break;
+        case ELEMENT_ID:
+          this.write(VNodeDataChar.ID_CHAR);
+          break;
+        case ELEMENT_PROPS:
+          this.write(VNodeDataChar.PROPS_CHAR);
+          break;
+        case ELEMENT_KEY:
+          encodeValue = true;
+          this.write(VNodeDataChar.KEY_CHAR);
+          break;
+        case ELEMENT_SEQ:
+          this.write(VNodeDataChar.SEQ_CHAR);
+          break;
+        case ELEMENT_SEQ_IDX:
+          this.write(VNodeDataChar.SEQ_IDX_CHAR);
+          break;
+        case QBackRefs:
+          this.write(VNodeDataChar.BACK_REFS_CHAR);
+          break;
+        case QSlotParent:
+          this.write(VNodeDataChar.SLOT_PARENT_CHAR);
+          break;
+        // Skipping `\` character for now because it is used for escaping.
+        case QCtxAttr:
+          this.write(VNodeDataChar.CONTEXT_CHAR);
+          break;
+        case QSlot:
+          this.write(VNodeDataChar.SLOT_CHAR);
+          break;
+        default:
+          this.write(VNodeDataChar.SEPARATOR_CHAR);
+          this.write(key);
+          this.write(VNodeDataChar.SEPARATOR_CHAR);
+      }
+      const encodedValue = encodeValue ? encodeURI(value) : value;
+      const isEncoded = encodeValue ? encodedValue !== value : false;
+      if (isEncoded) {
+        // add separator only before and after the encoded value
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+        this.write(encodedValue);
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+      } else {
+        this.write(value);
       }
     }
-
-    this.closeElement();
   }
 
   private emitStateData(): ValueOrPromise<void> {

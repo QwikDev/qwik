@@ -644,6 +644,219 @@ describe('scheduler', () => {
       expect(choreArray[1]).toBe(visibleChore);
     });
   });
+
+  describe('getRunningChore', () => {
+    let scheduler: ReturnType<typeof createScheduler> = null!;
+    let choreQueue: ChoreArray;
+    let blockedChores: Set<Chore>;
+    let runningChores: Set<Chore>;
+    let vHost: VirtualVNode;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      (globalThis as any).testLog = [];
+      const document = createDocument();
+      document.body.setAttribute(QContainerAttr, 'paused');
+      const container = getDomContainer(document.body);
+      choreQueue = new ChoreArray();
+      blockedChores = new Set();
+      runningChores = new Set();
+
+      // Mock nextTick to prevent automatic draining of chores
+      vi.spyOn(nextTick, 'createNextTick').mockReturnValue(() => {});
+
+      scheduler = createScheduler(
+        container,
+        () => testLog.push('journalFlush'),
+        choreQueue,
+        blockedChores,
+        runningChores
+      );
+      vHost = vnode_newVirtual();
+      vHost.setProp('q:id', 'test-host');
+    });
+
+    it('should return false when there are no running chores', async () => {
+      const mockHost = vnode_newVirtual();
+      mockHost.setProp('q:id', 'test-1');
+      scheduler(ChoreType.COMPONENT, mockHost as any, {} as any, null);
+
+      // The chore should be scheduled (not blocked)
+      expect(choreQueue.length).toBe(1);
+      expect(blockedChores.size).toBe(0);
+    });
+
+    it('should return false when running chores do not match', async () => {
+      const mockHost1 = vnode_newVirtual();
+      mockHost1.setProp('q:id', 'host-1');
+      const mockHost2 = vnode_newVirtual();
+      mockHost2.setProp('q:id', 'host-2');
+
+      // Create and start first chore
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost1 as any, {} as any, null);
+      runningChores.add(chore1!);
+
+      // Schedule a different chore
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost2 as any, {} as any, null);
+
+      // chore2 should be scheduled normally since it doesn't match chore1
+      expect(choreQueue.some((c) => c === chore2)).toBe(true);
+      expect(chore1!.$blockedChores$).toBeFalsy();
+    });
+
+    it('should return true and add to blocked chores when a matching chore is already running', async () => {
+      const mockHost = vnode_newVirtual();
+      mockHost.setProp('q:id', 'same-host');
+      const mockQrl = { $hash$: 'same-qrl' } as any;
+
+      // Create and start first chore
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+      runningChores.add(chore1!);
+
+      // Clear the queue to simulate chore1 being processed
+      choreQueue.length = 0;
+
+      // Try to schedule the same chore again
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+
+      // chore2 should be blocked by chore1
+      expect(chore1!.$blockedChores$).toBeTruthy();
+      expect(chore1!.$blockedChores$!.includes(chore2!)).toBe(true);
+      expect(choreQueue.includes(chore2!)).toBe(false);
+    });
+
+    it('should handle multiple running chores and find the matching one', async () => {
+      const mockHost1 = vnode_newVirtual();
+      mockHost1.setProp('q:id', 'host-1');
+      const mockHost2 = vnode_newVirtual();
+      mockHost2.setProp('q:id', 'host-2');
+      const mockHost3 = vnode_newVirtual();
+      mockHost3.setProp('q:id', 'host-3');
+      const mockQrl1 = { $hash$: 'qrl-1' } as any;
+      const mockQrl2 = { $hash$: 'qrl-2' } as any;
+      const mockQrl3 = { $hash$: 'qrl-3' } as any;
+
+      // Create multiple running chores
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost1 as any, mockQrl1, null);
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost2 as any, mockQrl2, null);
+      const chore3 = scheduler(ChoreType.COMPONENT, mockHost3 as any, mockQrl3, null);
+
+      runningChores.add(chore1!);
+      runningChores.add(chore2!);
+      runningChores.add(chore3!);
+
+      choreQueue.length = 0;
+
+      // Try to schedule a chore that matches chore2 (same host and same qrl)
+      const duplicateChore = scheduler(ChoreType.COMPONENT, mockHost2 as any, mockQrl2, null);
+
+      // duplicateChore should be blocked by chore2
+      expect(chore2!.$blockedChores$).toBeTruthy();
+      expect(chore2!.$blockedChores$!.includes(duplicateChore!)).toBe(true);
+      expect(chore1!.$blockedChores$).toBeFalsy();
+      expect(chore3!.$blockedChores$).toBeFalsy();
+    });
+
+    it('should work with TASK chores', async () => {
+      const task = mockTask(vHost, { qrl: $(() => testLog.push('task')), index: 1 });
+
+      // Create and start a task chore
+      const chore1 = scheduler(ChoreType.TASK, task);
+      runningChores.add(chore1!);
+      choreQueue.length = 0;
+
+      // Try to schedule the same task again
+      const chore2 = scheduler(ChoreType.TASK, task);
+
+      // chore2 should be blocked by chore1
+      expect(chore1!.$blockedChores$).toBeTruthy();
+      expect(chore1!.$blockedChores$!.includes(chore2!)).toBe(true);
+    });
+
+    it('should work with VISIBLE chores', async () => {
+      const task = mockTask(vHost, {
+        qrl: $(() => testLog.push('visible')),
+        index: 1,
+        visible: true,
+      });
+
+      // Create and start a visible task chore
+      const chore1 = scheduler(ChoreType.VISIBLE, task);
+      runningChores.add(chore1!);
+      choreQueue.length = 0;
+
+      // Try to schedule the same visible task again
+      const chore2 = scheduler(ChoreType.VISIBLE, task);
+
+      // chore2 should be blocked by chore1
+      expect(chore1!.$blockedChores$).toBeTruthy();
+      expect(chore1!.$blockedChores$!.includes(chore2!)).toBe(true);
+    });
+
+    it('should properly use choreComparator for equality check with QRLs', async () => {
+      const mockHost = vnode_newVirtual();
+      mockHost.setProp('q:id', 'qrl-test-host');
+      const qrl = {
+        $hash$: 'qrl-hash',
+        getFn: () => () => {},
+      } as any;
+
+      // Create and start a chore with the qrl
+      const chore1 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+      runningChores.add(chore1!);
+      choreQueue.length = 0;
+
+      // Try to schedule the same chore again (same host, same qrl reference)
+      const chore2 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+
+      // chore2 should be blocked because it's the same qrl reference
+      expect(chore1!.$blockedChores$).toBeTruthy();
+      expect(chore1!.$blockedChores$!.includes(chore2!)).toBe(true);
+    });
+
+    it('should initialize blockedChores array when first chore is blocked', async () => {
+      const mockHost = vnode_newVirtual();
+      mockHost.setProp('q:id', 'init-test-host');
+      const mockQrl = { $hash$: 'qrl-hash' } as any;
+
+      // Create and start a chore
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+      runningChores.add(chore1!);
+
+      // Initially, there should be no blocked chores
+      expect(chore1!.$blockedChores$).toBeNull();
+
+      choreQueue.length = 0;
+
+      // Schedule a duplicate chore
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+
+      // Now blockedChores should be initialized and contain chore2
+      expect(chore1!.$blockedChores$).toBeInstanceOf(ChoreArray);
+      expect(chore1!.$blockedChores$!.length).toBe(1);
+      expect(chore1!.$blockedChores$![0]).toBe(chore2);
+    });
+
+    it('should handle multiple blocked chores with different payloads', async () => {
+      const mockHost = vnode_newVirtual();
+      mockHost.setProp('q:id', 'multi-test-host');
+      const mockQrl = { $hash$: 'qrl-hash' } as any;
+
+      // Create and start a chore
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+      runningChores.add(chore1!);
+      choreQueue.length = 0;
+
+      // Schedule identical chores - ChoreArray will merge them since they're identical
+      scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+      scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+
+      // Since chores are identical and ChoreArray merges duplicates, there should be 1 entry
+      // (ChoreArray.add returns existing index for duplicates and updates payload)
+      expect(chore1!.$blockedChores$).toBeTruthy();
+      expect(chore1!.$blockedChores$!.length).toBe(1);
+    });
+  });
 });
 
 function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: boolean }): Task {

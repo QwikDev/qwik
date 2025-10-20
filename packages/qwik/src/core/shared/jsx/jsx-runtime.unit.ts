@@ -1,5 +1,6 @@
 import { assert, test } from 'vitest';
-import { jsx, isJSXNode, Fragment } from './jsx-runtime';
+import { jsx, Fragment } from './jsx-runtime';
+import { isJSXNode } from './jsx-node';
 import type { FunctionComponent } from './types/jsx-node';
 
 test('key', () => {

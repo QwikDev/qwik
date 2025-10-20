@@ -13,7 +13,7 @@
     "rollup": "^4.52.4"
   },
   "devDependencies": {
-    "@croct/json5-parser": "0.2.0",
+    "@croct/json5-parser": "0.2.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",

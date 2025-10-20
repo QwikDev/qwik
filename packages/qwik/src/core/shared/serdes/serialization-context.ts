@@ -3,7 +3,6 @@ import type { _EFFECT_BACK_REF } from '../../internal';
 import type { EffectProperty, EffectSubscription } from '../../reactive-primitives/types';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../../ssr/ssr-types';
 import type { ResourceReturnInternal } from '../../use/use-resource';
-import { qError, QError } from '../error/error';
 import type { QRL } from '../qrl/qrl.public';
 import type { ObjToProxyMap } from '../types';
 import { serialize } from './serialize';
@@ -18,14 +17,30 @@ type SsrNode = {
 type DomRef = {
   $ssrNode$: SsrNode;
 };
-type SeenRef = {
-  $parent$: unknown | null;
+
+/** Stores the location of an object. If no parent, it's a root. */
+export type SeenRef = {
   $index$: number;
-  $rootIndex$: number;
+  $parent$?: SeenRef | null;
 };
 
 export let isDomRef = (obj: unknown): obj is DomRef => false;
 
+/**
+ * A back reference to a previously serialized object. Before deserialization, all backrefs are
+ * swapped with their original locations.
+ */
+export class BackRef {
+  constructor(
+    /** The path from root to the original object */
+    public $path$: string
+  ) {}
+}
+
+interface AddRootFn {
+  (obj: unknown, returnRef?: never): number;
+  (obj: unknown, returnRef: true): SeenRef;
+}
 export interface SerializationContext {
   $serialize$: () => void;
 
@@ -41,8 +56,9 @@ export interface SerializationContext {
    * - `{ parent, index }` - The parent object and the index within that parent.
    * - `undefined` - Object has not been seen yet.
    */
-  $wasSeen$: (obj: unknown) => SeenRef | undefined;
+  getSeenRef: (obj: unknown) => SeenRef | undefined;
 
+  /** Returns the root index of the object, if it is a root. Otherwise returns undefined. */
   $hasRootId$: (obj: unknown) => number | undefined;
 
   /**
@@ -50,24 +66,16 @@ export interface SerializationContext {
    *
    * Roots are entry points into the object graph. Typically the roots are held by the listeners.
    *
-   * Returns a path string representing the path from roots through all parents to the object.
-   * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
+   * Returns the index of the root object.
    */
-  $addRoot$: (obj: unknown, parent?: unknown) => number;
+  $addRoot$: AddRootFn;
 
-  /**
-   * Get root path of the object without creating a new root.
-   *
-   * This is used during serialization, as new roots can't be created during serialization.
-   *
-   * The function throws if the root was not found.
-   */
-  $addRootPath$: (obj: any) => string | number;
-
-  $seen$: (obj: unknown, parent: unknown | null, index: number) => void;
+  /** Mark an object as seen during serialization. This is used to handle backreferences and cycles */
+  $markSeen$: (obj: unknown, parent: SeenRef | undefined, index: number) => SeenRef;
 
   $roots$: unknown[];
-  $objectPathStringCache$: Map<unknown, string | number>;
+
+  $promoteToRoot$: (ref: SeenRef, index?: number) => void;
 
   $addSyncFn$($funcStr$: string | null, argsCount: number, fn: Function): number;
 
@@ -115,56 +123,66 @@ export const createSerializationContext = (
     } as StreamWriter;
   }
   const seenObjsMap = new Map<unknown, SeenRef>();
-  const objectPathStringCache = new Map<unknown, string | number>();
   const syncFnMap = new Map<string, number>();
   const syncFns: string[] = [];
   const roots: unknown[] = [];
 
-  const $wasSeen$ = (obj: unknown) => seenObjsMap.get(obj);
-  const $seen$ = (obj: unknown, parent: unknown | null, index: number) => {
-    return seenObjsMap.set(obj, { $parent$: parent, $index$: index, $rootIndex$: -1 });
+  const getSeenRef = (obj: unknown) => seenObjsMap.get(obj);
+  const $markSeen$ = (obj: unknown, parent: SeenRef | undefined, index: number) => {
+    const ref = { $index$: index, $parent$: parent };
+    seenObjsMap.set(obj, ref);
+    return ref;
   };
 
-  const $addRootPath$ = (obj: unknown) => {
-    const rootPath = objectPathStringCache.get(obj);
-    if (rootPath) {
-      return rootPath;
-    }
-    const seen = seenObjsMap.get(obj);
-    if (!seen) {
-      throw qError(QError.serializeErrorMissingRootId, [obj]);
-    }
-    const path = [];
-    let current: typeof seen | undefined = seen;
-
+  /**
+   * Returns a path string representing the path from roots through all parents to the object.
+   * Format: "3 2 0" where each number is the index within its parent, from root to leaf.
+   */
+  const $getObjectPath$ = (ref: SeenRef) => {
     // Traverse up through parent references to build a path
-    while (current && current.$index$ >= 0) {
-      path.unshift(current.$index$);
-      if (typeof current.$parent$ !== 'object' || current.$parent$ === null) {
-        break;
-      }
-      current = seenObjsMap.get(current.$parent$);
+    const path = [];
+    while (ref.$parent$) {
+      path.unshift(ref.$index$);
+      ref = ref.$parent$;
     }
+    // Now we are at root, but it could be a backref
+    path.unshift(ref.$index$);
 
-    const pathStr = path.length > 1 ? path.join(' ') : path.length ? path[0] : seen.$index$;
-    objectPathStringCache.set(obj, pathStr);
-    return pathStr;
+    return path.join(' ');
   };
 
-  const $addRoot$ = (obj: any, parent: unknown = null) => {
+  const $promoteToRoot$ = (ref: SeenRef, index?: number) => {
+    const path = $getObjectPath$(ref) as string;
+    if (index === undefined) {
+      index = roots.length;
+    }
+    roots[index] = new BackRef(path);
+    ref.$parent$ = null;
+    ref.$index$ = index;
+  };
+
+  const $addRoot$ = ((obj: any, returnRef?: boolean) => {
     let seen = seenObjsMap.get(obj);
+    let index: number;
+
     if (!seen) {
-      const rootIndex = roots.length;
-      seen = { $parent$: parent, $index$: rootIndex, $rootIndex$: rootIndex };
+      index = roots.length;
+      seen = {
+        $index$: index,
+        // TODO benchmark with and without $parent$
+        // $parent$: undefined
+      };
       seenObjsMap.set(obj, seen);
       roots.push(obj);
-    } else if (seen.$rootIndex$ === -1) {
-      seen.$rootIndex$ = roots.length;
-      roots.push(obj);
+    } else {
+      if (seen.$parent$) {
+        $promoteToRoot$(seen);
+      }
+      index = seen.$index$;
     }
-    $addRootPath$(obj);
-    return seen.$rootIndex$;
-  };
+
+    return returnRef ? seen : index;
+  }) as AddRootFn;
 
   const isSsrNode = (
     NodeConstructor ? (obj) => obj instanceof NodeConstructor : ((() => false) as any)
@@ -181,15 +199,15 @@ export const createSerializationContext = (
     $isSsrNode$: isSsrNode,
     $isDomRef$: isDomRef,
     $symbolToChunkResolver$: symbolToChunkResolver,
-    $wasSeen$,
+    getSeenRef,
     $roots$: roots,
-    $seen$,
+    $markSeen$,
     $hasRootId$: (obj: any) => {
       const id = seenObjsMap.get(obj);
-      return id?.$parent$ === null ? id.$index$ : undefined;
+      return id && (id.$parent$ ? undefined : id.$index$);
     },
+    $promoteToRoot$,
     $addRoot$,
-    $addRootPath$,
     $syncFns$: syncFns,
     $addSyncFn$: (funcStr: string | null, argCount: number, fn: Function) => {
       const isFullFn = funcStr == null;
@@ -220,6 +238,5 @@ export const createSerializationContext = (
     $storeProxyMap$: storeProxyMap,
     $getProp$: getProp,
     $setProp$: setProp,
-    $objectPathStringCache$: objectPathStringCache,
   };
 };

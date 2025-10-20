@@ -9,7 +9,7 @@ import { ChoreType } from '../shared/util-chore-type';
 import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
-import { type NoSerialize } from '../shared/utils/serialize-utils';
+import { type NoSerialize } from '../shared/serdes/verify';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';

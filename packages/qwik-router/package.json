@@ -5,7 +5,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
-    "@mdx-js/mdx": "^3.1.0",
+    "@mdx-js/mdx": "^3.1.1",
     "@netlify/edge-functions": "^2.17.0",
     "@types/mdx": "^2.0.13",
     "estree-util-value-to-estree": "^3.4.0",
@@ -22,14 +22,14 @@
     "set-cookie-parser": "^2.7.1",
     "source-map": "^0.7.6",
     "svgo": "^3.3.2",
-    "typescript": "5.9.3",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
+    "vite": ">=5 <8",
     "vite-imagetools": "^9.0.0",
     "yaml": "^2.8.1",
-    "zod": "^3.25.40"
+    "zod": "^3.25.48"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.52.10",
@@ -39,6 +39,7 @@
     "@types/refractor": "4.0.0",
     "@types/set-cookie-parser": "2.4.10",
     "tsm": "2.3.0",
+    "typescript": "5.9.3",
     "uvu": "0.5.6"
   },
   "engines": {
@@ -198,7 +199,7 @@
     "directory": "packages/qwik-router"
   },
   "scripts": {
-    "build": "cd src/runtime && vite build --mode lib"
+    "build": "vite build"
   },
   "sideEffects": false,
   "type": "module",

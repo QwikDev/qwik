@@ -1,8 +1,8 @@
 import { QError, qError } from '../error/error';
-import { isNode } from './element';
-import { isPromise } from './promises';
-import { isArray, isFunction, isObject, isSerializableObject } from './types';
-import { canSerialize } from '../serdes/index';
+import { isNode } from '../utils/element';
+import { isPromise } from '../utils/promises';
+import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
+import { canSerialize } from './index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
 
@@ -63,10 +63,6 @@ const _verifySerializable = <T>(
           return value;
         }
         break;
-      case 'boolean':
-      case 'string':
-      case 'number':
-        return value;
     }
     let message: string;
     if (preMessage) {
@@ -89,18 +85,19 @@ const _verifySerializable = <T>(
   }
   return value;
 };
+
 const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
-export const shouldSerialize = (obj: unknown): boolean => {
+const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
     return !noSerializeSet.has(obj);
   }
   return true;
 };
 
-export const fastSkipSerialize = (obj: object | Function): boolean => {
+export const fastSkipSerialize = (obj: unknown): boolean => {
   return (
-    obj &&
+    !!obj &&
     (isObject(obj) || typeof obj === 'function') &&
     (NoSerializeSymbol in obj || noSerializeSet.has(obj))
   );

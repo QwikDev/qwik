@@ -1,13 +1,13 @@
-import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { assertEqual } from '../shared/error/assert';
+import { isPropsProxy } from '../shared/jsx/props-proxy';
+import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
 import { isObject } from '../shared/utils/types';
-import { isSignal, type Signal } from './signal.public';
-import { getStoreTarget, isStore } from './impl/store';
-import { isPropsProxy } from '../shared/jsx/jsx-runtime';
-import { WrappedSignalFlags } from './types';
-import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 import type { SignalImpl } from './impl/signal-impl';
+import { getStoreTarget, isStore } from './impl/store';
+import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
+import { isSignal, type Signal } from './signal.public';
+import { WrappedSignalFlags } from './types';
 
 // Keep these properties named like this so they're the same as from wrapSignal
 export const getValueProp = <T>(p0: { value: T }) => p0.value;

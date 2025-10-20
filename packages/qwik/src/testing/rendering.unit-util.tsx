@@ -110,6 +110,8 @@ export async function ssrRenderToDom(
     raw?: boolean;
     /** Include QwikLoader */
     qwikLoader?: boolean;
+    /** Inject nodes into the document before test runs (for testing purposes) */
+    injection?: (document: Document) => void;
   } = {}
 ) {
   let html = '';
@@ -133,7 +135,13 @@ export async function ssrRenderToDom(
 
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+
   emulateExecutionOfQwikFuncs(document);
+
+  if (opts.injection) {
+    opts.injection(document);
+  }
+
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
   const getStyles = getStylesFactory(document);

@@ -1,7 +1,7 @@
 import { $, _jsxSorted, type JSXOutput, type OnRenderFn, type QRL } from '@qwik.dev/core';
 
 import { createDocument } from '@qwik.dev/core/testing';
-import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { getDomContainer } from '../client/dom-container';
 import {
   vnode_insertBefore,
@@ -676,6 +676,11 @@ describe('scheduler', () => {
       vHost.setProp('q:id', 'test-host');
     });
 
+    afterEach(() => {
+      // Restore all mocks to prevent interference with other tests
+      vi.restoreAllMocks();
+    });
+
     it('should return false when there are no running chores', async () => {
       const mockHost = vnode_newVirtual();
       mockHost.setProp('q:id', 'test-1');
@@ -856,6 +861,118 @@ describe('scheduler', () => {
       expect(chore1!.$blockedChores$).toBeTruthy();
       expect(chore1!.$blockedChores$!.length).toBe(1);
     });
+  });
+
+  it('should keep blockedChores Set and vnode.blockedChores in sync when re-blocking', async () => {
+    // Create three tasks in sequence
+    const task1 = mockTask(vBHost1, {
+      index: 0,
+      qrl: $(() => testLog.push('task1')),
+    });
+    const task2 = mockTask(vBHost1, {
+      index: 1,
+      qrl: $(() => testLog.push('task2')),
+    });
+    const task3 = mockTask(vBHost1, {
+      index: 2,
+      qrl: $(() => testLog.push('task3')),
+    });
+
+    vBHost1.setProp(ELEMENT_SEQ, [task1, task2, task3]);
+
+    // Schedule all three tasks
+    const chore1 = scheduler(ChoreType.TASK, task1);
+    const chore2 = scheduler(ChoreType.TASK, task2);
+    const chore3 = scheduler(ChoreType.TASK, task3);
+
+    // chore1 should be scheduled, chore2 blocked by chore1, chore3 blocked by chore2
+    expect(choreQueue.length).toBe(1);
+    expect(choreQueue[0]).toBe(chore1);
+    expect(blockedChores.size).toBe(2);
+    expect(blockedChores.has(chore2!)).toBe(true);
+    expect(blockedChores.has(chore3!)).toBe(true);
+    expect(vBHost1.blockedChores?.length).toBe(2);
+    expect(vBHost1.blockedChores).toContain(chore2);
+    expect(vBHost1.blockedChores).toContain(chore3);
+
+    // chore2 is blocked by chore1 (immediate previous task)
+    expect(chore1?.$blockedChores$?.length).toBe(1);
+    expect(chore1?.$blockedChores$).toContain(chore2);
+
+    // chore3 is blocked by chore2 (immediate previous task), not chore1
+    // When chore3 was scheduled, it found chore2 in blockedChores as its blocking chore
+    expect(chore2?.$blockedChores$?.length).toBe(1);
+    expect(chore2?.$blockedChores$).toContain(chore3);
+
+    // Wait for drain - this will execute all tasks
+    await waitForDrain();
+
+    // After chore1 completes, all tasks should have executed
+    // The key test here is that during execution, when chore1 finished:
+    // - chore2 was unblocked (removed from blockedChores and vnode.blockedChores)
+    // - chore3 was checked for re-blocking and found chore2 still blocks it
+    // - chore3 stayed in both blockedChores and vnode.blockedChores (the bug would have caused desync)
+    // - chore3 was moved to chore2's $blockedChores$ list
+    // Then chore2 executed and unblocked chore3, then chore3 executed
+
+    expect(testLog).toEqual(['task1', 'task2', 'task3', 'journalFlush']);
+
+    // After drain, everything should be clear
+    expect(blockedChores.size).toBe(0);
+    expect(vBHost1.blockedChores?.length).toBe(0);
+  });
+
+  it('should maintain sync when multiple hosts have blocked chores', async () => {
+    // Create a scenario with multiple hosts where each has task chains
+    const taskA1 = mockTask(vAHost, {
+      index: 0,
+      qrl: $(() => testLog.push('taskA1')),
+    });
+    const taskA2 = mockTask(vAHost, {
+      index: 1,
+      qrl: $(() => testLog.push('taskA2')),
+    });
+    const taskB1 = mockTask(vBHost1, {
+      index: 0,
+      qrl: $(() => testLog.push('taskB1')),
+    });
+    const taskB2 = mockTask(vBHost1, {
+      index: 1,
+      qrl: $(() => testLog.push('taskB2')),
+    });
+
+    vAHost.setProp(ELEMENT_SEQ, [taskA1, taskA2]);
+    vBHost1.setProp(ELEMENT_SEQ, [taskB1, taskB2]);
+
+    // Schedule tasks
+    scheduler(ChoreType.TASK, taskA1);
+    const choreA2 = scheduler(ChoreType.TASK, taskA2);
+    scheduler(ChoreType.TASK, taskB1);
+    const choreB2 = scheduler(ChoreType.TASK, taskB2);
+
+    // Initial state: A1 and B1 scheduled (depth-first), A2 and B2 blocked
+    expect(choreQueue.length).toBe(2); // A1, B1
+    expect(blockedChores.size).toBe(2); // A2, B2
+    expect(blockedChores.has(choreA2!)).toBe(true);
+    expect(blockedChores.has(choreB2!)).toBe(true);
+
+    // vnode blocked chores should match
+    expect(vAHost.blockedChores?.length).toBe(1);
+    expect(vAHost.blockedChores).toContain(choreA2);
+    expect(vBHost1.blockedChores?.length).toBe(1);
+    expect(vBHost1.blockedChores).toContain(choreB2);
+
+    // Wait for drain - this executes all tasks
+    await waitForDrain();
+
+    // All tasks should have executed
+    // The execution order is: A1, A2 (unblocked after A1), B1, B2 (unblocked after B1)
+    expect(testLog).toEqual(['taskA1', 'taskA2', 'taskB1', 'taskB2', 'journalFlush']);
+
+    // After drain, everything should be clear
+    expect(blockedChores.size).toBe(0);
+    expect(vAHost.blockedChores?.length).toBe(0);
+    expect(vBHost1.blockedChores?.length).toBe(0);
   });
 });
 

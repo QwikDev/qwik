@@ -28,6 +28,7 @@ import {
 import { createRollupError, normalizeRollupOutputOptions } from './rollup';
 import { configurePreviewServer, getViteIndexTags } from './dev';
 import { isVirtualId } from './vite-utils';
+import type { ResolvedId } from 'rollup';
 
 const DEDUPE = [
   QWIK_CORE_ID,
@@ -177,6 +178,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         experimental: qwikViteOpts.experimental,
         input,
         manifestInput: qwikViteOpts.ssr?.manifestInput,
+        manifestInputPath: qwikViteOpts.ssr?.manifestInputPath,
         manifestOutput: qwikViteOpts.client?.manifestOutput,
       };
 
@@ -263,6 +265,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             exclude: [/./],
           },
           rollupOptions: {
+            external: ['node:async_hooks'],
             /**
              * This is a workaround to have predictable chunk hashes between builds. It doesn't seem
              * to impact the build time.
@@ -283,13 +286,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
 
       if (!qwikViteOpts.csr) {
-        const buildOutputDir =
-          target === 'client' && viteConfig.base
-            ? path.join(opts.outDir, viteConfig.base)
-            : opts.outDir;
-
         updatedViteConfig.build!.cssCodeSplit = false;
-        updatedViteConfig.build!.outDir = buildOutputDir;
+        if (opts.outDir) {
+          updatedViteConfig.build!.outDir = opts.outDir;
+        }
         const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
         updatedViteConfig.build!.rollupOptions = {
           ...updatedViteConfig.build!.rollupOptions,
@@ -297,7 +297,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             qwikPlugin,
             viteConfig.build?.rollupOptions?.output,
             useAssetsDir,
-            buildOutputDir
+            opts.outDir
           ),
           preserveEntrySignatures: 'exports-only',
           onwarn: (warning, warn) => {
@@ -698,27 +698,28 @@ async function checkExternals() {
         // technically we should check for each importer, but this is ok
         seen.add(source);
         seen.add(packageName);
+        let result: ResolvedId | null;
         try {
-          const result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
-          if (result?.external) {
-            // Qwik deps should not be external
-            if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
-              // TODO link to docs
-              throw new Error(
-                `\n==============\n` +
-                  `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
-                  `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
-                  `==============\n`
-              );
-            }
-          }
-          if (packageName === source) {
-            // We already resolved it, so return that result
-            return result;
-          }
+          result = await this.resolve(packageName, importer, { ...options, skipSelf: true });
         } catch {
           /* ignore, let vite figure it out */
           return;
+        }
+        if (result?.external) {
+          // Qwik deps should not be external
+          if (await isQwikDep(packageName, importer ? path.dirname(importer) : rootDir)) {
+            // TODO link to docs
+            throw new Error(
+              `\n==============\n` +
+                `${packageName} is being treated as an external dependency, but it should be included in the server bundle, because it uses Qwik and it needs to be processed by the optimizer.\n` +
+                `Please add the package to "ssr.noExternal[]" as well as "optimizeDeps.exclude[]" in the Vite config. \n` +
+                `==============\n`
+            );
+          }
+        }
+        if (packageName === source) {
+          // We already resolved it, so return that result
+          return result;
         }
       },
     },
@@ -913,6 +914,8 @@ interface QwikVitePluginSSROptions extends QwikVitePluginCommonOptions {
      * Default `undefined`
      */
     manifestInput?: QwikManifest;
+    /** Same as `manifestInput` but allows passing the path to the file. */
+    manifestInputPath?: string;
   };
 }
 

@@ -1,9 +1,32 @@
+import { isServer } from '@qwik.dev/core/build';
 import type { Render } from '@qwik.dev/core/server';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 import { loadRoute } from '../../runtime/src/routing';
 import type { QwikRouterConfig, RebuildRouteInfoInternal } from '../../runtime/src/types';
+import type { RequestEventInternal } from './request-event';
 import { renderQwikMiddleware, resolveRequestHandlers } from './resolve-request-handlers';
 import type { ServerRenderOptions, ServerRequestEvent } from './types';
 import { getRouteMatchPathname, runQwikRouter, type QwikRouterRun } from './user-response';
+
+/** @internal */
+export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
+if (isServer) {
+  // TODO when we drop cjs support, await this
+  import('node:async_hooks')
+    .then((module) => {
+      _asyncRequestStore = new module.AsyncLocalStorage();
+    })
+    .catch((err) => {
+      console.warn(
+        '\n=====================\n' +
+          '  Qwik Router Warning:\n' +
+          '    AsyncLocalStorage is not available, continuing without it.\n' +
+          '    This impacts concurrent async server calls, where they lose access to the ServerRequestEv object.\n' +
+          '=====================\n\n',
+        err
+      );
+    });
+}
 
 /**
  * We need to delay importing the config until the first request, because vite also imports from

@@ -21,54 +21,53 @@ export const resolveHead = (
   contentModules: ContentModule[],
   locale: string,
   defaults?: DocumentHeadValue
-) => {
-  const head = createDocumentHead(defaults);
-  const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
-    const id = loaderOrAction.__id;
-    if (loaderOrAction.__brand === 'server_loader') {
-      if (!(id in endpoint.loaders)) {
-        throw new Error(
-          'You can not get the returned data of a loader that has not been executed for this request.'
-        );
+) =>
+  withLocale(locale, () => {
+    const head = createDocumentHead(defaults);
+    const getData = ((loaderOrAction: LoaderInternal | ActionInternal) => {
+      const id = loaderOrAction.__id;
+      if (loaderOrAction.__brand === 'server_loader') {
+        if (!(id in endpoint.loaders)) {
+          throw new Error(
+            'You can not get the returned data of a loader that has not been executed for this request.'
+          );
+        }
+      }
+      const data = endpoint.loaders[id];
+      if (isPromise(data)) {
+        throw new Error('Loaders returning a promise can not be resolved for the head function.');
+      }
+      return data;
+    }) as any as ResolveSyncValue;
+
+    const fns: Extract<ContentModuleHead, Function>[] = [];
+    for (const contentModule of contentModules) {
+      const contentModuleHead = contentModule?.head;
+      if (contentModuleHead) {
+        if (typeof contentModuleHead === 'function') {
+          // Functions are executed inner before outer
+          fns.unshift(contentModuleHead);
+        } else if (typeof contentModuleHead === 'object') {
+          // Objects are merged inner over outer
+          resolveDocumentHead(head, contentModuleHead);
+        }
       }
     }
-    const data = endpoint.loaders[id];
-    if (isPromise(data)) {
-      throw new Error('Loaders returning a promise can not be resolved for the head function.');
-    }
-    return data;
-  }) as any as ResolveSyncValue;
+    if (fns.length) {
+      const headProps: DocumentHeadProps = {
+        head,
+        withLocale: (fn) => fn(),
+        resolveValue: getData,
+        ...routeLocation,
+      };
 
-  const fns: Extract<ContentModuleHead, Function>[] = [];
-  for (const contentModule of contentModules) {
-    const contentModuleHead = contentModule?.head;
-    if (contentModuleHead) {
-      if (typeof contentModuleHead === 'function') {
-        // Functions are executed inner before outer
-        fns.unshift(contentModuleHead);
-      } else if (typeof contentModuleHead === 'object') {
-        // Objects are merged inner over outer
-        resolveDocumentHead(head, contentModuleHead);
-      }
-    }
-  }
-  if (fns.length) {
-    const headProps: DocumentHeadProps = {
-      head,
-      withLocale: (fn) => withLocale(locale, fn),
-      resolveValue: getData,
-      ...routeLocation,
-    };
-
-    withLocale(locale, () => {
       for (const fn of fns) {
         resolveDocumentHead(head, fn(headProps));
       }
-    });
-  }
+    }
 
-  return head;
-};
+    return head;
+  });
 
 const resolveDocumentHead = (
   resolvedHead: Editable<ResolvedDocumentHead>,

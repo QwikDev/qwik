@@ -1,3 +1,4 @@
+import type { Props } from '../jsx-runtime';
 import type { JSXChildren } from './jsx-qwik-attributes';
 
 /**
@@ -46,7 +47,18 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
  */
 export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
   extends JSXNode<T> {
-  varProps: Record<any, unknown>;
-  constProps: Record<any, unknown> | null;
-  flags: number;
+  /** The type of node */
+  type: T;
+  /** Do the varProps need sorting */
+  toSort: boolean;
+  /** The key property */
+  key: string | null;
+  /** Props that are not guaranteed shallow equal across runs. Does not contain children or key */
+  varProps: Props;
+  /** Props that will be shallow equal across runs. Does not contain children or key */
+  constProps: Props | null;
+  /** The children of the node */
+  children: JSXChildren;
+  /** Filename etc for debugging */
+  dev?: DevJSX & { stack: string | undefined };
 }

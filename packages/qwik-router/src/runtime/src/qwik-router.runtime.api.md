@@ -123,7 +123,7 @@ export interface DocumentHeadProps extends RouteLocation {
     readonly head: ResolvedDocumentHead;
     // (undocumented)
     readonly resolveValue: ResolveSyncValue;
-    // (undocumented)
+    // @deprecated (undocumented)
     readonly withLocale: <T>(fn: () => T) => T;
 }
 

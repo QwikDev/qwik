@@ -8,7 +8,7 @@
     "jsxImportSource": "@qwik.dev/core",
     "strict": true,
     "declaration": true,
-    "declarationDir": "lib-types",
+    "declarationDir": "lib",
     "resolveJsonModule": true,
     "moduleResolution": "Bundler",
     "esModuleInterop": true,

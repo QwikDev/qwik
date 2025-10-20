@@ -1,12 +1,18 @@
-import { isDomRef } from './serialization-context';
-import { isStore, getStoreTarget } from '../../reactive-primitives/impl/store';
+import { getStoreTarget, isStore } from '../../reactive-primitives/impl/store';
+import { SubscriptionData } from '../../reactive-primitives/subscription-data';
+import { NEEDS_COMPUTATION, STORE_ALL_PROPS } from '../../reactive-primitives/types';
 import { untrack } from '../../use/use-core';
 import { isTask } from '../../use/use-task';
 import { isQwikComponent } from '../component.public';
-import { isPropsProxy, isJSXNode } from '../jsx/jsx-runtime';
+import { isJSXNode } from '../jsx/jsx-node';
+import { isPropsProxy } from '../jsx/props-proxy';
+import { Slot } from '../jsx/slot.public';
 import { isQrl } from '../qrl/qrl-utils';
 import { _UNINITIALIZED } from '../utils/constants';
 import { isPromise } from '../utils/promises';
+import { isDomRef } from './serialization-context';
+// Keep last
+import { Fragment } from '../jsx/jsx-runtime';
 
 export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): boolean => {
   if (
@@ -73,14 +79,16 @@ export const canSerialize = (value: any, seen: WeakSet<any> = new WeakSet()): bo
       return true;
     } else if (value instanceof Uint8Array) {
       return true;
+    } else if (value instanceof SubscriptionData) {
+      return true;
     } else if (isDomRef?.(value)) {
       return true;
     }
   } else if (typeof value === 'function') {
-    if (isQrl(value) || isQwikComponent(value)) {
+    if (isQrl(value) || isQwikComponent(value) || value === Slot || value === Fragment) {
       return true;
     }
-  } else if (value === _UNINITIALIZED) {
+  } else if (value === _UNINITIALIZED || value === NEEDS_COMPUTATION || value === STORE_ALL_PROPS) {
     return true;
   }
   return false;

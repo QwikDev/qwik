@@ -10,7 +10,7 @@ import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-p
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { noSerialize, type NoSerialize } from '../../shared/utils/serialize-utils';
+import { noSerialize, type NoSerialize } from '../../shared/serdes/verify';
 import { isFunction, isObject } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
 import type { Tracker } from '../use-task';

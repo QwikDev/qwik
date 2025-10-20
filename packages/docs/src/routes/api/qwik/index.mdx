@@ -1539,9 +1539,7 @@ getPlatform: () => CorePlatform;
 
 ## h
 
-The legacy transform, used in special cases like `<div {...props} key="key" />`. Note that the children are spread arguments, instead of a prop like in jsx() calls.
-
-Also note that this disables optimizations.
+The legacy transform, used by some JSX transpilers. The optimizer normally replaces this with optimized calls, with the same caveat as `jsx()`.
 
 ```typescript
 export declare function h<
@@ -1757,13 +1755,19 @@ value is [Signal](#signal)&lt;unknown&gt;
 
 ## jsx
 
-Used by the JSX transpilers to create a JSXNode. Note that the optimizer will not use this, instead using \_jsxSplit and \_jsxSorted directly.
+Used by the JSX transpilers to create a JSXNode. Note that the optimizer will normally not use this, instead using \_jsxSplit and \_jsxSorted directly.
+
+The optimizer will also replace all `jsx()` calls with the more optimized versions.
+
+The exception is when the props are not a literal object, which can only happen when the `jsx` call is written directly.
 
 ```typescript
 jsx: <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
   key?: string | number | null,
+  _isStatic?: boolean,
+  dev?: JsxDevOpts,
 ) => JSXNode<T>;
 ```
 
@@ -1815,6 +1819,32 @@ string \| number \| null
 _(Optional)_
 
 </td></tr>
+<tr><td>
+
+\_isStatic
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+dev
+
+</td><td>
+
+JsxDevOpts
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
 </tbody></table>
 
 **Returns:**
@@ -1846,14 +1876,15 @@ export type JSXChildren =
 
 ## jsxDEV
 
+Alias of `jsx` for development purposes.
+
 ```typescript
-jsxDEV: <T extends string | FunctionComponent<Props>>(
+jsxDEV: <T extends string | FunctionComponent<any>>(
   type: T,
   props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
-  key: string | number | null | undefined,
-  _isStatic: boolean,
-  opts: JsxDevOpts,
-  _ctx: unknown,
+  key?: string | number | null,
+  _isStatic?: boolean,
+  dev?: JsxDevOpts,
 ) => JSXNode<T>;
 ```
 
@@ -1898,9 +1929,11 @@ key
 
 </td><td>
 
-string \| number \| null \| undefined
+string \| number \| null
 
 </td><td>
+
+_(Optional)_
 
 </td></tr>
 <tr><td>
@@ -1913,10 +1946,12 @@ boolean
 
 </td><td>
 
+_(Optional)_
+
 </td></tr>
 <tr><td>
 
-opts
+dev
 
 </td><td>
 
@@ -1924,16 +1959,7 @@ JsxDevOpts
 
 </td><td>
 
-</td></tr>
-<tr><td>
-
-\_ctx
-
-</td><td>
-
-unknown
-
-</td><td>
+_(Optional)_
 
 </td></tr>
 </tbody></table>
@@ -2058,6 +2084,102 @@ export type JSXOutput =
 **References:** [JSXNode](#jsxnode), [JSXOutput](#jsxoutput)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-node.ts)
+
+## jsxs
+
+Alias of `jsx` to support JSX syntax.
+
+```typescript
+jsxs: <T extends string | FunctionComponent<any>>(
+  type: T,
+  props: T extends FunctionComponent<infer PROPS> ? PROPS : Props,
+  key?: string | number | null,
+  _isStatic?: boolean,
+  dev?: JsxDevOpts,
+) => JSXNode<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+type
+
+</td><td>
+
+T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+props
+
+</td><td>
+
+T extends [FunctionComponent](#functioncomponent)&lt;infer PROPS&gt; ? PROPS : Props
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+key
+
+</td><td>
+
+string \| number \| null
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+\_isStatic
+
+</td><td>
+
+boolean
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+dev
+
+</td><td>
+
+JsxDevOpts
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[JSXNode](#jsxnode)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/jsx-runtime.ts)
 
 ## JSXTagName
 
@@ -2235,7 +2357,7 @@ export type NoSerialize<T> =
   | undefined;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts)
 
 ## NoSerialize
 
@@ -2249,7 +2371,7 @@ export type NoSerialize<T> =
   | undefined;
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts)
 
 ## NoSerializeSymbol
 
@@ -2259,7 +2381,7 @@ If an object has this property, it will not be serialized. Use this on prototype
 NoSerializeSymbol: unique symbol
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts)
 
 ## OnRenderFn
 
@@ -3981,7 +4103,7 @@ The type your object should conform to is:
 SerializerSymbol: unique symbol
 ```
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/utils/serialize-utils.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/serdes/verify.ts)
 
 ## setPlatform
 

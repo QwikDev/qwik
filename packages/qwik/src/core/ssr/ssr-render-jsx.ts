@@ -1,12 +1,17 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/queue-qrl';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import { EffectProperty } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment, directGetPropsProxyProp } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SSRStream, type SSRStreamChildren } from '../shared/jsx/utils.public';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
@@ -33,13 +38,9 @@ import { qInspector } from '../shared/utils/qdev';
 import { addComponentStylePrefix, isClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
-import { isSignal } from '../reactive-primitives/utils';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
 import type { ISsrComponentFrame, ISsrNode, SSRContainer, SsrAttrs } from './ssr-types';
-import { isQrl } from '../shared/qrl/qrl-utils';
-import { EffectProperty } from '../reactive-primitives/types';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 
 class ParentComponentData {
   constructor(
@@ -171,6 +172,7 @@ function processJSXNode(
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
             key: jsx.key,
+            toSort: jsx.toSort,
           }),
           constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
@@ -311,6 +313,7 @@ interface SsrAttrsOptions {
   serializationCtx: SerializationContext;
   styleScopedId: string | null;
   key?: string | null;
+  toSort?: boolean;
 }
 
 export function varPropsToSsrAttrs(
@@ -330,18 +333,6 @@ export function constPropsToSsrAttrs(
 }
 
 export function toSsrAttrs(
-  record: Record<string, unknown>,
-  anotherRecord: Record<string, unknown>,
-  isConst: boolean,
-  options: SsrAttrsOptions
-): SsrAttrs;
-export function toSsrAttrs(
-  record: Record<string, unknown> | null | undefined,
-  anotherRecord: Record<string, unknown> | null | undefined,
-  isConst: boolean,
-  options: SsrAttrsOptions
-): SsrAttrs | null;
-export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   anotherRecord: Record<string, unknown> | null | undefined,
   isConst: boolean,
@@ -352,8 +343,10 @@ export function toSsrAttrs(
   }
   const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
-  for (const key in record) {
-    let value = record[key];
+  const handleProp = (key: string, value: unknown) => {
+    if (value == null) {
+      return;
+    }
     if (isJsxPropertyAnEventName(key)) {
       if (anotherRecord) {
         /**
@@ -382,7 +375,7 @@ export function toSsrAttrs(
             // merge values from the const props with the var props
             value = getMergedEventPropValues(value, anotherValue);
           } else {
-            continue;
+            return;
           }
         }
       }
@@ -390,7 +383,7 @@ export function toSsrAttrs(
       if (eventValue) {
         ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
       }
-      continue;
+      return;
     }
 
     if (isSignal(value)) {
@@ -402,7 +395,7 @@ export function toSsrAttrs(
         ssrAttrs.push(key, value);
       }
 
-      continue;
+      return;
     }
 
     if (isPreventDefault(key)) {
@@ -412,6 +405,16 @@ export function toSsrAttrs(
     value = serializeAttribute(key, value, options.styleScopedId);
 
     ssrAttrs.push(key, value as string);
+  };
+  if (options.toSort) {
+    const keys = Object.keys(record).sort();
+    for (const key of keys) {
+      handleProp(key, record[key]);
+    }
+  } else {
+    for (const key in record) {
+      handleProp(key, record[key]);
+    }
   }
   if (options.key != null) {
     ssrAttrs.push(ELEMENT_KEY, options.key);

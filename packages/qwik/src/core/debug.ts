@@ -4,7 +4,7 @@ import { vnode_isVNode } from './client/vnode';
 import { ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 import { isStore } from './reactive-primitives/impl/store';
 import { WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
-import { isJSXNode } from './shared/jsx/jsx-runtime';
+import { isJSXNode } from './shared/jsx/jsx-node';
 import { isQrl } from './shared/qrl/qrl-utils';
 import { DEBUG_TYPE } from './shared/types';
 import { isTask } from './use/use-task';

@@ -63,6 +63,10 @@ export const replResolver = (
       if (id.startsWith('/qwik/')) {
         return id;
       }
+      // Replace node: with modules that throw on import
+      if (id.startsWith('node:')) {
+        return id;
+      }
       const match = id.match(/(@builder\.io\/qwik|@qwik\.dev\/core)(.*)/);
       if (match) {
         const pkgName = match[2];
@@ -113,6 +117,9 @@ export const replResolver = (
       const input = options.srcInputs.find((i) => i.path === id);
       if (input && typeof input.code === 'string') {
         return input.code;
+      }
+      if (id.startsWith('node:')) {
+        return `throw new Error('Module "${id}" is not available in the REPL environment.');`;
       }
       if (id.startsWith('/qwik/')) {
         const path = id.slice('/qwik'.length);

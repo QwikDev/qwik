@@ -8,7 +8,7 @@ import type { RequestMessage, ResponseMessage } from './repl-sw';
 import type { ReplAppInput, ReplResult, ReplStore } from './types';
 import { updateReplOutput } from './ui/repl-output-update';
 import type {
-  InitSSRMessage,
+  InitSSRMessage as RunSsrMessage,
   OutgoingMessage as SSROutgoingMessage,
 } from './bundler/repl-ssr-worker';
 import ssrWorkerUrl from './bundler/repl-ssr-worker?worker&url';
@@ -246,52 +246,82 @@ export class ReplInstance {
     return null;
   }
 
-  private async executeSSR(result: ReplResult): Promise<{ html: string; events?: any[] }> {
-    /**
-     * We perform SSR in a separate web worker to avoid polluting the main thread, and to prepare
-     * for routed apps, and to allow importing from the generated build with proxied import()
-     */
-    return new Promise((resolve, reject) => {
-      const entryModule = result.ssrModules.find((m) => m.path.endsWith('.js'));
-      if (!entryModule || typeof entryModule.code !== 'string') {
-        return resolve({ html: errorHtml('No SSR module found', 'SSR') });
-      }
+  private _ssrWorkerP: Promise<Worker> | null = null;
+  private _ssrKey: string | null = null;
+  private _resultResolver: ((result: { html: string; events?: any[] }) => void) | null = null;
 
+  // Get the long-running SSR worker for this build. We don't terminate so it's easy to debug, and later it might handle routes.
+  private async getSsrWorker(result: ReplResult): Promise<Worker> {
+    // TODO we should actually use a server manifest hash here, but this works for now
+    const key = result.manifest?.manifestHash;
+    if (!key) {
+      throw new Error('No manifest found');
+    }
+    if (!this._ssrWorkerP || this._ssrKey !== key) {
+      if (this._ssrWorkerP) {
+        await this._ssrWorkerP.then((w) => w.terminate());
+      }
       // Start from /repl so repl-sw can intercept the requests
       const ssrWorker = new Worker(`/repl${ssrWorkerUrl}`, { type: 'module' });
+      let resolveWorker: (worker: Worker) => void;
+      let rejectWorker: () => void;
+      this._ssrWorkerP = new Promise((res, rej) => {
+        resolveWorker = res;
+        rejectWorker = rej;
+      });
+      this._ssrKey = key;
 
       ssrWorker.onmessage = (e: MessageEvent<SSROutgoingMessage>) => {
         const { type } = e.data;
 
         if (type === 'ready') {
-          const initMessage: InitSSRMessage = {
-            type: 'run-ssr',
-            replId: this.replId,
-            entry: entryModule.path,
-            baseUrl: `/repl/client/${this.replId}/build/`,
-            manifest: result.manifest,
-          };
-          ssrWorker.postMessage(initMessage);
+          resolveWorker(ssrWorker);
         } else if (type === 'ssr-result') {
-          resolve({
+          this._resultResolver?.({
             html: e.data.html,
             events: e.data.events,
           });
-          ssrWorker.terminate();
         } else if (type === 'ssr-error') {
-          resolve({ html: errorHtml(e.data.error, 'SSR') });
-          ssrWorker.terminate();
+          this._resultResolver?.({
+            html: errorHtml(e.data.error, 'SSR'),
+          });
         } else {
-          resolve({ html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR') });
-          ssrWorker.terminate();
+          this._resultResolver?.({
+            html: errorHtml(`Unknown SSR worker response: ${type}`, 'SSR'),
+          });
         }
       };
 
-      ssrWorker.onerror = (error) => {
-        resolve({ html: errorHtml('Worker failed to load', 'SSR ') });
+      ssrWorker.onerror = () => {
+        // Unfortunately onerror doesn't provide error details
+        rejectWorker();
         ssrWorker.terminate();
+        this._ssrWorkerP = null;
       };
-    });
+    }
+    return this._ssrWorkerP;
+  }
+  private async executeSSR(result: ReplResult): Promise<{ html: string; events?: any[] }> {
+    const entryModule = result.ssrModules.find((m) => m.path.includes('entry.server'));
+    if (!entryModule || typeof entryModule.code !== 'string') {
+      return { html: errorHtml('No SSR entry module found', 'SSR') };
+    }
+    try {
+      const ssrWorker = await this.getSsrWorker(result);
+      const ssrMessage: RunSsrMessage = {
+        type: 'run-ssr',
+        replId: this.replId,
+        entry: entryModule.path,
+        baseUrl: `/repl/client/${this.replId}/build/`,
+        manifest: result.manifest,
+      };
+      return new Promise((res) => {
+        this._resultResolver = res;
+        ssrWorker.postMessage(ssrMessage);
+      });
+    } catch (e) {
+      return { html: errorHtml((e as Error).message, 'SSR') };
+    }
   }
 
   markDirty(): void {

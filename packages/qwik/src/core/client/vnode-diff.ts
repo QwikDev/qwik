@@ -1,38 +1,30 @@
 import { isDev } from '@qwik.dev/core/build';
+import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
+import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
+import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
+import type { Signal } from '../reactive-primitives/signal.public';
+import { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
+import { isSignal } from '../reactive-primitives/utils';
+import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
-import {
-  Fragment,
-  JSXNodeImpl,
-  directGetPropsProxyProp,
-  isJSXNode,
-  type Props,
-  type PropsProxy,
-} from '../shared/jsx/jsx-runtime';
+import { QError, qError } from '../shared/error/error';
+import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
+import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { directGetPropsProxyProp, type PropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
-import { trackSignalAndAssignHost } from '../use/use-core';
-import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
-import { EMPTY_OBJ } from '../shared/utils/flyweight';
-import {
-  ELEMENT_KEY,
-  ELEMENT_PROPS,
-  ELEMENT_SEQ,
-  OnRenderProp,
-  QContainerAttr,
-  QDefaultSlot,
-  QSlot,
-  QBackRefs,
-  QTemplate,
-  Q_PREFIX,
-  dangerouslySetInnerHTML,
-} from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
-import { isArray, type ValueOrPromise } from '../shared/utils/types';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { isSyncQrl } from '../shared/qrl/qrl-utils';
+import type { QRL } from '../shared/qrl/qrl.public';
+import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
+import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { ChoreType } from '../shared/util-chore-type';
+import { escapeHTML } from '../shared/utils/character-escaping';
+import { _OWNER } from '../shared/utils/constants';
 import {
   getEventNameFromJsxEvent,
   getEventNameScopeFromJsxEvent,
@@ -40,12 +32,30 @@ import {
   isJsxPropertyAnEventName,
   jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
-import { ChoreType } from '../shared/util-chore-type';
+import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
+import {
+  ELEMENT_KEY,
+  ELEMENT_PROPS,
+  ELEMENT_SEQ,
+  OnRenderProp,
+  QBackRefs,
+  QContainerAttr,
+  QDefaultSlot,
+  QSlot,
+  QTemplate,
+  Q_PREFIX,
+  dangerouslySetInnerHTML,
+} from '../shared/utils/markers';
+import { isPromise } from '../shared/utils/promises';
+import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
-import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { serializeAttribute } from '../shared/utils/styles';
+import { isArray, type ValueOrPromise } from '../shared/utils/types';
+import { trackSignalAndAssignHost } from '../use/use-core';
+import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
 import type { DomContainer } from './dom-container';
 import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
+import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import {
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
@@ -71,24 +81,8 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
-import { mapApp_findIndx } from './util-mapArray';
-import { mapArray_set } from './util-mapArray';
+import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
-import { isSignal } from '../reactive-primitives/utils';
-import type { Signal } from '../reactive-primitives/signal.public';
-import { executeComponent } from '../shared/component-execution';
-import { isSlotProp } from '../shared/utils/prop';
-import { escapeHTML } from '../shared/utils/character-escaping';
-import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
-import { serializeAttribute } from '../shared/utils/styles';
-import { QError, qError } from '../shared/error/error';
-import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
-import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
-import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
-import { isSyncQrl } from '../shared/qrl/qrl-utils';
-import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -390,7 +384,7 @@ export const vnode_diff = (
   function descendContentToProject(children: JSXChildren, host: VirtualVNode | null) {
     const projectionChildren = Array.isArray(children) ? children : [children];
     const createProjectionJSXNode = (slotName: string) => {
-      return new JSXNodeImpl(Projection, EMPTY_OBJ, null, [], 0, slotName);
+      return new JSXNodeImpl(Projection, null, null, [], slotName);
     };
 
     const projections: Array<string | JSXNodeInternal> = [];
@@ -742,10 +736,20 @@ export const vnode_diff = (
 
     const jsxAttrs = [] as ClientAttrs;
     const props = jsx.varProps;
-    for (const key in props) {
-      const value = props[key];
-      if (value != null) {
-        mapArray_set(jsxAttrs, key, value, 0);
+    if (jsx.toSort) {
+      const keys = Object.keys(props).sort();
+      for (const key of keys) {
+        const value = props[key];
+        if (value != null) {
+          jsxAttrs.push(key, value as any);
+        }
+      }
+    } else {
+      for (const key in props) {
+        const value = props[key];
+        if (value != null) {
+          jsxAttrs.push(key, value as any);
+        }
       }
     }
     if (jsxKey !== null) {
@@ -811,12 +815,6 @@ export const vnode_diff = (
         return;
       }
 
-      // Clear current effect subscription if it exists
-      const currentEffect = vnode?.[_EFFECT_BACK_REF]?.get(key);
-      if (currentEffect) {
-        clearEffectSubscription(container, currentEffect);
-      }
-
       if (key === 'ref') {
         const element = vnode.element;
         if (isSignal(value)) {
@@ -832,15 +830,19 @@ export const vnode_diff = (
         }
       }
 
+      const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
       if (isSignal(value)) {
         const unwrappedSignal =
           value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-        const currentSignal =
-          vnode?.[_EFFECT_BACK_REF]?.get(key)?.[EffectSubscriptionProp.CONSUMER];
+        const currentSignal = currentEffect?.[EffectSubscriptionProp.CONSUMER];
         if (currentSignal === unwrappedSignal) {
           return;
         }
-        clearAllEffects(container, vnode);
+        if (currentEffect) {
+          // Clear current effect subscription if it exists
+          // Only if we want to track the signal again
+          clearEffectSubscription(container, currentEffect);
+        }
         value = trackSignalAndAssignHost(
           unwrappedSignal,
           vnode,
@@ -848,6 +850,13 @@ export const vnode_diff = (
           container,
           NON_CONST_SUBSCRIPTION_DATA
         );
+      } else {
+        if (currentEffect) {
+          // Clear current effect subscription if it exists
+          // and the value is not a signal
+          // It means that the previous value was a signal and we need to clear the effect subscription
+          clearEffectSubscription(container, currentEffect);
+        }
       }
 
       vnode.setAttr(
@@ -1213,6 +1222,7 @@ export const vnode_diff = (
               // if any signal is there.
               vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
               vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
+              vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
             } else if (jsxProps) {
               // If there is no props instance, create a new one.
               // We can do this because we are not using the props instance for anything else.

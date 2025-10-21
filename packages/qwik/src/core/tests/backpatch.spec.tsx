@@ -394,7 +394,7 @@ describe('SSR Backpatching', () => {
 
       const { document } = await ssrRenderToDom(<Root />, {
         debug,
-        injection: (document) => {
+        onBeforeResume: (document) => {
           const container = document.querySelector('[q\\:container]');
           const firstChild = container?.firstChild || null;
 
@@ -447,7 +447,7 @@ describe('SSR Backpatching', () => {
 
       const { document } = await ssrRenderToDom(<Root />, {
         debug,
-        injection: (document) => {
+        onBeforeResume: (document) => {
           const container = document.querySelector('[q\\:container]');
           const firstChild = container?.firstChild || null;
 

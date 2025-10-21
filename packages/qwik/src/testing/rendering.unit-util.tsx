@@ -111,7 +111,7 @@ export async function ssrRenderToDom(
     /** Include QwikLoader */
     qwikLoader?: boolean;
     /** Inject nodes into the document before test runs (for testing purposes) */
-    injection?: (document: Document) => void;
+    onBeforeResume?: (document: Document) => void;
   } = {}
 ) {
   let html = '';
@@ -138,8 +138,8 @@ export async function ssrRenderToDom(
 
   emulateExecutionOfQwikFuncs(document);
 
-  if (opts.injection) {
-    opts.injection(document);
+  if (opts.onBeforeResume) {
+    opts.onBeforeResume(document);
   }
 
   emulateExecutionOfBackpatch(document);

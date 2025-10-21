@@ -454,7 +454,10 @@ This is often caused by modifying a signal in an already rendered component duri
             container
           );
           if (blockingChore) {
-            addBlockedChore(blockedChore, blockingChore, blockedChores);
+            // Chore is still blocked, move it to the new blocking chore's list
+            // Note: chore is already in blockedChores Set and vnode.blockedChores,
+            // so we only add to the new blocking chore's list
+            (blockingChore.$blockedChores$ ||= new ChoreArray()).add(blockedChore);
           } else {
             blockedChores.delete(blockedChore);
             if (vnode_isVNode(blockedChore.$host$)) {
@@ -785,8 +788,7 @@ export function addBlockedChore(
       undefined,
       blockedChores
     );
-  blockingChore.$blockedChores$ ||= new ChoreArray();
-  blockingChore.$blockedChores$.add(blockedChore);
+  (blockingChore.$blockedChores$ ||= new ChoreArray()).add(blockedChore);
   blockedChores.add(blockedChore);
   if (vnode_isVNode(blockedChore.$host$)) {
     (blockedChore.$host$.blockedChores ||= new ChoreArray()).add(blockedChore);

@@ -74,7 +74,7 @@ jobs:
         run: echo event_name=${{ github.event_name }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set Dist Tag
         id: set_dist_tag
@@ -207,13 +207,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -261,8 +261,7 @@ jobs:
           - host: macos-latest
             target: aarch64-apple-darwin
 
-          # Note: 2025 image breaks rollup
-          - host: windows-2022
+          - host: windows-latest
             target: x86_64-pc-windows-msvc
 
     name: Build optimizer ${{ matrix.settings.target }}
@@ -272,7 +271,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -281,15 +280,15 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
       - run: pnpm install
       - if: matrix.settings.wasm
-        run: pnpm install wasm-pack
+        run: pnpm install -w wasm-pack
 
       - name: Lint check
         if: matrix.settings.wasm
@@ -391,15 +390,15 @@ jobs:
 
       - name: Checkout
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
         if: needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-others == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -517,7 +516,7 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -536,9 +535,9 @@ jobs:
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -569,13 +568,13 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -629,13 +628,13 @@ jobs:
         run: exit 1
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -685,21 +684,20 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          # flaky. Updating node version or sharp/sqlite3 related deps might help.
-          # - host: windows-2022
+          # - host: windows-latest
           #   browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -733,7 +731,7 @@ jobs:
         run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
 
       - name: Validate Create Qwik Cli
-        if: matrix.settings.host != 'windows-2022'
+        if: matrix.settings.host != 'windows-latest'
         run: pnpm cli.validate
 
   ############ E2E CLI TEST ############
@@ -751,19 +749,19 @@ jobs:
         settings:
           - host: ubuntu-latest
           - host: macos-latest
-          - host: windows-2022
+          - host: windows-latest
 
     runs-on: ${{ matrix.settings.host }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -791,13 +789,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
@@ -871,13 +869,13 @@ jobs:
           path: cli-e2e-tests-completed.txt
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: pnpm/action-setup@v4
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 

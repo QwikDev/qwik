@@ -79,7 +79,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
-    injection?: (document: Document) => void;
+    onBeforeResume?: (document: Document) => void;
 }): Promise<{
     container: _DomContainer;
     document: Document;

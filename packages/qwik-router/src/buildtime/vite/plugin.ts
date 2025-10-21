@@ -114,6 +114,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             QWIK_ROUTER_CONFIG_ID,
             QWIK_ROUTER_ENTRIES_ID,
             QWIK_ROUTER_SW_REGISTER,
+            // We've had reports of bundling issues with zod
+            'zod',
           ],
         },
         server: {

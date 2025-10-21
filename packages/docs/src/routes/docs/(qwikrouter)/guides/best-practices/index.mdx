@@ -140,7 +140,7 @@ useVisibleTask$(({ cleanup }) => {
 });
 ```
 
-The above implementation causes more JavaScript to load eagerly, rather than responding precisely to user events. Increased upfront JavaScript loading results in slower app performance.
+The above implementation causes more JavaScript to load eagerly, rather than responding precisely to user events. Increased upfront JavaScript loading results in slower app performance. See [below](#delaying-core-execution) for more details.
 
 Instead, use the `useOnDocument()` hook to register events on the `document` object, this way Qwik will not execute any JS until the event is triggered.
 
@@ -198,3 +198,144 @@ However, exercise caution! If the required information (such as query parameters
 This approach helps to prevent eager loading of JavaScript and improves performance.
 
 > See: [useLocation() Docs](/docs/(qwikrouter)/api/index.mdx#uselocation)
+
+
+## Delaying Core Execution
+At load time we want to execute as little as possible to free main thread for other priority. With Qwik you can even delay the framework execution (called "core"), but there are some rules to follow.
+
+Some things to keep in mind before checking the rules : 
+- Delaying core execution usually comes at the price of devX, this is an advance performance trick.
+- Like other chunks, core will be preloaded so the app doesn't have to load it at execution time.
+
+### useVisibleTask$
+
+`useVisibleTask$` will **always** execute core before its callback is called.
+
+```jsx
+// Requires core when component is visible in the viewport
+useVisibleTask$(() => {
+  console.log('Hello core');
+});
+
+// Requires core on requestIdleCallback
+useVisibleTask$(
+  () => console.log('Hello core'),
+  { strategy: 'document-idle' }
+);
+```
+
+In **some** cases you can replace `useVisibleTask$` with either `useOn` or `useTask$`
+
+#### useOn
+
+Replace `useVisibleTask$` with `useOn('qvisible')` / `useOn('qidle')` if
+
+- You only need to trigger a callback once
+- The code must run on the client
+
+`useOn`, `useOnDocument` & `useOnWindow` execute core if they use a variable from the component scope :
+
+```jsx title="Comparing core execution"
+import { libId } from 'library';
+const globalId = 'global-id';
+const Component = component$(() => {
+  const ref = useSignal();
+  const id = useId();
+
+  // Executes core at load time
+  useOnDocument('qidle', $(() => console.log(ref)));
+  // Executes core at load time
+  useOnDocument('qidle', $(() => console.log(id)));
+  // Does not execute core at load time
+  useOnDocument('qidle', $(() => console.log(globalId)));
+  // Does not execute core at load time
+  useOnDocument('qidle', $(() => console.log(libId)));
+  // Does not execute core at load time
+  useOnDocument('qidle', $(() => console.log('id')));
+
+  return (
+    <p ref={ref}></p>
+    <p id={id}></p>
+    <p id={globalId}></p>
+    <p id={libId}></p>
+    <p id="id"></p>
+  )
+})
+```
+
+#### useTask$
+
+Replace `useVisibleTask$` with `useTask$` if
+
+- You need to listen on state changes
+- The code can execute on the server
+
+```jsx
+const Component = component$(() => {
+  const search = useSignal();
+  // Does not execute until `search` changes
+  useTask$(({ track }) => {
+    track(search);
+    console.log(search.value);
+  });
+  return <input bind:value={search} type="search" />;
+});
+```
+
+#### useOn + useTask$
+
+A classic usecase of `useVisibleTask$` is to start listening on browser specific event:
+
+```jsx
+const isMobile = useSignal(false);
+useVisibleTask$(({ cleanup }) => {
+  const query = window.matchMedia('(max-width: 400px)');
+  const handler = (event) => {
+    isMobile.value = event.matches;
+  };
+  query.addEventListener('change', handler);
+  cleanup(() => query.removeEventListener('change', handler));
+});
+```
+
+In this case we actually need core when the handler is triggered. Here is how to delay core execution :
+
+```jsx
+const isMobile = useSignal(false);
+// On idle, start listening on the event
+useOnDocument(
+  'qidle',
+  sync$(() => {
+    const query = window.matchMedia('(max-width: 400px)');
+    const handler = (event) => {
+      // Forward the event to the document
+      const copy = new event.constructor('media-query:(max-width: 400px)', event);
+      document.dispatchEvent(copy);
+    };
+    // Store mediaQuery & handler to cleanup later
+    document['cleanup:media-query:(max-width: 400px)'] = () => {
+      query.removeEventListener('change', handler)
+    };
+    query.addEventListener('change', handler);
+  })
+);
+
+// useOnDocument execute core when it actually needs it
+useOnDocument(
+  'media-query:(max-width: 400px)',
+  $((event) => {
+    isMobile.value = event.matches;
+  })
+);
+
+// useTask$ is used to cleanup event listeners
+useTask$(({ cleanup }) => {
+  cleanup(() => {
+    if (!document['cleanup:media-query:(max-width: 400px)']) return;
+    document['cleanup:media-query:(max-width: 400px)']();
+    delete document['cleanup:media-query:(max-width: 400px)'];
+  });
+});
+```
+
+As we can see, this is a LOT of work, and it's not a great dev experience ! But if you're building a library or just trying to go as lean as possible, this is possible.

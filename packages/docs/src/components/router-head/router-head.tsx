@@ -1,7 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 import { useDocumentHead, useLocation } from '@qwik.dev/router';
 import { Social } from './social';
-import { ThemeScript } from './theme-script';
+import { ThemeScript } from '../theme-toggle/theme-script';
 import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {

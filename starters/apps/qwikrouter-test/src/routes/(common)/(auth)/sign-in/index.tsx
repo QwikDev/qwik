@@ -10,7 +10,7 @@ import {
   globalAction$,
   zod$,
 } from "@qwik.dev/router";
-import { z } from "zod";
+import * as z from "zod";
 import { isUserAuthenticated, signIn } from "../../../../auth/auth";
 
 export const onGet: RequestHandler = async ({ redirect, cookie }) => {

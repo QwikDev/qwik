@@ -117,7 +117,7 @@ The initialization process will create some important files for you.
 
 ### Declare Route Details
 ```typescript title="/src/routes/pokemon/[pokemonId]/routeInfo.ts"
-import { z } from "zod";
+import * as z from "zod";
 
 export const Route = {
   name: "PokemonDetail",

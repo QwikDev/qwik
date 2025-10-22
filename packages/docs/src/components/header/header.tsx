@@ -18,7 +18,7 @@ import { GithubLogo } from '../svgs/github-logo';
 import { MoreIcon } from '../svgs/more-icon';
 import { QwikLogo } from '../svgs/qwik-logo';
 import { TwitterLogo } from '../svgs/twitter-logo';
-import { ThemeToggle } from '../theme-toggle/theme-toggle';
+import { ThemeToggle } from '../theme-toggle';
 import styles from './header.css?inline';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {

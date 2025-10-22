@@ -436,6 +436,7 @@ export declare function ssrRenderToDom(
     debug?: boolean;
     raw?: boolean;
     qwikLoader?: boolean;
+    onBeforeResume?: (document: Document) => void;
   },
 ): Promise<{
   container: _DomContainer;
@@ -475,7 +476,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
 
 </td><td>
 

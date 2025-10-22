@@ -1,7 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 import { useDocumentHead, useLocation } from '@qwik.dev/router';
 import { Social } from './social';
-import { ThemeScript } from '../theme-toggle/theme-script';
+import { InjectThemeScript } from '../theme-toggle';
 import { Vendor } from './vendor';
 
 export const RouterHead = component$(() => {
@@ -85,7 +85,7 @@ export const RouterHead = component$(() => {
         <style key={key} {...s.props} dangerouslySetInnerHTML={s.style} />
       ))}
 
-      <ThemeScript />
+      <InjectThemeScript />
     </>
   );
 });

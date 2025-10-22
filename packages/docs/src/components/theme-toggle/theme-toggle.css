@@ -10,8 +10,8 @@
   height: 21px;
 }
 
-button.pref-light .themeIcon.light,
-button.pref-dark .themeIcon.dark,
-button.pref-auto .themeIcon.auto {
+:root[data-theme='light']:not([data-theme-auto]) .themeIcon.light,
+:root[data-theme='dark']:not([data-theme-auto]) .themeIcon.dark,
+:root[data-theme-auto] .themeIcon.auto {
   opacity: 1;
 }

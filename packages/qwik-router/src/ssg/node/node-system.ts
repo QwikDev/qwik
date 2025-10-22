@@ -7,7 +7,7 @@ import { createNodeWorkerProcess } from './node-worker';
 import { normalizePath } from '../../utils/fs';
 
 /** @public */
-export async function createSystem(opts: SsgOptions) {
+export async function createSystem(opts: SsgOptions, threadId?: number): Promise<System> {
   const createWriteStream = (filePath: string) => {
     return fs.createWriteStream(filePath, {
       flags: 'w',
@@ -26,6 +26,13 @@ export async function createSystem(opts: SsgOptions) {
   };
 
   const createLogger = async () => {
+    if (threadId !== undefined) {
+      return {
+        debug: opts.log === 'debug' ? console.debug.bind(console, `[${threadId}]`) : () => {},
+        error: console.error.bind(console, `[${threadId}]`),
+        info: console.info.bind(console, `[${threadId}]`),
+      };
+    }
     return {
       debug: opts.log === 'debug' ? console.debug.bind(console) : () => {},
       error: console.error.bind(console),

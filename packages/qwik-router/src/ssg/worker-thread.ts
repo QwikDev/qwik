@@ -22,35 +22,46 @@ export async function workerThread(sys: System) {
   delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
+  const log = await sys.createLogger();
 
   const opts: SsgHandlerOptions = {
     ...ssgOpts,
+    // TODO export this from server
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    // TODO this should be built-in
     qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
       .default,
   };
 
-  sys.createWorkerProcess(async (msg) => {
-    switch (msg.type) {
-      case 'render': {
-        return new Promise<SsgWorkerRenderResult>((resolve) => {
-          workerRender(sys, opts, msg, pendingPromises, resolve);
-        });
+  sys
+    .createWorkerProcess(async (msg) => {
+      switch (msg.type) {
+        case 'render': {
+          log.debug(`Worker thread rendering: ${msg.pathname}`);
+          return new Promise<SsgWorkerRenderResult>((resolve) => {
+            workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
+              console.error('Error during render', msg.pathname, e);
+            });
+          });
+        }
+        case 'close': {
+          if (pendingPromises.size) {
+            log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
+            const promises = Array.from(pendingPromises);
+            pendingPromises.clear();
+            await Promise.all(promises);
+          }
+          log.debug(`Worker thread closed`);
+          return { type: 'close' };
+        }
       }
-      case 'close': {
-        const promises = Array.from(pendingPromises);
-        pendingPromises.clear();
-        await Promise.all(promises);
-        return { type: 'close' };
-      }
-    }
-  });
+    })
+    ?.catch((e) => {
+      console.error('Worker process creation failed', e);
+    });
 }
 
 export async function createSingleThreadWorker(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
@@ -63,7 +74,9 @@ export async function createSingleThreadWorker(sys: System) {
 
   return (staticRoute: SsgRoute) => {
     return new Promise<SsgWorkerRenderResult>((resolve) => {
-      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve).catch((e) => {
+        console.error('Error during render', staticRoute.pathname, e);
+      });
     });
   };
 }
@@ -269,6 +282,13 @@ async function workerRender(
           }
           console.error('Error during request handling', staticRoute.pathname, e);
         }
+      })
+      .catch((e) => {
+        console.error('Unhandled error during request handling', staticRoute.pathname, e);
+        result.error = {
+          message: String(e),
+          stack: e.stack || '',
+        };
       })
       .finally(() => {
         pendingPromises.delete(promise);

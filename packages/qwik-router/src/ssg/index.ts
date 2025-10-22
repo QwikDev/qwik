@@ -10,7 +10,7 @@ import type { SsgOptions, SsgRenderOptions, SsgResult } from './types';
  */
 export async function generate(opts: SsgOptions) {
   const ssgPlatform = await getEntryModule();
-  const result: SsgResult = (await ssgPlatform.generate(opts)) as any;
+  const result: SsgResult = await ssgPlatform.generate(opts);
   return result;
 }
 
@@ -20,27 +20,10 @@ export type {
   SsgResult as StaticGenerateResult,
 };
 
-function getEntryModule() {
-  if (isDeno()) {
-    return import('./deno');
+async function getEntryModule() {
+  try {
+    return await import('./node');
+  } catch (e) {
+    throw new Error(`Unsupported platform`, { cause: e });
   }
-  if (isBun() || isNode()) {
-    return import('./node');
-  }
-  throw new Error(`Unsupported platform`);
 }
-
-function isDeno() {
-  return typeof Deno !== 'undefined';
-}
-
-function isBun() {
-  return typeof Bun !== 'undefined';
-}
-
-function isNode() {
-  return !isBun() && !isDeno() && typeof process !== 'undefined' && !!process.versions?.node;
-}
-
-declare const Deno: any;
-declare const Bun: any;

@@ -13,6 +13,8 @@ try {
     getItem = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   el.setAttribute('data-theme', getItem);
-} catch {}
+} catch {
+  // ignore
+}
 
 export {};

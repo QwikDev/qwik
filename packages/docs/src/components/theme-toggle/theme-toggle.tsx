@@ -44,7 +44,9 @@ const getThemeFromLS = (): ThemePreference => {
   if (!isServer) {
     try {
       theme = localStorage.getItem(themeStorageKey);
-    } catch {}
+    } catch {
+      // ignore
+    }
   }
   return (theme as ThemePreference) || 'auto';
 };

@@ -13,7 +13,6 @@ import { Worker } from 'node:worker_threads';
 import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
-import { createSingleThreadWorker } from '../worker-thread';
 
 export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
@@ -51,28 +50,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     }
   }
 
-  const singleThreadWorker = await createSingleThreadWorker(sys);
-
-  const createWorker = (workerIndex: number) => {
-    if (workerIndex === 0) {
-      // same thread worker, don't start a new process
-      const ssgSameThreadWorker: StaticGeneratorWorker = {
-        activeTasks: 0,
-        totalTasks: 0,
-
-        render: async (staticRoute) => {
-          ssgSameThreadWorker.activeTasks++;
-          ssgSameThreadWorker.totalTasks++;
-          const result = await singleThreadWorker(staticRoute);
-          ssgSameThreadWorker.activeTasks--;
-          return result;
-        },
-
-        terminate: async () => {},
-      };
-      return ssgSameThreadWorker;
-    }
-
+  const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
 
@@ -98,7 +76,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     }
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
-
+    nodeWorker.unref();
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,
       totalTasks: 0,
@@ -223,7 +201,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   }
 
   for (let i = 0; i < maxWorkers; i++) {
-    ssgWorkers.push(createWorker(i));
+    ssgWorkers.push(createWorker());
   }
 
   const mainCtx: MainContext = {

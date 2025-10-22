@@ -8,12 +8,12 @@ import {
   useQwikRouter,
 } from '@qwik.dev/router';
 import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
+import { Social } from './components/router-head/social';
+import { Vendor } from './components/router-head/vendor';
+import { InjectThemeScript } from './components/theme-toggle';
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-import { Social } from './components/router-head/social';
-import { Vendor } from './components/router-head/vendor';
-import { ThemeScript } from './components/theme-toggle/theme-script';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -148,7 +148,7 @@ export default component$(() => {
           <script key={key} {...s.props} dangerouslySetInnerHTML={s.script} />
         ))}
 
-        <ThemeScript />
+        <InjectThemeScript />
         <script dangerouslySetInnerHTML={uwu} />
 
         <ServiceWorkerRegister />

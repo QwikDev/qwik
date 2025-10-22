@@ -1,92 +1,100 @@
-import { component$, event$, isServer, useSignal, useStyles$ } from '@builder.io/qwik';
-import { themeStorageKey } from './theme-script';
-import themeToggle from './theme-toggle.css?inline';
-import { SunIcon } from './Sun';
-import { MoonIcon } from './Moon';
+/**
+ * Theme Toggle Component
+ *
+ * The effective theme is stored on the `<html>` element as a `data-theme` attribute. There is also
+ * the `data-theme-auto` attribute which is present when the user has selected "auto" theme.
+ */
+import { component$, event$, isServer, useContext, useStyles$ } from '@builder.io/qwik';
+import { useVisibleTask$ } from '@qwik.dev/core';
+import { GlobalStore, type SiteStore } from '~/context';
 import { BrillianceIcon } from './Brilliance';
+import { MoonIcon } from './Moon';
+import { SunIcon } from './Sun';
+import toggleCss from './theme-toggle.css?inline';
+
 export type ThemePreference = 'dark' | 'light' | 'auto';
 
-export const getSystemIsDark = (): boolean =>
-  window.matchMedia('(prefers-color-scheme: dark)').matches;
+const themeStorageKey = 'theme';
 
-export const getEffectiveTheme = (preference: ThemePreference): 'light' | 'dark' => {
-  if (preference === 'auto') {
-    return getSystemIsDark() ? 'dark' : 'light';
+const queryDark = () => window.matchMedia('(prefers-color-scheme: dark)');
+
+const getEffectiveTheme = (stored: ThemePreference, systemDark = queryDark().matches) => {
+  if (stored === 'auto') {
+    return systemDark ? 'dark' : 'light';
   }
-  return preference;
+  return stored;
 };
-export const setPreference = (theme: ThemePreference) => {
+
+const applyTheme = (store: SiteStore, theme: ThemePreference, systemDark = queryDark().matches) => {
+  const effective = getEffectiveTheme(theme, systemDark);
+  store.theme = effective;
+  const el = document.firstElementChild!;
+  el.setAttribute('data-theme', effective);
   if (theme === 'auto') {
-    const el = document.firstElementChild;
-    if (!el) {
-      return;
-    }
-    el.setAttribute('data-theme', getEffectiveTheme('auto'));
+    el.setAttribute('data-theme-auto', '');
+    localStorage.removeItem(themeStorageKey);
   } else {
-    const el = document.firstElementChild;
-    if (!el) {
-      return;
-    }
-    el.setAttribute('data-theme', theme!);
+    el.removeAttribute('data-theme-auto');
+    localStorage.setItem(themeStorageKey, theme);
   }
-
-  localStorage.setItem(themeStorageKey, theme);
 };
 
-export const getColorPreference = (): ThemePreference => {
-  if (isServer) {
-    return 'auto';
-  }
+const getThemeFromLS = (): ThemePreference => {
   let theme;
-  try {
-    theme = localStorage.getItem(themeStorageKey);
-  } catch {
-    //
+  if (!isServer) {
+    try {
+      theme = localStorage.getItem(themeStorageKey);
+    } catch {}
   }
   return (theme as ThemePreference) || 'auto';
 };
 
 export const ThemeToggle = component$(() => {
-  useStyles$(themeToggle);
-  const preference = useSignal<ThemePreference>(getColorPreference());
-  const onClick$ = event$(() => {
-    let currentTheme = preference.value;
-    if (currentTheme === 'dark') {
-      currentTheme = 'light';
-    } else if (currentTheme === 'light') {
-      currentTheme = 'auto';
-    } else if (currentTheme === 'auto') {
-      currentTheme = 'dark';
-    }
-    setPreference(currentTheme);
-    preference.value = currentTheme;
+  useStyles$(toggleCss);
+  const store = useContext(GlobalStore);
+
+  useVisibleTask$(
+    () => {
+      const pref = getThemeFromLS();
+      const query = queryDark();
+
+      applyTheme(store, pref, query.matches);
+
+      // Listen to system theme changes
+      const listener = ({ matches: prefersDark }: MediaQueryListEvent) => {
+        const currentPref = getThemeFromLS();
+        applyTheme(store, currentPref, prefersDark);
+      };
+
+      query.addEventListener('change', listener);
+      return () => query.removeEventListener('change', listener);
+    },
+    { strategy: 'document-idle' }
+  );
+
+  const toggleTheme$ = event$(() => {
+    let currentTheme = getThemeFromLS();
+    currentTheme = currentTheme === 'dark' ? 'light' : currentTheme === 'light' ? 'auto' : 'dark';
+    applyTheme(store, currentTheme);
   });
 
   return (
     <>
       <button
-        onClick$={onClick$}
-        class={[
-          'group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0',
-          {
-            'pref-light': preference.value === 'light',
-            'pref-dark': preference.value === 'dark',
-            'pref-auto': preference.value === 'auto',
-          },
-        ]}
+        onClick$={toggleTheme$}
+        class="group relative flex h-8 m-auto items-center justify-center rounded-md bg-background text-foreground hover:opacity-60 sm:w-8 sm:px-0"
+        type="button"
+        title="Toggle theme - light, system, dark"
       >
-        <div class="absolute inset-0 hidden sm:grid place-items-center transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-75">
+        <span class="inset-0 hidden sm:grid place-items-center transition-transform duration-200 ease-out group-hover:scale-110 group-active:scale-75">
           <SunIcon class="themeIcon light col-start-1 row-start-1" />
           <MoonIcon class="themeIcon dark col-start-1 row-start-1" />
           <BrillianceIcon class="themeIcon auto col-start-1 row-start-1" />
-        </div>
-        <div class="lg:hidden font-medium leading-none">
-          {preference.value === 'light'
-            ? 'Light theme'
-            : preference.value === 'dark'
-              ? 'Dark theme'
-              : 'Auto'}
-        </div>
+        </span>
+        {/* theme-name is provided by global.css */}
+        <span class="lg:hidden font-medium leading-none ">
+          &nbsp;<span class="theme-name">&nbsp;Theme</span>
+        </span>
       </button>
     </>
   );

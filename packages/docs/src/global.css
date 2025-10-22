@@ -176,6 +176,10 @@
   --panel-toggle-background-color: var(--qwik-dark-blue);
 }
 
+:root[data-theme-auto] {
+  --theme-name: 'system';
+}
+
 .theme-name::before {
   content: var(--theme-name);
   text-transform: capitalize;

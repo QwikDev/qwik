@@ -1,19 +1,19 @@
-import { noSerialize } from '@qwik.dev/core';
+import { isServer, noSerialize } from '@qwik.dev/core';
 import type { Diagnostic } from '@qwik.dev/core/optimizer';
 import type MonacoTypes from 'monaco-editor';
-import type { EditorProps, EditorStore } from './editor';
-import type { ReplStore } from '../types';
-import { getTheme } from '../../components/theme-toggle/theme-toggle';
-import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
-import { isServer } from '@qwik.dev/core';
-import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import type { ThemePreference } from '~/components/theme-toggle';
 import cssTypes from '../../../../qwik/node_modules/csstype/index.d.ts?raw';
+import { bundled, getDeps, getNpmCdnUrl } from '../bundler/bundled';
+import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
+import type { ReplStore } from '../types';
+import type { EditorProps, EditorStore } from './editor';
 
 export const initMonacoEditor = async (
   containerElm: any,
   props: EditorProps,
   editorStore: EditorStore,
-  replStore: ReplStore
+  replStore: ReplStore,
+  theme: ThemePreference
 ) => {
   const monaco = await getMonaco();
   const ts = monaco.languages.typescript;
@@ -50,7 +50,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getColorPreference() === 'dark'),
+    theme: getEditorTheme(theme),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);
@@ -136,8 +136,8 @@ export const updateMonacoEditor = async (props: EditorProps, editorStore: Editor
   }
 };
 
-export const getEditorTheme = (isDark: boolean) => {
-  return isDark ? 'vs-dark' : 'vs';
+export const getEditorTheme = (theme: ThemePreference) => {
+  return theme === 'light' ? 'vs' : 'vs-dark';
 };
 
 const checkDiagnostics = async (
@@ -300,7 +300,7 @@ const loadDeps = async (pkgVersion: string) => {
   return monacoCtx.deps;
 };
 
-const getMonaco = async (): Promise<Monaco> => {
+export const getMonaco = async (): Promise<Monaco> => {
   if (isServer) {
     throw new Error('Monaco cannot be used on the server');
   }

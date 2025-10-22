@@ -6,7 +6,7 @@ export interface System {
   createMainProcess: (() => Promise<MainContext>) | null;
   createWorkerProcess: (
     onMessage: (msg: WorkerInputMessage) => Promise<WorkerOutputMessage>
-  ) => void;
+  ) => void | Promise<void>;
   createLogger: () => Promise<Logger>;
   getOptions: () => SsgOptions;
   ensureDir: (filePath: string) => Promise<void>;

@@ -11,9 +11,9 @@ import RealMetricsOptimization from './components/real-metrics-optimization/real
 import { BUILDER_PUBLIC_API_KEY } from './constants';
 import { GlobalStore, type SiteStore } from './context';
 import './global.css';
-import { ThemeScript } from './components/router-head/theme-script';
 import { Social } from './components/router-head/social';
 import { Vendor } from './components/router-head/vendor';
+import { ThemeScript } from './components/theme-toggle/theme-script';
 
 export const uwu = /*javascript*/ `
 ;(function () {
@@ -56,6 +56,7 @@ export default component$(() => {
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
+    theme: 'auto',
     pkgManager: 'pnpm',
   });
 

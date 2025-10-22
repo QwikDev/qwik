@@ -50,7 +50,7 @@ export const initMonacoEditor = async (
     lineNumbers: props.lineNumbers,
     wordWrap: props.wordWrap,
     model: null,
-    theme: getEditorTheme(getTheme() === 'dark'),
+    theme: getEditorTheme(getColorPreference() === 'dark'),
   });
 
   ts.typescriptDefaults.setEagerModelSync(true);

@@ -18,7 +18,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
-
+  let hasExited = false;
   opts = { ...opts };
 
   let outDir = opts.outDir;
@@ -103,7 +103,17 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
           terminateResolve = resolve;
           nodeWorker.postMessage(msg);
         });
-        await nodeWorker.terminate();
+        // Wait for worker to exit naturally (it calls process.exit(0) after close)
+        // If it doesn't exit in time, force terminate
+        const maxWaitMs = 1000;
+        const startTime = Date.now();
+        while (!hasExited && Date.now() - startTime < maxWaitMs) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+
+        if (!hasExited) {
+          await nodeWorker.terminate();
+        }
       },
     };
 
@@ -133,6 +143,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     });
 
     nodeWorker.on('exit', (code) => {
+      hasExited = true;
       if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
@@ -187,9 +198,15 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
         console.error(e);
       }
     }
-    ssgWorkers.length = 0;
 
     await Promise.all(promises);
+    ssgWorkers.length = 0;
+
+    // On Windows, give extra time for all workers to fully exit
+    // This prevents resource conflicts in back-to-back builds
+    if (process.platform === 'win32') {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
   };
 
   if (sitemapOutFile) {
@@ -202,6 +219,10 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
 
   for (let i = 0; i < maxWorkers; i++) {
     ssgWorkers.push(createWorker());
+    // On Windows, add delay between worker creation to avoid resource contention
+    if (process.platform === 'win32' && i < maxWorkers - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   }
 
   const mainCtx: MainContext = {

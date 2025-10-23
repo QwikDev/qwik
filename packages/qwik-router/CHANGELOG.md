@@ -294,7 +294,7 @@
   To use it, you need to pass `experimental: ['valibot']` as an option to the `qwikVite` plugin as such:
 
   ```ts
-  // vite.config.mts
+  // vite.config.ts
 
   export default defineConfig(({ command, mode }): UserConfig => {
     return {

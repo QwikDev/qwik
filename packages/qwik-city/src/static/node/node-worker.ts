@@ -6,8 +6,5 @@ export async function createNodeWorkerProcess(
 ) {
   parentPort?.on('message', async (msg: WorkerInputMessage) => {
     parentPort?.postMessage(await onMessage(msg));
-    if (msg.type === 'close') {
-      parentPort?.close();
-    }
   });
 }

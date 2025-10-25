@@ -2,15 +2,15 @@
 import type { StaticGenerateOptions, System } from '../types';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
+import { patchGlobalThis } from '../../middleware/node/node-fetch';
 import { createNodeMainProcess } from './node-main';
 import { createNodeWorkerProcess } from './node-worker';
 import { normalizePath } from '../../utils/fs';
 
 /** @public */
-export async function createSystem(
-  opts: StaticGenerateOptions,
-  threadId?: number
-): Promise<System> {
+export async function createSystem(opts: StaticGenerateOptions) {
+  patchGlobalThis();
+
   const createWriteStream = (filePath: string) => {
     return fs.createWriteStream(filePath, {
       flags: 'w',
@@ -29,13 +29,6 @@ export async function createSystem(
   };
 
   const createLogger = async () => {
-    if (threadId !== undefined) {
-      return {
-        debug: opts.log === 'debug' ? console.debug.bind(console, `[${threadId}]`) : () => {},
-        error: console.error.bind(console, `[${threadId}]`),
-        info: console.info.bind(console, `[${threadId}]`),
-      };
-    }
     return {
       debug: opts.log === 'debug' ? console.debug.bind(console) : () => {},
       error: console.error.bind(console),

@@ -18,7 +18,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   const ssgWorkers: StaticGeneratorWorker[] = [];
   const sitemapBuffer: string[] = [];
   let sitemapPromise: Promise<any> | null = null;
-  let hasExited = false;
+
   opts = { ...opts };
 
   let outDir = opts.outDir;
@@ -55,6 +55,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     const mainTasks = new Map<string, WorkerMainTask>();
 
     let workerFilePath: string | URL;
+    let terminateTimeout: number | null = null;
 
     // Launch the worker using the package's index module, which bootstraps the worker thread.
     if (typeof __filename === 'string') {
@@ -103,17 +104,9 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
           terminateResolve = resolve;
           nodeWorker.postMessage(msg);
         });
-        // Wait for worker to exit naturally (it calls process.exit(0) after close)
-        // If it doesn't exit in time, force terminate
-        const maxWaitMs = 1000;
-        const startTime = Date.now();
-        while (!hasExited && Date.now() - startTime < maxWaitMs) {
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-
-        if (!hasExited) {
+        terminateTimeout = setTimeout(async () => {
           await nodeWorker.terminate();
-        }
+        }, 1000) as unknown as number;
       },
     };
 
@@ -143,7 +136,10 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     });
 
     nodeWorker.on('exit', (code) => {
-      hasExited = true;
+      if (terminateTimeout) {
+        clearTimeout(terminateTimeout);
+        terminateTimeout = null;
+      }
       if (code !== 0) {
         console.error(`worker exit ${code}`);
       }

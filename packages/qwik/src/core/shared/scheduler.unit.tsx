@@ -411,6 +411,185 @@ describe('scheduler', () => {
     });
   });
 
+  describe('deadline-based async flushing', () => {
+    let scheduler: ReturnType<typeof createScheduler> = null!;
+    let document: ReturnType<typeof createDocument> = null!;
+    let vHost: VirtualVNode = null!;
+
+    async function waitForDrain() {
+      await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      (globalThis as any).testLog = [];
+      vi.useFakeTimers();
+      document = createDocument();
+      document.body.setAttribute(QContainerAttr, 'paused');
+      const container = getDomContainer(document.body);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      scheduler = createScheduler(
+        container,
+        () => testLog.push('journalFlush'),
+        choreQueue,
+        blockedChores,
+        runningChores
+      );
+      vnode_newUnMaterializedElement(document.body);
+      vHost = vnode_newVirtual();
+      vHost.setProp('q:id', 'host');
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it('fast async (<16ms) + long async (>16ms): flush at ~16ms while long runs', async () => {
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+      // Fast async (5ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 0,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fastAsync');
+                  resolve();
+                }, 5)
+              )
+          ),
+        })
+      );
+      // Long async (1000ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 1,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('longAsync');
+                  resolve();
+                }, 1000)
+              )
+          ),
+        })
+      );
+
+      // Advance to 5ms: fast async resolves
+      await vi.advanceTimersByTimeAsync(5);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+      ]);
+
+      await vi.advanceTimersByTimeAsync(FREQUENCY_MS - 5);
+
+      // Flush should have occurred before longAsync finishes
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+        // after task execution flush
+        'journalFlush',
+      ]);
+
+      // Finish long async
+      await vi.advanceTimersByTimeAsync(1000 - FREQUENCY_MS);
+
+      // Now long async completes and a final flush happens at end of drain
+      const drainPromise = waitForDrain();
+      // Need to advance timers to process the nextTick that waitForDrain schedules
+      await vi.advanceTimersByTimeAsync(0);
+      await drainPromise;
+
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+        // after task execution flush
+        'journalFlush',
+        'longAsync',
+        'journalFlush',
+        // TODO: not sure why this is here, but seems related to the vi.advanceTimersByTimeAsync(0) above
+        'journalFlush',
+      ]);
+    });
+
+    it('multiple fast async (<16ms total): do not flush between, only after', async () => {
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+      // Two fast async chores: 5ms and 6ms (total 11ms < 16ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 0,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fast1');
+                  resolve();
+                }, 5)
+              )
+          ),
+        })
+      );
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 1,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fast2');
+                  resolve();
+                }, 6)
+              )
+          ),
+        })
+      );
+
+      // First resolves at 5ms
+      await vi.advanceTimersByTimeAsync(5);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+      ]);
+
+      // Second resolves at 11ms
+      await vi.advanceTimersByTimeAsync(6);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+        'fast2',
+      ]);
+
+      await vi.advanceTimersByTimeAsync(FREQUENCY_MS - 11);
+
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+        'fast2',
+        // journal flush after fast1/fast2 chore
+        'journalFlush',
+      ]);
+    });
+  });
+
   describe('addChore', () => {
     let choreArray: ChoreArray;
     let vHost: VirtualVNode;

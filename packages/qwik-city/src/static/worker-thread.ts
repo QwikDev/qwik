@@ -22,8 +22,7 @@ export async function workerThread(sys: System) {
     // TODO export this from server
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
     // TODO this should be built-in
-    qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
-      .default,
+    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
   };
 
   sys

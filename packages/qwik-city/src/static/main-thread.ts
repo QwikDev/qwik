@@ -80,17 +80,13 @@ export async function mainThread(sys: System) {
         while (!isCompleted && main.hasAvailableWorker() && queue.length > 0) {
           const staticRoute = queue.shift();
           if (staticRoute) {
-            render(staticRoute).catch((e) => {
-              console.error(`render failed for ${staticRoute.pathname}`, e);
-            });
+            render(staticRoute);
           }
         }
 
         if (!isCompleted && isRoutesLoaded && queue.length === 0 && active.size === 0) {
           isCompleted = true;
-          completed().catch((e) => {
-            console.error('SSG completion failed', e);
-          });
+          completed();
         }
       };
 
@@ -138,7 +134,6 @@ export async function mainThread(sys: System) {
 
           flushQueue();
         } catch (e) {
-          console.error(`render failed for ${staticRoute.pathname}`, e);
           isCompleted = true;
           reject(e);
         }
@@ -221,12 +216,8 @@ export async function mainThread(sys: System) {
         flushQueue();
       };
 
-      loadStaticRoutes().catch((e) => {
-        console.error('SSG route loading failed', e);
-        reject(e);
-      });
+      loadStaticRoutes();
     } catch (e) {
-      console.error('SSG main thread failed', e);
       reject(e);
     }
   });
@@ -253,6 +244,6 @@ function validateOptions(opts: StaticGenerateOptions) {
   try {
     new URL(siteOrigin);
   } catch (e) {
-    throw new Error(`Invalid "origin"`, { cause: e as Error });
+    throw new Error(`Invalid "origin": ${e}`);
   }
 }

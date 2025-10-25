@@ -15,7 +15,7 @@ export async function generate(opts: StaticGenerateOptions) {
 }
 
 if (!isMainThread && workerData) {
-  const opts = workerData as SsgOptions;
+  const opts = workerData as StaticGenerateOptions;
   (async () => {
     try {
       if (opts.log === 'debug') {

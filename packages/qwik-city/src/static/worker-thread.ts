@@ -15,42 +15,28 @@ import { _deserializeData, _serializeData, _verifySerializable } from '@builder.
 export async function workerThread(sys: System) {
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
-  const log = await sys.createLogger();
 
   const opts: StaticGenerateHandlerOptions = {
     ...ssgOpts,
-    // TODO export this from server
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    // TODO this should be built-in
     qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
   };
 
-  sys
-    .createWorkerProcess(async (msg) => {
-      switch (msg.type) {
-        case 'render': {
-          log.debug(`Worker thread rendering: ${msg.pathname}`);
-          return new Promise<StaticWorkerRenderResult>((resolve) => {
-            workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
-              console.error('Error during render', msg.pathname, e);
-            });
-          });
-        }
-        case 'close': {
-          if (pendingPromises.size) {
-            log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
-            const promises = Array.from(pendingPromises);
-            pendingPromises.clear();
-            await Promise.all(promises);
-          }
-          log.debug(`Worker thread closed`);
-          return { type: 'close' };
-        }
+  sys.createWorkerProcess(async (msg) => {
+    switch (msg.type) {
+      case 'render': {
+        return new Promise<StaticWorkerRenderResult>((resolve) => {
+          workerRender(sys, opts, msg, pendingPromises, resolve);
+        });
       }
-    })
-    ?.catch((e) => {
-      console.error('Worker process creation failed', e);
-    });
+      case 'close': {
+        const promises = Array.from(pendingPromises);
+        pendingPromises.clear();
+        await Promise.all(promises);
+        return { type: 'close' };
+      }
+    }
+  });
 }
 
 export async function createSingleThreadWorker(sys: System) {
@@ -65,9 +51,7 @@ export async function createSingleThreadWorker(sys: System) {
 
   return (staticRoute: StaticRoute) => {
     return new Promise<StaticWorkerRenderResult>((resolve) => {
-      workerRender(sys, opts, staticRoute, pendingPromises, resolve).catch((e) => {
-        console.error('Error during render', staticRoute.pathname, e);
-      });
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
     });
   };
 }
@@ -269,13 +253,6 @@ async function workerRender(
             };
           }
         }
-      })
-      .catch((e) => {
-        console.error('Unhandled error during request handling', staticRoute.pathname, e);
-        result.error = {
-          message: String(e),
-          stack: e.stack || '',
-        };
       })
       .finally(() => {
         pendingPromises.delete(promise);

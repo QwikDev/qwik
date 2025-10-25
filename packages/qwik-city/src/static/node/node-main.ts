@@ -10,9 +10,10 @@ import type {
 import fs from 'node:fs';
 import { cpus as nodeCpus } from 'node:os';
 import { Worker } from 'node:worker_threads';
-import { dirname, extname, isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
+import { createSingleThreadWorker } from '../worker-thread';
 
 export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
@@ -50,34 +51,45 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     }
   }
 
-  const createWorker = () => {
+  const singleThreadWorker = await createSingleThreadWorker(sys);
+
+  const createWorker = (workerIndex: number) => {
+    if (workerIndex === 0) {
+      // same thread worker, don't start a new process
+      const ssgSameThreadWorker: StaticGeneratorWorker = {
+        activeTasks: 0,
+        totalTasks: 0,
+
+        render: async (staticRoute) => {
+          ssgSameThreadWorker.activeTasks++;
+          ssgSameThreadWorker.totalTasks++;
+          const result = await singleThreadWorker(staticRoute);
+          ssgSameThreadWorker.activeTasks--;
+          return result;
+        },
+
+        terminate: async () => {},
+      };
+      return ssgSameThreadWorker;
+    }
+
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
 
     let workerFilePath: string | URL;
-    let terminateTimeout: number | null = null;
 
-    // Launch the worker using the package's index module, which bootstraps the worker thread.
     if (typeof __filename === 'string') {
-      // CommonJS path
-      const ext = extname(__filename) || '.js';
-      workerFilePath = join(dirname(__filename), `index${ext}`);
+      workerFilePath = __filename;
     } else {
-      // ESM path (import.meta.url)
-      const thisUrl = new URL(import.meta.url);
-      const pathname = thisUrl.pathname || '';
-      let ext = '.js';
-      if (pathname.endsWith('.ts')) {
-        ext = '.ts';
-      } else if (pathname.endsWith('.mjs')) {
-        ext = '.mjs';
-      }
+      workerFilePath = import.meta.url;
+    }
 
-      workerFilePath = new URL(`./index${ext}`, thisUrl);
+    if (typeof workerFilePath === 'string' && workerFilePath.startsWith('file://')) {
+      workerFilePath = new URL(workerFilePath);
     }
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
-    nodeWorker.unref();
+
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,
       totalTasks: 0,
@@ -104,9 +116,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
           terminateResolve = resolve;
           nodeWorker.postMessage(msg);
         });
-        terminateTimeout = setTimeout(async () => {
-          await nodeWorker.terminate();
-        }, 1000) as unknown as number;
+        await nodeWorker.terminate();
       },
     };
 
@@ -136,11 +146,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     });
 
     nodeWorker.on('exit', (code) => {
-      if (terminateTimeout) {
-        clearTimeout(terminateTimeout);
-        terminateTimeout = null;
-      }
-      if (code !== 0) {
+      if (code !== 1) {
         console.error(`worker exit ${code}`);
       }
     });
@@ -194,15 +200,9 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
         console.error(e);
       }
     }
-
-    await Promise.all(promises);
     ssgWorkers.length = 0;
 
-    // On Windows, give extra time for all workers to fully exit
-    // This prevents resource conflicts in back-to-back builds
-    if (process.platform === 'win32') {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    }
+    await Promise.all(promises);
   };
 
   if (sitemapOutFile) {
@@ -214,11 +214,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   }
 
   for (let i = 0; i < maxWorkers; i++) {
-    ssgWorkers.push(createWorker());
-    // On Windows, add delay between worker creation to avoid resource contention
-    if (process.platform === 'win32' && i < maxWorkers - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
+    ssgWorkers.push(createWorker(i));
   }
 
   const mainCtx: MainContext = {

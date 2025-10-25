@@ -44,6 +44,5 @@ export default defineConfig({
     port: 3000,
     stdout: 'pipe',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
   },
 });

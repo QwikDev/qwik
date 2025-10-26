@@ -34,11 +34,7 @@ export const isJsxPropertyAnEventName = (name: string): boolean => {
 };
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
-  return (
-    name.startsWith(EventNameHtmlScope.on) ||
-    name.startsWith(EventNameHtmlScope.window) ||
-    name.startsWith(EventNameHtmlScope.document)
-  );
+  return /^on(|-(window|document)):/.test(name);
 };
 
 /**

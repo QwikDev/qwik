@@ -8,6 +8,7 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
+import { EventNameHtmlScope } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -27,7 +28,7 @@ export type EventQRL<T extends string = AllEventKeys> =
  */
 // </docs>
 export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn('on:', event, eventQrl);
+  _useOn(EventNameHtmlScope.on, event, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -60,7 +61,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn('on-document:', event, eventQrl);
+  _useOn(EventNameHtmlScope.document, event, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -94,7 +95,7 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn('on-window:', event, eventQrl);
+  _useOn(EventNameHtmlScope.window, event, eventQrl);
 };
 
 const _useOn = (prefix: string, eventName: string | string[], eventQrl: EventQRL) => {

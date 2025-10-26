@@ -1,5 +1,11 @@
 # @builder.io/qwik-city
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 `zod` is now imported as `import * as z from 'zod'`, which vastly improves bundling. The Insights app client code reduced by 12kB. (by [@wmertens](https://github.com/wmertens) in [#8042](https://github.com/QwikDev/qwik/pull/8042))
+
 ## 1.17.0
 
 ### Patch Changes

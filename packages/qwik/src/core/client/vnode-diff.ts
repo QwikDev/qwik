@@ -27,9 +27,8 @@ import { escapeHTML } from '../shared/utils/character-escaping';
 import { _OWNER } from '../shared/utils/constants';
 import {
   getEventDataFromHtmlAttribute,
-  getEventNameFromHtmlAttribute,
-  getEventNameScopeFromJsxEvent,
   isHtmlAttributeAnEventName,
+  isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -613,16 +612,14 @@ export const vnode_diff = (
               vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
               registerQwikLoaderEvent(eventName);
             }
-
-            if (scope) {
-              // add an event attr with empty value for qwikloader element selector.
-              // We don't need value here. For ssr this value is a QRL,
-              // but for CSR value should be just empty
-              vNewNode!.setAttr(key, '', journal);
-            }
           }
 
           needsQDispatchEventPatch = true;
+          continue;
+        }
+
+        if (isJsxPropertyAnEventName(key)) {
+          // ignore jsx properties
           continue;
         }
 
@@ -865,19 +862,13 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromHtmlAttribute(key);
-      const scope = getEventNameScopeFromJsxEvent(key);
-      if (eventName) {
+      const data = getEventDataFromHtmlAttribute(key);
+      if (data) {
+        const [eventName, scope] = data;
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
-      }
-
-      if (scope) {
-        // add an event attr with empty value for qwikloader element selector.
-        // We don't need value here. For ssr this value is a QRL,
-        // but for CSR value should be just empty
-        record(key, '');
+        patchEventDispatch = true;
       }
     };
 
@@ -889,6 +880,18 @@ export const vnode_diff = (
 
       // Skip special keys in destination (HANDLER_PREFIX, Q_PREFIX)
       if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
+        dstIdx += 2; // skip key and value
+        continue;
+      }
+
+      if (srcKey && isJsxPropertyAnEventName(srcKey)) {
+        // ignore jsx properties
+        srcIdx += 2; // skip key and value
+        continue;
+      }
+
+      if (dstKey && isJsxPropertyAnEventName(dstKey)) {
+        // ignore jsx properties
         dstIdx += 2; // skip key and value
         continue;
       }
@@ -906,7 +909,6 @@ export const vnode_diff = (
         // Destination exhausted: add remaining source keys
         const srcValue = srcAttrs[srcIdx + 1];
         if (isHtmlAttributeAnEventName(srcKey)) {
-          patchEventDispatch = true;
           recordJsxEvent(srcKey, srcValue);
         } else {
           record(srcKey, srcValue);
@@ -928,7 +930,6 @@ export const vnode_diff = (
         // Source has a key not in destination: add it
         const srcValue = srcAttrs[srcIdx + 1];
         if (isHtmlAttributeAnEventName(srcKey)) {
-          patchEventDispatch = true;
           recordJsxEvent(srcKey, srcValue);
         } else {
           record(srcKey, srcValue);

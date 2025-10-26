@@ -884,18 +884,6 @@ export const vnode_diff = (
         continue;
       }
 
-      if (srcKey && isJsxPropertyAnEventName(srcKey)) {
-        // ignore jsx properties
-        srcIdx += 2; // skip key and value
-        continue;
-      }
-
-      if (dstKey && isJsxPropertyAnEventName(dstKey)) {
-        // ignore jsx properties
-        dstIdx += 2; // skip key and value
-        continue;
-      }
-
       if (srcKey === undefined) {
         // Source exhausted: remove remaining destination keys
         if (isHtmlAttributeAnEventName(dstKey!)) {

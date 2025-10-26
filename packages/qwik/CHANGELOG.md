@@ -1,5 +1,13 @@
 # @builder.io/qwik
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 the bunding won't lead to circular dependencies in qwik-astro apps anymore. (by [@maiieul](https://github.com/maiieul) in [#8052](https://github.com/QwikDev/qwik/pull/8052))
+
+- ✨ The optimizer is now built with a recent Rust toolchain. Fresher bits! (by [@wmertens](https://github.com/wmertens) in [#8040](https://github.com/QwikDev/qwik/pull/8040))
+
 ## 1.17.0
 
 ### Minor Changes

@@ -8,7 +8,12 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
-import { EventNameHtmlScope } from '../shared/utils/event-names';
+import {
+  DOM_CONTENT_LOADED_EVENT,
+  EventNameHtmlScope,
+  createEventName,
+  type EventNameJSXScope,
+} from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -98,7 +103,7 @@ export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl:
   _useOn(EventNameHtmlScope.window, event, eventQrl);
 };
 
-const _useOn = (prefix: string, eventName: string | string[], eventQrl: EventQRL) => {
+const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQrl: EventQRL) => {
   const { isAdded, addEvent } = useOnEventsSequentialScope();
   if (isAdded) {
     return;
@@ -106,10 +111,10 @@ const _useOn = (prefix: string, eventName: string | string[], eventQrl: EventQRL
   if (eventQrl) {
     if (Array.isArray(eventName)) {
       for (const event of eventName) {
-        addEvent(`${prefix}${event}`, eventQrl);
+        addEvent(createEventName(event, prefix), eventQrl);
       }
     } else {
-      addEvent(`${prefix}${eventName}`, eventQrl);
+      addEvent(createEventName(eventName, prefix), eventQrl);
     }
   }
 };

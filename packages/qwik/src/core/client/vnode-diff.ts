@@ -29,6 +29,7 @@ import {
   getEventDataFromHtmlAttribute,
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
+  jsxEventToEventName,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -764,7 +765,7 @@ export const vnode_diff = (
       // Event handler needs to be patched onto the element.
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
-          const eventName = event.type;
+          const eventName = jsxEventToEventName(event.type, 0, event.type.length);
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
             vNode.getProp<QRL>(eventProp, null),

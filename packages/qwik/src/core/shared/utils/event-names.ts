@@ -22,6 +22,7 @@ export const enum EventNameHtmlScope {
 }
 
 export const EVENT_SUFFIX = '$';
+export const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
 
 export const isJsxPropertyAnEventName = (name: string): boolean => {
   return (
@@ -52,23 +53,32 @@ export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {
     const [prefix, idx] = getEventScopeDataFromJsxEvent(jsxEvent);
 
     if (idx !== -1) {
-      const eventName = jsxEventToEventName(jsxEvent, idx);
-      return prefix + fromCamelToKebabCase(eventName);
+      return createEventName(jsxEvent, prefix, idx, jsxEvent.length - 1 /* don't include `$` */);
     }
   }
   return null; // Return null if not matching expected format
 }
 
-function jsxEventToEventName(jsxEvent: string, startIdx: number = 0): string {
-  const chunk = jsxEvent.substring(startIdx, jsxEvent.length - 1 /* don't include `$` */);
+export function createEventName(
+  event: string,
+  prefix: EventNameHtmlScope,
+  startIdx = 0,
+  endIdx = event.length
+): string {
+  const eventName = jsxEventToEventName(event, startIdx, endIdx);
+  return prefix + fromCamelToKebabCase(eventName);
+}
+
+export function jsxEventToEventName(jsxEvent: string, startIdx: number, endIdx: number): string {
+  const chunk = jsxEvent.substring(startIdx, endIdx);
   if (chunk === 'DOMContentLoaded') {
     return '-d-o-m-content-loaded';
   }
   return chunk.toLowerCase();
 }
 
-export function getEventScopeDataFromJsxEvent(eventName: string): [string | null, number] {
-  let prefix: EventNameHtmlScope | null = null;
+export function getEventScopeDataFromJsxEvent(eventName: string): [EventNameHtmlScope, number] {
+  let prefix: EventNameHtmlScope = EventNameHtmlScope.on;
   let idx = -1;
   // set prefix and idx based on the scope
   if (eventName.startsWith(EventNameJSXScope.on)) {
@@ -107,11 +117,11 @@ export const fromCamelToKebabCase = (text: string): string => {
 };
 
 export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] | null => {
-  if (htmlKey.startsWith('on:')) {
+  if (htmlKey.startsWith(EventNameHtmlScope.on)) {
     return ['', htmlKey.substring(3)];
   }
-  if (htmlKey.startsWith('on-window:')) {
-    return ['window', htmlKey.substring(11)];
+  if (htmlKey.startsWith(EventNameHtmlScope.window)) {
+    return ['window', htmlKey.substring(10)];
   }
-  return ['document', htmlKey.substring(13)];
+  return ['document', htmlKey.substring(12)];
 };

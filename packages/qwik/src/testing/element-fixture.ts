@@ -74,8 +74,8 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
-function isDocumentOrWindowEvent(eventName: string): boolean {
-  return eventName.startsWith(':document:') || eventName.startsWith(':window:');
+function isDocumentOrWindowEvent(scope: QwikLoaderEventScope): boolean {
+  return scope === '-document' || scope === '-window';
 }
 
 /**
@@ -148,7 +148,7 @@ export const dispatch = async (
   event: Event,
   scope: QwikLoaderEventScope
 ) => {
-  const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
+  const isDocumentOrWindow = isDocumentOrWindowEvent(scope);
   const preventAttributeName =
     PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
   const stopPropagationName = STOP_PROPAGATION + event.type;

@@ -42,7 +42,6 @@ import {
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
   escapeHTML,
-  isClassAttr,
   mapArray_get,
   mapArray_has,
   mapArray_set,

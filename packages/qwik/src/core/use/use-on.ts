@@ -8,12 +8,7 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
-import {
-  DOM_CONTENT_LOADED_EVENT,
-  EventNameHtmlScope,
-  createEventName,
-  type EventNameJSXScope,
-} from '../shared/utils/event-names';
+import { EventNameHtmlScope, createEventName } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>

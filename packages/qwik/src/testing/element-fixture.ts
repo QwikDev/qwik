@@ -3,11 +3,7 @@ import type { ClientContainer } from '@qwik.dev/core/internal';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
-import {
-  EventNameHtmlScope,
-  EventNameJSXScope,
-  fromCamelToKebabCase,
-} from '../core/shared/utils/event-names';
+import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
 import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
@@ -120,7 +116,11 @@ export async function trigger(
       cancelable: true,
     });
     Object.assign(event, eventPayload);
-    const prefix = scope ? EventNameJSXScope.on + scope + ':' : EventNameHtmlScope.on;
+    const prefix = scope
+      ? scope === '-document'
+        ? EventNameHtmlScope.document
+        : EventNameHtmlScope.window
+      : EventNameHtmlScope.on;
     const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }

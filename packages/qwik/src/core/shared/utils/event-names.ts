@@ -41,40 +41,21 @@ export const isHtmlAttributeAnEventName = (name: string): boolean => {
   );
 };
 
-/**
- * Converts a JSX event property to an HTML attribute. Examples:
- *
- * - OnClick$ -> on:click
- * - On-DOMContentLoaded$ -> on:-d-o-m-content-loaded
- * - On-CustomEvent$ -> on:-custom-event
- */
 export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {
   if (jsxEvent.endsWith(EVENT_SUFFIX)) {
     const [prefix, idx] = getEventScopeDataFromJsxEvent(jsxEvent);
 
     if (idx !== -1) {
-      return createEventName(jsxEvent, prefix, idx, jsxEvent.length - 1 /* don't include `$` */);
+      const name = jsxEvent.slice(idx, -1);
+      return createEventName(name, prefix);
     }
   }
   return null; // Return null if not matching expected format
 }
 
-export function createEventName(
-  event: string,
-  prefix: EventNameHtmlScope,
-  startIdx = 0,
-  endIdx = event.length
-): string {
-  const eventName = jsxEventToEventName(event, startIdx, endIdx);
-  return prefix + fromCamelToKebabCase(eventName);
-}
-
-export function jsxEventToEventName(jsxEvent: string, startIdx: number, endIdx: number): string {
-  const chunk = jsxEvent.substring(startIdx, endIdx);
-  if (chunk === 'DOMContentLoaded') {
-    return '-d-o-m-content-loaded';
-  }
-  return chunk.toLowerCase();
+export function createEventName(event: string, prefix: EventNameHtmlScope): string {
+  const eventName = event === 'DOMContentLoaded' ? '-d-o-m-content-loaded' : event.toLowerCase();
+  return prefix + eventName;
 }
 
 export function getEventScopeDataFromJsxEvent(eventName: string): [EventNameHtmlScope, number] {

@@ -57,7 +57,7 @@ export interface Container {
 
 export type HostElement = VNode | ISsrNode;
 
-export interface QElement extends HTMLElement {
+export interface QElement extends Element {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
   vNode?: VNode;
 }

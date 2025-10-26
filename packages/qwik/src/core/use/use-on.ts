@@ -23,6 +23,12 @@ export type EventQRL<T extends string = AllEventKeys> =
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
  *
+ * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
+ * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
+ * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
+ * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
+ * You can always check the exact event name in the handler if needed.
+ *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
@@ -39,6 +45,12 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
+ *
+ * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
+ * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
+ * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
+ * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
+ * You can always check the exact event name in the handler if needed.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -72,6 +84,12 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
+ *
+ * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
+ * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
+ * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
+ * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
+ * You can always check the exact event name in the handler if needed.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.

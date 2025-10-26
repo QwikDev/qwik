@@ -23,7 +23,8 @@ contributors:
   - Balastrong
   - Jemsco
   - shairez
-updated_at: '2024-01-09T20:55:11Z'
+  - wmertens
+updated_at: '2025-10-26T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -298,6 +299,10 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 </CodeSandbox>
 
 > Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
+
+Event names are case sensitive, but all DOM events except for `DOMContentLoaded` are lowercase. For a better DX, event names are always lowercased, so `onTripleClick$` becomes `tripleclick` under the hood.
+
+To listen for a custom event with uppercase letters, you must use kebab-case. For example, to listen for a custom event named `CustomEvent`, you would use `on-Custom-Event$` or `on-custom-event$`. The handler would then be called for events named: `CustomEvent`, `-custom-event`, `Custom-event` and `-customEvent`. In practice, this combining of events should not be a problem, but you can check the exact event name in the handler if needed.
 
 ## Window and Document Events
 

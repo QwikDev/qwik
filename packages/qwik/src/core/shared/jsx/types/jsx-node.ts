@@ -53,9 +53,25 @@ export interface JSXNodeInternal<T extends string | FunctionComponent | unknown 
   toSort: boolean;
   /** The key property */
   key: string | null;
-  /** Props that are not guaranteed shallow equal across runs. Does not contain children or key */
+  /**
+   * Props that are not guaranteed shallow equal across runs.
+   *
+   * Any prop that is in `constProps` takes precedence over `varProps`.
+   *
+   * Does not contain `children` or `key`.
+   *
+   * `onEvent$` props are normalized to the html `on:event` version
+   */
   varProps: Props;
-  /** Props that will be shallow equal across runs. Does not contain children or key */
+  /**
+   * Props that will be shallow equal across runs. Does not contain any props that are in varProps.
+   *
+   * Any prop that is in `constProps` takes precedence over `varProps`.
+   *
+   * Does not contain `children` or `key`.
+   *
+   * `onEvent$` props are normalized to the html `on:event` version
+   */
   constProps: Props | null;
   /** The children of the node */
   children: JSXChildren;

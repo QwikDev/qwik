@@ -125,7 +125,6 @@ export async function trigger(
     await dispatch(element, attrName, event, scope);
   }
   const waitForQueueChore = container?.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
-  await getTestPlatform().flush();
   if (waitForIdle && waitForQueueChore) {
     await waitForQueueChore.$returnValue$;
   }

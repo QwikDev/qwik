@@ -28,7 +28,7 @@ import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './ut
 import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
-import { EventNameJSXScope } from './utils/event-names';
+import { EventNameHtmlScope } from './utils/event-names';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -159,8 +159,8 @@ function addUseOnEvents(
           // if the component is headless, we need to add the event to the placeholder element
           if (
             key === qVisibleEvent ||
-            key.startsWith(EventNameJSXScope.document) ||
-            key.startsWith(EventNameJSXScope.window)
+            key.startsWith(EventNameHtmlScope.document) ||
+            key.startsWith(EventNameHtmlScope.window)
           ) {
             if (!placeholderElement) {
               const [createdElement, newJsx] = injectPlaceholderElement(jsxResult);

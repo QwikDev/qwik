@@ -16,7 +16,11 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import { qrlToString, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
-import { isHtmlAttributeAnEventName, isPreventDefault } from '../shared/utils/event-names';
+import {
+  getEventDataFromHtmlAttribute,
+  isHtmlAttributeAnEventName,
+  isPreventDefault,
+} from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -435,9 +439,9 @@ function addQwikEventToSerializationContext(
   qrl: QRL
 ) {
   // TODO extract window/document too so qwikloader can precisely listen
-  const match = /^on(|-(window|document)):(.+)$/.exec(key);
-  if (match) {
-    const eventName = match[3];
+  const data = getEventDataFromHtmlAttribute(key);
+  if (data) {
+    const eventName = data[1];
     serializationCtx.$eventNames$.add(eventName);
     serializationCtx.$eventQrls$.add(qrl);
   }

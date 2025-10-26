@@ -26,11 +26,10 @@ import { ChoreType } from '../shared/util-chore-type';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _OWNER } from '../shared/utils/constants';
 import {
-  getEventNameFromJsxEvent,
+  getEventDataFromHtmlAttribute,
+  getEventNameFromHtmlAttribute,
   getEventNameScopeFromJsxEvent,
   isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
-  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -604,23 +603,22 @@ export const vnode_diff = (
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
         let value = constProps[key];
-        if (isJsxPropertyAnEventName(key)) {
-          // So for event handlers we must add them to the vNode so that qwikloader can look them up
-          // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxEvent(key);
-          const scope = getEventNameScopeFromJsxEvent(key);
-          if (eventName) {
-            vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
-            registerQwikLoaderEvent(eventName);
-          }
+        if (isHtmlAttributeAnEventName(key)) {
+          const data = getEventDataFromHtmlAttribute(key);
+          if (data) {
+            const scope = data[0];
+            const eventName = data[1];
 
-          if (scope) {
-            // add an event attr with empty value for qwikloader element selector.
-            // We don't need value here. For ssr this value is a QRL,
-            // but for CSR value should be just empty
-            const htmlEvent = jsxEventToHtmlAttribute(key);
-            if (htmlEvent) {
-              vNewNode!.setAttr(htmlEvent, '', journal);
+            if (eventName) {
+              vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+              registerQwikLoaderEvent(eventName);
+            }
+
+            if (scope) {
+              // add an event attr with empty value for qwikloader element selector.
+              // We don't need value here. For ssr this value is a QRL,
+              // but for CSR value should be just empty
+              vNewNode!.setAttr(key, '', journal);
             }
           }
 
@@ -867,7 +865,7 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxEvent(key);
+      const eventName = getEventNameFromHtmlAttribute(key);
       const scope = getEventNameScopeFromJsxEvent(key);
       if (eventName) {
         record(':' + scope + ':' + eventName, value);
@@ -879,10 +877,7 @@ export const vnode_diff = (
         // add an event attr with empty value for qwikloader element selector.
         // We don't need value here. For ssr this value is a QRL,
         // but for CSR value should be just empty
-        const htmlEvent = jsxEventToHtmlAttribute(key);
-        if (htmlEvent) {
-          record(htmlEvent, '');
-        }
+        record(key, '');
       }
     };
 
@@ -910,7 +905,7 @@ export const vnode_diff = (
       } else if (dstKey === undefined) {
         // Destination exhausted: add remaining source keys
         const srcValue = srcAttrs[srcIdx + 1];
-        if (isJsxPropertyAnEventName(srcKey)) {
+        if (isHtmlAttributeAnEventName(srcKey)) {
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcValue);
         } else {
@@ -932,7 +927,7 @@ export const vnode_diff = (
       } else if (srcKey < dstKey) {
         // Source has a key not in destination: add it
         const srcValue = srcAttrs[srcIdx + 1];
-        if (isJsxPropertyAnEventName(srcKey)) {
+        if (isHtmlAttributeAnEventName(srcKey)) {
           patchEventDispatch = true;
           recordJsxEvent(srcKey, srcValue);
         } else {

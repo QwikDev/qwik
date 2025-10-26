@@ -53,7 +53,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
         const attr = jsxEventToHtmlAttribute(k);
         if (attr) {
           mergeHandlers(this.constProps, attr, this.constProps[k] as QRL);
-          this.constProps[k] = undefined;
+          delete this.constProps[k];
         }
       }
       for (const k in this.varProps) {
@@ -63,7 +63,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
           if (!constProps || !(k in constProps)) {
             toSort = mergeHandlers(this.varProps, attr, this.varProps[k] as QRL) || toSort;
           }
-          this.varProps[k] = undefined;
+          delete this.varProps[k];
         }
       }
 

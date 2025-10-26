@@ -61,7 +61,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
         if (attr) {
           // constProps always wins
           if (!constProps || !(k in constProps)) {
-            toSort ||= mergeHandlers(this.varProps, attr, this.varProps[k] as QRL);
+            toSort = mergeHandlers(this.varProps, attr, this.varProps[k] as QRL) || toSort;
           }
           this.varProps[k] = undefined;
         }
@@ -69,9 +69,9 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
 
       // bind:*
       if (BIND_CHECKED in this.varProps) {
-        toSort ||= handleBindProp(this.varProps, BIND_CHECKED)!;
+        toSort = handleBindProp(this.varProps, BIND_CHECKED)! || toSort;
       } else if (BIND_VALUE in this.varProps) {
-        toSort ||= handleBindProp(this.varProps, BIND_VALUE)!;
+        toSort = handleBindProp(this.varProps, BIND_VALUE)! || toSort;
       } else if (this.constProps) {
         if (BIND_CHECKED in this.constProps) {
           handleBindProp(this.constProps, BIND_CHECKED);

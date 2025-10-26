@@ -864,7 +864,7 @@ export const vnode_diff = (
     const recordJsxEvent = (key: string, value: any) => {
       const data = getEventDataFromHtmlAttribute(key);
       if (data) {
-        const [eventName, scope] = data;
+        const [scope, eventName] = data;
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
@@ -920,10 +920,18 @@ export const vnode_diff = (
         // Keys match: update if values differ
         const srcValue = srcAttrs[srcIdx + 1];
         const dstValue = dstAttrs[dstIdx + 1];
+        const isEventHandler = isHtmlAttributeAnEventName(srcKey);
         if (srcValue !== dstValue) {
-          record(srcKey, srcValue);
-          // Update in place doesn't change array length
+          if (isEventHandler) {
+            recordJsxEvent(srcKey, srcValue);
+          } else {
+            record(srcKey, srcValue);
+          }
+        } else if (isEventHandler && !vnode.element.qDispatchEvent) {
+          // Special case: add event handlers after resume
+          recordJsxEvent(srcKey, srcValue);
         }
+        // Update in place doesn't change array length
         srcIdx += 2; // skip key and value
         dstIdx += 2; // skip key and value
       } else if (srcKey < dstKey) {

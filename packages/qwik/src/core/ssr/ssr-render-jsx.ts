@@ -439,12 +439,6 @@ function addQwikEventToSerializationContext(
   if (match) {
     const eventName = match[3];
     serializationCtx.$eventNames$.add(eventName);
-    console.log(
-      'addQwikEventToSerializationContext',
-      key,
-      eventName,
-      serializationCtx.$eventNames$
-    );
     serializationCtx.$eventQrls$.add(qrl);
   }
 }

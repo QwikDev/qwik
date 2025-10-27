@@ -1,3 +1,4 @@
+// oxlint-disable no-unused-vars
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 import { useOn, type EventQRL } from './use-on';
 import { $, type QRL, type QrlReturn } from '../shared/qrl/qrl.public';
@@ -13,15 +14,15 @@ describe('types', () => {
     const wrong1 = (ev: MouseEvent, elem: Element, extra: string) => 'hello';
     const wrong2 = (ev: boolean) => 'hello';
 
-    expectTypeOf<undefined>().toMatchTypeOf<EventQRL>();
-    expectTypeOf<QRL<typeof cb0>>().toMatchTypeOf<EventQRL>();
-    expectTypeOf<QRL<typeof cb1>>().toMatchTypeOf<EventQRL>();
-    expectTypeOf<QRL<typeof cb2>>().toMatchTypeOf<EventQRL>();
+    expectTypeOf<undefined>().toExtend<EventQRL>();
+    expectTypeOf<QRL<typeof cb0>>().toExtend<EventQRL>();
+    expectTypeOf<QRL<typeof cb1>>().toExtend<EventQRL>();
+    expectTypeOf<QRL<typeof cb2>>().toExtend<EventQRL>();
 
-    expectTypeOf<QRL<typeof cbAny>>().toMatchTypeOf<EventQRL>();
+    expectTypeOf<QRL<typeof cbAny>>().toExtend<EventQRL>();
 
-    expectTypeOf<QRL<typeof wrong1>>().not.toMatchTypeOf<EventQRL>();
-    expectTypeOf<QRL<typeof wrong2>>().not.toMatchTypeOf<EventQRL>();
+    expectTypeOf<QRL<typeof wrong1>>().not.toExtend<EventQRL>();
+    expectTypeOf<QRL<typeof wrong2>>().not.toExtend<EventQRL>();
   });
 
   test('inferring', () => () => {
@@ -35,7 +36,7 @@ describe('types', () => {
     expectTypeOf(called.ev).not.toBeAny();
     expectTypeOf(called.el).not.toBeAny();
     assertType<Element | undefined>(called.el);
-    expectTypeOf<Event>().toMatchTypeOf(called.ev);
+    expectTypeOf(called.ev).toExtend<Event>();
   });
 
   test('useOn', () => () => {

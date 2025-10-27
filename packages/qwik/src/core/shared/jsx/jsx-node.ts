@@ -1,4 +1,6 @@
 import { createQRL } from '../qrl/qrl-class';
+import type { QRL } from '../qrl/qrl.public';
+import { jsxEventToHtmlAttribute } from '../utils/event-names';
 import { EMPTY_OBJ } from '../utils/flyweight';
 import { logOnceWarn, logWarn } from '../utils/log';
 import { qDev, seal } from '../utils/qdev';
@@ -46,11 +48,30 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
     }
 
     if (typeof type === 'string') {
+      // convert onEvent$ to on:event
+      for (const k in this.constProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
+          mergeHandlers(this.constProps, attr, this.constProps[k] as QRL);
+          delete this.constProps[k];
+        }
+      }
+      for (const k in this.varProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
+          // constProps always wins
+          if (!constProps || !(k in constProps)) {
+            toSort = mergeHandlers(this.varProps, attr, this.varProps[k] as QRL) || toSort;
+          }
+          delete this.varProps[k];
+        }
+      }
+
       // bind:*
       if (BIND_CHECKED in this.varProps) {
-        toSort ||= handleBindProp(this.varProps, BIND_CHECKED)!;
+        toSort = handleBindProp(this.varProps, BIND_CHECKED)! || toSort;
       } else if (BIND_VALUE in this.varProps) {
-        toSort ||= handleBindProp(this.varProps, BIND_VALUE)!;
+        toSort = handleBindProp(this.varProps, BIND_VALUE)! || toSort;
       } else if (this.constProps) {
         if (BIND_CHECKED in this.constProps) {
           handleBindProp(this.constProps, BIND_CHECKED);
@@ -91,6 +112,21 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
   }
 }
 
+/** @returns `true` if the event is new to the object */
+export const mergeHandlers = (obj: Props, event: string, handler: QRL) => {
+  let current = obj[event];
+  if (current) {
+    if (Array.isArray(current)) {
+      current.push(handler);
+    } else {
+      current = obj[event] = [current, handler];
+    }
+  } else {
+    obj[event] = handler;
+    return true;
+  }
+};
+
 /** @internal */
 export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
   if (qDev) {
@@ -122,10 +158,10 @@ const handleBindProp = (props: Props, prop: string) => {
   if (value) {
     if (prop === BIND_CHECKED) {
       props.checked = value;
-      props.onInput$ = createQRL(null, '_chk', _chk, null, null, [value]);
+      props['on:input'] = createQRL(null, '_chk', _chk, null, null, [value]);
     } else {
       props.value = value;
-      props.onInput$ = createQRL(null, '_val', _val, null, null, [value]);
+      props['on:input'] = createQRL(null, '_val', _val, null, null, [value]);
     }
     return true;
   }

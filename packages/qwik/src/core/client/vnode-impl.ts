@@ -10,6 +10,7 @@ import type { ChoreArray } from './chore-array';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
 import { BackRef } from '../reactive-primitives/cleanup';
 import { isDev } from '@qwik.dev/core/build';
+import type { QElement } from '../shared/types';
 
 /** @internal */
 export abstract class VNode extends BackRef {
@@ -137,7 +138,7 @@ export class ElementVNode extends VNode {
     nextSibling: VNode | null | undefined,
     public firstChild: VNode | null | undefined,
     public lastChild: VNode | null | undefined,
-    public element: Element,
+    public element: QElement,
     public elementName: string | undefined
   ) {
     super(flags, parent, previousSibling, nextSibling);

@@ -8,11 +8,7 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
-import {
-  DOMContentLoadedEvent,
-  EventNameJSXScope,
-  eventNameToJsxEvent,
-} from '../shared/utils/event-names';
+import { EventNameHtmlScope, fromCamelToKebabCase } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -27,12 +23,14 @@ export type EventQRL<T extends string = AllEventKeys> =
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
  *
+ * Events are case sensitive.
+ *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
  */
 // </docs>
 export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, EventNameJSXScope.on), eventQrl);
+  _useOn(EventNameHtmlScope.on, event, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnDocument">
@@ -43,6 +41,8 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
+ *
+ * Events are case sensitive.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -65,7 +65,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  */
 // </docs>
 export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, EventNameJSXScope.document), eventQrl);
+  _useOn(EventNameHtmlScope.document, event, eventQrl);
 };
 
 // <docs markdown="../readme.md#useOnWindow">
@@ -76,6 +76,8 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  *
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
+ *
+ * Events are case sensitive.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -99,32 +101,22 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  */
 // </docs>
 export const useOnWindow = <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => {
-  _useOn(createEventName(event, EventNameJSXScope.window), eventQrl);
+  _useOn(EventNameHtmlScope.window, event, eventQrl);
 };
 
-const createEventName = (
-  event: KnownEventNames | KnownEventNames[],
-  eventScope: EventNameJSXScope
-) => {
-  const map = (name: string) => {
-    let prefix: string = eventScope;
-    if (name === DOMContentLoadedEvent) {
-      prefix += '-'; // Add hyphen at the start if case-sensitive
-    }
-    return eventNameToJsxEvent(name, prefix);
-  };
-  return Array.isArray(event) ? event.map(map) : map(event);
-};
-
-const _useOn = (eventName: string | string[], eventQrl: EventQRL) => {
+const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQrl: EventQRL) => {
   const { isAdded, addEvent } = useOnEventsSequentialScope();
   if (isAdded) {
     return;
   }
   if (eventQrl) {
-    Array.isArray(eventName)
-      ? eventName.forEach((event) => addEvent(event, eventQrl))
-      : addEvent(eventName, eventQrl);
+    if (Array.isArray(eventName)) {
+      for (const event of eventName) {
+        addEvent(prefix + fromCamelToKebabCase(event), eventQrl);
+      }
+    } else {
+      addEvent(prefix + fromCamelToKebabCase(eventName), eventQrl);
+    }
   }
 };
 

@@ -10,16 +10,15 @@ import { jsxEventToHtmlAttribute } from './event-names';
  */
 const testCases = [
   // default scope
-  { jsx: 'onClick$', html: 'on:click' },
+  { jsx: 'onClick$', html: 'on:click', eventName: 'click' },
   { jsx: 'onDblClick$', html: 'on:dblclick' },
-  { jsx: 'on-customEvent$', html: 'on:-customevent' },
-  { jsx: 'on-CustomEvent$', html: 'on:-customevent' },
-  { jsx: 'onCustom-Event$', html: 'on:custom-event' },
-  { jsx: 'on-Custom-Event$', html: 'on:-custom-event' },
-  { jsx: 'on-Custom-event$', html: 'on:-custom-event' },
-  { jsx: 'onCustom-event$', html: 'on:custom-event' },
-  { jsx: 'on-custom-event$', html: 'on:-custom-event' },
-  { jsx: 'on--CustomEvent$', html: 'on:--customevent' },
+  { jsx: 'on--CustomEvent$', html: 'on:---custom-event' },
+  { jsx: 'on-Custom-Event$', html: 'on:-custom---event' },
+  { jsx: 'on-custom-event$', html: 'on:custom--event' },
+  { jsx: 'on-CustomEvent$', html: 'on:-custom-event' },
+  { jsx: 'on-customEvent$', html: 'on:custom-event' },
+  { jsx: 'onCustom-event$', html: 'on:custom--event' },
+  { jsx: 'onCustom-Event$', html: 'on:custom--event' },
   // exception for DOMContentLoaded
   { jsx: 'onDOMContentLoaded$', html: 'on:-d-o-m-content-loaded' },
   // window scope

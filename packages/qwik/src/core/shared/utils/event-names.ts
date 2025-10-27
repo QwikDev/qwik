@@ -47,14 +47,23 @@ export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {
 
     if (idx !== -1) {
       const name = jsxEvent.slice(idx, -1);
-      return createEventName(name, prefix);
+      return name === 'DOMContentLoaded'
+        ? // The only DOM event that is not all lowercase
+          prefix + '-d-o-m-content-loaded'
+        : createEventName(
+            name.charAt(0) === '-'
+              ? // marker for case sensitive event name
+                name.slice(1)
+              : name.toLowerCase(),
+            prefix
+          );
     }
   }
   return null; // Return null if not matching expected format
 }
 
 export function createEventName(event: string, prefix: EventNameHtmlScope): string {
-  const eventName = event === 'DOMContentLoaded' ? '-d-o-m-content-loaded' : event.toLowerCase();
+  const eventName = fromCamelToKebabCase(event);
   return prefix + eventName;
 }
 
@@ -86,15 +95,9 @@ export function isPreventDefault(key: string): boolean {
   return key.startsWith('preventdefault:');
 }
 
-/**
- * Converts a camelCase string to kebab-case. This is used for event names.
- *
- * However, we do not escape `-` characters that are already present in the string. This means that
- * both `dbl-click` and `dblClick` will convert to `dbl-click`. This is intentional, it means that
- * `onCustom-Event$` works for both `custom-event` and `customEvent`.
- */
+/** Converts a camelCase string to kebab-case. This is used for event names. */
 export const fromCamelToKebabCase = (text: string): string => {
-  return text.replace(/([A-Z])/g, '-$1').toLowerCase();
+  return text.replace(/([A-Z-])/g, (a) => '-' + a.toLowerCase());
 };
 
 export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string] | null => {

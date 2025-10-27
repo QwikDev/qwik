@@ -302,7 +302,7 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 Event names are case sensitive, but all DOM events except for `DOMContentLoaded` are lowercase. For a better DX, event names are always lowercased, so `onTripleClick$` becomes `tripleclick` under the hood.
 
-To listen for a custom event with uppercase letters, you must use kebab-case. For example, to listen for a custom event named `CustomEvent`, you would use `on-Custom-Event$` or `on-custom-event$`. The handler would then be called for events named: `CustomEvent`, `-custom-event`, `Custom-event` and `-customEvent`. In practice, this combining of events should not be a problem, but you can check the exact event name in the handler if needed.
+To listen for a custom event with uppercase letters, you add a `-` after `on`. For example, to listen for a custom event named `CustomEvent`, you would use `on-CustomEvent$`. For a window event named `Hi-There`, you would use `window:on-Hi-There$`.
 
 ## Window and Document Events
 

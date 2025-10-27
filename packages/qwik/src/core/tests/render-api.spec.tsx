@@ -84,7 +84,7 @@ const ManyEventsComponent = component$(() => {
     inlinedQrl(() => {}, 's_useOnFocus')
   );
   useOn(
-    '-My-Custom',
+    'My-Custom',
     inlinedQrl(() => {}, 's_useOnMyCustom')
   );
   return (
@@ -98,7 +98,7 @@ const ManyEventsComponent = component$(() => {
       <button
         onClick$={inlinedQrl(() => {}, 's_click2')}
         onBlur$={inlinedQrl(() => {}, 's_blur1')}
-        onAnother-custom$={inlinedQrl(() => {}, 's_anotherCustom1')}
+        on-anotherCustom$={inlinedQrl(() => {}, 's_anotherCustom1')}
       >
         click
       </button>
@@ -499,7 +499,7 @@ describe('render api', () => {
           qwikLoader: 'module',
         });
         expect(result.html).toContain(
-          '(window.qwikevents||(window.qwikevents=[])).push("focus", "-my-custom", "click", "dblclick", "another-custom", "blur")'
+          '(window.qwikevents||(window.qwikevents=[])).push("focus", "-my---custom", "click", "dblclick", "another-custom", "blur")'
         );
       });
     });

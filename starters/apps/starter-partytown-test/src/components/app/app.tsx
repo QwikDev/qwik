@@ -6,7 +6,7 @@ export const App = component$(() => {
   return (
     <div
       id="my-app"
-      document:on-expensiveComputationDone$={() => (state.running = false)}
+      document:onExpensive-Computation-Done$={() => (state.running = false)}
     >
       <p style={{ "text-align": "center" }}>
         <a href="https://github.com/QwikDev/qwik">

@@ -257,6 +257,13 @@ const addEventListener = (
   capture = false
 ) => {
   el.addEventListener(eventName, handler, { capture, passive: false });
+  const idx = eventName.indexOf('-');
+  if (idx !== -1) {
+    // Listen to all capitalized versions of the event name
+    const capitalizedEventName =
+      eventName.slice(0, idx) + eventName.charAt(idx + 1).toUpperCase() + eventName.slice(idx + 2);
+    addEventListener(el, capitalizedEventName, handler, capture);
+  }
 };
 
 const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {

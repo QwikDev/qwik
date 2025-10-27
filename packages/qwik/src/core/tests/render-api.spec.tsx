@@ -445,6 +445,28 @@ describe('render api', () => {
             '(window.qwikevents||(window.qwikevents=[]))'
           );
         });
+        it('should only render inside body', async () => {
+          const bigText = 'hello world '.repeat(4000);
+          const result = await renderToStringAndSetPlatform(
+            <>
+              <head>
+                <script>{bigText}</script>
+              </head>
+              <body>
+                <Counter />
+                <div>{bigText}</div>
+              </body>
+            </>,
+            {
+              containerTagName: 'html',
+              qwikLoader: 'inline',
+            }
+          );
+          const document = createDocument({ html: result.html });
+          const qwikLoaderScriptElements = document.querySelectorAll('script[id=qwikloader]');
+          expect(qwikLoaderScriptElements).toHaveLength(1);
+          expect(qwikLoaderScriptElements[0]?.parentNode?.nodeName.toLowerCase()).toEqual('body');
+        });
         it('should not render inside template', async () => {
           const bigText = 'hello world '.repeat(3000); // ~30kB of text
           const result = await renderToStringAndSetPlatform(

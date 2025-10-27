@@ -1773,7 +1773,7 @@
         }
       ],
       "kind": "MethodSignature",
-      "content": "```typescript\nresolve(): Promise<void>;\n```\n**Returns:**\n\nPromise&lt;void&gt;",
+      "content": "```typescript\nresolve(): Promise<T>;\n```\n**Returns:**\n\nPromise&lt;T&gt;",
       "mdFile": "core.asynccomputedreadonlysignal.resolve.md"
     },
     {

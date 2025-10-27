@@ -29,7 +29,6 @@ import {
   fromCamelToKebabCase,
   getEventDataFromHtmlAttribute,
   isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -620,11 +619,6 @@ export const vnode_diff = (
           }
 
           needsQDispatchEventPatch = true;
-          continue;
-        }
-
-        if (isJsxPropertyAnEventName(key)) {
-          // ignore jsx properties
           continue;
         }
 

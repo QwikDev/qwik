@@ -624,7 +624,7 @@ describe.each([
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
         useOn(
-          '-Some-Custom-Event',
+          'SomeCustomEvent',
           $(() => count.value++)
         );
         return <button>Count: {count.value}!</button>;
@@ -652,7 +652,7 @@ describe.each([
     it('should update counter for jsx event', async () => {
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
-        return <button on-Some-Custom-Event$={() => count.value++}>Count: {count.value}!</button>;
+        return <button on-SomeCustomEvent$={() => count.value++}>Count: {count.value}!</button>;
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });

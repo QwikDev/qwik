@@ -8,7 +8,7 @@ import type {
 } from '../shared/jsx/types/jsx-qwik-attributes';
 import type { HostElement } from '../shared/types';
 import { USE_ON_LOCAL, USE_ON_LOCAL_FLAGS, USE_ON_LOCAL_SEQ_IDX } from '../shared/utils/markers';
-import { EventNameHtmlScope, createEventName } from '../shared/utils/event-names';
+import { EventNameHtmlScope, fromCamelToKebabCase } from '../shared/utils/event-names';
 
 export type EventQRL<T extends string = AllEventKeys> =
   | QRL<EventHandler<EventFromName<T>, Element>>
@@ -23,11 +23,7 @@ export type EventQRL<T extends string = AllEventKeys> =
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
  *
- * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
- * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
- * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
- * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
- * You can always check the exact event name in the handler if needed.
+ * Events are case sensitive.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -46,11 +42,7 @@ export const useOn = <T extends KnownEventNames>(event: T | T[], eventQrl: Event
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
  *
- * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
- * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
- * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
- * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
- * You can always check the exact event name in the handler if needed.
+ * Events are case sensitive.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -85,11 +77,7 @@ export const useOnDocument = <T extends KnownEventNames>(event: T | T[], eventQr
  * Used to programmatically add event listeners. Useful from custom `use*` methods, which do not
  * have access to the JSX.
  *
- * Event names are converted to lowercase (except for `DOMContentLoaded`). If you need to listen to
- * a case-sensitive custom event, use kebab-case. For example, to listen to `CustomEvent`, use
- * `-Custom-Event` or `-custom-event`. This will listen for `CustomEvent`, but also for
- * `-custom-event`, `Custom-event` and `-customEvent`. In practice, this should not be a problem.
- * You can always check the exact event name in the handler if needed.
+ * Events are case sensitive.
  *
  * @public
  * @see `useOn`, `useOnWindow`, `useOnDocument`.
@@ -124,10 +112,10 @@ const _useOn = (prefix: EventNameHtmlScope, eventName: string | string[], eventQ
   if (eventQrl) {
     if (Array.isArray(eventName)) {
       for (const event of eventName) {
-        addEvent(createEventName(event, prefix), eventQrl);
+        addEvent(prefix + fromCamelToKebabCase(event), eventQrl);
       }
     } else {
-      addEvent(createEventName(eventName, prefix), eventQrl);
+      addEvent(prefix + fromCamelToKebabCase(eventName), eventQrl);
     }
   }
 };

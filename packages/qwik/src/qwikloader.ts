@@ -191,7 +191,8 @@ const emitEvent = <T extends CustomEvent = any>(eventName: string, detail?: T['d
   doc.dispatchEvent(createEvent<T>(eventName, detail));
 };
 
-const camelToKebab = (str: string) => str.replace(/([A-Z])/g, (a) => '-' + a.toLowerCase());
+// Keep this in sync with event-names.ts
+const camelToKebab = (str: string) => str.replace(/([A-Z-])/g, (a) => '-' + a.toLowerCase());
 
 /**
  * Event handler responsible for processing browser events.
@@ -257,32 +258,30 @@ const addEventListener = (
   capture = false
 ) => {
   el.addEventListener(eventName, handler, { capture, passive: false });
-  const idx = eventName.indexOf('-');
-  if (idx !== -1) {
-    // Listen to all capitalized versions of the event name
-    const capitalizedEventName =
-      eventName.slice(0, idx) + eventName.charAt(idx + 1).toUpperCase() + eventName.slice(idx + 2);
-    addEventListener(el, capitalizedEventName, handler, capture);
-  }
 };
+
+// Keep in sync with ./qwikloader.unit.ts
+const kebabToCamel = (eventName: string) => eventName.replace(/-./g, (a) => a[1].toUpperCase());
 
 const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
   for (const eventNameOrNode of eventNames) {
     if (typeof eventNameOrNode === 'string') {
       // If it is string we just add the event to window and each of our roots.
       if (!events.has(eventNameOrNode)) {
-        roots.forEach((root) =>
-          addEventListener(root, eventNameOrNode, processDocumentEvent, true)
-        );
-        addEventListener(win, eventNameOrNode, processWindowEvent, true);
         events.add(eventNameOrNode);
+        const eventName = kebabToCamel(eventNameOrNode);
+        roots.forEach((root) => addEventListener(root, eventName, processDocumentEvent, true));
+
+        addEventListener(win, eventName, processWindowEvent, true);
       }
     } else {
-      // If it is a new root, we also need this root to catch up to all of the events so far.
+      // If it is a new root, we also need this root to catch up to all of the document events so far.
       if (!roots.has(eventNameOrNode)) {
-        events.forEach((eventName) =>
-          addEventListener(eventNameOrNode, eventName, processDocumentEvent, true)
-        );
+        events.forEach((kebabEventName) => {
+          const eventName = kebabToCamel(kebabEventName);
+          addEventListener(eventNameOrNode, eventName, processDocumentEvent, true);
+        });
+
         roots.add(eventNameOrNode);
       }
     }

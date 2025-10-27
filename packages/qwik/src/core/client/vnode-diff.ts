@@ -611,6 +611,10 @@ export const vnode_diff = (
 
             if (eventName) {
               vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+              if (scope) {
+                // window and document need attrs so qwik loader can find them
+                vNewNode!.setAttr(key, '', journal);
+              }
               registerQwikLoaderEvent(eventName);
             }
           }

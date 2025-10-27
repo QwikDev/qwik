@@ -75,7 +75,8 @@ function isDocumentOrWindowEvent(scope: QwikLoaderEventScope): boolean {
 }
 
 /**
- * Trigger an event in unit tests on an element.
+ * Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event
+ * dispatching.
  *
  * Future deprecation candidate.
  *
@@ -89,6 +90,22 @@ export async function trigger(
   options?: { waitForIdle?: boolean }
 ): Promise<void> {
   const waitForIdle = options?.waitForIdle ?? true;
+
+  let scope: QwikLoaderEventScope = '';
+  if (eventName.startsWith(':')) {
+    // :document:event or :window:event
+    const colonIndex = eventName.substring(1).indexOf(':');
+    // we need to add `-` for event, because of scope of the qwik loader
+    scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
+    eventName = eventName.substring(colonIndex + 2);
+    // Scoped events must be queried
+    if (scope === '-document') {
+      queryOrElement = `[on-document\\:${fromCamelToKebabCase(eventName)}]`;
+    } else {
+      queryOrElement = `[on-window\\:${fromCamelToKebabCase(eventName)}]`;
+    }
+  }
+
   const elements =
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
@@ -100,15 +117,6 @@ export async function trigger(
     }
     if (!container) {
       container = getDomContainer(element as HTMLElement);
-    }
-
-    let scope: QwikLoaderEventScope = '';
-    if (eventName.startsWith(':')) {
-      // :document:event or :window:event
-      const colonIndex = eventName.substring(1).indexOf(':');
-      // we need to add `-` for event, because of scope of the qwik loader
-      scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
-      eventName = eventName.substring(colonIndex + 2);
     }
 
     const event = new Event(eventName, {

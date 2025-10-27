@@ -26,11 +26,9 @@ import { ChoreType } from '../shared/util-chore-type';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _OWNER } from '../shared/utils/constants';
 import {
-  getEventNameFromJsxEvent,
-  getEventNameScopeFromJsxEvent,
+  fromCamelToKebabCase,
+  getEventDataFromHtmlAttribute,
   isHtmlAttributeAnEventName,
-  isJsxPropertyAnEventName,
-  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
@@ -604,23 +602,19 @@ export const vnode_diff = (
       // We never tell the vNode about them saving us time and memory.
       for (const key in constProps) {
         let value = constProps[key];
-        if (isJsxPropertyAnEventName(key)) {
-          // So for event handlers we must add them to the vNode so that qwikloader can look them up
-          // But we need to mark them so that they don't get pulled into the diff.
-          const eventName = getEventNameFromJsxEvent(key);
-          const scope = getEventNameScopeFromJsxEvent(key);
-          if (eventName) {
-            vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
-            registerQwikLoaderEvent(eventName);
-          }
+        if (isHtmlAttributeAnEventName(key)) {
+          const data = getEventDataFromHtmlAttribute(key);
+          if (data) {
+            const scope = data[0];
+            const eventName = data[1];
 
-          if (scope) {
-            // add an event attr with empty value for qwikloader element selector.
-            // We don't need value here. For ssr this value is a QRL,
-            // but for CSR value should be just empty
-            const htmlEvent = jsxEventToHtmlAttribute(key);
-            if (htmlEvent) {
-              vNewNode!.setAttr(htmlEvent, '', journal);
+            if (eventName) {
+              vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+              if (scope) {
+                // window and document need attrs so qwik loader can find them
+                vNewNode!.setAttr(key, '', journal);
+              }
+              registerQwikLoaderEvent(eventName);
             }
           }
 
@@ -769,7 +763,7 @@ export const vnode_diff = (
       // Event handler needs to be patched onto the element.
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
-          const eventName = event.type;
+          const eventName = fromCamelToKebabCase(event.type);
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
             vNode.getProp<QRL>(eventProp, null),
@@ -867,22 +861,13 @@ export const vnode_diff = (
     };
 
     const recordJsxEvent = (key: string, value: any) => {
-      const eventName = getEventNameFromJsxEvent(key);
-      const scope = getEventNameScopeFromJsxEvent(key);
-      if (eventName) {
+      const data = getEventDataFromHtmlAttribute(key);
+      if (data) {
+        const [scope, eventName] = data;
         record(':' + scope + ':' + eventName, value);
         // register an event for qwik loader
         registerQwikLoaderEvent(eventName);
-      }
-
-      if (scope) {
-        // add an event attr with empty value for qwikloader element selector.
-        // We don't need value here. For ssr this value is a QRL,
-        // but for CSR value should be just empty
-        const htmlEvent = jsxEventToHtmlAttribute(key);
-        if (htmlEvent) {
-          record(htmlEvent, '');
-        }
+        patchEventDispatch = true;
       }
     };
 
@@ -910,8 +895,7 @@ export const vnode_diff = (
       } else if (dstKey === undefined) {
         // Destination exhausted: add remaining source keys
         const srcValue = srcAttrs[srcIdx + 1];
-        if (isJsxPropertyAnEventName(srcKey)) {
-          patchEventDispatch = true;
+        if (isHtmlAttributeAnEventName(srcKey)) {
           recordJsxEvent(srcKey, srcValue);
         } else {
           record(srcKey, srcValue);
@@ -923,17 +907,24 @@ export const vnode_diff = (
         // Keys match: update if values differ
         const srcValue = srcAttrs[srcIdx + 1];
         const dstValue = dstAttrs[dstIdx + 1];
+        const isEventHandler = isHtmlAttributeAnEventName(srcKey);
         if (srcValue !== dstValue) {
-          record(srcKey, srcValue);
-          // Update in place doesn't change array length
+          if (isEventHandler) {
+            recordJsxEvent(srcKey, srcValue);
+          } else {
+            record(srcKey, srcValue);
+          }
+        } else if (isEventHandler && !vnode.element.qDispatchEvent) {
+          // Special case: add event handlers after resume
+          recordJsxEvent(srcKey, srcValue);
         }
+        // Update in place doesn't change array length
         srcIdx += 2; // skip key and value
         dstIdx += 2; // skip key and value
       } else if (srcKey < dstKey) {
         // Source has a key not in destination: add it
         const srcValue = srcAttrs[srcIdx + 1];
-        if (isJsxPropertyAnEventName(srcKey)) {
-          patchEventDispatch = true;
+        if (isHtmlAttributeAnEventName(srcKey)) {
           recordJsxEvent(srcKey, srcValue);
         } else {
           record(srcKey, srcValue);

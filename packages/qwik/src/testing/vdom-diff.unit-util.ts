@@ -467,7 +467,10 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       const props = jsx.varProps;
       for (const key in props) {
         if (Object.prototype.hasOwnProperty.call(props, key)) {
-          if (key.startsWith(HANDLER_PREFIX) || isJsxPropertyAnEventName(key)) {
+          if (isJsxPropertyAnEventName(key)) {
+            continue;
+          }
+          if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
             child.setProp(key, props[key]);
           } else {
             child.setAttr(key, String(props[key]), journal);

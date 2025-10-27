@@ -348,6 +348,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
+      // -1 so we only emit inside body
+      this.$noScriptHere$ = -1;
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -379,7 +381,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  private $noScriptHere$ = 0;
+  // -1 so we only emit inside body
+  private $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -393,8 +396,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
-      // keep track of noscript and template
-      else if (elementName === 'noscript' || elementName === 'template') {
+      // keep track of noscript and template, and for html we only emit inside body
+      else if (elementName === 'noscript' || elementName === 'template' || elementName === 'body') {
         this.$noScriptHere$++;
       }
     }

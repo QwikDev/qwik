@@ -210,3 +210,72 @@ The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [htm
 
 Menus are contextual data declared with `menu.md` files. See [menus file definition](/docs/(qwikcity)/advanced/menu/index.mdx) for more information on the file format and location.
 
+# [API](/api) → @builder.io/qwik-city
+
+## Action
+
+```typescript
+export type Action<
+  RETURN,
+  INPUT = Record<string, unknown>,
+  OPTIONAL extends boolean = true,
+> = {
+  (): ActionStore<RETURN, INPUT, OPTIONAL>;
+};
+```
+
+**References:** [ActionStore](#actionstore)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+## ActionConstructor
+
+```typescript
+export type ActionConstructor = {
+  <
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
+  >(
+    actionQrl: (
+      data: GetValidatorOutputType<VALIDATOR>,
+      event: RequestEventAction,
+    ) => ValueOrPromise<OBJ>,
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR, ...REST];
+    },
+  ): Action<
+    StrictUnion<
+      | OBJ
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
+    >,
+    GetValidatorInputType<VALIDATOR>,
+    false
+  >;
+  <
+    OBJ extends Record<string, any> | void | null,
+    VALIDATOR extends TypedDataValidator,
+    REST extends [DataValidator, ...DataValidator[]],
+  >(
+    actionQrl: (
+      data: GetValidatorOutputType<VALIDATOR>,
+      event: RequestEventAction,
+    ) => ValueOrPromise<OBJ>,
+    options: {
+      readonly id?: string;
+      readonly validation: [VALIDATOR, ...REST];
+    },
+  ): Action<
+    StrictUnion<
+      | OBJ
+      | FailReturn<ValidatorErrorType<GetValidatorInputType<VALIDATOR>>>
+      | FailReturn<FailOfRest<REST>>
+    >,
+    GetValidatorInputType<VALIDATOR>,
+    true
+  >;
+};
+```
+

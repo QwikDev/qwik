@@ -249,6 +249,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    // start from 100_000 to avoid interfering with potential existing ids
+    this.$currentUniqueId$ = 100_000;
 
     const qlOpt = this.renderOptions.qwikLoader;
     this.qlInclude = qlOpt

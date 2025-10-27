@@ -1,6 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode';
-import { Slot } from '../shared/jsx/slot.public';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
@@ -267,8 +266,8 @@ function injectPlaceholderElement(
   // For regular JSX nodes, we can append the placeholder to its children.
   if (isJSXNode(jsx)) {
     const placeholder = createPlaceholderScriptNode();
-    // For slots, we can't add children, so we wrap them in a fragment.
-    if (jsx.type === Slot) {
+    // Inline components don't always render children, so we wrap them in Fragment which does.
+    if (jsx.type !== Fragment && !isQwikComponent(jsx.type)) {
       return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
     }
 

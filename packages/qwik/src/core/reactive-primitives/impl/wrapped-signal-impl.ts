@@ -4,6 +4,7 @@ import type { Container, HostElement } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { trackSignal } from '../../use/use-core';
 import type { BackRef } from '../cleanup';
+import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
 import {
   _EFFECT_BACK_REF,
@@ -12,6 +13,7 @@ import {
   SignalFlags,
   WrappedSignalFlags,
 } from '../types';
+import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
@@ -41,12 +43,23 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      this.$hostElement$,
-      this,
-      this.$effects$
-    );
+    // we are trying to run computation without creating a chore, which can be expensive
+    // for many signals. If it fails, we schedule a chore to run the computation.
+    try {
+      this.$computeIfNeeded$();
+    } catch (_) {
+      this.$container$?.$scheduler$(
+        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
+        this.$hostElement$,
+        this,
+        this.$effects$
+      );
+    }
+    // if the computation not failed, we can run the effects directly
+    if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
+      this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+      scheduleEffects(this.$container$, this, this.$effects$);
+    }
   }
 
   /**
@@ -80,13 +93,27 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       this.$container$!
     );
     // TODO: we should remove invalid flag here, but some tests are failing
+    // Sometimes we may call .value on wrapped signals without ctx. This means subscription will be
+    // not created and effects will not be triggered. After wrapping this with if (this.$container$)
+    // less tests are failing, but still some are failing.
     // this.$flags$ &= ~SignalFlags.INVALID;
+
+    // reset flag in case we call computedIfNeeded twice and the value was changed only the first time
+    // TODO: change to version number?
+    this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
     const didChange = untrackedValue !== this.$untrackedValue$;
     if (didChange) {
       this.$flags$ |= SignalFlags.RUN_EFFECTS;
       this.$untrackedValue$ = untrackedValue;
     }
   }
+
+  $unwrapIfSignal$(): SignalImpl<T> | WrappedSignalImpl<T> {
+    return this.$func$ === getValueProp && isSignal(this.$args$[0])
+      ? (this.$args$[0] as SignalImpl<T>)
+      : this;
+  }
+
   // Make this signal read-only
   set value(_: any) {
     throw qError(QError.wrappedReadOnly);

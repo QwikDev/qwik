@@ -5,26 +5,30 @@
 ```ts
 
 import type { Action } from '@qwik.dev/router';
-import type { _deserialize } from '@qwik.dev/core/internal';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 import type { EnvGetter as EnvGetter_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { FailReturn } from '@qwik.dev/router';
 import type { Loader as Loader_2 } from '@qwik.dev/router';
 import type { QwikCityPlan } from '@qwik.dev/router';
 import type { QwikIntrinsicElements } from '@qwik.dev/core';
 import type { QwikRouterConfig } from '@qwik.dev/router';
+import { RedirectMessage as RedirectMessage_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { Render } from '@qwik.dev/core/server';
 import type { RenderOptions } from '@qwik.dev/core/server';
 import { RequestEvent as RequestEvent_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { RequestHandler as RequestHandler_2 } from '@qwik.dev/router/middleware/request-handler';
 import type { ResolveSyncValue as ResolveSyncValue_2 } from '@qwik.dev/router/middleware/request-handler';
 import { SerializationStrategy } from '@qwik.dev/core/internal';
-import type { _serialize } from '@qwik.dev/core/internal';
 import type { ValueOrPromise } from '@qwik.dev/core';
-import type { _verifySerializable } from '@qwik.dev/core/internal';
 
 // @public (undocumented)
 export class AbortMessage {
 }
+
+// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export let _asyncRequestStore: AsyncLocalStorage<RequestEventInternal> | undefined;
 
 // Warning: (ae-forgotten-export) The symbol "CacheControlOptions" needs to be exported by the entry point index.d.ts
 //
@@ -171,11 +175,10 @@ export const RequestEvShareQData = "qData";
 // @public (undocumented)
 export type RequestHandler<PLATFORM = QwikRouterPlatform> = (ev: RequestEvent<PLATFORM>) => Promise<void> | void;
 
-// Warning: (ae-forgotten-export) The symbol "QwikSerializer" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "QwikRouterRun" needs to be exported by the entry point index.d.ts
 //
 // @public
-export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions, qwikSerializer: QwikSerializer): Promise<QwikRouterRun<T> | null>;
+export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<T>, opts: ServerRenderOptions): Promise<QwikRouterRun<T> | null>;
 
 // @public (undocumented)
 export interface ResolveSyncValue {
@@ -243,8 +246,6 @@ export interface ServerRequestEvent<T = unknown> {
 // @public (undocumented)
 export type ServerRequestMode = 'dev' | 'static' | 'server';
 
-// Warning: (ae-forgotten-export) The symbol "RequestEventInternal" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type ServerResponseHandler<T = any> = (status: number, headers: Headers, cookies: Cookie, resolve: (response: T) => void, requestEv: RequestEventInternal) => WritableStream<Uint8Array>;
 

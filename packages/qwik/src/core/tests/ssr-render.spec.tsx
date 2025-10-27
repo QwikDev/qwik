@@ -242,7 +242,7 @@ describe('v2 ssr render', () => {
     });
 
     it('should render values from generator with stream from string', async () => {
-      const { vNode } = await ssrRenderToDom(
+      const { document } = await ssrRenderToDom(
         <ul>
           <SSRStream>
             {async function (stream: SSRStreamWriter) {
@@ -256,7 +256,7 @@ describe('v2 ssr render', () => {
         { debug }
       );
 
-      expect(vNode).toMatchVDOM(
+      await expect(document.querySelector('ul')).toMatchDOM(
         <ul>
           <li>raw: 0</li>
           <li>raw: 1</li>

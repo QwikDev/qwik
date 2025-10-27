@@ -1,4 +1,8 @@
-import { vnode_isDescendantOf, vnode_isVNode } from '../client/vnode';
+import {
+  vnode_getProjectionParentOrParent,
+  vnode_isDescendantOf,
+  vnode_isVNode,
+} from '../client/vnode';
 import { Task, TaskFlags } from '../use/use-task';
 import type { QRLInternal } from './qrl/qrl-class';
 import type { Chore } from './scheduler';
@@ -6,13 +10,19 @@ import type { Container, HostElement } from './types';
 import { ChoreType } from './util-chore-type';
 import { ELEMENT_SEQ } from './utils/markers';
 import { isNumber } from './utils/types';
-import type { ClientContainer } from '../client/types';
+import type { VNode } from '../client/vnode-impl';
+import type { ChoreArray } from '../client/chore-array';
 
 type BlockingRule = {
   blockedType: ChoreType;
   blockingType: ChoreType;
   match: (blocked: Chore, blocking: Chore, container: Container) => boolean;
 };
+
+const enum ChoreSetType {
+  CHORES,
+  BLOCKED_CHORES,
+}
 
 /**
  * Rules for determining if a chore is blocked by another chore. Some chores can block other chores.
@@ -29,8 +39,8 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.NODE_DIFF,
-    match: (blocked, blocking, container) =>
-      isDescendant(blocked, blocking, container) || isDescendant(blocking, blocked, container),
+    match: (blocked, blocking) =>
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
   // COMPONENT blocks VISIBLE on same host
   // if the blocked chore is a child of the blocking chore
@@ -38,8 +48,8 @@ const VISIBLE_BLOCKING_RULES: BlockingRule[] = [
   {
     blockedType: ChoreType.VISIBLE,
     blockingType: ChoreType.COMPONENT,
-    match: (blocked, blocking, container) =>
-      isDescendant(blocked, blocking, container) || isDescendant(blocking, blocked, container),
+    match: (blocked, blocking) =>
+      isDescendant(blocked, blocking) || isDescendant(blocking, blocked),
   },
 ];
 
@@ -103,17 +113,13 @@ const BLOCKING_RULES: BlockingRule[] = [
   },
 ];
 
-function isDescendant(descendantChore: Chore, ancestorChore: Chore, container: Container): boolean {
+function isDescendant(descendantChore: Chore, ancestorChore: Chore): boolean {
   const descendantHost = descendantChore.$host$;
   const ancestorHost = ancestorChore.$host$;
   if (!vnode_isVNode(descendantHost) || !vnode_isVNode(ancestorHost)) {
     return false;
   }
-  return vnode_isDescendantOf(
-    descendantHost,
-    ancestorHost,
-    (container as ClientContainer).rootVNode
-  );
+  return vnode_isDescendantOf(descendantHost, ancestorHost);
 }
 
 function isSameHost(a: Chore, b: Chore): boolean {
@@ -124,49 +130,51 @@ function isSameQrl(a: QRLInternal<unknown>, b: QRLInternal<unknown>): boolean {
   return a.$symbol$ === b.$symbol$;
 }
 
-function findBlockingChoreInQueue(
-  chore: Chore,
-  choreQueue: Chore[],
-  container: Container
-): Chore | null {
-  for (const candidate of choreQueue) {
-    // everything after VISIBLE is not blocking. Visible task, task and resource should not block anything in this rule.
-    if (candidate.$type$ >= ChoreType.VISIBLE || candidate.$type$ === ChoreType.TASK) {
-      continue;
+function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | null {
+  const host = chore.$host$;
+  if (!vnode_isVNode(host)) {
+    return null;
+  }
+  const isNormalQueue = type === ChoreSetType.CHORES;
+  // Walk up the ancestor tree and check the map
+  let current: VNode | null = host;
+  current = vnode_getProjectionParentOrParent(current);
+  while (current) {
+    const blockingChores = isNormalQueue ? current.chores : current.blockedChores;
+    if (blockingChores) {
+      for (const blockingChore of blockingChores) {
+        if (
+          blockingChore.$type$ < ChoreType.VISIBLE &&
+          blockingChore.$type$ !== ChoreType.TASK &&
+          blockingChore.$type$ !== ChoreType.QRL_RESOLVE &&
+          blockingChore.$type$ !== ChoreType.RUN_QRL
+        ) {
+          return blockingChore;
+        }
+      }
     }
-    if (isDescendant(chore, candidate, container)) {
-      return candidate;
-    }
+    current = vnode_getProjectionParentOrParent(current);
   }
   return null;
 }
 
 export function findBlockingChore(
   chore: Chore,
-  choreQueue: Chore[],
+  choreQueue: ChoreArray,
   blockedChores: Set<Chore>,
   runningChores: Set<Chore>,
   container: Container
 ): Chore | null {
-  const blockingChoreInChoreQueue = findBlockingChoreInQueue(chore, choreQueue, container);
+  const blockingChoreInChoreQueue = findAncestorBlockingChore(chore, ChoreSetType.CHORES);
   if (blockingChoreInChoreQueue) {
     return blockingChoreInChoreQueue;
   }
-  const blockingChoreInBlockedChores = findBlockingChoreInQueue(
+  const blockingChoreInBlockedChores = findAncestorBlockingChore(
     chore,
-    Array.from(blockedChores),
-    container
+    ChoreSetType.BLOCKED_CHORES
   );
   if (blockingChoreInBlockedChores) {
     return blockingChoreInBlockedChores;
-  }
-  const blockingChoreInRunningChores = findBlockingChoreInQueue(
-    chore,
-    Array.from(runningChores),
-    container
-  );
-  if (blockingChoreInRunningChores) {
-    return blockingChoreInRunningChores;
   }
 
   for (const rule of BLOCKING_RULES) {

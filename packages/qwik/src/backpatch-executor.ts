@@ -18,7 +18,8 @@ if (executorScript) {
       const data = JSON.parse(script.textContent || '[]');
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
       let currentNode: Node | null = walker.currentNode;
-      let currentNodeIdx = 0;
+      let currentNodeIdx = (currentNode as Element).hasAttribute(':') ? 0 : -1;
+
       for (let i = 0; i < data.length; i += 3) {
         const elementIdx = data[i];
         const attrName = data[i + 1];
@@ -26,7 +27,12 @@ if (executorScript) {
 
         while (currentNodeIdx < elementIdx) {
           currentNode = walker.nextNode();
-          currentNodeIdx++;
+          if (!currentNode) {
+            break;
+          }
+          if ((currentNode as Element).hasAttribute(':')) {
+            currentNodeIdx++;
+          }
         }
 
         const element = currentNode as Element;

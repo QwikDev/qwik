@@ -1,5 +1,4 @@
 import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
@@ -11,7 +10,6 @@ import {
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
 import { parseString } from 'set-cookie-parser';
-import type { QwikSerializer } from '../request-handler/types';
 
 // @qwik.dev/router/middleware/azure-swa
 
@@ -56,11 +54,6 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
     console.warn('qwikCityPlan is deprecated. Simply remove it.');
     opts.qwikRouterConfig = opts.qwikCityPlan;
   }
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -116,7 +109,7 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
       };
 
       // send request to qwik router request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         handledResponse.completion.then((err) => {
           if (err) {
@@ -135,9 +128,10 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(req.method || 'GET', url)
-        ? 'Not Found'
-        : getNotFound(url.pathname);
+      const notFoundHtml =
+        !req.headers.accept?.includes('text/html') || isStaticPath(req.method || 'GET', url)
+          ? 'Not Found'
+          : getNotFound(url.pathname);
       return {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

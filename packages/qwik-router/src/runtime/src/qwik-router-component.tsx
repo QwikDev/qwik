@@ -74,6 +74,7 @@ import { loadClientData } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
+import transitionCss from './qwik-view-transition.css?inline';
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -121,18 +122,7 @@ const internalState = { navCount: 0 };
  * This hook should be used once, at the root of your application.
  */
 export const useQwikRouter = (props?: QwikRouterProps) => {
-  useStyles$(`
-    @layer qwik {
-      @supports selector(html:active-view-transition-type(type)) {
-        html:active-view-transition-type(qwik-navigation) {
-          :root{view-transition-name:none}
-        }
-      }
-      @supports not selector(html:active-view-transition-type(type)) {
-        :root{view-transition-name:none}
-      }
-    }
-  `);
+  useStyles$(transitionCss);
   const env = useQwikRouterEnv();
   if (!env?.params) {
     throw new Error(

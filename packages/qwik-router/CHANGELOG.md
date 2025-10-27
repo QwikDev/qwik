@@ -1,5 +1,33 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.11
+
+### Major Changes
+
+- 💥 Breaking (slightly): The order of head export merging has been slightly. Plain objects now override outer ones. Functions still are run inner-first. (by [@wmertens](https://github.com/wmertens) in [#7970](https://github.com/QwikDev/qwik/pull/7970))
+
+### Patch Changes
+
+- 🐞🩹 trim script added by vite in dev mode (by [@Varixo](https://github.com/Varixo) in [#7981](https://github.com/QwikDev/qwik/pull/7981))
+
+- Updated dependencies [[`ceaa368`](https://github.com/QwikDev/qwik/commit/ceaa36852711ca0fdf9045cea039bec6ac24a560), [`0581cba`](https://github.com/QwikDev/qwik/commit/0581cba3d902af54434230357d870481d99d626e), [`991cec0`](https://github.com/QwikDev/qwik/commit/991cec0ba8ede1782e26ac9c25061855a9e6f07c)]:
+  - @qwik.dev/core@2.0.0-beta.11
+
+## 2.0.0-beta.10
+
+### Minor Changes
+
+- ✨ split Qwik Core and Router dev experience. Core now only adjusts the html using the Vite hook for it, so it can work in any environment or client-only. You can make a Qwik application client-only by running `qwik add csr` now. (by [@wmertens](https://github.com/wmertens) in [#7890](https://github.com/QwikDev/qwik/pull/7890))
+- ✨ Qwik Route now runs dev mode using the node middleware, which is the same as production, and can now hot-reload when routes are added. It does this by transforming the response while it streams to add the dev scripts. This opens the door for Vite Environment support.
+- ✨ `qwikVite()` SSR builds now reads the manifest from the client build whenever possible. You can still pass in the manifest yourself if needed.
+- 🐞🩹 Qwik Router's Vite plugin no longer imports Qwik Core, a cause of duplicate imports in dev and preview mode.
+- 🐞🩹 Sometimes, SSG hangs after completion. The cause is still unknown, but now there is a workaround by forcing the process to exit after SSG is done.
+
+### Patch Changes
+
+- Updated dependencies [[`60ffa2e`](https://github.com/QwikDev/qwik/commit/60ffa2ee21090ffc3d4d2bb6eaaf6d7e33089286), [`68ca2ef`](https://github.com/QwikDev/qwik/commit/68ca2ef1ba73c2d12cbb98196675b105bdd2531e)]:
+  - @qwik.dev/core@2.0.0-beta.10
+
 ## 2.0.0-beta.9
 
 ### Patch Changes
@@ -93,6 +121,24 @@
 ### Major Changes
 
 - Renamed "Qwik City" to "Qwik Router" and package to "@qwik.dev/router" (by [@shairez](https://github.com/shairez) in [#7008](https://github.com/QwikDev/qwik/pull/7008))
+
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 fix behaviour of checkOrigin: "lax-proto" in createQwikCity (by [@asaharan](https://github.com/asaharan) in [#7865](https://github.com/QwikDev/qwik/pull/7865))
+
+- 🛠 Add check-client command to verify bundle freshness (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7517](https://github.com/QwikDev/qwik/pull/7517))
+
+- 🐞🩹 return 404 with invalid URL. (by [@gioboa](https://github.com/gioboa) in [#7902](https://github.com/QwikDev/qwik/pull/7902))
+
+- ✨ All qwik packages are now marked as side effect free in their package.json. This should remove a few unecessary empty imports added by rollup and then not tree-shaken like `import "./preloader.js"`. (by [@maiieul](https://github.com/maiieul) in [#7908](https://github.com/QwikDev/qwik/pull/7908))
+
+- ✨ SPA Link navigation now preloads the next route bundles on click with maximum probability, speeding up SPA navigation. (by [@maiieul](https://github.com/maiieul) in [#7849](https://github.com/QwikDev/qwik/pull/7849))
+
+- 🐞🩹 Your service-worker.js won't be unregistered anymore if you added custom logic to it. (by [@maiieul](https://github.com/maiieul) in [#7872](https://github.com/QwikDev/qwik/pull/7872))
+
+  > Note: Qwik 1.14.0 and above now use `<link rel="modulepreload">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.
 
 ## 1.16.0
 
@@ -248,7 +294,7 @@
   To use it, you need to pass `experimental: ['valibot']` as an option to the `qwikVite` plugin as such:
 
   ```ts
-  // vite.config.mts
+  // vite.config.ts
 
   export default defineConfig(({ command, mode }): UserConfig => {
     return {

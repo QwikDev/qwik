@@ -121,7 +121,7 @@ export declare function domRender(
   },
 ): Promise<{
   document: Document;
-  container: import("@qwik.dev/core/internal").ClientContainer;
+  container: import("@qwik.dev/core").ClientContainer;
   vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
@@ -168,7 +168,7 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ document: Document; container: import("@qwik.dev/core/internal").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;\{ document: Document; container: import("@qwik.dev/core").ClientContainer; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -435,11 +435,13 @@ export declare function ssrRenderToDom(
   opts?: {
     debug?: boolean;
     raw?: boolean;
+    qwikLoader?: boolean;
+    onBeforeResume?: (document: Document) => void;
   },
 ): Promise<{
   container: _DomContainer;
   document: Document;
-  vNode: _VirtualVNode | null;
+  vNode: _VNode | null;
   getStyles: () => Record<string, string | string[]>;
 }>;
 ```
@@ -474,7 +476,7 @@ opts
 
 </td><td>
 
-\{ debug?: boolean; raw?: boolean; }
+\{ debug?: boolean; raw?: boolean; qwikLoader?: boolean; onBeforeResume?: (document: Document) =&gt; void; }
 
 </td><td>
 
@@ -485,7 +487,7 @@ _(Optional)_
 
 **Returns:**
 
-Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VirtualVNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
+Promise&lt;\{ container: \_DomContainer; document: Document; vNode: \_VNode \| null; getStyles: () =&gt; Record&lt;string, string \| string[]&gt;; }&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/rendering.unit-util.tsx)
 
@@ -597,7 +599,7 @@ Promise&lt;void&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _ElementVNode;
+  vParent: _ElementVNode | _VirtualVNode;
   vNode: _VNode | null;
   document: _QDocument;
   container: ClientContainer;
@@ -632,7 +634,7 @@ JSXOutput
 
 **Returns:**
 
-\{ vParent: \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
+\{ vParent: \_ElementVNode \| \_VirtualVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 

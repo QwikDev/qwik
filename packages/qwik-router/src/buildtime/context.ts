@@ -1,14 +1,15 @@
 import { isAbsolute, resolve } from 'node:path';
 import { normalizePath } from '../utils/fs';
-import type { BuildContext, NormalizedPluginOptions, PluginOptions } from './types';
+import type { RoutingContext, NormalizedPluginOptions, PluginOptions } from './types';
 
 export function createBuildContext(
   rootDir: string,
   viteBasePath: string,
   userOpts?: PluginOptions,
-  target?: 'ssr' | 'client'
+  target?: 'ssr' | 'client',
+  dynamicImports?: boolean
 ) {
-  const ctx: BuildContext = {
+  const ctx: RoutingContext = {
     rootDir: normalizePath(rootDir),
     opts: normalizeOptions(rootDir, viteBasePath, userOpts),
     routes: [],
@@ -20,15 +21,14 @@ export function createBuildContext(
     diagnostics: [],
     frontmatter: new Map(),
     target: target || 'ssr',
-    isDevServer: false,
-    isDevServerClientOnly: false,
+    dynamicImports: target === 'client' || !!dynamicImports,
     isDirty: true,
     activeBuild: null,
   };
   return ctx;
 }
 
-export function resetBuildContext(ctx: BuildContext | null) {
+export function resetBuildContext(ctx: RoutingContext | null) {
   if (ctx) {
     ctx.routes.length = 0;
     ctx.layouts.length = 0;

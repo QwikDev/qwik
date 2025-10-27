@@ -1,6 +1,7 @@
 // SSR Worker - handles server-side rendering execution
 // MUST be served from /repl/ so that its imports are intercepted by the REPL service worker
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
+import type { RenderToString } from '@qwik.dev/core/server';
 import type { ReplEvent } from '../types';
 
 // Worker message types
@@ -80,7 +81,7 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
   const module = await importFrom(`/repl/ssr/${replId}/${entry}`);
   const server = module.default;
 
-  const render = typeof server === 'function' ? server : server?.render;
+  const render: RenderToString = typeof server === 'function' ? server : server?.render;
   if (typeof render !== 'function') {
     throw new Error(`Server module ${entry} does not export default render function`);
   }
@@ -109,6 +110,7 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
     base: baseUrl,
     manifest,
     prefetchStrategy: null,
+    preloader: false,
   });
 
   events.push({

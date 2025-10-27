@@ -1,0 +1,143 @@
+---
+title: Context | Components
+contributors:
+  - manucorporat
+  - RATIU5
+  - nnelgxorz
+  - adamdbradley
+  - the-r3aper7
+  - cunzaizhuyi
+  - forresst
+  - kerbelp
+  - shairez
+  - mhevery
+  - AnthonyPAlicea
+  - steve8708
+  - mrhoodz
+  - Jemsco
+updated_at: '2023-06-25T19:43:33Z'
+created_at: '2023-03-20T23:45:13Z'
+---
+import CodeSandbox from '../../../../../components/code-sandbox/index.tsx';
+
+# Context
+
+Qwik provides a context API, which solves the problem of props drilling and it is very similar to React's functional `useContext()`. In fact, Qwik's context API is the most efficient way to pass down data to different components, reducing overhead, generating less code, and allowing Qwik to more effectively [treeshake](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking) unused data.
+
+Qwik's context API is made of 3 methods, importable from `@qwik.dev/core`:
+
+- [`createContextId(contextName: string): ContextId`](#createcontextid)
+- [`useContextProvider(ctx: ContextId, value: VALUE): void`](#usecontextprovider)
+- [`useContext(ctx: ContextId): VALUE`](#usecontext)
+
+<CodeSandbox src="/src/routes/demo/context/minimal/index.tsx" style={{ height: '6em' }}>
+```tsx /createContextId/#a /useContext/#b /useContextProvider/#c
+import { type Signal, component$, useSignal } from '@qwik.dev/core';
+import {
+  useContext,
+  useContextProvider,
+  createContextId,
+} from '@qwik.dev/core';
+
+export const ThemeContext = createContextId<Signal<string>>(
+  'docs.theme-context'
+);
+
+export default component$(() => {
+  const theme = useSignal('dark');
+  useContextProvider(ThemeContext, theme);
+  return (
+    <>
+      <button
+        onClick$={() =>
+          (theme.value = theme.value == 'dark' ? 'light' : 'dark')
+        }
+      >
+        Flip
+      </button>
+      <Child />
+    </>
+  );
+});
+
+const Child = component$(() => {
+  const theme = useContext(ThemeContext);
+  return <div>Theme is {theme.value}</div>;
+});
+```
+</CodeSandbox>
+
+
+In the above example, a `ContextId` named `docs.theme-context` is created and used to provide a `useSignal` to the `default` component. The `Child` component uses the `useContext` method to get the `useSignal` and render its value.
+
+## `createContextId()`
+
+This method is used to create a new `ContextId`.
+
+```tsx
+export interface GenericType {
+  ...
+}
+
+export const QwikRouterContext = createContextId<GenericType>(name: string): ContextId<GenericType>;
+```
+
+### Parameters
+
+- `name`: is a unique string given to `createContextId` as an identifier of the context. This will avoid conflicts when there are multiple contexts. It is advised to use a naming convention like `dev.qwik.router`.
+
+### Returns
+
+Notice that the value returned by `createContextId()` does not hold any state, it is an immutable ID object i.e. `{ id: 'dev.qwik.router' }`. It's only used to describe the name and type of the context, like an address or an identifier.  Since it doesn't hold any state, it can be initialized as a singleton and exported from a shared module.
+
+## `useContextProvider()`
+
+This method is used to create a Context for a specific component and its descendants, using the `ContextId` as the key identifier of the context.
+
+```tsx {9, 10, 11} /QwikRouterContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Parent.tsx"
+import { component$, useStore, useContextProvider } from '@qwik.dev/core';
+
+export const Parent = component$(() => {
+
+  const qwikRouterObject = useStore<GenericType>({
+    ...
+  });
+
+  useContextProvider(QwikRouterContext, qwikRouterObject);
+  useContextProvider(PlainArrayContext, [1, 2, 3])
+  useContextProvider(AppNameContext, "My Qwik App")
+
+  return (
+    <Children />
+  );
+});
+```
+
+### Parameters
+
+- `ContextId`: A previously created Context must be supplied, serving as an identifier for the data being provided as the second parameter.
+
+- `data`: You can provide any data type, such as Qwik's useSignal, useStore, arrays, or objects.
+
+### Caveats
+
+- The provided value will not be globally available across the whole render tree, but only to descendant components in the tree.
+- If the context isn't used during Server-Side Rendering (SSR), it will not be serialized. If you need the context available on the client, even though it's not used during SSR, you should call `useContext()` in the parent component.  This will force it to be serialized.
+
+## `useContext()`
+
+This method is used to get the value of `Context` which is **provided** by Parent Component.
+
+```tsx {4,5,6} /useContext/ /QwikRouterContext/#a /PlainArrayContext/#b /AppNameContext/#c title="src/components/Children.tsx"
+import { component$, useContext } from '@qwik.dev/core';
+
+export const Children = component$(() => {
+  const qwikRouterObject = useContext(QwikRouterContext);
+  const plainArray = useContext(PlainArrayContext);
+  const appName = useContext(AppNameContext);
+
+  return (
+    <div>Child components can use any of the provided values, such as {appName}</div>
+  );
+});
+```

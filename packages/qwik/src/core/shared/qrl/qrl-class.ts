@@ -1,11 +1,9 @@
 // keep these imports above the rest to prevent circular dep issues
 import { getPlatform, isServerPlatform } from '../platform/platform';
-import { verifySerializable } from '../utils/serialize-utils';
+import { verifySerializable } from '../serdes/verify';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
-import { isBrowser, isDev } from '@qwik.dev/core/build';
-// @ts-expect-error we don't have types for the preloader
-import { p as preload } from '@qwik.dev/core/preloader';
+import { isBrowser } from '@qwik.dev/core/build';
 import {
   invoke,
   newInvokeContext,
@@ -23,6 +21,8 @@ import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
+// @ts-expect-error we don't have types for the preloader
+import { p as preload } from '@qwik.dev/core/preloader';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -247,13 +247,6 @@ export const createQRL = <TYPE>(
     symbolRef = maybeThen(symbolRef, (resolved) => (qrl.resolved = wrapFn((symbolRef = resolved))));
   }
 
-  if (isDev) {
-    Object.defineProperty(qrl, '_devOnlySymbolRef', {
-      get() {
-        return symbolRef;
-      },
-    });
-  }
   if (qDev) {
     seal(qrl);
   }

@@ -1,25 +1,20 @@
 /* eslint-disable no-console */
+import { Slot, componentQrl, render, type JSXOutput, type OnRenderFn } from '@qwik.dev/core';
+import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
   _DomContainer,
   _VNode,
   _VirtualVNode,
 } from '@qwik.dev/core/internal';
-import {
-  Slot,
-  _getDomContainer,
-  componentQrl,
-  render,
-  type OnRenderFn,
-  type JSXOutput,
-} from '@qwik.dev/core';
+import { transformSync } from 'esbuild';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
 import { expect } from 'vitest';
 import {
-  vnode_getAttr,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
-  vnode_getParent,
   vnode_getVNodeForChildNode,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -27,16 +22,16 @@ import {
   vnode_locate,
   vnode_newVirtual,
   vnode_remove,
-  vnode_setProp,
   vnode_toString,
   type VNodeJournal,
 } from '../core/client/vnode';
+import type { VNode, VirtualVNode } from '../core/client/vnode-impl';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
+import { _dumpState, preprocessState } from '../core/shared/serdes/index';
 import { ChoreType } from '../core/shared/util-chore-type';
-import { dumpState, preprocessState } from '../core/shared/shared-serialization';
 import {
   ELEMENT_PROPS,
   OnRenderProp,
@@ -47,17 +42,12 @@ import {
   QStyle,
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '../core/use/use-context';
+import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
 import type { HostElement, QRLInternal } from '../server/qwik-types';
 import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
 import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
-import { VNodeProps, VirtualVNodeProps, type VNode, type VirtualVNode } from '../core/client/types';
-import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
-import { transformSync } from 'esbuild';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
 
 /** @public */
 export async function domRender(
@@ -114,10 +104,14 @@ function getStylesFactory(document: Document) {
 export async function ssrRenderToDom(
   jsx: JSXOutput,
   opts: {
-    /// Print debug information to console.
+    /** Print debug information to console. */
     debug?: boolean;
-    /// Treat JSX as raw, (don't wrap in in head/body)
+    /** Treat JSX as raw, (don't wrap in in head/body) */
     raw?: boolean;
+    /** Include QwikLoader */
+    qwikLoader?: boolean;
+    /** Inject nodes into the document before test runs (for testing purposes) */
+    onBeforeResume?: (document: Document) => void;
   } = {}
 ) {
   let html = '';
@@ -131,7 +125,9 @@ export async function ssrRenderToDom(
           </head>,
           <body>{jsx}</body>,
         ];
-    const result = await renderToString(jsxToRender);
+    const result = await renderToString(jsxToRender, {
+      qwikLoader: opts.qwikLoader ? 'inline' : 'never',
+    });
     html = result.html;
   } finally {
     setPlatform(platform);
@@ -139,7 +135,13 @@ export async function ssrRenderToDom(
 
   const document = createDocument({ html });
   const containerElement = document.querySelector(QContainerSelector) as _ContainerElement;
+
   emulateExecutionOfQwikFuncs(document);
+
+  if (opts.onBeforeResume) {
+    opts.onBeforeResume(document);
+  }
+
   emulateExecutionOfBackpatch(document);
   const container = _getDomContainer(containerElement) as _DomContainer;
   const getStyles = getStylesFactory(document);
@@ -156,7 +158,7 @@ export async function ssrRenderToDom(
       container.element.querySelector('script[type="qwik/state"]')?.textContent || '[]'
     );
     preprocessState(origState, container);
-    console.log(origState ? dumpState(origState, true, '', null) : 'No state found', '\n');
+    console.log(origState ? _dumpState(origState, true, '', null) : 'No state found', '\n');
     const funcs = container.$qFuncs$;
     console.log('------------------- SERIALIZED QFUNCS -------------------');
     for (let i = 0; i < funcs.length; i++) {
@@ -183,7 +185,7 @@ export async function ssrRenderToDom(
 
     // Create a fragment
     const fragment = vnode_newVirtual();
-    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
+    fragment.setProp(DEBUG_TYPE, VirtualType.Fragment);
 
     const childrenToMove = [];
 
@@ -195,16 +197,16 @@ export async function ssrRenderToDom(
       if (
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
-          (vnode_getAttr(child, 'type') === 'qwik/state' ||
-            vnode_getAttr(child, 'type') === ELEMENT_BACKPATCH_DATA ||
-            vnode_getAttr(child, 'id') === 'qwikloader')) ||
+          (child.getAttr('type') === 'qwik/state' ||
+            child.getAttr('type') === ELEMENT_BACKPATCH_DATA ||
+            child.getAttr('id') === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
         break;
       }
       childrenToMove.push(child);
-      child = vnode_getNextSibling(child);
+      child = child.nextSibling as VNode | null;
     }
 
     // Set the container vnode as a parent of the fragment
@@ -228,32 +230,27 @@ function vnode_moveToVirtual(
   insertBefore: VNode | null
 ) {
   // ensure that the previous node is unlinked.
-  const newChildCurrentParent = newChild[VNodeProps.parent];
-  if (
-    newChildCurrentParent &&
-    (newChild[VNodeProps.previousSibling] || newChild[VNodeProps.nextSibling])
-  ) {
+  const newChildCurrentParent = newChild.parent;
+  if (newChildCurrentParent && (newChild.previousSibling || newChild.nextSibling)) {
     vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
   // link newChild into the previous/next list
   const vNext = insertBefore;
-  const vPrevious = vNext
-    ? vNext[VNodeProps.previousSibling]
-    : (parent[VirtualVNodeProps.lastChild] as VNode | null);
+  const vPrevious = vNext ? vNext.previousSibling : (parent.lastChild as VNode | null);
   if (vNext) {
-    vNext[VNodeProps.previousSibling] = newChild;
+    vNext.previousSibling = newChild;
   } else {
-    parent[VirtualVNodeProps.lastChild] = newChild;
+    parent.lastChild = newChild;
   }
   if (vPrevious) {
-    vPrevious[VNodeProps.nextSibling] = newChild;
+    vPrevious.nextSibling = newChild;
   } else {
-    parent[VirtualVNodeProps.firstChild] = newChild;
+    parent.firstChild = newChild;
   }
-  newChild[VNodeProps.previousSibling] = vPrevious;
-  newChild[VNodeProps.nextSibling] = vNext;
-  newChild[VNodeProps.parent] = parent;
+  newChild.previousSibling = vPrevious;
+  newChild.nextSibling = vNext;
+  newChild.parent = parent;
 }
 
 /** @public */
@@ -341,10 +338,10 @@ export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
 
 function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
-    if (vnode_getAttr(vElement, OnRenderProp) != null) {
+    if (vElement.getAttr(OnRenderProp) != null) {
       return vElement as _VirtualVNode;
     }
-    vElement = vnode_getParent(vElement);
+    vElement = vElement.parent;
   }
   return vElement;
 }

@@ -1,5 +1,5 @@
 import type { ValueOrPromise } from '@qwik.dev/core';
-import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
+import { _deserialize, _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import { QDATA_KEY } from '../../runtime/src/constants';
 import {
   LoadedRouteProp,
@@ -23,7 +23,6 @@ import { encoder, getRouteLoaderPromise } from './resolve-request-handlers';
 import type {
   CacheControl,
   CacheControlTarget,
-  QwikSerializer,
   RequestEvent,
   RequestEventCommon,
   RequestEventLoader,
@@ -32,12 +31,11 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { IsQData, getRouteMatchPathname } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
 const RequestEvRoute = Symbol('RequestEvRoute');
-export const RequestEvQwikSerializer = Symbol('RequestEvQwikSerializer');
 export const RequestEvLoaderSerializationStrategyMap = Symbol(
   'RequestEvLoaderSerializationStrategyMap'
 );
@@ -55,7 +53,6 @@ export function createRequestEvent(
   loadedRoute: LoadedRoute | null,
   requestHandlers: RequestHandler<any>[],
   basePathname: string,
-  qwikSerializer: QwikSerializer,
   resolved: (response: any) => void
 ) {
   const { request, platform, env } = serverRequestEv;
@@ -64,11 +61,11 @@ export function createRequestEvent(
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (!globalThis.__NO_TRAILING_SLASH__ && !url.pathname.endsWith('/')) {
-      url.pathname += '/';
-    }
+  const { pathname, isInternal } = getRouteMatchPathname(url.pathname);
+  if (isInternal) {
+    // For the middleware callbacks we pretend it's a regular request
+    url.pathname = pathname;
+    // But we set this flag so that they can act differently
     sharedMap.set(IsQData, true);
   }
 
@@ -83,10 +80,7 @@ export function createRequestEvent(
 
     while (routeModuleIndex < requestHandlers.length) {
       const moduleRequestHandler = requestHandlers[routeModuleIndex];
-      const asyncStore = globalThis.qcAsyncRequestStore;
-      const result = asyncStore?.run
-        ? asyncStore.run(requestEv, moduleRequestHandler, requestEv)
-        : moduleRequestHandler(requestEv);
+      const result = moduleRequestHandler(requestEv);
       if (isPromise(result)) {
         await result;
       }
@@ -147,9 +141,11 @@ export function createRequestEvent(
     return exit();
   };
 
-  const exit = () => {
+  const exit = <T extends AbortMessage | RedirectMessage | RewriteMessage>(
+    message: T = new AbortMessage() as T
+  ) => {
     routeModuleIndex = ABORT_INDEX;
-    return new AbortMessage();
+    return message;
   };
 
   const loaders: Record<string, ValueOrPromise<unknown> | undefined> = {};
@@ -160,7 +156,6 @@ export function createRequestEvent(
     get [RequestEvRoute]() {
       return loadedRoute;
     },
-    [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
@@ -213,7 +208,7 @@ export function createRequestEvent(
         }
         if (loaders[id] === _UNINITIALIZED) {
           const isDev = getRequestMode(requestEv) === 'dev';
-          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev, qwikSerializer);
+          await getRouteLoaderPromise(loaderOrAction, loaders, requestEv, isDev);
         }
       }
 
@@ -246,18 +241,18 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
-        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
-        if (url !== fixedURL) {
+        if (/([^:])\/{2,}/.test(url)) {
+          const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+          url = fixedURL;
         }
-        headers.set('Location', fixedURL);
+        headers.set('Location', url);
       }
       headers.delete('Cache-Control');
       if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
-      exit();
-      return new RedirectMessage();
+      return exit(new RedirectMessage());
     },
 
     rewrite: (pathname: string) => {
@@ -266,7 +261,7 @@ export function createRequestEvent(
         throw new Error('Rewrite does not support absolute urls');
       }
       sharedMap.set(RequestEvIsRewrite, true);
-      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
+      return exit(new RewriteMessage(pathname.replace(/\/+/g, '/')));
     },
 
     defer: (returnData) => {
@@ -297,7 +292,7 @@ export function createRequestEvent(
       if (requestData !== undefined) {
         return requestData;
       }
-      return (requestData = parseRequest(requestEv, sharedMap, qwikSerializer));
+      return (requestData = parseRequest(requestEv, sharedMap));
     },
 
     json: (statusCode: number, data: any) => {
@@ -343,7 +338,6 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
   [RequestEvLoaderSerializationStrategyMap]: Map<string, SerializationStrategy>;
   [RequestEvMode]: ServerRequestMode;
   [RequestEvRoute]: LoadedRoute | null;
-  [RequestEvQwikSerializer]: QwikSerializer;
 
   /**
    * Check if this request is already written to.
@@ -386,8 +380,7 @@ const ABORT_INDEX = Number.MAX_SAFE_INTEGER;
 
 const parseRequest = async (
   { request, method, query }: RequestEventInternal,
-  sharedMap: Map<string, any>,
-  qwikSerializer: QwikSerializer
+  sharedMap: Map<string, any>
 ): Promise<JSONValue | undefined> => {
   const type = request.headers.get('content-type')?.split(/[;,]/, 1)[0].trim() ?? '';
   if (type === 'application/x-www-form-urlencoded' || type === 'multipart/form-data') {
@@ -402,13 +395,13 @@ const parseRequest = async (
       const data = query.get(QDATA_KEY);
       if (data) {
         try {
-          return qwikSerializer._deserialize(decodeURIComponent(data)) as JSONValue;
+          return _deserialize(decodeURIComponent(data)) as JSONValue;
         } catch {
           //
         }
       }
     }
-    return qwikSerializer._deserialize(await request.text()) as JSONValue;
+    return _deserialize(await request.text()) as JSONValue;
   }
   return undefined;
 };

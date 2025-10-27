@@ -26,27 +26,31 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
     return;
   }
   for (const [, effect] of effects) {
-    const backRefs = effect[EffectSubscriptionProp.BACK_REF];
-    if (!backRefs) {
-      return;
-    }
-    for (const producer of backRefs) {
-      if (producer instanceof SignalImpl) {
-        clearSignal(container, producer, effect);
-      } else if (producer instanceof AsyncComputedSignalImpl) {
-        clearAsyncComputedSignal(producer, effect);
-      } else if (container.$storeProxyMap$.has(producer)) {
-        const target = container.$storeProxyMap$.get(producer)!;
-        const storeHandler = getStoreHandler(target)!;
-        clearStore(storeHandler, effect);
-      }
+    clearEffectSubscription(container, effect);
+  }
+}
+
+export function clearEffectSubscription(container: Container, effect: EffectSubscription) {
+  const backRefs = effect[EffectSubscriptionProp.BACK_REF];
+  if (!backRefs) {
+    return;
+  }
+  for (const producer of backRefs) {
+    if (producer instanceof SignalImpl) {
+      clearSignal(container, producer, effect);
+    } else if (producer instanceof AsyncComputedSignalImpl) {
+      clearAsyncComputedSignal(producer, effect);
+    } else if (container.$storeProxyMap$.has(producer)) {
+      const target = container.$storeProxyMap$.get(producer)!;
+      const storeHandler = getStoreHandler(target)!;
+      clearStore(storeHandler, effect);
     }
   }
 }
 
 function clearSignal(container: Container, producer: SignalImpl, effect: EffectSubscription) {
   const effects = producer.$effects$;
-  if (effects) {
+  if (effects && effects.has(effect)) {
     effects.delete(effect);
   }
 
@@ -61,11 +65,11 @@ function clearAsyncComputedSignal(
   effect: EffectSubscription
 ) {
   const effects = producer.$effects$;
-  if (effects) {
+  if (effects && effects.has(effect)) {
     effects.delete(effect);
   }
   const pendingEffects = producer.$loadingEffects$;
-  if (pendingEffects) {
+  if (pendingEffects && pendingEffects.has(effect)) {
     pendingEffects.delete(effect);
   }
 }
@@ -74,7 +78,9 @@ function clearStore(producer: StoreHandler, effect: EffectSubscription) {
   const effects = producer?.$effects$;
   if (effects) {
     for (const propEffects of effects.values()) {
-      propEffects.delete(effect);
+      if (propEffects.has(effect)) {
+        propEffects.delete(effect);
+      }
     }
   }
 }

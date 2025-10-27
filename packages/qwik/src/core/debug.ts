@@ -1,10 +1,10 @@
 import { isSignal } from './reactive-primitives/utils';
 // ^ keep this first to avoid circular dependency breaking class extend
-import { vnode_getProp, vnode_isVNode } from './client/vnode';
+import { vnode_isVNode } from './client/vnode';
 import { ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 import { isStore } from './reactive-primitives/impl/store';
 import { WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
-import { isJSXNode } from './shared/jsx/jsx-runtime';
+import { isJSXNode } from './shared/jsx/jsx-node';
 import { isQrl } from './shared/qrl/qrl-utils';
 import { DEBUG_TYPE } from './shared/types';
 import { isTask } from './use/use-task';
@@ -34,7 +34,7 @@ export function qwikDebugToString(value: any): any {
       stringifyPath.push(value);
       if (Array.isArray(value)) {
         if (vnode_isVNode(value)) {
-          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+          return '(' + value.getProp(DEBUG_TYPE, null) + ')';
         } else {
           return value.map(qwikDebugToString);
         }
@@ -50,6 +50,8 @@ export function qwikDebugToString(value: any): any {
         return 'Store';
       } else if (isJSXNode(value)) {
         return jsxToString(value);
+      } else if (vnode_isVNode(value)) {
+        return '(' + value.getProp(DEBUG_TYPE, null) + ')';
       }
     } finally {
       stringifyPath.pop();

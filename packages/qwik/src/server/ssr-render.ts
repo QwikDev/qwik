@@ -75,7 +75,7 @@ export const renderToStream = async (
       ? opts.locale(opts)
       : opts.serverData?.locale || opts.locale || opts.containerAttributes?.locale || '';
 
-  const { stream, flush, networkFlushes, totalSize } = handleStreaming(opts, timing);
+  const { stream, flush, networkFlushes } = handleStreaming(opts, timing);
 
   const ssrContainer = ssrCreateContainer({
     tagName: containerTagName,
@@ -101,7 +101,7 @@ export const renderToStream = async (
     snapshotResult,
     flushes: networkFlushes,
     manifest: resolvedManifest?.manifest,
-    size: totalSize,
+    size: ssrContainer.size,
     isStatic: !isDynamic,
     timing: timing,
   };
@@ -134,7 +134,6 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
   let stream = opts.stream;
   let bufferSize = 0;
   let buffer: string = '';
-  let totalSize = 0;
   let networkFlushes = 0;
   const inOrderStreaming = opts.streaming?.inOrder ?? {
     strategy: 'auto',
@@ -158,7 +157,6 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
   function enqueue(chunk: string) {
     const len = chunk.length;
     bufferSize += len;
-    totalSize += len;
     buffer += chunk;
   }
 
@@ -219,7 +217,6 @@ function handleStreaming(opts: RenderToStreamOptions, timing: RenderToStreamResu
     stream,
     flush,
     networkFlushes,
-    totalSize,
   };
 }
 

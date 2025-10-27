@@ -6,7 +6,7 @@ import {
   _jsxSplit,
   _walkJSX,
   isSignal,
-} from '@qwik.dev/core';
+} from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
@@ -111,6 +111,12 @@ export interface SSRRenderOptions {
   renderOptions?: RenderOptions;
 }
 
+enum QwikLoaderInclude {
+  Module,
+  Inline,
+  Done,
+}
+
 export function ssrCreateContainer(opts: SSRRenderOptions): ISSRContainer {
   opts.renderOptions ||= {};
   return new SSRContainer({
@@ -177,6 +183,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public isHtml: boolean;
   public writer: StreamWriter;
   public timing: RenderToStreamResult['timing'];
+  public size = 0;
   public resolvedManifest: ResolvedManifest;
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
@@ -220,6 +227,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
+  private qlInclude: QwikLoaderInclude;
 
   constructor(opts: Required<SSRRenderOptions>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -242,6 +250,25 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+
+    const qlOpt = this.renderOptions.qwikLoader;
+    this.qlInclude = qlOpt
+      ? typeof qlOpt === 'object'
+        ? qlOpt.include === 'never'
+          ? QwikLoaderInclude.Done
+          : QwikLoaderInclude.Module
+        : qlOpt === 'inline'
+          ? QwikLoaderInclude.Inline
+          : qlOpt === 'never'
+            ? QwikLoaderInclude.Done
+            : QwikLoaderInclude.Module
+      : QwikLoaderInclude.Module;
+    if (this.qlInclude === QwikLoaderInclude.Module) {
+      const qwikLoaderChunk = this.resolvedManifest?.manifest.qwikLoader;
+      if (!qwikLoaderChunk) {
+        this.qlInclude = QwikLoaderInclude.Inline;
+      }
+    }
 
     this.$processInjectionsFromManifest$();
   }
@@ -353,6 +380,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
+  private $noScriptHere$ = 0;
+
   /** Renders opening tag for DOM element */
   openElement(
     elementName: string,
@@ -360,6 +389,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
+    if (this.qlInclude === QwikLoaderInclude.Inline) {
+      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024) {
+        // We waited long enough, on slow connections the page is already partially visible
+        this.emitQwikLoaderInline();
+      }
+      // keep track of noscript and template
+      else if (elementName === 'noscript' || elementName === 'template') {
+        this.$noScriptHere$++;
+      }
+    }
+
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
     const isQwikStyle =
@@ -450,6 +490,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.write('>');
     }
     this.lastNode = null;
+    if (this.qlInclude === QwikLoaderInclude.Inline) {
+      // keep track of noscript and template
+      if (elementName === 'noscript' || elementName === 'template') {
+        this.$noScriptHere$--;
+      }
+    }
   }
 
   /** Writes opening data to vNodeData for fragment boundaries */
@@ -656,6 +702,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
+
     for (let elementIdx = 0; elementIdx < vNodeData.length; elementIdx++) {
       const vNode = vNodeData[elementIdx];
       const flag = vNode[0];
@@ -688,7 +735,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             } else if (value === CLOSE_FRAGMENT) {
               // write out fragment attributes
               if (fragmentAttrs) {
-                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
               depth--;
@@ -697,7 +744,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
               if (fragmentAttrs && fragmentAttrs.length) {
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
-                writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+                this.writeFragmentAttrs(fragmentAttrs);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
@@ -711,7 +758,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           }
           while (depth-- > 0) {
             if (fragmentAttrs) {
-              writeFragmentAttrs(this.write.bind(this), this.addRoot.bind(this), fragmentAttrs);
+              this.writeFragmentAttrs(fragmentAttrs);
               fragmentAttrs = vNodeAttrsStack.pop()!;
             }
             this.write(VNodeDataChar.CLOSE_CHAR);
@@ -720,79 +767,75 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
 
-    function writeFragmentAttrs(
-      write: (text: string) => void,
-      addRoot: (obj: unknown) => number | undefined,
-      fragmentAttrs: SsrAttrs
-    ): void {
-      for (let i = 0; i < fragmentAttrs.length; ) {
-        const key = fragmentAttrs[i++] as string;
-        let value = fragmentAttrs[i++] as string;
-        let encodeValue = false;
-        // if (key !== DEBUG_TYPE) continue;
-        if (typeof value !== 'string') {
-          const rootId = addRoot(value);
-          // We didn't add the vnode data, so we are only interested in the vnode position
-          if (rootId === undefined) {
-            continue;
-          }
-          value = String(rootId);
+    this.closeElement();
+  }
+
+  private writeFragmentAttrs(fragmentAttrs: SsrAttrs): void {
+    for (let i = 0; i < fragmentAttrs.length; ) {
+      const key = fragmentAttrs[i++] as string;
+      let value = fragmentAttrs[i++] as string;
+      let encodeValue = false;
+      // if (key !== DEBUG_TYPE) continue;
+      if (typeof value !== 'string') {
+        const rootId = this.addRoot(value);
+        // We didn't add the vnode data, so we are only interested in the vnode position
+        if (rootId === undefined) {
+          continue;
         }
-        switch (key) {
-          case QScopedStyle:
-            write(VNodeDataChar.SCOPED_STYLE_CHAR);
-            break;
-          case OnRenderProp:
-            write(VNodeDataChar.RENDER_FN_CHAR);
-            break;
-          case ELEMENT_ID:
-            write(VNodeDataChar.ID_CHAR);
-            break;
-          case ELEMENT_PROPS:
-            write(VNodeDataChar.PROPS_CHAR);
-            break;
-          case ELEMENT_KEY:
-            encodeValue = true;
-            write(VNodeDataChar.KEY_CHAR);
-            break;
-          case ELEMENT_SEQ:
-            write(VNodeDataChar.SEQ_CHAR);
-            break;
-          case ELEMENT_SEQ_IDX:
-            write(VNodeDataChar.SEQ_IDX_CHAR);
-            break;
-          case QBackRefs:
-            write(VNodeDataChar.BACK_REFS_CHAR);
-            break;
-          case QSlotParent:
-            write(VNodeDataChar.SLOT_PARENT_CHAR);
-            break;
-          // Skipping `\` character for now because it is used for escaping.
-          case QCtxAttr:
-            write(VNodeDataChar.CONTEXT_CHAR);
-            break;
-          case QSlot:
-            write(VNodeDataChar.SLOT_CHAR);
-            break;
-          default:
-            write(VNodeDataChar.SEPARATOR_CHAR);
-            write(key);
-            write(VNodeDataChar.SEPARATOR_CHAR);
-        }
-        const encodedValue = encodeValue ? encodeURI(value) : value;
-        const isEncoded = encodeValue ? encodedValue !== value : false;
-        if (isEncoded) {
-          // add separator only before and after the encoded value
-          write(VNodeDataChar.SEPARATOR_CHAR);
-          write(encodedValue);
-          write(VNodeDataChar.SEPARATOR_CHAR);
-        } else {
-          write(value);
-        }
+        value = String(rootId);
+      }
+      switch (key) {
+        case QScopedStyle:
+          this.write(VNodeDataChar.SCOPED_STYLE_CHAR);
+          break;
+        case OnRenderProp:
+          this.write(VNodeDataChar.RENDER_FN_CHAR);
+          break;
+        case ELEMENT_ID:
+          this.write(VNodeDataChar.ID_CHAR);
+          break;
+        case ELEMENT_PROPS:
+          this.write(VNodeDataChar.PROPS_CHAR);
+          break;
+        case ELEMENT_KEY:
+          encodeValue = true;
+          this.write(VNodeDataChar.KEY_CHAR);
+          break;
+        case ELEMENT_SEQ:
+          this.write(VNodeDataChar.SEQ_CHAR);
+          break;
+        case ELEMENT_SEQ_IDX:
+          this.write(VNodeDataChar.SEQ_IDX_CHAR);
+          break;
+        case QBackRefs:
+          this.write(VNodeDataChar.BACK_REFS_CHAR);
+          break;
+        case QSlotParent:
+          this.write(VNodeDataChar.SLOT_PARENT_CHAR);
+          break;
+        // Skipping `\` character for now because it is used for escaping.
+        case QCtxAttr:
+          this.write(VNodeDataChar.CONTEXT_CHAR);
+          break;
+        case QSlot:
+          this.write(VNodeDataChar.SLOT_CHAR);
+          break;
+        default:
+          this.write(VNodeDataChar.SEPARATOR_CHAR);
+          this.write(key);
+          this.write(VNodeDataChar.SEPARATOR_CHAR);
+      }
+      const encodedValue = encodeValue ? encodeURI(value) : value;
+      const isEncoded = encodeValue ? encodedValue !== value : false;
+      if (isEncoded) {
+        // add separator only before and after the encoded value
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+        this.write(encodedValue);
+        this.write(VNodeDataChar.SEPARATOR_CHAR);
+      } else {
+        this.write(value);
       }
     }
-
-    this.closeElement();
   }
 
   private emitStateData(): ValueOrPromise<void> {
@@ -868,67 +911,61 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.serializationCtx.$eventQrls$.size === 0;
   }
 
-  private getQwikLoaderIncludeMode() {
-    return this.renderOptions.qwikLoader?.include ?? 'auto';
+  emitQwikLoaderAtTopIfNeeded() {
+    if (this.qlInclude === QwikLoaderInclude.Module) {
+      this.qlInclude = QwikLoaderInclude.Done;
+      // always emit the preload+import. It will probably be used at some point on the site
+      const qwikLoaderBundle = this.$buildBase$ + this.resolvedManifest.manifest.qwikLoader!;
+      const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
+      const nonce = this.renderOptions.serverData?.nonce;
+      if (nonce) {
+        linkAttrs.push('nonce', nonce);
+      }
+      this.openElement('link', linkAttrs);
+      this.closeElement();
+      // browser must support modules for Qwik to work
+      const scriptAttrs = ['async', true, 'type', 'module', 'src', qwikLoaderBundle];
+      if (nonce) {
+        scriptAttrs.push('nonce', nonce);
+      }
+      this.openElement('script', scriptAttrs);
+      this.closeElement();
+    }
   }
 
-  emitQwikLoaderAtTopIfNeeded() {
-    const includeMode = this.getQwikLoaderIncludeMode();
-    const includeLoader = includeMode !== 'never';
-    if (includeLoader) {
-      let qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
-      if (qwikLoaderBundle) {
-        // always emit the preload+import. It will probably be used at some point on the site
-        qwikLoaderBundle = this.$buildBase$ + qwikLoaderBundle;
-        const linkAttrs = ['rel', 'modulepreload', 'href', qwikLoaderBundle];
-        const nonce = this.renderOptions.serverData?.nonce;
-        if (nonce) {
-          linkAttrs.push('nonce', nonce);
-        }
-        this.openElement('link', linkAttrs);
-        this.closeElement();
-        const scriptAttrs = ['type', 'module', 'async', true, 'src', qwikLoaderBundle];
-        if (nonce) {
-          scriptAttrs.push('nonce', nonce);
-        }
-        this.openElement('script', scriptAttrs);
-        this.closeElement();
-      }
+  emitQwikLoaderInline() {
+    this.qlInclude = QwikLoaderInclude.Done;
+    // if at the end, only include when snapshot is not static
+    const qwikLoaderScript = getQwikLoaderScript({ debug: this.renderOptions.debug });
+    // module + async lets it run asap without waiting for DOM, even when inline
+    const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
+    this.openElement('script', scriptAttrs);
+    this.write(qwikLoaderScript);
+    this.closeElement();
   }
 
   private emitQwikLoaderAtBottomIfNeeded() {
-    const qwikLoaderBundle = this.resolvedManifest.manifest.qwikLoader;
-    if (!qwikLoaderBundle) {
-      /** We didn't emit the preload+import, so we need to emit the script in the html as a fallback */
-      const needLoader = !this.isStatic();
-      const includeMode = this.getQwikLoaderIncludeMode();
-      const includeLoader = includeMode === 'always' || (includeMode === 'auto' && needLoader);
-      if (includeLoader) {
-        const qwikLoaderScript = getQwikLoaderScript({
-          debug: this.renderOptions.debug,
-        });
-        // async allows executing while the DOM is being handled
-        const scriptAttrs = ['id', 'qwikloader', 'async', true, 'type', 'module'];
-        const nonce = this.renderOptions.serverData?.nonce;
-        if (nonce) {
-          scriptAttrs.push('nonce', nonce);
-        }
-        this.openElement('script', scriptAttrs);
-        this.write(qwikLoaderScript);
-        this.closeElement();
+    if (!this.isStatic()) {
+      if (this.qlInclude !== QwikLoaderInclude.Done) {
+        this.emitQwikLoaderInline();
       }
+      // emit the used events so the loader can subscribe to them
+      this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
     }
-
-    // emit the used events so the loader can subscribe to them
-    this.emitQwikEvents(Array.from(this.serializationCtx.$eventNames$, (s) => JSON.stringify(s)));
   }
 
   private emitQwikEvents(eventNames: string[]) {
     if (eventNames.length > 0) {
-      const scriptAttrs = this.renderOptions.serverData?.nonce
-        ? ['nonce', this.renderOptions.serverData.nonce]
-        : null;
+      // TODO fix qwikloader so it handles qvisible added after init
+      // const scriptAttrs = ['async', true, 'type', 'module'];
+      const scriptAttrs = [];
+      const nonce = this.renderOptions.serverData?.nonce;
+      if (nonce) {
+        scriptAttrs.push('nonce', nonce);
+      }
       this.openElement('script', scriptAttrs);
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
@@ -1001,11 +1038,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  // Keep in sync with process-vnode-data.unit.ts
   private emitVNodeSeparators(lastSerializedIdx: number, elementIdx: number): number {
     let skipCount = elementIdx - lastSerializedIdx;
     // console.log('emitVNodeSeparators', lastSerializedIdx, elementIdx, skipCount);
     while (skipCount != 0) {
-      if (skipCount > 4096) {
+      if (skipCount >= 8192) {
         this.write(VNodeDataSeparator.ADVANCE_8192_CH);
         skipCount -= 8192;
       } else {
@@ -1098,7 +1136,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   ////////////////////////////////////
-  private write(text: string) {
+  write(text: string) {
+    this.size += text.length;
     this.writer.write(text);
   }
 

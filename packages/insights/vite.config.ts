@@ -1,4 +1,3 @@
-import { macroPlugin } from '@builder.io/vite-plugin-macro';
 import { qwikInsights } from '@qwik.dev/core/insights/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { qwikRouter } from '@qwik.dev/router/vite';
@@ -7,8 +6,22 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  environments: {
+    client: {
+      optimizeDeps: {
+        exclude: ['@auth/qwik', '@modular-forms/qwik'],
+      },
+    },
+    ssr: {
+      build: {
+        sourcemap: true,
+      },
+      resolve: {
+        noExternal: ['@auth/qwik', '@modular-forms/qwik'],
+      },
+    },
+  },
   plugins: [
-    macroPlugin({ preset: 'pandacss' }),
     qwikRouter(),
     qwikVite({
       experimental: ['insights'],
@@ -21,8 +34,5 @@ export default defineConfig({
     headers: {
       'Cache-Control': 'public, max-age=600',
     },
-  },
-  optimizeDeps: {
-    include: ['@auth/core'],
   },
 });

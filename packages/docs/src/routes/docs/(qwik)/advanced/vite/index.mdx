@@ -29,7 +29,7 @@ After scaffolding a new Qwik project, you'll find a `vite.config.js` file in the
 
 Qwik comes with two plugins that make it easy to use Vite with Qwik and Qwik Router.
 
-```ts title="vite.config.mts"
+```ts title="vite.config.ts"
 import { defineConfig } from 'vite';
 import { qwikRouter } from '@qwik.dev/router/vite';
 import { qwikVite } from '@qwik.dev/core/optimizer';
@@ -109,12 +109,6 @@ client?: {
      * Default `src/components/app/app.tsx`
      */
     input?: string[] | string;
-    /**
-     * Entry input for client-side only development with hot-module reloading.
-     * This is for Vite development only and does not use SSR.
-     * Default `src/entry.dev.tsx`
-     */
-    devInput?: string;
     /**
      * Output directory for the client build.
      * Default `dist`

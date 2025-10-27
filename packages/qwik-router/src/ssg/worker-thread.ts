@@ -1,15 +1,18 @@
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
+import { _serialize } from '@qwik.dev/core/internal';
 import type { ServerRequestEvent } from '@qwik.dev/router/middleware/request-handler';
-import { requestHandler, RequestEvShareQData } from '@qwik.dev/router/middleware/request-handler';
+import {
+  RedirectMessage,
+  RequestEvShareQData,
+  requestHandler,
+} from '@qwik.dev/router/middleware/request-handler';
 import { WritableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
-import type { QwikSerializer } from '../middleware/request-handler/types';
 import type { ClientPageData } from '../runtime/src/types';
 import type {
   SsgHandlerOptions,
   SsgRoute,
-  StaticStreamWriter,
   SsgWorkerRenderResult,
+  StaticStreamWriter,
   System,
 } from './types';
 
@@ -19,35 +22,46 @@ export async function workerThread(sys: System) {
   delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
+  const log = await sys.createLogger();
 
   const opts: SsgHandlerOptions = {
     ...ssgOpts,
+    // TODO export this from server
     render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
+    // TODO this should be built-in
     qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
       .default,
   };
 
-  sys.createWorkerProcess(async (msg) => {
-    switch (msg.type) {
-      case 'render': {
-        return new Promise<SsgWorkerRenderResult>((resolve) => {
-          workerRender(sys, opts, msg, pendingPromises, resolve);
-        });
+  sys
+    .createWorkerProcess(async (msg) => {
+      switch (msg.type) {
+        case 'render': {
+          log.debug(`Worker thread rendering: ${msg.pathname}`);
+          return new Promise<SsgWorkerRenderResult>((resolve) => {
+            workerRender(sys, opts, msg, pendingPromises, resolve).catch((e) => {
+              console.error('Error during render', msg.pathname, e);
+            });
+          });
+        }
+        case 'close': {
+          if (pendingPromises.size) {
+            log.debug(`Worker thread closing, waiting for ${pendingPromises.size} pending renders`);
+            const promises = Array.from(pendingPromises);
+            pendingPromises.clear();
+            await Promise.all(promises);
+          }
+          log.debug(`Worker thread closed`);
+          return { type: 'close' };
+        }
       }
-      case 'close': {
-        const promises = Array.from(pendingPromises);
-        pendingPromises.clear();
-        await Promise.all(promises);
-        return { type: 'close' };
-      }
-    }
-  });
+    })
+    ?.catch((e) => {
+      console.error('Worker process creation failed', e);
+    });
 }
 
 export async function createSingleThreadWorker(sys: System) {
-  // Special case: we allow importing qwik again in the same process, it's ok because we just needed the serializer
-  // TODO: remove this once we have vite environment API and no longer need the serializer separately
-  delete (globalThis as any).__qwik;
   const ssgOpts = sys.getOptions();
   const pendingPromises = new Set<Promise<any>>();
 
@@ -60,7 +74,9 @@ export async function createSingleThreadWorker(sys: System) {
 
   return (staticRoute: SsgRoute) => {
     return new Promise<SsgWorkerRenderResult>((resolve) => {
-      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
+      workerRender(sys, opts, staticRoute, pendingPromises, resolve).catch((e) => {
+        console.error('Error during render', staticRoute.pathname, e);
+      });
     });
   };
 }
@@ -72,11 +88,6 @@ async function workerRender(
   pendingPromises: Set<Promise<any>>,
   callback: (result: SsgWorkerRenderResult) => void
 ) {
-  const qwikSerializer: QwikSerializer = {
-    _deserialize,
-    _serialize,
-    _verifySerializable,
-  };
   // pathname and origin already normalized at this point
   const url = new URL(staticRoute.pathname, opts.origin);
 
@@ -158,6 +169,7 @@ async function workerRender(
                 });
               }
             } catch (e: any) {
+              console.error('Error during stream start', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -172,6 +184,7 @@ async function workerRender(
                 routeWriter.write(Buffer.from(chunk.buffer));
               }
             } catch (e: any) {
+              console.error('Error during stream write', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -225,6 +238,7 @@ async function workerRender(
                 await Promise.all(writePromises);
               }
             } catch (e: any) {
+              console.error('Error during stream close', staticRoute.pathname, e);
               routeWriter = null;
               result.error = {
                 message: String(e),
@@ -237,7 +251,7 @@ async function workerRender(
       },
     };
 
-    const promise = requestHandler(requestCtx, opts, qwikSerializer)
+    const promise = requestHandler(requestCtx, opts)
       .then((rsp) => {
         if (rsp != null) {
           return rsp.completion.then((r) => {
@@ -248,8 +262,13 @@ async function workerRender(
           });
         }
       })
-      .then((e) => {
+      .then((e: any) => {
         if (e !== undefined) {
+          if (e instanceof RedirectMessage) {
+            // TODO We should render a html page for redirects too
+            // that would require refactoring redirects
+            return;
+          }
           if (e instanceof Error) {
             result.error = {
               message: e.message,
@@ -261,7 +280,15 @@ async function workerRender(
               stack: undefined,
             };
           }
+          console.error('Error during request handling', staticRoute.pathname, e);
         }
+      })
+      .catch((e) => {
+        console.error('Unhandled error during request handling', staticRoute.pathname, e);
+        result.error = {
+          message: String(e),
+          stack: e.stack || '',
+        };
       })
       .finally(() => {
         pendingPromises.delete(promise);
@@ -270,6 +297,7 @@ async function workerRender(
 
     pendingPromises.add(promise);
   } catch (e: any) {
+    console.error('Error during render', staticRoute.pathname, e);
     if (e instanceof Error) {
       result.error = {
         message: e.message,

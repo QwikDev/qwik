@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.9",
+  "version": "2.0.0-beta.11",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -10,10 +10,10 @@
   "dependencies": {
     "csstype": "^3.1.3",
     "launch-editor": "^2.11.1",
-    "rollup": ">= ^4.44.0"
+    "rollup": "^4.52.4"
   },
   "devDependencies": {
-    "@croct/json5-parser": "0.2.0",
+    "@croct/json5-parser": "0.2.1",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",
@@ -22,7 +22,7 @@
     "kleur": "4.1.5",
     "prettier": "3.6.2",
     "ts-morph": "23.0.0",
-    "vitest": "3.2.4"
+    "vitest": "4.0.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -185,7 +185,7 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
-    "prettier": "*",
+    "prettier": "3.6.2",
     "vite": ">=5 <8",
     "vitest": ">=2 <4"
   },

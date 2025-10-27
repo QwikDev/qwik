@@ -10,12 +10,17 @@ import {
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
 import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
+});
 
 describe.each([
   { render: ssrRenderToDom }, //

@@ -1,5 +1,13 @@
+# https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Keep in sync with `src/routes/plugin@redirects.ts`
+
+# Discord
+
 /chat https://discord.gg/TsNCMd6uGW 307
 /chat/ https://discord.gg/TsNCMd6uGW 307
+
+# Cute redirects
 
 /examples /examples/introduction/hello-world/ 307
 /examples/ /examples/introduction/hello-world/ 307
@@ -10,67 +18,76 @@
 /tutorials /tutorial/welcome/overview/ 307
 /tutorials/ /tutorial/welcome/overview/ 307
 
-/tutorial/hooks/use-client-effect/ /tutorial/hooks/use-browser-visible-task/ 307
+# Old URLs
 
-/qwikcity/routing/pathless/ /docs/layout/grouped/ 308
+/tutorial/hooks/use-client-effect/ /tutorial/hooks/use-visible-task/ 308
 
-/qwikcity/middleware/azure-swa/ /deployments/azure-swa/ 308
-/qwikcity/middleware/cloudflare-pages/ /deployments/cloudflare-pages/ 308
-/qwikcity/middleware/netlify-edge/ /deployments/netlify-edge/ 308
-/qwikcity/middleware/node/ /deployments/node/ 308
-/qwikcity/middleware/express/ /deployments/node/ 308
 /integrations/deployments/azure-swa/ /deployments/azure-swa/ 308
 /integrations/deployments/cloudflare-pages/ /deployments/cloudflare-pages/ 308
-/integrations/deployments/netlify-edge/ /deployments/netlify-edge/ 308
 /integrations/deployments/express/ /deployments/express/ 308
+/integrations/deployments/netlify-edge/ /deployments/netlify-edge/ 308
 /integrations/deployments/vercel-edge/ /deployments/vercel-edge/ 308
 
-/qwikcity/directory-layout/ /docs/project-structure/ 308
-/qwikcity/static-assets/ /docs/advanced/static-assets/ 308
-/qwikcity/routing/overview/ /docs/routing/ 308
-/qwikcity/routing/route-parameters/ /docs/routing/ 308
-/qwikcity/routing/error-responses/ /docs/advanced/routing/ 308
-/qwikcity/loader/ /docs/route-loader/ 308
 /qwikcity/adaptors/ /docs/deployments/ 308
-/qwikcity/layout/overview/ /docs/layout/ 308
-/qwikcity/layout/nested/ /docs/advanced/routing/ 308
-/qwikcity/layout/grouped/ /docs/advanced/routing/ 308
-/qwikcity/layout/named/ /docs/advanced/routing/ 308
-/qwikcity/data/overview/ /docs/routing/ 308
-/qwikcity/data/retrieve/ /docs/routing/ 308
-/qwikcity/data/modify/ /docs/endpoints/ 308
-/qwikcity/data/endpoints/ /docs/endpoints/ 308
-/qwikcity/data/redirects/ /docs/guides/redirects/ 308
+/qwikcity/advanced/prefetching/ /docs/advanced/modules-prefetching/
 /qwikcity/content/component/ /docs/pages/ 308
+/qwikcity/content/head/ /docs/pages/ 308
 /qwikcity/content/mdx/ /docs/guides/mdx/ 308
 /qwikcity/content/menu/ /docs/advanced/menu/ 308
-/qwikcity/content/head/ /docs/pages/ 308
+/qwikcity/data/endpoints/ /docs/endpoints/ 308
+/qwikcity/data/modify/ /docs/endpoints/ 308
+/qwikcity/data/overview/ /docs/routing/ 308
+/qwikcity/data/redirects/ /docs/guides/redirects/ 308
+/qwikcity/data/retrieve/ /docs/routing/ 308
+/qwikcity/directory-layout/ /docs/project-structure/ 308
+/qwikcity/layout/grouped/ /docs/advanced/routing/ 308
+/qwikcity/layout/named/ /docs/advanced/routing/ 308
+/qwikcity/layout/nested/ /docs/advanced/routing/ 308
+/qwikcity/layout/overview/ /docs/layout/ 308
+/qwikcity/loader/ /docs/route-loader/ 308
+/qwikcity/middleware/azure-swa/ /deployments/azure-swa/ 308
+/qwikcity/middleware/cloudflare-pages/ /deployments/cloudflare-pages/ 308
+/qwikcity/middleware/express/ /deployments/node/ 308
+/qwikcity/middleware/netlify-edge/ /deployments/netlify-edge/ 308
+/qwikcity/middleware/node/ /deployments/node/ 308
+/qwikcity/prefetching/overview/ /docs/advanced/speculative-module-fetching/ 308
+/qwikcity/prefetching/parallelizing-network-requests/ /docs/advanced/speculative-module-fetching/ 308
+/qwikcity/prefetching/request-response-cache/ /docs/advanced/speculative-module-fetching/ 308
+/qwikcity/prefetching/service-worker-prefetching/ /docs/advanced/speculative-module-fetching/ 308
+/qwikcity/routing/error-responses/ /docs/advanced/routing/ 308
+/qwikcity/routing/overview/ /docs/routing/ 308
+/qwikcity/routing/pathless/ /docs/layout/grouped/ 308
+/qwikcity/routing/route-parameters/ /docs/routing/ 308
+/qwikcity/static-assets/ /docs/advanced/static-assets/ 308
+/qwikcity/static-site-generation/dynamic-routes/ /docs/guides/static-site-generation/ 308
 /qwikcity/static-site-generation/overview/ /docs/guides/static-site-generation/ 308
 /qwikcity/static-site-generation/static-site-config/ /docs/guides/static-site-generation/ 308
-/qwikcity/static-site-generation/dynamic-routes/ /docs/guides/static-site-generation/ 308
-/qwikcity/advanced/prefetching/ /docs/advanced/modules-prefetching/
-/qwikcity/prefetching/overview/ /docs/advanced/speculative-module-fetching/ 308
-/qwikcity/prefetching/service-worker-prefetching/ /docs/advanced/speculative-module-fetching/ 308
-/qwikcity/prefetching/request-response-cache/ /docs/advanced/speculative-module-fetching/ 308
-/qwikcity/prefetching/parallelizing-network-requests/ /docs/advanced/speculative-module-fetching/ 308
-/docs/overview /docs/ 308
-/docs/overview/ /docs/ 308
-/docs/cheat/qwik-react/ /docs/integrations/react/ 308
+
+/docs/advanced/i18n/ /docs/integrations/i18n/ 308
 /docs/cheat/best-practices/ /docs/guides/best-practices/ 308
+/docs/cheat/qwik-react/ /docs/integrations/react/ 308
 /docs/cheat/serialization/ /docs/guides/serialization/ 308
-/docs/components/lifecycle/ /docs/components/tasks/ 308
-/docs/components/projection/ /docs/components/slots/ 308
-/docs/components/resource/ /docs/components/state/ 308
+/docs/components/inline-components/ /docs/core/overview/ 308
+/docs/components/lifecycle/ /docs/core/tasks/ 308
+/docs/components/projection/ /docs/core/slots/ 308
+/docs/components/resource/ /docs/core/state/ 308
 /docs/cookbook/re-exporting-loaders/ /docs/re-exporting-loaders/ 308
 
-/qwikcity/adaptors/* /docs/deployments/:splat 308
-/qwikcity/* /docs/:splat 308
-/qwikrouter/* /docs/:splat 308
-/integrations/* /docs/integrations/:splat 308
-/deployments/* /docs/deployments/:splat 308
 /docs/advanced/i18n/ /docs/integrations/i18n/ 308
 /docs/components/inline-components/ /docs/components/overview/ 308
 /docs/think-qwik/ /docs/concepts/think-qwik/ 308
 /docs/qwikcity/ /docs/qwikrouter/ 308
 /docs/qwikcity-deprecated-features/ /docs/qwikrouter-deprecated-features/ 308
 /docs/env-variables/ /docs/guides/env-variables/ 308
+/docs/overview /docs/ 308
+/docs/overview/ /docs/ 308
+/docs/think-qwik/ /docs/concepts/think-qwik/ 308
+
+# All wildcards (and only wildcards) must be below here
+
+/deployments/* /docs/deployments/:splat 308
+/docs/components/* /docs/core/:splat 308
+/integrations/* /docs/integrations/:splat 308
+/qwikcity/* /docs/:splat 308
+/qwikcity/adaptors/* /docs/deployments/:splat 308
+/qwikrouter/* /docs/:splat 308

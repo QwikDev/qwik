@@ -14,14 +14,13 @@ import {
   _deserialize,
   _getContextElement,
   _getContextEvent,
-  _serialize,
-  _UNINITIALIZED,
   _resolveContextWithoutSequentialScope,
+  _serialize,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
-
+import { _asyncRequestStore } from '@qwik.dev/router/middleware/request-handler';
 import * as v from 'valibot';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import {
   DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
@@ -30,6 +29,8 @@ import {
   QFN_KEY,
 } from './constants';
 import { RouteStateContext } from './contexts';
+import { deepFreeze } from './deepFreeze';
+import type { FormSubmitCompletedDetail } from './form-component';
 import type {
   ActionConstructor,
   ActionConstructorQRL,
@@ -62,9 +63,6 @@ import type {
   ZodDataValidator,
 } from './types';
 import { useAction, useLocation, useQwikRouterEnv } from './use-functions';
-
-import type { FormSubmitCompletedDetail } from './form-component';
-import { deepFreeze } from './utils';
 
 /** @internal */
 export const routeActionQrl = ((
@@ -227,6 +225,7 @@ export const routeLoaderQrl = ((
   loader.__validators = validators;
   loader.__id = id;
   loader.__serializationStrategy = serializationStrategy;
+  loader.__expires = -1; // -1 means no expiration
   Object.freeze(loader);
 
   return loader;
@@ -410,107 +409,102 @@ export const serverQrl = <T extends ServerFunction>(
   const origin = options?.origin || '';
   const fetchOptions = options?.fetchOptions || {};
 
-  function rpc() {
-    return $(async function (this: RequestEventBase, ...args: Parameters<T>) {
-      // move to ServerConfig
-      const abortSignal =
-        args.length > 0 && args[0] instanceof AbortSignal
-          ? (args.shift() as AbortSignal)
-          : undefined;
+  return $(async function (this: RequestEventBase | undefined, ...args: Parameters<T>) {
+    // move to ServerConfig
+    const abortSignal =
+      args.length > 0 && args[0] instanceof AbortSignal ? (args.shift() as AbortSignal) : undefined;
 
-      if (isServer) {
-        // Running during SSR, we can call the function directly
-        let requestEvent = globalThis.qcAsyncRequestStore?.getStore() as RequestEvent | undefined;
+    if (isServer) {
+      // Running during SSR, we can call the function directly
+      let requestEvent = _asyncRequestStore?.getStore() as RequestEvent | undefined;
 
-        if (!requestEvent) {
-          const contexts = [useQwikRouterEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
-          requestEvent = contexts.find(
-            (v) =>
-              v &&
-              Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
-              Object.prototype.hasOwnProperty.call(v, 'cookie')
-          );
-        }
-
-        return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
-      } else {
-        // Running on the client, we need to call the function via HTTP
-        const ctxElm = _getContextElement();
-        const filteredArgs = args.map((arg: unknown) => {
-          if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
-            return new FormData(arg.target);
-          } else if (arg instanceof Event) {
-            return null;
-          } else if (arg instanceof Node) {
-            return null;
-          }
-          return arg;
-        });
-        const qrlHash = qrl.getHash();
-        // Handled by `pureServerFunction` middleware
-        let query = '';
-        const config = {
-          ...fetchOptions,
-          method,
-          headers: {
-            ...headers,
-            'Content-Type': 'application/qwik-json',
-            Accept: 'application/json, application/qwik-json, text/qwik-json-stream, text/plain',
-            // Required so we don't call accidentally
-            'X-QRL': qrlHash,
-          },
-          signal: abortSignal,
-        };
-        const body = await _serialize([qrl, ...filteredArgs]);
-        if (method === 'GET') {
-          query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
-        } else {
-          // PatrickJS: sorry Ryan Florence I prefer const still
-          config.body = body;
-        }
-        const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
-
-        const contentType = res.headers.get('Content-Type');
-        if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
-          return (async function* () {
-            try {
-              for await (const result of deserializeStream(
-                res.body!,
-                ctxElm ?? document.documentElement,
-                abortSignal
-              )) {
-                yield result;
-              }
-            } finally {
-              if (!abortSignal?.aborted) {
-                await res.body!.cancel();
-              }
-            }
-          })();
-        } else if (contentType === 'application/qwik-json') {
-          const str = await res.text();
-          const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
-          if (res.status >= 400) {
-            throw obj;
-          }
-          return obj;
-        } else if (contentType === 'application/json') {
-          const obj = await res.json();
-          if (res.status >= 400) {
-            throw obj;
-          }
-          return obj;
-        } else if (contentType === 'text/plain' || contentType === 'text/html') {
-          const str = await res.text();
-          if (res.status >= 400) {
-            throw str;
-          }
-          return str;
-        }
+      if (!requestEvent) {
+        const contexts = [useQwikRouterEnv()?.ev, this, _getContextEvent()] as RequestEvent[];
+        requestEvent = contexts.find(
+          (v) =>
+            v &&
+            Object.prototype.hasOwnProperty.call(v, 'sharedMap') &&
+            Object.prototype.hasOwnProperty.call(v, 'cookie')
+        );
       }
-    }) as ServerQRL<T>;
-  }
-  return rpc();
+
+      return qrl.apply(requestEvent, isDev ? deepFreeze(args) : args);
+    } else {
+      // Running on the client, we need to call the function via HTTP
+      const ctxElm = _getContextElement();
+      const filteredArgs = args.map((arg: unknown) => {
+        if (arg instanceof SubmitEvent && arg.target instanceof HTMLFormElement) {
+          return new FormData(arg.target);
+        } else if (arg instanceof Event) {
+          return null;
+        } else if (arg instanceof Node) {
+          return null;
+        }
+        return arg;
+      });
+      const qrlHash = qrl.getHash();
+      // Handled by `pureServerFunction` middleware
+      let query = '';
+      const config = {
+        ...fetchOptions,
+        method,
+        headers: {
+          ...headers,
+          'Content-Type': 'application/qwik-json',
+          Accept: 'application/json, application/qwik-json, text/qwik-json-stream, text/plain',
+          // Required so we don't call accidentally
+          'X-QRL': qrlHash,
+        },
+        signal: abortSignal,
+      };
+      const body = await _serialize([qrl, ...filteredArgs]);
+      if (method === 'GET') {
+        query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
+      } else {
+        // PatrickJS: sorry Ryan Florence I prefer const still
+        config.body = body;
+      }
+      const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);
+
+      const contentType = res.headers.get('Content-Type');
+      if (res.ok && contentType === 'text/qwik-json-stream' && res.body) {
+        return (async function* () {
+          try {
+            for await (const result of deserializeStream(
+              res.body!,
+              ctxElm ?? document.documentElement,
+              abortSignal
+            )) {
+              yield result;
+            }
+          } finally {
+            if (!abortSignal?.aborted) {
+              await res.body!.cancel();
+            }
+          }
+        })();
+      } else if (contentType === 'application/qwik-json') {
+        const str = await res.text();
+        const [obj] = _deserialize(str, ctxElm ?? document.documentElement);
+        if (res.status >= 400) {
+          throw obj;
+        }
+        return obj;
+      } else if (contentType === 'application/json') {
+        const obj = await res.json();
+        if (res.status >= 400) {
+          throw obj;
+        }
+        return obj;
+      } else if (contentType === 'text/plain' || contentType === 'text/html') {
+        const str = await res.text();
+        if (res.status >= 400) {
+          throw str;
+        }
+        return str;
+      }
+    }
+  }) as ServerQRL<T>;
 };
 
 /** @public */

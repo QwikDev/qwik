@@ -77,6 +77,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
+  // Initialize the REPL instance
   useVisibleTask$(
     async () => {
       (store as any).instance = noSerialize(new ReplInstance(store, input));
@@ -94,10 +95,12 @@ export const Repl = component$((props: ReplProps) => {
       if (vNew.version !== input.version) {
         input.version = v.version;
       }
-    },
-    { strategy: 'document-ready' }
+    }
+    // TODO this is broken, doesn't add the handler on the server
+    // { strategy: 'document-ready' }
   );
 
+  // Track input changes to rebuild the app
   useVisibleTask$(({ track }) => {
     track(input);
 

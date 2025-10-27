@@ -66,9 +66,6 @@
   color-scheme: light;
   --theme-name: 'light';
 
-  --color-tab-active-bg: #046ee959;
-  --color-tab-active-text: black;
-
   --header-height: 80px;
   --aside-width: 300px;
   --container-max-width: 1400px;
@@ -140,10 +137,6 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --theme-name: 'dark';
-
-  --color-tab-active-bg: #3e3e3e;
-  --color-tab-active-text: white;
-
   --qwik-blue: #009dfd;
 
   --bg-color: #101010;
@@ -181,6 +174,10 @@
   --media-video-shadow-color: var(--qwik-blue);
 
   --panel-toggle-background-color: var(--qwik-dark-blue);
+}
+
+:root[data-theme-auto] {
+  --theme-name: 'system';
 }
 
 .theme-name::before {
@@ -237,7 +234,7 @@ select {
 }
 
 body {
-  @apply antialiased h-screen overflow-auto;
+  @apply antialiased h-screen;
   scrollbar-gutter: stable;
 }
 

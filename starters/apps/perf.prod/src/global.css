@@ -1,3 +1,6 @@
 /**
  * Write here your global css styles
  */
+.danger {
+  background-color: #f5c6cb;
+}

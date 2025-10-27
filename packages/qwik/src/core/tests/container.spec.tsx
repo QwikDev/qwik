@@ -1,25 +1,33 @@
 import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
-import type { ClientContainer, VNode } from '../client/types';
-import { vnode_getAttr, vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import type { ClientContainer } from '../client/types';
+import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
+import type { VNode } from '../client/vnode-impl';
+import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
+import { SignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
-import { Fragment, JSXNodeImpl, createPropsProxy } from '../shared/jsx/jsx-runtime';
+import { JSXNodeImpl } from '../shared/jsx/jsx-node';
+import { Fragment } from '../shared/jsx/jsx-runtime';
+import { createPropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
 import { inlinedQrl, qrl } from '../shared/qrl/qrl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { TypeIds } from '../shared/shared-serialization';
+import { _qrlSync } from '../shared/qrl/qrl.public';
+import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
-import { _qrlSync } from '../shared/qrl/qrl.public';
-import { SignalFlags } from '../reactive-primitives/types';
+
+vi.hoisted(() => {
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
+  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
+});
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -122,8 +130,8 @@ describe('serializer v2', () => {
           ssr.closeElement();
           ssr.closeElement();
         });
-        const vnodeSpan = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnode_getAttr(vnodeSpan, 'id')).toBe('myId');
+        const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
+        expect(vnodeSpan.getAttr('id')).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {
@@ -394,15 +402,13 @@ describe('serializer v2', () => {
         const [qrl0, qrl1, qrl2] = container.$getObjectById$(0);
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
         expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
-        expect(qrl0._devOnlySymbolRef).toEqual((obj[0] as any)._devOnlySymbolRef);
+        expect(qrl0.resolved).toEqual((obj[0] as any).resolved);
         expect(qrl1.$hash$).toEqual(obj[1].$hash$);
         expect(qrl1.$captureRef$).toEqual(obj[1].$captureRef$);
-        expect(qrl1._devOnlySymbolRef).toEqual((obj[1] as any)._devOnlySymbolRef);
+        expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
         expect(qrl2.$captureRef$).toEqual(obj[2].$captureRef$);
-        expect(qrl2._devOnlySymbolRef.toString()).toEqual(
-          (obj[2] as any)._devOnlySymbolRef.toString()
-        );
+        expect(qrl2.resolved.toString()).toEqual((obj[2] as any).resolved.toString());
       });
     });
 
@@ -428,7 +434,7 @@ describe('serializer v2', () => {
         expect(dstQrl.$captureRef$).toEqual(
           srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
         );
-        expect(dstQrl._devOnlySymbolRef).toEqual((srcQrl as any)._devOnlySymbolRef);
+        expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });
     });
 
@@ -489,11 +495,13 @@ describe('serializer v2', () => {
 
     describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
       it('should serialize and deserialize', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, { n: 2, t: 'test' });
+        const obj = createPropsProxy(
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' })
+        );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
       it('should serialize and deserialize with null const props', async () => {
-        const obj = createPropsProxy({ number: 1, text: 'abc' }, null);
+        const obj = createPropsProxy(new JSXNodeImpl('div', { number: 1, text: 'abc' }));
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });

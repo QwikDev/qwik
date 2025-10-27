@@ -1,5 +1,4 @@
 /// <reference types="bun" />
-import { _deserialize, _serialize, _verifySerializable } from '@qwik.dev/core/internal';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ClientConn,
@@ -24,9 +23,8 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
   }
   // @qwik.dev/router/middleware/bun
   // still missing from bun: last check was bun version 1.1.8
-  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;
+  globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill as any;
 
-  const qwikSerializer = { _deserialize, _serialize, _verifySerializable };
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
@@ -66,7 +64,7 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       };
 
       // send request to qwik router request handler
-      const handledResponse = await requestHandler(serverRequestEv, opts, qwikSerializer);
+      const handledResponse = await requestHandler(serverRequestEv, opts);
       if (handledResponse) {
         handledResponse.completion.then((v) => {
           if (v) {
@@ -105,9 +103,11 @@ export function createQwikRouter(opts: QwikRouterBunOptions) {
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
       // This ensures consistency between development and production environments for specific URLs.
-      const notFoundHtml = isStaticPath(request.method || 'GET', url)
-        ? 'Not Found'
-        : getNotFound(url.pathname);
+      const notFoundHtml =
+        !request.headers.get('accept')?.includes('text/html') ||
+        isStaticPath(request.method || 'GET', url)
+          ? 'Not Found'
+          : getNotFound(url.pathname);
       return new Response(notFoundHtml, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Not-Found': url.pathname },

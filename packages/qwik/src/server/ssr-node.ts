@@ -1,9 +1,5 @@
-import {
-  _isJSXNode as isJSXNode,
-  type JSXNode,
-  _EMPTY_ARRAY,
-  _EFFECT_BACK_REF,
-} from '@qwik.dev/core';
+import type { JSXNode } from '@qwik.dev/core';
+import { _isJSXNode as isJSXNode, _EMPTY_ARRAY, _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
 import { isDev } from '@qwik.dev/core/build';
 import {
   QSlotParent,
@@ -125,10 +121,12 @@ export class SsrNode implements ISsrNode {
   }
 
   setTreeNonUpdatable(): void {
-    this.flags &= ~SsrNodeFlags.Updatable;
-    if (this.children) {
-      for (const child of this.children) {
-        (child as SsrNode).setTreeNonUpdatable();
+    if (this.flags & SsrNodeFlags.Updatable) {
+      this.flags &= ~SsrNodeFlags.Updatable;
+      if (this.children) {
+        for (const child of this.children) {
+          (child as SsrNode).setTreeNonUpdatable();
+        }
       }
     }
   }

@@ -3,7 +3,7 @@ import type { Config as SVGOConfig } from 'svgo';
 import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
 import type { Plugin as VitePlugin } from 'vite';
 import type { MdxTransform } from '../markdown/mdx';
-import type { BuildContext, BuildEntry, BuildRoute, MdxPlugins, PluginOptions } from '../types';
+import type { RoutingContext, BuiltEntry, BuiltRoute, MdxPlugins, PluginOptions } from '../types';
 
 /** @public */
 export interface ImageOptimizationOptions {
@@ -32,6 +32,19 @@ export interface QwikRouterVitePluginOptions extends Omit<PluginOptions, 'basePa
   mdx?: MdxOptions;
   platform?: Record<string, unknown>;
   imageOptimization?: ImageOptimizationOptions;
+  /** Whether to use static imports for route modules (layout and index files). Defaults to `false`. */
+  staticImportRoutes?: boolean;
+  /**
+   * Qwik is an SSR first framework. This means that Qwik requires either SSR or SSG. In Vite dev
+   * mode the dev SSR server is responsible for rendering and pausing the application on the
+   * server.
+   *
+   * Under normal circumstances this should be on, unless you have your own dev SSR server setup and
+   * wish to disable this one.
+   *
+   * Default: true
+   */
+  devSsrServer?: boolean;
 }
 
 /** @public */
@@ -39,7 +52,7 @@ export type MdxOptions = CompileOptions;
 
 /** @deprecated Not being used anywhere. Will be removed in V3. */
 export interface PluginContext {
-  buildCtx: BuildContext | null;
+  buildCtx: RoutingContext | null;
   rootDir: string;
   cityPlanCode: string | null;
   mdxTransform: MdxTransform | null;
@@ -61,8 +74,8 @@ export type QwikCityPlugin = QwikRouterPlugin;
 /** @public */
 export interface QwikRouterPluginApi {
   getBasePathname: () => string;
-  getRoutes: () => BuildRoute[];
-  getServiceWorkers: () => BuildEntry[];
+  getRoutes: () => BuiltRoute[];
+  getServiceWorkers: () => BuiltEntry[];
 }
 
 /**

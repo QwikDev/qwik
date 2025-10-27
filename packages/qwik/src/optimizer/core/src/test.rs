@@ -4629,6 +4629,27 @@ fn should_merge_attributes_with_spread_props_before_and_after() {
 	});
 }
 
+#[test]
+fn should_not_move_over_side_effects() {
+	test_input!(TestInput {
+		code: r#"
+		export const $promoteToRoot$ = (ref: SeenRef) => {
+			const path = $getObjectPath$(ref) as string;
+			// should stay before the push
+			const idx = roots.length;
+			roots.push(new BackRef(path));
+			ref.$parent$ = null;
+			ref.$index$ = idx;
+			return idx;
+		};
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 // TODO(misko): Make this test work by implementing strict serialization.
 // #[test]
 // fn example_of_synchronous_qrl_that_cant_be_serialized() {

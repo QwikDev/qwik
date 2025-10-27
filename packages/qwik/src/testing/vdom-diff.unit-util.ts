@@ -15,14 +15,11 @@ import type {
 import { expect } from 'vitest';
 import {
   vnode_applyJournal,
-  vnode_getAttr,
   vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
-  vnode_getNextSibling,
   vnode_getNode,
   vnode_getNodeTypeName,
-  vnode_getParent,
   vnode_getText,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -31,8 +28,6 @@ import {
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
-  vnode_setAttr,
-  vnode_setProp,
   type VNodeJournal,
 } from '../core/client/vnode';
 
@@ -53,9 +48,9 @@ import {
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
-import { prettyHtml } from './html';
-import type { VNode } from '../core/client/types';
+import { isElement, prettyHtml } from './html';
 import { QContainerValue } from '../core/shared/types';
+import type { ElementVNode, VirtualVNode, VNode } from '../core/client/vnode-impl';
 
 expect.extend({
   toMatchVDOM(
@@ -82,6 +77,12 @@ expect.extend({
         message: () => 'Missing element',
       };
     }
+    if (!isElement(received)) {
+      return {
+        pass: false,
+        message: () => 'Received is not an element',
+      };
+    }
     const receivedHTML = await format(prettyHtml(received), formatOptions);
     const expectedHTML = await format(prettyJSX(expected), formatOptions);
     return {
@@ -98,7 +99,7 @@ const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
   do {
-    maybeParent = vnode_getParent(vNode);
+    maybeParent = vNode.parent;
     if (maybeParent) {
       vNode = maybeParent;
     }
@@ -188,8 +189,8 @@ function diffJsxVNode(
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
       let receivedValue =
-        vnode_getAttr(received, prop) ||
-        vnode_getAttr(received, propLowerCased) ||
+        received.getAttr(prop) ||
+        received.getAttr(propLowerCased) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -331,14 +332,14 @@ function getVNodeChildren(container: _ContainerElement, vNode: _VNode): _VNode[]
             mergedText += vnodeText;
           }
         }
-        child = vnode_getNextSibling(child);
+        child = child.nextSibling as VNode | null;
         continue;
       }
       pushMergedTextIfNeeded();
 
       children.push(child);
     }
-    child = vnode_getNextSibling(child);
+    child = child.nextSibling as VNode | null;
   }
   pushMergedTextIfNeeded();
   return children;
@@ -368,7 +369,7 @@ export function vnodeToHTML(vNode: _VNode | null, pad: string = ''): string {
           .split('\n')
           .join('\n' + pad)
     );
-    while (shouldSkip((vNode = vnode_getNextSibling(vNode!)))) {
+    while (shouldSkip((vNode = vNode!.nextSibling as VNode | null))) {
       // skip
     }
   }
@@ -390,9 +391,9 @@ function shouldSkip(vNode: _VNode | null) {
     const tag = vnode_getElementName(vNode);
     if (
       tag === 'script' &&
-      (vnode_getAttr(vNode, 'type') === 'qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'x-qwik/vnode' ||
-        vnode_getAttr(vNode, 'type') === 'qwik/state')
+      (vNode.getAttr('type') === 'qwik/vnode' ||
+        vNode.getAttr('type') === 'x-qwik/vnode' ||
+        vNode.getAttr('type') === 'qwik/state')
     ) {
       return true;
     }
@@ -467,19 +468,19 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       for (const key in props) {
         if (Object.prototype.hasOwnProperty.call(props, key)) {
           if (key.startsWith(HANDLER_PREFIX) || isJsxPropertyAnEventName(key)) {
-            vnode_setProp(child, key, props[key]);
+            child.setProp(key, props[key]);
           } else {
-            vnode_setAttr(journal, child, key, String(props[key]));
+            child.setAttr(key, String(props[key]), journal);
           }
         }
       }
       if (jsx.key != null) {
-        vnode_setAttr(journal, child, ELEMENT_KEY, String(jsx.key));
+        child.setAttr(ELEMENT_KEY, String(jsx.key), journal);
       }
-      vParent = child;
+      vParent = child as ElementVNode | VirtualVNode;
     },
     leave: (_jsx) => {
-      vParent = vnode_getParent(vParent) as any;
+      vParent = vParent.parent as any;
     },
     text: (value) => {
       vnode_insertBefore(

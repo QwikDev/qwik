@@ -1,47 +1,46 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.9",
+  "version": "2.0.0-beta.11",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@mdx-js/mdx": "^3.1.0",
+    "@azure/functions": "3.5.1",
+    "@mdx-js/mdx": "^3.1.1",
+    "@netlify/edge-functions": "^2.17.0",
     "@types/mdx": "^2.0.13",
-    "source-map": "^0.7.4",
+    "estree-util-value-to-estree": "^3.4.0",
+    "github-slugger": "^2.0.0",
+    "hast-util-heading-rank": "^2.1.1",
+    "hast-util-to-string": "^2.0.0",
+    "kleur": "^4.1.5",
+    "marked": "^12.0.2",
+    "mdast-util-mdx": "^3.0.0",
+    "refractor": "^4.8.1",
+    "rehype-autolink-headings": "^7.1.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "set-cookie-parser": "^2.7.1",
+    "source-map": "^0.7.6",
     "svgo": "^3.3.2",
-    "undici": "*",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite-imagetools": "^7.1.0",
-    "zod": "3.25.48"
+    "vite": ">=5 <8",
+    "vite-imagetools": "^9.0.0",
+    "yaml": "^2.8.1",
+    "zod": "^3.25.48"
   },
   "devDependencies": {
-    "@azure/functions": "3.5.1",
     "@microsoft/api-extractor": "7.52.10",
-    "@netlify/edge-functions": "2.17.0",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "24.2.1",
-    "@types/refractor": "3.4.1",
+    "@types/node": "24.3.0",
+    "@types/refractor": "4.0.0",
     "@types/set-cookie-parser": "2.4.10",
-    "estree-util-value-to-estree": "3.4.0",
-    "github-slugger": "2.0.0",
-    "hast-util-heading-rank": "2.1.1",
-    "hast-util-to-string": "2.0.0",
-    "kleur": "4.1.5",
-    "marked": "12.0.2",
-    "mdast-util-mdx": "3.0.0",
-    "refractor": "4.8.1",
-    "rehype-autolink-headings": "7.1.0",
-    "remark-frontmatter": "5.0.0",
-    "remark-gfm": "4.0.1",
-    "set-cookie-parser": "2.7.1",
     "tsm": "2.3.0",
-    "typescript": "5.8.3",
-    "unified": "11.0.5",
-    "unist-util-visit": "5.0.0",
-    "uvu": "0.5.6",
-    "vite": "7.1.5",
-    "yaml": "2.6.1"
+    "typescript": "5.9.3",
+    "uvu": "0.5.6"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -186,6 +185,10 @@
   "homepage": "https://qwik.dev/",
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
+  "peerDependencies": {
+    "@qwik.dev/core": "workspace:^",
+    "vite": ">=5 <8"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -196,7 +199,7 @@
     "directory": "packages/qwik-router"
   },
   "scripts": {
-    "build": "cd src/runtime && vite build --mode lib"
+    "build": "vite build"
   },
   "sideEffects": false,
   "type": "module",

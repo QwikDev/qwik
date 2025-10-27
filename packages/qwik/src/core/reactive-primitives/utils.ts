@@ -9,7 +9,7 @@ import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container, HostElement, SerializationStrategy } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
-import { SerializerSymbol } from '../shared/utils/serialize-utils';
+import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';
@@ -54,13 +54,14 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  array.add(effectSubscription);
+  !array.has(effectSubscription) && array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
   array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  array[EffectSubscriptionProp.BACK_REF].add(value);
+  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
+    array[EffectSubscriptionProp.BACK_REF].add(value);
 };
 
 export const addQrlToSerializationCtx = (
@@ -84,7 +85,7 @@ export const addQrlToSerializationCtx = (
   }
 };
 
-export const triggerEffects = (
+export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | null

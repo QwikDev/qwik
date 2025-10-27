@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_getParent, vnode_getProp, vnode_locate } from '../client/vnode';
+import { vnode_locate } from '../client/vnode';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -81,6 +81,49 @@ describe.each([
           <Component>
             <Fragment>World</Fragment>
           </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should render component with key', async () => {
+    (globalThis as any).componentExecuted = [];
+    const Cmp = component$(() => {
+      (globalThis as any).componentExecuted.push('Cmp');
+      return <div></div>;
+    });
+
+    const Parent = component$(() => {
+      const counter = useSignal(0);
+      return (
+        <>
+          <Cmp key={counter.value} />
+          <button id="counter" onClick$={() => counter.value++}></button>
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Parent />, { debug });
+    expect((globalThis as any).componentExecuted).toEqual(['Cmp']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component>
+            <div></div>
+          </Component>
+          <button id="counter"></button>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect((globalThis as any).componentExecuted).toEqual(['Cmp', 'Cmp']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <Component>
+            <div></div>
+          </Component>
+          <button id="counter"></button>
         </Fragment>
       </Component>
     );
@@ -2287,7 +2330,7 @@ describe.each([
     );
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
-    expect(vnode_getProp(vnode_getParent(h1Element)!, OnRenderProp, null)).toBeNull();
+    expect(h1Element.parent!.getProp(OnRenderProp, null)).toBeNull();
   });
 
   it('should reuse the same props instance when props are changing', async () => {
@@ -2408,6 +2451,131 @@ describe.each([
     });
     const { document } = await render(<Cmp />, { debug });
     await expect(document.querySelector('div')).toMatchDOM(<div />);
+  });
+
+  it('should correctly remove all children for empty array', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          {list.value.map((item) => (
+            <div>{item}</div>
+          ))}
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div>1</div>
+          <div>2</div>
+          <div>3</div>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+        </main>
+      </Component>
+    );
+    expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
+    );
+  });
+
+  it('should correctly remove all children for empty array - case 2', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          <div>
+            {list.value.map((item) => (
+              <div>{item}</div>
+            ))}
+          </div>
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+          </div>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <div></div>
+        </main>
+      </Component>
+    );
+    expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+        <div></div>
+      </main>
+    );
+  });
+
+  it('should correctly remove all children for empty array within virtual node', async () => {
+    const Cmp = component$(() => {
+      const list = useSignal([1, 2, 3]);
+      return (
+        <main>
+          <button onClick$={() => (list.value = [])}>Remove</button>
+          <>
+            {list.value.map((item) => (
+              <div>{item}</div>
+            ))}
+          </>
+        </main>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <Fragment ssr-required>
+            <div>1</div>
+            <div>2</div>
+            <div>3</div>
+          </Fragment>
+        </main>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <main>
+          <button>Remove</button>
+          <Fragment ssr-required></Fragment>
+        </main>
+      </Component>
+    );
+    await expect(document.querySelector('main')).toMatchDOM(
+      <main>
+        <button>Remove</button>
+      </main>
+    );
   });
 
   describe('regression', () => {

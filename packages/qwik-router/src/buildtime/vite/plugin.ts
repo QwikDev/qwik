@@ -1,19 +1,18 @@
-import swRegister from '@qwik-router-sw-register-build';
+import swRegister from '../runtime-generation/sw-register-build?compiled-string';
 import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
-import type { Plugin, PluginOption, Rollup, UserConfig } from 'vite';
+import type { Plugin, PluginOption, Rollup, UserConfig, ViteDevServer } from 'vite';
 import { loadEnv } from 'vite';
 import { isMenuFileName, normalizePath, removeExtension } from '../../utils/fs';
-import { build } from '../build';
+import { parseRoutesDir } from '../build';
 import { createBuildContext, resetBuildContext } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
 import { generateQwikRouterConfig } from '../runtime-generation/generate-qwik-router-config';
 import { generateServiceWorkerRegister } from '../runtime-generation/generate-service-worker';
-import type { BuildContext } from '../types';
-import { ssrDevMiddleware, staticDistMiddleware } from './dev-server';
+import type { RoutingContext } from '../types';
 import { getRouteImports } from './get-route-imports';
 import { imagePlugin } from './image-jsx';
 import type {
@@ -22,8 +21,8 @@ import type {
   QwikRouterVitePluginOptions,
 } from './types';
 import { validatePlugin } from './validate-plugin';
+import { getRouterIndexTags, makeRouterDevMiddleware } from './dev-middleware';
 
-const QWIK_SERIALIZER = '@qwik-serializer';
 export const QWIK_ROUTER_CONFIG_ID = '@qwik-router-config';
 const QWIK_ROUTER_ENTRIES_ID = '@qwik-router-entries';
 const QWIK_ROUTER = '@qwik.dev/router';
@@ -43,14 +42,18 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
 }
 
 function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
-  let ctx: BuildContext | null = null;
+  let ctx: RoutingContext | null = null;
   let mdxTransform: MdxTransform | null = null;
   let rootDir: string | null = null;
   let qwikPlugin: QwikVitePlugin | null;
   let ssrFormat: 'esm' | 'cjs' = 'esm';
   let outDir: string | null = null;
+  let viteCommand: string;
+  let devServer: ViteDevServer | null = null;
 
-  globalThis.__qwikRouterNew = true;
+  let devSsrServer = userOpts?.devSsrServer;
+  const routesDir = userOpts?.routesDir ?? 'src/routes';
+  const serverPluginsDir = userOpts?.serverPluginsDir ?? routesDir;
 
   const api: QwikRouterPluginApi = {
     getBasePathname: () => ctx?.opts.basePathname ?? '/',
@@ -69,7 +72,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     enforce: 'pre',
     api,
 
-    async config() {
+    async config(_viteConfig, viteEnv) {
+      viteCommand = viteEnv.command;
       const updatedViteConfig: UserConfig = {
         define: {
           'globalThis.__DEFAULT_LOADERS_SERIALIZATION_STRATEGY__': JSON.stringify(
@@ -79,6 +83,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         },
         appType: 'custom',
         resolve: {
+          dedupe: [QWIK_ROUTER, '@builder.io/qwik-city'],
           alias: [
             { find: '@builder.io/qwik-city', replacement: '@qwik.dev/router' },
             { find: /^@builder\.io\/qwik-city\/(.*)/, replacement: '@qwik.dev/router/$1' },
@@ -88,6 +93,13 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           ],
         },
         optimizeDeps: {
+          // Let Vite find all app deps, these are not part of the static imports from `src/root`
+          entries: [
+            `${routesDir}/**/index*`,
+            `${routesDir}/**/layout*`,
+            `${serverPluginsDir}/plugin@*`,
+          ],
+          // These need processing by the optimizer during dev
           exclude: [
             QWIK_ROUTER,
             QWIK_ROUTER_CONFIG_ID,
@@ -102,7 +114,15 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
             QWIK_ROUTER_CONFIG_ID,
             QWIK_ROUTER_ENTRIES_ID,
             QWIK_ROUTER_SW_REGISTER,
+            // We've had reports of bundling issues with zod
+            'zod',
           ],
+        },
+        server: {
+          watch: {
+            // needed for recursive watching of index and layout files in the src/routes directory
+            disableGlobbing: false,
+          },
         },
       };
       return updatedViteConfig;
@@ -114,18 +134,28 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
 
       const target = config.build?.ssr || config.mode === 'ssr' ? 'ssr' : 'client';
 
-      ctx = createBuildContext(rootDir!, config.base, userOpts, target);
-
-      ctx.isDevServer = config.command === 'serve' && config.mode !== 'production';
-      ctx.isDevServerClientOnly = ctx.isDevServer && config.mode !== 'ssr';
+      ctx = createBuildContext(
+        rootDir!,
+        config.base,
+        userOpts,
+        target,
+        !userOpts?.staticImportRoutes
+      );
 
       await validatePlugin(ctx.opts);
 
       mdxTransform = await createMdxTransformer(ctx);
-
-      qwikPlugin = config.plugins.find((p) => p.name === 'vite-plugin-qwik') as QwikVitePlugin;
+      // Use double type assertion to avoid TS "Excessive stack depth comparing types" error
+      // when comparing QwikVitePlugin with Plugin types
+      qwikPlugin = config.plugins.find(
+        (p) => p.name === 'vite-plugin-qwik'
+      ) as any as QwikVitePlugin;
       if (!qwikPlugin) {
         throw new Error('Missing vite-plugin-qwik');
+      }
+      if (typeof devSsrServer !== 'boolean') {
+        // read the old option from qwik plugin
+        devSsrServer = qwikPlugin.api._oldDevSsrServer();
       }
       qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
         return getRouteImports(ctx!.routes, manifest);
@@ -138,21 +168,44 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
       outDir = config.build?.outDir;
     },
 
-    configureServer(server) {
-      // this callback is run after the vite middlewares are registered
-      return () => {
-        if (!ctx) {
-          throw new Error('configureServer: Missing ctx from configResolved');
+    async configureServer(server) {
+      devServer = server;
+      // recursively watch all route files in the src/routes directory
+      const toWatch = resolve(
+        rootDir!,
+        'src/routes/**/{index,layout,entry,service-worker}{.,@,-}*'
+      );
+      server.watcher.add(toWatch);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      server.watcher.on('change', (path) => {
+        // If the path is not an index or layout file, skip
+        if (!/\/(index[.@]|layout[.-]|entry\.|service-worker\.)[^/]*$/.test(path)) {
+          return;
         }
-        if (!ctx.isDevServer) {
-          // preview server: serve static files from the dist directory
-          server.middlewares.use(staticDistMiddleware(server));
+        // Invalidate the router config
+        ctx!.isDirty = true;
+        const graph = server.environments?.ssr?.moduleGraph;
+        if (graph) {
+          const mod = graph.getModuleById('@qwik-router-config');
+          if (mod) {
+            graph.invalidateModule(mod);
+          }
         }
-        // qwik router middleware injected BEFORE vite internal middlewares
-        // and BEFORE @qwik.dev/core/optimizer/vite middlewares
-        // handles only known user defined routes
-        server.middlewares.use(ssrDevMiddleware(ctx, server));
-      };
+      });
+
+      if (userOpts?.devSsrServer !== false) {
+        // this callback runs after all other middlewares have been added, so we can SSR as the last middleware
+        return () => {
+          server.middlewares.use(makeRouterDevMiddleware(server, ctx!));
+        };
+      }
+    },
+
+    transformIndexHtml() {
+      if (viteCommand !== 'serve') {
+        return;
+      }
+      return getRouterIndexTags(devServer!);
     },
 
     buildStart() {
@@ -160,12 +213,9 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     resolveId(id) {
-      if (id === QWIK_SERIALIZER) {
-        return join(rootDir!, id);
-      }
       if (id === QWIK_ROUTER_CONFIG_ID || id === QWIK_ROUTER_ENTRIES_ID) {
         return {
-          id: join(rootDir!, id),
+          id,
           // user entries added in the routes, like src/routes/service-worker.ts
           // are added as dynamic imports to the qwik-router-config as a way to create
           // a new entry point for the build. Ensure these are not treeshaken.
@@ -173,7 +223,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
         };
       }
       if (id === QWIK_ROUTER_SW_REGISTER) {
-        return join(rootDir!, id);
+        return id;
       }
       return null;
     },
@@ -184,15 +234,11 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
           // @qwik-router-entries
           return generateQwikRouterEntries(ctx);
         }
-        const isSerializer = id.endsWith(QWIK_SERIALIZER);
-        if (isSerializer) {
-          return `export {_deserialize, _serialize, _verifySerializable} from '@qwik.dev/core'`;
-        }
         const isRouterConfig = id.endsWith(QWIK_ROUTER_CONFIG_ID);
         const isSwRegister = id.endsWith(QWIK_ROUTER_SW_REGISTER);
         if (isRouterConfig || isSwRegister) {
-          if (!ctx.isDevServer && ctx.isDirty) {
-            await build(ctx);
+          if (ctx.isDirty) {
+            await parseRoutesDir(ctx);
 
             ctx.isDirty = false;
             ctx.diagnostics.forEach((d) => {
@@ -216,7 +262,8 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     },
 
     async transform(code, id) {
-      if (id.startsWith('\0')) {
+      const isVirtualId = id.startsWith('\0');
+      if (isVirtualId) {
         return;
       }
       const ext = extname(id).toLowerCase();
@@ -285,7 +332,7 @@ function qwikRouterPlugin(userOpts?: QwikRouterVitePluginOptions): any {
     closeBundle: {
       sequential: true,
       async handler() {
-        if (ctx?.target === 'ssr' && !ctx?.isDevServer && outDir) {
+        if (ctx?.target === 'ssr' && outDir) {
           await generateServerPackageJson(outDir, ssrFormat);
         }
       },

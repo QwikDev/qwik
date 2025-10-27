@@ -1,13 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { createRequestEvent } from './request-event';
+import { describe, expect, it, vi } from 'vitest';
 import { RedirectMessage } from './redirect-handler';
-import type { ServerRequestEvent, QwikSerializer } from './types';
-
-const mockQwikSerializer: QwikSerializer = {
-  _deserialize: vi.fn(),
-  _serialize: vi.fn(),
-  _verifySerializable: vi.fn(),
-};
+import { createRequestEvent } from './request-event';
+import type { ServerRequestEvent } from './types';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -38,7 +32,7 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
 
 function createMockRequestEvent(url = 'http://localhost:3000/test') {
   const serverRequestEv = createMockServerRequestEvent(url);
-  return createRequestEvent(serverRequestEv, null, [], '/', mockQwikSerializer, vi.fn());
+  return createRequestEvent(serverRequestEv, null, [], '/', vi.fn());
 }
 
 describe('request-event redirect', () => {

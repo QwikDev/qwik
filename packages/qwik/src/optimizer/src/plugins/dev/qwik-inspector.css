@@ -1,0 +1,55 @@
+#qwik-inspector-overlay {
+  position: fixed;
+  background: rgba(24, 182, 246, 0.27);
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid rgba(172, 126, 244, 0.46);
+  border-radius: 4px;
+  contain: strict;
+  cursor: pointer;
+  z-index: 999999;
+}
+
+#qwik-inspector-info-popup {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-family: monospace;
+  background: #000000c2;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 34%),
+    0 8px 10px -6px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(4px);
+  -webkit-animation: fadeOut 0.3s 3s ease-in-out forwards;
+  animation: fadeOut 0.3s 3s ease-in-out forwards;
+  z-index: 999999;
+  contain: layout;
+}
+
+#qwik-inspector-info-popup p {
+  margin: 0px;
+}
+
+@-webkit-keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}

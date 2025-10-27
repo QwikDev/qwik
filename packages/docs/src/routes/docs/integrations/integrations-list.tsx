@@ -1,5 +1,5 @@
-import { useContent } from '@qwik.dev/router';
 import { component$ } from '@qwik.dev/core';
+import { Link, useContent } from '@qwik.dev/router';
 
 export const IntegrationsList = component$(() => {
   const { menu } = useContent();
@@ -11,7 +11,7 @@ export const IntegrationsList = component$(() => {
       {integrations?.map((integration) => {
         return (
           <li key={integration.text}>
-            <a href={integration.href}>{integration.text}</a>
+            <Link href={integration.href}>{integration.text}</Link>
           </li>
         );
       })}

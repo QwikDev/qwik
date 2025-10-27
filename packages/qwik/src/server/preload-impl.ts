@@ -99,7 +99,7 @@ export const preloaderPre = (
       scriptAttrs.push('nonce', nonce);
     }
     container.openElement('script', null, scriptAttrs);
-    container.writer.write(script);
+    container.write(script);
     container.closeElement();
   }
 
@@ -197,7 +197,7 @@ export const includePreloader = (
       attrs.push('nonce', nonce);
     }
     container.openElement('script', null, attrs);
-    container.writer.write(script);
+    container.write(script);
     container.closeElement();
   }
 

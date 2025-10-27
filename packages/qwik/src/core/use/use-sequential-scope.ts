@@ -1,4 +1,4 @@
-import { verifySerializable } from '../shared/utils/serialize-utils';
+import { verifySerializable } from '../shared/serdes/verify';
 import { ELEMENT_SEQ, ELEMENT_SEQ_IDX } from '../shared/utils/markers';
 import { qDev, qSerialize } from '../shared/utils/qdev';
 import type { HostElement } from '../shared/types';

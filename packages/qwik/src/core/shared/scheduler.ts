@@ -81,19 +81,10 @@
  */
 
 import { type DomContainer } from '../client/dom-container';
-import {
-  ElementVNodeProps,
-  VNodeFlags,
-  VNodeProps,
-  type ClientContainer,
-  type ElementVNode,
-  type VirtualVNode,
-} from '../client/types';
-import { VNodeJournalOpCode, vnode_isVNode, vnode_setAttr } from '../client/vnode';
+import { VNodeFlags, type ClientContainer } from '../client/types';
+import { VNodeJournalOpCode, vnode_isVNode } from '../client/vnode';
 import { vnode_diff } from '../client/vnode-diff';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { StoreHandler } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
@@ -104,7 +95,7 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from '../reactive-primitives/types';
-import { triggerEffects } from '../reactive-primitives/utils';
+import { scheduleEffects } from '../reactive-primitives/utils';
 import { type ISsrNode, type SSRContainer } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
@@ -117,13 +108,10 @@ import {
 } from '../use/use-task';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
-import { assertFalse } from './error/assert';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
 import { isServerPlatform } from './platform/platform';
 import { type QRLInternal } from './qrl/qrl-class';
-import { isQrl } from './qrl/qrl-utils';
-import { ssrNodeDocumentPosition, vnode_documentPosition } from './scheduler-document-position';
 import { SsrNodeFlags, type Container, type HostElement } from './types';
 import { ChoreType } from './util-chore-type';
 import { QScopedStyle } from './utils/markers';
@@ -137,6 +125,8 @@ import { createNextTick } from './platform/next-tick';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { isSsrNode } from '../reactive-primitives/subscriber';
 import { logWarn } from './utils/log';
+import type { ElementVNode, VirtualVNode } from '../client/vnode-impl';
+import { ChoreArray, choreComparator } from '../client/chore-array';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -164,7 +154,7 @@ export interface Chore<T extends ChoreType = ChoreType> {
   $target$: ChoreTarget | null;
   $payload$: unknown;
   $state$: ChoreState;
-  $blockedChores$: Chore[] | null;
+  $blockedChores$: ChoreArray | null;
   $startTime$: number | undefined;
   $endTime$: number | undefined;
 
@@ -192,9 +182,9 @@ export const getChorePromise = <T extends ChoreType>(chore: Chore<T>) =>
 export const createScheduler = (
   container: Container,
   journalFlush: () => void,
-  choreQueue: Chore[] = [],
-  blockedChores: Set<Chore> = new Set(),
-  runningChores: Set<Chore> = new Set()
+  choreQueue: ChoreArray,
+  blockedChores: Set<Chore>,
+  runningChores: Set<Chore>
 ) => {
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
   let drainScheduled = false;
@@ -235,7 +225,7 @@ export const createScheduler = (
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
     host: HostElement | null,
-    target: Signal | StoreHandler,
+    target: Signal<unknown> | StoreTarget,
     effects: Set<EffectSubscription> | null
   ): Chore<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>;
   function schedule(
@@ -284,7 +274,7 @@ export const createScheduler = (
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
-    let chore: Chore<T> = {
+    const chore: Chore<T> = {
       $type$: type,
       $idx$: isTask
         ? (hostOrTask as Task).$index$
@@ -370,12 +360,13 @@ This is often caused by modifying a signal in an already rendered component duri
       addBlockedChore(chore, blockingChore, blockedChores);
       return chore;
     }
-    chore = sortedInsert(
-      choreQueue,
-      chore,
-      (container as DomContainer).rootVNode || null
-    ) as Chore<T>;
-    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
+    const runningChore = getRunningChore(chore);
+    if (runningChore) {
+      addBlockedChore(chore, runningChore, blockedChores);
+    } else {
+      addChore(chore, choreQueue);
+      DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
+    }
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 
@@ -463,10 +454,17 @@ This is often caused by modifying a signal in an already rendered component duri
             container
           );
           if (blockingChore) {
-            addBlockedChore(blockedChore, blockingChore, blockedChores);
+            // Chore is still blocked, move it to the new blocking chore's list
+            // Note: chore is already in blockedChores Set and vnode.blockedChores,
+            // so we only add to the new blocking chore's list
+            (blockingChore.$blockedChores$ ||= new ChoreArray()).add(blockedChore);
           } else {
             blockedChores.delete(blockedChore);
-            sortedInsert(choreQueue, blockedChore, (container as DomContainer).rootVNode || null);
+            if (vnode_isVNode(blockedChore.$host$)) {
+              blockedChore.$host$.blockedChores?.delete(blockedChore);
+            }
+            addChore(blockedChore, choreQueue);
+            DEBUG && debugTrace('schedule.UNBLOCKED', blockedChore, choreQueue, blockedChores);
             blockedChoresScheduled = true;
           }
         }
@@ -494,6 +492,9 @@ This is often caused by modifying a signal in an already rendered component duri
         ) {
           // skip deleted chore
           DEBUG && debugTrace('skip chore', chore, choreQueue, blockedChores);
+          if (vnode_isVNode(chore.$host$)) {
+            chore.$host$.chores?.delete(chore);
+          }
           continue;
         }
 
@@ -570,6 +571,9 @@ This is often caused by modifying a signal in an already rendered component duri
     chore.$state$ = ChoreState.DONE;
     chore.$returnValue$ = value;
     chore.$resolve$?.(value);
+    if (vnode_isVNode(chore.$host$)) {
+      chore.$host$.chores?.delete(chore);
+    }
     DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
   }
 
@@ -692,10 +696,10 @@ This is often caused by modifying a signal in an already rendered component duri
             returnValue = null;
           } else {
             if (isConst) {
-              const element = virtualNode[ElementVNodeProps.element] as Element;
+              const element = virtualNode.element;
               journal.push(VNodeJournalOpCode.SetAttribute, element, property, serializedValue);
             } else {
-              vnode_setAttr(journal, virtualNode, property, serializedValue);
+              virtualNode.setAttr(property, serializedValue, journal);
             }
             returnValue = undefined as ValueOrPromise<ChoreReturnValue<ChoreType.NODE_PROP>>;
           }
@@ -712,11 +716,7 @@ This is often caused by modifying a signal in an already rendered component duri
       }
       case ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS: {
         {
-          const target = chore.$target$ as
-            | SignalImpl
-            | ComputedSignalImpl<unknown>
-            | WrappedSignalImpl<unknown>
-            | StoreHandler;
+          const target = chore.$target$ as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>;
 
           const effects = chore.$payload$ as Set<EffectSubscription>;
           if (!effects?.size) {
@@ -725,6 +725,8 @@ This is often caused by modifying a signal in an already rendered component duri
 
           let shouldCompute =
             target instanceof ComputedSignalImpl || target instanceof WrappedSignalImpl;
+
+          // for .error and .loading effects
           if (target instanceof AsyncComputedSignalImpl && effects !== target.$effects$) {
             shouldCompute = false;
           }
@@ -740,13 +742,13 @@ This is often caused by modifying a signal in an already rendered component duri
               () => {
                 if ((target as ComputedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
                   (target as ComputedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
-                  return retryOnPromise(() => triggerEffects(container, target, effects));
+                  return retryOnPromise(() => scheduleEffects(container, target, effects));
                 }
               }
             ) as ValueOrPromise<ChoreReturnValue<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>>;
           } else {
             returnValue = retryOnPromise(() => {
-              triggerEffects(container, target, effects);
+              scheduleEffects(container, target, effects);
             }) as ValueOrPromise<ChoreReturnValue<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>>;
           }
         }
@@ -756,147 +758,22 @@ This is often caused by modifying a signal in an already rendered component duri
     return returnValue as any;
   }
 
-  /**
-   * Compares two chores to determine their execution order in the scheduler's queue.
-   *
-   * @param a - The first chore to compare
-   * @param b - The second chore to compare
-   * @param rootVNode
-   * @returns A number indicating the relative order of the chores. A negative number means `a` runs
-   *   before `b`.
-   */
-  function choreComparator(a: Chore, b: Chore, rootVNode: ElementVNode | null): number {
-    const macroTypeDiff = (a.$type$ & ChoreType.MACRO) - (b.$type$ & ChoreType.MACRO);
-    if (macroTypeDiff !== 0) {
-      return macroTypeDiff;
-    }
-
-    const aHost = a.$host$;
-    const bHost = b.$host$;
-
-    if (aHost !== bHost && aHost !== null && bHost !== null) {
-      if (vnode_isVNode(aHost) && vnode_isVNode(bHost)) {
-        // we are running on the client.
-        const hostDiff = vnode_documentPosition(aHost, bHost, rootVNode);
-        if (hostDiff !== 0) {
-          return hostDiff;
-        }
-      } else {
-        assertFalse(vnode_isVNode(aHost), 'expected aHost to be SSRNode but it is a VNode');
-        assertFalse(vnode_isVNode(bHost), 'expected bHost to be SSRNode but it is a VNode');
-        const hostDiff = ssrNodeDocumentPosition(aHost as ISsrNode, bHost as ISsrNode);
-        if (hostDiff !== 0) {
-          return hostDiff;
-        }
-      }
-    }
-
-    const microTypeDiff = (a.$type$ & ChoreType.MICRO) - (b.$type$ & ChoreType.MICRO);
-    if (microTypeDiff !== 0) {
-      return microTypeDiff;
-    }
-    // types are the same
-
-    const idxDiff = toNumber(a.$idx$) - toNumber(b.$idx$);
-    if (idxDiff !== 0) {
-      return idxDiff;
-    }
-
-    // If the host is the same (or missing), and the type is the same,  we need to compare the target.
-    if (a.$target$ !== b.$target$) {
-      if (isQrl(a.$target$) && isQrl(b.$target$) && a.$target$.$hash$ === b.$target$.$hash$) {
-        return 0;
-      }
-      // 1 means that we are going to process chores as FIFO
-      return 1;
-    }
-
-    // ensure that the effect chores are scheduled for the same target
-    // TODO: can we do this better?
-    if (
-      a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
-      b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
-      ((a.$target$ instanceof StoreHandler && b.$target$ instanceof StoreHandler) ||
-        (a.$target$ instanceof AsyncComputedSignalImpl &&
-          b.$target$ instanceof AsyncComputedSignalImpl)) &&
-      a.$payload$ !== b.$payload$
-    ) {
-      return 1;
-    }
-
-    // The chores are the same and will run only once
-    return 0;
-  }
-
-  function sortedFindIndex(
-    sortedArray: Chore[],
-    value: Chore,
-    rootVNode: ElementVNode | null
-  ): number {
-    /// We need to ensure that the `queue` is sorted by priority.
-    /// 1. Find a place where to insert into.
-    let bottom = 0;
-    let top = sortedArray.length;
-    while (bottom < top) {
-      const middle = bottom + ((top - bottom) >> 1);
-      const midChore = sortedArray[middle];
-      const comp = choreComparator(value, midChore, rootVNode);
-      if (comp < 0) {
-        top = middle;
-      } else if (comp > 0) {
-        bottom = middle + 1;
-      } else {
-        // We already have the host in the queue.
-        return middle;
-      }
-    }
-    return ~bottom;
-  }
-
-  function sortedInsert(sortedArray: Chore[], value: Chore, rootVNode: ElementVNode | null): Chore {
-    /// We need to ensure that the `queue` is sorted by priority.
-    /// 1. Find a place where to insert into.
-    const idx = sortedFindIndex(sortedArray, value, rootVNode);
-
-    if (idx < 0 && runningChores.size) {
+  function getRunningChore(chore: Chore): Chore | null {
+    if (runningChores.size) {
       // 1.1. Check if the chore is already running.
-      for (const chore of runningChores) {
-        const comp = choreComparator(value, chore, rootVNode);
+      for (const runningChore of runningChores) {
+        const comp = choreComparator(chore, runningChore);
         if (comp === 0) {
-          return chore;
+          return runningChore;
         }
       }
     }
-
-    if (idx < 0) {
-      /// 2. Insert the chore into the queue.
-      sortedArray.splice(~idx, 0, value);
-      return value;
-    }
-
-    const existing = sortedArray[idx];
-    /**
-     * When a derived signal is updated we need to run vnode_diff. However the signal can update
-     * multiple times during component execution. For this reason it is necessary for us to update
-     * the chore with the latest result of the signal.
-     */
-    if (existing.$payload$ !== value.$payload$) {
-      existing.$payload$ = value.$payload$;
-    }
-    return existing;
+    return null;
   }
-};
-
-const toNumber = (value: number | string): number => {
-  return typeof value === 'number' ? value : -1;
 };
 
 function vNodeAlreadyDeleted(chore: Chore): boolean {
-  return !!(
-    chore.$host$ &&
-    vnode_isVNode(chore.$host$) &&
-    chore.$host$[VNodeProps.flags] & VNodeFlags.Deleted
-  );
+  return !!(chore.$host$ && vnode_isVNode(chore.$host$) && chore.$host$.flags & VNodeFlags.Deleted);
 }
 
 export function addBlockedChore(
@@ -911,9 +788,18 @@ export function addBlockedChore(
       undefined,
       blockedChores
     );
-  blockingChore.$blockedChores$ ||= [];
-  blockingChore.$blockedChores$.push(blockedChore);
+  (blockingChore.$blockedChores$ ||= new ChoreArray()).add(blockedChore);
   blockedChores.add(blockedChore);
+  if (vnode_isVNode(blockedChore.$host$)) {
+    (blockedChore.$host$.blockedChores ||= new ChoreArray()).add(blockedChore);
+  }
+}
+
+export function addChore(chore: Chore, choreArray: ChoreArray) {
+  const idx = choreArray.add(chore);
+  if (idx < 0 && vnode_isVNode(chore.$host$)) {
+    (chore.$host$.chores ||= new ChoreArray()).add(chore);
+  }
 }
 
 function choreTypeToName(type: ChoreType): string {
@@ -962,7 +848,12 @@ function debugChoreToString(chore: Chore): string {
   return `${state}Chore(${type} ${chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL ? qrlTarget : host} ${chore.$idx$})`;
 }
 
-function debugTrace(action: string, arg?: any | null, queue?: Chore[], blockedChores?: Set<Chore>) {
+function debugTrace(
+  action: string,
+  arg?: any | null,
+  queue?: ChoreArray,
+  blockedChores?: Set<Chore>
+) {
   const lines: string[] = [];
 
   // Header
@@ -1013,7 +904,8 @@ function debugTrace(action: string, arg?: any | null, queue?: Chore[], blockedCh
     lines.push('');
     lines.push(`📋 Queue (${queue.length} items):`);
 
-    queue.forEach((chore, index) => {
+    for (let i = 0; i < queue.length; i++) {
+      const chore = queue[i];
       const isActive = chore === arg;
       const activeMarker = isActive ? `▶ ` : '  ';
       const type = debugChoreTypeToString(chore.$type$);
@@ -1024,10 +916,9 @@ function debugTrace(action: string, arg?: any | null, queue?: Chore[], blockedCh
         chore.$type$ === ChoreType.QRL_RESOLVE || chore.$type$ === ChoreType.RUN_QRL
           ? qrlTarget
           : host;
-
       const line = `${activeMarker}${state} ${type} ${target} ${chore.$idx$}`;
       lines.push(line);
-    });
+    }
   }
 
   // Blocked chores section

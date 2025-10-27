@@ -8,7 +8,7 @@ import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from
 import { throwIfQRLNotResolved } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
-import type { NoSerialize } from '../../shared/utils/serialize-utils';
+import type { NoSerialize } from '../../shared/serdes/verify';
 import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;

@@ -1,21 +1,21 @@
-import { component$, isServer, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
+import { component$, isServer, useSignal, useStyles$, useTask$ } from '@qwik.dev/core';
 import HackerNewsCSS from './hacker-news.css?inline';
 
 export const HackerNews = component$(() => {
   useStyles$(HackerNewsCSS);
-  const store = useStore({ data: null });
+  const data = useSignal<IStory[]>();
 
   useTask$(async () => {
     if (isServer) {
       const response = await fetch('https://node-hnapi.herokuapp.com/news?page=0');
-      store.data = await response.json();
+      data.value = await response.json();
     }
   });
 
   return (
     <div class="hacker-news">
       <Nav />
-      <Stories data={store.data} />
+      <Stories stories={data.value} />
     </div>
   );
 });
@@ -49,10 +49,9 @@ export const Nav = component$(() => {
   );
 });
 
-export const Stories = component$<{ data: any }>((props) => {
+export const Stories = component$<{ stories?: IStory[] }>(({ stories }) => {
   const page = 1;
   const type = 'list';
-  const stories = props.data;
   return (
     <main class="news-view">
       <section class="news-list-nav">

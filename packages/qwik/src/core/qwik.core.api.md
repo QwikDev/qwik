@@ -25,7 +25,7 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
     error: Error | null;
     loading: boolean;
     // (undocumented)
-    resolve(): Promise<void>;
+    resolve(): Promise<T>;
 }
 
 // @public (undocumented)

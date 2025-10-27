@@ -103,8 +103,9 @@ export class AsyncComputedSignalImpl<T>
     this.$promiseValue$ = NEEDS_COMPUTATION;
   }
 
-  async resolve(): Promise<void> {
+  async resolve(): Promise<T> {
     await retryOnPromise(() => this.$computeIfNeeded$());
+    return this.$untrackedValue$;
   }
 
   $computeIfNeeded$() {

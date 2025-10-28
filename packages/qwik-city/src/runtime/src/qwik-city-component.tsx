@@ -139,6 +139,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   );
   const navResolver: { r?: () => void } = {};
   const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
+
+  // The initial state of routeInternal uses the URL provided by the server environment.
+  // It may not be accurate to the actual URL the browser is accessing the site from.
+  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
+  // if needed for SPA routing.
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
@@ -146,6 +151,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     replaceState: false,
     scroll: true,
   });
+
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
@@ -217,6 +223,15 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     internalState.navCount++;
+
+    // If this is the first SPA navigation, we rewrite routeInternal's URL
+    // as the browser location URL to prevent an erroneous origin mismatch.
+    // The initial value of routeInternal is derived from the server env,
+    // which in the case of SSG may not match the actual origin the site
+    // is deployed on.
+    if (isBrowser && routeInternal.value.type === 'initial') {
+      routeInternal.value.dest = new URL(window.location.href);
+    }
 
     const lastDest = routeInternal.value.dest;
     const dest =

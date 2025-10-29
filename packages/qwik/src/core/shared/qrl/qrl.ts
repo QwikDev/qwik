@@ -78,9 +78,17 @@ export const qrl = <T = any>(
   return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
 };
 
-/** @internal */
+/**
+ * Create an inlined QRL. This is mostly useful on the server side for serialization.
+ *
+ * @param symbol - The object/function to register, or `null` to retrieve a previously registered
+ *   one by hash
+ * @param symbolName - The name of the symbol.
+ * @param lexicalScopeCapture - A set of lexically scoped variables to capture.
+ * @public
+ */
 export const inlinedQrl = <T>(
-  symbol: T,
+  symbol: T | null,
   symbolName: string,
   lexicalScopeCapture: any[] = EMPTY_ARRAY
 ): QRL<T> => {
@@ -131,7 +139,12 @@ export const inlinedQrlDEV = <T = any>(
   return qrl;
 };
 
-/** @internal */
+/**
+ * Register a QRL symbol globally for lookup by its hash. This is used by the optimizer to register
+ * the names passed in `reg_ctx_name`.
+ *
+ * @internal
+ */
 export const _regSymbol = (symbol: any, hash: string) => {
   if (typeof (globalThis as any).__qwik_reg_symbols === 'undefined') {
     (globalThis as any).__qwik_reg_symbols = new Map<string, any>();

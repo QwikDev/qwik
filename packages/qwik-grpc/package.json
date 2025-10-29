@@ -1,0 +1,37 @@
+{
+  "name": "@builder.io/qwik-grpc",
+  "description": "Qwik gRPC is powered by Connect-Web, a battle tested library for gRPC clients and servers",
+  "version": "0.0.1",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
+  "devDependencies": {
+    "vite": "7.1.11"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "homepage": "https://qwik.dev/",
+  "keywords": [
+    "gRPC",
+    "Connect-Web",
+    "Connect-RPC",
+    "buf.build"
+  ],
+  "license": "MIT",
+  "main": "./lib/index.qwik.mjs",
+  "qwik": "./lib/index.qwik.mjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/QwikDev/qwik.git",
+    "directory": "packages/qwik-grpc"
+  },
+  "scripts": {
+    "build": "vite build --mode lib"
+  },
+  "type": "module",
+  "types": "./lib/types/index.d.ts"
+}

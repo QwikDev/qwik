@@ -12,7 +12,7 @@ import type {
   JSXNodeInternal,
   ClientContainer,
 } from '@qwik.dev/core/internal';
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 import {
   vnode_applyJournal,
   vnode_getAttrKeys,

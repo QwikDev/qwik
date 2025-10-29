@@ -598,11 +598,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <p>
-            Should have a number: "
-            <Fragment>
-              <Signal>3</Signal>
-            </Fragment>
-            "
+            Should have a number: "<Fragment>3</Fragment>"
           </p>
         </Component>
       );

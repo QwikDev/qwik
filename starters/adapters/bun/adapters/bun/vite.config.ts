@@ -1,7 +1,7 @@
 import { bunServerAdapter } from "@qwik.dev/router/adapters/bun-server/vite";
 import { _TextEncoderStream_polyfill } from "@qwik.dev/router/middleware/request-handler";
 import { extendConfig } from "@qwik.dev/router/vite";
-import baseConfig from "../../vite.config.mts";
+import baseConfig from "../../vite.config.ts";
 
 // This polyfill is required when you use SSG and build your app with Bun, because Bun does not have TextEncoderStream. See: https://github.com/oven-sh/bun/issues/5648
 globalThis.TextEncoderStream ||= _TextEncoderStream_polyfill;

@@ -24,6 +24,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
     error: Error | null;
     loading: boolean;
+    // (undocumented)
+    resolve(): Promise<T>;
 }
 
 // @public (undocumented)
@@ -281,9 +283,11 @@ export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
 export class _ElementVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: QElement, elementName: string | undefined);
+    // Warning: (ae-forgotten-export) The symbol "QElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    element: Element;
+    element: QElement;
     // (undocumented)
     elementName: string | undefined;
     // (undocumented)
@@ -339,7 +343,7 @@ export type FunctionComponent<P = unknown> = {
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+export const _getConstProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
 export const _getContextContainer: () => ClientContainer | undefined;
@@ -368,7 +372,7 @@ export const getPlatform: () => CorePlatform;
 export function _getQContainerElement(element: Element | _VNode): Element | null;
 
 // @internal
-export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;

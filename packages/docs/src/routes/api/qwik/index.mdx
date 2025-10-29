@@ -185,6 +185,24 @@ Whether the signal is currently loading.
 </td></tr>
 </tbody></table>
 
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[resolve()](#asynccomputedreadonlysignal-resolve)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 ## AsyncComputedReturnType
@@ -3590,6 +3608,16 @@ StreamWriter
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts)
+
+## resolve
+
+```typescript
+resolve(): Promise<T>;
+```
+
+**Returns:**
+
+Promise&lt;T&gt;
 
 ## Resource
 
@@ -9208,6 +9236,8 @@ Register a listener on the current component's host element.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
+Events are case sensitive.
+
 ```typescript
 useOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
@@ -9261,6 +9291,8 @@ Register a listener on `document`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
 
+Events are case sensitive.
+
 ```typescript
 useOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void
 ```
@@ -9313,6 +9345,8 @@ void
 Register a listener on `window`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+Events are case sensitive.
 
 ```typescript
 useOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void

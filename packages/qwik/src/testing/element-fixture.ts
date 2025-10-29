@@ -3,7 +3,7 @@ import type { ClientContainer } from '@qwik.dev/core/internal';
 import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
-import { fromCamelToKebabCase } from '../core/shared/utils/event-names';
+import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
 import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
@@ -70,12 +70,13 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
-function isDocumentOrWindowEvent(eventName: string): boolean {
-  return eventName.startsWith(':document:') || eventName.startsWith(':window:');
+function isDocumentOrWindowEvent(scope: QwikLoaderEventScope): boolean {
+  return scope === '-document' || scope === '-window';
 }
 
 /**
- * Trigger an event in unit tests on an element.
+ * Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event
+ * dispatching.
  *
  * Future deprecation candidate.
  *
@@ -89,6 +90,22 @@ export async function trigger(
   options?: { waitForIdle?: boolean }
 ): Promise<void> {
   const waitForIdle = options?.waitForIdle ?? true;
+
+  let scope: QwikLoaderEventScope = '';
+  if (eventName.startsWith(':')) {
+    // :document:event or :window:event
+    const colonIndex = eventName.substring(1).indexOf(':');
+    // we need to add `-` for event, because of scope of the qwik loader
+    scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
+    eventName = eventName.substring(colonIndex + 2);
+    // Scoped events must be queried
+    if (scope === '-document') {
+      queryOrElement = `[on-document\\:${fromCamelToKebabCase(eventName)}]`;
+    } else {
+      queryOrElement = `[on-window\\:${fromCamelToKebabCase(eventName)}]`;
+    }
+  }
+
   const elements =
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
@@ -102,26 +119,20 @@ export async function trigger(
       container = getDomContainer(element as HTMLElement);
     }
 
-    let scope: QwikLoaderEventScope = '';
-    if (eventName.startsWith(':')) {
-      // :document:event or :window:event
-      const colonIndex = eventName.substring(1).indexOf(':');
-      // we need to add `-` for event, because of scope of the qwik loader
-      scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
-      eventName = eventName.substring(colonIndex + 2);
-    }
-
     const event = new Event(eventName, {
       bubbles: true,
       cancelable: true,
     });
     Object.assign(event, eventPayload);
-    const prefix = scope ? 'on' + scope + ':' : 'on:';
+    const prefix = scope
+      ? scope === '-document'
+        ? EventNameHtmlScope.document
+        : EventNameHtmlScope.window
+      : EventNameHtmlScope.on;
     const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }
   const waitForQueueChore = container?.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
-  await getTestPlatform().flush();
   if (waitForIdle && waitForQueueChore) {
     await waitForQueueChore.$returnValue$;
   }
@@ -145,7 +156,7 @@ export const dispatch = async (
   event: Event,
   scope: QwikLoaderEventScope
 ) => {
-  const isDocumentOrWindow = isDocumentOrWindowEvent(event.type);
+  const isDocumentOrWindow = isDocumentOrWindowEvent(scope);
   const preventAttributeName =
     PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
   const stopPropagationName = STOP_PROPAGATION + event.type;

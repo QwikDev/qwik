@@ -87,7 +87,7 @@ The good news is that with Qwik you are in full control of which symbol goes int
 
 ## `qwikVite()` Plugin
 
-`qwikVite()` plugin inside your `vite.config.mts` controls the symbol distribution. Normally the `entryStrategy` is set to `smart` which allows the Qwik to make heuristic guesses as to how the symbols should be lazy loaded. But it is possible to override the heuristic by providing `manual` configuration like this in `vite.config.mts` file:
+`qwikVite()` plugin inside your `vite.config.ts` controls the symbol distribution. Normally the `entryStrategy` is set to `smart` which allows the Qwik to make heuristic guesses as to how the symbols should be lazy loaded. But it is possible to override the heuristic by providing `manual` configuration like this in `vite.config.ts` file:
 
 ```typescript
 export default defineConfig(() => {

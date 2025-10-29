@@ -42,7 +42,6 @@ import {
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
   escapeHTML,
-  isClassAttr,
   mapArray_get,
   mapArray_has,
   mapArray_set,
@@ -250,6 +249,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    // start from 100_000 to avoid interfering with potential existing ids
+    this.$currentUniqueId$ = 100_000;
 
     const qlOpt = this.renderOptions.qwikLoader;
     this.qlInclude = qlOpt
@@ -349,6 +350,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
+      // -1 so we only emit inside body
+      this.$noScriptHere$ = -1;
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -380,7 +383,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  private $noScriptHere$ = 0;
+  // -1 so we only emit inside body
+  private $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -394,8 +398,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
-      // keep track of noscript and template
-      else if (elementName === 'noscript' || elementName === 'template') {
+      // keep track of noscript and template, and for html we only emit inside body
+      else if (elementName === 'noscript' || elementName === 'template' || elementName === 'body') {
         this.$noScriptHere$++;
       }
     }
@@ -1171,7 +1175,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           continue;
         }
 
-        if (isClassAttr(key) && Array.isArray(value)) {
+        if (key === 'class' && Array.isArray(value)) {
           // value is a signal and key is a class, we need to retrieve data first
           const [signalValue, styleId] = value;
           value = signalValue;

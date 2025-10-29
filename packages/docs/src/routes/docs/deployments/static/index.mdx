@@ -41,12 +41,12 @@ bun run qwik add ssg
 </span>
 </PackageManagerTabs>
 
-Above command will create a directory at project root named `adapters/ssg/vite.config.mts` with the below code.
+Above command will create a directory at project root named `adapters/ssg/vite.config.ts` with the below code.
 
-```ts title="adapters/ssg/vite.config.mts"
+```ts title="adapters/ssg/vite.config.ts"
 import { ssgAdapter } from "@qwik.dev/router/adapters/ssg/vite";
 import { extendConfig } from '@qwik.dev/router';
-import baseConfig from '../../vite.config.mts';
+import baseConfig from '../../vite.config.ts';
 
 export default extendConfig(baseConfig, () => {
   return {

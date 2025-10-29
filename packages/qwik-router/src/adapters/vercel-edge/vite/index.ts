@@ -132,7 +132,7 @@ export interface VercelEdgeAdapterOptions extends ServerAdapterOptions {
   staticPaths?: string[];
 
   /**
-   * Define the `target` property in the `ssr` object in the `vite.config.mts` file.
+   * Define the `target` property in the `ssr` object in the `vite.config.ts` file.
    *
    * Defaults to `webworker`.
    */

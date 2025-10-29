@@ -2,6 +2,7 @@ import {
   $,
   Fragment as Awaited,
   Fragment as Component,
+  Fragment as InlineComponent,
   Fragment as Projection,
   component$,
   Fragment,
@@ -19,6 +20,8 @@ import { describe, expect, it } from 'vitest';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+const InlineComponentNoChildren = (props: { count: number }) => <>Count: {props.count}!</>;
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -252,6 +255,45 @@ describe.each([
         <Component ssr-required>
           <Fragment ssr-required>
             Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
+          </Fragment>
+        </Component>
+      );
+    });
+
+    it('should work with inline component not rendering children', async () => {
+      const Counter = component$((props: { initial: number }) => {
+        const count = useSignal(props.initial);
+        useOnDocument(
+          'click',
+          $(() => count.value++)
+        );
+        return <InlineComponentNoChildren count={count.value} />;
+      });
+
+      const { vNode, container } = await render(<Counter initial={123} />, { debug });
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
+                Count: <Signal ssr-required>{'123'}</Signal>!
+              </Fragment>
+            </InlineComponent>
+            <script hidden />
+          </Fragment>
+        </Component>
+      );
+
+      await trigger(container.element, 'script', ':document:click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <Fragment ssr-required>
+            <InlineComponent ssr-required>
+              <Fragment ssr-required>
+                Count: <Signal ssr-required>{'124'}</Signal>!
+              </Fragment>
+            </InlineComponent>
+            <script hidden />
           </Fragment>
         </Component>
       );
@@ -582,7 +624,7 @@ describe.each([
       const Counter = component$((props: { initial: number }) => {
         const count = useSignal(props.initial);
         useOn(
-          '-SomeCustomEvent',
+          'SomeCustomEvent',
           $(() => count.value++)
         );
         return <button>Count: {count.value}!</button>;

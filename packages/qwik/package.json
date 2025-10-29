@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.11",
+  "version": "2.0.0-beta.12",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.cjs"
@@ -22,7 +22,7 @@
     "kleur": "4.1.5",
     "prettier": "3.6.2",
     "ts-morph": "23.0.0",
-    "vitest": "3.2.4"
+    "vitest": "4.0.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -205,10 +205,10 @@
     "url": "https://github.com/QwikDev/qwik.git",
     "directory": "packages/qwik"
   },
-  "sideEffects": false,
   "scripts": {
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
+  "sideEffects": false,
   "type": "module",
   "types": "./public.d.ts"
 }

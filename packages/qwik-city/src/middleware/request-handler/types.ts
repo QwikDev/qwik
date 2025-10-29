@@ -482,6 +482,8 @@ declare global {
 /** @public */
 export interface RequestEventAction<PLATFORM = QwikCityPlatform>
   extends RequestEventCommon<PLATFORM> {
+  /** You can retrieve data from a routeLoader$ with this method. */
+  resolveValue: ResolveValue;
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
@@ -491,6 +493,7 @@ export type DeferReturn<T> = () => Promise<T>;
 /** @public */
 export interface RequestEventLoader<PLATFORM = QwikCityPlatform>
   extends RequestEventAction<PLATFORM> {
+  /** You can retrieve data from a routeLoader$ with this method. */
   resolveValue: ResolveValue;
   defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }

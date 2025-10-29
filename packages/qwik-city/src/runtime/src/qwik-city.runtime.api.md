@@ -331,12 +331,12 @@ export const QWIK_CITY_SCROLLER = "_qCityScroller";
 // @public (undocumented)
 export interface QwikCityMockProps {
     // (undocumented)
-    loaders?: loaders?: {
+    goto?: RouteNavigate;
+    // (undocumented)
+    loaders?: {
         loader: LoaderConstructor;
         data: any;
     }[];
-    // (undocumented)
-    goto?: RouteNavigate;
     // (undocumented)
     params?: Record<string, string>;
     // (undocumented)

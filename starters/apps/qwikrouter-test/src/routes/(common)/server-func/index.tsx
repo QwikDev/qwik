@@ -67,6 +67,12 @@ export default component$(() => {
   const streamingLogs = useSignal("");
   const serverArgsReceived = useSignal("");
   const clientArgsReceived = useSignal("");
+  const localCount = useSignal(0);
+  const receivedCount = useSignal(0);
+
+  const scopeGetter = server$(() => {
+    return localCount.value;
+  });
 
   useTask$(async () => {
     serverArgsReceived.value = await argsChecker(1, 1, 1);
@@ -117,6 +123,15 @@ export default component$(() => {
         }}
       >
         Count Args: {serverArgsReceived.value} / {clientArgsReceived.value}
+      </button>
+      <button
+        id="scope-checker-button"
+        onClick$={async () => {
+          localCount.value++;
+          receivedCount.value = await scopeGetter();
+        }}
+      >
+        local/remote: {localCount.value} / {receivedCount.value}
       </button>
     </>
   );

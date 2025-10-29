@@ -349,7 +349,7 @@ async function runServerFunction(ev: RequestEvent) {
     const isDev = getRequestMode(ev) === 'dev';
     const data = await ev.parseBody();
     if (Array.isArray(data)) {
-      const [qrl, ...args] = data;
+      const [qrl, args] = data;
       if (isQrl(qrl) && qrl.getHash() === serverFnHash) {
         let result: unknown;
         try {

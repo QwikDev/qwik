@@ -122,7 +122,7 @@ export interface ContextId<STATE> {
  */
 // </docs>
 export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
-  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9, _', name);
+  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);

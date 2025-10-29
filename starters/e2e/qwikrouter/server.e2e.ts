@@ -1,6 +1,16 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("server$", () => {
+  /** Checks that arguments weren't deduplicated or added */
+  test("receives exactly the args given", async ({ page }) => {
+    await page.goto("/qwikrouter-test/server-func/");
+    const button = page.locator("#args-checker-button");
+
+    await expect(button).toHaveText("Count Args: 1,1,1 / ");
+    await button.click();
+    await expect(button).toHaveText("Count Args: 1,1,1 / 10,10");
+  });
+
   test("this is available", async ({ page }) => {
     await page.goto("/qwikrouter-test/server-func/");
     const host = page.locator(".server-host");

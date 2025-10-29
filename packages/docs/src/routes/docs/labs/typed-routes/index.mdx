@@ -41,7 +41,7 @@ bun install github:QwikDev/qwik-labs-build#main
 </span>
 </PackageManagerTabs>
 
-2. update `vite.config.mts`
+2. update `vite.config.ts`
    ```typescript
    // ...
    import { qwikTypes } from '@qwik.dev/labs/vite';
@@ -117,7 +117,7 @@ The initialization process will create some important files for you.
 
 ### Declare Route Details
 ```typescript title="/src/routes/pokemon/[pokemonId]/routeInfo.ts"
-import { z } from "zod";
+import * as z from "zod";
 
 export const Route = {
   name: "PokemonDetail",

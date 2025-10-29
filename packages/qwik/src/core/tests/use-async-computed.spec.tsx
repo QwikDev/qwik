@@ -1,4 +1,12 @@
-import { Fragment as Signal, component$, useSignal, useTask$ } from '@qwik.dev/core';
+import {
+  $,
+  Fragment as Signal,
+  _jsxSorted,
+  _wrapProp,
+  component$,
+  useSignal,
+  useTask$,
+} from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { useAsyncComputed$ } from '../use/use-async-computed';
@@ -125,6 +133,57 @@ describe.each([
         <button>
           <Signal>{''}</Signal>
         </button>
+      </>
+    );
+  });
+
+  it('should render as attribute', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
+      return <button data-count={doubleCount.value} onClick$={() => count.value++}></button>;
+    });
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button data-count="2"></button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button data-count="4"></button>
+      </>
+    );
+  });
+
+  it('should render var prop as attribute', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(1);
+      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
+      return _jsxSorted(
+        'button',
+        {
+          'data-count': _wrapProp(doubleCount, 'value'),
+          onClick$: $(() => count.value++),
+        },
+        null,
+        null,
+        0,
+        null,
+        undefined
+      );
+    });
+    const { vNode, container } = await render(<Counter />, { debug });
+    expect(vNode).toMatchVDOM(
+      <>
+        <button data-count="2"></button>
+      </>
+    );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button data-count="4"></button>
       </>
     );
   });

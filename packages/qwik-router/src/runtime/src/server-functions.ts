@@ -20,7 +20,7 @@ import {
 } from '@qwik.dev/core/internal';
 import { _asyncRequestStore } from '@qwik.dev/router/middleware/request-handler';
 import * as v from 'valibot';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { RequestEventLoader } from '../../middleware/request-handler/types';
 import {
   DEFAULT_LOADERS_SERIALIZATION_STRATEGY,
@@ -457,7 +457,7 @@ export const serverQrl = <T extends ServerFunction>(
         },
         signal: abortSignal,
       };
-      const body = await _serialize([qrl, ...filteredArgs]);
+      const body = await _serialize([qrl, filteredArgs]);
       if (method === 'GET') {
         query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
       } else {

@@ -4,12 +4,12 @@ This starter site is configured to deploy to [Vercel Edge Functions](https://ver
 
 ## Installation
 
-The adaptor will add a new `vite.config.mts` within the `adapters/` directory, and a new entry file will be created, such as:
+The adaptor will add a new `vite.config.ts` within the `adapters/` directory, and a new entry file will be created, such as:
 
 ```
 └── adapters/
     └── vercel-edge/
-        └── vite.config.mts
+        └── vite.config.ts
 └── src/
     └── entry.vercel-edge.tsx
 ```

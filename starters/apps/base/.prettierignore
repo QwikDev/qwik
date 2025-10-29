@@ -27,7 +27,7 @@ build
 .vscode
 .rollup.cache
 tsconfig.tsbuildinfo
-vite.config.mts
+vite.config.ts
 *.spec.tsx
 *.spec.ts
 .netlify

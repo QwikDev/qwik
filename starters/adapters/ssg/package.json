@@ -1,7 +1,7 @@
 {
   "description": "Static Site Generator",
   "scripts": {
-    "build.server": "qwik check-client src dist && vite build -c adapters/ssg/vite.config.mts"
+    "build.server": "qwik check-client src dist && vite build -c adapters/ssg/vite.config.ts"
   },
   "__qwik__": {
     "priority": 10,
@@ -12,7 +12,7 @@
     "nextSteps": {
       "lines": [
         "You have to change the 'origin' url under ssgAdapter",
-        "inside './adapters/ssg/vite.config.mts'"
+        "inside './adapters/ssg/vite.config.ts'"
       ]
     }
   }

@@ -1,6 +1,7 @@
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { WrappedSignalFlags } from '../../reactive-primitives/types';
 import { _CONST_PROPS, _VAR_PROPS, _OWNER } from '../utils/constants';
+import { jsxEventToHtmlAttribute } from '../utils/event-names';
 import { EMPTY_OBJ } from '../utils/flyweight';
 import type { JSXNodeImpl } from './jsx-node';
 import type { Props } from './jsx-runtime';
@@ -23,12 +24,18 @@ class PropsProxyHandler implements ProxyHandler<any> {
     if (prop === _OWNER) {
       return this.owner;
     }
-    const value =
-      prop === 'children'
-        ? this.owner.children
-        : this.owner.constProps && prop in this.owner.constProps
-          ? this.owner.constProps[prop as string]
-          : this.owner.varProps[prop as string];
+    let value: unknown;
+    if (prop === 'children') {
+      value = this.owner.children;
+    } else {
+      if (typeof prop === 'string' && typeof this.owner.type === 'string') {
+        const attr = jsxEventToHtmlAttribute(prop as string);
+        if (attr) {
+          prop = attr;
+        }
+      }
+      value = directGetPropsProxyProp(this.owner, prop as string);
+    }
     // a proxied value that the optimizer made
     return value instanceof WrappedSignalImpl && value.$flags$ & WrappedSignalFlags.UNWRAP
       ? value.value
@@ -40,17 +47,29 @@ class PropsProxyHandler implements ProxyHandler<any> {
       this.owner = value;
     } else if (prop === 'children') {
       this.owner.children = value;
-    } else if (this.owner.constProps && prop in this.owner.constProps) {
-      this.owner.constProps[prop as string] = value;
     } else {
-      if (this.owner.varProps === EMPTY_OBJ) {
-        this.owner.varProps = {};
-      } else {
+      if (typeof prop === 'string' && typeof this.owner.type === 'string') {
+        const attr = jsxEventToHtmlAttribute(prop as string);
+        if (attr) {
+          prop = attr;
+        }
+      }
+      if (this.owner.constProps && prop in this.owner.constProps) {
+        this.owner.constProps[prop as string] = undefined;
         if (!(prop in this.owner.varProps)) {
           this.owner.toSort = true;
         }
+        this.owner.varProps[prop as string] = value;
+      } else {
+        if (this.owner.varProps === EMPTY_OBJ) {
+          this.owner.varProps = {};
+        } else {
+          if (!(prop in this.owner.varProps)) {
+            this.owner.toSort = true;
+          }
+        }
+        this.owner.varProps[prop as string] = value;
       }
-      this.owner.varProps[prop as string] = value;
     }
     return true;
   }
@@ -66,14 +85,21 @@ class PropsProxyHandler implements ProxyHandler<any> {
     return didDelete;
   }
   has(_: any, prop: string | symbol) {
-    const hasProp =
-      prop === 'children'
-        ? this.owner.children != null
-        : prop === _CONST_PROPS ||
-          prop === _VAR_PROPS ||
-          prop in this.owner.varProps ||
-          (this.owner.constProps ? prop in this.owner.constProps : false);
-    return hasProp;
+    if (prop === 'children') {
+      return this.owner.children != null;
+    } else if (prop === _CONST_PROPS || prop === _VAR_PROPS) {
+      return true;
+    }
+    if (typeof prop === 'string' && typeof this.owner.type === 'string') {
+      const attr = jsxEventToHtmlAttribute(prop as string);
+      if (attr) {
+        prop = attr;
+      }
+    }
+
+    return (
+      prop in this.owner.varProps || (this.owner.constProps ? prop in this.owner.constProps : false)
+    );
   }
   getOwnPropertyDescriptor(_: any, p: string | symbol): PropertyDescriptor | undefined {
     const value =
@@ -107,6 +133,8 @@ class PropsProxyHandler implements ProxyHandler<any> {
 /**
  * Instead of using PropsProxyHandler getter (which could create a component-level subscription).
  * Use this function to get the props directly from a const or var props.
+ *
+ * This does not convert jsx event names.
  */
 export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop: string): T => {
   return (
@@ -115,7 +143,7 @@ export const directGetPropsProxyProp = <T, JSX>(jsx: JSXNodeInternal<JSX>, prop:
 };
 
 /** Used by the optimizer for spread props operations @internal */
-export const _getVarProps = <T, JSX>(
+export const _getVarProps = (
   props: PropsProxy | Record<string, unknown> | null | undefined
 ): Props | null => {
   if (!props) {
@@ -128,7 +156,7 @@ export const _getVarProps = <T, JSX>(
     : props;
 };
 /** Used by the optimizer for spread props operations @internal */
-export const _getConstProps = <T, JSX>(
+export const _getConstProps = (
   props: PropsProxy | Record<string, unknown> | null | undefined
 ): Props | null => {
   if (!props) {

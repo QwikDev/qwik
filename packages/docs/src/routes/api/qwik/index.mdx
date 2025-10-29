@@ -1705,6 +1705,78 @@ A function that should have its first argument automatically `$`.
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/implicit_dollar.ts)
 
+## inlinedQrl
+
+Create an inlined QRL. This is mostly useful on the server side for serialization.
+
+```typescript
+inlinedQrl: <T>(
+  symbol: T | null,
+  symbolName: string,
+  lexicalScopeCapture?: any[],
+) => QRL<T>;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+symbol
+
+</td><td>
+
+T \| null
+
+</td><td>
+
+The object/function to register, or `null` to retrieve a previously registered one by hash
+
+</td></tr>
+<tr><td>
+
+symbolName
+
+</td><td>
+
+string
+
+</td><td>
+
+The name of the symbol.
+
+</td></tr>
+<tr><td>
+
+lexicalScopeCapture
+
+</td><td>
+
+any[]
+
+</td><td>
+
+_(Optional)_ A set of lexically scoped variables to capture.
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[QRL](#qrl)&lt;T&gt;
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts)
+
 ## IntrinsicAttributes
 
 ```typescript

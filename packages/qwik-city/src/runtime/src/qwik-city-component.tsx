@@ -39,6 +39,7 @@ import type {
   Editable,
   EndpointResponse,
   LoadedRoute,
+  LoaderConstructor,
   MutableRouteLocation,
   PageModule,
   PreventNavigateCallback,
@@ -661,6 +662,10 @@ export interface QwikCityMockProps {
   url?: string;
   params?: Record<string, string>;
   goto?: RouteNavigate;
+  loaders?: {
+    loader: LoaderConstructor;
+    data: any;
+  }[];
 }
 
 /** @public */
@@ -677,7 +682,13 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     { deep: false }
   );
 
-  const loaderState = useSignal({});
+  const loaderState = useStore(
+    props.loaders?.reduce(
+      (acc, { loader, data }) => ({ ...acc, [(loader as any).__id]: data }),
+      {} as Record<string, any>
+    ) ?? {},
+    { deep: false }
+  );
   const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =

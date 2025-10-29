@@ -348,6 +348,15 @@ impl<'a> QwikTransform<'a> {
 
 	/** Parse inlinedQrl() (from library code) */
 	fn handle_inlined_qsegment(&mut self, mut node: ast::CallExpr) -> ast::CallExpr {
+		// If the first argument of the call is `null`, we skip processing
+		if let Some(ast::ExprOrSpread {
+			expr: first_arg, ..
+		}) = node.args.first()
+		{
+			if let ast::Expr::Lit(ast::Lit::Null(_)) = **first_arg {
+				return node;
+			}
+		}
 		node.args.reverse();
 
 		let last_stack = self

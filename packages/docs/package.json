@@ -56,9 +56,9 @@
     "typescript": "5.9.3",
     "valibot": "0.33.3",
     "vite": "7.1.9",
-    "vite-plugin-inspect": "11.3.3",
     "vite-tsconfig-paths": "5.1.4",
-    "wrangler": "3.65.1"
+    "wrangler": "3.65.1",
+    "@qwik.dev/devtools": "0.2.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0",

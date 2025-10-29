@@ -457,7 +457,7 @@ export const serverQrl = <T extends ServerFunction>(
         },
         signal: abortSignal,
       };
-      const body = await _serialize([qrl, ...filteredArgs]);
+      const body = await _serialize([qrl, filteredArgs]);
       if (method === 'GET') {
         query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
       } else {

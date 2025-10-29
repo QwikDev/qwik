@@ -107,6 +107,23 @@
       "mdFile": "qwik.path.dirname.md"
     },
     {
+      "name": "enableFallbackToMpa",
+      "id": "experimentalfeatures-enablefallbacktompa",
+      "hierarchy": [
+        {
+          "name": "ExperimentalFeatures",
+          "id": "experimentalfeatures-enablefallbacktompa"
+        },
+        {
+          "name": "enableFallbackToMpa",
+          "id": "experimentalfeatures-enablefallbacktompa"
+        }
+      ],
+      "kind": "EnumMember",
+      "content": "",
+      "mdFile": "qwik.experimentalfeatures.enablefallbacktompa.md"
+    },
+    {
       "name": "enableRequestRewrite",
       "id": "experimentalfeatures-enablerequestrewrite",
       "hierarchy": [
@@ -147,7 +164,7 @@
         }
       ],
       "kind": "Enum",
-      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Disable SPA navigation handler in Qwik City\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
+      "content": "> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.\n> \n\nUse `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.\n\nAdd experimental features to this enum definition.\n\n\n```typescript\nexport declare enum ExperimentalFeatures \n```\n\n\n<table><thead><tr><th>\n\nMember\n\n\n</th><th>\n\nValue\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nenableFallbackToMpa\n\n\n</td><td>\n\n`\"enableFallbackToMpa\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable falling back to MPA when SPA navigation is slow, which can happen with a big page during preloading\n\n\n</td></tr>\n<tr><td>\n\nenableRequestRewrite\n\n\n</td><td>\n\n`\"enableRequestRewrite\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable request.rewrite()\n\n\n</td></tr>\n<tr><td>\n\nnoSPA\n\n\n</td><td>\n\n`\"noSPA\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Disable SPA navigation handler in Qwik City\n\n\n</td></tr>\n<tr><td>\n\npreventNavigate\n\n\n</td><td>\n\n`\"preventNavigate\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the usePreventNavigate hook\n\n\n</td></tr>\n<tr><td>\n\nvalibot\n\n\n</td><td>\n\n`\"valibot\"`\n\n\n</td><td>\n\n**_(ALPHA)_** Enable the Valibot form validation\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/optimizer/src/plugins/plugin.ts",
       "mdFile": "qwik.experimentalfeatures.md"
     },

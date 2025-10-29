@@ -17,6 +17,7 @@ import { preloadRouteBundles } from './client-navigate';
 import { isDev } from '@builder.io/qwik';
 // @ts-expect-error we don't have types for the preloader yet
 import { p as preload } from '@builder.io/qwik/preloader';
+// import { fallbackToMpaContext } from './contexts';
 
 /** @public */
 export const Link = component$<LinkProps>((props) => {
@@ -24,14 +25,23 @@ export const Link = component$<LinkProps>((props) => {
   const loc = useLocation();
   const originalHref = props.href;
   const anchorRef = useSignal<HTMLAnchorElement>();
+
   const {
     onClick$,
     prefetch: prefetchProp,
     reload,
     replaceState,
     scroll,
+    fallbackToMpa: fallbackToMpaProp,
     ...linkProps
   } = (() => props)();
+
+  // const defaultFallbackToMpa = useContext(fallbackToMpaContext).default;
+
+  // const fallbackToMpa = __EXPERIMENTAL__.enableFallbackToMpa
+  //   ? untrack(() => Boolean(fallbackToMpaProp ?? defaultFallbackToMpa))
+  //   : undefined;
+
   const clientNavPath = untrack(() => getClientNavPath({ ...linkProps, reload }, loc));
   linkProps.href = clientNavPath || originalHref;
 
@@ -66,7 +76,7 @@ export const Link = component$<LinkProps>((props) => {
     : undefined;
 
   const preventDefault = clientNavPath
-    ? sync$((event: MouseEvent, target: HTMLAnchorElement) => {
+    ? sync$((event: MouseEvent) => {
         if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) {
           event.preventDefault();
         }
@@ -89,9 +99,27 @@ export const Link = component$<LinkProps>((props) => {
       })
     : undefined;
 
-  const handlePreload = $((_: any, elm: HTMLAnchorElement) => {
-    const url = new URL(elm.href);
+  const handlePreload = $((_: any, target: HTMLAnchorElement) => {
+    if (!target?.href) {
+      return;
+    }
+    const onTooMany = (event: Event) => {
+      const userEventPreloads = (event as CustomEvent).detail;
+      /**
+       * On chrome 3G throttling, 10kb takes ~1s to download. Bundles weight ~1kb on average, so 100
+       * bundles is ~100kb which takes ~10s to download.
+       *
+       * This can serve to fallback to MPA when SPA navigation takes more than 10s. Or in extreme
+       * cases, if a component needs more than a 100 bundles, display a spinner.
+       */
+      if (userEventPreloads.count >= 100) {
+        location.assign(target.href);
+      }
+    };
+    window.addEventListener('userEventPreloads', onTooMany);
+    const url = new URL(target.href);
     preloadRouteBundles(url.pathname, 1);
+    window.removeEventListener('userEventPreloads', onTooMany);
   });
 
   useVisibleTask$(({ track }) => {
@@ -166,4 +194,11 @@ export interface LinkProps extends AnchorAttributes {
   reload?: boolean;
   replaceState?: boolean;
   scroll?: boolean;
+
+  /**
+   * **Defaults to _true_.**
+   *
+   * Whether Qwik should fallback to MPA navigation if too many bundles are queued for preloading.
+   */
+  fallbackToMpa?: boolean;
 }

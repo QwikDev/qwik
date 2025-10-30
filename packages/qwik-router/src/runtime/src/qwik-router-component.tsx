@@ -36,7 +36,6 @@ import {
   ContentInternalContext,
   DocumentHeadContext,
   RouteActionContext,
-  RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -122,6 +121,11 @@ const internalState = { navCount: 0 };
  * This hook should be used once, at the root of your application.
  */
 export const useQwikRouter = (props?: QwikRouterProps) => {
+  if (!isServer) {
+    throw new Error(
+      'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouter> component around the root of your application.'
+    );
+  }
   useStyles$(transitionCss);
   const env = useQwikRouterEnv();
   if (!env?.params) {
@@ -136,15 +140,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   }
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
 
-  if (isServer) {
-    if (
-      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
-      !__EXPERIMENTAL__.enableRequestRewrite
-    ) {
-      throw new Error(
-        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
-      );
-    }
+  if (
+    env.ev.originalUrl.pathname !== env.ev.url.pathname &&
+    !__EXPERIMENTAL__.enableRequestRewrite
+  ) {
+    throw new Error(
+      `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+    );
   }
 
   const url = new URL(urlEnv);
@@ -200,8 +202,6 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
-    forceReload: false,
-    replaceState: false,
     scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
@@ -283,7 +283,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     // The initial value of routeInternal is derived from the server env,
     // which in the case of SSG may not match the actual origin the site
     // is deployed on.
-    if (isBrowser && routeInternal.value.type === 'initial') {
+    // We only do this for link navigations, as popstate will have already changed the URL
+    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
       routeInternal.value.dest = new URL(window.location.href);
     }
 
@@ -364,7 +365,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return;
     }
 
-    routeInternal.value = { type, dest, forceReload, replaceState, scroll };
+    routeInternal.value = {
+      type,
+      dest,
+      forceReload,
+      replaceState,
+      scroll,
+    };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -391,12 +398,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   useTask$(({ track }) => {
     async function run() {
-      const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
+      const navigation = track(routeInternal);
+      const action = track(actionState);
 
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
@@ -629,7 +636,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
             // We patch these events and direct them to Link pipeline during SPA.
-            document.body.addEventListener('click', (event) => {
+            document.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
               }
@@ -667,7 +674,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               }
             });
 
-            document.body.removeEventListener('click', win._qRouterInitAnchors!);
+            document.removeEventListener('click', win._qRouterInitAnchors!);
             win._qRouterInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
@@ -783,6 +790,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     }
 
     if (isServer) {
+      // Server: wait for navigation to complete
       return run();
     } else {
       run();
@@ -790,8 +798,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   });
 };
 
-/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component. */
+/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive. */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+  // Initialize Qwik Router; since this component is not reactive, the hook only runs once.
   useQwikRouter(props);
   return <Slot />;
 });
@@ -830,7 +839,6 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   );
 
   const loaderState = {};
-  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -859,7 +867,6 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
 };
 
 /** @public */

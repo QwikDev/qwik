@@ -726,7 +726,7 @@
         }
       ],
       "kind": "Variable",
-      "content": "This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component.\n\n\n```typescript\nQwikRouterProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
+      "content": "This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive.\n\n\n```typescript\nQwikRouterProvider: import(\"@qwik.dev/core\").Component<QwikRouterProps>\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/qwik-router-component.tsx",
       "mdFile": "router.qwikrouterprovider.md"
     },

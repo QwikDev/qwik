@@ -562,7 +562,8 @@ This is often caused by modifying a signal in an already rendered component duri
             })
             .catch((e) => {
               if (chore.$state$ !== ChoreState.RUNNING) {
-                // we already handled the error
+                // we already handled an error but maybe it's a different one so we log it
+                console.error(e);
                 return;
               }
               handleError(chore, e);

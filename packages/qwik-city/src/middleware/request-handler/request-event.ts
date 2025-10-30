@@ -318,6 +318,10 @@ export function createRequestEvent(
       }
       return writableStream;
     },
+
+    get clients() {
+      return this.sharedMap.get('qwik-api-clients');
+    },
   };
   return Object.freeze(requestEv);
 }
@@ -348,6 +352,9 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
     requestHandlers: RequestHandler<any>[],
     url: URL
   ): void;
+
+  /** A getter that returns API clients stored in the sharedMap key `qwik-api-clients`. */
+  clients: any;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

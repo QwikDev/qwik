@@ -333,10 +333,10 @@ export interface QwikCityMockProps {
     // (undocumented)
     goto?: RouteNavigate;
     // (undocumented)
-    loaders?: {
-        loader: LoaderConstructor;
+    loaders?: Array<{
+        loader: Loader_2<any>;
         data: any;
-    }[];
+    }>;
     // (undocumented)
     params?: Record<string, string>;
     // (undocumented)

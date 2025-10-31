@@ -1,8 +1,8 @@
-import { component$, useContextProvider, useStore } from '@qwik.dev/core';
+import { component$, untrack, useContextProvider, useStore } from '@qwik.dev/core';
 import { Insights } from '@qwik.dev/core/insights';
 import {
+  DocumentHeadTags,
   RouterOutlet,
-  ServiceWorkerRegister,
   useDocumentHead,
   useLocation,
   useQwikRouter,
@@ -52,6 +52,7 @@ export default component$(() => {
   useQwikRouter();
   const head = useDocumentHead();
   const { url } = useLocation();
+  const href = head.frontmatter?.canonical || untrack(() => url.href);
 
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
@@ -108,9 +109,8 @@ export default component$(() => {
       <head>
         <meta charset="utf-8" />
 
-        <title>{title}</title>
         <meta name="description" content={description} />
-        <link rel="canonical" href={head.frontmatter?.canonical || url.href} />
+        <link rel="canonical" href={href} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="apple-mobile-web-app-title" content="Qwik" />
         <meta name="application-name" content="Qwik" />
@@ -123,35 +123,19 @@ export default component$(() => {
 
         {import.meta.env.PROD && (
           <>
-            <Social title={title} description={description} href={url.href} ogImage={OGImage.URL} />
+            <Social title={title} description={description} href={href} ogImage={OGImage.URL} />
             <Vendor />
           </>
         )}
 
-        {/* The below are tags that were collected from all the `head` exports in the current route. */}
-        {head.meta
+        <DocumentHeadTags
+          title={title}
           // Skip description because that was already added at the top
-          .filter((s) => s.name !== 'description')
-          .map((m, key) => (
-            <meta key={key} {...m} />
-          ))}
-
-        {head.links.map((l, key) => (
-          <link key={key} {...l} />
-        ))}
-
-        {head.styles.map((s, key) => (
-          <style key={key} {...s.props} dangerouslySetInnerHTML={s.style} />
-        ))}
-
-        {head.scripts.map((s, key) => (
-          <script key={key} {...s.props} dangerouslySetInnerHTML={s.script} />
-        ))}
+          meta={head.meta.filter((s) => s.name !== 'description')}
+        />
 
         <InjectThemeScript />
         <script dangerouslySetInnerHTML={uwu} />
-
-        <ServiceWorkerRegister />
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
         <Insights />

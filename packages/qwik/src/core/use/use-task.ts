@@ -22,6 +22,7 @@ export const enum TaskFlags {
   TASK = 1 << 1,
   RESOURCE = 1 << 2,
   DIRTY = 1 << 3,
+  RENDER_BLOCKING = 1 << 4,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -124,7 +125,6 @@ export interface TaskCtx {
 /** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-/** @public */
 export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $flags$: number;
   $index$: number;
@@ -134,8 +134,14 @@ export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $destroy$: NoSerialize<() => void> | null;
 }
 
+/** @public */
+export interface TaskOptions {
+  /** If true, the task will block the rendering of the component until it is complete. */
+  blockRender?: boolean;
+}
+
 /** @internal */
-export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
+export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   const { val, set, iCtx, i } = useSequentialScope<1 | Task>();
   if (val) {
     return;
@@ -143,8 +149,10 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   assertQrl(qrl);
   set(1);
 
+  const taskFlags = opts?.blockRender ? TaskFlags.RENDER_BLOCKING : 0;
+
   const task = new Task(
-    TaskFlags.DIRTY | TaskFlags.TASK,
+    TaskFlags.DIRTY | TaskFlags.TASK | taskFlags,
     i,
     iCtx.$hostElement$,
     qrl,

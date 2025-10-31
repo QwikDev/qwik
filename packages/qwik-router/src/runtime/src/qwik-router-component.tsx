@@ -75,6 +75,8 @@ import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 import transitionCss from './qwik-view-transition.css?inline';
 
+declare const window: ClientSPAWindow;
+
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
  * @public
@@ -254,8 +256,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     (preventNav.$cbs$ ||= new Set()).add(fn$);
     // we need the QRLs to be synchronous if possible, for the beforeunload event
     fn$.resolve();
-    // TS thinks we're a webworker and doesn't know about beforeunload
-    (window as any).addEventListener('beforeunload', preventNav.$handler$);
+    window.addEventListener('beforeunload', preventNav.$handler$);
 
     return () => {
       if (preventNav.$cbs$) {
@@ -263,7 +264,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (!preventNav.$cbs$.size) {
           preventNav.$cbs$ = undefined;
           // unregister the event listener if no more callbacks, to make older Firefox happy
-          (window as any).removeEventListener('beforeunload', preventNav.$handler$);
+          window.removeEventListener('beforeunload', preventNav.$handler$!);
         }
       }
     };
@@ -354,7 +355,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
 
         if (type === 'popstate') {
-          (window as ClientSPAWindow)._qRouterScrollEnabled = true;
+          window._qRouterScrollEnabled = true;
         }
       }
 
@@ -571,32 +572,32 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
           CLIENT_DATA_CACHE.clear();
 
-          const win = window as ClientSPAWindow;
-          if (!win._qRouterSPA) {
+          // See also spa-init.ts
+          if (!window._qRouterSPA) {
             // only add event listener once
-            win._qRouterSPA = true;
+            window._qRouterSPA = true;
             history.scrollRestoration = 'manual';
 
-            win.addEventListener('popstate', () => {
+            window.addEventListener('popstate', () => {
               // Disable scroll handler eagerly to prevent overwriting history.state.
-              win._qRouterScrollEnabled = false;
-              clearTimeout(win._qRouterScrollDebounce);
+              window._qRouterScrollEnabled = false;
+              clearTimeout(window._qRouterScrollDebounce);
 
               goto(location.href, {
                 type: 'popstate',
               });
             });
 
-            win.removeEventListener('popstate', win._qRouterInitPopstate!);
-            win._qRouterInitPopstate = undefined;
+            window.removeEventListener('popstate', window._qRouterInitPopstate!);
+            window._qRouterInitPopstate = undefined;
 
             // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
             // Devs could push their own states that we can't control.
             // If a user doesn't initiate scroll after, it will not have any scrollState.
             // We patch these to always include scrollState.
             // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
-            if (!win._qRouterHistoryPatch) {
-              win._qRouterHistoryPatch = true;
+            if (!window._qRouterHistoryPatch) {
+              window._qRouterHistoryPatch = true;
               const pushState = history.pushState;
               const replaceState = history.replaceState;
 
@@ -658,8 +659,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                       history.pushState(null, '', dest);
                     }
 
-                    win._qRouterScrollEnabled = false;
-                    clearTimeout(win._qRouterScrollDebounce);
+                    window._qRouterScrollEnabled = false;
+                    clearTimeout(window._qRouterScrollDebounce);
                     saveScrollHistory({
                       ...currentScrollState(scroller),
                       x: 0,
@@ -674,8 +675,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               }
             });
 
-            document.removeEventListener('click', win._qRouterInitAnchors!);
-            win._qRouterInitAnchors = undefined;
+            document.removeEventListener('click', window._qRouterInitAnchors!);
+            window._qRouterInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
@@ -686,10 +687,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                 'visibilitychange',
                 () => {
                   if (
-                    (win._qRouterScrollEnabled || win._qCityScrollEnabled) &&
+                    (window._qRouterScrollEnabled || window._qCityScrollEnabled) &&
                     document.visibilityState === 'hidden'
                   ) {
-                    if (win._qCityScrollEnabled) {
+                    if (window._qCityScrollEnabled) {
                       console.warn(
                         '"_qCityScrollEnabled" is deprecated. Use "_qRouterScrollEnabled" instead.'
                       );
@@ -703,39 +704,39 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                 { passive: true }
               );
 
-              document.removeEventListener('visibilitychange', win._qRouterInitVisibility!);
-              win._qRouterInitVisibility = undefined;
+              document.removeEventListener('visibilitychange', window._qRouterInitVisibility!);
+              window._qRouterInitVisibility = undefined;
             }
 
-            win.addEventListener(
+            window.addEventListener(
               'scroll',
               () => {
                 // TODO: remove "_qCityScrollEnabled" condition in v3
-                if (!win._qRouterScrollEnabled && !win._qCityScrollEnabled) {
+                if (!window._qRouterScrollEnabled && !window._qCityScrollEnabled) {
                   return;
                 }
 
-                clearTimeout(win._qRouterScrollDebounce);
-                win._qRouterScrollDebounce = setTimeout(() => {
+                clearTimeout(window._qRouterScrollDebounce);
+                window._qRouterScrollDebounce = setTimeout(() => {
                   const scrollState = currentScrollState(scroller);
                   saveScrollHistory(scrollState);
                   // Needed for e2e debounceDetector.
-                  win._qRouterScrollDebounce = undefined;
+                  window._qRouterScrollDebounce = undefined;
                 }, 200);
               },
               { passive: true }
             );
 
-            removeEventListener('scroll', win._qRouterInitScroll!);
-            win._qRouterInitScroll = undefined;
+            removeEventListener('scroll', window._qRouterInitScroll!);
+            window._qRouterInitScroll = undefined;
 
             // Cache SPA recovery script.
             spaInit.resolve();
           }
 
           if (navType !== 'popstate') {
-            win._qRouterScrollEnabled = false;
-            clearTimeout(win._qRouterScrollDebounce);
+            window._qRouterScrollEnabled = false;
+            clearTimeout(window._qRouterScrollDebounce);
 
             // Save the final scroll state before pushing new state.
             // Upgrades/replaces state with scroll pos on nav as needed.
@@ -768,7 +769,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             container.setAttribute(Q_ROUTE, routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
-            win._qRouterScrollEnabled = true;
+            window._qRouterScrollEnabled = true;
             if (isBrowser) {
               callRestoreScrollOnDocument();
             }

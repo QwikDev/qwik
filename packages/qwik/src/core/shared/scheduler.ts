@@ -737,11 +737,16 @@ This is often caused by modifying a signal in an already rendered component duri
               host
             ) as ValueOrPromise<ChoreReturnValue<ChoreType.TASK>>;
           } else {
-            returnValue = runTask(
-              payload as Task<TaskFn, TaskFn>,
-              container,
-              host
-            ) as ValueOrPromise<ChoreReturnValue<ChoreType.TASK>>;
+            const task = payload as Task<TaskFn, TaskFn>;
+            returnValue = runTask(task, container, host) as ValueOrPromise<
+              ChoreReturnValue<ChoreType.TASK>
+            >;
+            if (task.$flags$ & TaskFlags.RENDER_BLOCKING) {
+              blockingChoresCount++;
+              returnValue = maybeThen(returnValue, () => {
+                blockingChoresCount--;
+              });
+            }
           }
         }
         break;

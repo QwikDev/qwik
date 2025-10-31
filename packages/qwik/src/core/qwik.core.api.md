@@ -1662,6 +1662,11 @@ export interface TaskCtx {
 // @public (undocumented)
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
+// @public (undocumented)
+export interface TaskOptions {
+    blockRender?: boolean;
+}
+
 // @internal (undocumented)
 export class _TextVNode extends _VNode {
     constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
@@ -1803,12 +1808,12 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (fn: TaskFn) => void;
+export const useTask$: (fn: TaskFn, opts?: TaskOptions) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useTaskQrl: (qrl: QRL<TaskFn>) => void;
+export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: TaskOptions) => void;
 
 // @public
 export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;

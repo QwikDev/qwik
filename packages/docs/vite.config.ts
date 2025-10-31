@@ -144,6 +144,7 @@ export default defineConfig(() => {
         'qwik-image',
         // optimizing breaks the wasm import
         '@rolldown/browser',
+        '@qwik.dev/devtools',
       ],
     },
     preview: {

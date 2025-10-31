@@ -143,7 +143,7 @@ export { useComputedQrl } from './use/use-computed';
 export { useSerializerQrl, useSerializer$ } from './use/use-serializer';
 export type { OnVisibleTaskOptions, VisibleTaskStrategy } from './use/use-visible-task';
 export { useVisibleTaskQrl } from './use/use-visible-task';
-export type { TaskCtx, TaskFn, Tracker } from './use/use-task';
+export type { TaskCtx, TaskFn, Tracker, TaskOptions } from './use/use-task';
 export type {
   ResourceProps,
   ResourceOptions,

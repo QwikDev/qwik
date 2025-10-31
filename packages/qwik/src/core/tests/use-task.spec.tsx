@@ -12,7 +12,7 @@ import {
   type Signal as SignalType,
 } from '@qwik.dev/core';
 import { domRender, getTestPlatform, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
@@ -653,6 +653,86 @@ describe.each([
     );
   });
 
+  describe('blockRender', () => {
+    it('should execute task and block render until finish', async () => {
+      vi.useFakeTimers();
+      (global as any).counter = 0;
+      const Counter = component$(() => {
+        const count = useSignal(0);
+        const text = useSignal('val1');
+
+        useTask$(
+          async ({ track }) => {
+            const c = track(count);
+            // skip initial render
+            if ((global as any).counter > 0) {
+              text.value = 'val' + (c + 1);
+              await delay(100);
+            }
+            (global as any).counter++;
+          },
+          {
+            blockRender: true,
+          }
+        );
+        return (
+          <button
+            onClick$={() => {
+              count.value++;
+            }}
+          >
+            {text.value}
+          </button>
+        );
+      });
+
+      // Start rendering
+      const renderPromise = render(<Counter />, { debug });
+      // Advance timers to complete rendering
+      await vi.advanceTimersToNextTimerAsync();
+      const { document } = await renderPromise;
+
+      // Initial render
+      await expect(document.body.firstChild).toMatchDOM(<button>val1</button>);
+
+      // FIRST CLICK
+
+      // Trigger task by clicking
+      let triggerPromise = trigger(document.body, 'button', 'click');
+
+      // Advance timers but not enough to complete the delay
+      await vi.advanceTimersByTimeAsync(99);
+      // Should be still old value
+      await expect(document.body.firstChild).toMatchDOM(<button>val1</button>);
+      // Advance timers to complete the delay
+      await vi.advanceTimersByTimeAsync(1);
+      // Wait for the trigger to complete
+      await triggerPromise;
+
+      // Should have the new value
+      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+
+      // SECOND CLICK
+
+      // Trigger task by clicking
+      triggerPromise = trigger(document.body, 'button', 'click');
+
+      // Advance timers but not enough to complete the delay
+      await vi.advanceTimersByTimeAsync(99);
+      // Should be still old value
+      await expect(document.body.firstChild).toMatchDOM(<button>val2</button>);
+      // Advance timers to complete the delay
+      await vi.advanceTimersByTimeAsync(1);
+      // Wait for the trigger to complete
+      await triggerPromise;
+
+      // Should have the new value
+      await expect(document.body.firstChild).toMatchDOM(<button>val3</button>);
+
+      vi.useRealTimers();
+    });
+  });
+
   describe('regression', () => {
     it('#5782', async () => {
       const Child = component$(({ sig }: { sig: SignalType<SignalType<number>> }) => {
@@ -897,7 +977,7 @@ describe.each([
     );
   });
 
-  it('catch the ', async () => {
+  it('should catch an server side error', async () => {
     const error = new Error('HANDLE ME');
     const Cmp = component$(() => {
       useTask$(() => {

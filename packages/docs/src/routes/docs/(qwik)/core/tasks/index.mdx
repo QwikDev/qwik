@@ -19,7 +19,8 @@ contributors:
   - adamdbradley
   - aendel
   - jemsco
-updated_at: '2023-10-18T07:33:22Z'
+  - varixo
+updated_at: '2025-10-31T03:33:22Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
 
@@ -59,7 +60,7 @@ When the user interacts with the application, it resumes on the client-side, con
 
 **In Qwik, there are only 3 lifecycle stages:**
 
-- `Task` - run before rendering and when tracked state changes. `Tasks` run sequentially, and block rendering.
+- `Task` - run before rendering and when tracked state changes. `Tasks` run sequentially, and block each other. They also can block rendering.
 - `Render` - runs after `TASK` and before `VisibleTask`
 - `VisibleTask` - runs after `Render` and when the component becomes visible
 
@@ -92,6 +93,33 @@ When the user interacts with the application, it resumes on the client-side, con
 - **Platform:** server and browser
 
 `useTask$()` registers a hook to be executed upon component creation, it will run at least once either in the server or in the browser, depending on where the component is initially rendered.
+
+### Task options
+
+`useTask$()` accepts an optional second parameter of type `TaskOptions` to configure the task behavior.
+
+```typescript
+interface TaskOptions {
+  blockRender?: boolean;
+}
+```
+
+#### `blockRender`
+
+When set to `true`, the task will block the rendering of the component until the task completes. This is useful when you need to ensure that certain asynchronous operations finish before the component is rendered to the user.
+
+**Behavior:**
+- **`true`**: The task becomes render-blocking. The component will not render until the task finishes executing.
+- **`false` (default)**: The task runs asynchronously without blocking the component rendering.
+
+**Use Cases:**
+
+Use `blockRender: true` when:
+- You need to perform exit animations before removing elements from the DOM
+- You want to prevent a flash of incorrect content
+
+**Performance Considerations:**
+- Use carefully as it can impact rendering performance
 
 Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 

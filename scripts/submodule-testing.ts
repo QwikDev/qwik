@@ -1,4 +1,4 @@
-import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
+import { getBanner, importPath, target, externalImportNoEffects } from './util';
 import { build, type BuildOptions } from 'esbuild';
 import { type BuildConfig, type PackageJSON } from './util';
 import { join } from 'node:path';
@@ -43,28 +43,7 @@ export async function submoduleTesting(config: BuildConfig) {
     target: 'es2020' /* needed for import.meta */,
   });
 
-  const cjs = build({
-    ...opts,
-    format: 'cjs',
-    outExtension: { '.js': '.cjs' },
-    banner: {
-      js: getBanner('@qwik.dev/core/testing', config.distVersion),
-    },
-    plugins: [
-      importPath(/^@qwik\.dev\/core$/, '../core.cjs'),
-      importPath(/^@qwik\.dev\/core\/optimizer$/, '../optimizer.cjs'),
-      importPath(/^@qwik\.dev\/core\/server$/, '../server.cjs'),
-      externalImportNoEffects(/^(@qwik\.dev\/core\/build|prettier|vitest)$/),
-    ],
-    define: {
-      'globalThis.MODULE_EXT': `"cjs"`,
-      'globalThis.RUNNER': `false`,
-    },
-    platform: 'node',
-    target: nodeTarget,
-  });
-
-  await Promise.all([esm, cjs]);
+  await Promise.all([esm]);
 
   await generateTestingPackageJson(config);
 

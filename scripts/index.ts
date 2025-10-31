@@ -11,6 +11,7 @@ const args = process.argv.slice(2);
 // load our build config, which figures out all the paths
 // the rest of the build process uses.
 const config = loadConfig(args);
+console.log(config);
 config.esmNode = true;
 
 // let's do this!

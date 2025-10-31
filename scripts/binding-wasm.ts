@@ -1,5 +1,5 @@
 import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util';
-import spawn from 'cross-spawn';
+import { execa } from 'execa';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
 
@@ -18,25 +18,18 @@ export async function buildWasmBinding(config: BuildConfig) {
       args.push(`--release`);
     }
 
-    await new Promise((resolve, reject) => {
-      const child = spawn(cmd, args, {
-        stdio: 'inherit',
-        shell: true,
-        env: {
-          ...process.env,
-          ...env,
-        },
-      });
-      child.on('error', reject);
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve(child.stdout);
-        } else {
-          reject(`wasm-pack exited with code ${code}`);
-        }
-      });
+    // 2. Replace the entire Promise wrapper with one line
+    //    execa handles errors and non-zero exit codes automatically.
+    await execa(cmd, args, {
+      stdio: 'inherit', // 'inherit' is still used to show build output
+      shell: true,
+      env: {
+        ...process.env,
+        ...env,
+      },
     });
+
+    // 3. The return statement is unchanged
     return join(tmpBuildDir, 'qwik_wasm.js');
   }
 

@@ -56,23 +56,9 @@ async function submoduleCoreProd(config: BuildConfig) {
     banner: getBanner('@qwik.dev/core', config.distVersion),
   };
 
-  const cjsOutput: OutputOptions = {
-    dir: join(config.distQwikPkgDir),
-    format: 'umd',
-    name: 'qwikCore',
-    entryFileNames: 'core.cjs',
-    sourcemap: true,
-    globals: {
-      '@qwik.dev/core/build': 'qwikBuild',
-      // not actually used
-      '@qwik.dev/core/preloader': 'qwikPreloader',
-    },
-    banner: getBanner('@qwik.dev/core', config.distVersion),
-  };
-
   const build = await rollup(input);
 
-  await Promise.all([build.write(esmOutput), build.write(cjsOutput)]);
+  await Promise.all([build.write(esmOutput)]);
 
   console.log('🦊 core.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.mjs')));
 
@@ -174,13 +160,7 @@ async function submoduleCoreProd(config: BuildConfig) {
   console.log('🐭 core.min.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.min.mjs')));
 
   let esmCode = await readFile(join(config.distQwikPkgDir, 'core.mjs'), 'utf-8');
-  let cjsCode = await readFile(join(config.distQwikPkgDir, 'core.cjs'), 'utf-8');
-  // fixup the Vite base url
-  cjsCode = cjsCode.replaceAll('undefined.BASE_URL', 'globalThis.BASE_URL||"/"');
-  await writeFile(join(config.distQwikPkgDir, 'core.cjs'), cjsCode);
-
   await submoduleCoreProduction(config, esmCode, join(config.distQwikPkgDir, 'core.prod.mjs'));
-  await submoduleCoreProduction(config, cjsCode, join(config.distQwikPkgDir, 'core.prod.cjs'));
 }
 
 async function submoduleCoreProduction(config: BuildConfig, code: string, outPath: string) {
@@ -238,41 +218,11 @@ async function submoduleCoreDev(config: BuildConfig) {
     outExtension: { '.js': '.mjs' },
   });
 
-  // We do a CJS build, only for the repl service worker
-  const cjs = build({
-    ...opts,
-    // we don't externalize qwik build because then the repl service worker sees require()
-    define: {
-      ...opts.define,
-      // We need to get rid of the import.meta.env values
-      // Vite's base url
-      'import.meta.env.BASE_URL': 'globalThis.BASE_URL',
-      // Vite's devserver mode
-      'import.meta.env.DEV': 'false',
-    },
-    format: 'cjs',
-    outExtension: { '.js': '.cjs' },
-    banner: {
-      js: `globalThis.qwikCore = (function (module) {`,
-    },
-    footer: {
-      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-    },
-  });
-
-  await Promise.all([esm, cjs]);
+  await Promise.all([esm]);
 
   // Point the minified and prod versions to the dev versions
   await writeFile(join(config.distQwikPkgDir, 'core.prod.mjs'), `export * from './core.mjs';\n`);
-  await writeFile(
-    join(config.distQwikPkgDir, 'core.prod.cjs'),
-    `module.exports = require('./core.cjs');\n`
-  );
   await writeFile(join(config.distQwikPkgDir, 'core.min.mjs'), `export * from './core.mjs';\n`);
-  await writeFile(
-    join(config.distQwikPkgDir, 'core.min.cjs'),
-    `module.exports = require('./core.cjs');\n`
-  );
 
   console.log('🐬', submodule, '(dev)');
 }

@@ -50,18 +50,5 @@ export async function bundleIndex(config: BuildConfig, entryName: string) {
     outExtension: { '.js': '.mjs' },
   });
 
-  const cjs = build({
-    ...opts,
-    format: 'cjs',
-
-    banner: {
-      js: `globalThis.qwikBuild = (function (module) {`,
-    },
-    footer: {
-      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-    },
-    outExtension: { '.js': '.cjs' },
-  });
-
-  await Promise.all([esm, cjs]);
+  await Promise.all([esm]);
 }

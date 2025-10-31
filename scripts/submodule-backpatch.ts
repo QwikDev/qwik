@@ -71,11 +71,6 @@ export async function generateBackpatchSubmodule(config: BuildConfig) {
     ...code,
     `export { QWIK_BACKPATCH_EXECUTOR_MINIFIED, QWIK_BACKPATCH_EXECUTOR_DEBUG };`,
   ];
-  const cjsCode = [
-    ...code,
-    `exports.QWIK_BACKPATCH_EXECUTOR_MINIFIED = QWIK_BACKPATCH_EXECUTOR_MINIFIED;`,
-    `exports.QWIK_BACKPATCH_EXECUTOR_DEBUG = QWIK_BACKPATCH_EXECUTOR_DEBUG;`,
-  ];
   const dtsCode = [
     `export declare const QWIK_BACKPATCH_EXECUTOR_MINIFIED: string;`,
     `export declare const QWIK_BACKPATCH_EXECUTOR_DEBUG: string;`,
@@ -83,7 +78,6 @@ export async function generateBackpatchSubmodule(config: BuildConfig) {
 
   ensureDir(backpatchDistDir);
   await writeFile(join(backpatchDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
-  await writeFile(join(backpatchDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
   await writeFile(join(backpatchDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const backpatchPkg: PackageJSON = {

@@ -1,48 +1,36 @@
-import spawn from 'cross-spawn';
+import { execa } from 'execa';
 import { copyFile, writeFile } from 'fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ensureDir, type BuildConfig } from './util';
 
 export async function buildPlatformBinding(config: BuildConfig) {
-  await new Promise((resolve, reject) => {
-    try {
-      ensureDir(config.distQwikPkgDir);
-      ensureDir(config.distBindingsDir);
+  ensureDir(config.distQwikPkgDir);
+  ensureDir(config.distBindingsDir);
 
-      const cmd = `napi`;
-      const args = [
-        `build`,
-        `--cargo-name`,
-        'qwik_napi',
-        `--platform`,
-        `--config=packages/qwik/src/napi/napi.config.json`,
-        config.distBindingsDir,
-      ];
+  const cmd = `napi`;
+  const args = [
+    `build`,
+    `--cargo-name`,
+    'qwik_napi',
+    `--platform`,
+    `--config=packages/qwik/src/napi/napi.config.json`,
+    config.distBindingsDir,
+  ];
 
-      if (config.platformTarget) {
-        args.push(`--target`, config.platformTarget);
-      }
-      if (!config.dev) {
-        args.push(`--release`);
-        args.push(`--strip`);
-      }
+  if (config.platformTarget) {
+    args.push(`--target`, config.platformTarget);
+  }
+  if (!config.dev) {
+    args.push(`--release`);
+    args.push(`--strip`);
+  }
 
-      const napiCwd = join(config.rootDir);
+  const napiCwd = join(config.rootDir);
 
-      const child = spawn(cmd, args, { stdio: 'inherit', cwd: napiCwd });
-      child.on('error', reject);
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve(child.stdout);
-        } else {
-          reject(`napi exited with code ${code}`);
-        }
-      });
-    } catch (e) {
-      reject(e);
-    }
+  await execa(cmd, args, {
+    stdio: 'inherit',
+    cwd: napiCwd,
   });
 
   console.log('🐯 native binding');
@@ -99,21 +87,7 @@ export async function copyPlatformBindingWasm(config: BuildConfig) {
     // now unpack the package using tar, into the cache directory
     const unpackedPath = join(cacheDir, `${realPackageName}-unpacked`);
     ensureDir(unpackedPath);
-    await new Promise((resolve, reject) => {
-      const child = spawn('tar', ['-xvf', cachedPath, '-C', unpackedPath]);
-      child.on('error', (e) => {
-        console.error(e);
-        reject(e);
-      });
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve(child.stdout);
-        } else {
-          console.error(child.stdout);
-          reject(`tar exited with code ${code}`);
-        }
-      });
-    });
+    await execa('tar', ['-xvf', cachedPath, '-C', unpackedPath]);
 
     // now we need to find the bindings in the package
     cacheVersionDir = join(unpackedPath, 'package', 'bindings');

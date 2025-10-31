@@ -329,17 +329,24 @@ export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boo
 export const QWIK_CITY_SCROLLER = "_qCityScroller";
 
 // @public (undocumented)
+export interface QwikCityMockActionProp<T = any> {
+    action: Action<T>;
+    // Warning: (ae-forgotten-export) The symbol "RouteActionResolver" needs to be exported by the entry point index.d.ts
+    handler: QRL<(data: T) => RouteActionResolver>;
+}
+
+// @public (undocumented)
+export interface QwikCityMockLoaderProp<T = any> {
+    data: T;
+    loader: Loader_2<T>;
+}
+
+// @public (undocumented)
 export interface QwikCityMockProps {
-    // (undocumented)
+    actions?: Array<QwikCityMockActionProp<any>>;
     goto?: RouteNavigate;
-    // (undocumented)
-    loaders?: Array<{
-        loader: Loader_2<any>;
-        data: any;
-    }>;
-    // (undocumented)
+    loaders?: Array<QwikCityMockLoaderProp<any>>;
     params?: Record<string, string>;
-    // (undocumented)
     url?: string;
 }
 

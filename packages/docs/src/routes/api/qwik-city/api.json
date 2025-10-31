@@ -521,6 +521,34 @@
       "mdFile": "qwik-city.qwik_city_scroller.md"
     },
     {
+      "name": "QwikCityMockActionProp",
+      "id": "qwikcitymockactionprop",
+      "hierarchy": [
+        {
+          "name": "QwikCityMockActionProp",
+          "id": "qwikcitymockactionprop"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityMockActionProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[action](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Action](#action)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe action function to mock.\n\n\n</td></tr>\n<tr><td>\n\n[handler](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRL&lt;(data: T) =&gt; RouteActionResolver&gt;\n\n\n</td><td>\n\nThe QRL function that will be called when the action is submitted.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwikcitymockactionprop.md"
+    },
+    {
+      "name": "QwikCityMockLoaderProp",
+      "id": "qwikcitymockloaderprop",
+      "hierarchy": [
+        {
+          "name": "QwikCityMockLoaderProp",
+          "id": "qwikcitymockloaderprop"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface QwikCityMockLoaderProp<T = any> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[data](#)\n\n\n</td><td>\n\n\n</td><td>\n\nT\n\n\n</td><td>\n\nThe data to return when the loader is called.\n\n\n</td></tr>\n<tr><td>\n\n[loader](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[Loader](#loader_2)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\nThe loader function to mock.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
+      "mdFile": "qwik-city.qwikcitymockloaderprop.md"
+    },
+    {
       "name": "QwikCityMockProps",
       "id": "qwikcitymockprops",
       "hierarchy": [
@@ -530,7 +558,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikCityMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[goto?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[loaders?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nArray&lt;{ loader: [Loader](#loader_2)<!-- -->&lt;any&gt;; data: any; }&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[params?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\n[url?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikCityMockProps \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[actions?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nArray&lt;[QwikCityMockActionProp](#qwikcitymockactionprop)<!-- -->&lt;any&gt;&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking actions defined with `routeAction$` function.\n\n```\n[\n  {\n    action: useAddUser,\n    handler: $(async (data) => {\n      console.log('useAddUser action called with data:', data);\n    }),\n  },\n];\n```\n\n\n</td></tr>\n<tr><td>\n\n[goto?](#)\n\n\n</td><td>\n\n\n</td><td>\n\n[RouteNavigate](#routenavigate)\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the `goto` function returned by `useNavigate` hook.\n\n\n</td></tr>\n<tr><td>\n\n[loaders?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nArray&lt;[QwikCityMockLoaderProp](#qwikcitymockloaderprop)<!-- -->&lt;any&gt;&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking data for loaders defined with `routeLoader$` function.\n\n```\n[\n  {\n    loader: useProductData,\n    data: { product: { name: 'Test Product' } },\n  },\n];\n```\n\n\n</td></tr>\n<tr><td>\n\n[params?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nRecord&lt;string, string&gt;\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the route params returned by `useLocation` hook.\n\n\n</td></tr>\n<tr><td>\n\n[url?](#)\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Allow mocking the url returned by `useLocation` hook.\n\nDefault: `http://localhost/`\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx",
       "mdFile": "qwik-city.qwikcitymockprops.md"
     },

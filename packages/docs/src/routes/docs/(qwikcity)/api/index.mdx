@@ -430,6 +430,35 @@ test('should render footer with product name', async () => {
 });
 ```
 
+> The same approach can be used to mock `routeAction$`s by providing an `actions` prop to the `QwikCityMockProvider`
+
+```tsx title="src/components/user-form.spec.tsx"
+import { $ } from '@builder.io/qwik';
+import { createDOM } from '@builder.io/qwik/testing';
+import { test, expect } from 'vitest';
+
+import { UserForm } from './user-form';
+import { useAddUser } from '../loaders/add-user.action';
+
+test('should call addUser action with correct data', async () => {
+  const { screen, render } = await createDOM();
+  const actionsMock = [
+    {
+      action: useAddUser,
+      handler: $(async (data) => {
+        console.log('useAddUser action called with data:', data);
+      }),
+    },
+  ];
+  await render(
+    <QwikCityMockProvider actions={actionsMock}>
+      <UserForm />
+    </QwikCityMockProvider>,
+  );
+  expect(screen.innerHTML).toMatchSnapshot();
+});
+```
+
 ## `<RouterOutlet>`
 
 The `RouterOutlet` component is responsible for rendering the matched route at a given moment, it internally uses the [`useContent()`](/docs/(qwikcity)/api/index.mdx#usecontent) to render the current page, as well as all of the nested layouts.

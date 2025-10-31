@@ -1739,6 +1739,120 @@ QWIK_CITY_SCROLLER = "_qCityScroller";
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx)
 
+## QwikCityMockActionProp
+
+```typescript
+export interface QwikCityMockActionProp<T = any>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[action](#)
+
+</td><td>
+
+</td><td>
+
+[Action](#action)&lt;T&gt;
+
+</td><td>
+
+The action function to mock.
+
+</td></tr>
+<tr><td>
+
+[handler](#)
+
+</td><td>
+
+</td><td>
+
+QRL&lt;(data: T) =&gt; RouteActionResolver&gt;
+
+</td><td>
+
+The QRL function that will be called when the action is submitted.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx)
+
+## QwikCityMockLoaderProp
+
+```typescript
+export interface QwikCityMockLoaderProp<T = any>
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[data](#)
+
+</td><td>
+
+</td><td>
+
+T
+
+</td><td>
+
+The data to return when the loader is called.
+
+</td></tr>
+<tr><td>
+
+[loader](#)
+
+</td><td>
+
+</td><td>
+
+[Loader](#loader_2)&lt;T&gt;
+
+</td><td>
+
+The loader function to mock.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/qwik-city-component.tsx)
+
 ## QwikCityMockProps
 
 ```typescript
@@ -1764,6 +1878,32 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
+[actions?](#)
+
+</td><td>
+
+</td><td>
+
+Array&lt;[QwikCityMockActionProp](#qwikcitymockactionprop)&lt;any&gt;&gt;
+
+</td><td>
+
+_(Optional)_ Allow mocking actions defined with `routeAction$` function.
+
+```
+[
+  {
+    action: useAddUser,
+    handler: $(async (data) => {
+      console.log('useAddUser action called with data:', data);
+    }),
+  },
+];
+```
+
+</td></tr>
+<tr><td>
+
 [goto?](#)
 
 </td><td>
@@ -1774,7 +1914,7 @@ Description
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the `goto` function returned by `useNavigate` hook.
 
 </td></tr>
 <tr><td>
@@ -1785,11 +1925,20 @@ _(Optional)_
 
 </td><td>
 
-Array&lt;\{ loader: [Loader](#loader_2)&lt;any&gt;; data: any; }&gt;
+Array&lt;[QwikCityMockLoaderProp](#qwikcitymockloaderprop)&lt;any&gt;&gt;
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking data for loaders defined with `routeLoader$` function.
+
+```
+[
+  {
+    loader: useProductData,
+    data: { product: { name: 'Test Product' } },
+  },
+];
+```
 
 </td></tr>
 <tr><td>
@@ -1804,7 +1953,7 @@ Record&lt;string, string&gt;
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the route params returned by `useLocation` hook.
 
 </td></tr>
 <tr><td>
@@ -1819,7 +1968,9 @@ string
 
 </td><td>
 
-_(Optional)_
+_(Optional)_ Allow mocking the url returned by `useLocation` hook.
+
+Default: `http://localhost/`
 
 </td></tr>
 </tbody></table>

@@ -32,6 +32,8 @@ import {
 import { createDocumentHead, resolveHead } from './head';
 import { loadRoute } from './routing';
 import type {
+  Action,
+  ActionInternal,
   ClientPageData,
   ContentModule,
   ContentState,
@@ -45,6 +47,7 @@ import type {
   PageModule,
   PreventNavigateCallback,
   ResolvedDocumentHead,
+  RouteActionResolver,
   RouteActionValue,
   RouteNavigate,
   RouteStateInternal,
@@ -659,14 +662,67 @@ function getContainer(elm: Node): HTMLElement {
 }
 
 /** @public */
+export interface QwikCityMockLoaderProp<T = any> {
+  /** The loader function to mock. */
+  loader: Loader<T>;
+
+  /** The data to return when the loader is called. */
+  data: T;
+}
+
+/** @public */
+export interface QwikCityMockActionProp<T = any> {
+  /** The action function to mock. */
+  action: Action<T>;
+
+  /** The QRL function that will be called when the action is submitted. */
+  handler: QRL<(data: T) => RouteActionResolver>;
+}
+
+/** @public */
 export interface QwikCityMockProps {
+  /**
+   * Allow mocking the url returned by `useLocation` hook.
+   *
+   * Default: `http://localhost/`
+   */
   url?: string;
+
+  /** Allow mocking the route params returned by `useLocation` hook. */
   params?: Record<string, string>;
+
+  /** Allow mocking the `goto` function returned by `useNavigate` hook. */
   goto?: RouteNavigate;
-  loaders?: Array<{
-    loader: Loader<any>;
-    data: any;
-  }>;
+
+  /**
+   * Allow mocking data for loaders defined with `routeLoader$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     loader: useProductData,
+   *     data: { product: { name: 'Test Product' } },
+   *   },
+   * ];
+   * ```
+   */
+  loaders?: Array<QwikCityMockLoaderProp<any>>;
+
+  /**
+   * Allow mocking actions defined with `routeAction$` function.
+   *
+   * ```
+   * [
+   *   {
+   *     action: useAddUser,
+   *     handler: $(async (data) => {
+   *       console.log('useAddUser action called with data:', data);
+   *     }),
+   *   },
+   * ];
+   * ```
+   */
+  actions?: Array<QwikCityMockActionProp<any>>;
 }
 
 /** @public */
@@ -720,6 +776,27 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
   useContextProvider(RouteInternalContext, routeInternal);
+
+  const actionsMocks = props.actions?.reduce(
+    (acc, { action, handler }) => {
+      acc[(action as ActionInternal).__id] = handler;
+      return acc;
+    },
+    {} as Record<string, QRL<(data: any) => RouteActionResolver>>
+  );
+
+  useTask$(async ({ track }) => {
+    const action = track(actionState);
+    if (!action?.resolve) {
+      return;
+    }
+
+    const mock = actionsMocks?.[action.id];
+    if (mock) {
+      const actionResult = await mock(action.data);
+      action.resolve(actionResult);
+    }
+  });
 
   return <Slot />;
 });

@@ -125,7 +125,7 @@ const internalState = { navCount: 0 };
 export const useQwikRouter = (props?: QwikRouterProps) => {
   if (!isServer) {
     throw new Error(
-      'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouter> component around the root of your application.'
+      'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouterProvider> component around the root of your application.'
     );
   }
   useStyles$(transitionCss);

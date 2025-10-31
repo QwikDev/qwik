@@ -1,12 +1,14 @@
-import { component$ } from '@qwik.dev/core';
-import { useDocumentHead, useLocation } from '@qwik.dev/router';
+import { component$, untrack } from '@qwik.dev/core';
+import { DocumentHeadTags, useDocumentHead, useLocation } from '@qwik.dev/router';
 import { Social } from './social';
-import { InjectThemeScript } from '../theme-toggle';
 import { Vendor } from './vendor';
 
+/** The dynamic head content */
 export const RouterHead = component$(() => {
-  const { url } = useLocation();
   const head = useDocumentHead();
+  const { url } = useLocation();
+  const href = head.frontmatter?.canonical || untrack(() => url.href);
+
   const title = head.title
     ? `${head.title} 📚 Qwik Documentation`
     : `Qwik - Framework reimagined for the edge`;
@@ -47,45 +49,23 @@ export const RouterHead = component$(() => {
       }
     },
   };
-
   return (
     <>
-      <title>{title}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={head.frontmatter?.canonical || url.href} />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <meta name="apple-mobile-web-app-title" content="Qwik" />
-      <meta name="application-name" content="Qwik" />
-      <meta name="apple-mobile-web-app-title" content="Qwik" />
-      <meta name="theme-color" content="#006ce9" />
-      <meta name="color-scheme" content="dark light" />
-
-      <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
-      <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
+      <link rel="canonical" href={href} />
 
       {import.meta.env.PROD && (
         <>
-          <Social title={title} description={description} href={url.href} ogImage={OGImage.URL} />
+          <Social title={title} description={description} href={href} ogImage={OGImage.URL} />
           <Vendor />
         </>
       )}
 
-      {head.meta
+      <DocumentHeadTags
+        title={title}
         // Skip description because that was already added at the top
-        .filter((s) => s.name !== 'description')
-        .map((m, key) => (
-          <meta key={key} {...m} />
-        ))}
-
-      {head.links.map((l, key) => (
-        <link key={key} {...l} />
-      ))}
-
-      {head.styles.map((s, key) => (
-        <style key={key} {...s.props} dangerouslySetInnerHTML={s.style} />
-      ))}
-
-      <InjectThemeScript />
+        meta={head.meta.filter((s) => s.name !== 'description')}
+      />
     </>
   );
 });

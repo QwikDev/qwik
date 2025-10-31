@@ -56,7 +56,7 @@ The status can be one of the following:
 - `resolved` - the data is available.
 - `rejected` - the data is not available due to an error or timeout.
 
-Avoid using a `try/catch` statement in `useResource$`. If you catch the error instead of passing it, the resource status will never be `rejected`.
+Be careful when using a `try/catch` statement in `useResource$`. If you catch the error and don't re-throw it (or a new Error), the resource status will never be `rejected`.
 
 ### Example
 
@@ -160,6 +160,8 @@ Register a listener on the current component's host element.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.
 
+Events are case sensitive.
+
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
 @public
@@ -169,6 +171,8 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Register a listener on `window`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+Events are case sensitive.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -181,6 +185,8 @@ Used to programmatically add event listeners. Useful from custom `use*` methods,
 Register a listener on `document`.
 
 Used to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.
+
+Events are case sensitive.
 
 @see `useOn`, `useOnWindow`, `useOnDocument`.
 
@@ -391,7 +397,8 @@ Assign a value to a Context.
 
 Use `useContextProvider()` to assign a value to a context. The assignment happens in the component's function. Once assigned, use `useContext()` in any child component to retrieve the value.
 
-Context is a way to pass stores to the child components without prop-drilling.
+Context is a way to pass stores to the child components without prop-drilling. Note that scalar
+values are allowed, but for reactivity you need signals or stores.
 
 ### Example
 

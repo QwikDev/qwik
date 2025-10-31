@@ -1,0 +1,49 @@
+diff --git a/index.qwik.js b/index.qwik.js
+index 344a147d81a24d041488239401b91b078b061edc..61c0c9afdd048e6befe4d142dd4def44244d9d4a 100644
+--- a/index.qwik.js
++++ b/index.qwik.js
+@@ -1,7 +1,6 @@
+ import { globalActionQrl, zodQrl, z, routeLoaderQrl } from "@qwik.dev/router";
+ import { inlinedQrl, useLexicalScope, implicit$FirstArg } from "@qwik.dev/core";
+-import { Auth, skipCSRFCheck, isAuthAction } from "@auth/core";
+-import { customFetch } from "@auth/core";
++import { customFetch as customFetch$1, Auth, skipCSRFCheck, isAuthAction } from "@auth/core";
+ import { isServer } from "@qwik.dev/core/build";
+ var setCookie = { exports: {} };
+ var defaultParseOptions = {
+@@ -292,9 +291,11 @@ AccountNotLinked.type = "AccountNotLinked";
+ class ExperimentalFeatureNotEnabled extends AuthError {
+ }
+ ExperimentalFeatureNotEnabled.type = "ExperimentalFeatureNotEnabled";
++const customFetch = isServer ? customFetch$1 : void 0;
+ function QwikAuthQrl(authOptions) {
+   const useSignIn = globalActionQrl(/* @__PURE__ */ inlinedQrl(async ({ providerId, redirectTo: _redirectTo, options, authorizationParams }, req) => {
+     const [authOptions2] = useLexicalScope();
++    if (!isServer) return;
+     const { redirectTo = _redirectTo ?? defaultRedirectTo(req), ...rest } = options ?? {};
+     const isCredentials = providerId === "credentials";
+     const authOpts = await authOptions2(req);
+@@ -325,6 +326,7 @@ function QwikAuthQrl(authOptions) {
+   }, "QwikAuthQrl_useSignIn_globalAction_zod_X0EcrMISJRM")));
+   const useSignOut = globalActionQrl(/* @__PURE__ */ inlinedQrl(async ({ redirectTo }, req) => {
+     const [authOptions2] = useLexicalScope();
++    if (!isServer) return;
+     redirectTo ?? (redirectTo = defaultRedirectTo(req));
+     const authOpts = await authOptions2(req);
+     setEnvDefaults(req.env, authOpts);
+@@ -374,6 +376,7 @@ function QwikAuthQrl(authOptions) {
+ }
+ const QwikAuth$ = /* @__PURE__ */ implicit$FirstArg(QwikAuthQrl);
+ async function authAction(body, req, path, authOptions) {
++  if (!isServer) return;
+   const request = new Request(new URL(path, req.request.url), {
+     method: req.request.method,
+     headers: req.request.headers,
+@@ -431,6 +434,7 @@ async function getSessionData(req, options) {
+   throw new Error(data.message);
+ }
+ const setEnvDefaults = (env, config) => {
++  if (!isServer) return;
+   config.basePath = "/auth";
+   if (!config.secret?.length) {
+     config.secret = [];

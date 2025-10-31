@@ -1,126 +1,121 @@
-import { build, type BuildOptions } from 'esbuild';
-import {
-  access,
-  type BuildConfig,
-  getBanner,
-  nodeTarget,
-  readFile,
-  target,
-  writeFile,
-} from './util';
-import { join } from 'node:path';
-import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { constants, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { build as viteBuild, type UserConfig } from 'vite';
+import { compiledStringPlugin } from './compiled-string-plugin';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import RawPlugin from 'esbuild-plugin-raw';
+import { access, getBanner, target, writeFile, type BuildConfig } from './util';
 
-/** Builds @builder.io/optimizer */
+/** Builds @qwik.dev/core/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
-  await generatePlatformBindingsData(config);
+  // uncomment this when adding a platform binding
+  // await generatePlatformBindingsData(config);
 
-  async function buildOptimizer() {
-    const opts: BuildOptions = {
-      entryPoints: [join(config.srcQwikDir, submodule, 'src', 'index.ts')],
-      entryNames: 'optimizer',
-      outdir: config.distQwikPkgDir,
-      bundle: true,
+  const entryPoint = join(config.optimizerDir, 'index.ts');
+  const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
+
+  // Common Vite configuration
+  const commonConfig = {
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
       sourcemap: false,
-      platform: 'node',
-      target,
-      external: [
-        /* no Node.js built-in externals allowed! */
-        'espree',
-        'launch-editor',
-      ],
-    };
-
-    const qwikloaderScripts = await inlineQwikScriptsEsBuild(config);
-
-    const esmBuild = build({
-      ...opts,
-      format: 'esm',
-      banner: { js: getBanner('@builder.io/qwik/optimizer', config.distVersion) },
-      outExtension: { '.js': '.mjs' },
-      define: {
-        'globalThis.IS_CJS': 'false',
-        'globalThis.IS_ESM': 'true',
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-        ...qwikloaderScripts,
+      target: target,
+      minify: !config.dev, // Minify in production builds
+      rollupOptions: {
+        external: ['node:fs', 'node:path', 'launch-editor'],
       },
-      plugins: [RawPlugin()],
-    });
-
-    const cjsBanner = [`globalThis.qwikOptimizer = (function (module) {`].join('\n');
-
-    const cjsBuild = build({
-      ...opts,
-      format: 'cjs',
-      banner: { js: cjsBanner },
-      footer: {
-        js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+      lib: {
+        entry: entryPoint,
+        name: 'optimizer',
+        fileName: (format) => `optimizer.${format === 'es' ? 'mjs' : 'cjs'}`,
       },
-      outExtension: { '.js': '.cjs' },
-      define: {
-        'globalThis.IS_CJS': 'true',
-        'globalThis.IS_ESM': 'false',
-        'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-        ...qwikloaderScripts,
+    },
+    define: {
+      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
+      ...qwikloaderScripts,
+    },
+    plugins: [
+      compiledStringPlugin(),
+      {
+        name: 'forbid-core',
+        enforce: 'pre',
+        resolveId(id) {
+          // throws an error if files from src/core are loaded, except for some allowed imports
+          if (/src[/\\]core[\\/]/.test(id) && !id.includes('util') && !id.includes('shared')) {
+            console.error('forbid-core', id);
+            throw new Error('Import of core files is not allowed in server builds.');
+          }
+          return null;
+        },
       },
-      target: nodeTarget,
-      plugins: [RawPlugin()],
-    });
+    ],
+  } as const satisfies UserConfig;
 
-    await Promise.all([esmBuild, cjsBuild]);
+  // ESM Build
+  const esmConfig: UserConfig = {
+    ...commonConfig,
+    build: {
+      ...commonConfig.build,
+      outDir: config.distQwikPkgDir,
+      lib: {
+        ...commonConfig.build!.lib,
+        formats: ['es'],
+      },
+      rollupOptions: {
+        ...commonConfig.build?.rollupOptions,
+        output: {
+          banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
+        },
+      },
+    },
+    define: {
+      ...commonConfig.define,
+      'globalThis.IS_CJS': 'false',
+      'globalThis.IS_ESM': 'true',
+    },
+  };
 
-    if (!config.dev) {
-      const esmDist = join(config.distQwikPkgDir, 'optimizer.mjs');
-      const cjsDist = join(config.distQwikPkgDir, 'optimizer.cjs');
+  // CJS Build
+  const cjsConfig: UserConfig = {
+    ...commonConfig,
+    build: {
+      ...commonConfig.build,
+      outDir: config.distQwikPkgDir,
+      lib: {
+        ...commonConfig.build!.lib,
+        formats: ['cjs'],
+      },
+      rollupOptions: {
+        ...commonConfig.build?.rollupOptions,
+        output: {
+          banner: `globalThis.qwikOptimizer = (function (module) {\n${getBanner('@qwik.dev/core/optimizer', config.distVersion)}`,
+          footer: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
+        },
+      },
+    },
+    define: {
+      ...commonConfig.define,
+      'globalThis.IS_CJS': 'true',
+      'globalThis.IS_ESM': 'false',
+    },
+  };
 
-      await Promise.all(
-        [esmDist, cjsDist].map(async (p) => {
-          const src = await readFile(p, 'utf-8');
-          const result = await minify(src, {
-            compress: {
-              booleans: false,
-              collapse_vars: false,
-              comparisons: false,
-              drop_debugger: false,
-              expression: false,
-              keep_classnames: true,
-              inline: false,
-              if_return: false,
-              join_vars: false,
-              loops: false,
-              passes: 1,
-              reduce_funcs: false,
-              reduce_vars: false,
-              sequences: false,
-              switches: false,
-            },
-            format: {
-              comments: false,
-              braces: true,
-              beautify: true,
-              indent_level: 2,
-              preamble: getBanner('@builder.io/qwik/optimizer', config.distVersion),
-            },
-            mangle: false,
-          });
-          await writeFile(p, result.code!);
-        })
-      );
-    }
+  // Build both formats
+  await Promise.all([viteBuild(esmConfig), viteBuild(cjsConfig)]);
 
-    console.log('🐹', submodule);
-  }
+  // Note: Minification is now handled automatically by Vite in production builds
+  // The output files will be minified when config.dev is false
 
-  await Promise.all([buildOptimizer()]);
+  console.log('🐹', submodule);
 }
 
-async function generatePlatformBindingsData(config: BuildConfig) {
+// This function is only used when adding platform bindings
+// Uncomment the call to generatePlatformBindingsData(config) above when needed
+// export so that it can stay without being used
+export async function generatePlatformBindingsData(config: BuildConfig) {
   // generate the platform binding information for only what qwik provides
   // allows us to avoid using a file system in the optimizer, take a look at:
   // - node_modules/@node-rs/helper/lib/loader.js
@@ -164,7 +159,7 @@ async function generatePlatformBindingsData(config: BuildConfig) {
   try {
     await access(platformBindingPath, constants.W_OK);
     isWritable = true;
-  } catch (e) {
+  } catch {
     isWritable = false;
   }
   if (isWritable) {

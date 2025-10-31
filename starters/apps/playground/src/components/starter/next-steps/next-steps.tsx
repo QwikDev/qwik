@@ -1,4 +1,4 @@
-import { component$, $, useOnWindow, useSignal } from "@builder.io/qwik";
+import { $, component$, useOnWindow, useSignal } from "@qwik.dev/core";
 import styles from "./next-steps.module.css";
 
 export const GETTING_STARTED_STEPS = [

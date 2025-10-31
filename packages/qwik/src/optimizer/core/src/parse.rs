@@ -13,18 +13,16 @@ use crate::const_replace::ConstReplacerVisitor;
 use crate::entry_strategy::EntryPolicy;
 use crate::filter_exports::StripExportsVisitor;
 use crate::props_destructuring::transform_props_destructuring;
+use crate::rename_imports::RenameTransform;
 use crate::transform::{QwikTransform, QwikTransformOptions, Segment, SegmentKind};
 use crate::utils::{Diagnostic, DiagnosticCategory, DiagnosticScope, SourceLocation};
 use crate::EntryStrategy;
 use path_slash::PathExt;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "fs")]
-use std::fs;
-
 use anyhow::{Context, Error};
 
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 use swc_common::comments::SingleThreadedComments;
 use swc_common::errors::{DiagnosticBuilder, DiagnosticId, Emitter, Handler};
 use swc_common::{sync::Lrc, FileName, Globals, Mark, SourceMap};
@@ -40,19 +38,23 @@ use swc_ecmascript::visit::{FoldWith, VisitMutWith};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SegmentAnalysis {
-	pub origin: JsWord,
-	pub name: JsWord,
-	pub entry: Option<JsWord>,
-	pub display_name: JsWord,
-	pub hash: JsWord,
-	pub canonical_filename: JsWord,
-	pub path: JsWord,
-	pub extension: JsWord,
-	pub parent: Option<JsWord>,
+	pub origin: Atom,
+	pub name: Atom,
+	pub entry: Option<Atom>,
+	pub display_name: Atom,
+	pub hash: Atom,
+	pub canonical_filename: Atom,
+	pub path: Atom,
+	pub extension: Atom,
+	pub parent: Option<Atom>,
 	pub ctx_kind: SegmentKind,
-	pub ctx_name: JsWord,
+	pub ctx_name: Atom,
 	pub captures: bool,
 	pub loc: (u32, u32),
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub param_names: Option<Vec<Atom>>,
+	#[serde(skip_serializing_if = "Option::is_none")]
+	pub capture_names: Option<Vec<Atom>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Copy, Clone, PartialEq, Eq)]
@@ -87,11 +89,11 @@ pub struct TransformCodeOptions<'a> {
 	pub mode: EmitMode,
 	pub scope: Option<&'a String>,
 	pub entry_strategy: EntryStrategy,
-	pub core_module: JsWord,
+	pub core_module: Atom,
 
-	pub reg_ctx_name: Option<&'a [JsWord]>,
-	pub strip_exports: Option<&'a [JsWord]>,
-	pub strip_ctx_name: Option<&'a [JsWord]>,
+	pub reg_ctx_name: Option<&'a [Atom]>,
+	pub strip_exports: Option<&'a [Atom]>,
+	pub strip_ctx_name: Option<&'a [Atom]>,
 	pub strip_event_handlers: bool,
 	pub is_server: bool,
 }
@@ -109,16 +111,16 @@ pub struct TransformOutput {
 #[serde(rename_all = "camelCase")]
 pub struct QwikBundle {
 	pub size: usize,
-	pub symbols: Vec<JsWord>,
+	pub symbols: Vec<Atom>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct QwikManifest {
-	pub version: JsWord,
-	pub symbols: HashMap<JsWord, SegmentAnalysis>,
-	pub bundles: HashMap<JsWord, QwikBundle>,
-	pub mapping: HashMap<JsWord, JsWord>,
+	pub version: Atom,
+	pub symbols: HashMap<Atom, SegmentAnalysis>,
+	pub bundles: HashMap<Atom, QwikBundle>,
+	pub mapping: HashMap<Atom, Atom>,
 }
 
 impl TransformOutput {
@@ -143,7 +145,7 @@ impl TransformOutput {
 		};
 		for module in &self.modules {
 			if let Some(segment) = &module.segment {
-				let filename = JsWord::from(format!(
+				let filename = Atom::from(format!(
 					"{}.{}",
 					segment.canonical_filename, segment.extension
 				));
@@ -163,28 +165,6 @@ impl TransformOutput {
 			}
 		}
 		manifest
-	}
-
-	#[cfg(feature = "fs")]
-	pub fn write_to_fs(
-		&self,
-		destination: &Path,
-		manifest: Option<String>,
-	) -> Result<usize, Error> {
-		for module in &self.modules {
-			let write_path = destination.join(&module.path);
-			fs::create_dir_all(write_path.parent().with_context(|| {
-				format!("Computing path parent of {}", write_path.to_string_lossy())
-			})?)?;
-			fs::write(write_path, &module.code)?;
-		}
-		if let Some(manifest) = manifest {
-			let write_path = destination.join(manifest);
-			let manifest = self.get_manifest();
-			let json = serde_json::to_string(&manifest)?;
-			fs::write(write_path, json)?;
-		}
-		Ok(self.modules.len())
 	}
 }
 
@@ -207,7 +187,7 @@ pub struct TransformModule {
 pub struct ErrorBuffer(std::sync::Arc<std::sync::Mutex<Vec<swc_common::errors::Diagnostic>>>);
 
 impl Emitter for ErrorBuffer {
-	fn emit(&mut self, db: &DiagnosticBuilder) {
+	fn emit(&mut self, db: &mut DiagnosticBuilder) {
 		self.0.lock().unwrap().push((**db).clone());
 	}
 }
@@ -228,17 +208,17 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 	let transpile_jsx = config.transpile_jsx;
 	let transpile_ts = config.transpile_ts;
 
-	let origin: JsWord = JsWord::from(path_data.rel_path.to_string_lossy());
+	let origin: Atom = Atom::from(path_data.rel_path.to_string_lossy());
 
 	match result {
 		Ok((program, comments, is_type_script, is_jsx)) => {
 			let extension = match (transpile_ts, transpile_jsx, is_type_script, is_jsx) {
-				(true, true, _, _) => JsWord::from("js"),
-				(true, false, _, true) => JsWord::from("jsx"),
-				(true, false, _, false) => JsWord::from("js"),
-				(false, true, true, _) => JsWord::from("ts"),
-				(false, true, false, _) => JsWord::from("js"),
-				(false, false, _, _) => JsWord::from(path_data.extension.clone()),
+				(true, true, _, _) => Atom::from("js"),
+				(true, false, _, true) => Atom::from("jsx"),
+				(true, false, _, false) => Atom::from("js"),
+				(false, true, true, _) => Atom::from("ts"),
+				(false, true, false, _) => Atom::from("js"),
+				(false, false, _, _) => Atom::from(path_data.extension.clone()),
 			};
 			let error_buffer = ErrorBuffer::default();
 			let handler = swc_common::errors::Handler::with_emitter(
@@ -273,7 +253,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							react_options.next = Some(true);
 							react_options.throw_if_namespace = Some(false);
 							react_options.runtime = Some(react::Runtime::Automatic);
-							react_options.import_source = Some("@builder.io/qwik".to_string());
+							react_options.import_source = Some("@qwik.dev/core".to_string().into());
 						};
 						program.mutate(&mut react::react(
 							Lrc::clone(&source_map),
@@ -283,6 +263,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							unresolved_mark,
 						));
 					}
+
+					// rename old imports to new imports
+					program.visit_mut_with(&mut RenameTransform);
 
 					// Resolve with mark
 					program.visit_mut_with(&mut resolver(
@@ -335,6 +318,20 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 							is_server: config.is_server,
 							cm: Lrc::clone(&source_map),
 						});
+
+						// print before transform, for debugging
+						// println!(
+						// 	"{}",
+						// 	emit_source_code(
+						// 		Lrc::clone(&source_map.clone()),
+						// 		None,
+						// 		&main_module.clone(),
+						// 		config.root_dir,
+						// 		false,
+						// 	)
+						// 	.unwrap()
+						// 	.0
+						// );
 						program = program.fold_with(&mut qwik_transform);
 
 						let mut treeshaker = Treeshaker::new();
@@ -391,6 +388,7 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 
 					let comments_maps = comments.clone().take_all();
 					// Now process each segment
+					// TODO handle noop segments, don't generate code for them
 					if !segments.is_empty() {
 						let q = qt.as_ref().unwrap();
 						for h in segments.into_iter() {
@@ -406,8 +404,6 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								[&h.canonical_filename, ".", &h.data.extension].concat(),
 							]
 							.concat();
-							let need_handle_watch =
-								might_need_handle_watch(&h.data.ctx_kind, &h.data.ctx_name);
 
 							let (mut segment_module, comments) = new_module(NewModuleCtx {
 								expr: h.expr,
@@ -419,9 +415,9 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 								explicit_extensions: q.options.explicit_extensions,
 								global: &q.options.global_collect,
 								core_module: &q.options.core_module,
-								need_handle_watch,
 								leading_comments: comments_maps.0.clone(),
 								trailing_comments: comments_maps.1.clone(),
+								extra_top_items: &q.extra_top_items,
 							})?;
 							// we don't need to remove side effects because the optimizer only moves what's really used
 							if config.minify != MinifyMode::None {
@@ -471,6 +467,18 @@ pub fn transform_code(config: TransformCodeOptions) -> Result<TransformOutput, a
 									display_name: h.data.display_name,
 									hash: h.data.hash,
 									loc: (h.span.lo.0, h.span.hi.0),
+									param_names: h.param_names,
+									capture_names: if h.data.scoped_idents.is_empty() {
+										None
+									} else {
+										Some(
+											h.data
+												.scoped_idents
+												.iter()
+												.map(|id| id.0.clone())
+												.collect(),
+										)
+									},
 								}),
 							});
 						}
@@ -542,7 +550,7 @@ fn parse(
 	} else {
 		path_data.abs_path.clone()
 	};
-	let source_file = source_map.new_source_file(FileName::Real(sm_path).into(), code.into());
+	let source_file = source_map.new_source_file(FileName::Real(sm_path).into(), code.to_string());
 
 	let comments = SingleThreadedComments::default();
 	let (is_type_script, is_jsx) = parse_filename(path_data);
@@ -621,9 +629,13 @@ pub fn emit_source_code(
 
 	let mut map_buf = vec![];
 	let emit_source_maps = if source_maps {
-		let mut s = source_map.build_source_map(&src_map_buf);
+		let mut s = source_map.build_source_map(
+			&src_map_buf,
+			None,
+			swc_common::source_map::DefaultSourceMapGenConfig,
+		);
 		if let Some(root_dir) = root_dir {
-			s.set_source_root(Some(root_dir.to_str().unwrap()));
+			s.set_source_root(Some(root_dir.to_string_lossy().to_string()));
 		}
 		s.to_writer(&mut map_buf).is_ok()
 	} else {
@@ -641,7 +653,7 @@ pub fn emit_source_code(
 
 fn handle_error(
 	error_buffer: &ErrorBuffer,
-	origin: JsWord,
+	origin: Atom,
 	source_map: &Lrc<SourceMap>,
 ) -> Vec<Diagnostic> {
 	error_buffer
@@ -766,14 +778,4 @@ pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 		normalized.push("");
 	}
 	normalized
-}
-
-pub fn might_need_handle_watch(ctx_kind: &SegmentKind, ctx_name: &str) -> bool {
-	if !matches!(ctx_kind, SegmentKind::Function) {
-		return false;
-	}
-	matches!(
-		ctx_name,
-		"useTask$" | "useVisibleTask$" | "useBrowserVisibleTask$" | "useClientEffect$" | "$"
-	)
 }

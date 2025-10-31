@@ -1,4 +1,4 @@
-import { isBrowser } from '@builder.io/qwik/build';
+import { isBrowser } from '@qwik.dev/core/build';
 import { base, getBundle, graph } from './bundle-graph';
 import { config, doc, loadStart, rel } from './constants';
 import type { BundleImport, BundleImports } from './types';
@@ -8,7 +8,7 @@ import {
   BundleImportState_Preload,
   BundleImportState_Queued,
 } from './types';
-import type { QwikSymbolEvent } from '../render/jsx/types/jsx-qwik-events';
+import type { QwikSymbolEvent } from '../shared/jsx/types/jsx-qwik-events';
 
 export const bundles: BundleImports = new Map();
 export let shouldResetFactor: boolean;

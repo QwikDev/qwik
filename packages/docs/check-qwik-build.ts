@@ -5,8 +5,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'url';
 
-let __dirname = path.dirname(new URL(import.meta.url).pathname);
+let __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isWindows = process.platform === 'win32';
 if (isWindows && __dirname.startsWith('/')) {
   // in Windows __dirname starts with a / causing errors
@@ -18,7 +19,7 @@ if (isWindows && __dirname.startsWith('/')) {
 }
 const qwikPkgDir = path.join(__dirname, '..', 'qwik', 'dist');
 
-if (!fs.existsSync(path.join(qwikPkgDir, 'core.d.ts'))) {
+if (!fs.existsSync(path.join(qwikPkgDir, 'core-internal.d.ts'))) {
   console.warn(
     `\n\n=== Running 'pnpm run build.local' to generate missing imports for the docs ===\n`
   );

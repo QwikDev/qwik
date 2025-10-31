@@ -1,0 +1,19 @@
+{
+  "description": "Static Site Generator",
+  "scripts": {
+    "build.server": "qwik check-client src dist && vite build -c adapters/ssg/vite.config.ts"
+  },
+  "__qwik__": {
+    "priority": 10,
+    "displayName": "Adapter: Static Site Generation (.html files)",
+    "docs": [
+      "https://qwik.dev/docs/guides/static-site-generation/"
+    ],
+    "nextSteps": {
+      "lines": [
+        "You have to change the 'origin' url under ssgAdapter",
+        "inside './adapters/ssg/vite.config.ts'"
+      ]
+    }
+  }
+}

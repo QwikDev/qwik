@@ -52,7 +52,6 @@ This will create a new folder called `my-library` with the following structure:
 │   │   │   └── counter.tsx
 │   │   └── logo
 │   │       └── logo.tsx
-│   ├── entry.dev.tsx
 │   ├── entry.ssr.tsx
 │   ├── index.ts
 │   └── root.tsx
@@ -95,7 +94,7 @@ Notice the `qwik` field, this is the entry point for the Qwik Optimizer, it will
 
 ```ts {8-12}
 import { defineConfig } from 'vite';
-import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikVite } from '@qwik.dev/core/optimizer';
 
 export default defineConfig(() => {
   return {
@@ -126,7 +125,7 @@ export { Counter } from './components/counter/counter';
 
 ## Libraries are also Apps
 
-The library starter is also a standalone Qwik app (without routing, nor Qwik City), this is the reason why you will find `entry.dev.tsx`, `entry.ssr.tsx` and `root.tsx` files.
+The library starter is also a standalone Qwik app (without routing, nor Qwik Router), this is the reason why you will find the `entry.ssr.tsx` and `root.tsx` files.
 
 Do not worry about them, they won't be part of the final library, but they are useful during development and testing, so you can test your components in a real Qwik app.
 

@@ -42,7 +42,7 @@ To use CSS modules, simply create a `.module.css` file. For example, `MyComponen
 Then, import the CSS module in your component.
 
 ```tsx {2} /styles/ /container/#a title="src/components/MyComponent/MyComponent.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
 
 export default component$(() => {
@@ -54,7 +54,7 @@ Remember that Qwik uses `class` instead of `className` for CSS classes.
 
 Qwik also accepts arrays, objects, or a combination of them to assign multiple classes:
 ```tsx title="src/components/MyComponent/MyComponent.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import styles from './MyComponent.module.css';
 
 export default component$((props) => {
@@ -100,7 +100,7 @@ export const blueClass = style({
 ```
 
 ```tsx title="component.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { blueClass } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -176,7 +176,7 @@ export const BlueBox = styled.div`
 ```
 
 ```tsx title="component.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { BlueBox } from './styles.css';
 
 export const Cmp = component$(() => {
@@ -186,15 +186,11 @@ export const Cmp = component$(() => {
 
 ## Scoped CSS
 
-To use scoped CSS, you can use the `useStylesScoped$()` hook exported from `@builder.io/qwik`.
-> `useStylesScoped$()` uses emojis to set a unique name on the selector. This is added by Qwik to avoid CSS name / selector clashes, and to ensure that the styles are correctly scoped as expected..
-
-
-
-
+To use scoped CSS, you can use the `useStylesScoped$()` hook exported from `@qwik.dev/core`.
+> `useStylesScoped$()` uses an emoji to set a unique name on the selector, to avoid CSS name / selector clashes, and to ensure that the styles are correctly scoped as expected.
 
 ```tsx {4-8} title="src/components/MyComponent/MyComponent.tsx"
-import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
 
 export default component$(() => {
   useStylesScoped$(`
@@ -215,7 +211,7 @@ You can also import an external CSS file. For that you need to add the `?inline`
 ```
 
 ```tsx {3,6} title="src/components/MyComponent/MyComponent.tsx"
-import { component$, useStylesScoped$ } from '@builder.io/qwik';
+import { component$, useStylesScoped$ } from '@qwik.dev/core';
 
 import styles from './MyComponent.css?inline';
 
@@ -231,7 +227,7 @@ export default component$(() => {
 Using `useStylesScoped$` will scope all child selectors in a ruleset to the component. If you need to style child components rendered through a `<Slot />`, you will need to break out of the scoped styles using the `:global()` selector.
 
 ```tsx
-import { useStylesScoped$, component$ } from '@builder.io/qwik';
+import { useStylesScoped$, component$ } from '@qwik.dev/core';
 
 export const List = component$(() => {
   useStylesScoped$(`
@@ -252,7 +248,7 @@ export const List = component$(() => {
 });
 ```
 
-This will render a css selector of `.list.⭐️8vzca0-0 > *:nth-child(3)`, allowing you to target child components. This could be considered the equivalent of using `::ng-deep` in Angular.
+This will render a css selector of `.list.⚡️8vzca0-0 > *:nth-child(3)`, allowing you to target child components. This could be considered the equivalent of using `::ng-deep` in Angular.
 
 > Beware that this may have unintended effects that cascade down your component tree.
 
@@ -264,7 +260,7 @@ A lazy-loadable reference to component's styles.
 Component styles allow Qwik to lazy load the style information for the component only when needed, which avoids double loading during SSR hydration.
 
 ```tsx
-import { useStyles$, component$ } from '@builder.io/qwik';
+import { useStyles$, component$ } from '@qwik.dev/core';
 import styles from './code-block.css?inline';
 
 export const CmpStyles = component$(() => {

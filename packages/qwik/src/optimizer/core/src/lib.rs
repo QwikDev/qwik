@@ -16,31 +16,22 @@ mod const_replace;
 mod entry_strategy;
 mod errors;
 mod filter_exports;
-mod has_branches;
 mod inlined_fn;
-mod is_immutable;
-mod package_json;
+mod is_const;
 mod parse;
 mod props_destructuring;
+mod rename_imports;
 mod transform;
 mod utils;
 mod words;
 
-#[cfg(feature = "parallel")]
-use rayon::prelude::*;
-
-#[cfg(feature = "parallel")]
-use anyhow::Context;
 use words::BUILDER_IO_QWIK;
-
-#[cfg(feature = "fs")]
-use std::fs;
 
 use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::str;
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 
 use crate::entry_strategy::parse_entry_strategy;
 pub use crate::entry_strategy::EntryStrategy;
@@ -49,33 +40,6 @@ use crate::parse::{transform_code, TransformCodeOptions};
 pub use crate::parse::{
 	ErrorBuffer, MinifyMode, SegmentAnalysis, TransformModule, TransformOutput,
 };
-
-#[cfg(feature = "fs")]
-#[derive(Serialize, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TransformFsOptions {
-	pub src_dir: String,
-	pub root_dir: Option<String>,
-	pub vendor_roots: Vec<String>,
-	pub glob: Option<String>,
-	pub minify: MinifyMode,
-	pub entry_strategy: EntryStrategy,
-	pub source_maps: bool,
-	pub transpile_ts: bool,
-	pub transpile_jsx: bool,
-	pub preserve_filenames: bool,
-	pub explicit_extensions: bool,
-	pub mode: EmitMode,
-	pub scope: Option<String>,
-
-	pub core_module: Option<String>,
-	pub strip_exports: Option<Vec<JsWord>>,
-	pub strip_ctx_name: Option<Vec<JsWord>>,
-	pub strip_event_handlers: bool,
-	pub reg_ctx_name: Option<Vec<JsWord>>,
-	pub is_server: Option<bool>,
-}
-
 #[derive(Serialize, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransformModuleInput {
@@ -101,66 +65,11 @@ pub struct TransformModulesOptions {
 	pub scope: Option<String>,
 
 	pub core_module: Option<String>,
-	pub strip_exports: Option<Vec<JsWord>>,
-	pub strip_ctx_name: Option<Vec<JsWord>>,
+	pub strip_exports: Option<Vec<Atom>>,
+	pub strip_ctx_name: Option<Vec<Atom>>,
 	pub strip_event_handlers: bool,
-	pub reg_ctx_name: Option<Vec<JsWord>>,
+	pub reg_ctx_name: Option<Vec<Atom>>,
 	pub is_server: Option<bool>,
-}
-
-#[cfg(feature = "fs")]
-pub fn transform_fs(config: TransformFsOptions) -> Result<TransformOutput, Error> {
-	let core_module = config
-		.core_module
-		.map_or_else(|| BUILDER_IO_QWIK.clone(), |s| s.into());
-	let src_dir = Path::new(&config.src_dir);
-	let root_dir = config.root_dir.as_ref().map(Path::new);
-
-	let mut paths = vec![];
-	let entry_policy = &*parse_entry_strategy(&config.entry_strategy);
-	crate::package_json::find_modules(src_dir, config.vendor_roots, &mut paths)?;
-
-	#[cfg(feature = "parallel")]
-	let iterator = paths.par_iter();
-
-	#[cfg(not(feature = "parallel"))]
-	let iterator = paths.iter();
-	let mut final_output = iterator
-		.map(|path| -> Result<TransformOutput, Error> {
-			let code = fs::read_to_string(path)
-				.with_context(|| format!("Opening {}", &path.to_string_lossy()))?;
-
-			let relative_path = pathdiff::diff_paths(path, &config.src_dir).unwrap();
-			transform_code(TransformCodeOptions {
-				src_dir,
-				root_dir,
-				relative_path: relative_path.to_str().unwrap(),
-				dev_path: None,
-				minify: config.minify,
-				code: &code,
-				explicit_extensions: config.explicit_extensions,
-				source_maps: config.source_maps,
-				transpile_jsx: config.transpile_jsx,
-				transpile_ts: config.transpile_ts,
-				preserve_filenames: config.preserve_filenames,
-				scope: config.scope.as_ref(),
-				entry_policy,
-				mode: config.mode,
-				core_module: core_module.clone(),
-				entry_strategy: config.entry_strategy,
-				reg_ctx_name: config.reg_ctx_name.as_deref(),
-				strip_exports: config.strip_exports.as_deref(),
-				strip_ctx_name: config.strip_ctx_name.as_deref(),
-				strip_event_handlers: config.strip_event_handlers,
-				// If you don't specify is_server, the safe value is true
-				is_server: config.is_server.unwrap_or(true),
-			})
-		})
-		.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)))?;
-
-	final_output.modules.sort_unstable_by_key(|key| key.order);
-
-	Ok(final_output)
 }
 
 pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOutput, Error> {
@@ -172,9 +81,6 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 
 	let entry_policy = &*parse_entry_strategy(&config.entry_strategy);
 
-	#[cfg(feature = "parallel")]
-	let iterator = config.input.par_iter();
-	#[cfg(not(feature = "parallel"))]
 	let iterator = config.input.iter();
 
 	let iterator = iterator.map(|input| -> Result<TransformOutput, Error> {
@@ -204,11 +110,6 @@ pub fn transform_modules(config: TransformModulesOptions) -> Result<TransformOut
 		})
 	});
 
-	#[cfg(feature = "parallel")]
-	let final_output: Result<TransformOutput, Error> =
-		iterator.reduce(|| Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));
-
-	#[cfg(not(feature = "parallel"))]
 	#[allow(clippy::manual_try_fold)]
 	let final_output: Result<TransformOutput, Error> =
 		iterator.fold(Ok(TransformOutput::new()), |x, y| Ok(x?.append(&mut y?)));

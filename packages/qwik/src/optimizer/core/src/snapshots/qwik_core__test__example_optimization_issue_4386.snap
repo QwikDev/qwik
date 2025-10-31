@@ -1,31 +1,30 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 630
+assertion_line: 741
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export const FOO_MAPPING = {
-    A: 1,
-    B: 2,
-    C: 3,
-  };
+	A: 1,
+	B: 2,
+	C: 3,
+	};
 
-  export default component$(() => {
-    const key = 'A';
-    const value = FOO_MAPPING[key];
+	export default component$(() => {
+	const key = 'A';
+	const value = FOO_MAPPING[key];
 
-    return <>{value}</>;
-  });
+	return <>{value}</>;
+	});
 
 ============================= test.jsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { inlinedQrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
 export const FOO_MAPPING = {
     A: 1,
     B: 2,
@@ -36,7 +35,7 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
 }, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IACvB,GAAG;IACH,GAAG;IACH,GAAG;AACL,EAAE;AAEF,6BAAe,sCAAW;IAIxB,UAFc,WAAW,CADb,IACkB;AAGhC,kCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAGA,OAAO,MAAM,cAAc;IAC1B,GAAG;IACH,GAAG;IACH,GAAG;AACH,EAAE;AAEF,6BAAe,sCAAW;IAI1B,UAFc,WAAW,CADb,IACkB;AAG9B,kCAAG\"}")
 == DIAGNOSTICS ==
 
 []

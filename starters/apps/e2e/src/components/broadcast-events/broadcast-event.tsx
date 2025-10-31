@@ -1,11 +1,11 @@
 import {
-  component$,
-  useOnDocument,
-  useStore,
   $,
-  useOnWindow,
+  component$,
   useOn,
-} from "@builder.io/qwik";
+  useOnDocument,
+  useOnWindow,
+  useStore,
+} from "@qwik.dev/core";
 
 export function useDocumentMouse() {
   const mousePosition = useStore({ x: 0, y: 0, inside: "false" });

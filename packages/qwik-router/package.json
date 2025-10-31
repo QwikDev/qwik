@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.12",
+  "version": "2.0.0-beta.13",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",

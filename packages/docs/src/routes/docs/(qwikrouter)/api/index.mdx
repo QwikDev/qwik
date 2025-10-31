@@ -356,11 +356,26 @@ export default component$(() => {
 });
 ```
 
-> `useQwikRouter()` should only be called once, in the root of your application.
+> `useQwikRouter()` should only be called once, in the root of your application. If your root component is reactive, you should move the reactive part into a child component, or you can use the `<QwikRouterProvider>` component instead.
 
 ## `<QwikRouterProvider>`
 
-The `QwikRouterProvider` component is a wrapper around the `useQwikRouter()` hook. It does not render any DOM element, not even the matched route. We recommend using the hook instead of this component.
+The `QwikRouterProvider` component is a wrapper around the `useQwikRouter()` hook. It does not render any DOM element, not even the matched route. We recommend using the hook instead of this component, except when your root component is reactive.
+
+```tsx title="src/root.tsx"
+import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';
+
+export default component$(() => (
+  <QwikRouterProvider>
+    <head>
+      {/* ... */}
+    </head>
+    <body>
+      <RouterOutlet />
+    </body>
+  </QwikRouterProvider>
+));
+```
 
 ## `<QwikRouterMockProvider>`
 

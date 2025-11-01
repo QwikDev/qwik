@@ -1163,11 +1163,8 @@ export const vnode_diff = (
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
     const checkKey = type === VirtualType.Fragment;
     const currentKey = getKey(vCurrent);
-    const isSameNode =
-      vCurrent &&
-      vnode_isVirtualVNode(vCurrent) &&
-      currentKey === jsxKey &&
-      (checkKey ? !!jsxKey : true);
+    const currentIsVirtual = vCurrent && vnode_isVirtualVNode(vCurrent);
+    const isSameNode = currentIsVirtual && currentKey === jsxKey && (checkKey ? !!jsxKey : true);
 
     if (isSameNode) {
       // All is good.
@@ -1186,7 +1183,7 @@ export const vnode_diff = (
       isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, type);
     };
     // For fragments without a key, always create a new virtual node (ensures rerender semantics)
-    if (checkKey && jsxKey === null) {
+    if (jsxKey === null) {
       createNew();
       return;
     }

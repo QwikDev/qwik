@@ -4,6 +4,7 @@ import {
   createContextId,
   Fragment,
   Fragment as Projection,
+  Fragment as Awaited,
   Fragment as Signal,
   type Signal as SignalType,
   Slot,
@@ -728,9 +729,9 @@ describe.each([
         <Component ssr-required>
           <p>
             Should have a number: "
-            <Fragment ssr-required>
-              <Signal ssr-required>{'2'}</Signal>
-            </Fragment>
+            <Signal ssr-required>
+              <Awaited ssr-required>{'2'}</Awaited>
+            </Signal>
             "
           </p>
         </Component>

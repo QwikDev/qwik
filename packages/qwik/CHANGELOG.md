@@ -1,5 +1,17 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.13
+
+### Minor Changes
+
+- ✨ add resolve method for async computed (by [@Varixo](https://github.com/Varixo) in [#7881](https://github.com/QwikDev/qwik/pull/7881))
+
+### Patch Changes
+
+- 🐞🩹 ensure DOM is updated during long running tasks (by [@Varixo](https://github.com/Varixo) in [#8087](https://github.com/QwikDev/qwik/pull/8087))
+
+- 🐞🩹 useId should genereate different id for ssr (by [@Varixo](https://github.com/Varixo) in [#8094](https://github.com/QwikDev/qwik/pull/8094))
+
 ## 2.0.0-beta.12
 
 ### Major Changes

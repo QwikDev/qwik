@@ -2,6 +2,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Signal,
+  Fragment as Awaited,
   Slot,
   component$,
   isServer,
@@ -598,7 +599,11 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component>
           <p>
-            Should have a number: "<Fragment>3</Fragment>"
+            Should have a number: "
+            <Signal>
+              <Awaited>3</Awaited>
+            </Signal>
+            "
           </p>
         </Component>
       );

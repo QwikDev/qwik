@@ -14,7 +14,7 @@ import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp, type PropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
@@ -39,7 +39,6 @@ import {
   QBackRefs,
   QContainerAttr,
   QDefaultSlot,
-  QScopedStyle,
   QSlot,
   QTemplate,
   Q_PREFIX,
@@ -85,7 +84,7 @@ import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-names
 
 export const vnode_diff = (
   container: ClientContainer,
-  jsxNode: JSXOutput,
+  jsxNode: JSXChildren,
   vStartNode: VNode,
   scopedStyleIdPrefix: string | null
 ) => {
@@ -99,8 +98,7 @@ export const vnode_diff = (
    */
   const stack: any[] = [];
 
-  const asyncQueue: Array<VNode | ValueOrPromise<JSXOutput> | Promise<JSXOutput | JSXChildren>> =
-    [];
+  const asyncQueue: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>> = [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -152,7 +150,7 @@ export const vnode_diff = (
   //////////////////////////////////////////////
   //////////////////////////////////////////////
 
-  function diff(jsxNode: JSXOutput, vStartNode: VNode) {
+  function diff(jsxNode: JSXChildren, vStartNode: VNode) {
     assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
     assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
     vParent = vStartNode as ElementVNode | VirtualVNode;
@@ -185,15 +183,8 @@ export const vnode_diff = (
             if (currentSignal !== unwrappedSignal) {
               const vHost = (vNewNode || vCurrent)!;
               descend(
-                resolveSignalAndDescend(
-                  retryOnPromise(() =>
-                    trackSignalAndAssignHost(
-                      unwrappedSignal,
-                      vHost,
-                      EffectProperty.VNODE,
-                      container
-                    )
-                  )
+                resolveSignalAndDescend(() =>
+                  trackSignalAndAssignHost(unwrappedSignal, vHost, EffectProperty.VNODE, container)
                 ),
                 true
               );
@@ -252,12 +243,19 @@ export const vnode_diff = (
     }
   }
 
-  function resolveSignalAndDescend(value: any) {
-    if (isPromise(value)) {
-      asyncQueue.push(value, vNewNode || vCurrent, null);
-      return null;
+  function resolveSignalAndDescend(fn: () => ValueOrPromise<any>): ValueOrPromise<any> {
+    try {
+      return fn();
+    } catch (e) {
+      // Signal threw a promise (async computed signal) - handle retry and async queue
+      if (isPromise(e)) {
+        // The thrown promise will resolve when the signal is ready, then retry fn() with retry logic
+        const retryPromise = e.then(() => retryOnPromise(fn));
+        asyncQueue.push(retryPromise, vNewNode || vCurrent, null);
+        return null;
+      }
+      throw e;
     }
-    return value;
   }
 
   function advance() {
@@ -544,17 +542,22 @@ export const vnode_diff = (
 
   function drainAsyncQueue(): ValueOrPromise<void> {
     while (asyncQueue.length) {
-      const jsxNode = asyncQueue.shift() as ValueOrPromise<JSXNodeInternal>;
+      let jsxNode = asyncQueue.shift() as ValueOrPromise<JSXChildren>;
       const vHostNode = asyncQueue.shift() as VNode;
       const styleScopedId = asyncQueue.shift() as string | null;
+
+      const diffNode = (jsxNode: JSXChildren, vHostNode: VNode, styleScopedId: string | null) => {
+        if (styleScopedId) {
+          vnode_diff(container, jsxNode, vHostNode, addComponentStylePrefix(styleScopedId));
+        } else {
+          diff(jsxNode, vHostNode);
+        }
+      };
+
       if (isPromise(jsxNode)) {
         return jsxNode
           .then((jsxNode) => {
-            if (styleScopedId) {
-              vnode_diff(container, jsxNode, vHostNode, addComponentStylePrefix(styleScopedId));
-            } else {
-              diff(jsxNode, vHostNode);
-            }
+            diffNode(jsxNode, vHostNode, styleScopedId);
             return drainAsyncQueue();
           })
           .catch((e) => {
@@ -562,11 +565,7 @@ export const vnode_diff = (
             return drainAsyncQueue();
           });
       } else {
-        if (styleScopedId) {
-          vnode_diff(container, jsxNode, vHostNode, addComponentStylePrefix(styleScopedId));
-        } else {
-          diff(jsxNode, vHostNode);
-        }
+        diffNode(jsxNode, vHostNode, styleScopedId);
       }
     }
   }

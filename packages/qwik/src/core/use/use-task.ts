@@ -137,7 +137,7 @@ export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
 /** @public */
 export interface TaskOptions {
   /** If true, the task will block the rendering of the component until it is complete. */
-  blockRender?: boolean;
+  deferUpdates?: boolean;
 }
 
 /** @internal */
@@ -149,7 +149,7 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   assertQrl(qrl);
   set(1);
 
-  const taskFlags = opts?.blockRender ? TaskFlags.RENDER_BLOCKING : 0;
+  const taskFlags = opts?.deferUpdates ? TaskFlags.RENDER_BLOCKING : 0;
 
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.TASK | taskFlags,

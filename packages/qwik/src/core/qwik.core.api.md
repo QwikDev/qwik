@@ -1664,7 +1664,7 @@ export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
 // @public (undocumented)
 export interface TaskOptions {
-    blockRender?: boolean;
+    deferUpdates?: boolean;
 }
 
 // @internal (undocumented)

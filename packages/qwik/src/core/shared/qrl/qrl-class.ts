@@ -228,7 +228,8 @@ export const createQRL = <TYPE>(
   Object.assign(qrl, {
     getSymbol: () => symbol,
     getHash: () => hash,
-    getCaptured: () => captureRef,
+    // captureRef is replaced during deserialization
+    getCaptured: () => qrl.$captureRef$,
     resolve,
     $setContainer$: setContainer,
     $chunk$: chunk,

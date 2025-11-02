@@ -10,6 +10,14 @@ test.describe("server$", () => {
     await button.click();
     await expect(button).toHaveText("Count Args: 1,1,1 / 10,10");
   });
+  test("serializes scope", async ({ page }) => {
+    await page.goto("/qwikrouter-test/server-func/");
+    const button = page.locator("#scope-checker-button");
+
+    await expect(button).toHaveText("local/remote: 0 / 0");
+    await button.click();
+    await expect(button).toHaveText("local/remote: 1 / 1");
+  });
 
   test("this is available", async ({ page }) => {
     await page.goto("/qwikrouter-test/server-func/");

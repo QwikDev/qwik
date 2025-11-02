@@ -672,7 +672,7 @@ describe.each([
             (global as any).counter++;
           },
           {
-            blockRender: true,
+            deferUpdates: true,
           }
         );
         return (

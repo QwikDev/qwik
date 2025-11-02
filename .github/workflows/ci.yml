@@ -834,7 +834,8 @@ jobs:
       always() && 
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/upcoming' ||
-        needs.test-unit.result == 'success'
+        needs.test-unit.result == 'success' || 
+        needs.test-unit.result == 'skipped'
       )
 
     steps:

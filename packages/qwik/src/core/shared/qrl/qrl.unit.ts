@@ -1,5 +1,5 @@
 import { createQRL } from './qrl-class';
-import { qrl } from './qrl';
+import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
 import { $, type QRL } from './qrl.public';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
@@ -244,5 +244,16 @@ describe('createQRL', () => {
     assert.deepEqual(await q(), ['hi']);
     assert.notEqual(q.resolved, capFn);
     assert.deepEqual(q.resolved!(), ['hi']);
+  });
+});
+
+describe('inlinedQrl', () => {
+  test('should recover symbol from registry', async () => {
+    const symbol = () => 'hello';
+    // The optimizer normally injects the _regSymbol call here
+    inlinedQrl(_regSymbol(symbol, '123'), 'mySymbol_123');
+    const otherQrl = inlinedQrl(null, 'mySymbol_123');
+    await otherQrl.resolve();
+    assert.equal(otherQrl.resolved, symbol);
   });
 });

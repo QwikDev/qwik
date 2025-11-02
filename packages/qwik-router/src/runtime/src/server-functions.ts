@@ -457,11 +457,19 @@ export const serverQrl = <T extends ServerFunction>(
         },
         signal: abortSignal,
       };
-      const body = await _serialize([qrl, filteredArgs]);
+      // Serialize the arguments in an array so they don't deduplicate
+      // If there is captured scope, include it in the serialization
+      const captured = qrl.getCaptured();
+      let toSend: unknown[];
+      if (captured?.length) {
+        toSend = [filteredArgs, captured];
+      } else {
+        toSend = filteredArgs.length ? [filteredArgs] : [];
+      }
+      const body = await _serialize(toSend);
       if (method === 'GET') {
         query += `&${QDATA_KEY}=${encodeURIComponent(body)}`;
       } else {
-        // PatrickJS: sorry Ryan Florence I prefer const still
         config.body = body;
       }
       const res = await fetch(`${origin}?${QFN_KEY}=${qrlHash}${query}`, config);

@@ -17,15 +17,16 @@ if (executorScript) {
     if (script) {
       const data = JSON.parse(script.textContent || '[]');
       const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
-      let currentNode: Node | null = walker.currentNode;
-      let currentNodeIdx = (currentNode as Element).hasAttribute(':') ? 0 : -1;
+
+      let currentNode: Node | null = walker.nextNode();
+      let currentNodeIdx = currentNode && (currentNode as Element).hasAttribute(':') ? 0 : -1;
 
       for (let i = 0; i < data.length; i += 3) {
         const elementIdx = data[i];
         const attrName = data[i + 1];
         let value = data[i + 2];
 
-        while (currentNodeIdx < elementIdx) {
+        while (currentNode && currentNodeIdx < elementIdx - 1) {
           currentNode = walker.nextNode();
           if (!currentNode) {
             break;
@@ -35,12 +36,15 @@ if (executorScript) {
           }
         }
 
+        if (!currentNode || !(currentNode as Element).hasAttribute(':')) {
+          continue;
+        }
+
         const element = currentNode as Element;
         if (value == null || value === false) {
           element.removeAttribute(attrName);
         } else {
           if (typeof value === 'boolean') {
-            // only true value can be here
             value = '';
           }
           element.setAttribute(attrName, value);

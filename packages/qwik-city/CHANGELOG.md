@@ -1,5 +1,25 @@
 # @builder.io/qwik-city
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 `zod` is now imported as `import * as z from 'zod'`, which vastly improves bundling. The Insights app client code reduced by 12kB. (by [@wmertens](https://github.com/wmertens) in [#8042](https://github.com/QwikDev/qwik/pull/8042))
+
+## 1.17.0
+
+### Patch Changes
+
+- 🐞🩹 SSG sometimes hangs after completion, now we forcibly exit the SSG process when this happens. (by [@wmertens](https://github.com/wmertens) in [#7957](https://github.com/QwikDev/qwik/pull/7957))
+
+- 🐞🩹 return 404 for missing /build/ files. (by [@gioboa](https://github.com/gioboa) in [#7914](https://github.com/QwikDev/qwik/pull/7914))
+
+- 🐞🩹 redirecting internal q-data.json requests will keep the q-data.json suffix so that the client can still fetch the correct one (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 while prefetching Link data, don't navigate to captive portals (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
+
 ## 1.16.1
 
 ### Patch Changes

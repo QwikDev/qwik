@@ -986,12 +986,12 @@ describe('scheduler', () => {
       } as any;
 
       // Create and start a chore with the qrl
-      const chore1 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, qrl, {} as Props);
       runningChores.add(chore1!);
       choreQueue.length = 0;
 
       // Try to schedule the same chore again (same host, same qrl reference)
-      const chore2 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost as any, qrl, {} as Props);
 
       // chore2 should be blocked because it's the same qrl reference
       expect(chore1!.$blockedChores$).toBeTruthy();
@@ -1152,6 +1152,72 @@ describe('scheduler', () => {
     expect(blockedChores.size).toBe(0);
     expect(vAHost.blockedChores?.length).toBe(0);
     expect(vBHost1.blockedChores?.length).toBe(0);
+  });
+
+  describe('RUN_QRL and QRL_RESOLVE should never block', () => {
+    afterEach(() => {
+      // Restore all mocks after each test to prevent leakage
+      vi.restoreAllMocks();
+    });
+
+    it('should not block RUN_QRL chores even when a matching one is running', async () => {
+      let executionCount = 0;
+      const mockQrl = {
+        $hash$: 'test-qrl-hash',
+        getFn: () => () => {
+          executionCount++;
+          testLog.push('qrl-executed');
+        },
+      } as any;
+
+      // Mock isDraining to prevent immediate execution so we can test blocking logic
+      const nextTickSpy = vi.spyOn(nextTick, 'createNextTick').mockReturnValue(() => {});
+
+      // Schedule first RUN_QRL chore and manually mark as running
+      const chore1 = scheduler(ChoreType.RUN_QRL, vAHost as HostElement, mockQrl, []);
+      runningChores.add(chore1!);
+
+      // Schedule second RUN_QRL chore with same QRL - it should NOT be blocked
+      const chore2 = scheduler(ChoreType.RUN_QRL, vAHost as HostElement, mockQrl, []);
+
+      // chore2 should NOT be blocked
+      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(chore1!.$blockedChores$).toBeNull();
+      // Verify no blocked chores for RUN_QRL type
+      for (const chore of blockedChores) {
+        expect(chore.$type$).not.toBe(ChoreType.RUN_QRL);
+      }
+
+      nextTickSpy.mockRestore();
+    });
+
+    it('should not block QRL_RESOLVE chores even when a matching one is running', async () => {
+      const mockComputeQRL = {
+        $hash$: 'compute-qrl-hash',
+        resolved: false,
+        resolve: vi.fn(() => Promise.resolve()),
+      } as any;
+
+      // Mock to prevent automatic draining
+      const nextTickSpy = vi.spyOn(nextTick, 'createNextTick').mockReturnValue(() => {});
+
+      // Schedule first QRL_RESOLVE chore and mark as running
+      const chore1 = scheduler(ChoreType.QRL_RESOLVE, null, mockComputeQRL);
+      runningChores.add(chore1!);
+
+      // Schedule second QRL_RESOLVE chore with same QRL - it should NOT be blocked
+      const chore2 = scheduler(ChoreType.QRL_RESOLVE, null, mockComputeQRL);
+
+      // chore2 should NOT be blocked
+      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(chore1!.$blockedChores$).toBeNull();
+      // Verify no blocked chores for QRL_RESOLVE type
+      for (const chore of blockedChores) {
+        expect(chore.$type$).not.toBe(ChoreType.QRL_RESOLVE);
+      }
+
+      nextTickSpy.mockRestore();
+    });
   });
 });
 

@@ -522,7 +522,7 @@ test.describe("actions", () => {
       await expect(page.locator("#redirected-result")).toHaveText("true");
     });
 
-    test.only("server plugin q-data redirect from /redirectme to /", async ({
+    test("server plugin q-data redirect from /redirectme to /", async ({
       baseURL,
     }) => {
       const res = await fetch(

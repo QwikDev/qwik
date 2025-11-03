@@ -23,7 +23,6 @@ import {
   ContentInternalContext,
   DocumentHeadContext,
   RouteActionContext,
-  RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -234,7 +233,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     // The initial value of routeInternal is derived from the server env,
     // which in the case of SSG may not match the actual origin the site
     // is deployed on.
-    if (isBrowser && routeInternal.value.type === 'initial') {
+    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
       routeInternal.value.dest = new URL(window.location.href);
     }
 
@@ -325,12 +324,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   useTask$(({ track }) => {
     async function run() {
-      const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
+      const navigation = track(routeInternal);
+      const action = track(actionState);
 
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
@@ -392,6 +391,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
+          console.error(e);
           window.location.href = newHref;
           return;
         }
@@ -528,7 +528,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
             // We patch these events and direct them to Link pipeline during SPA.
-            document.body.addEventListener('click', (event) => {
+            document.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
               }
@@ -566,7 +566,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               }
             });
 
-            document.body.removeEventListener('click', win._qCityInitAnchors!);
+            document.removeEventListener('click', win._qCityInitAnchors!);
             win._qCityInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
@@ -746,7 +746,6 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     ) ?? {},
     { deep: false }
   );
-  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -775,7 +774,6 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
 
   const actionsMocks = props.actions?.reduce(
     (acc, { action, handler }) => {

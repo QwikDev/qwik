@@ -684,8 +684,8 @@ jobs:
           #   browser: firefox
           - host: macos-latest
             browser: webkit
-          # - host: windows-latest
-          #   browser: chromium
+          - host: windows-latest
+            browser: chromium
 
     runs-on: ${{ matrix.settings.host }}
 
@@ -834,7 +834,8 @@ jobs:
       always() && 
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/upcoming' ||
-        needs.test-unit.result == 'success'
+        needs.test-unit.result == 'success' || 
+        needs.test-unit.result == 'skipped'
       )
 
     steps:

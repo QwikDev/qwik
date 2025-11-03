@@ -23,7 +23,6 @@ import {
   ContentInternalContext,
   DocumentHeadContext,
   RouteActionContext,
-  RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -139,6 +138,11 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   );
   const navResolver: { r?: () => void } = {};
   const loaderState = _weakSerialize(useStore(env.response.loaders, { deep: false }));
+
+  // The initial state of routeInternal uses the URL provided by the server environment.
+  // It may not be accurate to the actual URL the browser is accessing the site from.
+  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
+  // if needed for SPA routing.
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
@@ -146,6 +150,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     replaceState: false,
     scroll: true,
   });
+
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(createDocumentHead);
   const content = useStore<Editable<ContentState>>({
     headings: undefined,
@@ -217,6 +222,15 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     internalState.navCount++;
+
+    // If this is the first SPA navigation, we rewrite routeInternal's URL
+    // as the browser location URL to prevent an erroneous origin mismatch.
+    // The initial value of routeInternal is derived from the server env,
+    // which in the case of SSG may not match the actual origin the site
+    // is deployed on.
+    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
+      routeInternal.value.dest = new URL(window.location.href);
+    }
 
     const lastDest = routeInternal.value.dest;
     const dest =
@@ -305,12 +319,12 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   useTask$(({ track }) => {
     async function run() {
-      const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
+      const navigation = track(routeInternal);
+      const action = track(actionState);
 
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
@@ -372,6 +386,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
+          console.error(e);
           window.location.href = newHref;
           return;
         }
@@ -508,7 +523,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
             // We patch these events and direct them to Link pipeline during SPA.
-            document.body.addEventListener('click', (event) => {
+            document.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
               }
@@ -546,7 +561,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
               }
             });
 
-            document.body.removeEventListener('click', win._qCityInitAnchors!);
+            document.removeEventListener('click', win._qCityInitAnchors!);
             win._qCityInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
@@ -663,7 +678,6 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   );
 
   const loaderState = useSignal({});
-  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -692,7 +706,6 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
 
   return <Slot />;
 });

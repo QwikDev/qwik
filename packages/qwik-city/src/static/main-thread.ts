@@ -216,7 +216,10 @@ export async function mainThread(sys: System) {
         flushQueue();
       };
 
-      loadStaticRoutes();
+      loadStaticRoutes().catch((e) => {
+        console.error('SSG route loading failed', e);
+        reject(e);
+      });
     } catch (e) {
       reject(e);
     }

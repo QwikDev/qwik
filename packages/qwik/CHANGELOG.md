@@ -1,5 +1,7 @@
 # @builder.io/qwik
 
+## 1.17.2
+
 ## 1.17.1
 
 ### Patch Changes

@@ -205,4 +205,4 @@ export function log(text: string) {
   console.log(yellow('E2E: ' + text));
 }
 
-export const DEFAULT_TIMEOUT = 30000;
+export const DEFAULT_TIMEOUT = process.env.CI ? 120000 : 30000;

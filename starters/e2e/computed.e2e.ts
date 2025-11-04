@@ -33,8 +33,8 @@ test.describe("computed", () => {
       ]);
     });
 
-    test("should early resolve computed qrl", async ({ page }) => {
-      const button = page.locator("#early-computed-qrl");
+    test("should handle multiple computed qrl", async ({ page }) => {
+      const button = page.locator("#multiple-computed-qrl");
       await expect(button).not.toHaveAttribute("data-test");
       await expect(button).toContainText("Click me!");
 
@@ -42,6 +42,15 @@ test.describe("computed", () => {
 
       await expect(button).toHaveAttribute("data-test", "5");
       await expect(button).toContainText("Click me! 5");
+    });
+
+    test("should early resolve computed qrl", async ({ page }) => {
+      const button = page.locator("#early-computed-qrl");
+      await expect(button).toContainText("Click me!");
+
+      await button.click();
+
+      await expect(button).toContainText("Click me! Hello world");
     });
 
     test("should retry when there is no qrl", async ({ page }) => {

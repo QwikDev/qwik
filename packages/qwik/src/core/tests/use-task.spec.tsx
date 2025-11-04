@@ -2,6 +2,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Signal,
+  Fragment as Awaited,
   Slot,
   component$,
   isServer,
@@ -599,9 +600,9 @@ describe.each([
         <Component>
           <p>
             Should have a number: "
-            <Fragment>
-              <Signal>3</Signal>
-            </Fragment>
+            <Signal>
+              <Awaited>3</Awaited>
+            </Signal>
             "
           </p>
         </Component>

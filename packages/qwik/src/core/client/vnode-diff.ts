@@ -14,7 +14,7 @@ import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp, type PropsProxy } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
-import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
@@ -44,7 +44,7 @@ import {
   Q_PREFIX,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -84,7 +84,7 @@ import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-names
 
 export const vnode_diff = (
   container: ClientContainer,
-  jsxNode: JSXOutput,
+  jsxNode: JSXChildren,
   vStartNode: VNode,
   scopedStyleIdPrefix: string | null
 ) => {
@@ -98,8 +98,7 @@ export const vnode_diff = (
    */
   const stack: any[] = [];
 
-  const asyncQueue: Array<VNode | ValueOrPromise<JSXOutput> | Promise<JSXOutput | JSXChildren>> =
-    [];
+  const asyncQueue: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>> = [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -151,7 +150,7 @@ export const vnode_diff = (
   //////////////////////////////////////////////
   //////////////////////////////////////////////
 
-  function diff(jsxNode: JSXOutput, vStartNode: VNode) {
+  function diff(jsxNode: JSXChildren, vStartNode: VNode) {
     assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
     assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
     vParent = vStartNode as ElementVNode | VirtualVNode;
@@ -182,12 +181,10 @@ export const vnode_diff = (
               EffectSubscriptionProp.CONSUMER
             ];
             if (currentSignal !== unwrappedSignal) {
+              const vHost = (vNewNode || vCurrent)!;
               descend(
-                trackSignalAndAssignHost(
-                  unwrappedSignal,
-                  (vNewNode || vCurrent)!,
-                  EffectProperty.VNODE,
-                  container
+                resolveSignalAndDescend(() =>
+                  trackSignalAndAssignHost(unwrappedSignal, vHost, EffectProperty.VNODE, container)
                 ),
                 true
               );
@@ -243,6 +240,21 @@ export const vnode_diff = (
       expectNoMore();
       cleanupSideBuffer();
       ascend();
+    }
+  }
+
+  function resolveSignalAndDescend(fn: () => ValueOrPromise<any>): ValueOrPromise<any> {
+    try {
+      return fn();
+    } catch (e) {
+      // Signal threw a promise (async computed signal) - handle retry and async queue
+      if (isPromise(e)) {
+        // The thrown promise will resolve when the signal is ready, then retry fn() with retry logic
+        const retryPromise = e.then(() => retryOnPromise(fn));
+        asyncQueue.push(retryPromise, vNewNode || vCurrent);
+        return null;
+      }
+      throw e;
     }
   }
 
@@ -530,13 +542,19 @@ export const vnode_diff = (
 
   function drainAsyncQueue(): ValueOrPromise<void> {
     while (asyncQueue.length) {
-      const jsxNode = asyncQueue.shift() as ValueOrPromise<JSXNodeInternal>;
+      const jsxNode = asyncQueue.shift() as ValueOrPromise<JSXChildren>;
       const vHostNode = asyncQueue.shift() as VNode;
+
       if (isPromise(jsxNode)) {
-        return jsxNode.then((jsxNode) => {
-          diff(jsxNode, vHostNode);
-          return drainAsyncQueue();
-        });
+        return jsxNode
+          .then((jsxNode) => {
+            diff(jsxNode, vHostNode);
+            return drainAsyncQueue();
+          })
+          .catch((e) => {
+            container.handleError(e, vHostNode);
+            return drainAsyncQueue();
+          });
       } else {
         diff(jsxNode, vHostNode);
       }
@@ -594,6 +612,21 @@ export const vnode_diff = (
   ): boolean {
     const element = createElementWithNamespace(elementName);
 
+    function setAttribute(key: string, value: any, vHost: ElementVNode) {
+      value = serializeAttribute(key, value, scopedStyleIdPrefix);
+      if (value != null) {
+        if (vHost.flags & VNodeFlags.NS_svg) {
+          // only svg elements can have namespace attributes
+          const namespace = getAttributeNamespace(key);
+          if (namespace) {
+            element.setAttributeNS(namespace, key, String(value));
+            return;
+          }
+        }
+        element.setAttribute(key, String(value));
+      }
+    }
+
     const { constProps } = jsx;
     let needsQDispatchEventPatch = false;
     if (constProps) {
@@ -637,13 +670,17 @@ export const vnode_diff = (
         }
 
         if (isSignal(value)) {
-          value = trackSignalAndAssignHost(
-            value as Signal<unknown>,
-            vNewNode as ElementVNode,
-            key,
-            container,
-            CONST_SUBSCRIPTION_DATA
+          const vHost = vNewNode as ElementVNode;
+          const signal = value as Signal<unknown>;
+          value = retryOnPromise(() =>
+            trackSignalAndAssignHost(signal, vHost, key, container, CONST_SUBSCRIPTION_DATA)
           );
+        }
+
+        if (isPromise(value)) {
+          const vHost = vNewNode as ElementVNode;
+          value.then((resolvedValue) => setAttribute(key, resolvedValue, vHost));
+          continue;
         }
 
         if (key === dangerouslySetInnerHTML) {
@@ -665,18 +702,7 @@ export const vnode_diff = (
           continue;
         }
 
-        value = serializeAttribute(key, value, scopedStyleIdPrefix);
-        if (value != null) {
-          if (vNewNode!.flags & VNodeFlags.NS_svg) {
-            // only svg elements can have namespace attributes
-            const namespace = getAttributeNamespace(key);
-            if (namespace) {
-              element.setAttributeNS(namespace, key, String(value));
-              continue;
-            }
-          }
-          element.setAttribute(key, String(value));
-        }
+        setAttribute(key, value, vNewNode as ElementVNode);
       }
     }
     const key = jsx.key;
@@ -803,6 +829,14 @@ export const vnode_diff = (
     let dstIdx = 0;
     let patchEventDispatch = false;
 
+    const setAttribute = (key: string, value: any, vHost: ElementVNode) => {
+      vHost.setAttr(
+        key,
+        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
+        journal
+      );
+    };
+
     const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
         vnode.setProp(key, value);
@@ -837,12 +871,16 @@ export const vnode_diff = (
           // Only if we want to track the signal again
           clearEffectSubscription(container, currentEffect);
         }
-        value = trackSignalAndAssignHost(
-          unwrappedSignal,
-          vnode,
-          key,
-          container,
-          NON_CONST_SUBSCRIPTION_DATA
+
+        const vHost = vnode as ElementVNode;
+        value = retryOnPromise(() =>
+          trackSignalAndAssignHost(
+            unwrappedSignal,
+            vHost,
+            key,
+            container,
+            NON_CONST_SUBSCRIPTION_DATA
+          )
         );
       } else {
         if (currentEffect) {
@@ -853,11 +891,13 @@ export const vnode_diff = (
         }
       }
 
-      vnode.setAttr(
-        key,
-        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
-        journal
-      );
+      if (isPromise(value)) {
+        const vHost = vnode as ElementVNode;
+        value.then((resolvedValue) => setAttribute(key, resolvedValue, vHost));
+        return;
+      }
+
+      setAttribute(key, value, vnode);
     };
 
     const recordJsxEvent = (key: string, value: any) => {
@@ -1113,11 +1153,8 @@ export const vnode_diff = (
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
     const checkKey = type === VirtualType.Fragment;
     const currentKey = getKey(vCurrent);
-    const isSameNode =
-      vCurrent &&
-      vnode_isVirtualVNode(vCurrent) &&
-      currentKey === jsxKey &&
-      (checkKey ? !!jsxKey : true);
+    const currentIsVirtual = vCurrent && vnode_isVirtualVNode(vCurrent);
+    const isSameNode = currentIsVirtual && currentKey === jsxKey && (checkKey ? !!jsxKey : true);
 
     if (isSameNode) {
       // All is good.
@@ -1136,7 +1173,7 @@ export const vnode_diff = (
       isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, type);
     };
     // For fragments without a key, always create a new virtual node (ensures rerender semantics)
-    if (checkKey && jsxKey === null) {
+    if (jsxKey === null) {
       createNew();
       return;
     }

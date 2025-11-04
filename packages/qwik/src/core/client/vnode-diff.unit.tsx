@@ -1,4 +1,4 @@
-import { Fragment, _fnSignal, _jsxSorted, component$ } from '@qwik.dev/core';
+import { Fragment, _fnSignal, _jsxSorted, component$, type JSXOutput } from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -533,6 +533,19 @@ describe('vNode-diff', () => {
       vnode_applyJournal(container.$journal$);
       expect(vNode).toMatchVDOM(test);
       expect(fragment).not.toBe(vnode_getFirstChild(vNode!));
+    });
+
+    it('should render fragment if only text was available', async () => {
+      const { vParent, container } = vnode_fromJSX('1');
+      const test = Promise.resolve('2') as unknown as JSXOutput; //_jsxSorted(Fragment, {}, null, ['1'], 0, null);
+
+      await vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+      expect(vParent).toMatchVDOM(
+        <body>
+          <Fragment>2</Fragment>
+        </body>
+      );
     });
   });
   describe('attributes', () => {

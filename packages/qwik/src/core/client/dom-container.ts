@@ -105,7 +105,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
   public $instanceHash$: string;
   public $forwardRefs$: Array<number> | null = null;
-  public $initialQRLs$: Array<string> | null = null;
   public vNodeLocate: (id: string | Element) => VNode = (id) => vnode_locate(this.rootVNode, id);
 
   private $stateData$: unknown[];
@@ -156,7 +155,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       preprocessState(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
-      this.$scheduleInitialQRLs$();
     }
   }
 
@@ -326,34 +324,5 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       }
     }
     this.$serverData$ = { containerAttributes };
-  }
-
-  /**
-   * Schedule the initial QRLs to be resolved.
-   *
-   * Schedules the QRLs that are defined in the state data as `PreloadQRL`.
-   *
-   * This is done because when computed and custom serializer QRLs are called they need QRL to work.
-   * If the QRL is not resolved at this point, it will be resolved by throwing a promise and
-   * rerunning the whole wrapping function again. We want to avoid that, because it means that the
-   * function can execute twice.
-   *
-   * ```ts
-   * useVisibleTask$(() => {
-   *   runHeavyLogic(); // This will be called again if the QRL of `computedOrCustomSerializer` is not resolved.
-   *   console.log(computedOrCustomSerializer.value); // Throw a promise if QRL not resolved and execute visible task again.
-   * });
-   * ```
-   */
-  private $scheduleInitialQRLs$(): void {
-    if (this.$initialQRLs$) {
-      for (const qrl of this.$initialQRLs$) {
-        const match = /#(.*)_([a-zA-Z0-9]+)(\[|$)/.exec(qrl);
-        if (match) {
-          preload(match[2], 0.3);
-        }
-      }
-      this.$initialQRLs$ = null;
-    }
   }
 }

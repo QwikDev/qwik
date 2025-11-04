@@ -221,8 +221,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     // (undocumented)
-    $initialQRLs$: Array<string> | null;
-    // (undocumented)
     $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;

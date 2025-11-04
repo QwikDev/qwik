@@ -1,5 +1,7 @@
 # create-qwik
 
+## 2.0.0-beta.13
+
 ## 2.0.0-beta.12
 
 ## 2.0.0-beta.11

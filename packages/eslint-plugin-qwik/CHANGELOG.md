@@ -1,5 +1,11 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.13
+
+### Minor Changes
+
+- ✨ add eslint rule for resolving async computed (by [@Varixo](https://github.com/Varixo) in [#7881](https://github.com/QwikDev/qwik/pull/7881))
+
 ## 2.0.0-beta.12
 
 ## 2.0.0-beta.11

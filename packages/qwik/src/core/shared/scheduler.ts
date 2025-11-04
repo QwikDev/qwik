@@ -350,24 +350,31 @@ This is often caused by modifying a signal in an already rendered component duri
       }
     }
 
-    const blockingChore = findBlockingChore(
-      chore,
-      choreQueue,
-      blockedChores,
-      runningChores,
-      container
-    );
-    if (blockingChore) {
-      addBlockedChore(chore, blockingChore, blockedChores);
-      return chore;
+    const shouldBlock =
+      chore.$type$ !== ChoreType.QRL_RESOLVE && chore.$type$ !== ChoreType.RUN_QRL;
+
+    if (shouldBlock) {
+      const blockingChore = findBlockingChore(
+        chore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      if (blockingChore) {
+        addBlockedChore(chore, blockingChore, blockedChores);
+        return chore;
+      }
+
+      const runningChore = getRunningChore(chore);
+      if (runningChore) {
+        addBlockedChore(chore, runningChore, blockedChores);
+        return chore;
+      }
     }
-    const runningChore = getRunningChore(chore);
-    if (runningChore) {
-      addBlockedChore(chore, runningChore, blockedChores);
-    } else {
-      addChore(chore, choreQueue);
-      DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
-    }
+
+    addChore(chore, choreQueue);
+    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 

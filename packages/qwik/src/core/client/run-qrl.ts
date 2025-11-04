@@ -8,7 +8,7 @@ import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { getDomContainer } from './dom-container';
 
 /**
- * This is called by qwik-loader to schedule a QRL. It has to be synchronous.
+ * This is called by qwik-loader to run a QRL. It has to be synchronous.
  *
  * @internal
  */

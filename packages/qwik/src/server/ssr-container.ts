@@ -350,8 +350,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   openContainer() {
     if (this.tag == 'html') {
       this.write('<!DOCTYPE html>');
-      // -1 so we only emit inside body
-      this.$noScriptHere$ = -1;
     }
 
     const containerAttributes = this.renderOptions.containerAttributes || {};
@@ -383,7 +381,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  // -1 so we only emit inside body
   private $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
@@ -393,21 +390,27 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
-    if (this.qlInclude === QwikLoaderInclude.Inline) {
-      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024) {
+    const isQwikStyle =
+      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
+
+    if (
+      // don't append qwik loader before qwik style elements
+      // it will confuse the resuming, because styles are expected to be the first nodes in subtree
+      !isQwikStyle &&
+      this.qlInclude === QwikLoaderInclude.Inline
+    ) {
+      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024 && elementName !== 'body') {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
       // keep track of noscript and template, and for html we only emit inside body
-      else if (elementName === 'noscript' || elementName === 'template' || elementName === 'body') {
+      else if (elementName === 'noscript' || elementName === 'template') {
         this.$noScriptHere$++;
       }
     }
 
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
-    const isQwikStyle =
-      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     if (!isQwikStyle && this.currentElementFrame) {
       vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
     }

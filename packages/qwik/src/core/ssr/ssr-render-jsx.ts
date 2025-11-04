@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { _run } from '../client/queue-qrl';
+import { _run } from '../client/run-qrl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';

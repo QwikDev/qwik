@@ -393,7 +393,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
-    if (this.qlInclude === QwikLoaderInclude.Inline) {
+    const isQwikStyle =
+      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
+
+    if (
+      // don't append qwik loader before qwik style elements
+      // it will confuse the resuming, because styles are expected to be the first nodes in subtree
+      !isQwikStyle &&
+      this.qlInclude === QwikLoaderInclude.Inline
+    ) {
       if (this.$noScriptHere$ === 0 && this.size > 30 * 1024) {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
@@ -406,8 +414,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
-    const isQwikStyle =
-      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     if (!isQwikStyle && this.currentElementFrame) {
       vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
     }

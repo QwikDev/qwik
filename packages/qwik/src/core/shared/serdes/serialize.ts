@@ -30,7 +30,7 @@ import { Fragment } from '../jsx/jsx-runtime';
 import { isPropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
-import { isQrl } from '../qrl/qrl-utils';
+import { isQrl, isSyncQrl } from '../qrl/qrl-utils';
 import { _OWNER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
@@ -121,8 +121,10 @@ export async function serialize(serializationContext: SerializationContext): Pro
   };
 
   const addPreloadQrl = (qrl: QRLInternal) => {
-    preloadQrls.add(qrl);
-    serializationContext.$addRoot$(qrl);
+    if (!isSyncQrl(qrl)) {
+      preloadQrls.add(qrl);
+      serializationContext.$addRoot$(qrl);
+    }
   };
 
   const getSeenRefOrOutput = (
@@ -241,6 +243,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             if (getSeenRefOrOutput(value, index)) {
               const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
               let data: string | number;
+              let type: TypeIds;
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
                 data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
@@ -254,11 +257,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
                 } else {
                   qrlMap.set(data, value);
                 }
+                type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
               } else {
                 data = Number(symbol);
+                type = TypeIds.QRL;
               }
 
-              const type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
               output(type, data);
             }
           } else if (isQwikComponent(value)) {

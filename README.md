@@ -15,7 +15,7 @@ Qwik offers the fastest possible page load times - regardless of the complexity 
 
 As users interact with the site, only the necessary parts of the site load on-demand. This [precision lazy-loading](https://qwik.dev/docs/concepts/progressive/) is what makes Qwik so quick.
 
-## Getting Started
+## Getting Started1
 
 ```sh
 npm create qwik@latest

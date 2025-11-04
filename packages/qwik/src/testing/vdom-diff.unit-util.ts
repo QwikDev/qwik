@@ -420,6 +420,10 @@ export function walkJSX(
       processChild(jsx.children);
     }
     apply.leave(jsx);
+  } else if (typeof jsx === 'string') {
+    apply.text(jsx);
+  } else if (typeof jsx === 'number') {
+    apply.text(String(jsx));
   } else {
     throw new Error('unsupported: ' + jsx);
   }

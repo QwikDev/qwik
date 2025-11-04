@@ -1,3 +1,6 @@
+import { isServer } from '@qwik.dev/core/build';
+// @ts-expect-error we don't have types for the preloader
+import { p as preload } from '@qwik.dev/core/preloader';
 import type { DeserializeContainer } from '../types';
 import { TypeIds } from './constants';
 
@@ -95,14 +98,49 @@ export function preprocessState(data: unknown[], container: DeserializeContainer
     data[index + 1] = object;
   };
 
+  const toPreload: number[] | undefined = isServer ? undefined : [];
   for (let i = 0; i < data.length; i += 2) {
     if (isRootDeepRef(data[i] as TypeIds, data[i + 1])) {
       processRootRef(i);
     } else if (isForwardRefsMap(data[i] as TypeIds)) {
       container.$forwardRefs$ = data[i + 1] as number[];
-    } else if (isPreloadQrlType(data[i] as TypeIds)) {
+    } else if (!isServer && isPreloadQrlType(data[i] as TypeIds)) {
+      // preload QRLs are always serialized as strings with chunk and symbol ids
       const qrl = data[i + 1] as string;
-      (container.$initialQRLs$ ||= []).push(qrl);
+      const chunkIdx = Number(qrl.split(' ')[0]);
+      toPreload!.push(chunkIdx);
+    }
+  }
+
+  /**
+   * Preloads QRLs that are defined in the state data as `PreloadQRL`.
+   *
+   * This is done because when computed and custom serializer QRLs are called they need QRL to work.
+   * If the QRL is not resolved at this point, it will be resolved by throwing a promise and
+   * rerunning the whole wrapping function again. We want to avoid that, because it means that the
+   * function can execute twice.
+   *
+   * ```ts
+   * useVisibleTask$(() => {
+   *   runHeavyLogic(); // This will be called again if the QRL of `computedOrCustomSerializer` is not resolved.
+   *   console.log(computedOrCustomSerializer.value); // Throw a promise if QRL not resolved and execute visible task again.
+   * });
+   * ```
+   */
+  if (!isServer) {
+    for (const idx of toPreload!) {
+      // we preload the chunk instead of the symbol so it also works in dev
+      const chunkType = data[idx * 2] as TypeIds;
+      let chunk: string;
+      if (chunkType === TypeIds.Plain) {
+        chunk = data[idx * 2 + 1] as string;
+      } else if (chunkType === TypeIds.RootRef) {
+        const refIdx = data[idx * 2 + 1] as number;
+        chunk = data[refIdx * 2 + 1] as string;
+      } else {
+        continue;
+      }
+      preload(chunk, 0.3);
     }
   }
 }

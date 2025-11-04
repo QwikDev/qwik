@@ -5,7 +5,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
-export { _run } from './client/queue-qrl';
+export { _run } from './client/run-qrl';
 export type {
   ContainerElement as _ContainerElement,
   QDocument as _QDocument,

@@ -1,15 +1,21 @@
 import { qwikDebugToString } from '../../debug';
+import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
+import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
-import { AsyncComputeQRL, SerializationSignalFlags, EffectSubscription } from '../types';
-import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
-import { throwIfQRLNotResolved } from '../utils';
+import {
+  _EFFECT_BACK_REF,
+  AsyncComputeQRL,
+  EffectProperty,
+  EffectSubscription,
+  NEEDS_COMPUTATION,
+  SerializationSignalFlags,
+  SignalFlags,
+} from '../types';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
-import type { NoSerialize } from '../../shared/serdes/verify';
-import { ChoreType } from '../../shared/util-chore-type';
 
 const DEBUG = false;
 const log = (...args: any[]) =>
@@ -112,13 +118,11 @@ export class AsyncComputedSignalImpl<T>
     if (!(this.$flags$ & SignalFlags.INVALID)) {
       return;
     }
-    const computeQrl = this.$computeQrl$;
-    throwIfQRLNotResolved(computeQrl);
 
     const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
     const untrackedValue =
       this.$promiseValue$ === NEEDS_COMPUTATION
-        ? (computeQrl.getFn()({
+        ? (this.$computeQrl$.getFn()({
             track: trackFn(this, this.$container$),
             cleanup,
           }) as T)

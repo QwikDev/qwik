@@ -72,6 +72,9 @@ export const inflate = (
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
       _inflateQRL(container, target as QRLInternal<any>);
+      if (typeId === TypeIds.PreloadQRL) {
+        (target as QRLInternal<any>).resolve();
+      }
       break;
     case TypeIds.Task:
       const task = target as Task;

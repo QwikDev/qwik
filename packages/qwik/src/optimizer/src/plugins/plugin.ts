@@ -968,7 +968,9 @@ export const isDev = ${JSON.stringify(isDev)};
       let clientManifestPath =
         opts.manifestInputPath || path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME);
       if (!(await maybeFs.promises.stat(clientManifestPath).catch(() => false))) {
-        clientManifestPath = path.resolve(opts.rootDir, CLIENT_OUT_DIR, Q_MANIFEST_FILENAME);
+        // Use opts.clientOutDir as fallback instead of hardcoded CLIENT_OUT_DIR
+        // to respect custom output directory configurations
+        clientManifestPath = path.resolve(opts.clientOutDir, Q_MANIFEST_FILENAME);
       }
       try {
         const clientManifestStr = await maybeFs.promises.readFile(clientManifestPath, 'utf-8');

@@ -82,7 +82,6 @@ export function _createDeserializeContainer(
     $storeProxyMap$: new WeakMap(),
     element: null,
     $forwardRefs$: null,
-    $initialQRLs$: null,
     $scheduler$: null,
   };
   preprocessState(stateData, container);

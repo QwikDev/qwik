@@ -24,6 +24,8 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
     error: Error | null;
     loading: boolean;
+    // (undocumented)
+    resolve(): Promise<T>;
 }
 
 // @public (undocumented)
@@ -219,8 +221,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
     // (undocumented)
-    $initialQRLs$: Array<string> | null;
-    // (undocumented)
     $instanceHash$: string;
     // (undocumented)
     $journal$: VNodeJournal;
@@ -281,9 +281,11 @@ export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
 export class _ElementVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: Element, elementName: string | undefined);
+    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: QElement, elementName: string | undefined);
+    // Warning: (ae-forgotten-export) The symbol "QElement" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    element: Element;
+    element: QElement;
     // (undocumented)
     elementName: string | undefined;
     // (undocumented)
@@ -339,7 +341,7 @@ export type FunctionComponent<P = unknown> = {
 // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
 // @internal
-export const _getConstProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+export const _getConstProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
 export const _getContextContainer: () => ClientContainer | undefined;
@@ -368,7 +370,7 @@ export const getPlatform: () => CorePlatform;
 export function _getQContainerElement(element: Element | _VNode): Element | null;
 
 // @internal
-export const _getVarProps: <T, JSX>(props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
+export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @public
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
@@ -391,10 +393,8 @@ export const _IMMUTABLE: unique symbol;
 // @public
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
-// Warning: (ae-internal-missing-underscore) The name "inlinedQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export const inlinedQrl: <T>(symbol: T, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+// @public
+export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
@@ -791,7 +791,7 @@ export interface ReadonlySignal<T = unknown> {
     readonly value: T;
 }
 
-// @internal (undocumented)
+// @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
 
 // @public

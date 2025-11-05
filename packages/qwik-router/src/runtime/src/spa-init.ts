@@ -5,6 +5,8 @@ import type { RouteNavigate, ScrollState } from './types';
 
 import { event$, isDev } from '@qwik.dev/core';
 
+declare const window: ClientSPAWindow;
+
 // TODO Dedupe handler code from here and QwikRouterProvider?
 // TODO Navigation API; check for support & simplify.
 
@@ -15,29 +17,14 @@ import { event$, isDev } from '@qwik.dev/core';
 
 // ! DO NOT IMPORT OR USE ANY EXTERNAL REFERENCES IN THIS SCRIPT.
 export default event$((_: Event, el: Element) => {
-  const win: ClientSPAWindow = window;
-  const spa = '_qRouterSPA';
-  const initPopstate = '_qRouterInitPopstate';
-  const initAnchors = '_qRouterInitAnchors';
-  const initVisibility = '_qRouterInitVisibility';
-  const initScroll = '_qRouterInitScroll';
-  if (
-    !win[spa] &&
-    !win[initPopstate] &&
-    !win[initAnchors] &&
-    !win[initVisibility] &&
-    !win[initScroll]
-  ) {
+  // This complements qwik-router-component.ts
+  // only run once, when router didn't init yet
+  if (!window._qRouterSPA && !window._qRouterInitPopstate) {
     const currentPath = location.pathname + location.search;
-
-    const historyPatch = '_qRouterHistoryPatch';
-    const scrollEnabled = '_qRouterScrollEnabled';
-    const debounceTimeout = '_qRouterScrollDebounce';
-    const scrollHistory = '_qRouterScroll';
 
     const checkAndScroll = (scrollState: ScrollState | undefined) => {
       if (scrollState) {
-        win.scrollTo(scrollState.x, scrollState.y);
+        window.scrollTo(scrollState.x, scrollState.y);
       }
     };
 
@@ -53,20 +40,20 @@ export default event$((_: Event, el: Element) => {
 
     const saveScrollState = (scrollState?: ScrollState) => {
       const state: ScrollHistoryState = history.state || {};
-      state[scrollHistory] = scrollState || currentScrollState();
+      state._qRouterScroll = scrollState || currentScrollState();
       history.replaceState(state, '');
     };
 
     saveScrollState();
 
-    win[initPopstate] = () => {
-      if (win[spa]) {
+    window._qRouterInitPopstate = () => {
+      if (window._qRouterSPA) {
         return;
       }
 
       // Disable scroll handler eagerly to prevent overwriting history.state.
-      win[scrollEnabled] = false;
-      clearTimeout(win[debounceTimeout]);
+      window._qRouterScrollEnabled = false;
+      clearTimeout(window._qRouterScrollDebounce);
 
       if (currentPath !== location.pathname + location.search) {
         const getContainer = (el: Element) =>
@@ -88,15 +75,15 @@ export default event$((_: Event, el: Element) => {
         }
       } else {
         if (history.scrollRestoration === 'manual') {
-          const scrollState = (history.state as ScrollHistoryState)?.[scrollHistory];
+          const scrollState = (history.state as ScrollHistoryState)?._qRouterScroll;
           checkAndScroll(scrollState);
-          win[scrollEnabled] = true;
+          window._qRouterScrollEnabled = true;
         }
       }
     };
 
-    if (!win[historyPatch]) {
-      win[historyPatch] = true;
+    if (!window._qRouterHistoryPatch) {
+      window._qRouterHistoryPatch = true;
       const pushState = history.pushState;
       const replaceState = history.replaceState;
 
@@ -132,8 +119,8 @@ export default event$((_: Event, el: Element) => {
     }
 
     // We need this handler in init because Firefox destroys states w/ anchor tags.
-    win[initAnchors] = (event: MouseEvent) => {
-      if (win[spa] || event.defaultPrevented) {
+    window._qRouterInitAnchors = (event: MouseEvent) => {
+      if (window._qRouterSPA || event.defaultPrevented) {
         return;
       }
 
@@ -160,8 +147,8 @@ export default event$((_: Event, el: Element) => {
             } else {
               // Simulate same-page (no hash) anchor reload.
               // history.scrollRestoration = 'manual' makes these not scroll.
-              win[scrollEnabled] = false;
-              clearTimeout(win[debounceTimeout]);
+              window._qRouterScrollEnabled = false;
+              clearTimeout(window._qRouterScrollDebounce);
               saveScrollState({ ...currentScrollState(), x: 0, y: 0 });
               location.reload();
             }
@@ -176,34 +163,38 @@ export default event$((_: Event, el: Element) => {
       }
     };
 
-    win[initVisibility] = () => {
-      if (!win[spa] && win[scrollEnabled] && document.visibilityState === 'hidden') {
+    window._qRouterInitVisibility = () => {
+      if (
+        !window._qRouterSPA &&
+        window._qRouterScrollEnabled &&
+        document.visibilityState === 'hidden'
+      ) {
         saveScrollState();
       }
     };
 
-    win[initScroll] = () => {
-      if (win[spa] || !win[scrollEnabled]) {
+    window._qRouterInitScroll = () => {
+      if (window._qRouterSPA || !window._qRouterScrollEnabled) {
         return;
       }
 
-      clearTimeout(win[debounceTimeout]);
-      win[debounceTimeout] = setTimeout(() => {
+      clearTimeout(window._qRouterScrollDebounce);
+      window._qRouterScrollDebounce = setTimeout(() => {
         saveScrollState();
         // Needed for e2e debounceDetector.
-        win[debounceTimeout] = undefined;
+        window._qRouterScrollDebounce = undefined;
       }, 200);
     };
 
-    win[scrollEnabled] = true;
+    window._qRouterScrollEnabled = true;
 
     setTimeout(() => {
-      win.addEventListener('popstate', win[initPopstate]!);
-      win.addEventListener('scroll', win[initScroll]!, { passive: true });
-      document.body.addEventListener('click', win[initAnchors]!);
+      window.addEventListener('popstate', window._qRouterInitPopstate!);
+      window.addEventListener('scroll', window._qRouterInitScroll!, { passive: true });
+      document.addEventListener('click', window._qRouterInitAnchors!);
 
-      if (!(win as any).navigation) {
-        document.addEventListener('visibilitychange', win[initVisibility]!, {
+      if (!(window as any).navigation) {
+        document.addEventListener('visibilitychange', window._qRouterInitVisibility!, {
           passive: true,
         });
       }

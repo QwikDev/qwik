@@ -13,6 +13,7 @@ export const ComputedRoot = component$(() => {
       <Issue3482 />
       <Issue3488 />
       <Issue5738 />
+      <ShouldHandleMultipleComputeds />
       <ShouldResolveComputedQrlEarly />
       <ShouldRetryWhenThereIsNoQRL />
     </div>
@@ -105,6 +106,42 @@ export const Issue5738 = component$(() => {
 });
 
 export const ShouldResolveComputedQrlEarly = component$(() => {
+  const trigger = useSignal(0);
+  const display = useSignal("not clicked yet");
+
+  const demo = useComputed$(() => "Hello");
+
+  // change attribute and read computed
+  useTask$(({ track }) => {
+    if (!track(trigger)) {
+      return;
+    }
+
+    // We don't immediately read the computed, but we do deserialize it from lexical scope, which should resolve it early.
+    setTimeout(
+      () => {
+        try {
+          display.value = demo.value + " world";
+        } catch {
+          // happens when we read another computed value that wasn't loaded yet
+          display.value = "computed not ready yet";
+        }
+      },
+      // give enough time for the computed to resolve
+      100,
+    );
+  });
+
+  return (
+    <>
+      <button id="early-computed-qrl" onClick$={() => trigger.value++}>
+        Click me! {display.value}
+      </button>
+    </>
+  );
+});
+
+export const ShouldHandleMultipleComputeds = component$(() => {
   const isToggled = useSignal<boolean>(false);
 
   const demo = useComputed$(() => 3);
@@ -122,7 +159,7 @@ export const ShouldResolveComputedQrlEarly = component$(() => {
   return (
     <>
       <button
-        id="early-computed-qrl"
+        id="multiple-computed-qrl"
         // also when tied to an attribute
         data-test={repro.value}
         onClick$={() => (isToggled.value = !isToggled.value)}

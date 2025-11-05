@@ -1,4 +1,5 @@
 /** @file Public APIs for the SSR */
+import { isDev } from '@qwik.dev/core/build';
 import {
   _SubscriptionData as SubscriptionData,
   _SharedContainer,
@@ -6,8 +7,8 @@ import {
   _jsxSplit,
   _walkJSX,
   isSignal,
+  type Signal,
 } from '@qwik.dev/core/internal';
-import { isDev } from '@qwik.dev/core/build';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
 import {
   DEBUG_TYPE,
@@ -42,12 +43,13 @@ import {
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
   escapeHTML,
-  isClassAttr,
+  isPromise,
   mapArray_get,
   mapArray_has,
   mapArray_set,
   maybeThen,
   qError,
+  retryOnPromise,
   serializeAttribute,
 } from './qwik-copy';
 import {
@@ -69,7 +71,8 @@ import {
   type ValueOrPromise,
 } from './qwik-types';
 
-import { getQwikLoaderScript, getQwikBackpatchExecutorScript } from './scripts';
+import { preloaderPost, preloaderPre } from './preload-impl';
+import { getQwikBackpatchExecutorScript, getQwikLoaderScript } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
 import { Q_FUNCS_PREFIX } from './ssr-render';
 import {
@@ -99,7 +102,6 @@ import {
   vNodeData_openFragment,
   type VNodeData,
 } from './vnode-data';
-import { preloaderPost, preloaderPre } from './preload-impl';
 
 export interface SSRRenderOptions {
   locale?: string;
@@ -228,6 +230,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   // Temporary flag to find missing roots after the state was serialized
   private $noMoreRoots$ = false;
   private qlInclude: QwikLoaderInclude;
+  private promiseAttributes: Array<Promise<any>> | null = null;
 
   constructor(opts: Required<SSRRenderOptions>) {
     super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
@@ -250,6 +253,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    // start from 100_000 to avoid interfering with potential existing ids
+    this.$currentUniqueId$ = 100_000;
 
     const qlOpt = this.renderOptions.qwikLoader;
     this.qlInclude = qlOpt
@@ -380,7 +385,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.closeElement();
   }
 
-  private $noScriptHere$ = 0;
+  private $noScriptHere$: number = 0;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -389,12 +394,20 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
   ): string | undefined {
-    if (this.qlInclude === QwikLoaderInclude.Inline) {
-      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024) {
+    const isQwikStyle =
+      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
+
+    if (
+      // don't append qwik loader before qwik style elements
+      // it will confuse the resuming, because styles are expected to be the first nodes in subtree
+      !isQwikStyle &&
+      this.qlInclude === QwikLoaderInclude.Inline
+    ) {
+      if (this.$noScriptHere$ === 0 && this.size > 30 * 1024 && elementName !== 'body') {
         // We waited long enough, on slow connections the page is already partially visible
         this.emitQwikLoaderInline();
       }
-      // keep track of noscript and template
+      // keep track of noscript and template, and for html we only emit inside body
       else if (elementName === 'noscript' || elementName === 'template') {
         this.$noScriptHere$++;
       }
@@ -402,8 +415,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     let innerHTML: string | undefined = undefined;
     this.lastNode = null;
-    const isQwikStyle =
-      isQwikStyleElement(elementName, varAttrs) || isQwikStyleElement(elementName, constAttrs);
     if (!isQwikStyle && this.currentElementFrame) {
       vNodeData_incrementElementCount(this.currentElementFrame.vNodeData);
     }
@@ -663,16 +674,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   private emitContainerData(): ValueOrPromise<void> {
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
-    return maybeThen(this.emitUnclaimedProjection(), () =>
-      maybeThen(this.emitStateData(), () => {
-        this.$noMoreRoots$ = true;
-        this.emitVNodeData();
-        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
-        this.emitSyncFnsData();
-        this.emitPatchDataIfNeeded();
-        this.emitExecutorIfNeeded();
-        this.emitQwikLoaderAtBottomIfNeeded();
-      })
+    return maybeThen(this.resolvePromiseAttributes(), () =>
+      maybeThen(this.emitUnclaimedProjection(), () =>
+        maybeThen(this.emitStateData(), () => {
+          this.$noMoreRoots$ = true;
+          this.emitVNodeData();
+          preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+          this.emitSyncFnsData();
+          this.emitPatchDataIfNeeded();
+          this.emitExecutorIfNeeded();
+          this.emitQwikLoaderAtBottomIfNeeded();
+        })
+      )
     );
   }
 
@@ -1171,7 +1184,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           continue;
         }
 
-        if (isClassAttr(key) && Array.isArray(value)) {
+        if (key === 'class' && Array.isArray(value)) {
           // value is a signal and key is a class, we need to retrieve data first
           const [signalValue, styleId] = value;
           value = signalValue;
@@ -1200,7 +1213,19 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
             $isConst$: isConst,
           });
 
-          value = this.trackSignalValue(value, lastNode, key, signalData);
+          const signal = value as Signal<unknown>;
+          value = retryOnPromise(() =>
+            this.trackSignalValue(signal, lastNode, key, signalData)
+          ) as Promise<string>;
+        }
+
+        if (isPromise(value)) {
+          const lastNode = this.getOrCreateLastNode();
+          this.addPromiseAttribute(value);
+          value.then((resolvedValue) => {
+            this.addBackpatchEntry(lastNode.id, key, resolvedValue);
+          });
+          continue;
         }
 
         if (key === dangerouslySetInnerHTML) {
@@ -1244,6 +1269,18 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       }
     }
     return innerHTML;
+  }
+
+  private addPromiseAttribute(promise: Promise<any>) {
+    this.promiseAttributes ||= [];
+    this.promiseAttributes.push(promise);
+  }
+
+  private async resolvePromiseAttributes() {
+    if (this.promiseAttributes) {
+      await Promise.all(this.promiseAttributes);
+      this.promiseAttributes = null;
+    }
   }
 }
 

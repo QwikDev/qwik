@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { _run } from '../client/queue-qrl';
+import { _run } from '../client/run-qrl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
@@ -17,10 +17,9 @@ import { qrlToString, type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
-  getEventNameFromJsxEvent,
-  isJsxPropertyAnEventName,
+  getEventDataFromHtmlAttribute,
+  isHtmlAttributeAnEventName,
   isPreventDefault,
-  jsxEventToHtmlAttribute,
 } from '../shared/utils/event-names';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -321,7 +320,7 @@ export function varPropsToSsrAttrs(
   constProps: Record<string, unknown> | null,
   options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(varProps, constProps, false, options);
+  return toSsrAttrs(varProps, options);
 }
 
 export function constPropsToSsrAttrs(
@@ -329,59 +328,25 @@ export function constPropsToSsrAttrs(
   varProps: Record<string, unknown>,
   options: SsrAttrsOptions
 ): SsrAttrs | null {
-  return toSsrAttrs(constProps, varProps, true, options);
+  return toSsrAttrs(constProps, options);
 }
 
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
-  anotherRecord: Record<string, unknown> | null | undefined,
-  isConst: boolean,
   options: SsrAttrsOptions
 ): SsrAttrs | null {
   if (record == null) {
     return null;
   }
-  const pushMergedEventProps = !isConst;
   const ssrAttrs: SsrAttrs = [];
   const handleProp = (key: string, value: unknown) => {
     if (value == null) {
       return;
     }
-    if (isJsxPropertyAnEventName(key)) {
-      if (anotherRecord) {
-        /**
-         * If we have two sources of the same event like this:
-         *
-         * ```tsx
-         * const Counter = component$((props: { initial: number }) => {
-         *  const count = useSignal(props.initial);
-         *  useOnWindow(
-         *    'dblclick',
-         *    $(() => count.value++)
-         *  );
-         *  return <button window:onDblClick$={() => count.value++}>Count: {count.value}!</button>;
-         * });
-         * ```
-         *
-         * Then we can end with the const and var props with the same (doubled) event. We process
-         * the const and var props separately, so:
-         *
-         * - For the var props we need to merge them into the one value (array)
-         * - For the const props we need to just skip, because we will handle this in the var props
-         */
-        const anotherValue = getEventProp(anotherRecord, key);
-        if (anotherValue) {
-          if (pushMergedEventProps) {
-            // merge values from the const props with the var props
-            value = getMergedEventPropValues(value, anotherValue);
-          } else {
-            return;
-          }
-        }
-      }
+    if (isHtmlAttributeAnEventName(key)) {
       const eventValue = setEvent(options.serializationCtx, key, value);
       if (eventValue) {
-        ssrAttrs.push(jsxEventToHtmlAttribute(key), eventValue);
+        ssrAttrs.push(key, eventValue);
       }
       return;
     }
@@ -420,36 +385,6 @@ export function toSsrAttrs(
     ssrAttrs.push(ELEMENT_KEY, options.key);
   }
   return ssrAttrs;
-}
-
-function getMergedEventPropValues(value: unknown, anotherValue: unknown) {
-  let mergedValue = value;
-  // merge values from the const props with the var props
-  if (Array.isArray(value) && Array.isArray(anotherValue)) {
-    // both values are arrays
-    mergedValue = value.concat(anotherValue);
-  } else if (Array.isArray(mergedValue)) {
-    // only first value is array
-    mergedValue.push(anotherValue);
-  } else if (Array.isArray(anotherValue)) {
-    // only second value is array
-    mergedValue = anotherValue;
-    (mergedValue as unknown[]).push(value);
-  } else {
-    // none of these values are array
-    mergedValue = [value, anotherValue];
-  }
-  return mergedValue;
-}
-
-function getEventProp(record: Record<string, unknown>, propKey: string): unknown | null {
-  const eventProp = propKey.toLowerCase();
-  for (const prop in record) {
-    if (prop.toLowerCase() === eventProp) {
-      return record[prop];
-    }
-  }
-  return null;
 }
 
 function setEvent(
@@ -503,8 +438,10 @@ function addQwikEventToSerializationContext(
   key: string,
   qrl: QRL
 ) {
-  const eventName = getEventNameFromJsxEvent(key);
-  if (eventName) {
+  // TODO extract window/document too so qwikloader can precisely listen
+  const data = getEventDataFromHtmlAttribute(key);
+  if (data) {
+    const eventName = data[1];
     serializationCtx.$eventNames$.add(eventName);
     serializationCtx.$eventQrls$.add(qrl);
   }

@@ -7,7 +7,6 @@ import type {
   RouteLocation,
   RouteNavigate,
   RoutePreventNavigate,
-  RouteStateInternal,
 } from './types';
 
 export const RouteStateContext =
@@ -24,9 +23,6 @@ export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>
 export const RouteNavigateContext = /*#__PURE__*/ createContextId<RouteNavigate>('qc-n');
 
 export const RouteActionContext = /*#__PURE__*/ createContextId<RouteAction>('qc-a');
-
-export const RouteInternalContext =
-  /*#__PURE__*/ createContextId<Signal<RouteStateInternal>>('qc-ir');
 
 export const RoutePreventNavigateContext =
   /*#__PURE__*/ createContextId<RoutePreventNavigate>('qc-p');

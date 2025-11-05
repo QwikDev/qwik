@@ -244,7 +244,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[resolve()](#asynccomputedreadonlysignal-resolve)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.asynccomputedreadonlysignal.md"
     },
@@ -797,6 +797,20 @@
       "content": "Create a `____$(...)` convenience method from `___(...)`<!-- -->.\n\nIt is very common for functions to take a lazy-loadable resource as a first argument. For this reason, the Qwik Optimizer automatically extracts the first argument from any function which ends in `$`<!-- -->.\n\nThis means that `foo$(arg0)` and `foo($(arg0))` are equivalent with respect to Qwik Optimizer. The former is just a shorthand for the latter.\n\nFor example, these function calls are equivalent:\n\n- `component$(() => {...})` is same as `component($(() => {...}))`\n\n```tsx\nexport function myApi(callback: QRL<() => void>): void {\n  // ...\n}\n\nexport const myApi$ = implicit$FirstArg(myApi);\n// type of myApi$: (callback: () => void): void\n\n// can be used as:\nmyApi$(() => console.log('callback'));\n\n// will be transpiled to:\n// FILE: <current file>\nmyApi(qrl('./chunk-abc.js', 'callback'));\n\n// FILE: chunk-abc.js\nexport const callback = () => console.log('callback');\n```\n\n\n```typescript\nimplicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET)\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfn\n\n\n</td><td>\n\n(qrl: [QRL](#qrl)<!-- -->&lt;FIRST&gt;, ...rest: REST) =&gt; RET\n\n\n</td><td>\n\nA function that should have its first argument automatically `$`<!-- -->.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n((qrl: FIRST, ...rest: REST) =&gt; RET)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/implicit_dollar.ts",
       "mdFile": "core.implicit_firstarg.md"
+    },
+    {
+      "name": "inlinedQrl",
+      "id": "inlinedqrl",
+      "hierarchy": [
+        {
+          "name": "inlinedQrl",
+          "id": "inlinedqrl"
+        }
+      ],
+      "kind": "Function",
+      "content": "Create an inlined QRL. This is mostly useful on the server side for serialization.\n\n\n```typescript\ninlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nsymbol\n\n\n</td><td>\n\nT \\| null\n\n\n</td><td>\n\nThe object/function to register, or `null` to retrieve a previously registered one by hash\n\n\n</td></tr>\n<tr><td>\n\nsymbolName\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\nThe name of the symbol.\n\n\n</td></tr>\n<tr><td>\n\nlexicalScopeCapture\n\n\n</td><td>\n\nany\\[\\]\n\n\n</td><td>\n\n_(Optional)_ A set of lexically scoped variables to capture.\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[QRL](#qrl)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.ts",
+      "mdFile": "core.inlinedqrl.md"
     },
     {
       "name": "IntrinsicAttributes",
@@ -1760,6 +1774,23 @@
       "mdFile": "core.renderssroptions.md"
     },
     {
+      "name": "resolve",
+      "id": "asynccomputedreadonlysignal-resolve",
+      "hierarchy": [
+        {
+          "name": "AsyncComputedReadonlySignal",
+          "id": "asynccomputedreadonlysignal-resolve"
+        },
+        {
+          "name": "resolve",
+          "id": "asynccomputedreadonlysignal-resolve"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nresolve(): Promise<T>;\n```\n**Returns:**\n\nPromise&lt;T&gt;",
+      "mdFile": "core.asynccomputedreadonlysignal.resolve.md"
+    },
+    {
       "name": "Resource",
       "id": "resource",
       "hierarchy": [
@@ -2385,7 +2416,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\n\n```typescript\nuseOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "content": "Register a listener on the current component's host element.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX. Otherwise, it's adding a JSX listener in the `<div>` is a better idea.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOn: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "core.useon.md"
     },
@@ -2399,7 +2430,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "content": "Register a listener on `document`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOnDocument: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "core.useondocument.md"
     },
@@ -2413,7 +2444,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\n\n```typescript\nuseOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "content": "Register a listener on `window`<!-- -->.\n\nUsed to programmatically add event listeners. Useful from custom `use*` methods, which do not have access to the JSX.\n\nEvents are case sensitive.\n\n\n```typescript\nuseOnWindow: <T extends KnownEventNames>(event: T | T[], eventQrl: EventQRL<T>) => void\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nevent\n\n\n</td><td>\n\nT \\| T\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\neventQrl\n\n\n</td><td>\n\nEventQRL&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-on.ts",
       "mdFile": "core.useonwindow.md"
     },

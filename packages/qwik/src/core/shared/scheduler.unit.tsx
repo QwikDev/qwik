@@ -411,6 +411,185 @@ describe('scheduler', () => {
     });
   });
 
+  describe('deadline-based async flushing', () => {
+    let scheduler: ReturnType<typeof createScheduler> = null!;
+    let document: ReturnType<typeof createDocument> = null!;
+    let vHost: VirtualVNode = null!;
+
+    async function waitForDrain() {
+      await scheduler(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    }
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      (globalThis as any).testLog = [];
+      vi.useFakeTimers();
+      document = createDocument();
+      document.body.setAttribute(QContainerAttr, 'paused');
+      const container = getDomContainer(document.body);
+      const choreQueue = new ChoreArray();
+      const blockedChores = new Set<Chore>();
+      const runningChores = new Set<Chore>();
+      scheduler = createScheduler(
+        container,
+        () => testLog.push('journalFlush'),
+        choreQueue,
+        blockedChores,
+        runningChores
+      );
+      vnode_newUnMaterializedElement(document.body);
+      vHost = vnode_newVirtual();
+      vHost.setProp('q:id', 'host');
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it('fast async (<16ms) + long async (>16ms): flush at ~16ms while long runs', async () => {
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+      // Fast async (5ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 0,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fastAsync');
+                  resolve();
+                }, 5)
+              )
+          ),
+        })
+      );
+      // Long async (1000ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 1,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('longAsync');
+                  resolve();
+                }, 1000)
+              )
+          ),
+        })
+      );
+
+      // Advance to 5ms: fast async resolves
+      await vi.advanceTimersByTimeAsync(5);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+      ]);
+
+      await vi.advanceTimersByTimeAsync(FREQUENCY_MS - 5);
+
+      // Flush should have occurred before longAsync finishes
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+        // after task execution flush
+        'journalFlush',
+      ]);
+
+      // Finish long async
+      await vi.advanceTimersByTimeAsync(1000 - FREQUENCY_MS);
+
+      // Now long async completes and a final flush happens at end of drain
+      const drainPromise = waitForDrain();
+      // Need to advance timers to process the nextTick that waitForDrain schedules
+      await vi.advanceTimersByTimeAsync(0);
+      await drainPromise;
+
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        // task execution
+        'fastAsync',
+        // after task execution flush
+        'journalFlush',
+        'longAsync',
+        'journalFlush',
+        // TODO: not sure why this is here, but seems related to the vi.advanceTimersByTimeAsync(0) above
+        'journalFlush',
+      ]);
+    });
+
+    it('multiple fast async (<16ms total): do not flush between, only after', async () => {
+      const FREQUENCY_MS = Math.floor(1000 / 60);
+      // Two fast async chores: 5ms and 6ms (total 11ms < 16ms)
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 0,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fast1');
+                  resolve();
+                }, 5)
+              )
+          ),
+        })
+      );
+      scheduler(
+        ChoreType.TASK,
+        mockTask(vHost, {
+          index: 1,
+          qrl: $(
+            () =>
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  testLog.push('fast2');
+                  resolve();
+                }, 6)
+              )
+          ),
+        })
+      );
+
+      // First resolves at 5ms
+      await vi.advanceTimersByTimeAsync(5);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+      ]);
+
+      // Second resolves at 11ms
+      await vi.advanceTimersByTimeAsync(6);
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+        'fast2',
+      ]);
+
+      await vi.advanceTimersByTimeAsync(FREQUENCY_MS - 11);
+
+      expect(testLog).toEqual([
+        // end of queue flush
+        'journalFlush',
+        'fast1',
+        'fast2',
+        // journal flush after fast1/fast2 chore
+        'journalFlush',
+      ]);
+    });
+  });
+
   describe('addChore', () => {
     let choreArray: ChoreArray;
     let vHost: VirtualVNode;
@@ -807,12 +986,12 @@ describe('scheduler', () => {
       } as any;
 
       // Create and start a chore with the qrl
-      const chore1 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+      const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, qrl, {} as Props);
       runningChores.add(chore1!);
       choreQueue.length = 0;
 
       // Try to schedule the same chore again (same host, same qrl reference)
-      const chore2 = scheduler(ChoreType.RUN_QRL, mockHost as any, qrl, []);
+      const chore2 = scheduler(ChoreType.COMPONENT, mockHost as any, qrl, {} as Props);
 
       // chore2 should be blocked because it's the same qrl reference
       expect(chore1!.$blockedChores$).toBeTruthy();
@@ -973,6 +1152,72 @@ describe('scheduler', () => {
     expect(blockedChores.size).toBe(0);
     expect(vAHost.blockedChores?.length).toBe(0);
     expect(vBHost1.blockedChores?.length).toBe(0);
+  });
+
+  describe('RUN_QRL and QRL_RESOLVE should never block', () => {
+    afterEach(() => {
+      // Restore all mocks after each test to prevent leakage
+      vi.restoreAllMocks();
+    });
+
+    it('should not block RUN_QRL chores even when a matching one is running', async () => {
+      let executionCount = 0;
+      const mockQrl = {
+        $hash$: 'test-qrl-hash',
+        getFn: () => () => {
+          executionCount++;
+          testLog.push('qrl-executed');
+        },
+      } as any;
+
+      // Mock isDraining to prevent immediate execution so we can test blocking logic
+      const nextTickSpy = vi.spyOn(nextTick, 'createNextTick').mockReturnValue(() => {});
+
+      // Schedule first RUN_QRL chore and manually mark as running
+      const chore1 = scheduler(ChoreType.RUN_QRL, vAHost as HostElement, mockQrl, []);
+      runningChores.add(chore1!);
+
+      // Schedule second RUN_QRL chore with same QRL - it should NOT be blocked
+      const chore2 = scheduler(ChoreType.RUN_QRL, vAHost as HostElement, mockQrl, []);
+
+      // chore2 should NOT be blocked
+      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(chore1!.$blockedChores$).toBeNull();
+      // Verify no blocked chores for RUN_QRL type
+      for (const chore of blockedChores) {
+        expect(chore.$type$).not.toBe(ChoreType.RUN_QRL);
+      }
+
+      nextTickSpy.mockRestore();
+    });
+
+    it('should not block QRL_RESOLVE chores even when a matching one is running', async () => {
+      const mockComputeQRL = {
+        $hash$: 'compute-qrl-hash',
+        resolved: false,
+        resolve: vi.fn(() => Promise.resolve()),
+      } as any;
+
+      // Mock to prevent automatic draining
+      const nextTickSpy = vi.spyOn(nextTick, 'createNextTick').mockReturnValue(() => {});
+
+      // Schedule first QRL_RESOLVE chore and mark as running
+      const chore1 = scheduler(ChoreType.QRL_RESOLVE, null, mockComputeQRL);
+      runningChores.add(chore1!);
+
+      // Schedule second QRL_RESOLVE chore with same QRL - it should NOT be blocked
+      const chore2 = scheduler(ChoreType.QRL_RESOLVE, null, mockComputeQRL);
+
+      // chore2 should NOT be blocked
+      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(chore1!.$blockedChores$).toBeNull();
+      // Verify no blocked chores for QRL_RESOLVE type
+      for (const chore of blockedChores) {
+        expect(chore.$type$).not.toBe(ChoreType.QRL_RESOLVE);
+      }
+
+      nextTickSpy.mockRestore();
+    });
   });
 });
 

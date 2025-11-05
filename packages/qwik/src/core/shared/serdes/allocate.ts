@@ -103,7 +103,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       const storeValue = allocate(container, t, v);
       const store = getOrCreateStore(storeValue, StoreFlags.NONE, container as DomContainer);
       if (needsInflation(t)) {
-        pendingStoreTargets.set(store, { t, v });
+        pendingStoreTargets.set(storeValue, { t, v });
       }
       // We must store the reference so it doesn't get deserialized again in inflate()
       data[0] = TypeIds.Plain;

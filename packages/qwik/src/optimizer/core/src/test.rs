@@ -4650,27 +4650,20 @@ fn should_not_move_over_side_effects() {
 	});
 }
 
-// TODO(misko): Make this test work by implementing strict serialization.
-// #[test]
-// fn example_of_synchronous_qrl_that_cant_be_serialized() {
-//		 test_input!(TestInput {
-//				 code: r#"
-//				 import { sync$, component$ } from "@qwik.dev/core";
+#[test]
+fn should_ignore_null_inlined_qrl() {
+	test_input!(TestInput {
+		code: r#"
+		import { inlinedQrl } from '@qwik.dev/core';
 
-//				 export default component$(() => {
-//				 return (
-//						 <input onClick$={sync$(function(event, target) {
-//								 console.log(component$);
-//						 })}/>
-//				 );
-//				 });
-//				 "#
-//				 .to_string(),
-//				 transpile_ts: true,
-//				 transpile_jsx: true,
-//				 ..TestInput::default()
-//		 });
-// }
+		const foo = inlinedQrl(null, 'some_hash');
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
 
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()

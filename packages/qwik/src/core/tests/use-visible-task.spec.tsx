@@ -4,6 +4,7 @@ import {
   createContextId,
   Fragment,
   Fragment as Projection,
+  Fragment as Awaited,
   Fragment as Signal,
   type Signal as SignalType,
   Slot,
@@ -292,6 +293,27 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should merge multiple visible tasks when empty', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(
+        () => {
+          (globalThis as any).log.push('task1');
+        },
+        { strategy: 'document-ready' }
+      );
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task2');
+      });
+      return <></>;
+    });
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task1', 'task2']);
   });
 
   describe(render.name + ': track', () => {
@@ -707,9 +729,9 @@ describe.each([
         <Component ssr-required>
           <p>
             Should have a number: "
-            <Fragment ssr-required>
-              <Signal ssr-required>{'2'}</Signal>
-            </Fragment>
+            <Signal ssr-required>
+              <Awaited ssr-required>{'2'}</Awaited>
+            </Signal>
             "
           </p>
         </Component>

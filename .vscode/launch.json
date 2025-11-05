@@ -70,7 +70,7 @@
       "internalConsoleOptions": "neverOpen",
       "program": "${workspaceFolder}/./node_modules/vitest/vitest.mjs",
       "cwd": "${workspaceFolder}",
-      "args": ["--test-timeout", "999999", "--minWorkers", "1", "--maxWorkers", "1", "${file}"]
+      "args": ["--test-timeout", "999999", "--maxWorkers", "1", "${file}"]
     }
   ]
 }

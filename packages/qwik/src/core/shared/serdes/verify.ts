@@ -5,11 +5,12 @@ import { isArray, isFunction, isObject, isSerializableObject } from '../utils/ty
 import { canSerialize } from './index';
 import { isSignal } from '../../reactive-primitives/utils';
 import { unwrapStore } from '../../reactive-primitives/impl/store';
+import { untrack } from '../../use/use-core';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
   const seen = new WeakSet();
-  return _verifySerializable(value, seen, '_', preMessage);
+  return untrack(() => _verifySerializable(value, seen, '_', preMessage));
 };
 
 const _verifySerializable = <T>(
@@ -90,7 +91,7 @@ const noSerializeSet = /*#__PURE__*/ new WeakSet<object>();
 
 const shouldSerialize = (obj: unknown): boolean => {
   if (isObject(obj) || isFunction(obj)) {
-    return !noSerializeSet.has(obj);
+    return !noSerializeSet.has(obj) && !(NoSerializeSymbol in obj);
   }
   return true;
 };

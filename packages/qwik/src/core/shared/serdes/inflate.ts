@@ -3,7 +3,7 @@ import { _EFFECT_BACK_REF } from '../../internal';
 import type { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
-import { getStoreHandler } from '../../reactive-primitives/impl/store';
+import { getStoreHandler, unwrapStore } from '../../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import type { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
@@ -72,6 +72,9 @@ export const inflate = (
     case TypeIds.QRL:
     case TypeIds.PreloadQRL:
       _inflateQRL(container, target as QRLInternal<any>);
+      if (typeId === TypeIds.PreloadQRL) {
+        (target as QRLInternal<any>).resolve();
+      }
       break;
     case TypeIds.Task:
       const task = target as Task;
@@ -102,7 +105,7 @@ export const inflate = (
       break;
     case TypeIds.Store: {
       // Inflate the store target
-      const store = target as object;
+      const store = unwrapStore(target) as object;
       const storeTarget = pendingStoreTargets.get(store);
       if (storeTarget) {
         pendingStoreTargets.delete(store);
@@ -113,7 +116,7 @@ export const inflate = (
        * they are already inflated in the deserialize of the data, above.
        */
       const [, flags, effects] = data as unknown[];
-      const storeHandler = getStoreHandler(store)!;
+      const storeHandler = getStoreHandler(target as object)!;
       storeHandler.$flags$ = flags as StoreFlags;
       storeHandler.$effects$ = effects as any;
       break;

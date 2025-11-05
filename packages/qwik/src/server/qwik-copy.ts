@@ -65,3 +65,4 @@ export { VNodeDataChar, VNodeDataSeparator } from '../core/shared/vnode-data-typ
 export { getQueue, preload, resetQueue } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
 export { SsrNodeFlags } from '../core/shared/types';
+export { isPromise, retryOnPromise } from '../core/shared/utils/promises';

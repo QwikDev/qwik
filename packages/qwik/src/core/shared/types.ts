@@ -11,7 +11,6 @@ export interface DeserializeContainer {
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
-  $initialQRLs$: Array<string> | null;
   readonly $scheduler$: Scheduler | null;
 }
 
@@ -57,7 +56,7 @@ export interface Container {
 
 export type HostElement = VNode | ISsrNode;
 
-export interface QElement extends HTMLElement {
+export interface QElement extends Element {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
   vNode?: VNode;
 }

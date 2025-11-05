@@ -1,13 +1,20 @@
 import type { TestPlatform } from './types';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { getSymbolHash } from '../core/shared/qrl/qrl-utils';
 
 function createPlatform() {
   const moduleCache = new Map<string, { [symbol: string]: any }>();
   const testPlatform: TestPlatform = {
     isServer: false,
     importSymbol(containerEl, url, symbolName) {
+      const hash = getSymbolHash(symbolName);
+      const regSym = (globalThis as any).__qwik_reg_symbols?.get(hash);
+      if (regSym) {
+        return regSym;
+      }
       if (!url) {
+        console.error('Q-ERROR: importSymbol missing url for', symbolName);
         throw new Error('Missing URL');
       }
       if (!containerEl) {

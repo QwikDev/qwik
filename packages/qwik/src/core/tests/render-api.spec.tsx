@@ -83,6 +83,10 @@ const ManyEventsComponent = component$(() => {
     'focus',
     inlinedQrl(() => {}, 's_useOnFocus')
   );
+  useOn(
+    'My-Custom',
+    inlinedQrl(() => {}, 's_useOnMyCustom')
+  );
   return (
     <div>
       <button
@@ -91,7 +95,11 @@ const ManyEventsComponent = component$(() => {
       >
         click
       </button>
-      <button onClick$={inlinedQrl(() => {}, 's_click2')} onBlur$={inlinedQrl(() => {}, 's_blur1')}>
+      <button
+        onClick$={inlinedQrl(() => {}, 's_click2')}
+        onBlur$={inlinedQrl(() => {}, 's_blur1')}
+        on-anotherCustom$={inlinedQrl(() => {}, 's_anotherCustom1')}
+      >
         click
       </button>
     </div>
@@ -437,6 +445,28 @@ describe('render api', () => {
             '(window.qwikevents||(window.qwikevents=[]))'
           );
         });
+        it('should only render inside body', async () => {
+          const bigText = 'hello world '.repeat(4000);
+          const result = await renderToStringAndSetPlatform(
+            <>
+              <head>
+                <script>{bigText}</script>
+              </head>
+              <body>
+                <Counter />
+                <div>{bigText}</div>
+              </body>
+            </>,
+            {
+              containerTagName: 'html',
+              qwikLoader: 'inline',
+            }
+          );
+          const document = createDocument({ html: result.html });
+          const qwikLoaderScriptElements = document.querySelectorAll('script[id=qwikloader]');
+          expect(qwikLoaderScriptElements).toHaveLength(1);
+          expect(qwikLoaderScriptElements[0]?.parentNode?.nodeName.toLowerCase()).toEqual('body');
+        });
         it('should not render inside template', async () => {
           const bigText = 'hello world '.repeat(3000); // ~30kB of text
           const result = await renderToStringAndSetPlatform(
@@ -491,7 +521,7 @@ describe('render api', () => {
           qwikLoader: 'module',
         });
         expect(result.html).toContain(
-          '(window.qwikevents||(window.qwikevents=[])).push("focus", "click", "dblclick", "blur")'
+          '(window.qwikevents||(window.qwikevents=[])).push("focus", "-my---custom", "click", "dblclick", "another-custom", "blur")'
         );
       });
     });

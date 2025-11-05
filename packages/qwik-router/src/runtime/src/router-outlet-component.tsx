@@ -54,6 +54,7 @@ export const RouterOutlet = component$(() => {
                   if (s) {
                     w.scrollTo(s.x, s.y);
                   }
+                  // Tell qwikloader to run the spaInit code
                   document.dispatchEvent(new Event('qcinit'));
                 }
               })(window, history);

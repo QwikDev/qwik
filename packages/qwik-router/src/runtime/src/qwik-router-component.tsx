@@ -36,7 +36,6 @@ import {
   ContentInternalContext,
   DocumentHeadContext,
   RouteActionContext,
-  RouteInternalContext,
   RouteLocationContext,
   RouteNavigateContext,
   RoutePreventNavigateContext,
@@ -75,6 +74,8 @@ import { useQwikRouterEnv } from './use-functions';
 import { createLoaderSignal, isSameOrigin, isSamePath, toUrl } from './utils';
 import { startViewTransition } from './view-transition';
 import transitionCss from './qwik-view-transition.css?inline';
+
+declare const window: ClientSPAWindow;
 
 /**
  * @deprecated Use `QWIK_ROUTER_SCROLLER` instead (will be removed in V3)
@@ -122,6 +123,11 @@ const internalState = { navCount: 0 };
  * This hook should be used once, at the root of your application.
  */
 export const useQwikRouter = (props?: QwikRouterProps) => {
+  if (!isServer) {
+    throw new Error(
+      'useQwikRouter can only run during SSR on the server. If you are seeing this, it means you are re-rendering the root of your application. Fix that or use the <QwikRouterProvider> component around the root of your application.'
+    );
+  }
   useStyles$(transitionCss);
   const env = useQwikRouterEnv();
   if (!env?.params) {
@@ -136,15 +142,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   }
   const serverHead = useServerData<DocumentHeadValue>('documentHead');
 
-  if (isServer) {
-    if (
-      env!.ev.originalUrl.pathname !== env!.ev.url.pathname &&
-      !__EXPERIMENTAL__.enableRequestRewrite
-    ) {
-      throw new Error(
-        `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
-      );
-    }
+  if (
+    env.ev.originalUrl.pathname !== env.ev.url.pathname &&
+    !__EXPERIMENTAL__.enableRequestRewrite
+  ) {
+    throw new Error(
+      `enableRequestRewrite is an experimental feature and is not enabled. Please enable the feature flag by adding \`experimental: ["enableRequestRewrite"]\` to your qwikVite plugin options.`
+    );
   }
 
   const url = new URL(urlEnv);
@@ -193,11 +197,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     return loadersSerializationObject;
   };
 
+  // The initial state of routeInternal uses the URL provided by the server environment.
+  // It may not be accurate to the actual URL the browser is accessing the site from.
+  // It is useful for the purposes of SSR and SSG, but may be overridden browser-side
+  // if needed for SPA routing.
   const routeInternal = useSignal<RouteStateInternal>({
     type: 'initial',
     dest: url,
-    forceReload: false,
-    replaceState: false,
     scroll: true,
   });
   const documentHead = useStore<Editable<ResolvedDocumentHead>>(() =>
@@ -250,8 +256,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     (preventNav.$cbs$ ||= new Set()).add(fn$);
     // we need the QRLs to be synchronous if possible, for the beforeunload event
     fn$.resolve();
-    // TS thinks we're a webworker and doesn't know about beforeunload
-    (window as any).addEventListener('beforeunload', preventNav.$handler$);
+    window.addEventListener('beforeunload', preventNav.$handler$);
 
     return () => {
       if (preventNav.$cbs$) {
@@ -259,7 +264,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         if (!preventNav.$cbs$.size) {
           preventNav.$cbs$ = undefined;
           // unregister the event listener if no more callbacks, to make older Firefox happy
-          (window as any).removeEventListener('beforeunload', preventNav.$handler$);
+          window.removeEventListener('beforeunload', preventNav.$handler$!);
         }
       }
     };
@@ -273,6 +278,16 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       scroll = true,
     } = typeof opt === 'object' ? opt : { forceReload: opt };
     internalState.navCount++;
+
+    // If this is the first SPA navigation, we rewrite routeInternal's URL
+    // as the browser location URL to prevent an erroneous origin mismatch.
+    // The initial value of routeInternal is derived from the server env,
+    // which in the case of SSG may not match the actual origin the site
+    // is deployed on.
+    // We only do this for link navigations, as popstate will have already changed the URL
+    if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
+      routeInternal.value.dest = new URL(window.location.href);
+    }
 
     const lastDest = routeInternal.value.dest;
     const dest =
@@ -340,7 +355,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         restoreScroll(type, dest, new URL(location.href), scroller, getScrollHistory());
 
         if (type === 'popstate') {
-          (window as ClientSPAWindow)._qRouterScrollEnabled = true;
+          window._qRouterScrollEnabled = true;
         }
       }
 
@@ -351,7 +366,13 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       return;
     }
 
-    routeInternal.value = { type, dest, forceReload, replaceState, scroll };
+    routeInternal.value = {
+      type,
+      dest,
+      forceReload,
+      replaceState,
+      scroll,
+    };
 
     if (isBrowser) {
       loadClientData(dest, _getContextElement());
@@ -378,12 +399,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
   useContextProvider<any>(RoutePreventNavigateContext, registerPreventNav);
 
   useTask$(({ track }) => {
     async function run() {
-      const [navigation, action] = track(() => [routeInternal.value, actionState.value]);
+      const navigation = track(routeInternal);
+      const action = track(actionState);
 
       const locale = getLocale('');
       const prevUrl = routeLocation.url;
@@ -551,32 +572,32 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           }
           CLIENT_DATA_CACHE.clear();
 
-          const win = window as ClientSPAWindow;
-          if (!win._qRouterSPA) {
+          // See also spa-init.ts
+          if (!window._qRouterSPA) {
             // only add event listener once
-            win._qRouterSPA = true;
+            window._qRouterSPA = true;
             history.scrollRestoration = 'manual';
 
-            win.addEventListener('popstate', () => {
+            window.addEventListener('popstate', () => {
               // Disable scroll handler eagerly to prevent overwriting history.state.
-              win._qRouterScrollEnabled = false;
-              clearTimeout(win._qRouterScrollDebounce);
+              window._qRouterScrollEnabled = false;
+              clearTimeout(window._qRouterScrollDebounce);
 
               goto(location.href, {
                 type: 'popstate',
               });
             });
 
-            win.removeEventListener('popstate', win._qRouterInitPopstate!);
-            win._qRouterInitPopstate = undefined;
+            window.removeEventListener('popstate', window._qRouterInitPopstate!);
+            window._qRouterInitPopstate = undefined;
 
             // Browsers natively will remember scroll on ALL history entries, incl. custom pushState.
             // Devs could push their own states that we can't control.
             // If a user doesn't initiate scroll after, it will not have any scrollState.
             // We patch these to always include scrollState.
             // TODO Block this after Navigation API PR, browsers that support it have a Navigation API solution.
-            if (!win._qRouterHistoryPatch) {
-              win._qRouterHistoryPatch = true;
+            if (!window._qRouterHistoryPatch) {
+              window._qRouterHistoryPatch = true;
               const pushState = history.pushState;
               const replaceState = history.replaceState;
 
@@ -616,7 +637,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             // Firefox only does it once and no more, but will still scroll. It also sets state to null.
             // Any <a> tags w/ #hash href will break SPA state in Firefox.
             // We patch these events and direct them to Link pipeline during SPA.
-            document.body.addEventListener('click', (event) => {
+            document.addEventListener('click', (event) => {
               if (event.defaultPrevented) {
                 return;
               }
@@ -638,8 +659,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                       history.pushState(null, '', dest);
                     }
 
-                    win._qRouterScrollEnabled = false;
-                    clearTimeout(win._qRouterScrollDebounce);
+                    window._qRouterScrollEnabled = false;
+                    clearTimeout(window._qRouterScrollDebounce);
                     saveScrollHistory({
                       ...currentScrollState(scroller),
                       x: 0,
@@ -654,8 +675,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               }
             });
 
-            document.body.removeEventListener('click', win._qRouterInitAnchors!);
-            win._qRouterInitAnchors = undefined;
+            document.removeEventListener('click', window._qRouterInitAnchors!);
+            window._qRouterInitAnchors = undefined;
 
             // TODO Remove block after Navigation API PR.
             // Calling `history.replaceState` during `visibilitychange` in Chromium will nuke BFCache.
@@ -666,10 +687,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                 'visibilitychange',
                 () => {
                   if (
-                    (win._qRouterScrollEnabled || win._qCityScrollEnabled) &&
+                    (window._qRouterScrollEnabled || window._qCityScrollEnabled) &&
                     document.visibilityState === 'hidden'
                   ) {
-                    if (win._qCityScrollEnabled) {
+                    if (window._qCityScrollEnabled) {
                       console.warn(
                         '"_qCityScrollEnabled" is deprecated. Use "_qRouterScrollEnabled" instead.'
                       );
@@ -683,39 +704,39 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
                 { passive: true }
               );
 
-              document.removeEventListener('visibilitychange', win._qRouterInitVisibility!);
-              win._qRouterInitVisibility = undefined;
+              document.removeEventListener('visibilitychange', window._qRouterInitVisibility!);
+              window._qRouterInitVisibility = undefined;
             }
 
-            win.addEventListener(
+            window.addEventListener(
               'scroll',
               () => {
                 // TODO: remove "_qCityScrollEnabled" condition in v3
-                if (!win._qRouterScrollEnabled && !win._qCityScrollEnabled) {
+                if (!window._qRouterScrollEnabled && !window._qCityScrollEnabled) {
                   return;
                 }
 
-                clearTimeout(win._qRouterScrollDebounce);
-                win._qRouterScrollDebounce = setTimeout(() => {
+                clearTimeout(window._qRouterScrollDebounce);
+                window._qRouterScrollDebounce = setTimeout(() => {
                   const scrollState = currentScrollState(scroller);
                   saveScrollHistory(scrollState);
                   // Needed for e2e debounceDetector.
-                  win._qRouterScrollDebounce = undefined;
+                  window._qRouterScrollDebounce = undefined;
                 }, 200);
               },
               { passive: true }
             );
 
-            removeEventListener('scroll', win._qRouterInitScroll!);
-            win._qRouterInitScroll = undefined;
+            removeEventListener('scroll', window._qRouterInitScroll!);
+            window._qRouterInitScroll = undefined;
 
             // Cache SPA recovery script.
             spaInit.resolve();
           }
 
           if (navType !== 'popstate') {
-            win._qRouterScrollEnabled = false;
-            clearTimeout(win._qRouterScrollDebounce);
+            window._qRouterScrollEnabled = false;
+            clearTimeout(window._qRouterScrollDebounce);
 
             // Save the final scroll state before pushing new state.
             // Upgrades/replaces state with scroll pos on nav as needed.
@@ -748,7 +769,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             container.setAttribute(Q_ROUTE, routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);
-            win._qRouterScrollEnabled = true;
+            window._qRouterScrollEnabled = true;
             if (isBrowser) {
               callRestoreScrollOnDocument();
             }
@@ -770,6 +791,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     }
 
     if (isServer) {
+      // Server: wait for navigation to complete
       return run();
     } else {
       run();
@@ -777,8 +799,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   });
 };
 
-/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component. */
+/** @public This is a wrapper around the `useQwikRouter()` hook. We recommend using the hook instead of this component, unless you have a good reason to make your root component reactive. */
 export const QwikRouterProvider = component$<QwikRouterProps>((props) => {
+  // Initialize Qwik Router; since this component is not reactive, the hook only runs once.
   useQwikRouter(props);
   return <Slot />;
 });
@@ -817,7 +840,6 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   );
 
   const loaderState = {};
-  const routeInternal = useSignal<RouteStateInternal>({ type: 'initial', dest: url });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -846,7 +868,6 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   useContextProvider(RouteNavigateContext, goto);
   useContextProvider(RouteStateContext, loaderState);
   useContextProvider(RouteActionContext, actionState);
-  useContextProvider(RouteInternalContext, routeInternal);
 };
 
 /** @public */

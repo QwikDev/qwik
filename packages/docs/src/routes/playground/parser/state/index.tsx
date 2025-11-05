@@ -47,7 +47,6 @@ export default component$(() => {
         getSyncFn: (id: number) => () => {},
         $storeProxyMap$: new WeakMap(),
         $forwardRefs$: null,
-        $initialQRLsIndexes$: null,
         $scheduler$: null,
       };
 
@@ -78,7 +77,6 @@ export default component$(() => {
             getSyncFn: (id: number) => () => {},
             $storeProxyMap$: new WeakMap(),
             $forwardRefs$: null,
-            $initialQRLsIndexes$: null,
             $scheduler$: null,
           };
           _preprocessState(stateData, container as any);

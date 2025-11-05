@@ -49,8 +49,6 @@ export type InvokeTuple = [Element, Event, URL?];
 export interface InvokeContext {
   /* The URL of the QRL */
   $url$: URL | undefined;
-  /** The next available index for the sequentialScope array */
-  $i$: number;
   /** The Virtual parent component for the current component code */
   $hostElement$: HostElement | undefined;
   /** The current DOM element */
@@ -162,7 +160,6 @@ export const newInvokeContext = (
     locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
-    $i$: 0,
     $hostElement$: hostElement,
     $element$: element,
     $event$: event,

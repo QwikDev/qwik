@@ -15,7 +15,7 @@ import {
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
-import { isPromise, maybeThen, retryOnPromise } from '../utils/promises';
+import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
@@ -99,8 +99,7 @@ export const createQRL = <TYPE>(
     // Note that we bind the current `this`
     const bound = (...args: QrlArgs<TYPE>): ValueOrPromise<QrlReturn<TYPE> | undefined> => {
       if (!qrl.resolved) {
-        const promise = retryOnPromise(() => qrl.resolve()) as Promise<TYPE>;
-        return promise.then((fn) => {
+        return qrl.resolve().then((fn) => {
           if (!isFunction(fn)) {
             throw qError(QError.qrlIsNotFunction);
           }
@@ -228,7 +227,8 @@ export const createQRL = <TYPE>(
   Object.assign(qrl, {
     getSymbol: () => symbol,
     getHash: () => hash,
-    getCaptured: () => captureRef,
+    // captureRef is replaced during deserialization
+    getCaptured: () => qrl.$captureRef$,
     resolve,
     $setContainer$: setContainer,
     $chunk$: chunk,

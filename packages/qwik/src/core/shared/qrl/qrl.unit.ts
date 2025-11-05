@@ -1,7 +1,8 @@
+import { $ } from '@qwik.dev/core';
 import { createQRL } from './qrl-class';
-import { qrl } from './qrl';
+import { _regSymbol, inlinedQrl, qrl } from './qrl';
 import { describe, test, assert, assertType, expectTypeOf } from 'vitest';
-import { $, type QRL } from './qrl.public';
+import { type QRL } from './qrl.public';
 import { useLexicalScope } from '../../use/use-lexical-scope.public';
 import { createSerializationContext, parseQRL, qrlToString } from '../serdes/index';
 
@@ -244,5 +245,42 @@ describe('createQRL', () => {
     assert.deepEqual(await q(), ['hi']);
     assert.notEqual(q.resolved, capFn);
     assert.deepEqual(q.resolved!(), ['hi']);
+  });
+});
+
+describe('inlinedQrl', () => {
+  test('should recover symbol from registry', async () => {
+    const symbol = () => 'hello';
+    // The optimizer normally injects the _regSymbol call here
+    inlinedQrl(_regSymbol(symbol, '123'), 'mySymbol_123');
+    const otherQrl = inlinedQrl(null, 'mySymbol_123');
+    await otherQrl.resolve();
+    assert.equal(otherQrl.resolved, symbol);
+  });
+});
+
+describe('binding this', () => {
+  test('should bind this', async () => {
+    const myQrlFn = $(function (this: any, value: string) {
+      return this.prefix + value;
+    });
+    const boundQrl = myQrlFn.bind({ prefix: 'Hello ' });
+    const result = await boundQrl('World!');
+    assert.equal(result, 'Hello World!');
+  });
+
+  test('should bind this even when not yet resolved', async () => {
+    const myQrlFn = qrl(
+      () =>
+        Promise.resolve().then(() => ({
+          world123(this: any, value: string) {
+            return this.prefix + value;
+          },
+        })),
+      'world123'
+    );
+    const boundQrl = myQrlFn.bind({ prefix: 'Hello ' });
+    const result = await boundQrl('World!');
+    assert.equal(result, 'Hello World!');
   });
 });

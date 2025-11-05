@@ -1,5 +1,56 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.13
+
+### Minor Changes
+
+- ✨ add resolve method for async computed (by [@Varixo](https://github.com/Varixo) in [#7881](https://github.com/QwikDev/qwik/pull/7881))
+
+### Patch Changes
+
+- 🐞🩹 checking if object is serializable in dev mode (by [@Varixo](https://github.com/Varixo) in [#8106](https://github.com/QwikDev/qwik/pull/8106))
+
+- 🐞🩹 don't emit script before qwik style element (by [@Varixo](https://github.com/Varixo) in [#8124](https://github.com/QwikDev/qwik/pull/8124))
+
+- 🐞🩹 ensure DOM is updated during long running tasks (by [@Varixo](https://github.com/Varixo) in [#8087](https://github.com/QwikDev/qwik/pull/8087))
+
+- 🐞🩹 useId should genereate different id for ssr (by [@Varixo](https://github.com/Varixo) in [#8094](https://github.com/QwikDev/qwik/pull/8094))
+
+## 2.0.0-beta.12
+
+### Major Changes
+
+- BREAKING: (slightly) `-` handling in JSX event handlers has slightly changed. Now, if an event name starts with `-`, the rest of the name will be kept as-is, preserving casing. Otherwise, the event name is made lowercase. Any `-` characters in the middle of the name are preserved as-is. Previously, `-` were considered to mark the next letter as uppercase. (by [@wmertens](https://github.com/wmertens) in [#8060](https://github.com/QwikDev/qwik/pull/8060))
+  For example, `onCustomEvent$` will match `customevent`, `on-CustomEvent$` will match `CustomEvent`, and `onCustom-Event$` will match `custom-event`. Before, that last one would match `customEvent` instead.
+
+- BREAKING: When using the `base` setting in Vite, the client build will no longer be placed under that base path. Instead, the output directory is always `dist/` by default. If you need to change the output directory, use the `build.outDir` setting in Vite or the `outDir` option in the `qwikVite` plugin under `client` or `ssr`. (by [@wmertens](https://github.com/wmertens) in [#8064](https://github.com/QwikDev/qwik/pull/8064))
+
+### Minor Changes
+
+- ✨ `qwikVite` now accepts `ssr.manifestInputPath` for when the `q-manifest.json` file from the client build is at an unexpected location. (by [@wmertens](https://github.com/wmertens) in [#8064](https://github.com/QwikDev/qwik/pull/8064))
+
+- ✨ `bind:checked` and `bind:value` now also work through spread props, and they result in less code. (by [@wmertens](https://github.com/wmertens) in [#7321](https://github.com/QwikDev/qwik/pull/7321))
+
+### Patch Changes
+
+- ✨ All vite.config.mts files got renamed to vite.config.ts files, because all starters are marked as ESM projects (by [@wmertens](https://github.com/wmertens) in [#8084](https://github.com/QwikDev/qwik/pull/8084))
+
+- 🐞🩹 backpatches ignore unknown nodes (by [@thejackshelton](https://github.com/thejackshelton) in [#8076](https://github.com/QwikDev/qwik/pull/8076))
+
+- 🐞🩹 blocking slot parent and parent order (by [@Varixo](https://github.com/Varixo) in [#8070](https://github.com/QwikDev/qwik/pull/8070))
+
+- ✨ withLocale() uses AsyncLocalStorage for server-side requests when available. This allows async operations to retain the correct locale context. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7826](https://github.com/QwikDev/qwik/pull/7826))
+
+- 🐞🩹 core now throws an error when a qwik lib package is not added to ssr.noExternal (by [@maiieul](https://github.com/maiieul) in [#8062](https://github.com/QwikDev/qwik/pull/8062))
+
+- 🐞🩹 adding and removing attributes on vnodes (by [@Varixo](https://github.com/Varixo) in [#8030](https://github.com/QwikDev/qwik/pull/8030))
+
+- 🐞🩹 reblocking chores in scheduler (by [@Varixo](https://github.com/Varixo) in [#8077](https://github.com/QwikDev/qwik/pull/8077))
+
+- 🐞🩹 memory leak for reactive attributes (by [@Varixo](https://github.com/Varixo) in [#7997](https://github.com/QwikDev/qwik/pull/7997))
+
+- 🐞🩹 scheduling previously blocked chore (by [@Varixo](https://github.com/Varixo) in [#8028](https://github.com/QwikDev/qwik/pull/8028))
+
 ## 2.0.0-beta.11
 
 ### Patch Changes

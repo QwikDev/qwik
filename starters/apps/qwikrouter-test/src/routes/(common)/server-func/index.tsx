@@ -38,6 +38,10 @@ const serverFunctionB = server$(async function b() {
   return this.method;
 });
 
+const argsChecker = server$(async function (...args: any[]) {
+  return args.map(String).join(",");
+});
+
 export const MultipleServerFunctionsInvokedInTask = component$(() => {
   const methodA = useSignal("");
   const methodB = useSignal("");
@@ -61,6 +65,18 @@ export default component$(() => {
   const userAgentEvent = useSignal("");
   const loader = useGetUserAgent();
   const streamingLogs = useSignal("");
+  const serverArgsReceived = useSignal("");
+  const clientArgsReceived = useSignal("");
+  const localCount = useSignal(0);
+  const receivedCount = useSignal(0);
+
+  const scopeGetter = server$(() => {
+    return localCount.value;
+  });
+
+  useTask$(async () => {
+    serverArgsReceived.value = await argsChecker(1, 1, 1);
+  });
 
   useTask$(async () => {
     userAgent.value = await getUserAgent();
@@ -100,6 +116,23 @@ export default component$(() => {
         </button>
       </section>
       <MultipleServerFunctionsInvokedInTask />
+      <button
+        id="args-checker-button"
+        onClick$={async () => {
+          clientArgsReceived.value = await argsChecker(10, 10);
+        }}
+      >
+        Count Args: {serverArgsReceived.value} / {clientArgsReceived.value}
+      </button>
+      <button
+        id="scope-checker-button"
+        onClick$={async () => {
+          localCount.value++;
+          receivedCount.value = await scopeGetter();
+        }}
+      >
+        local/remote: {localCount.value} / {receivedCount.value}
+      </button>
     </>
   );
 });

@@ -193,6 +193,7 @@ export const createScheduler = (
   let flushBudgetStart = 0;
   let currentTime = performance.now();
   const nextTick = createNextTick(drainChoreQueue);
+  let flushTimerId: number | null = null;
 
   function drainInNextTick() {
     if (!drainScheduled) {
@@ -349,24 +350,31 @@ This is often caused by modifying a signal in an already rendered component duri
       }
     }
 
-    const blockingChore = findBlockingChore(
-      chore,
-      choreQueue,
-      blockedChores,
-      runningChores,
-      container
-    );
-    if (blockingChore) {
-      addBlockedChore(chore, blockingChore, blockedChores);
-      return chore;
+    const shouldBlock =
+      chore.$type$ !== ChoreType.QRL_RESOLVE && chore.$type$ !== ChoreType.RUN_QRL;
+
+    if (shouldBlock) {
+      const blockingChore = findBlockingChore(
+        chore,
+        choreQueue,
+        blockedChores,
+        runningChores,
+        container
+      );
+      if (blockingChore) {
+        addBlockedChore(chore, blockingChore, blockedChores);
+        return chore;
+      }
+
+      const runningChore = getRunningChore(chore);
+      if (runningChore) {
+        addBlockedChore(chore, runningChore, blockedChores);
+        return chore;
+      }
     }
-    const runningChore = getRunningChore(chore);
-    if (runningChore) {
-      addBlockedChore(chore, runningChore, blockedChores);
-    } else {
-      addChore(chore, choreQueue);
-      DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
-    }
+
+    addChore(chore, choreQueue);
+    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 
@@ -387,6 +395,42 @@ This is often caused by modifying a signal in an already rendered component duri
   // Drain queue helpers
   ////////////////////////////////////////////////////////////////////////////////
 
+  function cancelFlushTimer() {
+    if (flushTimerId != null) {
+      clearTimeout(flushTimerId);
+      flushTimerId = null;
+    }
+  }
+
+  function scheduleFlushTimer(): void {
+    const isServer = isServerPlatform();
+    // Never schedule timers on the server
+    if (isServer) {
+      return;
+    }
+    // Ignore if a timer is already scheduled
+    if (flushTimerId != null) {
+      return;
+    }
+
+    const now = performance.now();
+    const elapsed = now - flushBudgetStart;
+    const delay = Math.max(0, FREQUENCY_MS - elapsed);
+    // Deadline already reached, flush now
+    if (delay === 0) {
+      if (!isDraining) {
+        applyJournalFlush();
+      }
+      return;
+    }
+
+    flushTimerId = setTimeout(() => {
+      flushTimerId = null;
+
+      applyJournalFlush();
+    }, delay) as unknown as number;
+  }
+
   function applyJournalFlush() {
     if (!isJournalFlushRunning) {
       // prevent multiple journal flushes from running at the same time
@@ -394,6 +438,7 @@ This is often caused by modifying a signal in an already rendered component duri
       journalFlush();
       isJournalFlushRunning = false;
       flushBudgetStart = performance.now();
+      cancelFlushTimer();
       DEBUG && debugTrace('journalFlush.DONE', null, choreQueue, blockedChores);
     }
   }
@@ -421,6 +466,7 @@ This is often caused by modifying a signal in an already rendered component duri
     }
     isDraining = true;
     flushBudgetStart = performance.now();
+    cancelFlushTimer();
 
     const maybeFinishDrain = () => {
       if (choreQueue.length) {
@@ -523,7 +569,8 @@ This is often caused by modifying a signal in an already rendered component duri
             })
             .catch((e) => {
               if (chore.$state$ !== ChoreState.RUNNING) {
-                // we already handled the error
+                // we already handled an error but maybe it's a different one so we log it
+                console.error(e);
                 return;
               }
               handleError(chore, e);
@@ -535,15 +582,12 @@ This is often caused by modifying a signal in an already rendered component duri
               scheduleBlockedChoresAndDrainIfNeeded(chore);
               // If drainChore is not null, we are waiting for it to finish.
               // If there are no running chores, we can finish the drain.
-              if (!runningChores.size) {
-                let finished = false;
-                if (drainChore) {
-                  finished = maybeFinishDrain();
-                }
-                if (!finished && !isDraining) {
-                  // if finished, then journal flush is already applied
-                  applyJournalFlush();
-                }
+              let finished = false;
+              if (drainChore && !runningChores.size) {
+                finished = maybeFinishDrain();
+              }
+              if (!finished && !isDraining) {
+                scheduleFlushTimer();
               }
             });
         } else {

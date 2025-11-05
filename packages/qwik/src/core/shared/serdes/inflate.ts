@@ -170,9 +170,9 @@ export const inflate = (
       const hasValue = d.length > 6;
       if (hasValue) {
         asyncComputed.$untrackedValue$ = d[6];
+        asyncComputed.$promiseValue$ = d[6];
       }
       asyncComputed.$flags$ |= SignalFlags.INVALID;
-
       break;
     }
     // Inflating a SerializerSignal is the same as inflating a ComputedSignal

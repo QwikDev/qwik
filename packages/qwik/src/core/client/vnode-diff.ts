@@ -99,6 +99,7 @@ export const vnode_diff = (
   const stack: any[] = [];
 
   const asyncQueue: Array<VNode | ValueOrPromise<JSXChildren> | Promise<JSXChildren>> = [];
+  const asyncAttributePromises: Promise<void>[] = [];
 
   ////////////////////////////////
   //// Traverse state variables
@@ -559,6 +560,14 @@ export const vnode_diff = (
         diff(jsxNode, vHostNode);
       }
     }
+    // Wait for all async attribute promises to complete, then check for more work
+    if (asyncAttributePromises.length) {
+      const promises = asyncAttributePromises.splice(0);
+      return Promise.all(promises).then(() => {
+        // After attributes are set, check if there's more work in the queue
+        return drainAsyncQueue();
+      });
+    }
   }
 
   function expectNoChildren() {
@@ -619,11 +628,11 @@ export const vnode_diff = (
           // only svg elements can have namespace attributes
           const namespace = getAttributeNamespace(key);
           if (namespace) {
-            element.setAttributeNS(namespace, key, String(value));
+            element.setAttributeNS(namespace, key, value);
             return;
           }
         }
-        element.setAttribute(key, String(value));
+        element.setAttribute(key, value);
       }
     }
 
@@ -679,7 +688,10 @@ export const vnode_diff = (
 
         if (isPromise(value)) {
           const vHost = vNewNode as ElementVNode;
-          value.then((resolvedValue) => setAttribute(key, resolvedValue, vHost));
+          const attributePromise = value.then((resolvedValue) =>
+            setAttribute(key, resolvedValue, vHost)
+          );
+          asyncAttributePromises.push(attributePromise);
           continue;
         }
 
@@ -893,7 +905,10 @@ export const vnode_diff = (
 
       if (isPromise(value)) {
         const vHost = vnode as ElementVNode;
-        value.then((resolvedValue) => setAttribute(key, resolvedValue, vHost));
+        const attributePromise = value.then((resolvedValue) =>
+          setAttribute(key, resolvedValue, vHost)
+        );
+        asyncAttributePromises.push(attributePromise);
         return;
       }
 

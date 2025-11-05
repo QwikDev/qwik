@@ -196,9 +196,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-[resolve()](#asynccomputedreadonlysignal-resolve)
+[promise()](#asynccomputedreadonlysignal-promise)
 
 </td><td>
+
+A promise that resolves when the value is computed.
 
 </td></tr>
 </tbody></table>
@@ -2629,6 +2631,18 @@ opts
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/prefetch-service-worker/prefetch.ts)
 
+## promise
+
+A promise that resolves when the value is computed.
+
+```typescript
+promise(): Promise<T>;
+```
+
+**Returns:**
+
+Promise&lt;T&gt;
+
 ## PropFunction
 
 Alias for `QRL<T>`. Of historic relevance only.
@@ -3699,16 +3713,6 @@ StreamWriter
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/ssr/ssr-types.ts)
-
-## resolve
-
-```typescript
-resolve(): Promise<T>;
-```
-
-**Returns:**
-
-Promise&lt;T&gt;
 
 ## Resource
 

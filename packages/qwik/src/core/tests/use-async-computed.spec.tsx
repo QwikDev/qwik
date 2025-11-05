@@ -40,15 +40,25 @@ describe.each([
         </button>
       </>
     );
+    await trigger(container.element, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <>
+        <button>
+          <Signal ssr-required>{'6'}</Signal>
+        </button>
+      </>
+    );
   });
 
   it('should compute async computed result from async computed result', async () => {
     const Counter = component$(() => {
       const count = useSignal(1);
-      const doubleCount = useAsyncComputed$(({ track }) => Promise.resolve(track(count) * 2));
-      const quadrupleCount = useAsyncComputed$(({ track }) =>
-        Promise.resolve(track(doubleCount) * 2)
-      );
+      const doubleCount = useAsyncComputed$(({ track }) => {
+        return Promise.resolve(track(count) * 2);
+      });
+      const quadrupleCount = useAsyncComputed$(({ track }) => {
+        return Promise.resolve(track(doubleCount) * 2);
+      });
       return <button onClick$={() => count.value++}>{quadrupleCount.value}</button>;
     });
     const { vNode, container } = await render(<Counter />, { debug });
@@ -276,15 +286,15 @@ describe.each([
     });
   });
 
-  describe('resolve', () => {
-    it('should not rerun if resolve is used before', async () => {
+  describe('promise', () => {
+    it('should not rerun if promise is awaited before', async () => {
       (globalThis as any).log = [];
       const Counter = component$(() => {
         const count = useSignal(1);
         const doubleCount = useAsyncComputed$(() => Promise.resolve(count.value * 2));
 
         useTask$(async () => {
-          await doubleCount.resolve();
+          await doubleCount.promise();
           (globalThis as any).log.push('task');
           (globalThis as any).log.push(doubleCount.value);
         });

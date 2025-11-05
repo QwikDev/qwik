@@ -21,7 +21,8 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
   loading: boolean;
   /** The error that occurred while computing the signal. */
   error: Error | null;
-  resolve(): Promise<T>;
+  /** A promise that resolves when the value is computed. */
+  promise(): Promise<T>;
 }
 
 /**

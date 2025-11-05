@@ -14,6 +14,7 @@ import {
   SerializationSignalFlags,
   SignalFlags,
 } from '../types';
+import { scheduleEffects } from '../utils';
 import { ComputedSignalImpl } from './computed-signal-impl';
 import { setupSignalValueAccess } from './signal-impl';
 
@@ -30,7 +31,7 @@ const log = (...args: any[]) =>
  * # ================================
  */
 export class AsyncComputedSignalImpl<T>
-  extends ComputedSignalImpl<T, AsyncComputeQRL<T>>
+  extends ComputedSignalImpl<T | undefined, AsyncComputeQRL<T>>
   implements BackRef
 {
   $untrackedLoading$: boolean = false;
@@ -39,7 +40,8 @@ export class AsyncComputedSignalImpl<T>
   $loadingEffects$: null | Set<EffectSubscription> = null;
   $errorEffects$: null | Set<EffectSubscription> = null;
   $destroy$: NoSerialize<() => void> | null;
-  private $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
+  $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
+  private $promise$: Promise<T> | null = null;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
 
@@ -106,12 +108,13 @@ export class AsyncComputedSignalImpl<T>
 
   override invalidate() {
     super.invalidate();
-    this.$promiseValue$ = NEEDS_COMPUTATION;
+    // clear the promise, we need to get function again
+    this.$promise$ = null;
   }
 
-  async resolve(): Promise<T> {
+  async promise(): Promise<T> {
     await retryOnPromise(() => this.$computeIfNeeded$());
-    return this.$untrackedValue$;
+    return this.$untrackedValue$!;
   }
 
   $computeIfNeeded$() {
@@ -119,38 +122,73 @@ export class AsyncComputedSignalImpl<T>
       return;
     }
 
-    const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
     const untrackedValue =
-      this.$promiseValue$ === NEEDS_COMPUTATION
-        ? (this.$computeQrl$.getFn()({
-            track: trackFn(this, this.$container$),
-            cleanup,
-          }) as T)
+      // first time
+      this.$promiseValue$ === NEEDS_COMPUTATION ||
+      // or after invalidation
+      this.$promise$ === null
+        ? this.$promiseComputation$()
         : this.$promiseValue$;
+
     if (isPromise(untrackedValue)) {
+      const isFirstComputation = this.$promiseValue$ === NEEDS_COMPUTATION;
       this.untrackedLoading = true;
       this.untrackedError = null;
-      throw untrackedValue
+
+      const promise = untrackedValue
         .then((promiseValue) => {
+          DEBUG && log('Promise resolved', promiseValue);
           this.$promiseValue$ = promiseValue;
           this.untrackedLoading = false;
           this.untrackedError = null;
+          if (this.setValue(promiseValue)) {
+            DEBUG && log('Scheduling effects for subscribers', this.$effects$?.size);
+            scheduleEffects(this.$container$, this, this.$effects$);
+          }
         })
         .catch((err) => {
+          if (isPromise(err)) {
+            // ignore promise errors, they will be handled
+            return;
+          }
+          DEBUG && log('Error caught in promise.catch', err);
           this.$promiseValue$ = err;
           this.untrackedLoading = false;
           this.untrackedError = err;
         });
+
+      if (isFirstComputation) {
+        // we want to throw only the first time
+        // the next time we will return stale value
+        throw promise;
+      } else {
+        DEBUG &&
+          log('Returning stale value', this.$untrackedValue$, 'while computing', untrackedValue);
+        // Return the promise so the scheduler can track it as a running chore
+        return promise;
+      }
+    } else {
+      this.setValue(untrackedValue);
     }
-    this.$promiseValue$ = NEEDS_COMPUTATION;
-    DEBUG && log('Signal.$asyncCompute$', untrackedValue);
+  }
 
+  private async $promiseComputation$(): Promise<T> {
+    if (!this.$promise$) {
+      const [cleanup] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
+      this.$promise$ = this.$computeQrl$.getFn()({
+        track: trackFn(this, this.$container$),
+        cleanup,
+      }) as Promise<T>;
+    }
+    return this.$promise$;
+  }
+
+  private setValue(value: T) {
     this.$flags$ &= ~SignalFlags.INVALID;
-
-    const didChange = untrackedValue !== this.$untrackedValue$;
+    const didChange = value !== this.$untrackedValue$;
     if (didChange) {
+      this.$untrackedValue$ = value;
       this.$flags$ |= SignalFlags.RUN_EFFECTS;
-      this.$untrackedValue$ = untrackedValue;
     }
     return didChange;
   }

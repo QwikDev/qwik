@@ -115,7 +115,7 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
     }
     if (def.type === 'ImportBinding' && checker && esTreeNodeToTSNodeMap) {
       try {
-        // Map the identifier to TS node & resolve symbol (following re-exports)
+        // Map the identifier to TS node & promise symbol (following re-exports)
         const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
         if (tsNode) {
           let symbol = checker.getSymbolAtLocation(tsNode);
@@ -193,7 +193,7 @@ function hasAwaitResolveBefore(
       awaited.callee.object.type === AST_NODE_TYPES.Identifier &&
       awaited.callee.object.name === identifierName &&
       awaited.callee.property.type === AST_NODE_TYPES.Identifier &&
-      awaited.callee.property.name === 'resolve'
+      awaited.callee.property.name === 'promise'
     ) {
       return true;
     }
@@ -213,7 +213,7 @@ export const asyncComputedTop: Rule.RuleModule = {
     schema: [],
     messages: {
       asyncComputedNotTop:
-        "Async computed '{{name}}.value' must be first, or use 'await {{name}}.resolve()' beforehand.",
+        "Async computed '{{name}}.value' must be first, or use 'await {{name}}.promise()' beforehand.",
     },
   },
   create(context) {

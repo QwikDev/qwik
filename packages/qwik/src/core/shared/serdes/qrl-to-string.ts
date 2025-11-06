@@ -61,16 +61,17 @@ export function qrlToString(
     symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
   }
 
-  if (!value.$capture$ && Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
+  let capturedIds: string[] | null = null;
+  if (Array.isArray(value.$captureRef$) && value.$captureRef$.length > 0) {
     // We refer by id so every capture needs to be a root
-    value.$capture$ = value.$captureRef$.map((ref) => `${serializationContext.$addRoot$(ref)}`);
+    capturedIds = value.$captureRef$.map((ref) => `${serializationContext.$addRoot$(ref)}`);
   }
   if (raw) {
-    return [chunk, symbol, value.$capture$];
+    return [chunk, symbol, capturedIds];
   }
   let qrlStringInline = `${chunk}#${symbol}`;
-  if (value.$capture$ && value.$capture$.length > 0) {
-    qrlStringInline += `[${value.$capture$.join(' ')}]`;
+  if (capturedIds && capturedIds.length > 0) {
+    qrlStringInline += `[${capturedIds.join(' ')}]`;
   }
   return qrlStringInline;
 }

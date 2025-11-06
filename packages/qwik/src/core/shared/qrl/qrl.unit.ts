@@ -121,19 +121,26 @@ describe('serialization', () => {
       'c#s1'
     );
     assert.equal(
-      qrlToString(serializationContext, createQRL('./c', 's1', null, null, [1, '2'] as any, null)),
-      'c#s1[1 2]'
-    );
-    assert.equal(
-      qrlToString(serializationContext, createQRL('c', 's1', null, null, [1 as any, '2'], null)),
-      'c#s1[1 2]'
+      qrlToString(
+        serializationContext,
+        createQRL(
+          './c',
+          's1',
+          null,
+          null,
+          // should be ignored
+          [1, '2'] as any,
+          [{}, {}]
+        )
+      ),
+      'c#s1[0 1]'
     );
     assert.equal(
       qrlToString(
         serializationContext,
-        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, [1 as any, '2'], null)
+        createQRL('src/routes/[...index]/a+b/c?foo', 's1', null, null, null, [{}, {}])
       ),
-      'src/routes/[...index]/a+b/c?foo#s1[1 2]'
+      'src/routes/[...index]/a+b/c?foo#s1[2 3]'
     );
   });
 

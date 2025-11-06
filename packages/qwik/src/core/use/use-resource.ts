@@ -4,7 +4,7 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import { type QRL } from '../shared/qrl/qrl.public';
 import { invoke, newInvokeContext, untrack, useBindInvokeContext } from './use-core';
-import { Task, TaskFlags, cleanupTask, type DescriptorBase, type Tracker } from './use-task';
+import { Task, TaskFlags, type DescriptorBase, type Tracker } from './use-task';
 
 import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
@@ -24,6 +24,7 @@ import { delay, isPromise, retryOnPromise, safeCall } from '../shared/utils/prom
 import { isObject } from '../shared/utils/types';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { cleanupDestroyable } from './utils/destroyable';
 
 const DEBUG: boolean = false;
 
@@ -265,7 +266,7 @@ export const runResource = <T>(
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
+  cleanupDestroyable(task);
 
   const iCtx = newInvokeContext(container.$locale$, host, undefined, ResourceEvent);
   iCtx.$container$ = container;
@@ -373,7 +374,7 @@ export const runResource = <T>(
       promise,
       delay(timeout).then(() => {
         if (setState(false, new Error('timeout'))) {
-          cleanupTask(task);
+          cleanupDestroyable(task);
         }
       }),
     ]);

@@ -307,4 +307,45 @@ describe.each([
       (globalThis as any).log = undefined;
     });
   });
+
+  describe('cleanup', () => {
+    it('should run cleanup on destroy', async () => {
+      (globalThis as any).log = [];
+
+      const Child = component$(() => {
+        const asyncValue = useAsyncComputed$(({ cleanup }) => {
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup');
+          });
+          return Promise.resolve(1);
+        });
+        return <div>{asyncValue.value}</div>;
+      });
+
+      const Counter = component$(() => {
+        const toggle = useSignal(true);
+
+        return (
+          <>
+            <button onClick$={() => (toggle.value = !toggle.value)}></button>
+            {toggle.value && <Child />}
+          </>
+        );
+      });
+      const { container } = await render(<Counter />, { debug });
+      // on server its called after render
+      // on client it is not called yet
+      expect((globalThis as any).log).toEqual(render === ssrRenderToDom ? ['cleanup'] : []);
+      await trigger(container.element, 'button', 'click');
+      // on server after resuming cleanup is not called yet
+      // on client it is called as usual
+      expect((globalThis as any).log).toEqual(
+        render === ssrRenderToDom ? ['cleanup'] : ['cleanup']
+      );
+      await trigger(container.element, 'button', 'click'); //show
+      await trigger(container.element, 'button', 'click'); //hide
+      // on server and client cleanup called again
+      expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
+    });
+  });
 });

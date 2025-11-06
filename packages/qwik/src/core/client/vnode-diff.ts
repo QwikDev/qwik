@@ -50,7 +50,7 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
-import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
+import { TaskFlags, isTask } from '../use/use-task';
 import type { DomContainer } from './dom-container';
 import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
@@ -81,6 +81,9 @@ import {
 } from './vnode';
 import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
+import { cleanupDestroyable, isDestroyable } from '../use/utils/destroyable';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { isStore } from '../reactive-primitives/impl/store';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -1527,29 +1530,33 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
     if (type & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) {
       clearAllEffects(container, vCursor);
       markVNodeAsDeleted(vCursor);
-      // Only elements and virtual nodes need to be traversed for children
-      if (type & VNodeFlags.Virtual) {
-        const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
-        if (seq) {
-          for (let i = 0; i < seq.length; i++) {
-            const obj = seq[i];
-            if (isTask(obj)) {
-              const task = obj;
-              clearAllEffects(container, task);
-              if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, task);
-              } else {
-                cleanupTask(task);
-              }
-            }
-          }
-        }
-      }
 
       const isComponent =
         type & VNodeFlags.Virtual &&
         (vCursor as VirtualVNode).getProp<OnRenderFn<any> | null>(OnRenderProp, null) !== null;
       if (isComponent) {
+        // cleanup q:seq content
+        const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
+        if (seq) {
+          for (let i = 0; i < seq.length; i++) {
+            const obj = seq[i];
+            if (isTask(obj)) {
+              clearAllEffects(container, obj);
+              if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+                // don't call cleanupDestroyable yet, do it by the scheduler
+                continue;
+              }
+            } else if (obj instanceof SignalImpl || isStore(obj)) {
+              clearAllEffects(container, obj);
+            }
+
+            if (isDestroyable(obj)) {
+              cleanupDestroyable(obj);
+            }
+          }
+        }
+
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = vnode_getProps(vCursor as VirtualVNode);
         for (let i = 0; i < attrs.length; i = i + 2) {

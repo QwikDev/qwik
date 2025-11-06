@@ -98,14 +98,7 @@ import {
 import { scheduleEffects } from '../reactive-primitives/utils';
 import { type ISsrNode, type SSRContainer } from '../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
-import {
-  Task,
-  TaskFlags,
-  cleanupTask,
-  runTask,
-  type DescriptorBase,
-  type TaskFn,
-} from '../use/use-task';
+import { Task, TaskFlags, runTask, type DescriptorBase, type TaskFn } from '../use/use-task';
 import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
@@ -127,6 +120,7 @@ import { isSsrNode } from '../reactive-primitives/subscriber';
 import { logWarn } from './utils/log';
 import type { ElementVNode, VirtualVNode } from '../client/vnode-impl';
 import { ChoreArray, choreComparator } from '../client/chore-array';
+import { cleanupDestroyable } from '../use/utils/destroyable';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -700,7 +694,7 @@ This is often caused by modifying a signal in an already rendered component duri
       case ChoreType.CLEANUP_VISIBLE:
         {
           const task = chore.$payload$ as Task<TaskFn, TaskFn>;
-          cleanupTask(task);
+          cleanupDestroyable(task);
         }
         break;
       case ChoreType.NODE_DIFF:

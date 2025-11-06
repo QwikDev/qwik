@@ -6,7 +6,6 @@ import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
-import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { type NoSerialize } from '../shared/serdes/verify';
@@ -16,6 +15,7 @@ import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { cleanupDestroyable } from './utils/destroyable';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -168,7 +168,7 @@ export const runTask = (
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
+  cleanupDestroyable(task);
   const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
@@ -189,18 +189,6 @@ export const runTask = (
       }
     }
   );
-};
-
-export const cleanupTask = (task: Task) => {
-  const destroy = task.$destroy$;
-  if (destroy) {
-    task.$destroy$ = null;
-    try {
-      destroy();
-    } catch (err) {
-      logError(err);
-    }
-  }
 };
 
 export class Task<T = unknown, B = T>

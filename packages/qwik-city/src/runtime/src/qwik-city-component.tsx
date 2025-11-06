@@ -15,7 +15,7 @@ import {
   _waitUntilRendered,
   type QRL,
 } from '@builder.io/qwik';
-import { isBrowser, isDev, isServer } from '@builder.io/qwik';
+import { isBrowser, isDev } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
 import { CLIENT_DATA_CACHE } from './constants';
 import {
@@ -49,7 +49,7 @@ import type {
 } from './types';
 import { loadClientData } from './use-endpoint';
 import { useQwikCityEnv } from './use-functions';
-import { isSameOrigin, isSamePath, toUrl } from './utils';
+import { isNodeServer, isSameOrigin, isSamePath, toUrl } from './utils';
 import { clientNavigate } from './client-navigate';
 import {
   currentScrollState,
@@ -334,7 +334,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       let clientPageData: EndpointResponse | ClientPageData | undefined;
       let loadedRoute: LoadedRoute | null = null;
       let elm: unknown;
-      if (isServer) {
+      if (isNodeServer()) {
         // server
         trackUrl = new URL(navigation.dest, routeLocation.url);
         loadedRoute = env!.loadedRoute;
@@ -639,7 +639,7 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
       }
     }
     const promise = run();
-    if (isServer) {
+    if (isNodeServer()) {
       return promise;
     } else {
       return;

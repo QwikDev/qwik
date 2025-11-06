@@ -1,6 +1,7 @@
 import type { RouteActionValue, SimpleURL } from './types';
 
 import { QACTION_KEY } from './constants';
+import { isServer } from '@builder.io/qwik';
 
 /** Gets an absolute url path string (url.pathname + url.search + url.hash) */
 export const toPath = (url: URL) => url.pathname + url.search + url.hash;
@@ -72,3 +73,6 @@ export const isPromise = (value: any): value is Promise<any> => {
   // not using "value instanceof Promise" to have zone.js support
   return value && typeof value.then === 'function';
 };
+
+/** True when running on a Node.js-like server without a DOM. */
+export const isNodeServer = () => isServer && typeof window === 'undefined';

@@ -66,7 +66,7 @@ export const preloaderPre = (
        * We add modulepreloads even when the script is at the top because they already fire during
        * html download
        */
-      jsx('link', { rel: 'modulepreload', href: preloaderPath, nonce }),
+      jsx('link', { rel: 'modulepreload', href: preloaderPath, nonce, crossorigin: 'anonymous' }),
       jsx('link', {
         rel: 'preload',
         href: bundleGraphPath,

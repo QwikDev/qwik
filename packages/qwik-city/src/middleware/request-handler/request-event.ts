@@ -319,15 +319,15 @@ export function createRequestEvent(
       return writableStream;
     },
   };
-  return Object.freeze(requestEv);
+  return requestEv;
 }
 
-export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
-  [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
-  [RequestEvMode]: ServerRequestMode;
-  [RequestEvTrailingSlash]: boolean;
-  [RequestEvRoute]: LoadedRoute | null;
-  [RequestEvQwikSerializer]: QwikSerializer;
+export interface RequestEventInternal extends Readonly<RequestEvent>, Readonly<RequestEventLoader> {
+  readonly [RequestEvLoaders]: Record<string, ValueOrPromise<unknown> | undefined>;
+  readonly [RequestEvMode]: ServerRequestMode;
+  readonly [RequestEvTrailingSlash]: boolean;
+  readonly [RequestEvRoute]: LoadedRoute | null;
+  readonly [RequestEvQwikSerializer]: QwikSerializer;
 
   /**
    * Check if this request is already written to.

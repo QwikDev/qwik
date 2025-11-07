@@ -1,11 +1,7 @@
 import { createPlaygroundShareUrl } from './repl-share-url';
 import type { ReplAppInput } from '../types';
 
-export const ReplCommands = ({
-  input,
-  enableCopyToPlayground,
-  enableDownload,
-}: ReplCommandProps) => {
+export const ReplCommands = ({ input, enableCopyToPlayground }: ReplCommandProps) => {
   return (
     <div class="repl-commands">
       {enableCopyToPlayground ? (

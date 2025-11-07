@@ -1,5 +1,5 @@
 import { component$ } from '@builder.io/qwik';
-import { useContent } from '@builder.io/qwik-city';
+import { Link, useContent } from '@builder.io/qwik-city';
 
 export const IntegrationsList = component$(() => {
   const { menu } = useContent();
@@ -11,7 +11,7 @@ export const IntegrationsList = component$(() => {
       {integrations?.map((integration) => {
         return (
           <li key={integration.text}>
-            <a href={integration.href}>{integration.text}</a>
+            <Link href={integration.href}>{integration.text}</Link>
           </li>
         );
       })}

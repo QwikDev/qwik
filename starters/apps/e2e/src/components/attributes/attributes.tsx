@@ -40,7 +40,7 @@ export const AttributesChild = component$<{ v: number }>(({ v }) => {
   renders.count++;
   const rerenders = renders.count + 0;
 
-  console.warn(state.stuff);
+  state.stuff;
   return (
     <>
       <div>

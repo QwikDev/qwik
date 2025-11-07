@@ -69,6 +69,7 @@ export default component$(() => {
             <LinkCmp href="/about">About</LinkCmp>
             <LinkCmp
               href="/counters"
+              // eslint-disable-next-line no-console
               onQVisible$={() => console.log("visible")}
             >
               Counters

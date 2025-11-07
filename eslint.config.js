@@ -30,11 +30,14 @@ const ignores = [
   'packages/docs/src/routes/examples/apps',
   'packages/docs/src/routes/playground/app',
   'packages/docs/src/routes/tutorial',
+  'packages/qwik/src/optimizer/core/src/fixtures',
+  'packages/qwik/bindings',
   'packages/qwik-labs/lib',
   'packages/qwik-labs/lib-types',
   'packages/qwik-labs/vite',
   'packages/insights/drizzle.config.ts',
   'packages/insights/panda.config.ts',
+  'packages/qwik/src/napi',
   'starters/apps/base',
   'starters/apps/library',
   'starters/templates',
@@ -42,10 +45,11 @@ const ignores = [
   // packages with eslint.config.mjs
   'packages/qwik-labs',
   'packages/insights',
-  'starters',
   // eslint.config.*
   '**/eslint.config.mjs',
   '**/eslint.config.js',
+  '.changeset',
+  'packages/docs/public/builder',
 ];
 
 export default tseslint.config(

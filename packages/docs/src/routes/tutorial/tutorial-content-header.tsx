@@ -1,8 +1,10 @@
 import tutorialSections from '@tutorial-data';
 import { component$ } from '@builder.io/qwik';
 import type { TutorialStore } from './layout';
+import { useNavigate } from '@builder.io/qwik-city';
 
 export const TutorialContentHeader = component$(({ store }: TutorialContentHeaderProps) => {
+  const nav = useNavigate();
   return (
     <div class="content-header">
       <svg width="20" height="20" viewBox="0 0 24 24">
@@ -18,7 +20,7 @@ export const TutorialContentHeader = component$(({ store }: TutorialContentHeade
       <select
         onChange$={(_, elm: any) => {
           if (location.pathname !== elm.value) {
-            location.href = `/tutorial/${elm.value}/`;
+            nav(`/tutorial/${elm.value}/`);
           }
         }}
       >

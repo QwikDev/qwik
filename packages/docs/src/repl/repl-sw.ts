@@ -1,4 +1,13 @@
-/** Simple proxy, proxies requests for /repl/[id]/* to the main thread */
+/**
+ * Simple proxy, proxies requests for /repl/* to the main thread
+ *
+ * - /repl/client/[id]/* => client-side only requests
+ * - /repl/ssr/[id]/* => ssr scripts
+ * - /repl/* => proxy to / with COEP headers
+ *
+ * This allows the REPL to load scripts from the same origin, which is required when using `COEP:
+ * require-corp`, and it also allows us to still use vite for worker bundling.
+ */
 
 const channel = new BroadcastChannel('qwik-docs-repl');
 
@@ -28,37 +37,62 @@ let nextId = 1;
   // Only GET requests
   if (ev.request.method === 'GET') {
     const reqUrl = new URL(ev.request.url);
-    const pathname = reqUrl.pathname;
-    const match = pathname.match(/^\/repl\/([a-z0-9]+)(-ssr)?\//);
-    // Only paths that look like a REPL id
-    if (match) {
-      const replId = match[1];
-      ev.respondWith(
-        new Promise((resolve) => {
-          const requestId = nextId++;
+    const origin = self.location.origin;
+    if (reqUrl.origin === origin) {
+      const pathname = reqUrl.pathname;
+      const match = pathname.match(/^\/repl\/(client|ssr)\/([a-z0-9]+)\//);
+      // Only paths that look like a REPL id
+      if (match) {
+        const replId = match[2];
+        ev.respondWith(
+          new Promise((resolve) => {
+            const requestId = nextId++;
 
-          const timeoutId = setTimeout(() => {
-            if (pendingRequests.has(requestId)) {
-              pendingRequests.delete(requestId);
-              resolve(new Response('504 - Request timeout - try reloading', { status: 504 }));
-            }
-          }, 10000);
+            const timeoutId = setTimeout(() => {
+              if (pendingRequests.has(requestId)) {
+                pendingRequests.delete(requestId);
+                resolve(new Response('504 - Request timeout - try reloading', { status: 504 }));
+              }
+            }, 10000);
 
-          pendingRequests.set(requestId, { resolve, timeoutId });
+            pendingRequests.set(requestId, { resolve, timeoutId });
 
-          // Send request to main thread
-          channel.postMessage({
-            type: 'repl-request',
-            requestId,
-            replId,
-            url: pathname,
-            // useful later when adding Qwik Router support
-            // method: ev.request.method,
-            // headers: Object.fromEntries(ev.request.headers.entries()),
-          });
-        })
-      );
-      return;
+            // Send request to main thread
+            channel.postMessage({
+              type: 'repl-request',
+              requestId,
+              replId,
+              url: pathname + reqUrl.search,
+              // useful later when adding Qwik Router support
+              // method: ev.request.method,
+              // headers: Object.fromEntries(ev.request.headers.entries()),
+            });
+          })
+        );
+        return;
+      } else {
+        // Proxy other requests to / and return COEP headers
+        const url = pathname.replace(/^\/repl\//, '/') + reqUrl.search;
+        const req = new Request(url, {
+          method: ev.request.method,
+          headers: ev.request.headers,
+          redirect: 'manual',
+        });
+        ev.respondWith(
+          fetch(req).then((res) => {
+            // Create a new response so we can modify headers
+            const newHeaders = new Headers(res.headers);
+            newHeaders.set('Cross-Origin-Embedder-Policy', 'require-corp');
+            newHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
+            return new Response(res.body, {
+              status: res.status,
+              statusText: res.statusText,
+              headers: newHeaders,
+            });
+          })
+        );
+        return;
+      }
     }
   }
 

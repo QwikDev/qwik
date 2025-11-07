@@ -1,7 +1,7 @@
-import { rollup, type OutputAsset, type OutputChunk } from '@rollup/browser';
+import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import { definesPlugin, replCss, replMinify, replResolver } from './rollup-plugins';
-import { QWIK_PKG_NAME } from '../repl-constants';
+import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
 interface MessageBase {
@@ -20,6 +20,10 @@ export interface BundleMessage extends MessageBase {
   data: Omit<ReplInputOptions, 'version' | 'serverUrl'>;
 }
 
+export interface ReadyMessage extends MessageBase {
+  type: 'ready';
+}
+
 export interface ResultMessage extends MessageBase {
   type: 'result';
   buildId: number;
@@ -34,7 +38,7 @@ export interface ErrorMessage extends MessageBase {
 }
 
 type IncomingMessage = InitMessage | BundleMessage;
-export type OutgoingMessage = ResultMessage | ErrorMessage;
+export type OutgoingMessage = ReadyMessage | ResultMessage | ErrorMessage;
 
 let qwikOptimizer: typeof import('@builder.io/qwik/optimizer') | null = null;
 let binding: any = null;
@@ -61,7 +65,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
         };
         self.postMessage(message);
       } catch (error) {
-        console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME].version, error);
+        console.error(`Bundler worker for %s failed`, deps[QWIK_PKG_NAME_V1].version, error);
         const message: ErrorMessage = {
           type: 'error',
           buildId: e.data.buildId,
@@ -79,7 +83,7 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
 
 let version: number[];
 async function loadOptimizer() {
-  const qwikDeps = deps[QWIK_PKG_NAME];
+  const qwikDeps = deps[QWIK_PKG_NAME_V1];
   version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
   const wasmLoader = await import(/* @vite-ignore */ qwikDeps['/bindings/qwik.wasm.mjs']);
 
@@ -121,9 +125,10 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   let start = performance.now();
 
-  const baseUrl = `/repl/${replId}/`;
+  const baseUrl = `/repl/client/${replId}/`;
   const defines = {
     'import.meta.env.BASE_URL': JSON.stringify(baseUrl),
+    'import.meta.env': JSON.stringify({}),
   };
 
   const onwarn = (warning: any) => {
@@ -158,7 +163,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     events: [] as any[],
   } as ReplResult;
 
-  const clientBuild = await rollup({
+  const clientBuild = await rolldown({
+    cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
     plugins: [
       definesPlugin(defines),
@@ -202,7 +208,8 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   start = performance.now();
   // Perform SSR bundle
-  const ssrBuild = await rollup({
+  const ssrBuild = await rolldown({
+    cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('entry.server.tsx'))?.path,
     plugins: [
       definesPlugin(defines),
@@ -242,3 +249,5 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
 
   return result;
 }
+
+self.postMessage({ type: 'ready' } as ReadyMessage);

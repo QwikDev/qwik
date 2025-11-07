@@ -25,7 +25,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'props are immutable', // 17
       '<div> component can only be used at the root of a Qwik component$()', // 18
       'Props are immutable by default.', // 19
-      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.\nSee https://qwik.dev/docs/components/tasks/#use-method-rules`, // 20
+      `Calling a 'use*()' method outside 'component$(() => { HERE })' is not allowed. 'use*()' methods provide hooks to the 'component$' state and lifecycle, ie 'use' hooks can only be called synchronously within the 'component$' function or another 'use' method.\nSee https://qwik.dev/docs/core/tasks/#use-method-rules`, // 20
       'Container is already paused. Skipping', // 21
       '', // 22 -- unused
       'When rendering directly on top of Document, the root node must be a <html>', // 23

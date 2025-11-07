@@ -459,8 +459,11 @@ const renderSSRComponent = (
           listeners.push(...elCtx.li);
           elCtx.$flags$ &= ~HOST_FLAG_NEED_ATTACH_LISTENER;
           placeholderCtx.$id$ = getNextIndex(rCtx);
+          /**
+           * This is a placeholder for qwik attributes when the component does not have a DOM
+           * element. We keep it empty, so it can be a script tag without type.
+           */
           const attributes: Record<string, string> = {
-            type: 'placeholder',
             hidden: '',
             'q:id': placeholderCtx.$id$,
           };

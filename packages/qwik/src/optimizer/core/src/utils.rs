@@ -69,10 +69,3 @@ pub enum DiagnosticCategory {
 pub enum DiagnosticScope {
 	Optimizer,
 }
-
-#[derive(Serialize, Debug, Deserialize, Eq, PartialEq, Clone, Copy)]
-#[serde(rename_all = "camelCase")]
-pub enum SourceType {
-	Script,
-	Module,
-}

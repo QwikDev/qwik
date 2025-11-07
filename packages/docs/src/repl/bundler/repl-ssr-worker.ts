@@ -1,6 +1,8 @@
 // SSR Worker - handles server-side rendering execution
 // MUST be served from /repl/ so that its imports are intercepted by the REPL service worker
 import type { QwikManifest } from '@builder.io/qwik/optimizer';
+import type { RenderToString } from '@builder.io/qwik/server';
+import type { ReplEvent } from '../types';
 
 // Worker message types
 interface MessageBase {
@@ -13,6 +15,10 @@ export interface InitSSRMessage extends MessageBase {
   entry: string;
   baseUrl: string;
   manifest: QwikManifest | undefined;
+}
+
+export interface SSRReadyMessage extends MessageBase {
+  type: 'ready';
 }
 
 export interface SSRResultMessage extends MessageBase {
@@ -28,7 +34,7 @@ export interface SSRErrorMessage extends MessageBase {
 }
 
 type IncomingMessage = InitSSRMessage;
-export type OutgoingMessage = SSRResultMessage | SSRErrorMessage;
+export type OutgoingMessage = SSRReadyMessage | SSRResultMessage | SSRErrorMessage;
 
 let replId: string;
 
@@ -62,19 +68,25 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
   }
 };
 
+// Workaround so vite doesn't try to process this import
+const importFrom = (url: string) => {
+  return import(/*@vite-ignore*/ url);
+};
+
 async function executeSSR(message: InitSSRMessage): Promise<{ html: string; events: any[] }> {
   const { baseUrl, manifest, entry } = message;
+  const start = performance.now();
 
   // We prevent Vite from touching this import() and replace it after bundling
-  const module = await (globalThis as any).DO_NOT_TOUCH_IMPORT(`/repl/${replId}-ssr/${entry}`);
+  const module = await importFrom(`/repl/ssr/${replId}/${entry}`);
   const server = module.default;
 
-  const render = typeof server === 'function' ? server : server?.render;
+  const render: RenderToString = typeof server === 'function' ? server : server?.render;
   if (typeof render !== 'function') {
     throw new Error(`Server module ${entry} does not export default render function`);
   }
 
-  const events: any[] = [];
+  const events: ReplEvent[] = [];
   const orig: Record<string, any> = {};
 
   const wrapConsole = (kind: 'log' | 'warn' | 'error' | 'debug') => {
@@ -98,13 +110,16 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
     base: baseUrl,
     manifest,
     prefetchStrategy: null,
+    preloader: false,
   });
 
-  // Inject the event listener script
-  ssrResult.html = ssrResult.html.replace(
-    '</body>',
-    `<script>${(globalThis as any).LISTENER_SCRIPT}</script></body>`
-  );
+  events.push({
+    kind: 'console-log',
+    scope: 'build',
+    message: [`SSR: ${Math.round(performance.now() - start)}ms`],
+    start,
+    end: performance.now(),
+  });
 
   // Restore console methods
   console.log = orig.log;
@@ -117,3 +132,5 @@ async function executeSSR(message: InitSSRMessage): Promise<{ html: string; even
     events,
   };
 }
+
+self.postMessage({ type: 'ready' } as SSRReadyMessage);

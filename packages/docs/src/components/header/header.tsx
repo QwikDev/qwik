@@ -1,4 +1,4 @@
-import { useLocation } from '@builder.io/qwik-city';
+import { Link, useLocation } from '@builder.io/qwik-city';
 import {
   component$,
   useStyles$,
@@ -6,6 +6,7 @@ import {
   useVisibleTask$,
   type PropsOf,
   useSignal,
+  $,
 } from '@builder.io/qwik';
 import { DocSearch } from '../docsearch/doc-search';
 import { CloseIcon } from '../svgs/close-icon';
@@ -17,13 +18,14 @@ import { TwitterLogo } from '../svgs/twitter-logo';
 import styles from './header.css?inline';
 import { GlobalStore } from '../../context';
 import {
-  colorSchemeChangeListener,
   getColorPreference,
   setPreference,
   ThemeToggle,
+  getEffectiveTheme,
 } from '../theme-toggle/theme-toggle';
 import { SearchIcon } from '../docsearch/icons/SearchIcon';
 import { getPkgManagerPreference } from '../package-manager-tabs';
+import { colorSchemeChangeListener } from '../theme-toggle/theme-script';
 
 export const SearchButton = component$<PropsOf<'button'>>(({ ...props }) => {
   return (
@@ -48,11 +50,19 @@ export const Header = component$(() => {
 
   useVisibleTask$(() => {
     globalStore.pkgManager = getPkgManagerPreference();
-    globalStore.theme = getColorPreference();
+    const pref = getColorPreference();
+    globalStore.theme = getEffectiveTheme(pref);
     return colorSchemeChangeListener((isDark) => {
-      globalStore.theme = isDark ? 'dark' : 'light';
-      setPreference(globalStore.theme);
+      const currentPref = getColorPreference();
+      if (currentPref === 'auto') {
+        globalStore.theme = isDark ? 'dark' : 'light';
+        setPreference('auto');
+      }
     });
+  });
+
+  const closeHeaderMenuOpen = $(() => {
+    globalStore.headerMenuOpen = false;
   });
 
   return (
@@ -65,10 +75,10 @@ export const Header = component$(() => {
       >
         <div class="header-inner">
           <div class="header-logo">
-            <a href="/">
+            <Link href="/">
               <span class="sr-only">Qwik Homepage</span>
               <QwikLogo width={130} height={44} />
-            </a>
+            </Link>
           </div>
           <div class="flex items-center lg:hidden">
             <SearchButton
@@ -96,14 +106,22 @@ export const Header = component$(() => {
           </button>
           <ul class="lg:grow lg:flex lg:justify-end lg:p-4 menu-toolkit">
             <li>
-              <a href="/docs/" class={{ active: pathname.startsWith('/docs') }}>
+              <Link
+                href="/docs/"
+                class={{ active: pathname.startsWith('/docs') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Docs</span>
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/ecosystem/" class={{ active: pathname.startsWith('/ecosystem') }}>
+              <Link
+                href="/ecosystem/"
+                class={{ active: pathname.startsWith('/ecosystem') }}
+                onClick$={closeHeaderMenuOpen}
+              >
                 <span>Ecosystem</span>
-              </a>
+              </Link>
             </li>
             <li>
               <a
@@ -125,13 +143,14 @@ export const Header = component$(() => {
               </a>
             </li>
             <li>
-              <a
+              <Link
                 href="/blog/"
                 class={{ active: pathname.startsWith('/blog') }}
                 aria-label="Qwik blog"
+                onClick$={closeHeaderMenuOpen}
               >
                 <span>Blog</span>
-              </a>
+              </Link>
             </li>
             <li class="hidden lg:flex">
               <SearchButton

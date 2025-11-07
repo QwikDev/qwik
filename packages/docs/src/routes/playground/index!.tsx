@@ -8,6 +8,7 @@ import type { ReplAppInput } from '../../repl/types';
 import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../repl/ui/repl-share-url';
 import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { isBrowser } from '@builder.io/qwik';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -129,9 +130,11 @@ export interface PlaygroundStore extends ReplAppInput {
   shareUrlTmr: any;
 }
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
   });
+
+  setReplCorsHeaders(headers);
 };

@@ -13,7 +13,6 @@ import { Worker } from 'node:worker_threads';
 import { isAbsolute, resolve } from 'node:path';
 import { ensureDir } from './node-system';
 import { normalizePath } from '../../utils/fs';
-import { createSingleThreadWorker } from '../worker-thread';
 
 export async function createNodeMainProcess(sys: System, opts: StaticGenerateOptions) {
   const ssgWorkers: StaticGeneratorWorker[] = [];
@@ -50,34 +49,14 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
       sitemapOutFile = resolve(outDir, sitemapOutFile);
     }
   }
-
-  const singleThreadWorker = await createSingleThreadWorker(sys);
-
-  const createWorker = (workerIndex: number) => {
-    if (workerIndex === 0) {
-      // same thread worker, don't start a new process
-      const ssgSameThreadWorker: StaticGeneratorWorker = {
-        activeTasks: 0,
-        totalTasks: 0,
-
-        render: async (staticRoute) => {
-          ssgSameThreadWorker.activeTasks++;
-          ssgSameThreadWorker.totalTasks++;
-          const result = await singleThreadWorker(staticRoute);
-          ssgSameThreadWorker.activeTasks--;
-          return result;
-        },
-
-        terminate: async () => {},
-      };
-      return ssgSameThreadWorker;
-    }
-
+  const createWorker = () => {
     let terminateResolve: (() => void) | null = null;
     const mainTasks = new Map<string, WorkerMainTask>();
 
     let workerFilePath: string | URL;
+    let terminateTimeout: number | null = null;
 
+    // Launch the worker using the package's index module, which bootstraps the worker thread.
     if (typeof __filename === 'string') {
       workerFilePath = __filename;
     } else {
@@ -89,6 +68,7 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     }
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
+    nodeWorker.unref();
 
     const ssgWorker: StaticGeneratorWorker = {
       activeTasks: 0,
@@ -116,7 +96,9 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
           terminateResolve = resolve;
           nodeWorker.postMessage(msg);
         });
-        await nodeWorker.terminate();
+        terminateTimeout = setTimeout(async () => {
+          await nodeWorker.terminate();
+        }, 1000) as unknown as number;
       },
     };
 
@@ -146,7 +128,11 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
     });
 
     nodeWorker.on('exit', (code) => {
-      if (code !== 1) {
+      if (terminateTimeout) {
+        clearTimeout(terminateTimeout);
+        terminateTimeout = null;
+      }
+      if (code !== 0) {
         console.error(`worker exit ${code}`);
       }
     });
@@ -200,9 +186,15 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
         console.error(e);
       }
     }
-    ssgWorkers.length = 0;
 
     await Promise.all(promises);
+    ssgWorkers.length = 0;
+
+    // On Windows, give extra time for all workers to fully exit
+    // This prevents resource conflicts in back-to-back builds
+    if (process.platform === 'win32') {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
   };
 
   if (sitemapOutFile) {
@@ -214,7 +206,11 @@ export async function createNodeMainProcess(sys: System, opts: StaticGenerateOpt
   }
 
   for (let i = 0; i < maxWorkers; i++) {
-    ssgWorkers.push(createWorker(i));
+    ssgWorkers.push(createWorker());
+    // On Windows, add delay between worker creation to avoid resource contention
+    if (process.platform === 'win32' && i < maxWorkers - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
   }
 
   const mainCtx: MainContext = {

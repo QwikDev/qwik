@@ -15,8 +15,8 @@ created_at: '2023-02-11T08:04:18Z'
 
 One of Qwik's super powers lies in its lazy-loading features. Each component will generate a separate Symbol which is downloaded on demand. This allows you to build a large application with many components and only download the components that are needed for the current view.
 
-But for some cases you may want to load a component together with the parent component. For example, if you have a `<Greeter>` component that is always used with the `<App>` component, you may want to load the `<Greeter>` component with the `<App>` component. This is called an [inline component](/docs/(qwik)/components/overview/index.mdx#inline-components).
+But for some cases you may want to load a component together with the parent component. For example, if you have a `<Greeter>` component that is always used with the `<App>` component, you may want to load the `<Greeter>` component with the `<App>` component. This is called an [inline component](/docs/(qwik)/core/overview/index.mdx#inline-components).
 
-In this example, the `<App>` and a `<Greeter>` components are prepared for you. The `<Greeter />` component is declared using the [`component$()`](/docs/(qwik)/components/overview/index.mdx#component) method and is a Qwik component. Remove the [`component$()`](/docs/(qwik)/components/overview/index.mdx#component) to convert `<Greeter>` to a [inline component](/docs/(qwik)/components/overview/index.mdx#inline-components).
+In this example, the `<App>` and a `<Greeter>` components are prepared for you. The `<Greeter />` component is declared using the [`component$()`](/docs/(qwik)/core/overview/index.mdx#component) method and is a Qwik component. Remove the [`component$()`](/docs/(qwik)/core/overview/index.mdx#component) to convert `<Greeter>` to a [inline component](/docs/(qwik)/core/overview/index.mdx#inline-components).
 
 Open the `Symbols` tab and notice that the `<Greeter />` component is no longer an independent export, but instead is bundled as part of the `<App>` component.

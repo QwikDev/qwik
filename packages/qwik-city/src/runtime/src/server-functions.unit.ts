@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from 'vitest';
-import { z } from 'zod';
+import * as z from 'zod';
 import { server$ } from './server-functions';
 import type { RequestEventBase, ValidatorErrorType } from './types';
 

@@ -9,7 +9,7 @@ updated_at: '2023-06-25T19:43:33Z'
 created_at: '2022-08-02T12:07:45Z'
 ---
 
-In previous sections, we have discussed how styles can be loaded lazily as they are needed using [`useStyles$()`](/docs/(qwik)/components/styles/index.mdx#usestyles) hook. Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component. This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
+In previous sections, we have discussed how styles can be loaded lazily as they are needed using [`useStyles$()`](/docs/(qwik)/core/styles/index.mdx#usestyles) hook. Browser styles are global and apply to all DOM elements, for this reason, Qwik also provides a way to load styles that are specific to a specific component. This is achieved by generating a unique class for each component and then inserting that unique class id into the stylesheet.
 
 Use `useStylesScoped$()` to load and scope the style to a specific component only.
 

@@ -39,23 +39,6 @@ export async function workerThread(sys: System) {
   });
 }
 
-export async function createSingleThreadWorker(sys: System) {
-  const ssgOpts = sys.getOptions();
-  const pendingPromises = new Set<Promise<any>>();
-
-  const opts: StaticGenerateHandlerOptions = {
-    ...ssgOpts,
-    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    qwikCityPlan: (await import(pathToFileURL(ssgOpts.qwikCityPlanModulePath).href)).default,
-  };
-
-  return (staticRoute: StaticRoute) => {
-    return new Promise<StaticWorkerRenderResult>((resolve) => {
-      workerRender(sys, opts, staticRoute, pendingPromises, resolve);
-    });
-  };
-}
-
 async function workerRender(
   sys: System,
   opts: StaticGenerateHandlerOptions,

@@ -1,5 +1,57 @@
 # @builder.io/qwik
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 the bunding won't lead to circular dependencies in qwik-astro apps anymore. (by [@maiieul](https://github.com/maiieul) in [#8052](https://github.com/QwikDev/qwik/pull/8052))
+
+- ✨ The optimizer is now built with a recent Rust toolchain. Fresher bits! (by [@wmertens](https://github.com/wmertens) in [#8040](https://github.com/QwikDev/qwik/pull/8040))
+
+## 1.17.0
+
+### Minor Changes
+
+- 🐞🩹 Qwik now leverages Rollup's new `output.onlyExplicitManualChunks` feature, which improves preloading performance and reduces cache invalidation for a snappier user experience. (by [@maiieul](https://github.com/maiieul) in [#7982](https://github.com/QwikDev/qwik/pull/7982))
+
+- ✨ the qwikloader can now be inlined again if required (for testing or specific network conditions). Pass `qwikLoader: 'inline'` to the render options. (by [@wmertens](https://github.com/wmertens) in [#8008](https://github.com/QwikDev/qwik/pull/8008))
+
+### Patch Changes
+
+- 🐞🩹 The Deno integration now builds successfully with version v2.4.3 and above. (by [@gioboa](https://github.com/gioboa) in [#7913](https://github.com/QwikDev/qwik/pull/7913))
+
+- TEST: qwik react mount and unmount (by [@sashkashishka](https://github.com/sashkashishka) in [#7950](https://github.com/QwikDev/qwik/pull/7950))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 Click-to-Component is now more reliable across platforms (by [@wmertens](https://github.com/wmertens) in [#7923](https://github.com/QwikDev/qwik/pull/7923))
+
+- 🛠 add qwik react e2e test runs to ci (by [@sashkashishka](https://github.com/sashkashishka) in [#7952](https://github.com/QwikDev/qwik/pull/7952))
+
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 The entry.ssr renderToStream `preloader.preloadProbability` option is now deprecated because this could cause performance issues with bundles fetched on click instead of being preloaded ahead of time. (The preloader still relies on probabilities to know preload the most likely bundles first) (by [@maiieul](https://github.com/maiieul) in [#7847](https://github.com/QwikDev/qwik/pull/7847))
+
+- 🐞🩹 Link prefetch now always preloads Link prefetch bundles on monorepos (by [@maiieul](https://github.com/maiieul) in [#7835](https://github.com/QwikDev/qwik/pull/7835))
+
+- 🐞🩹 Rollup's hoistTranstiveImports is now set to `false` because the hoisting added unnecessary bundles to be preloaded to the bundle-graph static imports graph. This could lead to a suboptimal preloading experience. (by [@maiieul](https://github.com/maiieul) in [#7850](https://github.com/QwikDev/qwik/pull/7850))
+
+- 🛠 Add check-client command to verify bundle freshness (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7517](https://github.com/QwikDev/qwik/pull/7517))
+
+- ✨ All qwik packages are now marked as side effect free in their package.json. This should remove a few unecessary empty imports added by rollup and then not tree-shaken like `import "./preloader.js"`. (by [@maiieul](https://github.com/maiieul) in [#7908](https://github.com/QwikDev/qwik/pull/7908))
+
+- 🐞🩹 unmount qwikify react root alongside with qwik component (by [@sashkashishka](https://github.com/sashkashishka) in [#7864](https://github.com/QwikDev/qwik/pull/7864))
+
+- 🐞🩹 preloader now preloads bundles as long as they are part of the current viewport's bundles graph, even if their probability is very small (by [@maiieul](https://github.com/maiieul) in [#7836](https://github.com/QwikDev/qwik/pull/7836))
+
+- ✨ maxIdlePreloads is now constant over time so you know for sure how many bundles will be preloaded concurrently during idle. (by [@maiieul](https://github.com/maiieul) in [#7846](https://github.com/QwikDev/qwik/pull/7846))
+
+- 🛠 use patched domino instead of qwik-dom (by [@gioboa](https://github.com/gioboa) in [#7842](https://github.com/QwikDev/qwik/pull/7842))
+
+- 🐞🩹 Qwik is now smarter at bundling non QRL source files and qwik libraries modules (e.g. helpers, enums, inline components, etc.) together. (by [@maiieul](https://github.com/maiieul) in [#7888](https://github.com/QwikDev/qwik/pull/7888))
+
 ## 1.16.0
 
 ### Minor Changes

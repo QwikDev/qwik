@@ -43,7 +43,7 @@ jobs:
 
       - name: Checkout code
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download docs artifact
         if: ${{ steps.check-artifact.outputs.has-docs == 'true' }}

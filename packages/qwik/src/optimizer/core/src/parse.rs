@@ -748,7 +748,7 @@ pub fn parse_path(src: &str, base_dir: &Path) -> Result<PathData, Error> {
 }
 
 pub fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
-	let ends_with_slash = path.as_ref().to_str().map_or(false, |s| s.ends_with('/'));
+	let ends_with_slash = path.as_ref().to_str().is_some_and(|s| s.ends_with('/'));
 	let mut normalized = PathBuf::new();
 	for component in path.as_ref().components() {
 		match &component {

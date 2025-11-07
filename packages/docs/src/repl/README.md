@@ -11,7 +11,7 @@ This README gives a high-level overview of how the REPL is structured, what each
 The REPL is a browser-first system composed of three main parts:
 
 - Bundler subsystem (web-worker + helpers): transforms user code, resolves imports, bundles modules, and prepares runnable artifacts.
-- Service worker: Intercepts requests to `/repl/[id]/*` and messages the bundler subsystem (via BroadcastChannel) to get responses. This allows the REPL to work without a server.
+- Service worker: Intercepts requests to `/repl/` and messages the bundler subsystem (via BroadcastChannel) to get responses. This allows the REPL to work without a server.
 - UI (React/Qwik components + Monaco): editor, panels, console, options and controls that let users edit code and view outputs.
 
 The codebase keeps bundling and heavy work off the main thread by using a web worker script per Qwik version.
@@ -37,12 +37,12 @@ The codebase keeps bundling and heavy work off the main thread by using a web wo
 1. The UI component (`ui/editor.tsx` + `ui/monaco.tsx`) presents a code editor and controls.
 2. When code is executed, the bundler subsystem is invoked. The UI posts a message to the bundler worker.
 3. The bundler worker (`bundler-worker.ts`) makes the client and SSR bundles, and executes `render()` from the `entry.ssr` to get the SSR result HTML.
-4. The UI also shows an iframe, loading `/repl/[id]/`.
+4. The UI also shows an iframe, loading `/repl/client/[id]/`.
 5. The service worker intercepts all requests and uses messages to get the bundle + html files from the worker.
 
 ### Flow diagram
 
-- The iframe requests `/repl/[id]/`
+- The iframe requests `/repl/client/[id]/`
 - The service worker intercepts and sends a message to the REPL instance
 - The REPL instance messages the bundler to bundle the user code
 - The bundler messages the REPL instance with the result
@@ -52,7 +52,7 @@ The codebase keeps bundling and heavy work off the main thread by using a web wo
 
 ```mermaid
 flowchart TD
-  Iframe["Iframe - /repl/[replId]/"]
+  Iframe["Iframe - /repl/client/[replId]/"]
   ServiceWorker["Service Worker (/repl/*)"]
   ReplInstance["REPL instance"]
   BundlerWorker["Bundler Worker"]

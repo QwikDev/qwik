@@ -1,5 +1,6 @@
-import { $, component$, useOn, useSignal, useStore, useTask$ } from '@builder.io/qwik';
-import { isBrowser } from '@builder.io/qwik';
+import { $, component$, useOn, useSignal, useStore, useTask$, isBrowser } from '@builder.io/qwik';
+import { Link } from '@builder.io/qwik-city';
+
 import { toSnakeCase } from '../../utils/utils';
 
 // TODO: load the content of these files using fs instead of importing them
@@ -162,7 +163,7 @@ export const ApiMemberList = component$(({ id, data, filters }: any) => (
             (kind in filters && !filters[kind] && 'hidden') || ''
           }`}
         >
-          <a href={`${data.id}#${name}`}>{member.name}</a>
+          <Link href={`${data.id}#${name}`}>{member.name}</Link>
         </li>
       );
     })}

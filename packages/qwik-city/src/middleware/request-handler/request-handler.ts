@@ -16,27 +16,32 @@ export async function requestHandler<T = unknown>(
   qwikSerializer: QwikSerializer
 ): Promise<QwikCityRun<T> | null> {
   const { render, qwikCityPlan, checkOrigin } = opts;
-  const pathname = serverRequestEv.url.pathname;
-  const matchPathname = getRouteMatchPathname(pathname, qwikCityPlan.trailingSlash);
+  const { pathname, isInternal } = getRouteMatchPathname(
+    serverRequestEv.url.pathname,
+    qwikCityPlan.trailingSlash
+  );
   const routeAndHandlers = await loadRequestHandlers(
     qwikCityPlan,
-    matchPathname,
+    pathname,
     serverRequestEv.request.method,
     checkOrigin ?? true,
-    render
+    render,
+    isInternal
   );
 
   if (routeAndHandlers) {
     const [route, requestHandlers] = routeAndHandlers;
 
     const rebuildRouteInfo: RebuildRouteInfoInternal = async (url: URL) => {
-      const matchPathname = getRouteMatchPathname(url.pathname, qwikCityPlan.trailingSlash);
+      // once internal, always internal, don't override
+      const { pathname } = getRouteMatchPathname(url.pathname, qwikCityPlan.trailingSlash);
       const routeAndHandlers = await loadRequestHandlers(
         qwikCityPlan,
-        matchPathname,
+        pathname,
         serverRequestEv.request.method,
         checkOrigin ?? true,
-        render
+        render,
+        isInternal
       );
 
       if (routeAndHandlers) {
@@ -65,16 +70,18 @@ async function loadRequestHandlers(
   pathname: string,
   method: string,
   checkOrigin: boolean | 'lax-proto',
-  renderFn: Render
+  renderFn: Render,
+  isInternal: boolean
 ) {
   const { routes, serverPlugins, menus, cacheModules } = qwikCityPlan;
-  const route = await loadRoute(routes, menus, cacheModules, pathname);
+  const route = await loadRoute(routes, menus, cacheModules, pathname, isInternal);
   const requestHandlers = resolveRequestHandlers(
     serverPlugins,
     route,
     method,
     checkOrigin,
-    renderQwikMiddleware(renderFn)
+    renderQwikMiddleware(renderFn),
+    isInternal
   );
   if (requestHandlers.length > 0) {
     return [route, requestHandlers] as const;

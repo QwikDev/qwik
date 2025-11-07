@@ -14,7 +14,7 @@ import styles from './repl.css?inline';
 import type { ReplStore, ReplAppInput } from '../types';
 import { ReplDetailPanel } from './repl-detail-panel';
 import { getReplVersion } from './repl-version';
-import { ReplInstance } from './repl-instance';
+import { ReplInstance } from '../repl-instance';
 
 export const Repl = component$((props: ReplProps) => {
   useStyles$(styles);

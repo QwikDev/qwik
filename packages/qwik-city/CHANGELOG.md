@@ -1,5 +1,43 @@
 # @builder.io/qwik-city
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 `zod` is now imported as `import * as z from 'zod'`, which vastly improves bundling. The Insights app client code reduced by 12kB. (by [@wmertens](https://github.com/wmertens) in [#8042](https://github.com/QwikDev/qwik/pull/8042))
+
+## 1.17.0
+
+### Patch Changes
+
+- 🐞🩹 SSG sometimes hangs after completion, now we forcibly exit the SSG process when this happens. (by [@wmertens](https://github.com/wmertens) in [#7957](https://github.com/QwikDev/qwik/pull/7957))
+
+- 🐞🩹 return 404 for missing /build/ files. (by [@gioboa](https://github.com/gioboa) in [#7914](https://github.com/QwikDev/qwik/pull/7914))
+
+- 🐞🩹 redirecting internal q-data.json requests will keep the q-data.json suffix so that the client can still fetch the correct one (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 while prefetching Link data, don't navigate to captive portals (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
+
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 fix behaviour of checkOrigin: "lax-proto" in createQwikCity (by [@asaharan](https://github.com/asaharan) in [#7865](https://github.com/QwikDev/qwik/pull/7865))
+
+- 🛠 Add check-client command to verify bundle freshness (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7517](https://github.com/QwikDev/qwik/pull/7517))
+
+- 🐞🩹 return 404 with invalid URL. (by [@gioboa](https://github.com/gioboa) in [#7902](https://github.com/QwikDev/qwik/pull/7902))
+
+- ✨ All qwik packages are now marked as side effect free in their package.json. This should remove a few unecessary empty imports added by rollup and then not tree-shaken like `import "./preloader.js"`. (by [@maiieul](https://github.com/maiieul) in [#7908](https://github.com/QwikDev/qwik/pull/7908))
+
+- ✨ SPA Link navigation now preloads the next route bundles on click with maximum probability, speeding up SPA navigation. (by [@maiieul](https://github.com/maiieul) in [#7849](https://github.com/QwikDev/qwik/pull/7849))
+
+- 🐞🩹 Your service-worker.js won't be unregistered anymore if you added custom logic to it. (by [@maiieul](https://github.com/maiieul) in [#7872](https://github.com/QwikDev/qwik/pull/7872))
+
+  > Note: Qwik 1.14.0 and above now use `<link rel="modulepreload">` by default. If you didn't add custom service-worker logic, you should remove your service-worker.ts file(s) for the `ServiceWorkerRegister` Component to actually unregister the service-worker.js and delete its related cache. Make sure to keep the `ServiceWorkerRegister` Component in your app (without any service-worker.ts file) as long as you want to unregister the service-worker.js for your users.
+
 ## 1.16.0
 
 ### Minor Changes

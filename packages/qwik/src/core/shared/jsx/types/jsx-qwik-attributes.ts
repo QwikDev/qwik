@@ -4,6 +4,7 @@ import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,
   QwikInitEvent,
+  QwikResumeEvent,
   QwikSymbolEvent,
   QwikViewTransitionEvent,
   QwikVisibleEvent,
@@ -66,6 +67,7 @@ type PascalCaseNames =
   | 'PointerUp'
   | 'QIdle'
   | 'QInit'
+  | 'QResume'
   | 'QSymbol'
   | 'QVisible'
   | 'QViewTransition'
@@ -120,6 +122,7 @@ type QwikDocumentEventMap = Omit<DocumentEventMap, keyof QwikHTMLElementEventMap
     qidle: QwikIdleEvent;
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
+    qresume: QwikResumeEvent;
     qviewtransition: QwikViewTransitionEvent;
   };
 type QwikWindowEventMap = Omit<WindowEventHandlersEventMap, keyof QwikDocumentEventMap> &

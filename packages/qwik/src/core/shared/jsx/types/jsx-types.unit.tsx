@@ -10,6 +10,7 @@ import type {
   QRLEventHandlerMulti,
   QwikHTMLElements,
   QwikIntrinsicElements,
+  QwikResumeEvent,
   QwikSVGElements,
   QwikViewTransitionEvent,
   QwikVisibleEvent,
@@ -215,6 +216,10 @@ describe('types', () => {
         document:onQViewTransition$={(ev) => {
           expectTypeOf(ev).not.toBeAny();
           assertType<QwikViewTransitionEvent>(ev);
+        }}
+        document:onQResume$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<QwikResumeEvent>(ev);
         }}
       />
     </>;

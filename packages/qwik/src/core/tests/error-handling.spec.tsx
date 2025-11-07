@@ -104,10 +104,13 @@ describe.each([
 
   it('should handle error in event handler', async () => {
     const Cmp = component$(() => {
+      const counter = useSignal(0);
       return (
         <>
           <button
             onClick$={() => {
+              // Make sure we use scope to resume container
+              counter.value++;
               throw new Error('error');
             }}
           >

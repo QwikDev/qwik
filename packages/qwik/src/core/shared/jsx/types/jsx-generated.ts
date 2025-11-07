@@ -2,11 +2,11 @@ import * as CSS from 'csstype';
 import type { DOMAttributes, ClassList, QwikAttributes } from './jsx-qwik-attributes';
 import type { Signal } from '../../../reactive-primitives/signal.public';
 /** @public */
-export type Booleanish = boolean | `${boolean}`;
+type Booleanish = boolean | `${boolean}`;
 /** @public */
-export type Size = number | string;
+type Size = number | string;
 /** @public */
-export type Numberish = number | `${number}`;
+type Numberish = number | `${number}`;
 
 /** @public */
 export interface CSSProperties

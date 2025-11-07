@@ -10,6 +10,7 @@ import {
   useTask$,
   useVisibleTask$,
   type PropsOf,
+  type EventHandler,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
@@ -356,7 +357,7 @@ describe.each([
       interface InnerButtonProps {
         text: string;
         isActive: boolean;
-        onClick$: PropsOf<'button'>['onClick$'];
+        onClick$: EventHandler<MouseEvent, HTMLButtonElement>;
       }
 
       const Parent = component$(() => {

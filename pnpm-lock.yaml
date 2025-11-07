@@ -466,7 +466,7 @@ importers:
         specifier: ^8.38.0
         version: 8.44.1(eslint@9.32.0(jiti@2.6.0))(typescript@5.4.5)
       jsx-ast-utils-x:
-        specifier: ^0.1.0
+        specifier: 0.1.0
         version: 0.1.0
     devDependencies:
       '@builder.io/qwik':

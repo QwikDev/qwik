@@ -1547,13 +1547,10 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             const obj = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
-              if (objIsTask) {
-                clearAllEffects(container, obj);
-                if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                  container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
-                  // don't call cleanupDestroyable yet, do it by the scheduler
-                  continue;
-                }
+              if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+                // don't call cleanupDestroyable yet, do it by the scheduler
+                continue;
               } else if (obj instanceof SignalImpl || isStore(obj)) {
                 clearAllEffects(container, obj as Consumer);
               }

@@ -1,8 +1,21 @@
-import { Fragment, _fnSignal, _jsxSorted, component$, type JSXOutput } from '@qwik.dev/core';
+import {
+  Fragment,
+  _fnSignal,
+  _jsxSorted,
+  component$,
+  useSignal,
+  useStore,
+  type JSXChildren,
+  type JSXOutput,
+} from '@qwik.dev/core';
 import { vnode_fromJSX } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { _hasStoreEffects, getOrCreateStore } from '../reactive-primitives/impl/store';
+import {
+  _hasStoreEffects,
+  getOrCreateStore,
+  getStoreHandler,
+} from '../reactive-primitives/impl/store';
 import type { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { createSignal } from '../reactive-primitives/signal-api';
 import { StoreFlags } from '../reactive-primitives/types';
@@ -1579,6 +1592,101 @@ describe('vNode-diff', () => {
       expect(container.$journal$.length).toEqual(0);
 
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div q:key="KA_0">Hello</div>');
+    });
+  });
+
+  describe('cleanup - clearAllEffects', () => {
+    it('should call clearAllEffects for VNode elements', () => {
+      const { vParent, container } = vnode_fromJSX(<div key="KA_0">Hello</div>);
+
+      const signal = createSignal('test') as SignalImpl;
+      const test = _jsxSorted('div', { class: signal }, null, [], 0, 'KA_0');
+      vnode_diff(container, test, vParent, null);
+      vnode_applyJournal(container.$journal$);
+
+      expect(signal.$effects$).toBeDefined();
+      expect(signal.$effects$!.size).toBeGreaterThan(0);
+
+      vnode_diff(container, _jsxSorted('div', {}, null, [], 0, 'KA_0'), vParent, null);
+      vnode_applyJournal(container.$journal$);
+
+      expect(signal.$effects$!.size).toBe(0);
+    });
+
+    it('should call clearAllEffects for VirtualVNode components', async () => {
+      const { vParent, container } = vnode_fromJSX(<Fragment></Fragment>);
+
+      const signal = createSignal('initial') as SignalImpl;
+
+      const Child = component$((props: any) => {
+        return <span>{props.value}</span>;
+      });
+
+      const test1 = _jsxSorted(Child, null, { value: signal }, null, 3, null) as JSXChildren;
+      await vnode_diff(container, test1, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      expect(signal.$effects$).toBeDefined();
+      expect(signal.$effects$!.size).toBeGreaterThan(0);
+
+      await vnode_diff(container, <Fragment></Fragment>, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      expect(signal.$effects$!.size).toBe(0);
+    });
+
+    it('should call clearAllEffects for SignalImpl objects in ELEMENT_SEQ', async () => {
+      const { vParent, container } = vnode_fromJSX(<Fragment></Fragment>);
+
+      (globalThis as any).innerSignal = undefined;
+
+      const Child = component$(() => {
+        (globalThis as any).innerSignal = useSignal('inner');
+        return <span>{(globalThis as any).innerSignal.value}</span>;
+      });
+
+      const test = _jsxSorted(Child as unknown as any, null, null, null, 3, null) as any;
+      vnode_diff(container, test, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      expect((globalThis as any).innerSignal.$effects$).toBeDefined();
+      expect((globalThis as any).innerSignal.$effects$!.size).toBeGreaterThan(0);
+
+      vnode_diff(container, <Fragment></Fragment>, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      expect((globalThis as any).innerSignal.$effects$.size).toBe(0);
+    });
+
+    it('should call clearAllEffects for Store objects in ELEMENT_SEQ', async () => {
+      const { vParent, container } = vnode_fromJSX(<Fragment></Fragment>);
+
+      (globalThis as any).store = undefined;
+
+      const Child = component$(() => {
+        (globalThis as any).store = useStore({ count: 10 });
+        return <span>Count: {(globalThis as any).store.count}</span>;
+      });
+
+      const test = _jsxSorted(Child as unknown as any, null, null, null, 3, null) as any;
+      vnode_diff(container, test, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      const store = getStoreHandler((globalThis as any).store);
+
+      expect(store!.$effects$?.size).toBeGreaterThan(0);
+
+      container.$journal$ = [];
+      vnode_diff(container, <Fragment></Fragment>, vParent, null);
+      await waitForDrain(container.$scheduler$);
+      vnode_applyJournal(container.$journal$);
+
+      expect(store!.$effects$?.size).toBe(0);
     });
   });
 });

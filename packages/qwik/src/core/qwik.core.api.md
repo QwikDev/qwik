@@ -751,6 +751,9 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 // @public @deprecated (undocumented)
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
+// @public
+export type QwikResumeEvent = CustomEvent<{}>;
+
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
@@ -778,6 +781,9 @@ export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 
 // @public @deprecated (undocumented)
 export type QwikUIEvent<T = Element> = NativeUIEvent;
+
+// @public
+export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 
 // @public
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
@@ -1637,7 +1643,7 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
 // @public (undocumented)
-export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
+export interface SyncQRL<TYPE extends Function> extends QRL<TYPE> {
     // (undocumented)
     __brand__SyncQRL__: TYPE;
     (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;

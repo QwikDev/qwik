@@ -1335,7 +1335,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.\n\n\n```typescript\nexport type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;\n```\n**References:** [QRL](#qrl)<!-- -->, [EventHandler](#eventhandler)<!-- -->, [QRLEventHandlerMulti](#qrleventhandlermulti)",
+      "content": "An event handler for Qwik events, can be a handler QRL or an array of handler QRLs.\n\n\n```typescript\nexport type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];\n```\n**References:** [QRL](#qrl)<!-- -->, [EventHandler](#eventhandler)<!-- -->, [QRLEventHandlerMulti](#qrleventhandlermulti)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts",
       "mdFile": "core.qrleventhandlermulti.md"
     },
@@ -1578,6 +1578,20 @@
       "mdFile": "core.qwikpointerevent.md"
     },
     {
+      "name": "QwikResumeEvent",
+      "id": "qwikresumeevent",
+      "hierarchy": [
+        {
+          "name": "QwikResumeEvent",
+          "id": "qwikresumeevent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Emitted by qwik-core on the container element when it resumes from a paused state. You cannot put a Qwik event handler on the container so you must listen on the document instead.\n\n\n```typescript\nexport type QwikResumeEvent = CustomEvent<{}>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
+      "mdFile": "core.qwikresumeevent.md"
+    },
+    {
       "name": "QwikSubmitEvent",
       "id": "qwiksubmitevent",
       "hierarchy": [
@@ -1615,7 +1629,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    qManifest?: string;\n    qVersion?: string;\n    href?: string;\n}>;\n```",
+      "content": "Emitted by qwik-loader on document when a module was lazily loaded\n\n\n```typescript\nexport type QwikSymbolEvent = CustomEvent<{\n    symbol: string;\n    element: Element;\n    reqTime: number;\n    qBase?: string;\n    qManifest?: string;\n    qVersion?: string;\n    href?: string;\n}>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.qwiksymbolevent.md"
     },
@@ -1662,6 +1676,20 @@
       "mdFile": "core.qwikuievent.md"
     },
     {
+      "name": "QwikViewTransitionEvent",
+      "id": "qwikviewtransitionevent",
+      "hierarchy": [
+        {
+          "name": "QwikViewTransitionEvent",
+          "id": "qwikviewtransitionevent"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Emitted by qwik-core on document when the a view transition start\n\n\n```typescript\nexport type QwikViewTransitionEvent = CustomEvent<ViewTransition>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
+      "mdFile": "core.qwikviewtransitionevent.md"
+    },
+    {
       "name": "QwikVisibleEvent",
       "id": "qwikvisibleevent",
       "hierarchy": [
@@ -1671,7 +1699,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$`\n\n\n```typescript\nexport type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;\n```",
+      "content": "Handled by qwik-loader when an element becomes visible. Used by `useVisibleTask$`<!-- -->. Does not bubble.\n\n\n```typescript\nexport type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts",
       "mdFile": "core.qwikvisibleevent.md"
     },
@@ -2234,7 +2262,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> \n```\n**Extends:** [QRL](#qrl)<!-- -->&lt;TYPE&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\\_\\_brand\\_\\_SyncQRL\\_\\_](#)\n\n\n</td><td>\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[dev](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLDev \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolved](#)\n\n\n</td><td>\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface SyncQRL<TYPE extends Function> extends QRL<TYPE> \n```\n**Extends:** [QRL](#qrl)<!-- -->&lt;TYPE&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[\\_\\_brand\\_\\_SyncQRL\\_\\_](#)\n\n\n</td><td>\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[dev](#)\n\n\n</td><td>\n\n\n</td><td>\n\nQRLDev \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[resolved](#)\n\n\n</td><td>\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts",
       "mdFile": "core.syncqrl.md"
     },

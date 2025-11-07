@@ -34,10 +34,10 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
 
   await build({
     entryPoints: [join(srcCliDir, 'index.ts')],
-    outfile: join(distCliDir, 'index.cjs'),
+    outfile: join(distCliDir, 'index.mjs'),
     target: nodeTarget,
     platform: 'node',
-    format: 'cjs',
+    format: 'esm',
     bundle: true,
     sourcemap: false,
     minify: !config.dev,
@@ -58,7 +58,7 @@ async function bundleCreateQwikCli(config: BuildConfig, srcCliDir: string, distC
         },
       },
     ],
-    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore'],
+    external: ['prettier', 'typescript', 'ts-morph', 'semver', 'ignore', 'execa'],
     define: {
       'globalThis.CODE_MOD': 'false',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),

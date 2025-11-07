@@ -49,12 +49,6 @@ export async function buildWasmBinding(config: BuildConfig) {
     exports: 'named',
   });
 
-  await build.write({
-    format: 'cjs',
-    file: join(config.distBindingsDir, 'qwik.wasm.cjs'),
-    exports: 'named',
-  });
-
   await copyFile(
     join(tmpBuildDir, 'qwik_wasm_bg.wasm'),
     join(config.distBindingsDir, 'qwik_wasm_bg.wasm')

@@ -10,14 +10,14 @@ export async function submoduleCli(config: BuildConfig) {
 
   await build({
     entryPoints: [join(config.srcQwikDir, submodule, 'index.ts')],
-    outfile: join(config.distQwikPkgDir, 'cli.cjs'),
-    format: 'cjs',
+    outfile: join(config.distQwikPkgDir, 'cli.mjs'),
+    format: 'esm',
     platform: 'node',
     target: nodeTarget,
     sourcemap: false,
     bundle: true,
     banner: { js: getBanner('@qwik.dev/core/cli', config.distVersion) },
-    outExtension: { '.js': '.cjs' },
+    outExtension: { '.js': '.mjs' },
     plugins: [
       {
         name: 'colorAlias',

@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-const qwik = require('./cli.cjs');
+import * as qwik from './cli.mjs';
 qwik.runCli();

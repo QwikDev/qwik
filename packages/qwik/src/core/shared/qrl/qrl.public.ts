@@ -265,7 +265,7 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 };
 
 /** @public */
-export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
+export interface SyncQRL<TYPE extends Function> extends QRL<TYPE> {
   __brand__SyncQRL__: TYPE;
 
   /**

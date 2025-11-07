@@ -1,5 +1,5 @@
-import type { QRL } from '../../qrl/qrl.public';
 import type { Signal } from '../../../reactive-primitives/signal.public';
+import type { QRL } from '../../qrl/qrl.public';
 import type { JSXNode } from './jsx-node';
 import type {
   QwikIdleEvent,
@@ -68,6 +68,7 @@ type PascalCaseNames =
   | 'QInit'
   | 'QSymbol'
   | 'QVisible'
+  | 'QViewTransition'
   | 'RateChange'
   | 'RateChange'
   | 'SecurityPolicyViolation'
@@ -88,16 +89,9 @@ type PascalCaseNames =
 type LcEventNameMap = {
   [name in PascalCaseNames as Lowercase<name>]: name;
 };
-
-/**
- * Convert an event map to PascalCase. For example, `HTMLElementEventMap` contains lowercase keys,
- * so this will capitalize them, and use the `LcEventNameMap` for multi-word events names.
- */
-type PascalMap<M> = {
-  [K in Extract<keyof M, string> as K extends keyof LcEventNameMap
-    ? LcEventNameMap[K]
-    : Capitalize<K>]: M[K];
-};
+type PascalCaseName<T extends string> = T extends keyof LcEventNameMap
+  ? LcEventNameMap[T]
+  : Capitalize<T>;
 
 type PreventDefault = {
   [K in keyof HTMLElementEventMap as `preventdefault:${K}`]?: boolean;
@@ -107,33 +101,38 @@ type StopPropagation = {
   [K in keyof HTMLElementEventMap as `stoppropagation:${K}`]?: boolean;
 };
 
-type AllEventMapRaw = HTMLElementEventMap &
-  DocumentEventMap &
-  WindowEventHandlersEventMap & {
+// Corrections to the TS types
+type EventCorrectionMap = {
+  auxclick: PointerEvent;
+  click: PointerEvent;
+  dblclick: PointerEvent;
+  input: InputEvent;
+  qvisible: QwikVisibleEvent;
+};
+type QwikHTMLElementEventMap = Omit<HTMLElementEventMap, keyof EventCorrectionMap> &
+  EventCorrectionMap;
+type QwikDocumentEventMap = Omit<DocumentEventMap, keyof QwikHTMLElementEventMap> &
+  Omit<
+    QwikHTMLElementEventMap,
+    // most element events bubble but not these
+    'qvisible' | 'focus' | 'blur'
+  > & {
     qidle: QwikIdleEvent;
     qinit: QwikInitEvent;
     qsymbol: QwikSymbolEvent;
-    qvisible: QwikVisibleEvent;
     qviewtransition: QwikViewTransitionEvent;
   };
+type QwikWindowEventMap = Omit<WindowEventHandlersEventMap, keyof QwikDocumentEventMap> &
+  QwikDocumentEventMap;
+type AllEventMapRaw = QwikHTMLElementEventMap & QwikDocumentEventMap & QwikWindowEventMap;
 
 /** This corrects the TS definition for ToggleEvent @public */
 export interface CorrectedToggleEvent extends Event {
   readonly newState: 'open' | 'closed';
   readonly prevState: 'open' | 'closed';
 }
-// Corrections to the TS types
-type EventCorrectionMap = {
-  auxclick: PointerEvent;
-  beforetoggle: CorrectedToggleEvent;
-  click: PointerEvent;
-  dblclick: PointerEvent;
-  input: InputEvent;
-  toggle: CorrectedToggleEvent;
-};
 
 type AllEventsMap = Omit<AllEventMapRaw, keyof EventCorrectionMap> & EventCorrectionMap;
-type AllPascalEventMaps = PascalMap<AllEventsMap>;
 
 export type AllEventKeys = keyof AllEventsMap;
 
@@ -182,11 +181,23 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | null
   | QRLEventHandlerMulti<EV, EL>[];
 
-type QwikCustomEvents<EL> = {
-  /**
-   * We don't add custom events here because often people will add props to DOM props that look like
-   * custom events but are not
-   */
+type JSXElementEvents = {
+  [K in keyof QwikHTMLElementEventMap as `on${PascalCaseName<K>}$`]: QwikHTMLElementEventMap[K];
+};
+type JSXDocumentEvents = {
+  [K in keyof QwikDocumentEventMap as `document:on${PascalCaseName<K>}$`]: QwikDocumentEventMap[K];
+};
+type JSXWindowEvents = {
+  [K in keyof QwikWindowEventMap as `window:on${PascalCaseName<K>}$`]: QwikWindowEventMap[K];
+};
+type QwikJSXEvents = JSXElementEvents & JSXDocumentEvents & JSXWindowEvents;
+type QwikKnownEvents<EL> = {
+  [K in keyof QwikJSXEvents]?: QRLEventHandlerMulti<QwikJSXEvents[K], EL>;
+};
+type QwikKnownEventsPlain<EL> = {
+  [K in keyof QwikJSXEvents]?:
+    | QRLEventHandlerMulti<QwikJSXEvents[K], EL>
+    | EventHandler<QwikJSXEvents[K], EL>;
 };
 type QwikCustomEventsPlain<EL> = {
   /** The handler */
@@ -195,22 +206,10 @@ type QwikCustomEventsPlain<EL> = {
     | EventHandler<Event, EL>;
 };
 
-type QwikKnownEvents<EL> = {
-  [K in keyof AllPascalEventMaps as `${
-    | 'document:'
-    | 'window:'
-    | ''}on${K}$`]?: QRLEventHandlerMulti<AllPascalEventMaps[K], EL>;
-};
-type QwikKnownEventsPlain<EL> = {
-  [K in keyof AllPascalEventMaps as `${'document:' | 'window:' | ''}on${K}$`]?:
-    | QRLEventHandlerMulti<AllPascalEventMaps[K], EL>
-    | EventHandler<AllPascalEventMaps[K], EL>;
-};
-
 /** @public */
 export type QwikEvents<EL, Plain extends boolean = true> = Plain extends true
   ? QwikKnownEventsPlain<EL> & QwikCustomEventsPlain<EL>
-  : QwikKnownEvents<EL> & QwikCustomEvents<EL>;
+  : QwikKnownEvents<EL>;
 
 /** @public */
 export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLElementTagNameMap>;

@@ -199,11 +199,12 @@ export { version } from './version';
 //////////////////////////////////////////////////////////////////////////////////////////
 export type {
   KnownEventNames,
-  QwikSymbolEvent,
-  QwikVisibleEvent,
   QwikIdleEvent,
   QwikInitEvent,
+  QwikSymbolEvent,
   QwikTransitionEvent,
+  QwikViewTransitionEvent,
+  QwikVisibleEvent,
   // old
   NativeAnimationEvent,
   NativeClipboardEvent,

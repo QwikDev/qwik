@@ -4,7 +4,11 @@ import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { EffectProperty, EffectSubscriptionProp } from '../reactive-primitives/types';
+import {
+  EffectProperty,
+  EffectSubscriptionProp,
+  type Consumer,
+} from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
@@ -48,7 +52,7 @@ import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
-import { isArray, type ValueOrPromise } from '../shared/utils/types';
+import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
 import type { DomContainer } from './dom-container';
@@ -81,9 +85,10 @@ import {
 } from './vnode';
 import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
-import { cleanupDestroyable, isDestroyable } from '../use/utils/destroyable';
+import { cleanupDestroyable } from '../use/utils/destroyable';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isStore } from '../reactive-primitives/impl/store';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -1540,19 +1545,22 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         if (seq) {
           for (let i = 0; i < seq.length; i++) {
             const obj = seq[i];
-            if (isTask(obj)) {
-              clearAllEffects(container, obj);
-              if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
-                // don't call cleanupDestroyable yet, do it by the scheduler
-                continue;
+            if (isObject(obj)) {
+              const objIsTask = isTask(obj);
+              if (objIsTask) {
+                clearAllEffects(container, obj);
+                if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                  container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+                  // don't call cleanupDestroyable yet, do it by the scheduler
+                  continue;
+                }
+              } else if (obj instanceof SignalImpl || isStore(obj)) {
+                clearAllEffects(container, obj as Consumer);
               }
-            } else if (obj instanceof SignalImpl || isStore(obj)) {
-              clearAllEffects(container, obj);
-            }
 
-            if (isDestroyable(obj)) {
-              cleanupDestroyable(obj);
+              if (objIsTask || obj instanceof AsyncComputedSignalImpl) {
+                cleanupDestroyable(obj);
+              }
             }
           }
         }

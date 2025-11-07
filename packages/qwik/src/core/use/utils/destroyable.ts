@@ -1,7 +1,5 @@
-import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import { logError } from '../../shared/utils/log';
-import { isTask } from '../use-task';
 
 export type Destroyable = { $destroy$: NoSerialize<() => void> | null };
 
@@ -15,8 +13,4 @@ export const cleanupDestroyable = (destroyable: Destroyable) => {
       logError(err);
     }
   }
-};
-
-export const isDestroyable = (obj: unknown): obj is Destroyable => {
-  return isTask(obj) || obj instanceof AsyncComputedSignalImpl;
 };

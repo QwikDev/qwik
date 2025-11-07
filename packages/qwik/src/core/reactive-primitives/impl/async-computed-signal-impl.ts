@@ -3,6 +3,7 @@ import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
 import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import type { BackRef } from '../cleanup';
 import {
@@ -134,6 +135,11 @@ export class AsyncComputedSignalImpl<T>
       const isFirstComputation = this.$promiseValue$ === NEEDS_COMPUTATION;
       this.untrackedLoading = true;
       this.untrackedError = null;
+
+      if (this.$promiseValue$ !== NEEDS_COMPUTATION) {
+        // skip cleanup after resuming
+        cleanupDestroyable(this);
+      }
 
       const promise = untrackedValue
         .then((promiseValue) => {

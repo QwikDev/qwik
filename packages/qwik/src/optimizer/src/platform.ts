@@ -6,7 +6,6 @@ import type {
 } from './types';
 import { createPath } from './path';
 import { QWIK_BINDING_MAP } from './qwik-binding-map';
-import { versions } from './versions';
 
 export async function getSystem() {
   const sysEnv = getEnv();
@@ -34,33 +33,6 @@ export async function getSystem() {
     sys.strictDynamicImport = sys.dynamicImport = (path) => import(path);
   }
 
-  if (globalThis.IS_CJS) {
-    if (sysEnv === 'node' || sysEnv === 'bun') {
-      // using this api object as a way to ensure bundlers
-      // do not try to inline or rewrite require()
-      sys.dynamicImport = (path) => require(path);
-      sys.strictDynamicImport = (path) => import(path);
-
-      if (typeof TextEncoder === 'undefined') {
-        // TextEncoder/TextDecoder needs to be on the global scope for the WASM file
-        // https://nodejs.org/api/util.html#class-utiltextdecoder
-        const nodeUtil: typeof import('util') = await sys.dynamicImport('node:util');
-        globalThis.TextEncoder = nodeUtil.TextEncoder;
-        globalThis.TextDecoder = nodeUtil.TextDecoder;
-      }
-    } else if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
-      sys.strictDynamicImport = (path) => import(path);
-      sys.dynamicImport = async (path: string) => {
-        const cjsRsp = await fetch(path);
-        const cjsCode = await cjsRsp.text();
-        const cjsModule: any = { exports: {} };
-        // eslint-disable-next-line no-new-func
-        const cjsRun = new Function('module', 'exports', cjsCode);
-        cjsRun(cjsModule, cjsModule.exports);
-        return cjsModule.exports;
-      };
-    }
-  }
   if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
     try {
       sys.path = await sys.dynamicImport('node:path');
@@ -167,62 +139,6 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
     }
   }
 
-  if (globalThis.IS_CJS) {
-    // CJS WASM
-
-    if (sysEnv === 'node' || sysEnv === 'bun') {
-      // CJS WASM Node.js
-      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport(`../bindings/qwik.wasm.cjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
-
-      const buf = await fs.promises.readFile(wasmPath);
-      const wasm = await WebAssembly.compile(buf as any);
-      await mod.default(wasm);
-      return mod;
-    }
-
-    if (sysEnv === 'webworker' || sysEnv === 'browsermain') {
-      // CJS WASM Browser
-      let version = versions.qwik;
-      const cachedCjsCode = `qwikWasmCjs${version}`;
-      const cachedWasmRsp = `qwikWasmRsp${version}`;
-
-      let cjsCode: string = (globalThis as any)[cachedCjsCode];
-      let wasmRsp: Response = (globalThis as any)[cachedWasmRsp];
-
-      if (!cjsCode || !wasmRsp) {
-        version = versions.qwik.split('-dev')[0];
-        const cdnUrl = `https://cdn.jsdelivr.net/npm/@qwik.dev/core@${version}/bindings/`;
-        const cjsModuleUrl = new URL(`./qwik.wasm.cjs`, cdnUrl).href;
-        const wasmUrl = new URL(`./qwik_wasm_bg.wasm`, cdnUrl).href;
-
-        const rsps = await Promise.all([fetch(cjsModuleUrl), fetch(wasmUrl)]);
-
-        for (const rsp of rsps) {
-          if (!rsp.ok) {
-            throw new Error(`Unable to fetch Qwik WASM binding from ${rsp.url}`);
-          }
-        }
-
-        const cjsRsp = rsps[0];
-        (globalThis as any)[cachedCjsCode] = cjsCode = await cjsRsp.text();
-        (globalThis as any)[cachedWasmRsp] = wasmRsp = rsps[1];
-      }
-
-      const cjsModule: any = { exports: {} };
-      // eslint-disable-next-line no-new-func
-      const cjsRun = new Function('module', 'exports', cjsCode);
-      cjsRun(cjsModule, cjsModule.exports);
-      const mod = cjsModule.exports;
-
-      // init
-      await mod.default(wasmRsp.clone());
-
-      return mod;
-    }
-  }
-
   if (globalThis.IS_ESM) {
     if (sysEnv === 'node' || sysEnv === 'bun') {
       // ESM WASM Node.js
@@ -302,7 +218,7 @@ const extensions: { [ext: string]: boolean } = {
   '.mjs': true,
 };
 
-declare const globalThis: { IS_CJS: boolean; IS_ESM: boolean; [key: string]: any };
+declare const globalThis: { IS_ESM: boolean; [key: string]: any };
 declare const WorkerGlobalScope: any;
 declare const Deno: any;
 declare const Bun: any;

@@ -18,13 +18,11 @@
   "exports": {
     ".": {
       "types": "./lib/types/index.qwik.d.ts",
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.qwik.mjs"
     },
     "./vite": {
       "types": "./lib/types/vite.d.ts",
-      "import": "./lib/vite.mjs",
-      "require": "./lib/vite.cjs"
+      "import": "./lib/vite.mjs"
     }
   },
   "files": [

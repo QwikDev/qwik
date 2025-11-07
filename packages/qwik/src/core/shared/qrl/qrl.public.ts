@@ -146,7 +146,7 @@ export type QRL<TYPE = unknown> = {
   getCaptured(): unknown[] | null;
   getSymbol(): string;
   getHash(): string;
-  dev: QRLDev | null;
+  dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // https://stackoverflow.com/questions/52667959/what-is-the-purpose-of-bivariancehack-in-typescript-types/52668133#52668133
@@ -265,22 +265,12 @@ export const eventQrl = <T>(qrl: QRL<T>): QRL<T> => {
 };
 
 /** @public */
-export interface SyncQRL<TYPE extends Function> extends QRL<TYPE> {
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
   __brand__SyncQRL__: TYPE;
 
-  /**
-   * Resolve the QRL of closure and invoke it.
-   *
-   * @param args - Closure arguments.
-   * @returns A return value of the closure.
-   */
-  (
-    ...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never
-  ): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
-
   resolved: TYPE;
-  dev: QRLDev | null;
-}
+  dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 /**
  * Extract function into a synchronously loadable QRL.

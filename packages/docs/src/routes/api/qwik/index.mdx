@@ -2805,7 +2805,7 @@ export type QRL<TYPE = unknown> = {
   getCaptured(): unknown[] | null;
   getSymbol(): string;
   getHash(): string;
-  dev: QRLDev | null;
+  dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
@@ -2913,7 +2913,7 @@ export type QRL<TYPE = unknown> = {
   getCaptured(): unknown[] | null;
   getSymbol(): string;
   getHash(): string;
-  dev: QRLDev | null;
+  dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
@@ -8747,68 +8747,14 @@ Function to extract.
 ## SyncQRL
 
 ```typescript
-export interface SyncQRL<TYPE extends Function> extends QRL<TYPE>
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
+  __brand__SyncQRL__: TYPE;
+  resolved: TYPE;
+  dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-**Extends:** [QRL](#qrl)&lt;TYPE&gt;
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[\_\_brand\_\_SyncQRL\_\_](#)
-
-</td><td>
-
-</td><td>
-
-TYPE
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[dev](#)
-
-</td><td>
-
-</td><td>
-
-QRLDev \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[resolved](#)
-
-</td><td>
-
-</td><td>
-
-TYPE
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [QRL](#qrl)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 

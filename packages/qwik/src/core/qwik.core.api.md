@@ -651,7 +651,7 @@ export type QRL<TYPE = unknown> = {
     getCaptured(): unknown[] | null;
     getSymbol(): string;
     getHash(): string;
-    dev: QRLDev | null;
+    dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
@@ -1643,15 +1643,11 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
 // @public (undocumented)
-export interface SyncQRL<TYPE extends Function> extends QRL<TYPE> {
-    // (undocumented)
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
     __brand__SyncQRL__: TYPE;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
-    // (undocumented)
-    dev: QRLDev | null;
-    // (undocumented)
     resolved: TYPE;
-}
+    dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
 export const _task: (_event: Event, element: Element) => void;

@@ -17,5 +17,10 @@ test.describe("no resume", () => {
 
     const body = page.locator("body");
     await expect(body).toHaveCSS("background-color", "rgb(0, 0, 0)");
+    // Ensure that the click did not cause resume
+    await expect(body).not.toHaveCSS("background-color", "rgb(255, 0, 0)");
+    await button.dblclick();
+    // Ensure that the double click did cause resume
+    await expect(body).toHaveCSS("color", "rgb(255, 0, 0)");
   });
 });

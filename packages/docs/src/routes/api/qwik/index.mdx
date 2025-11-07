@@ -2805,7 +2805,7 @@ export type QRL<TYPE = unknown> = {
   getCaptured(): unknown[] | null;
   getSymbol(): string;
   getHash(): string;
-  dev: QRLDev | null;
+  dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
@@ -2913,7 +2913,7 @@ export type QRL<TYPE = unknown> = {
   getCaptured(): unknown[] | null;
   getSymbol(): string;
   getHash(): string;
-  dev: QRLDev | null;
+  dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
@@ -2928,8 +2928,7 @@ export type QRLEventHandlerMulti<EV extends Event, EL> =
   | QRL<EventHandler<EV, EL>>
   | undefined
   | null
-  | QRLEventHandlerMulti<EV, EL>[]
-  | EventHandler<EV, EL>;
+  | QRLEventHandlerMulti<EV, EL>[];
 ```
 
 **References:** [QRL](#qrl), [EventHandler](#eventhandler), [QRLEventHandlerMulti](#qrleventhandlermulti)
@@ -3262,6 +3261,16 @@ export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
 
+## QwikResumeEvent
+
+Emitted by qwik-core on the container element when it resumes from a paused state. You cannot put a Qwik event handler on the container so you must listen on the document instead.
+
+```typescript
+export type QwikResumeEvent = CustomEvent<{}>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
+
 ## QwikSubmitEvent
 
 > Warning: This API is now obsolete.
@@ -3293,7 +3302,7 @@ export type QwikSVGElements = {
 
 ## QwikSymbolEvent
 
-Emitted by qwik-loader when a module was lazily loaded
+Emitted by qwik-loader on document when a module was lazily loaded
 
 ```typescript
 export type QwikSymbolEvent = CustomEvent<{
@@ -3351,9 +3360,19 @@ export type QwikUIEvent<T = Element> = NativeUIEvent;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
 
+## QwikViewTransitionEvent
+
+Emitted by qwik-core on document when the a view transition start
+
+```typescript
+export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
+
 ## QwikVisibleEvent
 
-Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$`
+Handled by qwik-loader when an element becomes visible. Used by `useVisibleTask$`. Does not bubble.
 
 ```typescript
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
@@ -8728,68 +8747,14 @@ Function to extract.
 ## SyncQRL
 
 ```typescript
-export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE>
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
+  __brand__SyncQRL__: TYPE;
+  resolved: TYPE;
+  dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 ```
 
-**Extends:** [QRL](#qrl)&lt;TYPE&gt;
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-[\_\_brand\_\_SyncQRL\_\_](#)
-
-</td><td>
-
-</td><td>
-
-TYPE
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[dev](#)
-
-</td><td>
-
-</td><td>
-
-QRLDev \| null
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-[resolved](#)
-
-</td><td>
-
-</td><td>
-
-TYPE
-
-</td><td>
-
-</td></tr>
-</tbody></table>
+**References:** [QRL](#qrl)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl.public.ts)
 

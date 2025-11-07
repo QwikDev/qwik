@@ -651,7 +651,7 @@ export type QRL<TYPE = unknown> = {
     getCaptured(): unknown[] | null;
     getSymbol(): string;
     getHash(): string;
-    dev: QRLDev | null;
+    dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
@@ -663,7 +663,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
@@ -751,6 +751,9 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 // @public @deprecated (undocumented)
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
+// @public
+export type QwikResumeEvent = CustomEvent<{}>;
+
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
@@ -778,6 +781,9 @@ export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 
 // @public @deprecated (undocumented)
 export type QwikUIEvent<T = Element> = NativeUIEvent;
+
+// @public
+export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 
 // @public
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
@@ -1637,15 +1643,11 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
 // @public (undocumented)
-export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
-    // (undocumented)
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
     __brand__SyncQRL__: TYPE;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
-    // (undocumented)
-    dev: QRLDev | null;
-    // (undocumented)
     resolved: TYPE;
-}
+    dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
 export const _task: (_event: Event, element: Element) => void;

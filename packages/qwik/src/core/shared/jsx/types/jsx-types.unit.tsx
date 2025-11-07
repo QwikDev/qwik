@@ -1,11 +1,22 @@
+import type {
+  EventHandler,
+  FunctionComponent,
+  JSX,
+  JSXChildren,
+  JSXOutput,
+  PropFunction,
+  PropsOf,
+  PublicProps,
+  QRLEventHandlerMulti,
+  QwikHTMLElements,
+  QwikIntrinsicElements,
+  QwikResumeEvent,
+  QwikSVGElements,
+  QwikViewTransitionEvent,
+  QwikVisibleEvent,
+} from '@qwik.dev/core';
+import { $, component$, sync$ } from '@qwik.dev/core';
 import { assertType, describe, expectTypeOf, test } from 'vitest';
-import { component$, type PropsOf, type PublicProps } from '../../../shared/component.public';
-import { $, type PropFunction } from '../../qrl/qrl.public';
-import type { JSX } from '../jsx-runtime';
-import type { QwikHTMLElements, QwikSVGElements, Size } from './jsx-generated';
-import type { FunctionComponent, JSXOutput } from './jsx-node';
-import type { EventHandler, JSXChildren, QRLEventHandlerMulti } from './jsx-qwik-attributes';
-import type { QwikIntrinsicElements } from './jsx-qwik-elements';
 
 const Fn = () => <div />;
 
@@ -19,7 +30,9 @@ describe('types', () => {
     >();
     expectTypeOf<QwikIntrinsicElements['li']['children']>().toEqualTypeOf<JSXChildren>();
     expectTypeOf<QwikIntrinsicElements['link']['children']>().toEqualTypeOf<undefined>();
-    expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<Size | undefined>();
+    expectTypeOf<QwikIntrinsicElements['svg']['width']>().toEqualTypeOf<
+      number | string | undefined
+    >();
   });
 
   test('untyped components', () => () => {
@@ -115,7 +128,7 @@ describe('types', () => {
     const t = (
       <hello-there
         class="hi"
-        onClick$={(ev, el) => {
+        onClick$={(ev, _el) => {
           expectTypeOf(ev).not.toBeAny();
           expectTypeOf(ev).toEqualTypeOf<PointerEvent>();
           // Because of interface constraints, this type is "never"
@@ -142,20 +155,20 @@ describe('types', () => {
       <div
         onToggle$={(ev, el) => {
           expectTypeOf(ev).not.toBeAny();
-          // It's Event because api extractor doesn't know about ToggleEvent
-          // assertType<ToggleEvent>(ev);
+          assertType<ToggleEvent>(ev);
           expectTypeOf(ev.newState).toBeString();
+          expectTypeOf(el).toEqualTypeOf<HTMLDivElement>();
         }}
-        onBeforeToggle$={(ev, el) => {
+        onBeforeToggle$={(ev) => {
           expectTypeOf(ev).not.toBeAny();
-          // assertType<ToggleEvent>(ev);
-          expectTypeOf(ev.prevState).toBeString();
+          assertType<ToggleEvent>(ev);
+          expectTypeOf(ev.oldState).toBeString();
         }}
         onBlur$={(ev) => {
           expectTypeOf(ev).not.toBeAny();
           assertType<FocusEvent>(ev);
         }}
-        window:onAnimationEnd$={(ev) => {
+        document:onAnimationEnd$={(ev) => {
           expectTypeOf(ev).not.toBeAny();
           assertType<AnimationEvent>(ev);
         }}
@@ -168,6 +181,11 @@ describe('types', () => {
           expectTypeOf(ev).not.toBeAny();
           assertType<PointerEvent>(ev);
         })}
+        // Infer through sync$
+        onDblClick$={sync$((ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<PointerEvent>(ev);
+        })}
         // Array of handlers
         onInput$={[
           $((ev) => {
@@ -177,7 +195,7 @@ describe('types', () => {
           null,
           undefined,
           [
-            $(async (ev, el) => {
+            sync$(async (ev, el) => {
               expectTypeOf(ev).not.toBeAny();
               assertType<InputEvent>(ev);
               expectTypeOf(el).not.toBeAny();
@@ -185,6 +203,24 @@ describe('types', () => {
             }),
           ],
         ]}
+        onQVisible$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<QwikVisibleEvent>(ev);
+        }}
+        // This isn't a valid qwik event
+        document:onQVisible$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          // ...therefore gets normal Event
+          assertType<Event>(ev);
+        }}
+        document:onQViewTransition$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<QwikViewTransitionEvent>(ev);
+        }}
+        document:onQResume$={(ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<QwikResumeEvent>(ev);
+        }}
       />
     </>;
   });

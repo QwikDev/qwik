@@ -4,7 +4,7 @@
  * The effective theme is stored on the `<html>` element as a `data-theme` attribute. There is also
  * the `data-theme-auto` attribute which is present when the user has selected "auto" theme.
  */
-import { component$, event$, isServer, useContext, useStyles$ } from '@builder.io/qwik';
+import { component$, event$, isServer, useContext, useStyles$ } from '@qwik.dev/core';
 import { useVisibleTask$ } from '@qwik.dev/core';
 import { GlobalStore, type SiteStore } from '~/context';
 import { BrillianceIcon } from './Brilliance';

@@ -1,13 +1,23 @@
-import { component$ } from "@qwik.dev/core";
+import { component$, useSignal } from "@qwik.dev/core";
 
 export const NoResume = component$(() => {
+  const sig = useSignal(0);
   return (
-    <button
-      onClick$={() => {
-        document.body.style.background = "black";
-      }}
-    >
-      Click me
-    </button>
+    <>
+      <div>This turns red on resume</div>
+      <button
+        document:onQResume$={() => {
+          document.body.style.color = "red";
+        }}
+        onClick$={() => {
+          document.body.style.background = "black";
+        }}
+        onDblClick$={() => {
+          sig.value++;
+        }}
+      >
+        Click me {sig.value}
+      </button>
+    </>
   );
 });

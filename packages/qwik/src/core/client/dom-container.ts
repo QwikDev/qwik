@@ -32,7 +32,7 @@ import {
   getQFuncs,
 } from '../shared/utils/markers';
 import { isSlotProp } from '../shared/utils/prop';
-import { qDev } from '../shared/utils/qdev';
+import { qDev, qTest } from '../shared/utils/qdev';
 import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
@@ -148,7 +148,9 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
-
+    if (!qTest && element.isConnected) {
+      element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
+    }
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];

@@ -399,9 +399,12 @@ describe.each([
         return <></>;
       });
       const ReceiveChild = component$(() => {
+        const toggle = useSignal(true);
         useOnDocument(
           'child',
           $(() => {
+            // grab some scope to go via scheduler
+            toggle.value = false;
             (globalThis as any).receivedLog.push('child event');
           })
         );

@@ -77,7 +77,7 @@ export const DocSearch = component$((props: DocSearchProps) => {
     <div
       class={{ docsearch: true, 'ai-result-open': aiResultOpen.value }}
       window:onKeyDown$={[
-        sync$((event: KeyboardEvent) => {
+        sync$((event) => {
           if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
             event.preventDefault();
           }

@@ -15,7 +15,7 @@ import type {
   QwikViewTransitionEvent,
   QwikVisibleEvent,
 } from '@qwik.dev/core';
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, sync$ } from '@qwik.dev/core';
 import { assertType, describe, expectTypeOf, test } from 'vitest';
 
 const Fn = () => <div />;
@@ -181,11 +181,11 @@ describe('types', () => {
           expectTypeOf(ev).not.toBeAny();
           assertType<PointerEvent>(ev);
         })}
-        // Infer through sync$ doesn't work
-        // onDblClick$={sync$((ev) => {
-        //   expectTypeOf(ev).not.toBeAny();
-        //   assertType<PointerEvent>(ev);
-        // })}
+        // Infer through sync$
+        onDblClick$={sync$((ev) => {
+          expectTypeOf(ev).not.toBeAny();
+          assertType<PointerEvent>(ev);
+        })}
         // Array of handlers
         onInput$={[
           $((ev) => {
@@ -195,7 +195,7 @@ describe('types', () => {
           null,
           undefined,
           [
-            $(async (ev, el) => {
+            sync$(async (ev, el) => {
               expectTypeOf(ev).not.toBeAny();
               assertType<InputEvent>(ev);
               expectTypeOf(el).not.toBeAny();

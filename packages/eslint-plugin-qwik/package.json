@@ -6,7 +6,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@typescript-eslint/utils": "^8.38.0",
-    "jsx-ast-utils-x": "^0.1.0"
+    "jsx-ast-utils-x": "0.1.0"
   },
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",

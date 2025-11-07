@@ -347,5 +347,29 @@ describe.each([
       // on server and client cleanup called again
       expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
     });
+
+    it('should run cleanup on re-compute', async () => {
+      (globalThis as any).log = [];
+
+      const Counter = component$(() => {
+        const count = useSignal(1);
+        const asyncValue = useAsyncComputed$(({ track, cleanup }) => {
+          const current = track(count);
+          cleanup(() => {
+            (globalThis as any).log.push('cleanup');
+          });
+          return Promise.resolve(current * 2);
+        });
+        return <button onClick$={() => count.value++}>{asyncValue.value}</button>;
+      });
+      const { container } = await render(<Counter />, { debug });
+      expect((globalThis as any).log).toEqual(render === ssrRenderToDom ? ['cleanup'] : []);
+
+      await trigger(container.element, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['cleanup']);
+
+      await trigger(container.element, 'button', 'click');
+      expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
+    });
   });
 });

@@ -20,7 +20,7 @@ contributors:
   - aendel
   - jemsco
   - varixo
-updated_at: '2025-10-31T03:33:22Z'
+updated_at: '2025-11-08T03:33:22Z'
 created_at: '2023-03-31T02:40:50Z'
 ---
 
@@ -35,8 +35,8 @@ Tasks are meant for running asynchronous operations as part of component initial
 >
 > - Tasks are asynchronous.
 > - Tasks run on server and browser.
-> - Tasks run before initial rendering and block the initial render.
-> - Subsequent task re-executions (when tracked state changes) don't block rendering by default, but can be configured to block DOM updates with `deferUpdates: true`.
+> - Tasks run before rendering and can block rendering.
+> - Subsequent task re-executions (when tracked state changes) block rendering by default, but can be configured to not block DOM updates with `deferUpdates: false`.
 
 `useTask$()` should be your default go-to API for running either synchronous or asynchronous work as part of component initialization or state change. It is only when you can't achieve what you need with `useTask$()` that you should consider using `useVisibleTask$()` or `useResource$()`.
 
@@ -44,7 +44,7 @@ The basic use case for `useTask$()` is to perform work on component initializati
 - It can run on either the server or in the browser.
 - It runs before the initial rendering and blocks the initial render.
 - If multiple tasks are running then they are run sequentially in the order they were registered. An asynchronous task will block the next task from running until it completes.
-- By default, subsequent re-executions (when tracked state changes) do not block DOM updates unless `deferUpdates: true` is specified.
+- By default, subsequent re-executions (when tracked state changes) do block DOM updates unless `deferUpdates: false` is specified.
 
 Tasks can also be used to perform work when a component state changes. In this case, the task will rerun every time the tracked state changes. See: [`track()`](#track).
 
@@ -111,19 +111,12 @@ interface TaskOptions {
 The `deferUpdates` option controls whether subsequent task re-executions (when tracked state changes) should block DOM updates.
 
 **Default behavior (`deferUpdates: false` or not specified):**
-- **Initial render**: The task blocks rendering (runs before the component renders for the first time)
-- **Subsequent runs**: The task runs asynchronously without blocking DOM updates
-
-**With `deferUpdates: true`:**
 - **Initial render**: The task blocks rendering (same as default)
 - **Subsequent runs**: The task blocks DOM updates until it completes - the journal flush is deferred until the task finishes
 
-**When to use `deferUpdates: true`:**
-- When you need to ensure that asynchronous state updates complete before the UI reflects changes
-- When you want to prevent visual flickering by ensuring all related state updates happen atomically
-
-**Performance Considerations:**
-- Use carefully as blocking DOM updates on subsequent runs can impact perceived performance
+**With `deferUpdates: true`:**
+- **Initial render**: The task blocks rendering (runs before the component renders for the first time)
+- **Subsequent runs**: The task runs asynchronously without blocking DOM updates
 
 Additionally, this task can be reactive and will re-execute when **tracked** [state](/docs/(qwik)/core/state/index.mdx) changes.
 
@@ -142,7 +135,7 @@ Additionally, this task can be reactive and will re-execute when **tracked** [st
 
 > If `useTask$()` does not track any state, it will run **exactly once**, either in the server **or** in the browser (**not both**), depending where the component is initially rendered. Effectively behaving like an "on-mount" hook.
 
-`useTask$()` will block the initial rendering of the component until after its async callback resolves. Tasks execute sequentially even if they are asynchronous (only one task executes at a time within a component). Subsequent re-executions (when tracking state changes) run asynchronously by default and don't block rendering unless `deferUpdates: true` is set.
+`useTask$()` will block the rendering of the component until after its async callback resolves. Tasks execute sequentially even if they are asynchronous (only one task executes at a time within a component). Subsequent re-executions (when tracking state changes) run asynchronously by default and block rendering unless `deferUpdates: false` is set.
 
 Take a look at the simplest use case of the task to run some asynchronous work on component initialization:
 
@@ -173,18 +166,18 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 > In this example
 >
-> - The `useTask$()` computes the fibonacci number one entry per 100 ms. So 40 entries take 4 seconds to compute.
+> - The `useTask$()` computes the fibonacci number one entry per 100 ms. So 40 entries take 4 seconds to render.
 >   - The `useTask$()` executes on the server as part of the SSR (the result may be cached in CDN.)
->   - Because the `useTask$()` blocks initial rendering, the rendered HTML page takes 4 seconds to generate.
-> - Because this task has no `track()` it will never rerun, making it effectively initialization code.
+>   - Because the `useTask$()` blocks rendering, the rendered HTML page takes 4 seconds to render.
+> - Because this task has no `track()` it will never rerun, making it effectively an initialization code.
 >   - Because this component only renders on the server, the `useTask$()` will never be downloaded or run on the browser.
 
 > Notice that `useTask$()` runs on the server **BEFORE** the actual rendering. Therefore if you need to do DOM manipulation, use [`useVisibleTask$()`](#usevisibletask) instead, which runs on the browser after rendering.
 
 Use `useTask$()` when you need to:
-- Run async tasks before initial rendering
+- Run async tasks before rendering
 - Run code only once before the component is first rendered  
-- Programmatically run side-effect code when state changes (with or without blocking DOM updates)
+- Programmatically run side-effect code when state changes
 
 > Note, if you're thinking about loading data using `fetch()` inside of `useTask$`, consider using [`useResource$()`](/docs/core/state/#useresource) instead. This API is more efficient in terms of leveraging SSR streaming and parallel data fetching.
 
@@ -266,7 +259,7 @@ const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 >
 > The `useTask$()`
 >
-> - By default, `useTask$()` blocks the initial rendering until it completes. Subsequent executions (when tracked state changes) don't block rendering by default. In this example, we don't await `delay()` to avoid blocking even the initial render - the delay runs independently while the task completes immediately.
+> - The `useTask$()` blocks rendering until it completes. If you don't want to block rendering, make sure that the task is resolved, and run the delay work on a separate unconnected promise. In this example, we don't await `delay()` because it would block rendering.
 
 > Sometimes it is required to only run code either in the server or in the client. This can be achieved by using the `isServer` and `isBrowser` booleans exported from `@qwik.dev/core` as shown above.
 

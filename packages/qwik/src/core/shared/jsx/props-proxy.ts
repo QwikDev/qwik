@@ -54,22 +54,17 @@ class PropsProxyHandler implements ProxyHandler<any> {
           prop = attr;
         }
       }
+
       if (this.owner.constProps && prop in this.owner.constProps) {
-        this.owner.constProps[prop as string] = undefined;
-        if (!(prop in this.owner.varProps)) {
-          this.owner.toSort = true;
-        }
-        this.owner.varProps[prop as string] = value;
-      } else {
-        if (this.owner.varProps === EMPTY_OBJ) {
-          this.owner.varProps = {};
-        } else {
-          if (!(prop in this.owner.varProps)) {
-            this.owner.toSort = true;
-          }
-        }
-        this.owner.varProps[prop as string] = value;
+        // delete the prop from the const props first
+        delete this.owner.constProps[prop as string];
       }
+      if (this.owner.varProps === EMPTY_OBJ) {
+        this.owner.varProps = {};
+      } else if (!(prop in this.owner.varProps)) {
+        this.owner.toSort = true;
+      }
+      this.owner.varProps[prop as string] = value;
     }
     return true;
   }

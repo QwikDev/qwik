@@ -8,6 +8,7 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
+  type FunctionComponent,
   type PublicProps,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -689,6 +690,31 @@ describe.each([
           </Component>
         </Fragment>
       </Component>
+    );
+  });
+
+  it('should allow to modify children component props', async () => {
+    const Child = component$((props: { name: string }) => {
+      return <>{props.name}</>;
+    });
+
+    const Parent: FunctionComponent = (props) => {
+      (props as any).children.props.name = 'World';
+      return (props as any).children;
+    };
+
+    const { vNode } = await render(
+      <Parent>
+        <Child name="Hello" />
+      </Parent>,
+      { debug }
+    );
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Component>
+          <Fragment>World</Fragment>
+        </Component>
+      </InlineComponent>
     );
   });
 });

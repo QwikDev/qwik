@@ -2,7 +2,7 @@ import { build } from 'esbuild';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { readPackageJson, writePackageJson } from './package-json';
+import { readPackageJson, writePackageJson } from './package-json.ts';
 import {
   type BuildConfig,
   copyFile,
@@ -14,7 +14,7 @@ import {
   readdir,
   run,
   stat,
-} from './util';
+} from './util.ts';
 
 const PACKAGE = 'create-qwik';
 

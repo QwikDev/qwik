@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { format } from 'prettier';
-import { type BuildConfig } from './util';
+import { type BuildConfig } from './util.ts';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);

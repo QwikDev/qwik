@@ -4,11 +4,11 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import prompts from 'prompts';
 import semver from 'semver';
-import { publishCreateQwikCli } from './create-qwik-cli';
-import { publishEslint } from './eslint';
-import { readPackageJson, writePackageJson } from './package-json';
-import { type BuildConfig, panic, run } from './util';
-import { validateBuild } from './validate-build';
+import { publishCreateQwikCli } from './create-qwik-cli.ts';
+import { publishEslint } from './eslint.ts';
+import { readPackageJson, writePackageJson } from './package-json.ts';
+import { type BuildConfig, panic, run } from './util.ts';
+import { validateBuild } from './validate-build.ts';
 
 let version: string;
 

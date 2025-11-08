@@ -1,4 +1,4 @@
-import { type BuildConfig, copyDir, panic } from './util';
+import { type BuildConfig, copyDir, panic } from './util.ts';
 import { join } from 'node:path';
 import { execa } from 'execa';
 

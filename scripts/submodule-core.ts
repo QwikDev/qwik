@@ -1,6 +1,6 @@
-import { type BuildConfig, rollupOnWarn } from './util';
+import { type BuildConfig, rollupOnWarn } from './util.ts';
 import { build, type BuildOptions } from 'esbuild';
-import { getBanner, fileSize, readFile, target, writeFile } from './util';
+import { getBanner, fileSize, readFile, target, writeFile } from './util.ts';
 import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { join } from 'node:path';
 import { minify } from 'terser';

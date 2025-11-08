@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { type BuildConfig, panic } from './util';
+import { type BuildConfig, panic } from './util.ts';
 import { join } from 'path';
 
 // TODO DRY

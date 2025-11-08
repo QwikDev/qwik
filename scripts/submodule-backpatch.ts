@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { writePackageJson } from './package-json';
-import { getLoaderJsonString, minifyClientScript } from './submodule-qwikloader';
+import { writePackageJson } from './package-json.ts';
+import { getLoaderJsonString, minifyClientScript } from './submodule-qwikloader.ts';
 import {
   type BuildConfig,
   ensureDir,
@@ -9,7 +9,7 @@ import {
   type PackageJSON,
   readFile,
   writeFile,
-} from './util';
+} from './util.ts';
 
 /** Builds and minifies the backpatch executor javascript files. This is based off of the qwikloader */
 export async function submoduleBackpatch(config: BuildConfig) {

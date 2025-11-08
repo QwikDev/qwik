@@ -1,9 +1,9 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { readPackageJson } from './package-json';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
+import { readPackageJson } from './package-json.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util.ts';
 
 /**
  * Builds @qwik.dev/core/server

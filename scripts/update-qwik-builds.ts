@@ -1,4 +1,4 @@
-import { readPackageJson, writePackageJson } from './package-json';
+import { readPackageJson, writePackageJson } from './package-json.ts';
 
 type Repos = 'qwik' | 'qwik-router';
 

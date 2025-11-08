@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import type { Plugin as RollupPlugin } from 'rollup';
 import { minify, type MinifyOptions } from 'terser';
 import { promisify } from 'util';
-import { readPackageJson } from './package-json';
+import { readPackageJson } from './package-json.ts';
 
 const stringOptions = ['distVersion', 'platformTarget', 'setDistTag'] as const;
 const booleanOptions = [

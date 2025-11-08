@@ -149,7 +149,9 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   assertQrl(qrl);
   set(1);
 
-  const taskFlags = opts?.deferUpdates ? TaskFlags.RENDER_BLOCKING : 0;
+  const taskFlags =
+    // enabled by default
+    opts?.deferUpdates === false ? 0 : TaskFlags.RENDER_BLOCKING;
 
   const task = new Task(
     TaskFlags.DIRTY | TaskFlags.TASK | taskFlags,

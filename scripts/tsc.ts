@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import { join } from 'path';
-import { type BuildConfig, panic } from './util';
+import { type BuildConfig, panic } from './util.ts';
 
 // TODO DRY
 export async function tscQwik(config: BuildConfig) {

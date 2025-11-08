@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { minify } from 'terser';
 import { build } from 'vite';
-import { writePackageJson } from './package-json';
+import { writePackageJson } from './package-json.ts';
 import {
   type BuildConfig,
   ensureDir,
@@ -9,7 +9,7 @@ import {
   type PackageJSON,
   readFile,
   writeFile,
-} from './util';
+} from './util.ts';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are

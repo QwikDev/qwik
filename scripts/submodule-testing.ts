@@ -1,8 +1,8 @@
-import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util';
+import { getBanner, importPath, nodeTarget, target, externalImportNoEffects } from './util.ts';
 import { build, type BuildOptions } from 'esbuild';
-import { type BuildConfig, type PackageJSON } from './util';
+import { type BuildConfig, type PackageJSON } from './util.ts';
 import { join } from 'node:path';
-import { writePackageJson } from './package-json';
+import { writePackageJson } from './package-json.ts';
 
 /** Builds @qwik.dev/core/testing */
 export async function submoduleTesting(config: BuildConfig) {

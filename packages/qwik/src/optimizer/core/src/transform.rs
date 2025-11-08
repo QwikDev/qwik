@@ -1167,7 +1167,13 @@ impl<'a> QwikTransform<'a> {
 				raw: None,
 			}))),
 		};
-		(dynamic_props, mutable, immutable_props, children, flags)
+		(
+			dynamic_props,
+			mutable,
+			immutable_props,
+			children,
+			flags.into(),
+		)
 	}
 
 	#[allow(clippy::cognitive_complexity)]
@@ -1359,6 +1365,145 @@ impl<'a> QwikTransform<'a> {
 										"bind:value" => "onInput$",
 										"bind:checked" => "onInput$",
 										_ => "onChange$",
+									});
+									let (converted_expr, immutable) = self
+										._create_synthetic_qsegment(
+											arrow_fn,
+											SegmentKind::EventHandler,
+											event_handler.clone(),
+											None,
+										);
+									if !immutable {
+										static_listeners = false;
+									}
+									let converted_prop = ast::PropOrSpread::Prop(Box::new(
+										ast::Prop::KeyValue(ast::KeyValueProp {
+											value: Box::new(ast::Expr::Call(converted_expr)),
+											key: ast::PropName::Str(ast::Str {
+												span: DUMMY_SP,
+												value: event_handler,
+												raw: None,
+											}),
+										}),
+									));
+									event_handlers.push(converted_prop);
+								} else if !is_fn && key_word.starts_with("bind_store:") {
+									let prop_name: JsWord = key_word[11..].into(); // "value" or "checked"
+									let store_path_expr = node.value.clone(); // The expression like `store.a.b.c`
+
+									// Push the original value as the property (e.g., `value={store.a.b.c}`)
+									immutable_props.push(ast::PropOrSpread::Prop(Box::new(
+										ast::Prop::KeyValue(ast::KeyValueProp {
+											key: ast::PropName::Str(ast::Str {
+												span: DUMMY_SP,
+												value: prop_name.clone(),
+												raw: None,
+											}),
+											value: store_path_expr.clone(),
+										}),
+									)));
+
+									let elm = private_ident!("elm");
+
+									let arrow_fn_rhs = if prop_name == js_word!("value") {
+										// For 'value' prop, include type="number" check
+										Box::new(ast::Expr::Cond(ast::CondExpr {
+											test: Box::new(ast::Expr::Bin(ast::BinExpr {
+												left: Box::new(ast::Expr::Member(
+													ast::MemberExpr {
+														obj: Box::new(ast::Expr::Ident(
+															elm.clone(),
+														)),
+														prop: ast::MemberProp::Ident(
+															ast::IdentName::new(
+																"type".into(),
+																DUMMY_SP,
+															),
+														),
+														span: DUMMY_SP,
+													},
+												)),
+												span: DUMMY_SP,
+												op: ast::BinaryOp::EqEq,
+												right: Box::new(ast::Expr::Lit(ast::Lit::Str(
+													ast::Str {
+														value: "number".into(),
+														span: DUMMY_SP,
+														raw: None,
+													},
+												))),
+											})),
+											cons: Box::new(ast::Expr::Member(ast::MemberExpr {
+												obj: Box::new(ast::Expr::Ident(elm.clone())),
+												prop: ast::MemberProp::Ident(
+													ast::IdentName::new(
+														"valueAsNumber".into(),
+														DUMMY_SP,
+													),
+												),
+												span: DUMMY_SP,
+											})),
+											alt: Box::new(ast::Expr::Member(ast::MemberExpr {
+												obj: Box::new(ast::Expr::Ident(elm.clone())),
+												prop: ast::MemberProp::Ident(ast::IdentName::new(
+													prop_name.clone(),
+													DUMMY_SP,
+												)),
+												span: DUMMY_SP,
+											})),
+											span: DUMMY_SP,
+										}))
+									} else {
+										// For 'checked' or other direct properties
+										Box::new(ast::Expr::Member(ast::MemberExpr {
+											obj: Box::new(ast::Expr::Ident(elm.clone())),
+											prop: ast::MemberProp::Ident(ast::IdentName::new(
+												prop_name.clone(),
+												DUMMY_SP,
+											)),
+											span: DUMMY_SP,
+										}))
+									};
+
+									let arrow_fn = ast::Expr::Arrow(ast::ArrowExpr {
+										params: vec![
+											ast::Pat::Ident(ast::BindingIdent::from(
+												ast::Ident::new(
+													"_".into(),
+													DUMMY_SP,
+													SyntaxContext::empty(),
+												),
+											)),
+											ast::Pat::Ident(ast::BindingIdent::from(elm.clone())),
+										],
+										body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(
+											ast::Expr::Assign(ast::AssignExpr {
+												left: match *store_path_expr.clone() {
+													ast::Expr::Member(m) => ast::AssignTarget::Simple(
+														ast::SimpleAssignTarget::Member(m),
+													),
+													ast::Expr::Ident(i) => ast::AssignTarget::Simple(
+														ast::SimpleAssignTarget::Ident(i.into()),
+													),
+													_ => ast::AssignTarget::Simple(
+														ast::SimpleAssignTarget::Invalid(
+															ast::Invalid {
+																span: store_path_expr.span(),
+															},
+														),
+													),
+												},
+												op: ast::AssignOp::Assign,
+												right: arrow_fn_rhs,
+												span: DUMMY_SP,
+											}),
+										))),
+										..Default::default()
+									});
+									let event_handler = JsWord::from(match prop_name.as_ref() {
+										"value" => "onInput$",
+										"checked" => "onInput$",
+										_ => "onChange$", // Fallback, though not expected for bind_store
 									});
 									let (converted_expr, immutable) = self
 										._create_synthetic_qsegment(

@@ -83,6 +83,10 @@ export const App = component$(() => {
           .
         </li>
         <li>
+          Bound to input by keys within store
+          <input bind_store:value={state.name}></input>.
+        </li>
+        <li>
           Observe that the binding changes: <code>Hello {state.name}!</code>
         </li>
         <li>

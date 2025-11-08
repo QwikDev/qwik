@@ -114,6 +114,8 @@ export class AsyncComputedSignalImpl<T>
   }
 
   async promise(): Promise<T> {
+    // make sure we get a new promise during the next computation
+    this.$promise$ = null;
     await retryOnPromise(() => this.$computeIfNeeded$());
     return this.$untrackedValue$!;
   }

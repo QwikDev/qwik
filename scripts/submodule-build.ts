@@ -1,7 +1,7 @@
-import { type BuildConfig, ensureDir, target, copyFile, type PackageJSON } from './util';
+import { type BuildConfig, ensureDir, target, copyFile, type PackageJSON } from './util.ts';
 import { join } from 'node:path';
 import { type BuildOptions, build } from 'esbuild';
-import { writePackageJson } from './package-json';
+import { writePackageJson } from './package-json.ts';
 
 export async function submoduleBuild(config: BuildConfig) {
   const submodule = 'build';

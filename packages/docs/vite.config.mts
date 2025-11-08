@@ -13,7 +13,7 @@ import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 
 const PUBLIC_QWIK_INSIGHTS_KEY = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;

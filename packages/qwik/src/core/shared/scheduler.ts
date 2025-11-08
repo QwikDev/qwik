@@ -80,13 +80,17 @@
  *   declaration order within component.
  */
 
+import { ChoreArray, choreComparator } from '../client/chore-array';
 import { type DomContainer } from '../client/dom-container';
 import { VNodeFlags, type ClientContainer } from '../client/types';
 import { VNodeJournalOpCode, vnode_isVNode } from '../client/vnode';
-import { vnode_diff } from '../client/vnode-diff';
+import { vnode_diff, type VNodeJournalRef } from '../client/vnode-diff';
+import type { ElementVNode, VirtualVNode } from '../client/vnode-impl';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { isSignal, type Signal } from '../reactive-primitives/signal.public';
+import { isSsrNode } from '../reactive-primitives/subscriber';
 import type { NodePropPayload } from '../reactive-primitives/subscription-data';
 import {
   SignalFlags,
@@ -97,6 +101,7 @@ import {
 } from '../reactive-primitives/types';
 import { scheduleEffects } from '../reactive-primitives/utils';
 import { type ISsrNode, type SSRContainer } from '../ssr/ssr-types';
+import { invoke, newInvokeContext } from '../use/use-core';
 import { runResource, type ResourceDescriptor } from '../use/use-resource';
 import {
   Task,
@@ -110,23 +115,18 @@ import { executeComponent } from './component-execution';
 import type { OnRenderFn } from './component.public';
 import type { Props } from './jsx/jsx-runtime';
 import type { JSXOutput } from './jsx/types/jsx-node';
+import { createNextTick } from './platform/next-tick';
 import { isServerPlatform } from './platform/platform';
 import { type QRLInternal } from './qrl/qrl-class';
+import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
 import { SsrNodeFlags, type Container, type HostElement } from './types';
 import { ChoreType } from './util-chore-type';
+import { logWarn } from './utils/log';
 import { QScopedStyle } from './utils/markers';
 import { isPromise, maybeThen, retryOnPromise, safeCall } from './utils/promises';
 import { addComponentStylePrefix } from './utils/scoped-styles';
 import { serializeAttribute } from './utils/styles';
 import { type ValueOrPromise } from './utils/types';
-import { invoke, newInvokeContext } from '../use/use-core';
-import { findBlockingChore, findBlockingChoreForVisible } from './scheduler-rules';
-import { createNextTick } from './platform/next-tick';
-import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
-import { isSsrNode } from '../reactive-primitives/subscriber';
-import { logWarn } from './utils/log';
-import type { ElementVNode, VirtualVNode } from '../client/vnode-impl';
-import { ChoreArray, choreComparator } from '../client/chore-array';
 
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
@@ -161,6 +161,7 @@ export interface Chore<T extends ChoreType = ChoreType> {
   $resolve$: ((value: any) => void) | undefined;
   $reject$: ((reason?: any) => void) | undefined;
   $returnValue$: ValueOrPromise<ChoreReturnValue<T>>;
+  $extra$?: unknown;
 }
 
 export type Scheduler = ReturnType<typeof createScheduler>;
@@ -243,7 +244,8 @@ export const createScheduler = (
     type: ChoreType.COMPONENT,
     host: HostElement,
     qrl: QRLInternal<OnRenderFn<unknown>>,
-    props: Props | null
+    props: Props | null,
+    journalRef?: VNodeJournalRef
   ): Chore<ChoreType.COMPONENT>;
   function schedule(
     type: ChoreType.NODE_DIFF,
@@ -263,7 +265,8 @@ export const createScheduler = (
     type: T,
     hostOrTask: HostElement | Task | null = null,
     targetOrQrl: ChoreTarget | string | null = null,
-    payload: any = null
+    payload: unknown = null,
+    extra?: unknown
   ): Chore<T> | null {
     if (type === ChoreType.WAIT_FOR_QUEUE && drainChore) {
       return drainChore as Chore<T>;
@@ -293,6 +296,9 @@ export const createScheduler = (
       $reject$: undefined,
       $returnValue$: null!,
     };
+    if (extra !== undefined) {
+      (chore as any).$extra$ = extra;
+    }
 
     if (type === ChoreType.WAIT_FOR_QUEUE) {
       getChorePromise(chore);
@@ -659,7 +665,8 @@ This is often caused by modifying a signal in an already rendered component duri
                     container as ClientContainer,
                     jsx,
                     host as VirtualVNode,
-                    addComponentStylePrefix(styleScopedId)
+                    addComponentStylePrefix(styleScopedId),
+                    (chore as any).$extra$
                   )
                 );
               }

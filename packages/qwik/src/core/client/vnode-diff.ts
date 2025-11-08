@@ -51,7 +51,6 @@ import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, cleanupTask, isTask } from '../use/use-task';
-import type { DomContainer } from './dom-container';
 import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import {
@@ -82,14 +81,16 @@ import {
 import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 
+export type VNodeJournalRef = { $journal$: VNodeJournal; $refCount$: number };
+
 export const vnode_diff = (
   container: ClientContainer,
   jsxNode: JSXChildren,
   vStartNode: VNode,
-  scopedStyleIdPrefix: string | null
+  scopedStyleIdPrefix: string | null,
+  journalRef: VNodeJournalRef = { $journal$: [], $refCount$: 1 }
 ) => {
-  let journal = (container as DomContainer).$journal$;
-
+  let journal = journalRef.$journal$;
   /**
    * Stack is used to keep track of the state of the traversal.
    *
@@ -231,6 +232,7 @@ export const vnode_diff = (
           }
         } else if (jsxValue === (SkipRender as JSXChildren)) {
           // do nothing, we are skipping this node
+          // Note, this probably breaks async stuff
           journal = [];
         } else {
           expectText('');
@@ -558,6 +560,11 @@ export const vnode_diff = (
       } else {
         diff(jsxNode, vHostNode);
       }
+    }
+    journalRef.$refCount$--;
+    if (journalRef.$refCount$ === 0) {
+      // all done with the journal, pass it to the container
+      container.$journal$.push(...journalRef.$journal$);
     }
   }
 
@@ -1268,7 +1275,8 @@ export const vnode_diff = (
            * deleted.
            */
           (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
+          journalRef.$refCount$++;
+          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps, journalRef);
         }
       }
       descendContentToProject(jsxNode.children, host);

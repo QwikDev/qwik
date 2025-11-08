@@ -32,6 +32,11 @@ export class ChoreArray extends Array<Chore> {
     if (existing.$payload$ !== value.$payload$) {
       existing.$payload$ = value.$payload$;
     }
+    if (value.$type$ === ChoreType.COMPONENT && value.$extra$) {
+      if (!existing.$extra$) {
+        existing.$extra$ = value.$extra$;
+      }
+    }
     return idx;
   }
 

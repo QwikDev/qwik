@@ -10,7 +10,7 @@ import {
   rollupOnWarn,
   target,
   writeFile,
-} from './util';
+} from './util.ts';
 
 /**
  * Build the core package which is also the root package: @qwik.dev/core

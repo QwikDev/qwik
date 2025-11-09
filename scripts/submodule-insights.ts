@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { type BuildConfig } from './util';
+import { type BuildConfig } from './util.ts';
 
 export async function submoduleInsights(config: BuildConfig) {
   await buildComponents(config);

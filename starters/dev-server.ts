@@ -19,7 +19,7 @@ import {
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build, type InlineConfig, type PluginOption } from "vite";
-import type { PackageJSON } from "../scripts/util";
+import type { PackageJSON } from "../scripts/types.ts";
 
 const isWindows = process.platform === "win32";
 

@@ -1,8 +1,8 @@
 import { build } from 'esbuild';
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { copyStartersDir } from './create-qwik-cli';
-import { type BuildConfig, copyDir, getBanner, nodeTarget } from './util';
+import { copyStartersDir } from './create-qwik-cli.ts';
+import { type BuildConfig, copyDir, getBanner, nodeTarget } from './util.ts';
 
 /** Builds @qwik.dev/core/cli */
 export async function submoduleCli(config: BuildConfig) {

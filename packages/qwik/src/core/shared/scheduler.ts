@@ -194,6 +194,8 @@ export const createScheduler = (
   let currentTime = performance.now();
   const nextTick = createNextTick(drainChoreQueue);
   let flushTimerId: number | null = null;
+  let blockingChoresCount = 0;
+  let currentChore: Chore | null = null;
 
   function drainInNextTick() {
     if (!drainScheduled) {
@@ -275,6 +277,7 @@ export const createScheduler = (
     if (isTask) {
       (hostOrTask as Task).$flags$ |= TaskFlags.DIRTY;
     }
+
     const chore: Chore<T> = {
       $type$: type,
       $idx$: isTask
@@ -345,6 +348,10 @@ This is often caused by modifying a signal in an already rendered component duri
           logWarn(warningMessage);
           DEBUG &&
             debugTrace('schedule.SKIPPED host is not updatable', chore, choreQueue, blockedChores);
+          // Decrement counter if this was a blocking chore that we're skipping
+          if (isRenderBlocking(type)) {
+            blockingChoresCount--;
+          }
           return chore;
         }
       }
@@ -373,8 +380,15 @@ This is often caused by modifying a signal in an already rendered component duri
       }
     }
 
-    addChore(chore, choreQueue);
-    DEBUG && debugTrace('schedule', chore, choreQueue, blockedChores);
+    addChoreAndIncrementBlockingCounter(chore, choreQueue);
+
+    DEBUG &&
+      debugTrace(
+        isRenderBlocking(type) ? `schedule (blocking ${blockingChoresCount})` : 'schedule',
+        chore,
+        choreQueue,
+        blockedChores
+      );
 
     const runImmediately = (isServer && type === ChoreType.COMPONENT) || type === ChoreType.RUN_QRL;
 
@@ -432,6 +446,16 @@ This is often caused by modifying a signal in an already rendered component duri
   }
 
   function applyJournalFlush() {
+    if (blockingChoresCount > 0) {
+      DEBUG &&
+        debugTrace(
+          `journalFlush.BLOCKED (${blockingChoresCount} blocking chores)`,
+          null,
+          choreQueue,
+          blockedChores
+        );
+      return;
+    }
     if (!isJournalFlushRunning) {
       // prevent multiple journal flushes from running at the same time
       isJournalFlushRunning = true;
@@ -509,7 +533,7 @@ This is often caused by modifying a signal in an already rendered component duri
             if (vnode_isVNode(blockedChore.$host$)) {
               blockedChore.$host$.blockedChores?.delete(blockedChore);
             }
-            addChore(blockedChore, choreQueue);
+            addChoreAndIncrementBlockingCounter(blockedChore, choreQueue);
             DEBUG && debugTrace('schedule.UNBLOCKED', blockedChore, choreQueue, blockedChores);
             blockedChoresScheduled = true;
           }
@@ -521,13 +545,12 @@ This is often caused by modifying a signal in an already rendered component duri
       }
     };
 
-    let currentChore: Chore | null = null;
-
     try {
       while (choreQueue.length) {
         currentTime = performance.now();
         const chore = (currentChore = choreQueue.shift()!);
         if (chore.$state$ !== ChoreState.NONE) {
+          // Chore was already processed, counter already decremented in finishChore/handleError
           continue;
         }
 
@@ -540,6 +563,10 @@ This is often caused by modifying a signal in an already rendered component duri
           DEBUG && debugTrace('skip chore', chore, choreQueue, blockedChores);
           if (vnode_isVNode(chore.$host$)) {
             chore.$host$.chores?.delete(chore);
+          }
+          // Decrement counter if this was a blocking chore that we're skipping
+          if (isRenderBlocking(chore.$type$)) {
+            blockingChoresCount--;
           }
           continue;
         }
@@ -618,13 +645,40 @@ This is often caused by modifying a signal in an already rendered component duri
     if (vnode_isVNode(chore.$host$)) {
       chore.$host$.chores?.delete(chore);
     }
-    DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
+
+    // Decrement blocking counter if this chore was blocking journal flush
+    if (isRenderBlocking(chore.$type$)) {
+      blockingChoresCount--;
+      DEBUG &&
+        debugTrace(
+          `execute.DONE (blocking ${blockingChoresCount})`,
+          chore,
+          choreQueue,
+          blockedChores
+        );
+    } else {
+      DEBUG && debugTrace('execute.DONE', chore, choreQueue, blockedChores);
+    }
   }
 
   function handleError(chore: Chore, e: any) {
     chore.$endTime$ = performance.now();
     chore.$state$ = ChoreState.FAILED;
-    DEBUG && debugTrace('execute.ERROR', chore, choreQueue, blockedChores);
+
+    // Decrement blocking counter if this chore was blocking journal flush
+    if (isRenderBlocking(chore.$type$)) {
+      blockingChoresCount--;
+      DEBUG &&
+        debugTrace(
+          `execute.ERROR (blocking ${blockingChoresCount})`,
+          chore,
+          choreQueue,
+          blockedChores
+        );
+    } else {
+      DEBUG && debugTrace('execute.ERROR', chore, choreQueue, blockedChores);
+    }
+
     // If we used the result as promise, this won't exist
     chore.$reject$?.(e);
     container.handleError(e, chore.$host$);
@@ -814,7 +868,24 @@ This is often caused by modifying a signal in an already rendered component duri
     }
     return null;
   }
+
+  function addChoreAndIncrementBlockingCounter(chore: Chore, choreArray: ChoreArray) {
+    if (addChore(chore, choreArray)) {
+      blockingChoresCount++;
+    }
+  }
 };
+
+export function addChore(chore: Chore, choreArray: ChoreArray): boolean {
+  const idx = choreArray.add(chore);
+  if (idx < 0) {
+    if (vnode_isVNode(chore.$host$)) {
+      (chore.$host$.chores ||= new ChoreArray()).add(chore);
+    }
+    return isRenderBlocking(chore.$type$);
+  }
+  return false;
+}
 
 function vNodeAlreadyDeleted(chore: Chore): boolean {
   return !!(chore.$host$ && vnode_isVNode(chore.$host$) && chore.$host$.flags & VNodeFlags.Deleted);
@@ -839,11 +910,8 @@ export function addBlockedChore(
   }
 }
 
-export function addChore(chore: Chore, choreArray: ChoreArray) {
-  const idx = choreArray.add(chore);
-  if (idx < 0 && vnode_isVNode(chore.$host$)) {
-    (chore.$host$.chores ||= new ChoreArray()).add(chore);
-  }
+function isRenderBlocking(type: ChoreType): boolean {
+  return type === ChoreType.NODE_DIFF || type === ChoreType.COMPONENT;
 }
 
 function choreTypeToName(type: ChoreType): string {

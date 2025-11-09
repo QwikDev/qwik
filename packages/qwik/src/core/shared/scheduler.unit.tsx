@@ -1216,6 +1216,7 @@ describe('scheduler', () => {
         expect(chore.$type$).not.toBe(ChoreType.QRL_RESOLVE);
       }
 
+      await waitForDrain();
       nextTickSpy.mockRestore();
     });
   });

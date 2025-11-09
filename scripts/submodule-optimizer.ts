@@ -2,9 +2,9 @@ import { platformArchTriples } from '@napi-rs/triples';
 import { constants, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { build as viteBuild, type UserConfig } from 'vite';
-import { compiledStringPlugin } from './compiled-string-plugin';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { access, getBanner, target, writeFile, type BuildConfig } from './util';
+import { compiledStringPlugin } from './compiled-string-plugin.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
 /** Builds @qwik.dev/core/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {

@@ -4,7 +4,7 @@ import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import ts from 'typescript';
-import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util';
+import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util.ts';
 
 /**
  * This will validate a completed production build by triple checking all the files have been

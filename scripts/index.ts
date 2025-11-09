@@ -3,8 +3,8 @@
  * registering typescript files with esbuild-register to allow Node.js to build .ts files
  * on-demand.
  */
-import { build } from './build';
-import { loadConfig } from './util';
+import { build } from './build.ts';
+import { loadConfig } from './util.ts';
 
 const args = process.argv.slice(2);
 

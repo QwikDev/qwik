@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig(() => {

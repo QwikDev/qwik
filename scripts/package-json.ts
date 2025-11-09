@@ -1,5 +1,5 @@
-import { ensureDir, type PackageJSON } from './util';
-import { readFile, writeFile } from './util';
+import { ensureDir, type PackageJSON } from './util.ts';
+import { readFile, writeFile } from './util.ts';
 import { join } from 'node:path';
 
 export async function readPackageJson(pkgJsonDir: string) {

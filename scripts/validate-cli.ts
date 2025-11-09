@@ -11,10 +11,10 @@ import {
 } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { readPackageJson, writePackageJson } from './package-json';
+import { readPackageJson, writePackageJson } from './package-json.ts';
 
 import assert from 'assert';
-import { panic } from './util';
+import { panic } from './util.ts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 

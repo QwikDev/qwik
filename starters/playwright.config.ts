@@ -31,7 +31,7 @@ const config: PlaywrightTestConfig = {
   expect: { timeout: inGithubCI ? 120000 : 10000 },
   webServer: {
     command:
-      "pnpm tsx --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
+      "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

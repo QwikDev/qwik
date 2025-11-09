@@ -1,4 +1,4 @@
-import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util';
+import { type BuildConfig, copyFile, emptyDir, ensureDir } from './util.ts';
 import spawn from 'cross-spawn';
 import { join } from 'node:path';
 import { rollup } from 'rollup';

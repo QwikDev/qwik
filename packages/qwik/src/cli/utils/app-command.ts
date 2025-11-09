@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import type { PackageJSON } from '../../../../../scripts/util';
+import type { PackageJSON } from '../../../../../scripts/types.ts';
 
 export class AppCommand {
   args: string[];

@@ -7,9 +7,9 @@ import {
   type PackageJSON,
   readFile,
   writeFile,
-} from './util';
+} from './util.ts';
 import { minify } from 'terser';
-import { writePackageJson } from './package-json';
+import { writePackageJson } from './package-json.ts';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are

@@ -48,63 +48,51 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.qwik.mjs"
     },
     "./adapters/azure-swa/vite": {
       "types": "./lib/adapters/azure-swa/vite/index.d.ts",
-      "import": "./lib/adapters/azure-swa/vite/index.mjs",
-      "require": "./lib/adapters/azure-swa/vite/index.cjs"
+      "import": "./lib/adapters/azure-swa/vite/index.mjs"
     },
     "./adapters/cloudflare-pages/vite": {
       "types": "./lib/adapters/cloudflare-pages/vite/index.d.ts",
-      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs",
-      "require": "./lib/adapters/cloudflare-pages/vite/index.cjs"
+      "import": "./lib/adapters/cloudflare-pages/vite/index.mjs"
     },
     "./adapters/cloud-run/vite": {
       "types": "./lib/adapters/cloud-run/vite/index.d.ts",
-      "import": "./lib/adapters/cloud-run/vite/index.mjs",
-      "require": "./lib/adapters/cloud-run/vite/index.cjs"
+      "import": "./lib/adapters/cloud-run/vite/index.mjs"
     },
     "./adapters/bun-server/vite": {
       "types": "./lib/adapters/bun-server/vite/index.d.ts",
-      "import": "./lib/adapters/bun-server/vite/index.mjs",
-      "require": "./lib/adapters/bun-server/vite/index.cjs"
+      "import": "./lib/adapters/bun-server/vite/index.mjs"
     },
     "./adapters/deno-server/vite": {
       "types": "./lib/adapters/deno-server/vite/index.d.ts",
-      "import": "./lib/adapters/deno-server/vite/index.mjs",
-      "require": "./lib/adapters/deno-server/vite/index.cjs"
+      "import": "./lib/adapters/deno-server/vite/index.mjs"
     },
     "./adapters/node-server/vite": {
       "types": "./lib/adapters/node-server/vite/index.d.ts",
-      "import": "./lib/adapters/node-server/vite/index.mjs",
-      "require": "./lib/adapters/node-server/vite/index.cjs"
+      "import": "./lib/adapters/node-server/vite/index.mjs"
     },
     "./adapters/netlify-edge/vite": {
       "types": "./lib/adapters/netlify-edge/vite/index.d.ts",
-      "import": "./lib/adapters/netlify-edge/vite/index.mjs",
-      "require": "./lib/adapters/netlify-edge/vite/index.cjs"
+      "import": "./lib/adapters/netlify-edge/vite/index.mjs"
     },
     "./adapters/shared/vite": {
       "types": "./lib/adapters/shared/vite/index.d.ts",
-      "import": "./lib/adapters/shared/vite/index.mjs",
-      "require": "./lib/adapters/shared/vite/index.cjs"
+      "import": "./lib/adapters/shared/vite/index.mjs"
     },
     "./adapters/static/vite": {
       "types": "./lib/adapters/ssg/vite/index.d.ts",
-      "import": "./lib/adapters/ssg/vite/index.mjs",
-      "require": "./lib/adapters/ssg/vite/index.cjs"
+      "import": "./lib/adapters/ssg/vite/index.mjs"
     },
     "./adapters/ssg/vite": {
       "types": "./lib/adapters/ssg/vite/index.d.ts",
-      "import": "./lib/adapters/ssg/vite/index.mjs",
-      "require": "./lib/adapters/ssg/vite/index.cjs"
+      "import": "./lib/adapters/ssg/vite/index.mjs"
     },
     "./adapters/vercel-edge/vite": {
       "types": "./lib/adapters/vercel-edge/vite/index.d.ts",
-      "import": "./lib/adapters/vercel-edge/vite/index.mjs",
-      "require": "./lib/adapters/vercel-edge/vite/index.cjs"
+      "import": "./lib/adapters/vercel-edge/vite/index.mjs"
     },
     "./middleware/azure-swa": {
       "types": "./lib/middleware/azure-swa/index.d.ts",
@@ -136,13 +124,11 @@
     },
     "./middleware/node": {
       "types": "./lib/middleware/node/index.d.ts",
-      "import": "./lib/middleware/node/index.mjs",
-      "require": "./lib/middleware/node/index.cjs"
+      "import": "./lib/middleware/node/index.mjs"
     },
     "./middleware/request-handler": {
       "types": "./lib/middleware/request-handler/index.d.ts",
-      "import": "./lib/middleware/request-handler/index.mjs",
-      "require": "./lib/middleware/request-handler/index.cjs"
+      "import": "./lib/middleware/request-handler/index.mjs"
     },
     "./middleware/vercel-edge": {
       "types": "./lib/middleware/vercel-edge/index.d.ts",
@@ -150,23 +136,19 @@
     },
     "./static": {
       "types": "./lib/ssg/index.d.ts",
-      "import": "./lib/ssg/index.mjs",
-      "require": "./lib/ssg/index.cjs"
+      "import": "./lib/ssg/index.mjs"
     },
     "./ssg": {
       "types": "./lib/ssg/index.d.ts",
-      "import": "./lib/ssg/index.mjs",
-      "require": "./lib/ssg/index.cjs"
+      "import": "./lib/ssg/index.mjs"
     },
     "./vite": {
       "types": "./lib/vite/index.d.ts",
-      "import": "./lib/vite/index.mjs",
-      "require": "./lib/vite/index.cjs"
+      "import": "./lib/vite/index.mjs"
     },
     "./service-worker": {
       "types": "./service-worker.d.ts",
-      "import": "./lib/service-worker.mjs",
-      "require": "./lib/service-worker.cjs"
+      "import": "./lib/service-worker.mjs"
     },
     "./package.json": "./package.json"
   },

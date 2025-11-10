@@ -76,7 +76,6 @@ export async function submoduleServer(config: BuildConfig) {
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       ...(await inlineBackpatchScriptsEsBuild(config)),
-      'globalThis.IS_ESM': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
     },

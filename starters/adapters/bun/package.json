@@ -23,5 +23,6 @@
   },
   "devDependencies": {
     "@types/bun": "*"
-  }
+  },
+  "type": "module"
 }

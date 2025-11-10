@@ -29,9 +29,7 @@ export async function getSystem() {
 
   sys.path = createPath(sys);
 
-  if (globalThis.IS_ESM) {
-    sys.strictDynamicImport = sys.dynamicImport = (path) => import(path);
-  }
+  sys.strictDynamicImport = sys.dynamicImport = (path) => import(path);
 
   if (sysEnv !== 'webworker' && sysEnv !== 'browsermain') {
     try {
@@ -119,14 +117,10 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
         for (const triple of triples) {
           // Node.js - Native Binding
           try {
-            if (globalThis.IS_ESM) {
-              const module = await sys.dynamicImport('node:module');
-              const mod = module.default.createRequire(import.meta.url)(
-                `../bindings/${triple.platformArchABI}`
-              );
-              return mod;
-            }
-            const mod = await sys.dynamicImport(`../bindings/${triple.platformArchABI}`);
+            const module = await sys.dynamicImport('node:module');
+            const mod = module.default.createRequire(import.meta.url)(
+              `../bindings/${triple.platformArchABI}`
+            );
             return mod;
           } catch (e) {
             console.warn(
@@ -139,24 +133,22 @@ export async function loadPlatformBinding(sys: OptimizerSystem) {
     }
   }
 
-  if (globalThis.IS_ESM) {
-    if (sysEnv === 'node' || sysEnv === 'bun') {
-      // ESM WASM Node.js
-      const url: typeof import('url') = await sys.dynamicImport('node:url');
-      const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
-      const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
-      const mod = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
-      const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
+  if (sysEnv === 'node' || sysEnv === 'bun') {
+    // ESM WASM Node.js
+    const url: typeof import('url') = await sys.dynamicImport('node:url');
+    const __dirname = sys.path.dirname(url.fileURLToPath(import.meta.url));
+    const wasmPath = sys.path.join(__dirname, '..', 'bindings', 'qwik_wasm_bg.wasm');
+    const mod = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
+    const fs: typeof import('fs') = await sys.dynamicImport('node:fs');
 
-      const buf = await fs.promises.readFile(wasmPath);
-      const wasm = await WebAssembly.compile(buf as any);
-      await mod.default(wasm);
-      return mod;
-    } else {
-      const module = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
-      await module.default();
-      return module;
-    }
+    const buf = await fs.promises.readFile(wasmPath);
+    const wasm = await WebAssembly.compile(buf as any);
+    await mod.default(wasm);
+    return mod;
+  } else {
+    const module = await sys.dynamicImport(`../bindings/qwik.wasm.mjs`);
+    await module.default();
+    return module;
   }
 
   throw new Error(`Platform not supported`);
@@ -218,7 +210,6 @@ const extensions: { [ext: string]: boolean } = {
   '.mjs': true,
 };
 
-declare const globalThis: { IS_ESM: boolean; [key: string]: any };
 declare const WorkerGlobalScope: any;
 declare const Deno: any;
 declare const Bun: any;

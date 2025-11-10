@@ -63,7 +63,11 @@ export const makeRouterDevMiddleware =
       const render = (async (opts: RendererOptions) => {
         return await renderer(opts as any);
       }) as Render;
-      const { router, staticFile, notFound } = createQwikRouter({ render });
+      const { router, staticFile, notFound } = createQwikRouter({
+        render,
+        // inject the platform from dev middleware options
+        platform: ctx.opts.platform,
+      } as any);
 
       // Wrap the response to enable HTML transformation
       const wrappedRes = wrapResponseForHtmlTransform(req, res, server);

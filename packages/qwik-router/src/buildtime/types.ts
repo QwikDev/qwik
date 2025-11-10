@@ -130,7 +130,13 @@ export interface PluginOptions {
   mdxPlugins?: MdxPlugins;
   /** MDX Options https://mdxjs.com/ */
   mdx?: any;
-  /** The platform object which can be used to mock the Cloudflare bindings. */
+  /**
+   * Extend the `platform` object in RequestEvent, which can be used to e.g. mock Cloudflare
+   * bindings.
+   *
+   * This only works in **dev mode** and only when using the in-process Vite dev server middleware
+   * (the default).
+   */
   platform?: Record<string, unknown>;
   /** Configuration to rewrite url paths */
   rewriteRoutes?: RewriteRouteOption[];

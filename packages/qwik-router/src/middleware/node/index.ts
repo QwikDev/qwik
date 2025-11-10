@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type { ClientConn, ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
 import {
@@ -42,6 +43,10 @@ export function createQwikRouter(opts: QwikRouterNodeRequestOptions | QwikCityNo
         'server',
         opts.getClientConn
       );
+      // In dev mode, inject platform from options via secret property
+      if (isDev && (opts as any).platform) {
+        Object.assign(serverRequestEv.platform, (opts as any).platform);
+      }
       const handled = await requestHandler(serverRequestEv, opts);
       if (handled) {
         const err = await handled.completion;

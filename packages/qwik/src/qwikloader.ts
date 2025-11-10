@@ -23,6 +23,7 @@ const doc = document as Document & { __q_context__?: [Element, Event, URL] | 0 }
 const win = window as unknown as qWindow;
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
+const symbols: Record<string, unknown> = {};
 
 let hasInitialized: number;
 
@@ -142,6 +143,8 @@ const dispatch = async (
           importError = 'sync';
           error = new Error('sym:' + symbol);
         }
+      } else if (symbol in symbols) {
+        handler = symbols[symbol];
       } else {
         emitEvent<QwikSymbolEvent>('qsymbol', eventData);
         const uri = url.href.split('#')[0];
@@ -152,6 +155,8 @@ const dispatch = async (
           if (!handler) {
             importError = 'no-symbol';
             error = new Error(`${symbol} not in ${uri}`);
+          } else {
+            symbols[symbol] = handler;
           }
         } catch (err) {
           importError ||= 'async';

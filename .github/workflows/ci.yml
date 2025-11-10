@@ -660,9 +660,8 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-          # too slow and flaky. Perhaps better in v2?
-          # - host: ubuntu-latest
-          #   browser: firefox
+          - host: ubuntu-latest
+            browser: firefox
           - host: windows-latest
             browser: chromium
           - host: macos-latest

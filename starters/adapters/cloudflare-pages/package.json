@@ -24,5 +24,6 @@
         "- pnpm run deploy: it will use the Cloudflare CLI to deploy your site"
       ]
     }
-  }
+  },
+  "type": "module"
 }

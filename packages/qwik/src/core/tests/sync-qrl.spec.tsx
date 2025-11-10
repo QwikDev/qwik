@@ -15,7 +15,7 @@ describe.each([
         <input
           type="checkbox"
           onClick$={[
-            sync$((e: Event, target: Element) => {
+            sync$((e, target) => {
               if (target.getAttribute('shouldPreventDefault')) {
                 e.preventDefault();
               }

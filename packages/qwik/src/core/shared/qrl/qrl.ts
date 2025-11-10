@@ -75,7 +75,7 @@ export const qrl = <T = any>(
   }
 
   // Unwrap subscribers
-  return createQRL<T>(chunk, symbol, null, symbolFn, null, lexicalScopeCapture);
+  return createQRL<T>(chunk, symbol, null, symbolFn, lexicalScopeCapture);
 };
 
 /**
@@ -90,25 +90,25 @@ export const qrl = <T = any>(
 export const inlinedQrl = <T>(
   symbol: T | null,
   symbolName: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = null
 ): QRL<T> => {
   // Unwrap subscribers
-  return createQRL<T>(null, symbolName, symbol, null, null, lexicalScopeCapture);
+  return createQRL<T>(null, symbolName, symbol, null, lexicalScopeCapture);
 };
 
 /** @internal */
 export const _noopQrl = <T>(
   symbolName: string,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = null
 ): QRL<T> => {
-  return createQRL<T>(null, symbolName, null, null, null, lexicalScopeCapture);
+  return createQRL<T>(null, symbolName, null, null, lexicalScopeCapture);
 };
 
 /** @internal */
 export const _noopQrlDEV = <T>(
   symbolName: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = null
 ): QRL<T> => {
   const newQrl = _noopQrl(symbolName, lexicalScopeCapture) as QRLInternal<T>;
   newQrl.dev = opts;
@@ -120,7 +120,7 @@ export const qrlDEV = <T = any>(
   chunkOrFn: string | (() => Promise<any>),
   symbol: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture?: any[]
 ): QRL<T> => {
   const newQrl = qrl(chunkOrFn, symbol, lexicalScopeCapture, 1) as QRLInternal<T>;
   newQrl.dev = opts;
@@ -132,7 +132,7 @@ export const inlinedQrlDEV = <T = any>(
   symbol: T,
   symbolName: string,
   opts: QRLDev,
-  lexicalScopeCapture: any[] = EMPTY_ARRAY
+  lexicalScopeCapture: any[] | null = null
 ): QRL<T> => {
   const qrl = inlinedQrl(symbol, symbolName, lexicalScopeCapture) as QRLInternal<T>;
   qrl.dev = opts;

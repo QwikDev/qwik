@@ -300,17 +300,17 @@ export const _eagerDeserializeArray = (
   return output;
 };
 export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
-  if (qrl.$captureRef$) {
-    // early return if capture references are already set and qrl is already inflated
-    return qrl;
-  }
-  const captureIds = qrl.$capture$;
-  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
-  // clear serialized capture references
-  qrl.$capture$ = null;
   if (container.element) {
     qrl.$setContainer$(container.element);
   }
+  if (typeof qrl.$captureRef$ !== 'string') {
+    // early return if qrl is already inflated by cycle
+    return qrl;
+  }
+  const captureRefs = (qrl.$captureRef$ as unknown as string)
+    .split(' ')
+    .map((id) => container.$getObjectById$(Number(id)));
+  qrl.$captureRef$ = captureRefs;
   return qrl;
 }
 export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {

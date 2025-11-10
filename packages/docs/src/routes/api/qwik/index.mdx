@@ -1713,7 +1713,7 @@ Create an inlined QRL. This is mostly useful on the server side for serializatio
 inlinedQrl: <T>(
   symbol: T | null,
   symbolName: string,
-  lexicalScopeCapture?: any[],
+  lexicalScopeCapture?: any[] | null,
 ) => QRL<T>;
 ```
 
@@ -1762,7 +1762,7 @@ lexicalScopeCapture
 
 </td><td>
 
-any[]
+any[] \| null
 
 </td><td>
 

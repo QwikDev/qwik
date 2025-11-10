@@ -432,7 +432,7 @@ describe('serializer v2', () => {
         const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
         expect(dstQrl.$captureRef$).toEqual(
-          srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
+          srcQrl.$captureRef$?.length ? srcQrl.$captureRef$ : null
         );
         expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });

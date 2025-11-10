@@ -58,5 +58,5 @@ export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefine
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
-  return createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
+  return createQRL<EventHandler>(null, '_task', scheduleTask, null, [task]);
 };

@@ -76,18 +76,14 @@ export function qrlToString(
   return qrlStringInline;
 }
 
-export function createQRLWithBackChannel(
-  chunk: string,
-  symbol: string,
-  captureIds?: number[] | null
-): QRLInternal<any> {
+export function createQRLWithBackChannel(chunk: string, symbol: string): QRLInternal<any> {
   let qrlRef = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
     assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds!, null);
+  return createQRL(chunk, symbol, qrlRef, null, null);
 }
 
 /** Parses "chunk#hash[...rootRef]" */
@@ -98,15 +94,13 @@ export function parseQRL(qrl: string): QRLInternal<any> {
   const chunk = hashIdx > -1 ? qrl.slice(0, hashIdx) : qrl.slice(0, captureStart);
 
   const symbol = captureStart > -1 ? qrl.slice(hashIdx + 1, captureStart) : qrl.slice(hashIdx + 1);
-  const captureIds =
-    captureStart > -1 && captureEnd > -1
-      ? qrl
-          .slice(captureStart + 1, captureEnd)
-          .split(' ')
-          .filter((v) => v.length)
-          .map((s) => parseInt(s, 10))
-      : null;
-  return createQRLWithBackChannel(chunk, symbol, captureIds);
+  const captureIdsString =
+    captureStart > -1 && captureEnd > -1 && qrl.slice(captureStart + 1, captureEnd);
+  const created = createQRLWithBackChannel(chunk, symbol);
+  if (captureIdsString) {
+    created.$captureRef$ = captureIdsString as unknown as unknown[];
+  }
+  return created;
 }
 
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

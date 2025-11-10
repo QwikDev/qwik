@@ -394,13 +394,13 @@ export const _IMMUTABLE: unique symbol;
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
 // @public
-export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[] | null) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[] | null) => QRL<T>;
 
 export { isBrowser }
 
@@ -570,10 +570,10 @@ export type NativeUIEvent = UIEvent;
 export type NativeWheelEvent = WheelEvent;
 
 // @internal (undocumented)
-export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[] | null) => QRL<T>;
 
 // @internal (undocumented)
-export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[] | null) => QRL<T>;
 
 // @public
 export type NoSerialize<T> = (T & {

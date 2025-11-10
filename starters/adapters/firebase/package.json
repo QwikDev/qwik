@@ -20,5 +20,6 @@
         "- cd functions && pnpm i"
       ]
     }
-  }
+  },
+  "type": "module"
 }

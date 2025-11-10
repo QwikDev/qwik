@@ -160,16 +160,8 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
-          );
-          await copyFile(
             join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
             join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
-          );
-          console.log(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
           );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),

@@ -24,7 +24,7 @@ async function validateCreateQwikCli() {
   const cliDir = join(__dirname, '..', 'packages', 'create-qwik');
   accessSync(cliDir);
 
-  const cliBin = join(cliDir, 'create-qwik.cjs');
+  const cliBin = join(cliDir, 'create-qwik.mjs');
   accessSync(cliBin);
 
   const cliPkgJsonPath = join(cliDir, 'package.json');

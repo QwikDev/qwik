@@ -4,13 +4,14 @@
   "version": "2.0.0-beta.13",
   "author": "Qwik Team",
   "bin": {
-    "qwik": "./qwik-cli.cjs"
+    "qwik": "./qwik-cli.mjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "csstype": "^3.1.3",
     "launch-editor": "^2.11.1",
-    "rollup": "^4.52.4"
+    "rollup": "^4.52.4",
+    "ts-morph": "23.0.0"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.1",
@@ -21,7 +22,6 @@
     "image-size": "1.2.1",
     "kleur": "4.1.5",
     "prettier": "3.6.2",
-    "ts-morph": "23.0.0",
     "vitest": "4.0.1"
   },
   "engines": {
@@ -35,15 +35,10 @@
         "production": "./dist/core.prod.mjs",
         "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
-      },
-      "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.prod.cjs"
       }
     },
     "./cli": {
-      "require": "./dist/cli.cjs"
+      "require": "./dist/cli.mjs"
     },
     "./handlers.mjs": "./handlers.mjs",
     "./internal": {
@@ -53,11 +48,6 @@
         "production": "./dist/core.prod.mjs",
         "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
-      },
-      "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.prod.cjs"
       }
     },
     "./jsx-runtime": {
@@ -67,11 +57,6 @@
         "production": "./dist/core.prod.mjs",
         "min": "./dist/core.min.mjs",
         "default": "./dist/core.prod.mjs"
-      },
-      "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.prod.cjs"
       }
     },
     "./jsx-dev-runtime": {
@@ -81,11 +66,6 @@
         "production": "./dist/core.prod.mjs",
         "min": "./dist/core.min.mjs",
         "default": "./dist/core.mjs"
-      },
-      "require": {
-        "development": "./dist/core.cjs",
-        "production": "./dist/core.prod.cjs",
-        "default": "./dist/core.cjs"
       }
     },
     "./build": {
@@ -94,50 +74,36 @@
         "development": "./dist/build/index.dev.mjs",
         "production": "./dist/build/index.prod.mjs",
         "default": "./dist/build/index.mjs"
-      },
-      "require": {
-        "development": "./dist/build/index.dev.cjs",
-        "production": "./dist/build/index.prod.cjs",
-        "default": "./dist/build/index.cjs"
       }
     },
     "./loader": {
       "types": "./dist/loader/index.d.ts",
-      "import": "./dist/loader/index.mjs",
-      "require": "./dist/loader/index.cjs"
+      "import": "./dist/loader/index.mjs"
     },
     "./insights": {
       "types": "./dist/insights.d.ts",
-      "import": "./dist/insights/index.qwik.mjs",
-      "require": "./dist/insights/index.qwik.cjs"
+      "import": "./dist/insights/index.qwik.mjs"
     },
     "./insights/vite": {
       "types": "./dist/insights/vite.d.ts",
-      "import": "./dist/insights/vite/index.mjs",
-      "require": "./dist/insights/vite/index.cjs"
+      "import": "./dist/insights/vite/index.mjs"
     },
-    "./optimizer.cjs": "./dist/optimizer.cjs",
     "./optimizer.mjs": "./dist/optimizer.mjs",
     "./optimizer": {
       "types": "./dist/optimizer.d.ts",
-      "import": "./dist/optimizer.mjs",
-      "require": "./dist/optimizer.cjs"
+      "import": "./dist/optimizer.mjs"
     },
     "./preloader": {
-      "import": "./dist/preloader.mjs",
-      "require": "./dist/preloader.cjs"
+      "import": "./dist/preloader.mjs"
     },
-    "./server.cjs": "./dist/server.cjs",
     "./server.mjs": "./dist/server.mjs",
     "./server": {
       "types": "./server.d.ts",
-      "import": "./dist/server.mjs",
-      "require": "./dist/server.cjs"
+      "import": "./dist/server.mjs"
     },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
-      "import": "./dist/testing/index.mjs",
-      "require": "./dist/testing/index.cjs"
+      "import": "./dist/testing/index.mjs"
     },
     "./qwikloader.js": "./dist/qwikloader.js",
     "./qwikloader.debug.js": "./dist/qwikloader.debug.js",
@@ -161,7 +127,7 @@
     "public.d.ts",
     "server.d.ts",
     "testing.d.ts",
-    "qwik-cli.cjs"
+    "qwik-cli.mjs"
   ],
   "homepage": "https://qwik.dev/",
   "keywords": [

@@ -14,5 +14,5 @@
     "test": "pnpm exec playwright test --config=playwright.config.ts --project=chromium",
     "test-ui": "pnpm exec playwright test --config=playwright.config.ts --project=chromium --ui"
   },
-  "type": "commonjs"
+  "type": "module"
 }

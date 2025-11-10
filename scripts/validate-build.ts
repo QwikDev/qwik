@@ -1,5 +1,4 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
@@ -16,7 +15,6 @@ export async function validateBuild(config: BuildConfig) {
   const pkgPath = join(config.distQwikPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
-  const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
@@ -42,13 +40,6 @@ export async function validateBuild(config: BuildConfig) {
       const ext = extname(filePath);
 
       switch (ext) {
-        case '.cjs':
-          const f = basename(filePath);
-          if (f !== 'qwik.cjs') {
-            require(filePath);
-            console.log(`✅ ${filePath}`);
-          }
-          break;
         case '.mjs':
           if (config.esmNode) {
             await import(pathToFileURL(filePath).href);

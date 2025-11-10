@@ -15,5 +15,6 @@
         "inside './adapters/ssg/vite.config.ts'"
       ]
     }
-  }
+  },
+  "type": "module"
 }

@@ -1,52 +1,36 @@
 import { blue, gray, green, magenta, red, reset, white } from 'kleur/colors';
 import { log, outro } from '@clack/prompts';
-
-import type { ChildProcess } from 'node:child_process';
 import type { IntegrationPackageJson } from '../types';
 import detectPackageManager from 'which-pm-runs';
 import fs from 'node:fs';
 import { join } from 'node:path';
-import spawn from 'cross-spawn';
-
+import { execa } from 'execa';
 export function runCommand(cmd: string, args: string[], cwd: string) {
-  let child: ChildProcess;
-
-  const install = new Promise<boolean>((resolve) => {
-    try {
-      child = spawn(cmd, args, {
-        cwd,
-        stdio: 'ignore',
-      });
-
-      child.on('error', (e) => {
-        if (e) {
-          if (e.message) {
-            log.error(red(String(e.message)) + `\n\n`);
-          } else {
-            log.error(red(String(e)) + `\n\n`);
-          }
-        }
-        resolve(false);
-      });
-
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      });
-    } catch (e) {
-      resolve(false);
-    }
+  const child = execa(cmd, args, {
+    cwd,
+    stdio: 'ignore',
   });
 
+  const install: Promise<boolean> = child
+    .then(() => {
+      return true;
+    })
+    .catch((e) => {
+      if (e) {
+        if (e.message) {
+          log.error(red(String(e.message)) + `\n\n`);
+        } else {
+          log.error(red(String(e)) + `\n\n`);
+        }
+      }
+      return false;
+    });
+
   const abort = async () => {
-    if (child) {
-      child.kill('SIGINT');
-    }
+    child.kill('SIGINT');
   };
 
+  // 5. Return the object synchronously
   return { abort, install };
 }
 

@@ -44,6 +44,12 @@ export function qrlToString(
         new Map());
       // During tests the resolved value is always available
       backChannel.set(value.$symbol$, value.resolved);
+      console.log('QRL TO STRING', {
+        symbol: value.$symbol$,
+        chunk,
+        code: value.$symbolRef$?.toString(),
+      });
+
       if (!chunk) {
         chunk = QRL_RUNTIME_CHUNK;
       }

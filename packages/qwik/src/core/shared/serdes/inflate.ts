@@ -122,6 +122,7 @@ export const inflate = (
       break;
     }
     case TypeIds.Signal: {
+      console.log('INFLATE SIGNAL', target, data);
       const signal = target as SignalImpl<unknown>;
       const d = data as [unknown, ...EffectSubscription[]];
       signal.$untrackedValue$ = d[0];

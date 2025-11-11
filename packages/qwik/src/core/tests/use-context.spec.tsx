@@ -4,6 +4,7 @@ import {
   Fragment as Component,
   Fragment,
   Fragment as Projection,
+  Fragment as Signal,
   Slot,
   Fragment as WrappedSignal,
   _getDomContainer,
@@ -26,7 +27,7 @@ import {
   trigger,
 } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import type { Signal } from '../reactive-primitives/signal.public';
+import type { Signal as SignalType } from '../reactive-primitives/signal.public';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 
@@ -297,7 +298,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <Signal ssr-required>1</Signal>
+                      </p>
                       <p>
                         <Awaited ssr-required>0</Awaited>
                       </p>
@@ -323,7 +326,9 @@ describe.each([
                 <Awaited ssr-required>
                   <Component ssr-required>
                     <Fragment ssr-required>
-                      <p>1</p>
+                      <p>
+                        <Signal ssr-required>1</Signal>
+                      </p>
                       <p>
                         <Awaited ssr-required>2</Awaited>
                       </p>
@@ -408,7 +413,7 @@ describe.each([
 
 describe('html wrapper', () => {
   it('should provide and retrieve a context in client', async () => {
-    const contextId = createContextId<Signal<NoSerialize<{ value: string }>>>('myTest');
+    const contextId = createContextId<SignalType<NoSerialize<{ value: string }>>>('myTest');
     const Consumer = component$(() => {
       const ctxValue = useContext(contextId);
       return <span>{ctxValue.value?.value}</span>;

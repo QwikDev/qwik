@@ -31,6 +31,7 @@ export const trackFn =
       } else if (isSignal(obj)) {
         return obj.value;
       } else if (isObject(obj) && isStore(obj)) {
+        // TODO: handle props proxy
         // track whole store
         addStoreEffect(
           getStoreTarget(obj)!,

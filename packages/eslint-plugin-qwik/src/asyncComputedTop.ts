@@ -2,6 +2,15 @@ import { Rule } from 'eslint';
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 import ts from 'typescript';
 
+// Utility type to handle nodes from Rule handlers which may come from @types/estree
+// The nodes from Rule handlers are compatible with TSESTree at runtime but not at the type level
+// because @types/estree uses string literals while TSESTree uses AST_NODE_TYPES enum
+type RuleNode<T extends TSESTree.Node = TSESTree.Node> = {
+  type: any;
+  parent?: any;
+  [key: string]: any;
+};
+
 function isFromQwikModule(resolvedVar: any): boolean {
   return resolvedVar?.defs?.some((def: any) => {
     if (def.type !== 'ImportBinding') {
@@ -87,7 +96,9 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
       const callee = decl.initializer.expression;
       if (ts.isIdentifier(callee)) {
         const name = callee.text;
-        return name === 'createAsyncComputed$' || name === 'useAsyncComputed$';
+        return (
+          name === 'createAsyncComputed$' || name === 'useAsyncComputed$' || name === 'routeLoader$'
+        );
       }
     }
     if (ts.isExportSpecifier(decl) || ts.isImportSpecifier(decl)) {
@@ -105,17 +116,45 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
         if (callee.type === AST_NODE_TYPES.Identifier) {
           const name = callee.name;
           if (
-            (name === 'useAsyncComputed$' || name === 'createAsyncComputed$') &&
+            (name === 'useAsyncComputed$' ||
+              name === 'createAsyncComputed$' ||
+              name === 'routeLoader$') &&
             isFromQwikModule(resolveVariableForIdentifier(context, callee))
           ) {
             return true;
+          }
+
+          // Check if callee was created by routeLoader$ (or other async computed creators)
+          // e.g., const signal = useProductDetails() where useProductDetails = routeLoader$(...)
+          const calleeResolved = resolveVariableForIdentifier(context, callee);
+          if (calleeResolved && calleeResolved.defs) {
+            for (const calleeDef of calleeResolved.defs) {
+              if (
+                calleeDef.type === 'Variable' &&
+                calleeDef.node.type === AST_NODE_TYPES.VariableDeclarator
+              ) {
+                const calleeInit = calleeDef.node.init;
+                if (calleeInit && calleeInit.type === AST_NODE_TYPES.CallExpression) {
+                  const calleeCallee = calleeInit.callee;
+                  if (calleeCallee.type === AST_NODE_TYPES.Identifier) {
+                    const calleeName = calleeCallee.name;
+                    if (
+                      calleeName === 'routeLoader$' &&
+                      isFromQwikModule(resolveVariableForIdentifier(context, calleeCallee))
+                    ) {
+                      return true;
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
     if (def.type === 'ImportBinding' && checker && esTreeNodeToTSNodeMap) {
       try {
-        // Map the identifier to TS node & resolve symbol (following re-exports)
+        // Map the identifier to TS node & promise symbol (following re-exports)
         const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
         if (tsNode) {
           let symbol = checker.getSymbolAtLocation(tsNode);
@@ -156,8 +195,8 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
       const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
       const type = checker.getTypeAtLocation(tsNode);
       const typeStr = checker.typeToString(type.getNonNullableType());
-      // Heuristic: type name includes AsyncComputed
-      if (/AsyncComputed/i.test(typeStr)) {
+      // Heuristic: type name includes AsyncComputed or LoaderSignal
+      if (/AsyncComputed|LoaderSignal/i.test(typeStr)) {
         return true;
       }
     } catch {
@@ -168,9 +207,9 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
   return false;
 }
 
-function hasAwaitResolveBefore(
+function hasAwaitPromiseBefore(
   body: TSESTree.BlockStatement,
-  beforeStmt: TSESTree.Statement,
+  beforeStmt: RuleNode<TSESTree.ExpressionStatement> | RuleNode<TSESTree.ReturnStatement>,
   identifierName: string
 ): boolean {
   for (const stmt of body.body) {
@@ -184,20 +223,84 @@ function hasAwaitResolveBefore(
     if (expr.type !== AST_NODE_TYPES.AwaitExpression) {
       continue;
     }
-    const awaited = expr.argument;
+    let awaited = expr.argument;
+
+    // Handle `await signal.promise()`
+    if (awaited.type === AST_NODE_TYPES.CallExpression) {
+      awaited = awaited.callee;
+    }
+
+    // Handle `await signal.promise`
     if (
-      awaited &&
-      awaited.type === AST_NODE_TYPES.CallExpression &&
-      awaited.callee.type === AST_NODE_TYPES.MemberExpression &&
-      !awaited.callee.computed &&
-      awaited.callee.object.type === AST_NODE_TYPES.Identifier &&
-      awaited.callee.object.name === identifierName &&
-      awaited.callee.property.type === AST_NODE_TYPES.Identifier &&
-      awaited.callee.property.name === 'resolve'
+      awaited.type === AST_NODE_TYPES.MemberExpression &&
+      !awaited.computed &&
+      awaited.object.type === AST_NODE_TYPES.Identifier &&
+      awaited.object.name === identifierName &&
+      awaited.property.type === AST_NODE_TYPES.Identifier &&
+      awaited.property.name === 'promise'
     ) {
       return true;
     }
   }
+  return false;
+}
+
+function findContainingFunction(
+  node: RuleNode
+):
+  | RuleNode<TSESTree.FunctionDeclaration>
+  | RuleNode<TSESTree.FunctionExpression>
+  | RuleNode<TSESTree.ArrowFunctionExpression>
+  | null {
+  let current: any = node;
+  while (current) {
+    if (
+      current.type === AST_NODE_TYPES.FunctionDeclaration ||
+      current.type === AST_NODE_TYPES.FunctionExpression ||
+      current.type === AST_NODE_TYPES.ArrowFunctionExpression
+    ) {
+      return current;
+    }
+    current = current.parent;
+  }
+  return null;
+}
+
+function shouldCheckFunction(
+  context: Rule.RuleContext,
+  fn:
+    | RuleNode<TSESTree.FunctionDeclaration>
+    | RuleNode<TSESTree.FunctionExpression>
+    | RuleNode<TSESTree.ArrowFunctionExpression>,
+  signalIdent: RuleNode<TSESTree.Identifier>
+): boolean {
+  // Check if this function is directly passed to a QRL (e.g., component$, $, etc.)
+  const parent = fn.parent;
+  if (parent && parent.type === AST_NODE_TYPES.CallExpression) {
+    if (parent.callee.type === AST_NODE_TYPES.Identifier) {
+      if (isQrlCallee(context, parent.callee)) {
+        // Check if the function is in the arguments
+        for (const arg of parent.arguments) {
+          if (arg === fn) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+
+  // For non-QRL functions, only check if:
+  // 1. It's an async function
+  // 2. The signal is a parameter (not captured from outer scope)
+  if (fn.async) {
+    // Check if the signal identifier is a parameter of this function
+    for (const param of fn.params) {
+      if (param.type === AST_NODE_TYPES.Identifier && param.name === signalIdent.name) {
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
@@ -213,100 +316,93 @@ export const asyncComputedTop: Rule.RuleModule = {
     schema: [],
     messages: {
       asyncComputedNotTop:
-        "Async computed '{{name}}.value' must be first, or use 'await {{name}}.resolve()' beforehand.",
+        "Async computed '{{name}}.value' must be first, or use 'await {{name}}.promise()' beforehand.",
     },
   },
   create(context) {
-    const qrlFnStack: Array<
-      TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression | TSESTree.FunctionDeclaration
-    > = [];
-
-    function isInTrackedQrl(
-      fn:
-        | TSESTree.FunctionExpression
-        | TSESTree.ArrowFunctionExpression
-        | TSESTree.FunctionDeclaration
-    ): boolean {
-      const parent = fn.parent;
-      if (!parent || parent.type !== AST_NODE_TYPES.CallExpression) {
-        return false;
-      }
-      if (parent.callee.type !== AST_NODE_TYPES.Identifier) {
-        return false;
-      }
-      if (!isQrlCallee(context, parent.callee)) {
-        return false;
-      }
-      // Function must be passed as a direct argument
-      return parent.arguments.includes(fn as any);
-    }
-
     return {
-      ':function'(node: any) {
-        if (
-          (node.type === AST_NODE_TYPES.FunctionExpression ||
-            node.type === AST_NODE_TYPES.ArrowFunctionExpression) &&
-          isInTrackedQrl(node)
-        ) {
-          qrlFnStack.push(node);
-        }
-      },
-      ':function:exit'(node: any) {
-        if (qrlFnStack.length && qrlFnStack[qrlFnStack.length - 1] === node) {
-          qrlFnStack.pop();
-        }
-      },
-
       MemberExpression(node) {
-        if (!qrlFnStack.length) {
-          return;
-        }
-        const currentFn = qrlFnStack[qrlFnStack.length - 1]!;
-        // Only care about reads like `foo.value;` that are expression statements
         if (
-          node.parent?.type !== AST_NODE_TYPES.ExpressionStatement ||
           node.computed ||
           node.property.type !== AST_NODE_TYPES.Identifier ||
           node.property.name !== 'value'
         ) {
           return;
         }
-        const exprStmt = node.parent as TSESTree.ExpressionStatement;
+
+        const obj = node.object;
+        if (obj.type !== AST_NODE_TYPES.Identifier) {
+          return;
+        }
+
+        if (!isAsyncComputedIdentifier(context, obj)) {
+          return;
+        }
+
+        const currentFn = findContainingFunction(node);
+        if (!currentFn) {
+          return;
+        }
+
+        // Only check functions that are QRL callbacks or async functions with signal parameters
+        if (!shouldCheckFunction(context, currentFn, obj)) {
+          return;
+        }
+
+        // Only care about reads like `foo.value;` that are expression statements
+        // or returns
+        const parentStmt = node.parent;
+        if (
+          !parentStmt ||
+          (parentStmt.type !== AST_NODE_TYPES.ExpressionStatement &&
+            parentStmt.type !== AST_NODE_TYPES.ReturnStatement)
+        ) {
+          return;
+        }
+
         // Find the top-of-body allowed zone
         const body =
           currentFn.body && currentFn.body.type === AST_NODE_TYPES.BlockStatement
             ? currentFn.body
             : null;
         if (!body) {
+          // Arrow function with implicit return, e.g. () => mySignal.value
+          if (currentFn.body.type === AST_NODE_TYPES.MemberExpression && currentFn.body === node) {
+            // This is ok, it's at the "top"
+            return;
+          }
           return;
         }
-        // Only consider top-level statements of the QRL callback body
-        if (exprStmt.parent !== body) {
+        // Only consider top-level statements of the function body
+        if (parentStmt.parent !== body) {
           return;
         }
 
+        // Check if this .value access is at the top of the function body
+        // The first statement is allowed (this is the "top")
+        const firstStmt = body.body[0];
+        if (firstStmt === parentStmt) {
+          return; // This is the first statement, OK
+        }
+
+        // Also allow if the first statement is a .value access (even if current is not first)
+        // This handles the case where the first .value primes the signal
         const allowedFirst = getFirstStatementIfValueRead(body);
-        const isAtTop = allowedFirst === exprStmt;
-        if (isAtTop) {
-          return;
+        if (allowedFirst === parentStmt) {
+          return; // This is the designated first .value access, OK
         }
 
-        // Determine if the object is an async computed signal
-        const obj = node.object;
-        if (obj.type !== AST_NODE_TYPES.Identifier) {
-          return;
-        }
-        if (!isAsyncComputedIdentifier(context, obj)) {
-          return;
-        }
-
-        // Allow if there is an earlier 'await <ident>.resolve()' in the same body
-        if (hasAwaitResolveBefore(body, exprStmt, obj.name)) {
+        // Allow if there is an earlier 'await <ident>.promise' in the same body.
+        if (
+          (parentStmt.type === AST_NODE_TYPES.ExpressionStatement ||
+            parentStmt.type === AST_NODE_TYPES.ReturnStatement) &&
+          hasAwaitPromiseBefore(body, parentStmt, obj.name)
+        ) {
           return;
         }
 
         context.report({
-          node: node as any,
+          node,
           messageId: 'asyncComputedNotTop',
           data: { name: obj.name },
         });

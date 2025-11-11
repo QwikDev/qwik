@@ -1,4 +1,5 @@
 import { createContextId, type Signal } from '@qwik.dev/core';
+import type { AsyncComputedReadonlySignal } from '@qwik.dev/core/internal';
 import type {
   ContentState,
   ContentStateInternal,
@@ -10,7 +11,7 @@ import type {
 } from './types';
 
 export const RouteStateContext =
-  /*#__PURE__*/ createContextId<Record<string, Signal<unknown>>>('qc-s');
+  /*#__PURE__*/ createContextId<Record<string, AsyncComputedReadonlySignal<unknown>>>('qc-s');
 
 export const ContentContext = /*#__PURE__*/ createContextId<ContentState>('qc-c');
 export const ContentInternalContext =

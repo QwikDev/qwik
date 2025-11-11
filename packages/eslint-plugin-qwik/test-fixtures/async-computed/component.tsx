@@ -25,7 +25,7 @@ export const C2 = component$(() => {
 export const C3 = component$(() => {
   const signal = useSignal(0);
   useTask$(async () => {
-    await userData.resolve();
+    await userData.promise();
     signal.value++;
     userData.value; // ok
   });

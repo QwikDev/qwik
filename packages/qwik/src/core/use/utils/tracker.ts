@@ -9,13 +9,12 @@ import { getSubscriber } from '../../reactive-primitives/subscriber';
 import { EffectProperty, STORE_ALL_PROPS, type Consumer } from '../../reactive-primitives/types';
 import { isSignal } from '../../reactive-primitives/utils';
 import { qError, QError } from '../../shared/error/error';
+import { noSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
-import { noSerialize, type NoSerialize } from '../../shared/serdes/verify';
 import { isFunction, isObject } from '../../shared/utils/types';
 import { invoke, newInvokeContext } from '../use-core';
-import type { Tracker } from '../use-task';
-
-export type Destroyable = { $destroy$: NoSerialize<() => void> | null };
+import { type Tracker } from '../use-task';
+import type { Destroyable } from './destroyable';
 
 export const trackFn =
   (target: Consumer, container: Container | null): Tracker =>
@@ -57,13 +56,13 @@ export const cleanupFn = <T extends Destroyable>(
         cleanupFns = [];
         target.$destroy$ = noSerialize(() => {
           target.$destroy$ = null;
-          cleanupFns!.forEach((fn) => {
+          for (const fn of cleanupFns!) {
             try {
               fn();
             } catch (err) {
               handleError(err);
             }
-          });
+          }
         });
       }
       cleanupFns.push(fn);

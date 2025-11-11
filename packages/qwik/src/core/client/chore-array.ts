@@ -1,6 +1,7 @@
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
 import { StoreHandler } from '../reactive-primitives/impl/store';
 import { assertFalse } from '../shared/error/assert';
+import { PropsProxyHandler } from '../shared/jsx/props-proxy';
 import { isQrl } from '../shared/qrl/qrl-utils';
 import type { Chore } from '../shared/scheduler';
 import {
@@ -125,6 +126,7 @@ export function choreComparator(a: Chore, b: Chore): number {
     a.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
     b.$type$ === ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS &&
     ((a.$target$ instanceof StoreHandler && b.$target$ instanceof StoreHandler) ||
+      (a.$target$ instanceof PropsProxyHandler && b.$target$ instanceof PropsProxyHandler) ||
       (a.$target$ instanceof AsyncComputedSignalImpl &&
         b.$target$ instanceof AsyncComputedSignalImpl)) &&
     a.$payload$ !== b.$payload$

@@ -3,6 +3,7 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
+  Fragment as Signal,
   Slot,
   component$,
   useSignal,
@@ -262,13 +263,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal>qwik</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal>bar</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>
@@ -281,13 +288,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal>bar</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal>qwik</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>
@@ -554,7 +567,7 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            aaa
+            <Signal>aaa</Signal>
             {': '}
             <Projection>
               <div>
@@ -608,12 +621,12 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            {'bar'}
+            <Signal>{'bar'}</Signal>
             {': '}
             <Projection>Test</Projection>
             <Component>
               <div>
-                {'bbb'}
+                <Signal>{'bbb'}</Signal>
                 {': '}
                 <Projection>Test2</Projection>
               </div>
@@ -712,7 +725,9 @@ describe.each([
     expect(vNode).toMatchVDOM(
       <InlineComponent>
         <Component>
-          <Fragment>World</Fragment>
+          <Fragment>
+            <Signal>World</Signal>
+          </Fragment>
         </Component>
       </InlineComponent>
     );

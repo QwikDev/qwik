@@ -516,8 +516,7 @@ test.describe("signals", () => {
       await expect(button).not.toBeDisabled();
     });
 
-    // TODO(v2): fix this
-    test.skip("issue 4868", async ({ page }) => {
+    test("issue 4868", async ({ page }) => {
       const btn1 = page.locator("#issue-4868-btn-1");
       const btn2 = page.locator("#issue-4868-btn-2");
       const json = page.locator("#issue-4868-json");

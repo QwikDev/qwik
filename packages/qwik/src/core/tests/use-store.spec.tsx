@@ -333,7 +333,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -345,7 +345,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -397,7 +397,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -409,7 +409,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -1191,9 +1191,9 @@ describe.each([
       const { vNode, document } = await render(<Issue5001 />, { debug });
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Component>
-            <Fragment>
-              <Component>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
                 <div>
                   <button>+1</button>
                 </div>
@@ -1210,9 +1210,9 @@ describe.each([
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Component>
-            <Fragment>
-              <Component>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
                 <div>
                   <button>+1</button>
                 </div>

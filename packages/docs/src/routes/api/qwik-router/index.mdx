@@ -1163,11 +1163,12 @@ export type Loader<RETURN> = {
 ## LoaderSignal
 
 ```typescript
-export type LoaderSignal<TYPE> = TYPE extends () => ValueOrPromise<
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<
   infer VALIDATOR
 >
   ? ReadonlySignal<ValueOrPromise<VALIDATOR>>
-  : ReadonlySignal<TYPE>;
+  : ReadonlySignal<TYPE>) &
+  Pick<AsyncComputedReadonlySignal, "promise" | "loading" | "error">;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)

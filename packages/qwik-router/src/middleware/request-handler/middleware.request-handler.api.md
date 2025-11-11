@@ -183,17 +183,17 @@ export function requestHandler<T = unknown>(serverRequestEv: ServerRequestEvent<
 // @public (undocumented)
 export interface ResolveSyncValue {
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
+    <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Awaited<T> | undefined;
     // (undocumented)
-    <T>(action: Action<T>): Awaited<T> | undefined;
+    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Awaited<T>;
 }
 
 // @public (undocumented)
 export interface ResolveValue {
     // (undocumented)
-    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
+    <T, INPUT, OPTIONAL extends boolean>(action: Action<T, INPUT, OPTIONAL>): Promise<T | undefined>;
     // (undocumented)
-    <T>(action: Action<T>): Promise<T | undefined>;
+    <T>(loader: Loader_2<T>): Awaited<T> extends () => any ? never : Promise<T>;
 }
 
 // @public (undocumented)

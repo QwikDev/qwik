@@ -77,9 +77,12 @@ function clearAsyncComputedSignal(
 function clearStore(producer: StoreHandler, effect: EffectSubscription) {
   const effects = producer?.$effects$;
   if (effects) {
-    for (const propEffects of effects.values()) {
+    for (const [propKey, propEffects] of effects.entries()) {
       if (propEffects.has(effect)) {
         propEffects.delete(effect);
+        if (propEffects.size === 0) {
+          effects.delete(propKey);
+        }
       }
     }
   }

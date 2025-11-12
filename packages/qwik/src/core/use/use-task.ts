@@ -750,8 +750,10 @@ export const runComputed = (
     untrack(() => {
       const signal = task.$state$! as SignalInternal<unknown>;
       signal[QObjectSignalFlags] &= ~SIGNAL_UNASSIGNED;
-      signal.untrackedValue = returnValue;
-      signal[QObjectManagerSymbol].$notifySubs$();
+      if (signal.untrackedValue !== returnValue) {
+        signal.untrackedValue = returnValue;
+        signal[QObjectManagerSymbol].$notifySubs$();
+      }
     });
   };
   const fail = (reason: unknown) => {

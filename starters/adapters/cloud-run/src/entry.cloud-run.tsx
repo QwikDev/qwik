@@ -16,7 +16,7 @@ import { createServer } from "node:http";
 import render from "./entry.ssr";
 
 declare global {
-  interface QwikCityPlatform extends PlatformNode {}
+  type QwikCityPlatform = PlatformNode;
 }
 
 /** The default headers used by helmet */
@@ -53,7 +53,7 @@ const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
   static: {
-    cacheControl: "public, max-age=31557600",
+    cacheControl: "public, max-age=31536000, immutable",
   },
   getOrigin(req) {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto

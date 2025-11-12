@@ -48,9 +48,13 @@ export const onPost: RequestHandler = async ({ exit, json, request, params }) =>
 };
 
 function cleanupSymbolName(symbolName?: string | null): string | null {
-  if (!symbolName) return null;
+  if (!symbolName) {
+    return null;
+  }
   const shortName = symbolName.substring(symbolName.lastIndexOf('_') + 1 || 0);
-  if (shortName == 'hW') return null;
+  if (shortName == 'hW') {
+    return null;
+  }
   return shortName;
 }
 function migrate1(payloadJson: any) {

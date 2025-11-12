@@ -15,17 +15,24 @@ created_at: '2022-08-02T12:07:45Z'
 
 While not a common use case, you may occasionally need to process events synchronously.
 
-Since Qwik processes asynchronously by default, your code must be explicitly configured for synchronous calls. 
+The two most common use cases are to call `event.preventDefault()` or `event.stopPropagation()` on a DOM event. Those are handled by adding the `preventdefault:eventname` or `stoppropagation:eventname` in addition to your event handler.
 
-There are two ways of processing events synchronously:
-1. preferred way: use `sync$()` to load code synchronously. Fast, resumable but with **significant restrictions** on event handler size. 
-2. eager registration: use `useVisibleTask$()` to load code synchronously. No restrictions, but requires eager code execution, which goes against resumability.
+```tsx
+  <a href="/" preventdefault:click onClick$={() => {
+    console.log('clicked');
+  }}>
+    link
+  </a>
+```
 
-This example shows how to use synchronous code blocks using `sync$()`.
+When you have other use cases that require synchronous event processing, you can use either `sync$()` or `useVisibleTask$()`.
+1. preferred way: use `sync$()` to embed the code in the HTML. Fast, resumable, but with some restrictions (see below).
+2. eager registration: use `useVisibleTask$()` to register a handler. No restrictions, but it will not handle events until the visible task has executed, and it will cause of course run extra javaScript while the page is loading.
 
 ```tsx
   <a href="/" 
     onClick$={sync$((event, target) => {
+      // Only prevent default if the ctrl key is pressed.
       if (event.ctrlKey) {
         event.preventDefault();
       }
@@ -34,7 +41,7 @@ This example shows how to use synchronous code blocks using `sync$()`.
   </a>
 ```
 
-## `sync$()` Restrictions (BETA)
+## `sync$()` Restrictions
 
 The `sync$()` function is a resumable way to process events synchronously. However, it has some significant restrictions. The `sync$()` **can't close over anything**. The implications are that you can't:
 - access any state: The recommended way to get the state into function is to place on element attributes.
@@ -63,6 +70,23 @@ For this reason, we recommended breaking up the event handlers into two parts:
   </a>
 ```
 
+You can also dispatch a custom event from the `sync$()` handler and handle it asynchronously:
 
+```tsx
+  <a href="/" 
+    onClick$={sync$((event, target) => {
+      if (event.ctrlKey) {
+        event.preventDefault();
+      }
+      // Dispatch a custom event to be handled asynchronously.
+      target.dispatchEvent(new CustomEvent('myclick', { bubbles: true }));
+    })}
+    onMyclick$={() => {
+      // This part can be asynchronous and can close over anything.
+      console.log('clicked');
+    }}>
+    link
+  </a>
+```
 
- **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`useVisibleTask$`](/docs/(qwik)/components/tasks/index.mdx#usevisibletask) lifecycle and [normal event registration](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
+ **Your task:** Convert the `onClick$` from asynchronous event to synchronous event by using [`sync$`](/docs/(qwik)/core/tasks/index.mdx#usevisibletask).

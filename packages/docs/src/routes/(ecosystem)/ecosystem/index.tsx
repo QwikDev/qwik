@@ -234,10 +234,6 @@ export default component$(() => {
                   thumbnailBg={true}
                 />
               ))}
-              <AddIntegrationItem
-                title="Add A Showcase"
-                href="https://github.com/QwikDev/qwik/edit/main/packages/docs/scripts/pages.json"
-              />
             </ul>
           </section>
 

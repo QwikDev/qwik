@@ -3,7 +3,7 @@ import { execa } from 'execa';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rollup } from 'rollup';
-import { type BuildConfig, emptyDir, importPath, nodeTarget, panic } from './util';
+import { type BuildConfig, emptyDir, importPath, nodeTarget, panic } from './util.ts';
 
 export async function buildQwikCity(config: BuildConfig) {
   if (!config.dev) {
@@ -82,6 +82,7 @@ async function buildVite(config: BuildConfig) {
     'typescript',
     'vite-imagetools',
     'svgo',
+    '@builder.io/qwik-city/middleware/request-handler',
   ];
 
   const swRegisterPath = join(config.srcQwikCityDir, 'runtime', 'src', 'sw-register.ts');

@@ -1,5 +1,5 @@
 import { component$, sync$ } from '@builder.io/qwik';
-import { z } from 'zod';
+import * as z from 'zod';
 
 export interface InsightsPayload {
   /** Qwik version */
@@ -215,7 +215,9 @@ const insightsPing = sync$(() =>
     });
     window[addEventListener_s](error_s, (event: ErrorEvent) => {
       var error = event[error_s];
-      if (!(error && typeof error === 'object')) return;
+      if (!(error && typeof error === 'object')) {
+        return;
+      }
       var payload = {
         url: `${location}`,
         [manifestHash_s]: manifestHash,

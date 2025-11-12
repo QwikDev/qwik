@@ -16,6 +16,9 @@ import render from "./entry.ssr";
 const { router, notFound, staticFile } = createQwikCity({
   render,
   qwikCityPlan,
+  static: {
+    cacheControl: "public, max-age=31536000, immutable",
+  },
 });
 
 // Allow for dynamic port

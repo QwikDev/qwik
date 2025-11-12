@@ -8,6 +8,7 @@ export type {
   PrefetchResource,
   PrefetchImplementation,
   PrefetchStrategy,
+  PreloaderOptions,
   RenderToStringOptions,
   RenderToStringResult,
   Render,

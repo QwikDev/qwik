@@ -150,7 +150,8 @@ export type NoSerialize<T> = (T & { __no_serialize__: true }) | undefined;
  */
 // </docs>
 export const noSerialize = <T extends object | undefined>(input: T): NoSerialize<T> => {
-  if (input != null) {
+  // only add supported values to the noSerializeSet, prevent console errors
+  if ((typeof input === 'object' && input !== null) || typeof input === 'function') {
     noSerializeSet.add(input);
   }
   return input as any;

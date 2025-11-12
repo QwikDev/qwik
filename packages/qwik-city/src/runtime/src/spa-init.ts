@@ -202,9 +202,9 @@ export default event$((_: Event, el: Element) => {
     win[scrollEnabled] = true;
 
     setTimeout(() => {
-      addEventListener('popstate', win[initPopstate]!);
-      addEventListener('scroll', win[initScroll]!, { passive: true });
-      document.body.addEventListener('click', win[initAnchors]!);
+      win.addEventListener('popstate', win[initPopstate]!);
+      win.addEventListener('scroll', win[initScroll]!, { passive: true });
+      document.addEventListener('click', win[initAnchors]!);
 
       if (!(win as any).navigation) {
         document.addEventListener('visibilitychange', win[initVisibility]!, {

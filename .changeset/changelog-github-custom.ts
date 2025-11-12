@@ -12,13 +12,15 @@ const changelogFunctions: ChangelogFunctions = {
         'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
       );
     }
-    if (dependenciesUpdated.length === 0) return '';
+    if (dependenciesUpdated.length === 0) {
+      return '';
+    }
 
     const changesetLink = `- Updated dependencies [${(
       await Promise.all(
         changesets.map(async (cs) => {
           if (cs.commit) {
-            let { links } = await getInfo({
+            const { links } = await getInfo({
               repo: options.repo,
               commit: cs.commit,
             });
@@ -45,12 +47,14 @@ const changelogFunctions: ChangelogFunctions = {
 
     let prFromSummary: number | undefined;
     let commitFromSummary: string | undefined;
-    let usersFromSummary: string[] = [];
+    const usersFromSummary: string[] = [];
 
     const replacedChangelog = changeset.summary
       .replace(/^\s*(?:pr|pull|pull\s+request):\s*#?(\d+)/im, (_, pr) => {
-        let num = Number(pr);
-        if (!isNaN(num)) prFromSummary = num;
+        const num = Number(pr);
+        if (!isNaN(num)) {
+          prFromSummary = num;
+        }
         return '';
       })
       .replace(/^\s*commit:\s*([^\s]+)/im, (_, commit) => {
@@ -91,7 +95,7 @@ const changelogFunctions: ChangelogFunctions = {
       }
       const commitToFetchFrom = commitFromSummary || changeset.commit;
       if (commitToFetchFrom) {
-        let { links } = await getInfo({
+        const { links } = await getInfo({
           repo: options.repo,
           commit: commitToFetchFrom,
         });

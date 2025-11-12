@@ -2,7 +2,7 @@ import spawn from 'cross-spawn';
 import { copyFile, writeFile } from 'fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ensureDir, type BuildConfig } from './util';
+import { ensureDir, type BuildConfig } from './util.ts';
 
 export async function buildPlatformBinding(config: BuildConfig) {
   await new Promise((resolve, reject) => {

@@ -10,8 +10,13 @@ import type {
 import { isPromise } from './../../runtime/src/utils';
 import { createCacheControl } from './cache-control';
 import { Cookie } from './cookie';
-import { ServerError } from './error-handler';
-import { AbortMessage, RedirectMessage } from './redirect-handler';
+// Import separately to avoid duplicate imports in the vite dev server
+import {
+  AbortMessage,
+  RedirectMessage,
+  ServerError,
+  RewriteMessage,
+} from '@builder.io/qwik-city/middleware/request-handler';
 import { encoder } from './resolve-request-handlers';
 import type {
   CacheControl,
@@ -25,7 +30,7 @@ import type {
   ServerRequestEvent,
   ServerRequestMode,
 } from './types';
-import { IsQData, QDATA_JSON, QDATA_JSON_LEN } from './user-response';
+import { IsQData, getRouteMatchPathname } from './user-response';
 
 const RequestEvLoaders = Symbol('RequestEvLoaders');
 const RequestEvMode = Symbol('RequestEvMode');
@@ -36,6 +41,7 @@ export const RequestRouteName = '@routeName';
 export const RequestEvSharedActionId = '@actionId';
 export const RequestEvSharedActionFormData = '@actionFormData';
 export const RequestEvSharedNonce = '@nonce';
+export const RequestEvIsRewrite = '@rewrite';
 
 export function createRequestEvent(
   serverRequestEv: ServerRequestEvent,
@@ -52,11 +58,11 @@ export function createRequestEvent(
   const cookie = new Cookie(request.headers.get('cookie'));
   const headers = new Headers();
   const url = new URL(request.url);
-  if (url.pathname.endsWith(QDATA_JSON)) {
-    url.pathname = url.pathname.slice(0, -QDATA_JSON_LEN);
-    if (trailingSlash && !url.pathname.endsWith('/')) {
-      url.pathname += '/';
-    }
+  const { pathname, isInternal } = getRouteMatchPathname(url.pathname, trailingSlash);
+  if (isInternal) {
+    // For the middleware callbacks we pretend it's a regular request
+    url.pathname = pathname;
+    // But we set this flag so that they can act differently
     sharedMap.set(IsQData, true);
   }
 
@@ -80,6 +86,18 @@ export function createRequestEvent(
       }
       routeModuleIndex++;
     }
+  };
+
+  const resetRoute = (
+    _loadedRoute: LoadedRoute | null,
+    _requestHandlers: RequestHandler<any>[],
+    _url = url
+  ) => {
+    loadedRoute = _loadedRoute;
+    requestHandlers = _requestHandlers;
+    url.pathname = _url.pathname;
+    url.search = _url.search;
+    routeModuleIndex = -1;
   };
 
   const check = () => {
@@ -133,17 +151,26 @@ export function createRequestEvent(
     [RequestEvLoaders]: loaders,
     [RequestEvMode]: serverRequestEv.mode,
     [RequestEvTrailingSlash]: trailingSlash,
-    [RequestEvRoute]: loadedRoute,
+    get [RequestEvRoute]() {
+      return loadedRoute;
+    },
     [RequestEvQwikSerializer]: qwikSerializer,
     cookie,
     headers,
     env,
     method: request.method,
     signal: request.signal,
-    params: loadedRoute?.[1] ?? {},
-    pathname: url.pathname,
+    originalUrl: new URL(url),
+    get params() {
+      return loadedRoute?.[1] ?? {};
+    },
+    get pathname() {
+      return url.pathname;
+    },
     platform,
-    query: url.searchParams,
+    get query() {
+      return url.searchParams;
+    },
     request,
     url,
     basePathname,
@@ -159,6 +186,8 @@ export function createRequestEvent(
     },
 
     next,
+
+    resetRoute,
 
     exit,
 
@@ -199,6 +228,7 @@ export function createRequestEvent(
 
     error: <T = any>(statusCode: number, message: T) => {
       status = statusCode;
+      headers.delete('Cache-Control');
       return new ServerError(statusCode, message);
     },
 
@@ -206,18 +236,29 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
-        const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
-        if (url !== fixedURL) {
+        if (/([^:])\/{2,}/.test(url)) {
+          const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
+          url = fixedURL;
         }
-        headers.set('Location', fixedURL);
+        headers.set('Location', url);
       }
-      // Fallback to 'no-store' when end user is not managing Cache-Control header
-      if (statusCode > 301 && !headers.get('Cache-Control')) {
+      headers.delete('Cache-Control');
+      if (statusCode > 301) {
         headers.set('Cache-Control', 'no-store');
       }
-      exit();
+
+      routeModuleIndex = ABORT_INDEX;
       return new RedirectMessage();
+    },
+
+    rewrite: (pathname: string) => {
+      check();
+      if (pathname.startsWith('http')) {
+        throw new Error('Rewrite does not support absolute urls');
+      }
+      sharedMap.set(RequestEvIsRewrite, true);
+      return new RewriteMessage(pathname.replace(/\/+/g, '/'));
     },
 
     defer: (returnData) => {
@@ -227,6 +268,7 @@ export function createRequestEvent(
     fail: <T extends Record<string, any>>(statusCode: number, data: T): FailReturn<T> => {
       check();
       status = statusCode;
+      headers.delete('Cache-Control');
       return {
         failed: true,
         ...data,
@@ -296,6 +338,19 @@ export interface RequestEventInternal extends RequestEvent, RequestEventLoader {
    * @returns `true`, if `getWritableStream()` has already been called.
    */
   isDirty(): boolean;
+
+  /**
+   * Reset the request event to the given route data.
+   *
+   * @param loadedRoute - The new loaded route.
+   * @param requestHandlers - The new request handlers.
+   * @param url - The new URL of the route.
+   */
+  resetRoute(
+    loadedRoute: LoadedRoute | null,
+    requestHandlers: RequestHandler<any>[],
+    url: URL
+  ): void;
 }
 
 export function getRequestLoaders(requestEv: RequestEventCommon) {

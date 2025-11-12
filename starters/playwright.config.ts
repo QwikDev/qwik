@@ -24,12 +24,14 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,
   retries: inGithubCI ? 0 : 1,
   expect: { timeout: inGithubCI ? 120000 : 10000 },
   webServer: {
     command:
-      "pnpm tsx --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
+      "pnpm node --require ./scripts/runBefore.ts starters/dev-server.ts 3301",
     port: 3301,
     reuseExistingServer: !process.env.CI,
   },

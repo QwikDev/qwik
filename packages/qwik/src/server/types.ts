@@ -1,6 +1,7 @@
 import type { SnapshotResult, StreamWriter } from '@builder.io/qwik';
 import type {
   QwikManifest,
+  ServerQwikManifest,
   ResolvedManifest,
   SymbolMapper,
   SymbolMapperFn,
@@ -20,48 +21,60 @@ export interface PrefetchStrategy {
 }
 
 /** @public */
-export interface PrefetchImplementation {
+export interface PreloaderOptions {
   /**
    * Maximum number of preload links to add during SSR. These instruct the browser to preload likely
-   * bundles before the preloader script is active. This includes the 2 preloads used for the
-   * preloader script itself and the bundle information. Setting this to 0 will disable all preload
-   * links.
+   * bundles before the preloader script is active. This most likely includes the core and the
+   * preloader script itself. Setting this to 0 will disable all preload links.
+   *
+   * Preload links can delay LCP, which is a Core Web Vital, but it can increase TTI, which is not a
+   * Core Web Vital but more noticeable to the user.
    *
    * Defaults to `5`
    */
-  maxPreloads?: number;
+  ssrPreloads?: number;
   /**
-   * The minimum probability of a bundle to be added as a preload link during SSR.
+   * The minimum probability for a bundle to be added as a preload link during SSR.
    *
-   * Defaults to `0.6` (60% probability)
+   * Defaults to `0.7` (70% probability)
+   *
+   * This makes sure that the most likely bundles are preloaded ahead of time.
    */
-  minProbability?: number;
+  ssrPreloadProbability?: number;
   /**
-   * If true, the preloader will log debug information to the console.
+   * Log preloader debug information to the console.
    *
    * Defaults to `false`
    */
   debug?: boolean;
   /**
-   * Maximum number of simultaneous preload links that the preloader will maintain.
+   * Maximum number of simultaneous preload links that the preloader will maintain. If you set this
+   * higher, the browser will have all JS files in memory sooner, but it will contend with other
+   * resource downloads. Furthermore, if a bundle suddenly becomes more likely, it will have to wait
+   * longer to be preloaded.
    *
-   * Defaults to `5`
+   * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
+   * immediately, no limit.
+   *
+   * Defaults to `25`
    */
-  maxSimultaneousPreloads?: number;
+  maxIdlePreloads?: number;
   /**
-   * The minimum probability for a bundle to be added to the preload queue.
+   * @deprecated The minimum probability for a bundle to be added to the preload queue.
    *
-   * Defaults to `0.25` (25% probability)
-   */
-  minPreloadProbability?: number;
-  /**
-   * Value of the `<link rel="...">` attribute when links are added. The preloader itself will
-   * autodetect which attribute to use based on the browser capabilities.
+   *   Defaulted to `0.35` (35% probability).
    *
-   * Defaults to `modulepreload`.
+   *   Deprecated because this could cause performance issues with bundles fetched on on click instead
+   *   of being preloaded ahead of time.
    */
+  preloadProbability?: number;
+}
+
+/** @public @deprecated Use `preloader` instead */
+export interface PrefetchImplementation {
+  /** @deprecated No longer used. */
   linkRel?: 'prefetch' | 'preload' | 'modulepreload' | null;
-  /** Value of the `<link fetchpriority="...">` attribute when links are added. Defaults to `null`. */
+  /** @deprecated No longer used. */
   linkFetchPriority?: 'auto' | 'low' | 'high' | null;
   /** @deprecated No longer used. */
   linkInsert?: 'js-append' | 'html-append' | null;
@@ -76,7 +89,9 @@ export interface PrefetchImplementation {
  *
  * @public
  */
-export type SymbolsToPrefetch = 'auto' | ((opts: { manifest: QwikManifest }) => PrefetchResource[]);
+export type SymbolsToPrefetch =
+  | 'auto'
+  | ((opts: { manifest: ServerQwikManifest }) => PrefetchResource[]);
 
 /** @public */
 export interface PrefetchResource {
@@ -109,14 +124,20 @@ export interface RenderResult {
   prefetchResources: PrefetchResource[];
   snapshotResult: SnapshotResult | undefined;
   isStatic: boolean;
-  manifest?: QwikManifest;
+  manifest?: ServerQwikManifest;
 }
 
 /** @public */
-export interface QwikLoaderOptions {
-  include?: 'always' | 'never' | 'auto';
-  position?: 'top' | 'bottom';
-}
+export type QwikLoaderOptions =
+  | 'module'
+  | 'inline'
+  | 'never'
+  | {
+      /** @deprecated No longer used. */
+      include?: 'always' | 'never' | 'auto';
+      /** @deprecated No longer used. */
+      position?: 'top' | 'bottom';
+    };
 
 /**
  * @deprecated This is no longer used as the preloading happens automatically in qrl-class.ts.
@@ -144,15 +165,32 @@ export interface RenderOptions extends SerializeDocumentOptions {
   locale?: string | ((options: RenderOptions) => string);
 
   /**
-   * Specifies if the Qwik Loader script is added to the document or not.
+   * Specifies how the Qwik Loader is included in the document. This enables interactivity and lazy
+   * loading.
    *
-   * Defaults to `{ include: true }`.
+   * `module`: Use a `<script>` tag to load the Qwik Loader. Subsequent page loads will have the
+   * script cached and instantly running.
+   *
+   * `inline`: This embeds the Qwik Loader script directly in the document. This adds about 3kB
+   * before compression, which typically is reduced to about 1.6kB with gzip.
+   *
+   * `never`: Do not include the Qwik Loader script. This is mostly useful when embedding multiple
+   * containers on the same page.
+   *
+   * Defaults to `module`.
+   *
+   * Note that the Qwik Loader is absolutely required for Qwik to work. There must be an instance of
+   * it loaded for any interactivity to happen.
    */
   qwikLoader?: QwikLoaderOptions;
 
-  /** @deprecated Use `prefetchStrategy` instead */
+  /** Specifies how preloading is handled. This ensures that code is instantly available when needed. */
+  preloader?: PreloaderOptions | false;
+
+  /** @deprecated Use `preloader` instead */
   qwikPrefetchServiceWorker?: QwikPrefetchServiceWorkerOptions;
 
+  /** @deprecated Use `preloader` instead */
   prefetchStrategy?: PrefetchStrategy | null;
 
   /**
@@ -207,4 +245,4 @@ export type RenderToStream = (opts: RenderToStreamOptions) => Promise<RenderToSt
 /** @public */
 export type Render = RenderToString | RenderToStream;
 
-export type { QwikManifest, SnapshotResult, StreamWriter, SymbolMapper };
+export type { QwikManifest, ServerQwikManifest, SnapshotResult, StreamWriter, SymbolMapper };

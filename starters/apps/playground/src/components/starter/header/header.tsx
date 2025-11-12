@@ -13,10 +13,7 @@ export default component$(() => {
         </div>
         <ul>
           <li>
-            <a
-              href="https://qwik.dev/docs/components/overview/"
-              target="_blank"
-            >
+            <a href="https://qwik.dev/docs/core/overview/" target="_blank">
               Docs
             </a>
           </li>

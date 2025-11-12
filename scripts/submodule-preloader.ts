@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { fileSize, type BuildConfig } from './util';
+import { fileSize, type BuildConfig } from './util.ts';
 import { minify } from 'terser';
 import type { Plugin } from 'vite';
 
@@ -51,10 +51,12 @@ function customTerserPlugin(): Plugin {
 export async function submodulePreloader(config: BuildConfig) {
   await build({
     build: {
+      emptyOutDir: false,
+      copyPublicDir: false,
       lib: {
         entry: join(config.srcQwikDir, 'core/preloader'),
-        formats: ['es'],
-        fileName: () => 'preloader.mjs',
+        formats: ['es', 'cjs'],
+        fileName: (format) => (format === 'es' ? 'preloader.mjs' : 'preloader.cjs'),
       },
       rollupOptions: {
         external: ['@builder.io/qwik/build'],

@@ -1,8 +1,8 @@
 import { execa } from 'execa';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { type BuildConfig } from './util';
 import { format } from 'prettier';
+import { type BuildConfig } from './util.ts';
 
 export async function generateQwikApiMarkdownDocs(config: BuildConfig, apiJsonInputDir: string) {
   await generateApiMarkdownPackageDocs(config, apiJsonInputDir, ['qwik']);
@@ -191,7 +191,7 @@ async function createApiData(
   const apiJsonPath = join(docsDir, `api.json`);
   writeFileSync(apiJsonPath, JSON.stringify(apiData, null, 2));
 
-  const apiMdPath = join(docsDir, `index.md`);
+  const apiMdPath = join(docsDir, `index.mdx`);
   writeFileSync(apiMdPath, await createApiMarkdown(apiData));
 }
 
@@ -211,13 +211,57 @@ async function createApiMarkdown(a: ApiData) {
     md.push(``);
 
     // sanitize / adjust output
-    const content = m.content
-      .replace(/<!--(.|\s)*?-->/g, '')
-      // .replace(/<Slot\/>/g, ''
-      .replace(/\\#\\#\\# (\w+)/gm, '### $1')
-      .replace(/\\\[/gm, '[')
-      .replace(/\\\]/gm, ']');
-    md.push(content);
+
+    // Process the content to escape { characters only outside code blocks
+    let processedContent = '';
+    let inCodeBlock = false;
+    let inInlineCode = false;
+
+    const lines = m.content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i]
+        .replace(/<!--(.|\s)*?-->/g, '')
+        // .replace(/<Slot\/>/g, ''
+        .replace(/\\#\\#\\# (\w+)/gm, '### $1')
+        .replace(/\\\[/gm, '[')
+        .replace(/\\\]/gm, ']');
+
+      // Check for triple backtick code blocks
+      if (line.trim().startsWith('```')) {
+        inCodeBlock = !inCodeBlock;
+        processedContent += line + '\n';
+        continue;
+      }
+
+      if (!inCodeBlock) {
+        // Process line character by character for inline code
+        let newLine = '';
+        for (let j = 0; j < line.length; j++) {
+          const char = line[j];
+
+          // Toggle inline code state when we see a backtick
+          if (char === '`') {
+            inInlineCode = !inInlineCode;
+            newLine += char;
+            continue;
+          }
+
+          // Escape { when not in any code context
+          if (char === '{' && !inInlineCode) {
+            newLine += '\\{';
+          } else {
+            newLine += char;
+          }
+        }
+        processedContent += newLine + '\n';
+      } else {
+        // In code block, don't change anything
+        processedContent += line + '\n';
+      }
+    }
+
+    md.push(processedContent.trim());
     md.push(``);
 
     if (m.editUrl) {

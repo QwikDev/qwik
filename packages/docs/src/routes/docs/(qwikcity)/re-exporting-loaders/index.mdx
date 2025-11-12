@@ -3,6 +3,7 @@ title: Cookbook | Re-exporting loaders
 contributors:
   - gioboa
   - aendel
+  - extrordinaire
 updated_at: '2023-12-15T11:00:00Z'
 created_at: '2023-12-15T11:00:00Z'
 ---
@@ -14,7 +15,7 @@ import CodeSandbox, {CodeFile} from '../../../../components/code-sandbox/index.t
 `routeAction$` and `routeLoader$` are typically declared in route boundary files such as layout.tsx, index.tsx and plugin.tsx inside the routesDir directory
 [here is docs](https://qwik.dev/docs/route-loader/).
 
-Sometimes you would like to declared them outside of the route boundaries.
+Sometimes you would like to declare them outside of the route boundaries.
 This may be useful when you want to create reusable logic or a library.
 In such a case, it is essential that this function is re-exported from within the router boundary otherwise it will not run or throw exception.
 
@@ -55,7 +56,7 @@ import { Form } from '@builder.io/qwik-city';
 import { useCommonRouteAction, useCommonRouteLoader } from './shared/loaders';
 
 // As mentioned, here we are re-exporting them
-export { useCommonRouteAction, useCommonRouteLoader } from './shared/loaders';
+export { useCommonRouteAction, useCommonRouteLoader };
 
 export default component$(() => {
   const commonRouteAction = useCommonRouteAction();
@@ -84,24 +85,36 @@ export default component$(() => {
 
 <CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/"  style={{ height: '15em' }} />
 
-### Third-party libraries example
+### Preventing issues with <u>indirect</u> `routeLoader$` usage (Third-Party Libraries Example)
 
 It may happen that we need to integrate third-party libraries over which we have no control over how it works.
 Let's think for example about integrating a payment method into our application.
 We are provided with a component to integrate into the page, but we have no control over what happens under the hood of this component.
-Here, if this library needs `routeAction$` or `routeLoader$` we must re-export them to allow the correct functioning of our library.
+
+If these third-party components rely on `routeLoader$` or `routeAction$` functions, we must manually re-export and register those inside 
+a component that exists within the route boundary. This is necessary so the Qwik optimizer can detect and include them during the build.
+
+> **Note:** Starting in Qwik v2.0, manual registration will no longer be needed. However, until then, the optimizer may **miss** 
+> `routeLoader$` functions if they’re used inside components that are **conditionally rendered** (e.g., toggled with a signal).
+>
+> If you don’t manually register the loader in these cases, you may encounter undefined behavior. <u>Avoid skipping this step</u>.
+
 
 #### Here is our code:
 
 <CodeSandbox src="/src/routes/demo/cookbook/re-exporting-loaders/third-party/index.tsx"  style={{ height: '20em' }}>
 ```tsx
 import { component$ } from '@builder.io/qwik';
-import { ThirdPartyPaymentComponent } from './third-party-library';
+import { ThirdPartyPaymentComponent, useThirdPartyPaymentLoader } from './third-party-library';
 
 // As mentioned, here we are re-exporting the third-party loader
 export { useThirdPartyPaymentLoader } from './third-party-library';
 
 export default component$(() => {
+  
+  // Manually register the loader so the optimizer sees it
+  useThirdPartyPaymentLoader()
+
   return (
     <section>
       <ThirdPartyPaymentComponent />

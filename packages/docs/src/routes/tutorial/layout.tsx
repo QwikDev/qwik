@@ -1,7 +1,7 @@
 import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
 import type { RequestHandler } from '@builder.io/qwik-city';
-import { useLocation } from '@builder.io/qwik-city';
-import { Repl } from '../../repl/repl';
+import { Link, useLocation } from '@builder.io/qwik-city';
+import { Repl } from '../../repl/ui';
 import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
@@ -10,40 +10,41 @@ import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
 import { Header } from '../../components/header/header';
 import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { EditIcon } from '../../components/svgs/edit-icon';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
-  useStyles$(`html,body { margin: 0; height: 100%; overflow: hidden; }`);
 
   const { url } = useLocation();
   const panelStore = useStore(() => ({
     active: 'Tutorial',
     list: PANELS,
   }));
-  const store = useStore<TutorialStore>(() => {
-    const p = url.pathname.split('/');
-    const appId = `${p[2]}/${p[3]}`;
-    const t = getTutorial(appId)!;
 
+  const store = useStore<TutorialStore>(() => {
     const initStore: TutorialStore = {
-      appId: t.app.id,
-      app: t.app,
-      prev: t.prev,
-      next: t.next,
-      buildId: 0,
+      appId: '',
+      app: { id: '', title: '', problemInputs: [], solutionInputs: [] },
+      prev: undefined,
+      next: undefined,
       buildMode: 'development',
       entryStrategy: 'segment',
-      files: ensureDefaultFiles(t.app.problemInputs),
+      files: [],
       version: '',
     };
     return initStore;
   });
 
   useTask$(({ track }) => {
-    const appId = track(() => store.appId);
-    const t = getTutorial(appId)!;
+    track(() => url.pathname);
+
+    const p = url.pathname.split('/');
+    const appId = `${p[2]}/${p[3]}`;
+    const t = getTutorial(appId) ?? store;
 
     store.files = ensureDefaultFiles(t.app.problemInputs);
+    store.app = t.app;
+    store.appId = t.app.id;
     store.prev = t.prev;
     store.next = t.next;
   });
@@ -65,9 +66,9 @@ export default component$(() => {
               <Slot />
               {store.next ? (
                 <p class="next-link">
-                  <a href={`/tutorial/${store.next.id}/`} class="next">
+                  <Link href={`/tutorial/${store.next.id}/`} class="next">
                     Next: {store.next.title}
-                  </a>
+                  </Link>
                 </p>
               ) : null}
               <a
@@ -168,11 +169,10 @@ export interface TutorialStore extends ReplAppInput {
 }
 
 export const PANELS = ['Tutorial', 'Input', 'Output'];
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
   });
+  setReplCorsHeaders(headers);
 };

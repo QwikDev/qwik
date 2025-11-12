@@ -18,9 +18,9 @@ import {
 } from "node:fs";
 import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { PackageJSON } from "../scripts/util";
+import type { PackageJSON } from "../scripts/types.ts";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
+import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler.ts";
 
 const isWindows = process.platform === "win32";
 
@@ -60,7 +60,13 @@ Error.stackTraceLimit = 1000;
 const cache = new Map<string, Promise<QwikManifest>>();
 async function handleApp(req: Request, res: Response, next: NextFunction) {
   try {
-    const url = new URL(req.url, address);
+    let url;
+    try {
+      url = new URL(req.url, address);
+    } catch {
+      res.status(404).send();
+      return;
+    }
     if (existsSync(url.pathname)) {
       const relPath = relative(startersAppsDir, url.pathname);
       if (!relPath.startsWith(".")) {
@@ -210,7 +216,7 @@ export {
         optimizer.qwikVite({
           /**
            * normally qwik finds qwik-city via package.json but we don't want that
-           * because it causes it try try to lookup the special qwik city imports
+           * because it causes it to try to lookup the special qwik city imports
            * even when we're not actually importing qwik-city
            */
           disableVendorScan: true,
@@ -223,7 +229,7 @@ export {
               clientManifest = manifest;
             },
           },
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
     }),
@@ -240,7 +246,7 @@ export {
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ["preventNavigate"],
+          experimental: ["preventNavigate", "enableRequestRewrite"],
         }),
       ],
       define: {

@@ -35,6 +35,6 @@ console.log(result);
 ## Related
 
 - [Qwik](https://qwik.dev/)
-- [Partytown](https://partytown.builder.io)
+- [Partytown](https://partytown.qwik.dev)
 - [Mitosis](https://github.com/BuilderIO/mitosis)
 - [Builder.io](https://github.com/BuilderIO/)

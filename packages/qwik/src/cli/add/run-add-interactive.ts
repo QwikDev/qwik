@@ -4,7 +4,6 @@ import type { IntegrationData, UpdateAppOptions, UpdateAppResult } from '../type
 import { loadIntegrations, sortIntegrationsAndReturnAsClackOptions } from '../utils/integrations';
 import { bye, getPackageManager, note, panic } from '../utils/utils';
 
-/* eslint-disable no-console */
 import { relative } from 'node:path';
 import type { AppCommand } from '../utils/app-command';
 import { runInPkg } from '../utils/install-deps';

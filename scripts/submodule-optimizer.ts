@@ -7,12 +7,12 @@ import {
   readFile,
   target,
   writeFile,
-} from './util';
+} from './util.ts';
 import { join } from 'node:path';
 import { minify } from 'terser';
 import { platformArchTriples } from '@napi-rs/triples';
 import { constants, existsSync } from 'node:fs';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
 import RawPlugin from 'esbuild-plugin-raw';
 
 /** Builds @builder.io/optimizer */
@@ -33,6 +33,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       external: [
         /* no Node.js built-in externals allowed! */
         'espree',
+        'launch-editor',
       ],
     };
 

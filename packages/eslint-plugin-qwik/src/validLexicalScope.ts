@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import * as ESLintUtils from '@typescript-eslint/utils/eslint-utils';
 import ts from 'typescript';
 import type { Identifier } from 'estree';
@@ -36,6 +35,7 @@ export const validLexicalScope = createRule({
             type: 'boolean',
           },
         },
+        additionalProperties: false,
         default: {
           allowAny: true,
         },

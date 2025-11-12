@@ -31,7 +31,7 @@ The Qwik framework provides unique capabilities for managing state and effects i
 
 <CodeFile src="/src/routes/demo/cookbook/mediaController/index.tsx">
 ```tsx
-export const useDebouncer = <A extends readonly unknown[], R>(
+export const useDebouncer = <A extends unknown[], R>(
   fn: QRL<(...args: A) => R>,
   delay: number,
 ): QRL<(...args: A) => void> => {
@@ -98,7 +98,7 @@ We can leverage Qwik's `implicit$FirstArg` function to create a `useDebouncer$` 
 This is how Qwik actually implements all of its built-in $ hooks.
 
 ```tsx
-export const useDebouncerQrl = <A extends readonly unknown[], R>(
+export const useDebouncerQrl = <A extends unknown[], R>(
   fn: QRL<(...args: A) => R>,
   delay: number,
 ): QRL<(...args: A) => void> => {

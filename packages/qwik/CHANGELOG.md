@@ -1,5 +1,174 @@
 # @builder.io/qwik
 
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 the bunding won't lead to circular dependencies in qwik-astro apps anymore. (by [@maiieul](https://github.com/maiieul) in [#8052](https://github.com/QwikDev/qwik/pull/8052))
+
+- ✨ The optimizer is now built with a recent Rust toolchain. Fresher bits! (by [@wmertens](https://github.com/wmertens) in [#8040](https://github.com/QwikDev/qwik/pull/8040))
+
+## 1.17.0
+
+### Minor Changes
+
+- 🐞🩹 Qwik now leverages Rollup's new `output.onlyExplicitManualChunks` feature, which improves preloading performance and reduces cache invalidation for a snappier user experience. (by [@maiieul](https://github.com/maiieul) in [#7982](https://github.com/QwikDev/qwik/pull/7982))
+
+- ✨ the qwikloader can now be inlined again if required (for testing or specific network conditions). Pass `qwikLoader: 'inline'` to the render options. (by [@wmertens](https://github.com/wmertens) in [#8008](https://github.com/QwikDev/qwik/pull/8008))
+
+### Patch Changes
+
+- 🐞🩹 The Deno integration now builds successfully with version v2.4.3 and above. (by [@gioboa](https://github.com/gioboa) in [#7913](https://github.com/QwikDev/qwik/pull/7913))
+
+- TEST: qwik react mount and unmount (by [@sashkashishka](https://github.com/sashkashishka) in [#7950](https://github.com/QwikDev/qwik/pull/7950))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 Click-to-Component is now more reliable across platforms (by [@wmertens](https://github.com/wmertens) in [#7923](https://github.com/QwikDev/qwik/pull/7923))
+
+- 🛠 add qwik react e2e test runs to ci (by [@sashkashishka](https://github.com/sashkashishka) in [#7952](https://github.com/QwikDev/qwik/pull/7952))
+
+## 1.16.1
+
+### Patch Changes
+
+- 🐞🩹 The entry.ssr renderToStream `preloader.preloadProbability` option is now deprecated because this could cause performance issues with bundles fetched on click instead of being preloaded ahead of time. (The preloader still relies on probabilities to know preload the most likely bundles first) (by [@maiieul](https://github.com/maiieul) in [#7847](https://github.com/QwikDev/qwik/pull/7847))
+
+- 🐞🩹 Link prefetch now always preloads Link prefetch bundles on monorepos (by [@maiieul](https://github.com/maiieul) in [#7835](https://github.com/QwikDev/qwik/pull/7835))
+
+- 🐞🩹 Rollup's hoistTranstiveImports is now set to `false` because the hoisting added unnecessary bundles to be preloaded to the bundle-graph static imports graph. This could lead to a suboptimal preloading experience. (by [@maiieul](https://github.com/maiieul) in [#7850](https://github.com/QwikDev/qwik/pull/7850))
+
+- 🛠 Add check-client command to verify bundle freshness (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7517](https://github.com/QwikDev/qwik/pull/7517))
+
+- ✨ All qwik packages are now marked as side effect free in their package.json. This should remove a few unecessary empty imports added by rollup and then not tree-shaken like `import "./preloader.js"`. (by [@maiieul](https://github.com/maiieul) in [#7908](https://github.com/QwikDev/qwik/pull/7908))
+
+- 🐞🩹 unmount qwikify react root alongside with qwik component (by [@sashkashishka](https://github.com/sashkashishka) in [#7864](https://github.com/QwikDev/qwik/pull/7864))
+
+- 🐞🩹 preloader now preloads bundles as long as they are part of the current viewport's bundles graph, even if their probability is very small (by [@maiieul](https://github.com/maiieul) in [#7836](https://github.com/QwikDev/qwik/pull/7836))
+
+- ✨ maxIdlePreloads is now constant over time so you know for sure how many bundles will be preloaded concurrently during idle. (by [@maiieul](https://github.com/maiieul) in [#7846](https://github.com/QwikDev/qwik/pull/7846))
+
+- 🛠 use patched domino instead of qwik-dom (by [@gioboa](https://github.com/gioboa) in [#7842](https://github.com/QwikDev/qwik/pull/7842))
+
+- 🐞🩹 Qwik is now smarter at bundling non QRL source files and qwik libraries modules (e.g. helpers, enums, inline components, etc.) together. (by [@maiieul](https://github.com/maiieul) in [#7888](https://github.com/QwikDev/qwik/pull/7888))
+
+## 1.16.0
+
+### Minor Changes
+
+- ✨ bump Vite to v7 (by [@gioboa](https://github.com/gioboa) in [#7762](https://github.com/QwikDev/qwik/pull/7762))
+
+### Patch Changes
+
+- 🐞🩹 Keeping the service worker components now properly unregisters them. (by [@maiieul](https://github.com/maiieul) in [#7781](https://github.com/QwikDev/qwik/pull/7781))
+
+- 🛠 remove a grace period before unregistering events from qwikloader (by [@Varixo](https://github.com/Varixo) in [#7818](https://github.com/QwikDev/qwik/pull/7818))
+
+- 🐞🩹 Keeping the service worker components now also removes their associated Cache storage. (by [@maiieul](https://github.com/maiieul) in [#7782](https://github.com/QwikDev/qwik/pull/7782))
+
+- 🐞🩹 fix up open in editor feature (by [@LazyClicks](https://github.com/LazyClicks) in [#7785](https://github.com/QwikDev/qwik/pull/7785))
+
+- 🐞🩹 SSR was missing some places with nonce for CSP. Now CSP should work even when strict-dynamic (by [@wmertens](https://github.com/wmertens) in [#7776](https://github.com/QwikDev/qwik/pull/7776))
+
+## 1.15.0
+
+### Minor Changes
+
+- 🐞🩹 the preloader bundle graph file is now built as an asset. This is cleaner and avoids i18n translation of the file. (by [@wmertens](https://github.com/wmertens) in [#7650](https://github.com/QwikDev/qwik/pull/7650))
+
+### Patch Changes
+
+- 🐞🩹 Use correct working directory for Deno environment (by [@siguici](https://github.com/siguici) in [#7699](https://github.com/QwikDev/qwik/pull/7699))
+
+- :zap: the qwikloader is no longer embedded in the SSR results. Instead, the same techniques are used as for the preloader to ensure that the qwikloader is active as soon as possible, loaded from a separate bundle. This reduces SSR page size by several kB end ensures that subsequent qwikloader loads are nearly instant. (by [@wmertens](https://github.com/wmertens) in [#7613](https://github.com/QwikDev/qwik/pull/7613))
+
+- 🐞🩹 Removed backdrop-filter of vite-error-overlay to prevent perf issues with multiple errors (by [@intellix](https://github.com/intellix) in [#7676](https://github.com/QwikDev/qwik/pull/7676))
+
+- 🐞🩹 assetsDir and debug:true will no longer break your application. (by [@maiieul](https://github.com/maiieul) in [#7638](https://github.com/QwikDev/qwik/pull/7638))
+
+- 🐞🩹 We now also output the preloader as .cjs for non esm environments (e.g. jest 29 and below). (by [@maiieul](https://github.com/maiieul) in [#7736](https://github.com/QwikDev/qwik/pull/7736))
+
+- 🐞🩹 cypress component tests became slow in 1.9.1. This is now fixed. (by [@maiieul](https://github.com/maiieul) in [#7736](https://github.com/QwikDev/qwik/pull/7736))
+
+- ✨ q-manifest.json now also includes the generated assets (by [@wmertens](https://github.com/wmertens) in [#7650](https://github.com/QwikDev/qwik/pull/7650))
+
+- 🐞🩹 support q-manifest resolution under Bun runtime (#7565) (by [@siguici](https://github.com/siguici) in [#7669](https://github.com/QwikDev/qwik/pull/7669))
+
+- 🐞🩹 set correct script type for qwik loader (by [@Varixo](https://github.com/Varixo) in [#7710](https://github.com/QwikDev/qwik/pull/7710))
+
+- 🛠 update devDependencies and configurations (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7695](https://github.com/QwikDev/qwik/pull/7695))
+
+## 1.14.1
+
+## 1.14.0
+
+### Minor Changes
+
+- ✨ Major improvements to prefetching with automatic bundle preloading (by [@wmertens](https://github.com/wmertens) in [#7453](https://github.com/QwikDev/qwik/pull/7453))
+  - This removes the need for service workers, and instead utilize `modulepreload` link tags for better browser integration.
+  - Improves initial load performance by including dynamic imports in the prefetch
+  - Reduces complexity while maintaining similar (and even better) functionality
+  - Enables some preloading capabilities in dev mode (SSR result only)
+  - Includes path-to-bundle mapping in bundle graph (this improves the experience using the `<Link>` component, AKA "single page app" mode)
+  - Server now has built-in manifest support (so no need to pass `manifest` around)
+  - Moves insights-related build code to insights plugin
+
+  ***
+
+  ⚠️ **ATTENTION:**
+  - **Keep** your service worker code as is (either `<ServiceWorkerRegister/>` or `<PrefetchServiceWorker/>`).
+  - **Configure** your server to provide long caching headers.
+
+  **Service Worker:**
+
+  This new implementation will use it to uninstall the current service worker to reduce the unnecessary duplication.
+
+  The builtin service workers components are deprecated but still exist for backwards compatibility.
+
+  ⚠️ **IMPORTANT: Caching Headers:**
+
+  The files under build/ and assets/ are named with their content hash and may therefore be cached indefinitely. Typically you should serve `build/*` and `assets/*` with `Cache-Control: public, max-age=31536000, immutable`.
+
+  However, if you changed the rollup configuration for output filenames, you will have to adjust the caching configuration accordingly.
+
+  ***
+
+  You can configure the preload behavior in your SSR configuration:
+
+  ```ts
+  // entry.ssr.ts
+  export default function (opts: RenderToStreamOptions) {
+    return renderToStream(<Root />, {
+      preload: {
+        // Enable debug logging for preload operations
+        debug: true,
+        // Maximum simultaneous preload links
+        maxIdlePreloads: 5,
+        // Minimum probability threshold for preloading
+        preloadProbability: 0.25
+        // ...and more, see the type JSDoc on hover
+      },
+      ...opts,
+    });
+  }
+  ```
+
+  #### Optional for legacy apps:
+
+  For legacy apps that still need service worker functionality, you can add it back using:
+
+  ```bash
+  npm run qwik add service-worker
+  ```
+
+  This will add a basic service worker setup that you can customize for specific caching strategies, offline support, or other PWA features beyond just prefetching.
+
+### Patch Changes
+
+- 🐞🩹 linting errors which were previously being ignored across the monorepo. (by [@better-salmon](https://github.com/better-salmon) in [#7418](https://github.com/QwikDev/qwik/pull/7418))
+
+- 🐞🩹 now qwikloader is loaded only once in all cases (by [@wmertens](https://github.com/wmertens) in [#7506](https://github.com/QwikDev/qwik/pull/7506))
+
 ## 1.13.0
 
 ### Minor Changes
@@ -94,7 +263,6 @@
 - Async functions in `useComputed` are deprecated. (by [@wmertens](https://github.com/wmertens) in [#7013](https://github.com/QwikDev/qwik/pull/7013))
 
   **Why?**
-
   - Qwik can't track used signals after the first await, which leads to subtle bugs.
   - When calculating the first time, it will see it's a promise and it will restart the render function.
   - Both `useTask` and `useResource` are available, without these problems.

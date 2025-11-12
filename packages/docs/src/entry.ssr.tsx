@@ -1,13 +1,9 @@
-import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';
+import type { PreloaderOptions, RenderToStreamOptions } from '@builder.io/qwik/server';
+import { renderToStream } from '@builder.io/qwik/server';
 import Root from './root';
 
 // You can pass these as query parameters, as well as `preloadDebug`
-const preloaderSettings = [
-  'maxPreloads',
-  'minProbability',
-  'maxSimultaneousPreloads',
-  'minPreloadProbability',
-] as const;
+const preloaderSettings = ['ssrPreloads', 'ssrPreloadProbability', 'maxIdlePreloads'] as const;
 
 export default function (opts: RenderToStreamOptions) {
   const { serverData } = opts;
@@ -15,28 +11,24 @@ export default function (opts: RenderToStreamOptions) {
   if (urlStr) {
     const { searchParams } = new URL(urlStr);
     if (searchParams.size) {
-      opts = {
+      const newOpts = {
         ...opts,
-        prefetchStrategy: {
-          ...opts.prefetchStrategy,
-          implementation: { ...opts.prefetchStrategy?.implementation },
+        preloader: {
+          ...(typeof opts.preloader === 'object' ? opts.preloader : undefined),
         },
-      };
-      if (searchParams.has('preloadDebug')) {
-        opts.prefetchStrategy!.implementation!.debug = true;
+      } as Omit<RenderToStreamOptions, 'preloader'> & { preloader: PreloaderOptions };
+      if (searchParams.has('preloaderDebug')) {
+        newOpts.preloader!.debug = true;
       }
       for (const type of preloaderSettings) {
         if (searchParams.has(type)) {
-          opts.prefetchStrategy!.implementation![type] = Number(searchParams.get(type));
+          newOpts.preloader[type] = Number(searchParams.get(type));
         }
       }
+      opts = newOpts;
     }
   }
   return renderToStream(<Root />, {
-    qwikLoader: {
-      // The docs can be long so make sure to intercept events before the end of the document.
-      position: 'top',
-    },
     ...opts,
     containerAttributes: {
       lang: 'en',

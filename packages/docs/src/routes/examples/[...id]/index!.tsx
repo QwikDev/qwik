@@ -1,6 +1,6 @@
 import { component$, useStyles$, useTask$, useStore, useVisibleTask$ } from '@builder.io/qwik';
 import type { RequestHandler, PathParams, StaticGenerateHandler } from '@builder.io/qwik-city';
-import { Repl } from '../../../repl/repl';
+import { Repl } from '../../../repl/ui';
 import styles from './examples.css?inline';
 import { Header } from '../../../components/header/header';
 import exampleSections, { type ExampleApp } from '@examples-data';
@@ -8,7 +8,8 @@ import type { ReplAppInput } from '../../../repl/types';
 import { type DocumentHead, useLocation } from '@builder.io/qwik-city';
 import { PanelToggle } from '../../../components/panel-toggle/panel-toggle';
 import { isBrowser } from '@builder.io/qwik';
-import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/repl-share-url';
+import { createPlaygroundShareUrl, parsePlaygroundShareUrl } from '../../../repl/ui/repl-share-url';
+import { setReplCorsHeaders } from '~/utils/utils';
 
 export default component$(() => {
   useStyles$(styles);
@@ -23,7 +24,6 @@ export default component$(() => {
     const app = getExampleApp(loc.params.id);
     const initStore: ExamplesStore = {
       appId: app ? app.id : '',
-      buildId: 0,
       buildMode: 'development',
       entryStrategy: 'segment',
       files: app?.inputs || [],
@@ -66,11 +66,10 @@ export default component$(() => {
   });
 
   useTask$(({ track }) => {
-    track(() => store.buildId);
     track(() => store.buildMode);
     track(() => store.entryStrategy);
-    track(() => store.files);
     track(() => store.version);
+    track(() => store.files.forEach((f) => f.code));
 
     if (isBrowser) {
       if (store.version) {
@@ -174,13 +173,12 @@ interface ExamplesStore extends ReplAppInput {
 
 type ActivePanel = 'Examples' | 'Input' | 'Output' | 'Console';
 
-export const onGet: RequestHandler = ({ cacheControl }) => {
+export const onGet: RequestHandler = ({ cacheControl, headers }) => {
   cacheControl({
     public: true,
     maxAge: 3600,
-    sMaxAge: 3600,
-    staleWhileRevalidate: 86400,
   });
+  setReplCorsHeaders(headers);
 };
 
 export const onStaticGenerate: StaticGenerateHandler = () => {

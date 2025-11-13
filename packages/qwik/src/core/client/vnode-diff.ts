@@ -1462,7 +1462,8 @@ function handleProps(
         );
 
         propsAreDifferent ||= varPropsDifferent;
-        shouldRender ||= varPropsDifferent && effects.has(EffectProperty.COMPONENT);
+        // don't mark as should render, effects will take care of it
+        // shouldRender ||= varPropsDifferent;
       }
     }
   }
@@ -1471,10 +1472,7 @@ function handleProps(
     if (vNodeProps) {
       // Reuse the same props instance, qrls can use the current props instance
       // as a capture ref, so we can't change it.
-      // We need to do this directly, because normally we would subscribe to the signals
-      // if any signal is there.
       vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
-      // vNodeProps[_PROPS_HANDLER].$effects$ = (jsxProps as PropsProxy)[_PROPS_HANDLER].$effects$;
     } else if (jsxProps) {
       // If there is no props instance, create a new one.
       // We can do this because we are not using the props instance for anything else.

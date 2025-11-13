@@ -1,4 +1,4 @@
-import { withLocale } from '@builder.io/qwik';
+import { withLocale, isDev } from '@builder.io/qwik';
 import type {
   ContentModule,
   RouteLocation,
@@ -11,6 +11,10 @@ import type {
   Editable,
   ResolveSyncValue,
   ActionInternal,
+  DocumentMeta,
+  DocumentLink,
+  DocumentStyle,
+  DocumentScript,
 } from './types';
 import { isPromise } from './utils';
 
@@ -60,7 +64,7 @@ export const resolveHead = (
   return headProps.head;
 };
 
-const resolveDocumentHead = (
+export const resolveDocumentHead = (
   resolvedHead: Editable<ResolvedDocumentHead>,
   updatedHead: DocumentHeadValue
 ) => {
@@ -75,19 +79,36 @@ const resolveDocumentHead = (
 };
 
 const mergeArray = (
-  existingArr: { key?: string }[],
-  newArr: readonly { key?: string }[] | undefined
+  existingArr: (DocumentMeta | DocumentLink | DocumentStyle | DocumentScript)[][],
+  newArr: readonly (DocumentMeta | DocumentLink | DocumentStyle | DocumentScript)[] | undefined
 ) => {
-  if (Array.isArray(newArr)) {
-    for (const newItem of newArr) {
-      if (typeof newItem.key === 'string') {
-        const existingIndex = existingArr.findIndex((i) => i.key === newItem.key);
-        if (existingIndex > -1) {
-          existingArr[existingIndex] = newItem;
-          continue;
-        }
+  // There are two situations
+  // 1. the item hasn't key property, but other properties are the same
+  // 2. the item has key property, and the other properties are the same
+  // so do have to compare the serialization of the item to make sure the item is the same
+  if (!Array.isArray(newArr)) {
+    return;
+  }
+  for (const newItem of newArr) {
+    try {
+      const serialized = JSON.stringify(newItem);
+      const existingIndex = existingArr.findIndex((i) => JSON.stringify(i) === serialized);
+      if (existingIndex > -1) {
+        // Replace existing item with same serialization
+        existingArr[existingIndex] = newItem;
+      } else {
+        // Add new item if it doesn't exist
+        existingArr.push(newItem);
       }
-      existingArr.push(newItem);
+    } catch (err) {
+      if (isDev) {
+        console.warn(
+          'Qwik City: Failed to merge document head item. ' +
+            'Item may contain non-serializable values. Skipping item.',
+          err,
+          newItem
+        );
+      }
     }
   }
 };

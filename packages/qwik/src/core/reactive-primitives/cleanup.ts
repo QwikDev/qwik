@@ -11,6 +11,8 @@ import {
   type EffectSubscription,
 } from './types';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import { isPropsProxy, type PropsProxyHandler } from '../shared/jsx/props-proxy';
+import { _PROPS_HANDLER } from '../shared/utils/constants';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {
@@ -40,10 +42,13 @@ export function clearEffectSubscription(container: Container, effect: EffectSubs
       clearSignal(container, producer, effect);
     } else if (producer instanceof AsyncComputedSignalImpl) {
       clearAsyncComputedSignal(producer, effect);
+    } else if (isPropsProxy(producer)) {
+      const propsHandler = producer[_PROPS_HANDLER];
+      clearStoreOrProps(propsHandler, effect);
     } else if (container.$storeProxyMap$.has(producer)) {
       const target = container.$storeProxyMap$.get(producer)!;
       const storeHandler = getStoreHandler(target)!;
-      clearStore(storeHandler, effect);
+      clearStoreOrProps(storeHandler, effect);
     }
   }
 }
@@ -74,7 +79,7 @@ function clearAsyncComputedSignal(
   }
 }
 
-function clearStore(producer: StoreHandler, effect: EffectSubscription) {
+function clearStoreOrProps(producer: StoreHandler | PropsProxyHandler, effect: EffectSubscription) {
   const effects = producer?.$effects$;
   if (effects) {
     for (const [propKey, propEffects] of effects.entries()) {

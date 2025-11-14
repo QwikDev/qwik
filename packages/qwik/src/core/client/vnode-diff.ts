@@ -1255,7 +1255,9 @@ export const vnode_diff = (
           ELEMENT_PROPS,
           container.$getObjectById$
         );
-        shouldRender ||= handleProps(host, jsxProps, vNodeProps, container);
+        if (!shouldRender) {
+          shouldRender ||= handleProps(host, jsxProps, vNodeProps, container);
+        }
 
         if (shouldRender) {
           // Assign the new QRL instance to the host.
@@ -1441,30 +1443,28 @@ function handleProps(
 ): boolean {
   let shouldRender = false;
   let propsAreDifferent = false;
-  if (!shouldRender) {
-    if (vNodeProps) {
-      const effects = vNodeProps[_PROPS_HANDLER].$effects$;
-      const constPropsDifferent = handleChangedProps(
-        jsxProps[_CONST_PROPS],
-        vNodeProps[_CONST_PROPS],
+  if (vNodeProps) {
+    const effects = vNodeProps[_PROPS_HANDLER].$effects$;
+    const constPropsDifferent = handleChangedProps(
+      jsxProps[_CONST_PROPS],
+      vNodeProps[_CONST_PROPS],
+      vNodeProps[_PROPS_HANDLER],
+      container,
+      false
+    );
+    propsAreDifferent = constPropsDifferent;
+    shouldRender ||= constPropsDifferent;
+    if (effects && effects.size > 0) {
+      const varPropsDifferent = handleChangedProps(
+        jsxProps[_VAR_PROPS],
+        vNodeProps[_VAR_PROPS],
         vNodeProps[_PROPS_HANDLER],
-        container,
-        false
+        container
       );
-      propsAreDifferent = constPropsDifferent;
-      shouldRender ||= constPropsDifferent;
-      if (effects && effects.size > 0) {
-        const varPropsDifferent = handleChangedProps(
-          jsxProps[_VAR_PROPS],
-          vNodeProps[_VAR_PROPS],
-          vNodeProps[_PROPS_HANDLER],
-          container
-        );
 
-        propsAreDifferent ||= varPropsDifferent;
-        // don't mark as should render, effects will take care of it
-        // shouldRender ||= varPropsDifferent;
-      }
+      propsAreDifferent ||= varPropsDifferent;
+      // don't mark as should render, effects will take care of it
+      // shouldRender ||= varPropsDifferent;
     }
   }
 

@@ -1,5 +1,31 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
+### Minor Changes
+
+- ✨ rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+
+- ✨ introduce deferUpdates option for useTask$ (by [@Varixo](https://github.com/Varixo) in [#8107](https://github.com/QwikDev/qwik/pull/8107))
+
+- ✨ support promises in attributes (by [@Varixo](https://github.com/Varixo) in [#8117](https://github.com/QwikDev/qwik/pull/8117))
+
+- ✨ change behavior of useAsyncComputed$ to throw only once (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+
+### Patch Changes
+
+- 🐞🩹 Qwik vite plugin respects outDir change (by [@gnemanja](https://github.com/gnemanja) in [#8127](https://github.com/QwikDev/qwik/pull/8127))
+
+- 🐞🩹 serializing reused qrl (by [@Varixo](https://github.com/Varixo) in [#8131](https://github.com/QwikDev/qwik/pull/8131))
+
+- 🐞🩹 allow to modify inline component's children component props (by [@Varixo](https://github.com/Varixo) in [#8141](https://github.com/QwikDev/qwik/pull/8141))
+
+- 🐞🩹 The types for the JSX event handlers are more precise about their scope (e.g. no `document:OnQVisible$` or `onQIdle$`). (by [@wmertens](https://github.com/wmertens) in [#8134](https://github.com/QwikDev/qwik/pull/8134))
+
 ## 2.0.0-beta.13
 
 ### Minor Changes

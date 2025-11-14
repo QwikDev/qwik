@@ -8,7 +8,7 @@
 
 ### Minor Changes
 
-- ✨ rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+- ✨ `useAsyncComputed$`: rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
 
 - ✨ introduce deferUpdates option for useTask$ (by [@Varixo](https://github.com/Varixo) in [#8107](https://github.com/QwikDev/qwik/pull/8107))
 

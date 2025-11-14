@@ -163,7 +163,7 @@
     "typescript-eslint": "8.38.0",
     "undici": "*",
     "vfile": "6.0.3",
-    "vite": "7.1.11",
+    "vite": "7.2.2",
     "vite-imagetools": "9.0.0",
     "vite-plugin-dts": "3.9.1",
     "vite-tsconfig-paths": "5.1.4",
@@ -173,7 +173,7 @@
     "zod": "3.25.48"
   },
   "engines": {
-    "node": ">=16.8.0 <18.0.0 || >=18.11",
+    "node": ">=22.18.0",
     "npm": "please-use-pnpm",
     "yarn": "please-use-pnpm",
     "pnpm": ">=10.14.0"

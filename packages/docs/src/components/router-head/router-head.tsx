@@ -73,13 +73,17 @@ export const RouterHead = component$(() => {
       {head.meta
         // Skip description because that was already added at the top
         .filter((s) => s.name !== 'description')
-        .map((m, key) => (
-          <meta key={key} {...m} />
-        ))}
+        .map((m, idx) => {
+          const { key, ...rest } = m;
+          const metaKey = key ?? m.name ?? m.property ?? `meta-${idx}`;
+          return <meta key={metaKey} {...rest} />;
+        })}
 
-      {head.links.map((l, key) => (
-        <link key={key} {...l} />
-      ))}
+      {head.links.map((l, idx) => {
+        const { key, ...rest } = l;
+        const linkKey = key ?? l.href ?? `${l.rel ?? 'link'}-${idx}`;
+        return <link key={linkKey} {...rest} />;
+      })}
 
       {head.styles.map((s, key) => (
         <style key={key} {...s.props} dangerouslySetInnerHTML={s.style} />

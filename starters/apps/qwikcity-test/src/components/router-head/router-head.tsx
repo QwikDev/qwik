@@ -18,13 +18,17 @@ export const RouterHead = component$(() => {
       <Social loc={loc} head={head} />
       <Vendor loc={loc} />
 
-      {head.meta.map((m) => (
-        <meta {...m} />
-      ))}
+      {head.meta.map((m, idx) => {
+        const { key, ...rest } = m;
+        const metaKey = key ?? m.name ?? m.property ?? `meta-${idx}`;
+        return <meta key={metaKey} {...rest} />;
+      })}
 
-      {head.links.map((l) => (
-        <link {...l} />
-      ))}
+      {head.links.map((l, idx) => {
+        const { key, ...rest } = l;
+        const linkKey = key ?? l.href ?? `${l.rel ?? "link"}-${idx}`;
+        return <link key={linkKey} {...rest} />;
+      })}
 
       {head.styles.map((s) => (
         <style

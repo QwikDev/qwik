@@ -136,7 +136,7 @@ export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
 
 /** @public */
 export interface TaskOptions {
-  /** If true, the task will block the rendering of the component until it is complete. */
+  /** Block the rendering of the component until the task completes. Default is `true` */
   deferUpdates?: boolean;
 }
 

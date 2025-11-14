@@ -277,10 +277,9 @@ function qwikCityPlugin(userOpts?: QwikCityVitePluginOptions): any {
           const clientOutDir = qwikPlugin!.api.getClientOutDir();
 
           if (outDir && clientOutDir) {
-            const assetsDir = qwikPlugin!.api.getAssetsDir();
             const { staticPathsCode, notFoundPathsCode } = await postBuild(
               clientOutDir,
-              assetsDir ? join(api.getBasePathname(), assetsDir) : api.getBasePathname(),
+              api.getBasePathname(),
               [],
               ssrFormat,
               false

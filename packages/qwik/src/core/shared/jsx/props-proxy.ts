@@ -1,11 +1,6 @@
 import { addStoreEffect } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
-import {
-  STORE_ALL_PROPS,
-  WrappedSignalFlags,
-  type EffectSubscription,
-  type StoreTarget,
-} from '../../reactive-primitives/types';
+import { WrappedSignalFlags, type EffectSubscription } from '../../reactive-primitives/types';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { _CONST_PROPS, _VAR_PROPS, _OWNER, _PROPS_HANDLER } from '../utils/constants';
 import { jsxEventToHtmlAttribute } from '../utils/event-names';
@@ -26,7 +21,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
   $container$: Container | null = null;
 
   constructor(public owner: JSXNodeImpl) {}
-  get(target: StoreTarget, prop: string | symbol) {
+  get(_: any, prop: string | symbol) {
     // escape hatch to get the separated props from a component
     if (prop === _CONST_PROPS) {
       return this.owner.constProps;
@@ -49,7 +44,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
       }
       value = directGetPropsProxyProp(this.owner, prop as string);
       if (prop in this.owner.varProps) {
-        addPropsProxyEffect(target, this, prop);
+        addPropsProxyEffect(this, prop);
       }
     }
     // a proxied value that the optimizer made
@@ -105,7 +100,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     }
     return didDelete;
   }
-  has(target: StoreTarget, prop: string | symbol) {
+  has(_: any, prop: string | symbol) {
     if (prop === 'children') {
       return this.owner.children != null;
     } else if (prop === _CONST_PROPS || prop === _VAR_PROPS) {
@@ -114,7 +109,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
     const inVarProps = prop in this.owner.varProps;
     if (typeof prop === 'string') {
       if (inVarProps) {
-        addPropsProxyEffect(target, this, prop);
+        addPropsProxyEffect(this, prop);
       }
       if (typeof this.owner.type === 'string') {
         const attr = jsxEventToHtmlAttribute(prop as string);
@@ -155,11 +150,7 @@ export class PropsProxyHandler implements ProxyHandler<any> {
   }
 }
 
-const addPropsProxyEffect = (
-  target: StoreTarget,
-  propsProxy: PropsProxyHandler,
-  prop?: string | symbol
-) => {
+const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbol) => {
   // Lazily grab the container from the invoke context
   const ctx = tryGetInvokeContext();
   if (ctx) {
@@ -176,7 +167,7 @@ const addPropsProxyEffect = (
   }
   const effectSubscriber = ctx?.$effectSubscriber$;
   if (effectSubscriber) {
-    addStoreEffect(target, prop ? prop : STORE_ALL_PROPS, propsProxy, effectSubscriber);
+    addStoreEffect(propsProxy.owner._proxy!, prop, propsProxy, effectSubscriber);
   }
 };
 

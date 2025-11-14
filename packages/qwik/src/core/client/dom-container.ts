@@ -136,6 +136,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.element = element;
     this.$buildBase$ = element.getAttribute(QBaseAttr)!;
     this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
+    console.log('======= \n\ncontainer instance hash', this.$instanceHash$);
     this.qManifestHash = element.getAttribute(QManifestHashAttr)!;
     this.rootVNode = vnode_newUnMaterializedElement(this.element);
     this.$rawStateData$ = [];

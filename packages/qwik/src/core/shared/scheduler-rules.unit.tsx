@@ -60,7 +60,7 @@ function createMockTask(
 }
 
 function createMockQRL(symbol: string): QRL {
-  return createQRL(null, symbol, null, null, null, null) as QRL;
+  return createQRL(null, symbol, null, null, null) as QRL;
 }
 
 describe('findBlockingChore', () => {

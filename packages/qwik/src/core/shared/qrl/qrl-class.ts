@@ -35,7 +35,6 @@ export type QRLInternalMethods<TYPE> = {
   readonly $symbol$: string;
   readonly $hash$: string;
 
-  $capture$: string[] | null;
   $captureRef$: unknown[] | null;
   dev: QRLDev | null;
 
@@ -65,7 +64,6 @@ export const createQRL = <TYPE>(
   symbol: string,
   symbolRef: null | ValueOrPromise<TYPE>,
   symbolFn: null | (() => Promise<Record<string, TYPE>>),
-  capture: null | Readonly<number[]>,
   captureRef: Readonly<unknown[]> | null
 ): QRLInternal<TYPE> => {
   if (qDev && qSerialize) {
@@ -128,7 +126,7 @@ export const createQRL = <TYPE>(
 
   // Wrap functions to provide their lexical scope
   const wrapFn = (fn: TYPE): TYPE => {
-    if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
+    if (typeof fn !== 'function' || !captureRef?.length) {
       return fn;
     }
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
@@ -236,7 +234,6 @@ export const createQRL = <TYPE>(
     $hash$: hash,
     getFn: bindFnToContext,
 
-    $capture$: capture,
     $captureRef$: captureRef,
     dev: null,
     resolved: undefined,

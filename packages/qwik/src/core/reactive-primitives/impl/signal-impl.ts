@@ -133,7 +133,7 @@ export const setupSignalValueAccess = <T, S>(
     } else {
       assertTrue(
         !ctx.$container$ || ctx.$container$ === target.$container$,
-        'Do not use signals across containers'
+        `Do not use signals across containers ${!!ctx.$container$?.addBackpatchEntry} ${!!target.$container$?.addBackpatchEntry}, ${ctx.$container$ === target.$container$}`
       );
     }
     const effectSubscriber = ctx.$effectSubscriber$;

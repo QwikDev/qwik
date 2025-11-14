@@ -1235,7 +1235,7 @@ describe('shared-serialization', () => {
       `);
     });
     it('should dedupe function sub-data', async () => {
-      const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, null, [shared1]));
+      const objs = await serialize([shared1], createQRL(null, 'foo', 123, null, [shared1]));
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [

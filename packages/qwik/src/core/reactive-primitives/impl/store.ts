@@ -17,7 +17,7 @@ import {
   type StoreTarget,
 } from '../types';
 import { ChoreType } from '../../shared/util-chore-type';
-import type { PropsProxyHandler } from '../../shared/jsx/props-proxy';
+import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
 
 const DEBUG = false;
 
@@ -258,7 +258,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 }
 
 export function addStoreEffect(
-  target: StoreTarget,
+  target: StoreTarget | PropsProxy,
   prop: string | symbol,
   store: StoreHandler | PropsProxyHandler,
   effectSubscription: EffectSubscription

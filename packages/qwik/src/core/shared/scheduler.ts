@@ -123,7 +123,7 @@ import { ChoreArray, choreComparator } from '../client/chore-array';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 
 // Turn this on to get debug output of what the scheduler is doing.
-const DEBUG: boolean = true;
+const DEBUG: boolean = false;
 
 enum ChoreState {
   NONE = 0,

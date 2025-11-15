@@ -516,7 +516,7 @@ const Issue3178 = component$(() => {
         id="issue-3178"
         ref={(el) => {
           store.elements.push(el);
-          console.warn(store.elements[0].nodeType);
+          // console.warn(store.elements[0].nodeType);
         }}
       >
         Hello

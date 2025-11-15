@@ -1,15 +1,5 @@
 [
   {
-    "href": "https://seyph.com/",
-    "size": "large",
-    "tags": "software development, landing pages, agency, site"
-  },
-  {
-    "href": "https://hypecode.tech/",
-    "size": "large",
-    "tags": "software development, landing pages, agency, site"
-  },
-  {
     "href": "https://www.learn-qwik.com/",
     "size": "large",
     "tags": "site,tutorial,learn"
@@ -40,28 +30,12 @@
     "tags": "saas"
   },
   {
-    "href": "https://www.dimension.dev",
-    "tags": "saas"
-  },
-  {
-    "href": "https://index.app/beta",
-    "tags": "saas"
-  },
-  {
     "href": "https://wope.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://www.builder.io/",
     "tags": "saas"
   },
   {
     "href": "https://reflect.app/",
     "tags": "saas"
-  },
-  {
-    "href": "https://jose-aguilar.vercel.app/",
-    "tags": "portfolio"
   },
   {
     "href": "https://www.hexa.center/",
@@ -82,10 +56,6 @@
     "tags": "site"
   },
   {
-    "href": "https://usaibis.com/",
-    "tags": "saas"
-  },
-  {
     "href": "https://pricing.oasisdigital.com/",
     "tags": "saas"
   },
@@ -101,15 +71,6 @@
   },
   {
     "href": "https://goshi.dev/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://www.expobeds.com/",
-    "size": "large",
-    "tags": "company"
-  },
-  {
-    "href": "https://jbnado.dev/",
     "tags": "portfolio"
   },
   {
@@ -130,25 +91,12 @@
     "tags": "portfolio"
   },
   {
-    "href": "https://necatikcl.dev/",
-    "tags": "personal",
-    "size": "large"
-  },
-  {
     "href": "https://itbusinesshub.com/",
     "tags": "blog"
   },
   {
     "href": "https://travelcalc.pages.dev",
     "tags": "app"
-  },
-  {
-    "href": "https://pay4me.app",
-    "tags": "saas"
-  },
-  {
-    "href": "https://qwik-osm-poc.netlify.app/",
-    "tags": "site"
   },
   {
     "href": "https://leonerd.blog",
@@ -162,10 +110,6 @@
     "href": "https://builtwith.appwrite.io/",
     "tags": "site",
     "repo": "https://github.com/appwrite/builtwith"
-  },
-  {
-    "href": "https://getpolaris.ai/",
-    "tags": "saas"
   },
   {
     "href": "https://juneikerc.com",
@@ -182,10 +126,6 @@
   {
     "href": "https://finallyweb.com/",
     "tags": "stock market education"
-  },
-  {
-    "href": "https://numeia.com",
-    "tags": "saas, marketing, ai"
   },
   {
     "href": "https://qit.tools/",

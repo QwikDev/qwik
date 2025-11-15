@@ -26,6 +26,8 @@ const config: PlaywrightTestConfig = {
   },
   fullyParallel: true,
   testMatch: "*.e2e.ts",
+  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,
   retries: inGithubCI ? 0 : 1,
   expect: { timeout: inGithubCI ? 120000 : 10000 },

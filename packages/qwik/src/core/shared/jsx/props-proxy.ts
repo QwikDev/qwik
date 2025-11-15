@@ -17,7 +17,7 @@ export function createPropsProxy(owner: JSXNodeImpl): Props {
   return new Proxy<any>({}, new PropsProxyHandler(owner));
 }
 export class PropsProxyHandler implements ProxyHandler<any> {
-  $effects$: null | Map<string | symbol, Set<EffectSubscription>> = null;
+  $effects$: undefined | Map<string | symbol, Set<EffectSubscription>> = undefined;
   $container$: Container | null = null;
 
   constructor(public owner: JSXNodeImpl) {}
@@ -176,7 +176,7 @@ export const triggerPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: str
   if (effects) {
     propsProxy.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
+      undefined,
       propsProxy,
       effects
     );
@@ -184,11 +184,11 @@ export const triggerPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: str
 };
 
 function getEffects(
-  effects: Map<string | symbol, Set<EffectSubscription>> | null,
+  effects: Map<string | symbol, Set<EffectSubscription>> | undefined,
   prop: string | symbol
 ) {
   // TODO: Handle STORE_ALL_PROPS
-  return effects?.get(prop) || null;
+  return effects?.get(prop);
 }
 
 /**

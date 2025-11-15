@@ -350,7 +350,7 @@ describe('shared-serialization', () => {
           {number} 0
           {number} 0
           RootRef 1
-          Constant null
+          Constant undefined
           Object [
             {string} "shared"
             {number} 2
@@ -412,6 +412,19 @@ describe('shared-serialization', () => {
         (25 chars)"
       `);
     });
+    it(title(TypeIds.Signal) + ' null', async () => {
+      const objs = await serialize({ foo: createSignal(null) });
+      expect(_dumpState(objs)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "foo"
+          Signal [
+            Constant null
+          ]
+        ]
+        (22 chars)"
+      `);
+    });
     it(title(TypeIds.WrappedSignal), async () => {
       const foo = createSignal(3);
       const propSignal = _wrapProp(foo, 'value');
@@ -429,7 +442,7 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          Constant null
+          Constant undefined
           {number} 5
         ]
         1 WrappedSignal [
@@ -440,7 +453,7 @@ describe('shared-serialization', () => {
             ]
             {string} "value"
           ]
-          Constant null
+          Constant undefined
           {number} 7
         ]
         (66 chars)"
@@ -471,18 +484,20 @@ describe('shared-serialization', () => {
         "
         0 ComputedSignal [
           RootRef 4
+          Constant undefined
         ]
         1 ComputedSignal [
           RootRef 5
-          Constant null
+          Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
           RootRef 6
+          Constant undefined
         ]
         3 ComputedSignal [
           RootRef 7
-          Constant null
+          Constant undefined
           {number} 2
         ]
         4 PreloadQRL "9 10 8"
@@ -497,7 +512,7 @@ describe('shared-serialization', () => {
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (166 chars)"
+        (174 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -525,7 +540,7 @@ describe('shared-serialization', () => {
         3 {string} "custom_createSerializer_qrl"
         4 SerializerSignal [
           RootRef 1
-          Constant null
+          Constant undefined
           {number} 4
         ]
         5 ForwardRefs [
@@ -585,32 +600,32 @@ describe('shared-serialization', () => {
         "
         0 AsyncComputedSignal [
           RootRef 4
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         1 AsyncComputedSignal [
           RootRef 5
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         2 AsyncComputedSignal [
           RootRef 6
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         3 AsyncComputedSignal [
           RootRef 7
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
-          Constant null
+          Constant undefined
           {number} 2
         ]
         4 PreloadQRL "9 10 8"

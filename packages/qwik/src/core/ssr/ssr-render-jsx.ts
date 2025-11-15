@@ -113,7 +113,7 @@ function processJSXNode(
   }
 ) {
   // console.log('processJSXNode', value);
-  if (value === null || value === undefined) {
+  if (value == null) {
     ssr.textNode('');
   } else if (typeof value === 'boolean') {
     ssr.textNode('');

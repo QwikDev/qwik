@@ -946,19 +946,18 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
           key = 'class';
         }
         const value = journal[idx++] as string | null | boolean;
+        const shouldRemove = value == null || value === false;
         if (isBooleanAttr(element, key)) {
           (element as any)[key] = parseBoolean(value);
-        } else if (key === 'value' && key in element) {
-          (element as any).value = String(value);
         } else if (key === dangerouslySetInnerHTML) {
           (element as any).innerHTML = value!;
           element.setAttribute(QContainerAttr, QContainerValue.HTML);
+        } else if (shouldRemove) {
+          element.removeAttribute(key);
+        } else if (key === 'value' && key in element) {
+          (element as any).value = String(value);
         } else {
-          if (value == null || value === false) {
-            element.removeAttribute(key);
-          } else {
-            element.setAttribute(key, String(value));
-          }
+          element.setAttribute(key, String(value));
         }
         break;
       case VNodeJournalOpCode.HoistStyles:

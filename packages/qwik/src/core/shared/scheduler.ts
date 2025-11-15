@@ -571,7 +571,7 @@ This is often caused by modifying a signal in an already rendered component duri
           applyJournalFlush();
           const blockingChore = findBlockingChoreForVisible(chore, runningChores, container);
           if (blockingChore && blockingChore.$state$ === ChoreState.RUNNING) {
-            addBlockedChore(chore, blockingChore, blockedChores);
+            (blockingChore.$blockedChores$ ||= new ChoreArray()).add(chore);
             continue;
           }
         }
@@ -894,7 +894,17 @@ export function addBlockedChore(
   blockedChore: Chore,
   blockingChore: Chore,
   blockedChores: Set<Chore>
-) {
+): void {
+  if (
+    !(
+      blockedChore.$type$ === ChoreType.TASK &&
+      blockedChore.$payload$ &&
+      (blockedChore.$payload$ as Task).$flags$ & TaskFlags.RESOURCE
+    ) &&
+    choreComparator(blockedChore, blockingChore) === 0
+  ) {
+    return;
+  }
   DEBUG &&
     debugTrace(
       `blocked chore by ${debugChoreToString(blockingChore)}`,

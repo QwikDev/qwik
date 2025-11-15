@@ -25,7 +25,13 @@ import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
 import { ChoreType } from '../util-chore-type';
-import { _CONST_PROPS, _OWNER, _UNINITIALIZED, _VAR_PROPS } from '../utils/constants';
+import {
+  _CONST_PROPS,
+  _OWNER,
+  _PROPS_HANDLER,
+  _UNINITIALIZED,
+  _VAR_PROPS,
+} from '../utils/constants';
 import { allocate, pendingStoreTargets } from './allocate';
 import { needsInflation } from './deser-proxy';
 import { resolvers } from './allocate';
@@ -267,13 +273,19 @@ export const inflate = (
       break;
     case TypeIds.PropsProxy:
       const propsProxy = target as PropsProxy;
-      const d = data as [JSXNodeImpl | typeof _UNINITIALIZED, Props, Props | null];
+      const d = data as [
+        JSXNodeImpl | typeof _UNINITIALIZED,
+        Props,
+        Props | null,
+        Map<string | symbol, Set<EffectSubscription>> | null,
+      ];
       let owner = d[0];
       if (owner === _UNINITIALIZED) {
         owner = new JSXNodeImpl(Fragment, d[1], d[2]);
         owner._proxy = propsProxy;
       }
       propsProxy[_OWNER] = owner;
+      propsProxy[_PROPS_HANDLER].$effects$ = d[3];
       break;
     case TypeIds.SubscriptionData: {
       const effectData = target as SubscriptionData;

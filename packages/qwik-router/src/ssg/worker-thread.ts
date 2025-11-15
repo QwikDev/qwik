@@ -61,26 +61,6 @@ export async function workerThread(sys: System) {
     });
 }
 
-export async function createSingleThreadWorker(sys: System) {
-  const ssgOpts = sys.getOptions();
-  const pendingPromises = new Set<Promise<any>>();
-
-  const opts: SsgHandlerOptions = {
-    ...ssgOpts,
-    render: (await import(pathToFileURL(ssgOpts.renderModulePath).href)).default,
-    qwikRouterConfig: (await import(pathToFileURL(ssgOpts.qwikRouterConfigModulePath).href))
-      .default,
-  };
-
-  return (staticRoute: SsgRoute) => {
-    return new Promise<SsgWorkerRenderResult>((resolve) => {
-      workerRender(sys, opts, staticRoute, pendingPromises, resolve).catch((e) => {
-        console.error('Error during render', staticRoute.pathname, e);
-      });
-    });
-  };
-}
-
 async function workerRender(
   sys: System,
   opts: SsgHandlerOptions,

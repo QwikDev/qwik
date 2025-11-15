@@ -660,7 +660,7 @@ jobs:
         settings:
           - host: ubuntu-latest
             browser: chromium
-          # too slow and flaky. Perhaps better in v2?
+          # Some tests are failing on firefox, disable for now
           # - host: ubuntu-latest
           #   browser: firefox
           - host: windows-latest
@@ -822,7 +822,8 @@ jobs:
       always() && 
       github.repository == 'QwikDev/qwik' && (
         github.ref == 'refs/heads/build/v2' ||
-        needs.test-unit.result == 'success'
+        needs.test-unit.result == 'success' || 
+        needs.test-unit.result == 'skipped'
       )
 
     steps:

@@ -88,7 +88,7 @@ export const addQrlToSerializationCtx = (
 export const scheduleEffects = (
   container: Container | null,
   signal: SignalImpl | StoreTarget,
-  effects: Set<EffectSubscription> | null
+  effects: Set<EffectSubscription> | undefined
 ) => {
   const isBrowser = !isServerPlatform();
   if (effects) {

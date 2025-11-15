@@ -23,7 +23,7 @@ export class SignalImpl<T = any> implements Signal<T> {
   $untrackedValue$: T;
 
   /** Store a list of effects which are dependent on this signal. */
-  $effects$: null | Set<EffectSubscription> = null;
+  $effects$: undefined | Set<EffectSubscription> = undefined;
   $container$: Container | null = null;
   $wrappedSignal$: WrappedSignalImpl<T> | null = null;
 
@@ -40,7 +40,7 @@ export class SignalImpl<T = any> implements Signal<T> {
   force() {
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
+      undefined,
       this,
       this.$effects$
     );
@@ -70,7 +70,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       this.$untrackedValue$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
+        undefined,
         this,
         this.$effects$
       );

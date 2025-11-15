@@ -31,7 +31,7 @@ import { isPropsProxy } from '../jsx/props-proxy';
 import { Slot } from '../jsx/slot.public';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl, isSyncQrl } from '../qrl/qrl-utils';
-import { _OWNER, _UNINITIALIZED } from '../utils/constants';
+import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
 import { isPromise } from '../utils/promises';
@@ -302,7 +302,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
   const writeObjectValue = (value: {}) => {
     if (isPropsProxy(value)) {
       const owner = value[_OWNER];
-      output(TypeIds.PropsProxy, [_serializationWeakRef(owner), owner.varProps, owner.constProps]);
+      output(TypeIds.PropsProxy, [
+        _serializationWeakRef(owner),
+        owner.varProps,
+        owner.constProps,
+        value[_PROPS_HANDLER].$effects$,
+      ]);
     } else if (value instanceof SubscriptionData) {
       output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
     } else if (isStore(value)) {

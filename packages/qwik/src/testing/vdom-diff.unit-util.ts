@@ -1,4 +1,4 @@
-import { Fragment, Slot, _getDomContainer, isSignal } from '@qwik.dev/core';
+import { Fragment, Slot, _getDomContainer, isSignal, untrack } from '@qwik.dev/core';
 import { _isJSXNode, _isStringifiable } from '@qwik.dev/core/internal';
 import type { JSXChildren, JSXNode, JSXOutput } from '@qwik.dev/core';
 import type {
@@ -194,7 +194,9 @@ function diffJsxVNode(
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
-        prop === 'key' || prop === ELEMENT_KEY ? receivedValue : expected.props[prop];
+        prop === 'key' || prop === ELEMENT_KEY
+          ? receivedValue
+          : untrack(() => expected.props[prop]);
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
       }

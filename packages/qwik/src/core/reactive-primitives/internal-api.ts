@@ -1,6 +1,6 @@
 import { assertEqual } from '../shared/error/assert';
 import { isPropsProxy } from '../shared/jsx/props-proxy';
-import { _CONST_PROPS, _IMMUTABLE } from '../shared/utils/constants';
+import { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from '../shared/utils/constants';
 import { isObject } from '../shared/utils/types';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 import type { SignalImpl } from './impl/signal-impl';
@@ -71,23 +71,35 @@ export const _wrapProp = <T extends object, P extends keyof T>(
   }
   if (isPropsProxy(obj)) {
     const constProps = obj[_CONST_PROPS];
+    const varProps = obj[_VAR_PROPS];
     if (constProps && prop in constProps) {
       // Const props don't need wrapping
       return constProps[prop as keyof typeof constProps] as WrappedProp<T, P>;
+    } else if (prop in varProps) {
+      const value = varProps[prop as keyof typeof varProps];
+      return wrapIfNotSignal(value as T[P], args);
     }
   } else {
     const target = getStoreTarget(obj);
     if (target) {
       const value = target[prop as P];
-      const wrappedValue = isSignal(value)
-        ? // If the value is already a signal, we don't need to wrap it again
-          value
-        : getWrapped(args);
-      return wrappedValue as WrappedProp<T, P>;
+      return wrapIfNotSignal(value, args);
     }
   }
   // the object is not reactive, so we can just return the value
   return obj[prop as P] as WrappedProp<T, P>;
+};
+
+const wrapIfNotSignal = <T extends object, P extends keyof T>(
+  value: T[P],
+  args: [T, P?]
+): WrappedProp<T, P> => {
+  return (
+    isSignal(value)
+      ? // If the value is already a signal, we don't need to wrap it again
+        value
+      : getWrapped(args)
+  ) as WrappedProp<T, P>;
 };
 
 /** @internal @deprecated v1 compat */

@@ -29,8 +29,10 @@ import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
-import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
+import { ELEMENT_PROPS, OnRenderProp, QContainerAttr } from '../shared/utils/markers';
 import { vnode_locate } from '../client/vnode';
+import type { PropsProxy } from '../shared/jsx/props-proxy';
+import { _PROPS_HANDLER } from '../shared/utils/constants';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -1036,8 +1038,8 @@ describe.each([
         <div>
           <button id="button-1">1</button>
           <button id="button-2">2</button>
-          <Fragment>
-            <Component>
+          <Fragment ssr-required>
+            <Component ssr-required>
               <div>
                 {'Child '}
                 {'1'}
@@ -1045,7 +1047,7 @@ describe.each([
                 <Signal ssr-required>{'false'}</Signal>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child '}
                 {'2'}
@@ -1063,8 +1065,8 @@ describe.each([
         <div>
           <button id="button-1">1</button>
           <button id="button-2">2</button>
-          <Fragment>
-            <Component>
+          <Fragment ssr-required>
+            <Component ssr-required>
               <div>
                 {'Child '}
                 {'1'}
@@ -1072,7 +1074,7 @@ describe.each([
                 <Signal ssr-required>{'true'}</Signal>
               </div>
             </Component>
-            <Component>
+            <Component ssr-required>
               <div>
                 {'Child '}
                 {'2'}
@@ -2576,6 +2578,182 @@ describe.each([
         <button>Remove</button>
       </main>
     );
+  });
+
+  it('should rerun props subscribers', async () => {
+    (globalThis as any).count = 0;
+    (globalThis as any).logs = [];
+    const ResponsiveImage = component$((props: { image: string }) => {
+      const fullImage = useSignal('');
+      const computedImage = useComputed$(() => `/computed/path/to/${props.image}`);
+      useTask$(({ track }) => {
+        track(() => props.image);
+        fullImage.value = `/path/to/${props.image}`;
+      });
+      (globalThis as any).logs.push('ResponsiveImage render');
+      return (
+        <span>
+          {props.image}
+          {fullImage.value}
+          {computedImage.value}
+        </span>
+      );
+    });
+    const PageContent = component$((props: { data: any }) => {
+      function generateImage(data: any) {
+        return data.image;
+      }
+      return (
+        <div>
+          <ResponsiveImage image={generateImage(props.data)} />
+        </div>
+      );
+    });
+    const Cmp = component$(() => {
+      const pageLoaded = useSignal<any>({ image: '' });
+
+      return (
+        <>
+          <button
+            onClick$={() => {
+              (globalThis as any).count++;
+              pageLoaded.value = { image: `${(globalThis as any).count}.png` };
+            }}
+          >
+            Generate
+          </button>
+          <PageContent data={pageLoaded.value} />
+        </>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>{'Generate'}</button>
+          <Component ssr-required>
+            <div>
+              <Component ssr-required>
+                <span>
+                  <Signal ssr-required>{''}</Signal>
+                  <Signal ssr-required>{'/path/to/'}</Signal>
+                  <Signal ssr-required>{'/computed/path/to/'}</Signal>
+                </span>
+              </Component>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button>{'Generate'}</button>
+          <Component ssr-required>
+            <div>
+              <Component ssr-required>
+                <span>
+                  <Signal ssr-required>{'1.png'}</Signal>
+                  <Signal ssr-required>{'/path/to/1.png'}</Signal>
+                  <Signal ssr-required>{'/computed/path/to/1.png'}</Signal>
+                </span>
+              </Component>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it("should update multiple signals from component's props", async () => {
+    const TextContent = component$((props: { 'data-nu'?: string; class?: string }) => {
+      return (
+        <div>
+          <div id="issue-3482-datanu">data-nu: {props['data-nu']}</div>
+          <div id="issue-3482-class">class: {props.class}</div>
+        </div>
+      );
+    });
+    const Issue3482 = component$(() => {
+      const count = useSignal(0);
+
+      const attributes = useComputed$(() => {
+        return {
+          'data-nu': String(count.value),
+          class: `class-${count.value}`,
+        };
+      });
+
+      return (
+        <>
+          <button id="issue-3482-button" onClick$={() => count.value++}>
+            Increment
+          </button>
+          <TextContent {...attributes.value}></TextContent>
+        </>
+      );
+    });
+    const { document, vNode } = await render(<Issue3482 />, { debug });
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button id="issue-3482-button">Increment</button>
+          <Component>
+            <div>
+              <div id="issue-3482-datanu">
+                data-nu: <Signal ssr-required>1</Signal>
+              </div>
+              <div id="issue-3482-class">
+                class: <Signal ssr-required>class-1</Signal>
+              </div>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it("should unsubscribe from props when component's child is removed", async () => {
+    const Cmp = component$((props: { name: string }) => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (show.value = !show.value)}>Toggle</button>
+          {show.value && <div>Hello {props.name}</div>}
+        </>
+      );
+    });
+
+    const props = { name: 'World' };
+    const { vNode, document, container } = await render(<Cmp {...props} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <div>
+            {'Hello '}
+            <Signal ssr-required>{'World'}</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    const propsProxy = vNode!.getProp<PropsProxy>(ELEMENT_PROPS, container.$getObjectById$)!;
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$).toBeDefined();
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(1);
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>Toggle</button>
+        </Fragment>
+      </Component>
+    );
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(0);
   });
 
   describe('regression', () => {

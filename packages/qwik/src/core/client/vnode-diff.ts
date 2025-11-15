@@ -16,7 +16,12 @@ import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
 import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
-import { directGetPropsProxyProp, type PropsProxy } from '../shared/jsx/props-proxy';
+import {
+  directGetPropsProxyProp,
+  triggerPropsProxyEffect,
+  type PropsProxy,
+  type PropsProxyHandler,
+} from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
@@ -28,7 +33,7 @@ import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../sh
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { _OWNER } from '../shared/utils/constants';
+import { _OWNER, _PROPS_HANDLER } from '../shared/utils/constants';
 import {
   fromCamelToKebabCase,
   getEventDataFromHtmlAttribute,
@@ -186,10 +191,10 @@ export const vnode_diff = (
             expectVirtual(VirtualType.WrappedSignal, null);
             const unwrappedSignal =
               jsxValue instanceof WrappedSignalImpl ? jsxValue.$unwrapIfSignal$() : jsxValue;
-            const currentSignal = vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
-              EffectSubscriptionProp.CONSUMER
-            ];
-            if (currentSignal !== unwrappedSignal) {
+            const hasUnwrappedSignal = vCurrent?.[_EFFECT_BACK_REF]
+              ?.get(EffectProperty.VNODE)
+              ?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal);
+            if (!hasUnwrappedSignal) {
               const vHost = (vNewNode || vCurrent)!;
               descend(
                 resolveSignalAndDescend(() =>
@@ -1215,7 +1220,7 @@ export const vnode_diff = (
     let host = (vNewNode || vCurrent) as VirtualVNode | null;
     const jsxNode = jsxValue as JSXNodeInternal;
     if (componentMeta) {
-      const jsxProps = jsxNode.props;
+      const jsxProps = jsxNode.props as PropsProxy;
       // QComponent
       let shouldRender = false;
       const [componentQRL] = componentMeta;
@@ -1246,41 +1251,15 @@ export const vnode_diff = (
       }
 
       if (host) {
-        let vNodeProps = (host as VirtualVNode).getProp<any>(
+        const vNodeProps = (host as VirtualVNode).getProp<PropsProxy | null>(
           ELEMENT_PROPS,
           container.$getObjectById$
         );
-        let propsAreDifferent = false;
         if (!shouldRender) {
-          propsAreDifferent =
-            propsDiffer(
-              (jsxProps as PropsProxy)[_CONST_PROPS],
-              (vNodeProps as PropsProxy)?.[_CONST_PROPS]
-            ) ||
-            propsDiffer(
-              (jsxProps as PropsProxy)[_VAR_PROPS],
-              (vNodeProps as PropsProxy)?.[_VAR_PROPS]
-            );
-          shouldRender = shouldRender || propsAreDifferent;
+          shouldRender ||= handleProps(host, jsxProps, vNodeProps, container);
         }
 
         if (shouldRender) {
-          if (propsAreDifferent) {
-            if (vNodeProps) {
-              // Reuse the same props instance, qrls can use the current props instance
-              // as a capture ref, so we can't change it.
-              // We need to do this directly, because normally we would subscribe to the signals
-              // if any signal is there.
-              vNodeProps[_CONST_PROPS] = (jsxProps as PropsProxy)[_CONST_PROPS];
-              vNodeProps[_VAR_PROPS] = (jsxProps as PropsProxy)[_VAR_PROPS];
-              vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
-            } else if (jsxProps) {
-              // If there is no props instance, create a new one.
-              // We can do this because we are not using the props instance for anything else.
-              (host as VirtualVNode).setProp(ELEMENT_PROPS, jsxProps);
-              vNodeProps = jsxProps;
-            }
-          }
           // Assign the new QRL instance to the host.
           // Unfortunately it is created every time, something to fix in the optimizer.
           (host as VirtualVNode).setProp(OnRenderProp, componentQRL);
@@ -1456,15 +1435,68 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
  */
 function Projection() {}
 
-function propsDiffer(
+function handleProps(
+  host: VirtualVNode,
+  jsxProps: PropsProxy,
+  vNodeProps: PropsProxy | null,
+  container: ClientContainer
+): boolean {
+  let shouldRender = false;
+  let propsAreDifferent = false;
+  if (vNodeProps) {
+    const effects = vNodeProps[_PROPS_HANDLER].$effects$;
+    const constPropsDifferent = handleChangedProps(
+      jsxProps[_CONST_PROPS],
+      vNodeProps[_CONST_PROPS],
+      vNodeProps[_PROPS_HANDLER],
+      container,
+      false
+    );
+    propsAreDifferent = constPropsDifferent;
+    shouldRender ||= constPropsDifferent;
+    if (effects && effects.size > 0) {
+      const varPropsDifferent = handleChangedProps(
+        jsxProps[_VAR_PROPS],
+        vNodeProps[_VAR_PROPS],
+        vNodeProps[_PROPS_HANDLER],
+        container
+      );
+
+      propsAreDifferent ||= varPropsDifferent;
+      // don't mark as should render, effects will take care of it
+      // shouldRender ||= varPropsDifferent;
+    }
+  }
+
+  if (propsAreDifferent) {
+    if (vNodeProps) {
+      // Reuse the same props instance, qrls can use the current props instance
+      // as a capture ref, so we can't change it.
+      vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
+    } else if (jsxProps) {
+      // If there is no props instance, create a new one.
+      // We can do this because we are not using the props instance for anything else.
+      (host as VirtualVNode).setProp(ELEMENT_PROPS, jsxProps);
+      vNodeProps = jsxProps;
+    }
+  }
+  return shouldRender;
+}
+
+function handleChangedProps(
   src: Record<string, any> | null | undefined,
-  dst: Record<string, any> | null | undefined
+  dst: Record<string, any> | null | undefined,
+  propsHandler: PropsProxyHandler,
+  container: ClientContainer,
+  triggerEffects: boolean = true
 ): boolean {
   const srcEmpty = isPropsEmpty(src);
   const dstEmpty = isPropsEmpty(dst);
+
   if (srcEmpty && dstEmpty) {
     return false;
   }
+
   if (srcEmpty || dstEmpty) {
     return true;
   }
@@ -1474,7 +1506,6 @@ function propsDiffer(
 
   let srcLen = srcKeys.length;
   let dstLen = dstKeys.length;
-
   if ('children' in src!) {
     srcLen--;
   }
@@ -1492,16 +1523,23 @@ function propsDiffer(
     return true;
   }
 
+  let changed = false;
+  propsHandler.$container$ = container;
   for (const key of srcKeys) {
     if (key === 'children' || key === QBackRefs) {
       continue;
     }
     if (!Object.prototype.hasOwnProperty.call(dst, key) || src![key] !== dst![key]) {
-      return true;
+      changed = true;
+      if (triggerEffects) {
+        triggerPropsProxyEffect(propsHandler, key);
+      } else {
+        return true;
+      }
     }
   }
 
-  return false;
+  return changed;
 }
 
 function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {

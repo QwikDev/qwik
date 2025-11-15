@@ -4,6 +4,7 @@ import {
   component$,
   useSignal,
   Fragment as Component,
+  Fragment as Signal,
   Fragment,
   type JSXOutput,
 } from '@qwik.dev/core';
@@ -212,7 +213,9 @@ describe.each([
             <Component ssr-required>
               <svg key="hi" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Fragment ssr-required></Fragment>
+                <Signal ssr-required>
+                  <Fragment ssr-required></Fragment>
+                </Signal>
               </svg>
             </Component>
           </button>
@@ -231,7 +234,9 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+                <Signal ssr-required>
+                  <line x1="0" y1="80" x2="100" y2="20" stroke="black" key="1"></line>
+                </Signal>
               </svg>
             </Component>
           </button>
@@ -256,7 +261,9 @@ describe.each([
             <Component>
               <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="50"></circle>
-                <Fragment></Fragment>
+                <Signal ssr-required>
+                  <Fragment ssr-required></Fragment>
+                </Signal>
               </svg>
             </Component>
           </button>

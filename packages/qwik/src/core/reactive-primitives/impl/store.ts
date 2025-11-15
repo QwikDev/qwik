@@ -277,7 +277,8 @@ export function addStoreEffect(
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
-  addQrlToSerializationCtx(effectSubscription, '$container$' in store ? store.$container$ : null);
+  // TODO is this needed with the preloader?
+  addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
 }

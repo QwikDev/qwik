@@ -857,7 +857,7 @@ export const vnode_diff = (
     const setAttribute = (key: string, value: any, vHost: ElementVNode) => {
       vHost.setAttr(
         key,
-        value !== null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
+        value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
         journal
       );
     };

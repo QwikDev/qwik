@@ -1,5 +1,12 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.15
+
+### Patch Changes
+
+- Updated dependencies [[`86e3a98`](https://github.com/QwikDev/qwik/commit/86e3a98a4ee8fb53ffe0c26bf2788749ed949ff6), [`dce9976`](https://github.com/QwikDev/qwik/commit/dce9976fb80a9d9f5f4e2a6f862c712c24993223)]:
+  - @qwik.dev/core@2.0.0-beta.15
+
 ## 2.0.0-beta.14
 
 ### Major Changes

@@ -29,8 +29,10 @@ import { QError } from '../shared/error/error';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
-import { OnRenderProp, QContainerAttr } from '../shared/utils/markers';
+import { ELEMENT_PROPS, OnRenderProp, QContainerAttr } from '../shared/utils/markers';
 import { vnode_locate } from '../client/vnode';
+import type { PropsProxy } from '../shared/jsx/props-proxy';
+import { _PROPS_HANDLER } from '../shared/utils/constants';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -2712,6 +2714,46 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it("should unsubscribe from props when component's child is removed", async () => {
+    const Cmp = component$((props: { name: string }) => {
+      const show = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (show.value = !show.value)}>Toggle</button>
+          {show.value && <div>Hello {props.name}</div>}
+        </>
+      );
+    });
+
+    const props = { name: 'World' };
+    const { vNode, document, container } = await render(<Cmp {...props} />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment ssr-required>
+          <button>Toggle</button>
+          <div>
+            {'Hello '}
+            <Signal ssr-required>{'World'}</Signal>
+          </div>
+        </Fragment>
+      </Component>
+    );
+
+    const propsProxy = vNode!.getProp<PropsProxy>(ELEMENT_PROPS, container.$getObjectById$)!;
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$).toBeDefined();
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(1);
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Fragment>
+          <button>Toggle</button>
+        </Fragment>
+      </Component>
+    );
+    expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(0);
   });
 
   describe('regression', () => {

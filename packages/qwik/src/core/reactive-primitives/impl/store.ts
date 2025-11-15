@@ -96,7 +96,7 @@ export const getOrCreateStore = <T extends object>(
 };
 
 export class StoreHandler implements ProxyHandler<StoreTarget> {
-  $effects$: null | Map<string | symbol, Set<EffectSubscription>> = null;
+  $effects$: undefined | Map<string | symbol, Set<EffectSubscription>> = undefined;
 
   constructor(
     public $flags$: StoreFlags,
@@ -111,7 +111,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     const target = getStoreTarget(this)!;
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
+      undefined,
       this,
       getEffects(target, prop, this.$effects$)
     );
@@ -201,7 +201,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
       // Changing the length property will trigger effects.
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
+        undefined,
         this,
         getEffects(target, prop, this.$effects$)
       );
@@ -294,7 +294,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   if (effects) {
     currentStore.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
+      undefined,
       currentStore,
       effects
     );
@@ -304,7 +304,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
 function getEffects<T extends Record<string | symbol, any>>(
   target: T,
   prop: string | symbol,
-  storeEffects: Map<string | symbol, Set<EffectSubscription>> | null
+  storeEffects: Map<string | symbol, Set<EffectSubscription>> | undefined
 ) {
   let effectsToTrigger: Set<EffectSubscription> | undefined;
 
@@ -328,5 +328,5 @@ function getEffects<T extends Record<string | symbol, any>>(
       effectsToTrigger!.add(effect);
     }
   }
-  return effectsToTrigger || null;
+  return effectsToTrigger;
 }

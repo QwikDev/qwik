@@ -30,6 +30,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
   for (const [, effect] of effects) {
     clearEffectSubscription(container, effect);
   }
+  effects.clear();
 }
 
 export function clearEffectSubscription(container: Container, effect: EffectSubscription) {
@@ -51,6 +52,7 @@ export function clearEffectSubscription(container: Container, effect: EffectSubs
       clearStoreOrProps(storeHandler, effect);
     }
   }
+  backRefs.clear();
 }
 
 function clearSignal(container: Container, producer: SignalImpl, effect: EffectSubscription) {
@@ -82,11 +84,11 @@ function clearAsyncComputedSignal(
 function clearStoreOrProps(producer: StoreHandler | PropsProxyHandler, effect: EffectSubscription) {
   const effects = producer?.$effects$;
   if (effects) {
-    for (const [propKey, propEffects] of effects.entries()) {
+    for (const [prop, propEffects] of effects.entries()) {
       if (propEffects.has(effect)) {
         propEffects.delete(effect);
         if (propEffects.size === 0) {
-          effects.delete(propKey);
+          effects.delete(prop);
         }
       }
     }

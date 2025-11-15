@@ -1,14 +1,14 @@
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
 use swc_ecmascript::visit::VisitMut;
 
 pub struct StripExportsVisitor<'a> {
-	pub filter_symbols: &'a [JsWord],
+	pub filter_symbols: &'a [Atom],
 }
 
 impl<'a> StripExportsVisitor<'a> {
-	pub const fn new(filter_symbols: &'a [JsWord]) -> Self {
+	pub const fn new(filter_symbols: &'a [Atom]) -> Self {
 		Self { filter_symbols }
 	}
 }
@@ -61,7 +61,7 @@ fn empty_module_item(ident: ast::Ident) -> ast::ModuleItem {
                             span: DUMMY_SP,
                             arg: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
                                 span: DUMMY_SP,
-                                value: JsWord::from("Symbol removed by Qwik Optimizer, it can not be called from current platform"),
+                                value: Atom::from("Symbol removed by Qwik Optimizer, it can not be called from current platform"),
                                 raw: None,
                             }))),
                         })],

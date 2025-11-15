@@ -1,16 +1,16 @@
-import { component$, Slot, useStore, useStyles$, useTask$ } from '@builder.io/qwik';
-import type { RequestHandler } from '@builder.io/qwik-city';
-import { Link, useLocation } from '@builder.io/qwik-city';
+import { component$, Slot, useStore, useStyles$, useTask$ } from '@qwik.dev/core';
+import type { RequestHandler } from '@qwik.dev/router';
+import { Link, useLocation } from '@qwik.dev/router';
+import tutorialSections, { type TutorialApp } from '@tutorial-data';
+import { setReplCorsHeaders } from '~/utils/utils';
+import { Header } from '../../components/header/header';
+import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
+import { EditIcon } from '../../components/svgs/edit-icon';
+import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
 import { Repl } from '../../repl/ui';
-import styles from './tutorial.css?inline';
 import { TutorialContentFooter } from './tutorial-content-footer';
 import { TutorialContentHeader } from './tutorial-content-header';
-import tutorialSections, { type TutorialApp } from '@tutorial-data';
-import { PanelToggle } from '../../components/panel-toggle/panel-toggle';
-import { Header } from '../../components/header/header';
-import type { ReplAppInput, ReplModuleInput } from '../../repl/types';
-import { EditIcon } from '../../components/svgs/edit-icon';
-import { setReplCorsHeaders } from '~/utils/utils';
+import styles from './tutorial.css?inline';
 
 export default component$(() => {
   useStyles$(styles);
@@ -125,7 +125,7 @@ export const ensureDefaultFiles = (appFiles: ReplModuleInput[]) => {
   const files: ReplModuleInput[] = JSON.parse(JSON.stringify(appFiles));
 
   const DEFAULT_ENTRY_SERVER = `
-import { renderToString, RenderOptions } from '@builder.io/qwik/server';
+import { renderToString, RenderOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
 
 export default function (opts: RenderOptions) {

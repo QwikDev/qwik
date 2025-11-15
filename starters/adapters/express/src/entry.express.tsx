@@ -8,18 +8,17 @@
  *
  */
 import {
-  createQwikCity,
+  createQwikRouter,
   type PlatformNode,
-} from "@builder.io/qwik-city/middleware/node";
+} from "@qwik.dev/router/middleware/node";
 import "dotenv/config";
-import qwikCityPlan from "@qwik-city-plan";
-import render from "./entry.ssr";
 import express from "express";
-import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import render from "./entry.ssr";
 
 declare global {
-  type QwikCityPlatform = PlatformNode;
+  type QwikRouterPlatform = PlatformNode;
 }
 
 // Directories where the static assets are located
@@ -30,10 +29,9 @@ const assetsDir = join(distDir, "assets");
 // Allow for dynamic port
 const PORT = process.env.PORT ?? 3000;
 
-// Create the Qwik City Node middleware
-const { router, notFound } = createQwikCity({
+// Create the Qwik Router Node middleware
+const { router, notFound } = createQwikRouter({
   render,
-  qwikCityPlan,
   // getOrigin(req) {
   //   // If deploying under a proxy, you may need to build the origin from the request headers
   //   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto
@@ -60,10 +58,10 @@ app.use(
 );
 app.use(express.static(distDir, { redirect: false }));
 
-// Use Qwik City's page and endpoint request handler
+// Use Qwik Router's page and endpoint request handler
 app.use(router);
 
-// Use Qwik City's 404 handler
+// Use Qwik Router's 404 handler
 app.use(notFound);
 
 // Start the express server

@@ -1,13 +1,13 @@
 import {
   component$,
-  useStyles$,
-  useStore,
   useContextProvider,
-} from "@builder.io/qwik";
+  useStore,
+  useStyles$,
+} from "@qwik.dev/core";
+import { TODOS, type Todos } from "../../state/state";
+import { Body } from "../body/body";
 import { Footer } from "../footer/footer";
 import { Header } from "../header/header";
-import { Body } from "../body/body";
-import { TODOS, type Todos } from "../../state/state";
 import styles from "./index.css?inline";
 
 /**

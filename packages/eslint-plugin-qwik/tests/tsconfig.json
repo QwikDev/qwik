@@ -6,7 +6,7 @@
     "lib": ["es2020", "DOM"],
     "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@builder.io/qwik",
+    "jsxImportSource": "@qwik.dev/core",
     "declaration": true,
     "isolatedModules": true,
     "strict": true,

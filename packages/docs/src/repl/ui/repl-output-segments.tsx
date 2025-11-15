@@ -1,6 +1,6 @@
-import type { TransformModule } from '@builder.io/qwik/optimizer';
+import type { TransformModule } from '@qwik.dev/core/optimizer';
 import { CodeBlock } from '../../components/code-block/code-block';
-import { $, component$, useSignal } from '@builder.io/qwik';
+import { $, component$, useSignal } from '@qwik.dev/core';
 const FILE_MODULE_DIV_ID = 'file-modules-symbol';
 
 type TransformModuleV2 = TransformModule & {

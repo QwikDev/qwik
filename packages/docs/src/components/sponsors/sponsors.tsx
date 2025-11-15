@@ -1,4 +1,4 @@
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { BuilderLogo } from '../svgs/builder-logo';
 
 export const Sponsors = component$(() => {

@@ -23,7 +23,8 @@ contributors:
   - Balastrong
   - Jemsco
   - shairez
-updated_at: '2024-01-09T20:55:11Z'
+  - wmertens
+updated_at: '2025-10-26T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -43,7 +44,7 @@ In the following example, the `onClick$` attribute of the `<button>` element is 
 
 <CodeSandbox src="/src/routes/demo/state/counter-signal/index.tsx" style={{ height: '6em' }}>
 ```tsx {7} /onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -65,11 +66,11 @@ Notice that `onClick$` ends with [`$`](/docs/(qwik)/advanced/dollar/index.mdx). 
 
 ## Reusing Event Handlers
 
-To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@builder.io/qwik`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
+To reuse the same event handler for multiple elements or events, you have to wrap the event handler into the `$()` function exported by `@qwik.dev/core`. This transforms it into a [`QRL`](/docs/advanced/qrl/).
 
 <CodeSandbox src="/src/routes/demo/events/extracted-handler/index.tsx" style={{ height: '6em' }}>
 ```tsx {5} /increment/#a
-import { component$, useSignal, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -92,7 +93,7 @@ export default component$(() => {
 To register multiple event handlers for the same event, you can pass an array of event handlers to the `on{EventName}$` attribute.
 
 ```tsx /onClick$/
-import { component$, useSignal, $ } from '@builder.io/qwik';
+import { component$, useSignal, $ } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
@@ -118,7 +119,7 @@ The first argument of the event handler is the `Event` object. This object conta
 
 <CodeSandbox src="/src/routes/demo/events/mouse-position/index.tsx" style={{ height: '6em' }}>
 ```tsx /event/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const position = useSignal<{ x: number; y: number }>();
@@ -150,7 +151,7 @@ Because event handling is asynchronous, you can't use `event.preventDefault()` o
 
 <CodeSandbox src="/src/routes/demo/events/preventdefault/index.tsx" style={{ height: '6em' }}>
 ```tsx {7}
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -176,7 +177,7 @@ Because event handling is asynchronous, you can't use `event.currentTarget`. To 
 
 <CodeSandbox src="/src/routes/demo/events/target/index.tsx" style={{ height: '10em' }}>
 ```tsx /currentTarget/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 
 export default component$(() => {
   const currentElm = useSignal<HTMLElement|null>(null);
@@ -211,7 +212,7 @@ To do this, you can leverage a `useVisibleTask` to programmatically add an event
 
 <CodeSandbox src="/src/routes/demo/events/synchronous/index.tsx" style={{ height: '10em' }}>
 ```tsx {7-20}
-import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const draggableRef = useSignal<HTMLElement>();
@@ -253,7 +254,7 @@ When creating your components, it is often useful to pass custom event props tha
 For example, listening for triple click events, which html cannot do by default, would require creating an `onTripleClick$` custom event prop.
 <CodeSandbox src="/src/routes/demo/events/custom-event/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { component$, Slot, useStore } from '@builder.io/qwik';
+import { component$, Slot, useStore } from '@qwik.dev/core';
 
 export default component$(() => {
   return (
@@ -299,6 +300,10 @@ export const Button = component$<ButtonProps>(({ onTripleClick$ }) => {
 
 > Notice the use of the `QRL` type in `onTripleClick$: QRL<() => void>;`. It is like wrapping a function in `$()` but at the type level. If you had `const greet = $(() => "hi 👋");` and hovered over 'greet', you would see that 'greet' is of type `QRL<() => "hi 👋">`
 
+Event names are case sensitive, but all DOM events except for `DOMContentLoaded` are lowercase. For a better DX, event names are always lowercased, so `onTripleClick$` becomes `tripleclick` under the hood.
+
+To listen for a custom event with uppercase letters, you add a `-` after `on`. For example, to listen for a custom event named `CustomEvent`, you would use `on-CustomEvent$`. For a window event named `Hi-There`, you would use `window:on-Hi-There$`.
+
 ## Window and Document Events
 
 So far, the discussion has focused on listening to events originating from elements. There are events such as `scroll` and `mousemove` that need to be listened to on the `window` or `document`. Qwik allows this by providing the `document:on` and `window:on` prefixes when listening for events.
@@ -318,7 +323,7 @@ The `window:on`/`document:` prefixes are used to register an event at the curren
 
 <CodeSandbox src="/src/routes/demo/events/use-on/index.tsx" style={{ height: '10em' }}>
 ```tsx
-import { $, component$, useOnDocument, useStore } from '@builder.io/qwik';
+import { $, component$, useOnDocument, useStore } from '@qwik.dev/core';
 
 // Assume reusable use method that does not have access to JSX
 // but needs to register event handlers.

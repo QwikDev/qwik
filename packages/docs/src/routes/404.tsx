@@ -1,5 +1,5 @@
-import { component$, useStyles$ } from '@builder.io/qwik';
-import { Link } from '@builder.io/qwik-city';
+import { component$, useStyles$ } from '@qwik.dev/core';
+import { Link } from '@qwik.dev/router';
 
 import { Header } from '../components/header/header';
 import catVideo from '../media/images/404-cat.mp4?url';

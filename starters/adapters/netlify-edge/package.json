@@ -25,5 +25,6 @@
         "- pnpm run deploy: it will use the netlify CLI to deploy your site"
       ]
     }
-  }
+  },
+  "type": "module"
 }

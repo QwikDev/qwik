@@ -1,7 +1,10 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { IntegrationData, IntegrationType } from '../types';
 import { dashToTitleCase, limitLength, readPackageJson } from './utils';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let integrations: IntegrationData[] | null = null;
 

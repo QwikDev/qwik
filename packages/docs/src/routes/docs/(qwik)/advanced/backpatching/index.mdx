@@ -1,0 +1,95 @@
+---
+title: Backpatching | Advanced
+contributors:
+  - thejackshelton
+updated_at: '2025-08-31T10:17:00Z'
+created_at: '2025-08-31T10:17:00Z'
+---
+
+# Backpatching
+
+Similar to the [Qwikloader](../qwikloader/index.mdx) that executes a small script, backpatching updates nodes already streamed on the server without waking up the Qwik runtime.
+
+> Most useful when building component libraries or apps with interdependent elements that render in varying orders.
+
+### What it is
+
+Backpatching solves a fundamental difference between client and server rendering:
+
+**Client rendering**: Components can render in any order, then establish relationships between each other afterward.
+
+**SSR streaming**: Once HTML is sent to the browser, it's immutable—you can only stream more content forward.
+
+This creates problems for component libraries where elements need to reference each other (like form inputs linking to their labels via `aria-labelledby`). If the input streams before its label, it can't know the label's ID to set the relationship.
+
+Backpatching automatically fixes these relationships by updating attributes after the entire page has streamed, giving you the same flexibility as client-side rendering.
+
+> Note: This is not Out-of-Order Streaming. It only corrects already-sent attributes without delaying the stream.
+
+### Example
+
+```tsx
+const fieldContextId = createContextId<{ isDescription: Signal<boolean> }>('field-context');
+
+export const Field = component$(() => {
+  const isDescription = useSignal(false);
+
+  const context = {
+    isDescription,
+  }
+
+  useContextProvider(fieldContextId, context);
+
+  return (
+    <>
+      <Label />
+      <Input />
+      {/* If the description component is not passed, it is a broken aria reference without backpatching, as the input would try to describe an element that does not exist */}
+      <Description />
+    </>
+  )
+})
+
+export const Label = component$(() => {
+  return <label>Label</label>;
+});
+
+export const Input = component$(() => {
+  const context = useContext(fieldContextId);
+
+  return <input aria-describedby={context.isDescription.value ? "description" : undefined} />;
+});
+
+export const Description = component$(() => {
+  const context = useContext(fieldContextId);
+
+  useTask$(() => {
+    context.isDescription = true;
+  })
+
+  return <div id="description">Description</div>;
+});
+```
+
+- Without backpatching, `<Input />` would never know about `<Description />`, leading to incorrect accessibility relationships.
+
+- With backpatching, the aria-describedby attribute on `<Input>` will be automatically corrected even if `<Description>` runs after the input was streamed.
+
+### Limitations
+
+- **Attributes only**: Backpatching is currently limited to updating attributes. It does not change element children/text/structure.
+
+### How it works (high level)
+
+Here's how backpatching works under the hood:
+
+1. **During Server-side streaming**: When a component tries to update an attribute on an element that's already been sent to the browser, Qwik detects this and remembers the intended change.
+
+2. **Element Tracking**: Qwik assigns each element a unique index based on its position in the DOM tree, so it can reliably find the same element in the browser.
+
+3. **Script Generation**: Instead of blocking the stream, Qwik generates a tiny JavaScript snippet that will run later to apply the fix.
+
+4. **Browser Execution**: On page load, this script uses efficient DOM traversal to find and update the target elements with their correct attribute values.
+
+5. **Zero Runtime Impact**: This all happens without waking up the Qwik framework, keeping your app fast and lightweight.
+

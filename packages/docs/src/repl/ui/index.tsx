@@ -7,7 +7,7 @@ import {
   useVisibleTask$,
   $,
   useOnWindow,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import { ReplInputPanel } from './repl-input-panel';
 import { ReplOutputPanel } from './repl-output-panel';
 import styles from './repl.css?inline';
@@ -77,6 +77,7 @@ export const Repl = component$((props: ReplProps) => {
     }
   });
 
+  // Initialize the REPL instance
   useVisibleTask$(
     async () => {
       (store as any).instance = noSerialize(new ReplInstance(store, input));
@@ -98,6 +99,7 @@ export const Repl = component$((props: ReplProps) => {
     { strategy: 'document-ready' }
   );
 
+  // Track input changes to rebuild the app
   useVisibleTask$(({ track }) => {
     track(input);
 

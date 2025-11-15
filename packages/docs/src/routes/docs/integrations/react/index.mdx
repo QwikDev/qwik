@@ -30,7 +30,7 @@ Basic usage
 ```tsx
 // This pragma is required so that React JSX is used instead of Qwik JSX
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 // An existing React component
 function Greetings() {
@@ -79,7 +79,7 @@ The above command will perform the following:
     ...,
      "dependencies": {
       ...,
-       "@builder.io/qwik-react": "0.5.0",
+       "@qwik.dev/react": "0.5.0",
        "@types/react": "18.0.28",
        "@types/react-dom": "18.0.11",
        "react": "18.2.0",
@@ -88,10 +88,10 @@ The above command will perform the following:
    }
    ```
    > **Note**: This is not an emulation of React. We are using the actual React library.
-2. configure Vite to use the `@builder.io/qwik-react` plugin:
+2. configure Vite to use the `@qwik.dev/react` plugin:
    ```ts
    // vite.config.ts
-   import { qwikReact } from '@builder.io/qwik-react/vite';
+   import { qwikReact } from '@qwik.dev/react/vite';
 
    export default defineConfig(() => {
       return {
@@ -127,7 +127,7 @@ Let's start with a simple example. We will create a simple React component and t
 <CodeFile src="/src/routes/demo/react/hello-world/react.tsx">
 ```tsx /qwikify$/ /QGreetings/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 // Create React component standard way
 function Greetings() {
@@ -142,7 +142,7 @@ export const QGreetings = qwikify$(Greetings);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/hello-world/index.tsx">
 ```tsx /QGreetings/
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { QGreetings } from './react';
 
 export default component$(() => {
@@ -158,9 +158,9 @@ export default component$(() => {
 </div>
 </CodeSandbox>
 
-The `@builder.io/qwik-react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
+The `@qwik.dev/react` package exports the `qwikify$()` function that lets you convert React components into Qwik components, that you can use across your application.
 
-> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik components look similar](/docs/(qwikcity)/guides/react-cheat-sheet/index.mdx), they are fundamentally very different.
+> **Note:** You CAN NOT use React components in Qwik without converting them first, using `qwikify$()`. Even though [React and Qwik components look similar](/docs/(qwikrouter)/guides/react-cheat-sheet/index.mdx), they are fundamentally very different.
 
 React and Qwik components can not be mixed in the same file, if you check your project right after running the installation command, you will see a new folder `src/integrations/react/`, we recommend that you place your React components there.
 
@@ -173,7 +173,7 @@ The above example shows how to SSR static React content on the server. The benef
 <CodeFile src="/src/routes/demo/react/counter-simple/react.tsx">
 ```tsx /qwikify$/ /QGreetings/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { useState } from 'react';
 
 // Create React component standard way
@@ -194,7 +194,7 @@ export const QCounter = qwikify$(Counter);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-simple/index.tsx">
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { QCounter } from './react';
 
 export default component$(() => {
@@ -217,7 +217,7 @@ Notice that clicking on the `Count` button does nothing. This is because the Rea
 <CodeFile src="/src/routes/demo/react/counter-simple-hover/react.tsx">
 ```tsx /qwikify$/ /{: eagerness: 'hover' }/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { useState } from 'react';
 
 // Create React component standard way
@@ -240,7 +240,7 @@ export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-simple-hover/index.tsx">
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { QCounter } from './react';
 
 export default component$(() => {
@@ -272,7 +272,7 @@ In the previous example, we had a single island that we delay-hydrated. But once
 <CodeFile src="/src/routes/demo/react/counter-two-islands/react.tsx">
 ```tsx /qwikify$/ /{: eagerness: 'hover' }/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 function Button({ onClick }: { onClick: () => void }) {
   console.log('React <Button/> Render');
@@ -292,7 +292,7 @@ export const QDisplay = qwikify$(Display);
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/counter-two-islands/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { QButton, QDisplay } from './react';
 
 export default component$(() => {
@@ -342,7 +342,7 @@ In the previous example, we had two islands. The `QButton` had to be eagerly hyd
 <div  q:slot="0">
 <CodeFile src="/src/routes/demo/react/counter-two-islands-host/index.tsx">
 ```tsx /host:onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { QButton, QDisplay } from './react';
 
 export default component$(() => {
@@ -369,7 +369,7 @@ export default component$(() => {
 <CodeFile src="/src/routes/demo/react/counter-two-islands-host/react.tsx">
 ```tsx
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { type ReactNode } from 'react';
 
 function Button({ children }: { children?: ReactNode[] }) {
@@ -401,7 +401,7 @@ A common use case is to pass content children to components. This works with Qwi
 <div  q:slot="0">
 <CodeFile src="/src/routes/demo/react/children/index.tsx">
 ```tsx /host:onClick$/
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { QFrame } from './react';
 
 export default component$(() => {
@@ -429,7 +429,7 @@ export default component$(() => {
 ```tsx
 /** @jsxImportSource react */
 import { type ReactNode } from 'react';
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 
 function Frame({ children }: { children?: ReactNode[] }) {
   console.log('React <Zippy/> Render');
@@ -466,7 +466,7 @@ Finally, it is possible to use React libraries in your Qwik application. In this
 <CodeFile src="/src/routes/demo/react/mui/react.tsx">
 ```tsx /host:onClick$/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -508,7 +508,7 @@ export const Example = qwikify$(
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/mui/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { Example } from './react';
 
 export default component$(() => {
@@ -537,7 +537,7 @@ Let's look at this example to better understand the rules of Qwik React.
 ```tsx title="src/integrations/react/mui.tsx"
 /** @jsxImportSource react */
 
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { Alert, Button, Slider } from '@mui/material';
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
 
@@ -558,7 +558,7 @@ In a nutshell, the rules are:
 Now your Qwik can import `MUIButton` and use it as any other Qwik component:
 
 ```tsx
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import { MUIAlert, MUIButton } from '~/integrations/react/mui';
 
 export default component$(() => {
@@ -584,7 +584,7 @@ Notice that by default no React code will run in the browser, meaning that React
 <CodeFile src="/src/routes/demo/react/slider/react.tsx">
 ```tsx /host:onClick$/
 /** @jsxImportSource react */
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 import { Slider } from '@mui/material';
 export const MUISlider = qwikify$<typeof Slider>(
   Slider
@@ -597,7 +597,7 @@ export const MUISlider = qwikify$<typeof Slider>(
 <div q:slot="1">
 <CodeFile src="/src/routes/demo/react/children/index.tsx">
 ```tsx
-import { component$, useSignal } from '@builder.io/qwik';
+import { component$, useSignal } from '@qwik.dev/core';
 import { QFrame } from './react';
 
 export default component$(() => {
@@ -875,7 +875,7 @@ The `qwikify()` function will convert this into a Qwik component that will also 
 
 ```tsx
 import { Slider } from '@mui/material';
-import { qwikify$ } from '@builder.io/qwik-react';
+import { qwikify$ } from '@qwik.dev/react';
 const MUISlider = qwikify$(Slider);
 
 <MUISlider client:visible onChange$={() => console.log('value changed')} />;

@@ -19,9 +19,9 @@ This results in a fast, SEO-friendly output that can be deployed to any static h
 
 > For more details on the integration and to view the source code, check out the [QwikDev Astro Integration on GitHub](https://github.com/QwikDev/astro).
 
-## Astro instead of Qwik City
+## Astro instead of Qwik Router
 
-When integrating Astro with Qwik, it's important to note that Qwik City APIs are not compatible with Astro. 
+When integrating Astro with Qwik, it's important to note that Qwik Router APIs are not compatible with Astro. 
 
 Astro is a meta-framework that provides its own set of APIs and features for handling these concerns. 
 These include but are not limited to:
@@ -30,42 +30,42 @@ These include but are not limited to:
 - layouts
 - data fetching
 
-> When using Qwik with Astro, use Astro's APIs instead of Qwik City's. This ensures your Qwik components work correctly in Astro. See the [Astro documentation](https://docs.astro.build) for more details.
+> When using Qwik with Astro, use Astro's APIs instead of Qwik Router's. This ensures your Qwik components work correctly in Astro. See the [Astro documentation](https://docs.astro.build) for more details.
 
-## @qwikdev/astro 💜
+## @qwik.dev/astro 💜
 
 This integration leverages the power of JavaScript Streaming inside of Astro, using Qwik components.
 
 ## Installation
 
-### The `@qwikdev/astro` CLI 🦾
+### The `@qwik.dev/astro` CLI 🦾
 
 To start a new Qwik Astro project, you can run the following command:
 
   <PackageManagerTabs>
   <span q:slot="pnpm">
   ```shell
-  pnpm create @qwikdev/astro
+  pnpm create @qwik.dev/astro
   ```
   </span>
   <span q:slot="npm">
   ```shell
-  npm create @qwikdev/astro
+  npm create @qwik.dev/astro
   ```
   </span>
   <span q:slot="yarn">
   ```shell
-  yarn create @qwikdev/astro
+  yarn create @qwik.dev/astro
   ```
   </span>
   <span q:slot="bun">
   ```shell
-  bun create @qwikdev/astro
+  bun create @qwik.dev/astro
   ```
   </span>
   </PackageManagerTabs>
 
-  For more advanced CLI configuration options, see the [@qwikdev/astro CLI documentation](https://github.com/QwikDev/astro/blob/main/libs/create-qwikdev-astro/README.md).
+  For more advanced CLI configuration options, see the [@qwik.dev/astro CLI documentation](https://github.com/QwikDev/astro/blob/main/libs/create-qwikdev-astro/README.md).
 
 
 ### Existing projects
@@ -75,27 +75,27 @@ Astro comes with a command-line tool for incorporating built-in integrations: `a
 1. Optionally install all required dependencies and peer dependencies
 2. Optionally modify your `astro.config.*` file to apply the integration
 
-To install `@qwikdev/astro`, run the following from your project directory and follow the prompts:
+To install `@qwik.dev/astro`, run the following from your project directory and follow the prompts:
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm dlx astro add @qwikdev/astro
+pnpm dlx astro add @qwik.dev/astro
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npx astro add @qwikdev/astro
+npx astro add @qwik.dev/astro
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn dlx astro add @qwikdev/astro
+yarn dlx astro add @qwik.dev/astro
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bunx astro add @qwikdev/astro
+bunx astro add @qwik.dev/astro
 ```
 </span>
 </PackageManagerTabs>
@@ -107,7 +107,7 @@ When using Astro's integration CLI or manually adding the integration, Qwik need
 ```ts
 "compilerOptions": {
   "jsx": "react-jsx",
-  "jsxImportSource": "@builder.io/qwik"
+  "jsxImportSource": "@qwik.dev/core"
 }
 ```
 
@@ -115,52 +115,52 @@ If you face any issues, please [post them on Github](https://github.com/QwikDev/
 
 ### Manual Installation
 
-First, install the `@qwikdev/astro` integration like so:
+First, install the `@qwik.dev/astro` integration like so:
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm install @qwikdev/astro
+pnpm install @qwik.dev/astro
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npm install @qwikdev/astro
+npm install @qwik.dev/astro
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn add @qwikdev/astro
+yarn add @qwik.dev/astro
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bun install @qwikdev/astro
+bun install @qwik.dev/astro
 ```
 </span>
 </PackageManagerTabs>
 
-Typically, package managers install peer dependencies. However, if you get a `Cannot find package '@builder.io/qwik'` warning when starting Astro, install Qwik.
+Typically, package managers install peer dependencies. However, if you get a `Cannot find package '@qwik.dev/core'` warning when starting Astro, install Qwik.
 
 <PackageManagerTabs>
 <span q:slot="pnpm">
 ```shell
-pnpm install @builder.io/qwik
+pnpm install @qwik.dev/core
 ```
 </span>
 <span q:slot="npm">
 ```shell
-npm install @builder.io/qwik
+npm install @qwik.dev/core
 ```
 </span>
 <span q:slot="yarn">
 ```shell
-yarn add @builder.io/qwik
+yarn add @qwik.dev/core
 ```
 </span>
 <span q:slot="bun">
 ```shell
-bun install @builder.io/qwik
+bun install @qwik.dev/core
 ```
 </span>
 </PackageManagerTabs>
@@ -170,7 +170,7 @@ Now, add the integration to your `astro.config.*` file using the `integrations` 
 ```diff lang="js" "qwikdev()"
   // astro.config.mjs
   import { defineConfig } from 'astro/config';
-+ import qwikdev from '@qwikdev/astro';
++ import qwikdev from '@qwik.dev/astro';
 
   export default defineConfig({
     // ...

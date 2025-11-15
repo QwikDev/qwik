@@ -1,4 +1,4 @@
-**/**.api.md
+**/*.api.md
 **/*.log
 **/.DS_Store
 *.
@@ -36,8 +36,6 @@ packages/insights/drizzle
 packages/insights/.netlify
 packages/insights/scripts
 packages/insights/**/*.gen.d.ts
-packages/qwik-labs/lib-types
-packages/qwik-labs/vite
 
 # insights cache files
 **/q-insights.json

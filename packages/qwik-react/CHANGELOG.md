@@ -178,3 +178,14 @@
 
 - Updated dependencies [[`d00396e`](https://github.com/QwikDev/qwik/commit/d00396eed65e971809c16af3ad89118cf1d0235f), [`00c599d`](https://github.com/QwikDev/qwik/commit/00c599d7689a1d67601d3e7e61a81a689cf7ece0), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`70c732f`](https://github.com/QwikDev/qwik/commit/70c732fdc6befed71809e1885bc187623996b3b1), [`d609244`](https://github.com/QwikDev/qwik/commit/d609244c454457e919e359dc745bdd7b52fb4c60), [`bb11c5f`](https://github.com/QwikDev/qwik/commit/bb11c5f104c3f2c944e58072f433504d7e9cbc92), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`681fcdc`](https://github.com/QwikDev/qwik/commit/681fcdca43b2f51f753f4d247eed6dc729cb8c6c)]:
   - @qwik.dev/core@2.0.0-alpha.0
+
+# @builder.io/qwik-react
+
+## 0.5.7
+
+### Patch Changes
+
+- 🐞🩹 unmount qwikify react root alongside with qwik component (done by @shashkashishka in #7864) (by [@shairez](https://github.com/shairez) in [#8017](https://github.com/QwikDev/qwik/pull/8017))
+
+- Updated dependencies [[`a797237`](https://github.com/QwikDev/qwik/commit/a7972373bb31cebae8eae00843ca246795503372), [`96b3f8e`](https://github.com/QwikDev/qwik/commit/96b3f8e44a8642b4e91705f999d1f01a61cc5a46), [`5f749fa`](https://github.com/QwikDev/qwik/commit/5f749fac92631924601aa2d00f90c991c7ec1b3a), [`f6369a0`](https://github.com/QwikDev/qwik/commit/f6369a097dfa3375cc30f2f950a2f12ff1342494), [`e33abbb`](https://github.com/QwikDev/qwik/commit/e33abbbfaf4130a4b7caf8f3ed93d425b9593a3f), [`04da311`](https://github.com/QwikDev/qwik/commit/04da3112f93c095b4f1114d533c2295edb9441e4), [`e90e5f8`](https://github.com/QwikDev/qwik/commit/e90e5f80e599d5049e652548d52bc4ed84ebf13d)]:
+  - @builder.io/qwik@1.17.0

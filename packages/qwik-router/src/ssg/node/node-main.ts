@@ -78,6 +78,7 @@ export async function createNodeMainProcess(sys: System, opts: SsgOptions) {
 
     const nodeWorker = new Worker(workerFilePath, { workerData: opts });
     nodeWorker.unref();
+
     const ssgWorker: SsgWorker = {
       activeTasks: 0,
       totalTasks: 0,

@@ -25,7 +25,7 @@ export async function submoduleTesting(config: BuildConfig) {
     platform: 'node',
   };
 
-  const esm = build({
+  await build({
     ...opts,
     format: 'esm',
     banner: { js: getBanner('@qwik.dev/core/testing', config.distVersion) },
@@ -42,8 +42,6 @@ export async function submoduleTesting(config: BuildConfig) {
     },
     target: 'es2020' /* needed for import.meta */,
   });
-
-  await Promise.all([esm]);
 
   await generateTestingPackageJson(config);
 

@@ -2756,6 +2756,61 @@ describe.each([
     expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(0);
   });
 
+  it('should correctly set undefined value', async () => {
+    const Cmp = component$(() => {
+      const someValue = useSignal<string | undefined>(undefined);
+      return (
+        <div>
+          <input value={someValue.value} />
+
+          <button
+            id="foo"
+            onClick$={() => {
+              someValue.value = 'foo';
+            }}
+          ></button>
+          <button
+            id="undefined"
+            onClick$={() => {
+              someValue.value = undefined;
+            }}
+          ></button>
+        </div>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <input value={undefined} />
+          <button id="foo"></button>
+          <button id="undefined"></button>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button#foo', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <input value="foo" />
+          <button id="foo"></button>
+          <button id="undefined"></button>
+        </div>
+      </Component>
+    );
+    await trigger(document.body, 'button#undefined', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <input value={undefined} />
+          <button id="foo"></button>
+          <button id="undefined"></button>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

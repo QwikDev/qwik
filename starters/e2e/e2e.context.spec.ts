@@ -64,6 +64,16 @@ test.describe("context", () => {
       const level3State3 = page.locator(".level3-state3");
       const level3Slot = page.locator(".level3-slot");
 
+      // const a = await level3State1.all()
+      // console.log(a)
+      // await page.waitForTimeout(50);
+      // const b = await level3State1.all()
+      // console.log(b)
+      // await expect(level3State1).toBeVisible();
+      // await expect(level3State2).toBeVisible();
+      // await expect(level3State3).toBeVisible();
+      // await expect(level3Slot).toBeVisible();
+
       await expect(level3State1.first()).toHaveText("Level2 / state1 = 0");
       expect(await level2State1.allTextContents()).toEqual([
         "ROOT / state1 = 1",
@@ -187,7 +197,6 @@ test.describe("context", () => {
     test.beforeEach(async ({ page }) => {
       const rerender = page.locator("#btn-rerender");
       await rerender.click();
-      await page.waitForTimeout(100);
     });
     tests();
   });

@@ -279,12 +279,22 @@ function processJSXNode(
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
           enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
           enqueue(ssr.closeComponent);
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
-          enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+          if (isPromise(jsxOutput)) {
+            // Defer reading QScopedStyle until after the promise resolves
+            enqueue(async () => {
+              const resolvedOutput = await jsxOutput;
+              const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+
+              enqueue(resolvedOutput);
+              enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+            });
+          } else {
+            enqueue(jsxOutput);
+            const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+            enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+          }
         } else {
           const inlineComponentProps = [ELEMENT_KEY, jsx.key];
           ssr.openFragment(

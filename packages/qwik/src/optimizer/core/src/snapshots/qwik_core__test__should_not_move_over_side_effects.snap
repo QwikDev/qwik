@@ -1,0 +1,35 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4634
+expression: output
+---
+==INPUT==
+
+
+		export const $promoteToRoot$ = (ref: SeenRef) => {
+			const path = $getObjectPath$(ref) as string;
+			// should stay before the push
+			const idx = roots.length;
+			roots.push(new BackRef(path));
+			ref.$parent$ = null;
+			ref.$index$ = idx;
+			return idx;
+		};
+		
+============================= test.js ==
+
+export const $promoteToRoot$ = (ref)=>{
+    const path = $getObjectPath$(ref);
+    // should stay before the push
+    const idx = roots.length;
+    roots.push(new BackRef(path));
+    ref.$parent$ = null;
+    ref.$index$ = idx;
+    return idx;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"AACE,OAAO,MAAM,kBAAkB,CAAC;IAC/B,MAAM,OAAO,gBAAgB;IAC7B,8BAA8B;IAC9B,MAAM,MAAM,MAAM,MAAM;IACxB,MAAM,IAAI,CAAC,IAAI,QAAQ;IACvB,IAAI,QAAQ,GAAG;IACf,IAAI,OAAO,GAAG;IACd,OAAO;AACR,EAAE\"}")
+== DIAGNOSTICS ==
+
+[]

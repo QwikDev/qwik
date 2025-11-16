@@ -1,12 +1,16 @@
-import { assertDefined } from '../core/error/assert';
-import type { QRLInternal } from '../core/qrl/qrl-class';
-import { tryGetContext, type QContext } from '../core/state/context';
-import { normalizeOnProp } from '../core/state/listeners';
-import { getWrappingContainer, type PossibleEvents } from '../core/use/use-core';
-import { fromCamelToKebabCase } from '../core/util/case';
+import { getDomContainer } from '@qwik.dev/core';
+import type { ClientContainer } from '@qwik.dev/core/internal';
+import { vi } from 'vitest';
+import { assertDefined } from '../core/shared/error/assert';
+import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
+import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
+import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
+import { delay } from '../core/shared/utils/promises';
+import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
+import { ChoreType } from '../core/shared/util-chore-type';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -44,9 +48,10 @@ export class ElementFixture {
         const code = script.textContent;
         if (code?.match(Q_FUNCS_PREFIX)) {
           const equal = code.indexOf('=');
-          const qFuncs = eval(code.substring(equal + 1));
-          const container = this.host.closest(QContainerSelector);
-          (container as any as { qFuncs?: Function[] }).qFuncs = qFuncs;
+          const qFuncs = (0, eval)(code.substring(equal + 1));
+          const container = this.host.closest(QContainerSelector)!;
+          const hash = container.getAttribute(QInstanceAttr);
+          (document as any)[QFuncsPrefix + hash] = qFuncs;
         }
       });
       this.child = null!;
@@ -65,36 +70,72 @@ export interface ElementFixtureOptions {
   html?: string;
 }
 
+function isDocumentOrWindowEvent(scope: QwikLoaderEventScope): boolean {
+  return scope === '-document' || scope === '-window';
+}
+
 /**
- * Trigger an event in unit tests on an element.
+ * Trigger an event in unit tests on an element. Needs to be kept in sync with the Qwik Loader event
+ * dispatching.
  *
  * Future deprecation candidate.
  *
- * @param element
- * @param selector
- * @param event
- * @returns
  * @public
  */
 export async function trigger(
   root: Element,
   queryOrElement: string | Element | keyof HTMLElementTagNameMap | null,
-  eventNameCamel: string,
-  eventPayload: any = {}
+  eventName: string,
+  eventPayload: any = {},
+  options?: { waitForIdle?: boolean }
 ): Promise<void> {
+  const waitForIdle = options?.waitForIdle ?? true;
+
+  let scope: QwikLoaderEventScope = '';
+  if (eventName.startsWith(':')) {
+    // :document:event or :window:event
+    const colonIndex = eventName.substring(1).indexOf(':');
+    // we need to add `-` for event, because of scope of the qwik loader
+    scope = ('-' + eventName.substring(1, colonIndex + 1)) as '-document' | '-window';
+    eventName = eventName.substring(colonIndex + 2);
+    // Scoped events must be queried
+    if (scope === '-document') {
+      queryOrElement = `[on-document\\:${fromCamelToKebabCase(eventName)}]`;
+    } else {
+      queryOrElement = `[on-window\\:${fromCamelToKebabCase(eventName)}]`;
+    }
+  }
+
   const elements =
     typeof queryOrElement === 'string'
       ? Array.from(root.querySelectorAll(queryOrElement))
       : [queryOrElement];
+  let container: ClientContainer | null = null;
   for (const element of elements) {
-    const kebabEventName = fromCamelToKebabCase(eventNameCamel);
-    const event = root.ownerDocument.createEvent('Event');
-    event.initEvent(kebabEventName, true, true);
+    if (!element) {
+      continue;
+    }
+    if (!container) {
+      container = getDomContainer(element as HTMLElement);
+    }
+
+    const event = new Event(eventName, {
+      bubbles: true,
+      cancelable: true,
+    });
     Object.assign(event, eventPayload);
-    const attrName = 'on:' + kebabEventName;
-    await dispatch(element, attrName, event);
+    const prefix = scope
+      ? scope === '-document'
+        ? EventNameHtmlScope.document
+        : EventNameHtmlScope.window
+      : EventNameHtmlScope.on;
+    const attrName = prefix + fromCamelToKebabCase(eventName);
+    await dispatch(element, attrName, event, scope);
   }
-  await getTestPlatform().flush();
+  const waitForQueueChore = container?.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
+  if (waitForIdle && waitForQueueChore) {
+    await waitForQueueChore.$returnValue$;
+  }
 }
 
 const PREVENT_DEFAULT = 'preventdefault:';
@@ -109,10 +150,16 @@ const QContainerSelector = '[q\\:container]';
  * @param attrName
  * @param event
  */
-export const dispatch = async (element: Element | null, attrName: string, event: any) => {
-  const preventAttributeName = PREVENT_DEFAULT + event.type;
+export const dispatch = async (
+  element: Element | null,
+  attrName: string,
+  event: Event,
+  scope: QwikLoaderEventScope
+) => {
+  const isDocumentOrWindow = isDocumentOrWindowEvent(scope);
+  const preventAttributeName =
+    PREVENT_DEFAULT + (isDocumentOrWindow ? event.type.substring(1) : event.type);
   const stopPropagationName = STOP_PROPAGATION + event.type;
-  const collectListeners: { element: Element; qrl: QRLInternal }[] = [];
   while (element) {
     const preventDefault = element.hasAttribute(preventAttributeName);
     const stopPropagation = element.hasAttribute(stopPropagationName);
@@ -122,47 +169,45 @@ export const dispatch = async (element: Element | null, attrName: string, event:
     if (stopPropagation) {
       event.stopPropagation();
     }
-    const ctx = tryGetContext(element);
-    if (ctx) {
-      for (const li of ctx.li) {
-        if (li[0] === attrName) {
-          // Ensure this is correct event type
-          const qrl = li[1];
-          if (isSyncQrl(qrl)) {
-            qrl(event, element);
-          } else {
-            collectListeners.push({ element, qrl: qrl });
-          }
-        }
+    if ('qDispatchEvent' in (element as QElement)) {
+      (element as QElement).qDispatchEvent!(event, scope);
+      await delay(0); // Unsure why this is needed for tests
+      return;
+    } else if (element.hasAttribute(attrName)) {
+      const container = getDomContainer(element as HTMLElement);
+      const qrl = element.getAttribute(attrName)!;
+      const ctx = newInvokeContextFromTuple([element, event]);
+      try {
+        await Promise.all(
+          qrl
+            .split('\n')
+            .map((qrl) => container.parseQRL(qrl.trim()))
+            .map((qrl) => {
+              return invokeApply(ctx, qrl, [event, element]);
+            })
+        );
+      } catch (error) {
+        console.error('!!! qrl error', qrl, error);
+        throw error;
       }
+      return;
     }
     element = element.parentElement;
   }
-  for (let i = 0; i < collectListeners.length; i++) {
-    const { element, qrl } = collectListeners[i];
-    await (qrl.getFn([element, event], () => element.isConnected) as Function)(event, element);
-  }
 };
-export function getEvent(elCtx: QContext, prop: string): any {
-  return qPropReadQRL(elCtx, normalizeOnProp(prop));
+
+export async function advanceToNextTimerAndFlush(container: Container) {
+  vi.advanceTimersToNextTimer();
+  const waitForQueueChore = container.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
+  await getTestPlatform().flush();
+  if (waitForQueueChore) {
+    await waitForQueueChore.$returnValue$;
+  }
 }
 
-export function qPropReadQRL(elCtx: QContext, prop: string): ((event: Event) => void) | null {
-  const allListeners = elCtx.li;
-  const containerEl = getWrappingContainer(elCtx.$element$);
-  assertDefined(containerEl, 'container element must be defined');
-
-  return (event) => {
-    return Promise.all(
-      allListeners
-        .filter((li) => li[0] === prop)
-        .map(([_, qrl]) => {
-          qrl.$setContainer$(containerEl);
-          return qrl(event);
-        })
-    );
-  };
-}
-function isSyncQrl(qrl: QRLInternal<(event: PossibleEvents, elem?: Element | undefined) => any>) {
-  return qrl.$chunk$ == '';
+export function cleanupAttrs(innerHTML: string | undefined): any {
+  return innerHTML
+    ?.replaceAll(/ q:key="[^"]+"/g, '')
+    .replaceAll(/ :=""/g, '')
+    .replaceAll(/ on:\w+="[^"]+"/g, '');
 }

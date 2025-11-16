@@ -16,7 +16,7 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 # Vercel Edge Adapter
 
-Qwik City Vercel Edge adapter allows you to connect Qwik City to [Vercel Edge Functions](https://vercel.com/docs/concepts/functions/edge-functions).
+Qwik Router Vercel Edge adapter allows you to connect Qwik Router to [Vercel Edge Functions](https://vercel.com/docs/concepts/functions/edge-functions).
 
 ## Installation
 
@@ -135,11 +135,10 @@ You can access environment variables from Vercel like this `process.env['MY_ENV_
 When the `vercel-edge` adapter is added, a new entry file will be created at `src/entry.vercel-edge.tsx`. Below is an example of using the built-in middleware within the entry file.
 
 ```tsx title="src/entry.vercel-edge.tsx"
-import { createQwikCity } from '@builder.io/qwik-city/middleware/vercel-edge';
-import qwikCityPlan from '@qwik-city-plan';
+import { createQwikRouter } from '@qwik.dev/router/middleware/vercel-edge';
 import render from './entry.ssr';
 
-export default createQwikCity({ render, qwikCityPlan });
+export default createQwikRouter({ render });
 ```
 
 The compiled middleware will be built in the `.vercel/output` directory.
@@ -157,7 +156,7 @@ Edge Functions run after the cache, and can both cache and return responses.
 Running Postgres on edge requires edge-compatible drivers since Postgres relies on Node.js APIs. 
 When no adapter is used, the below errors might appear during the deployment process:
 ```tsx 
-└── The Edge Function "_qwik-city" is referencing unsupported modules
+└── The Edge Function "_qwik-router" is referencing unsupported modules
 └── Cannot bundle Node.js built-in "node:events" imported from "node_modules\postgres\cf\polyfills.js"
 ```
 Luckily, drizzle has a [section](https://orm.drizzle.team/learn/tutorials/drizzle-with-vercel-edge-functions#edge-compatible-driver) that can be followed to implement the right adapter of choice.

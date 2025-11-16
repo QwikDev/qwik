@@ -19,5 +19,6 @@
         "- pnpm run serve: runs the production server locally"
       ]
     }
-  }
+  },
+  "type": "module"
 }

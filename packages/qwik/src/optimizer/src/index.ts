@@ -31,7 +31,6 @@ export type {
   SymbolMapper,
   SymbolMapperFn,
   SystemEnvironment,
-  TransformFsOptions,
   TransformModule,
   TransformModuleInput,
   TransformModulesOptions,
@@ -42,15 +41,11 @@ export type {
 
 export type { ExperimentalFeatures, QwikBuildMode, QwikBuildTarget } from './plugins/plugin';
 export type { QwikRollupPluginOptions } from './plugins/rollup';
-export type {
-  QwikViteDevResponse,
-  QwikVitePlugin,
-  QwikVitePluginApi,
-  QwikVitePluginOptions,
-} from './plugins/vite';
+export type { QwikVitePlugin, QwikVitePluginApi, QwikVitePluginOptions } from './plugins/vite';
 
 export type { BundleGraphAdder } from './plugins/bundle-graph';
 
 export { qwikRollup } from './plugins/rollup';
 export { qwikVite } from './plugins/vite';
-export { symbolMapper } from './plugins/vite-dev-server';
+/** @alpha @deprecated No longer needed, it is automatic now */
+export const symbolMapper = undefined;

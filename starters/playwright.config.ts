@@ -1,5 +1,5 @@
-import { expect } from "@playwright/test";
 import type { Locator, PlaywrightTestConfig } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 const inGithubCI = !!process.env.GITHUB_ACTIONS;
 
@@ -24,6 +24,8 @@ const config: PlaywrightTestConfig = {
       height: 600,
     },
   },
+  fullyParallel: true,
+  testMatch: "*.e2e.ts",
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   testIgnore: /.*example.spec.tsx?$/,

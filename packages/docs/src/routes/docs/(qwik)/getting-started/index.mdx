@@ -45,9 +45,9 @@ import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
 
 Qwik is a new kind of framework that is [resumable](../concepts/resumable/index.mdx) (no eager JS execution and no hydration), built for the edge and [familiar to React developers](/docs/integrations/react/index.mdx).
 
-To play with it right away, check out Qwik’s in-browser playgrounds:
+To play with it right away, check out Qwik's in-browser playgrounds:
 
-- [StackBlitz Qwik](https://qwik.new) (Full Qwik + Qwikcity integration)
+- [StackBlitz Qwik](https://qwik.new) (Full Qwik + Qwik Router integration)
 - [Examples playground](/examples/reactivity/counter/) (Qwik only, no routing)
 
 ## Prerequisites
@@ -60,7 +60,7 @@ To get started with Qwik locally, you need the following:
 
 ## Create an app using the CLI
 
-First, use the Qwik CLI to generate a blank starter application, to quickly familiarize yourself with it.  The same command can be used to create projects for either Qwik or Qwik city.
+First, use the Qwik CLI to generate a blank starter application, to quickly familiarize yourself with it.
 
 Run the Qwik CLI in your shell. Qwik supports pnpm, npm, yarn and bun. Choose the package manager you prefer and run one of the following commands:
 
@@ -121,14 +121,14 @@ The Qwik Hello World tutorial guides you through building a joke app with Qwik w
 
 ### 1. Create A Route
 
-Start by serving a page at a particular route. This basic app serves a random dad joke application on the `/joke/` route. This tutorial relies on Qwikcity, Qwik's meta-framework, which uses [directory-based](/docs/routing/) routing. To get started:
+Start by serving a page at a particular route. This basic app serves a random dad joke application on the `/joke/` route. This tutorial relies on Qwik Router, which uses [directory-based](/docs/routing/) routing. To get started:
 
 1. In your project, create a new `joke` directory in `routes` containing an `index.tsx` file.
-2. Each route's `index.tsx` file must have an `export default component$(...)` so that Qwikcity knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
+2. Each route's `index.tsx` file must have an `export default component$(...)` so that Qwik Router knows what content to serve. Paste the following content to `src/routes/joke/index.tsx`:
 
 <CodeSandbox src="/src/routes/demo/getting-started/01-route/index.tsx" style={{ height: '6em' }}>
 ```tsx {3-5} title="src/routes/joke/index.tsx"
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 
 export default component$(() => {
   return <section class="section bright">A Joke!</section>;
@@ -152,8 +152,8 @@ Use the external JSON API at https://icanhazdadjoke.com to load random jokes. Yo
 
 <CodeSandbox src="/src/routes/demo/getting-started/02-loading-data/index.tsx" style={{ height: '6em' }}>
 ```tsx /routeLoader$/ /useDadJoke/#a title="src/routes/joke/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -200,7 +200,7 @@ NOTE: `routeAction$` is the preferred way to send data to the server because it 
 To declare an action, add this code:
 
 ```tsx /routeAction\$/ title="src/routes/joke/index.tsx"
-import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
+import { routeLoader$, Form, routeAction$ } from '@qwik.dev/router';
 
 export const useJokeVoteAction = routeAction$((props) => {
   // Leave it as an exercise for the reader to implement this.
@@ -246,8 +246,8 @@ For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/03-posting-data/index.tsx" style={{ height: '8em' }}>
 ```tsx {21,25-29} /favoriteJokeAction/ title="src/routes/joke/index.tsx"
-import { component$ } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$, Form, routeAction$ } from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -294,7 +294,7 @@ To declare state:
 
 1. Import `useSignal` from `qwik`.
    ```tsx /useSignal/
-   import { component$, useSignal } from "@builder.io/qwik";
+   import { component$, useSignal } from "@qwik.dev/core";
    ```
 2. Declare the component's state using `useSignal()`.
    ```tsx /useSignal/
@@ -316,8 +316,8 @@ For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/04-state/index.tsx" style={{ height: '10em' }} maxHeight={500}>
 ```tsx /isFavoriteSignal/ title="src/routes/joke/index.tsx"
-import { component$, useSignal } from '@builder.io/qwik';
-import { routeLoader$, Form, routeAction$ } from '@builder.io/qwik-city';
+import { component$, useSignal } from '@qwik.dev/core';
+import { routeLoader$, Form, routeAction$ } from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -367,15 +367,15 @@ export default component$(() => {
 
 In Qwik, a [task](/docs/core/tasks/#usetask) is work that needs to happen when a state changes. (This is similar to an "effect" in other frameworks.) In this example, we use the task to invoke code on the server.
 
-1. Import `useTask$` from `qwik` and `server$` from `qwik-city`.
+1. Import `useTask$` from `qwik` and `server$` from `qwik-router`.
    ```tsx /useTask\$/ /server\$/
-   import { component$, useSignal, useTask$ } from "@builder.io/qwik";
+   import { component$, useSignal, useTask$ } from "@qwik.dev/core";
    import {
      routeLoader$,
      Form,
      routeAction$,
      server$,
-   } from '@builder.io/qwik-city';
+   } from '@qwik.dev/router';
    ```
 
 2. Create a new task that tracks the `isFavoriteSignal` state:
@@ -416,13 +416,13 @@ For reference, the complete code snippet for this section is as follows:
 
 <CodeSandbox src="/src/routes/demo/getting-started/05-tasks/index.tsx" style={{ height: '10em' }} maxHeight={500}>
 ```tsx {28-34} title="src/routes/joke/index.tsx"
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 import {
   routeLoader$,
   Form,
   routeAction$,
   server$,
-} from '@builder.io/qwik-city';
+} from '@qwik.dev/router';
 
 export const useDadJoke = routeLoader$(async () => {
   const response = await fetch('https://icanhazdadjoke.com/', {
@@ -498,7 +498,7 @@ To add styles:
     ```
 3. Import `useStylesScoped$` from `qwik`.
    ```tsx /useStylesScoped$/
-   import { component$, useSignal, useStylesScoped$, useTask$ } from "@builder.io/qwik";
+   import { component$, useSignal, useStylesScoped$, useTask$ } from "@qwik.dev/core";
 4. Tell the component to load the styles:
    ```tsx
    useStylesScoped$(styles);
@@ -519,13 +519,13 @@ import {
   useSignal,
   useStylesScoped$,
   useTask$,
-} from '@builder.io/qwik';
+} from '@qwik.dev/core';
 import {
   routeLoader$,
   Form,
   routeAction$,
   server$,
-} from '@builder.io/qwik-city';
+} from '@qwik.dev/router';
 import styles from './index.css?inline';
 
 export const useDadJoke = routeLoader$(async () => {
@@ -621,11 +621,11 @@ NOTE:
 Congratulations, you've learned a lot about Qwik!
 For more on just how much you can achieve with Qwik, check out the dedicated docs on each of the topics touched on in this tutorial:
 
-- [Project structure](/docs/(qwikcity)/project-structure/index.mdx)
-- [Directory-based routing](/docs/(qwikcity)/routing/index.mdx#directory-based-routing)
+- [Project structure](/docs/(qwikrouter)/project-structure/index.mdx)
+- [Directory-based routing](/docs/(qwikrouter)/routing/index.mdx#directory-based-routing)
 - [Component](/docs/(qwik)/core/overview/index.mdx)
-- [Route loaders](/docs/(qwikcity)/route-loader/index.mdx)
-- [Form actions](/docs/(qwikcity)/action/index.mdx) && [zod validation](/docs/(qwikcity)/action/index.mdx#validation-and-type-safety)
+- [Route loaders](/docs/(qwikrouter)/route-loader/index.mdx)
+- [Form actions](/docs/(qwikrouter)/action/index.mdx) && [zod validation](/docs/(qwikrouter)/action/index.mdx#validation-and-type-safety)
 - [State management](/docs/(qwik)/core/state/index.mdx)
 - [Tasks](/docs/(qwik)/core/tasks/index.mdx#use-usetask-when-you-need-to)
-- [Preloading](/docs/(qwikcity)/advanced/speculative-module-fetching/index.mdx)
+- [Preloading](/docs/(qwikrouter)/advanced/speculative-module-fetching/index.mdx)

@@ -1,9 +1,4 @@
-import {
-  component$,
-  useResource$,
-  useSignal,
-  Resource,
-} from "@builder.io/qwik";
+import { component$, Resource, useResource$, useSignal } from "@qwik.dev/core";
 
 export const ResourceFn = component$(() => {
   const resource = useResource$(({ track }) => {

@@ -1,11 +1,9 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { type BuildConfig, type PackageJSON, panic } from './util.ts';
-import { access, readFile } from './util.ts';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';
 import ts from 'typescript';
+import { access, type BuildConfig, type PackageJSON, panic, readFile } from './util.ts';
 
 /**
  * This will validate a completed production build by triple checking all the files have been
@@ -17,7 +15,6 @@ export async function validateBuild(config: BuildConfig) {
   const pkgPath = join(config.distQwikPkgDir, 'package.json');
   const pkg: PackageJSON = JSON.parse(await readFile(pkgPath, 'utf-8'));
   const errors: string[] = [];
-  const require = createRequire(import.meta.url);
 
   // triple checks these package files all exist and parse
   const pkgFiles = [...pkg.files!, 'LICENSE', 'README.md', 'package.json'];
@@ -43,13 +40,6 @@ export async function validateBuild(config: BuildConfig) {
       const ext = extname(filePath);
 
       switch (ext) {
-        case '.cjs':
-          const f = basename(filePath);
-          if (f !== 'qwik.cjs') {
-            require(filePath);
-            console.log(`✅ ${filePath}`);
-          }
-          break;
         case '.mjs':
           if (config.esmNode) {
             await import(pathToFileURL(filePath).href);
@@ -101,11 +91,11 @@ export async function validateBuild(config: BuildConfig) {
     validateModuleTreeshake(config, join(config.distQwikPkgDir, 'core.mjs')),
     validateModuleTreeshake(config, join(config.distQwikPkgDir, 'server.mjs')),
   ]);
-  if (config.qwikcity) {
+  if (config.qwikrouter) {
     await validateModuleTreeshake(
       config,
-      join(config.packagesDir, 'qwik-city', 'lib', 'index.qwik.mjs'),
-      ['@qwik-city-plan', '@qwik-city-sw-register', 'zod', '@builder.io/qwik/jsx-runtime']
+      join(config.packagesDir, 'qwik-router', 'lib', 'index.qwik.mjs'),
+      ['@qwik-router-config', '@qwik-router-sw-register', 'zod', '@qwik.dev/core/jsx-runtime']
     );
   }
 
@@ -225,7 +215,7 @@ async function validateModuleTreeshake(
     treeshake: {
       moduleSideEffects: 'no-external',
     },
-    external: ['@builder.io/qwik/build', '@builder.io/qwik', ...external],
+    external: ['@qwik.dev/core/build', '@qwik.dev/core', ...external],
     plugins: [
       {
         name: 'resolver',

@@ -38,6 +38,5 @@ test('Components Styles page loads', async ({ page }) => {
 test('Components API Reference page loads', async ({ page }) => {
   await page.goto('/api/qwik/');
 
-  // todo V2: change this to @qwik.dev
-  await expect(page).toHaveTitle('@builder.io/qwik API Reference 📚 Qwik Documentation');
+  await expect(page).toHaveTitle('@qwik.dev/qwik API Reference 📚 Qwik Documentation');
 });

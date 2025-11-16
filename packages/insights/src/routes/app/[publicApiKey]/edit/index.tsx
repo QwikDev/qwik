@@ -1,5 +1,5 @@
-import { component$, useSignal, useTask$ } from '@builder.io/qwik';
-import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from '@builder.io/qwik-city';
+import { component$, useSignal, useTask$ } from '@qwik.dev/core';
+import { routeAction$, routeLoader$, useLocation, z, zod$, Form } from '@qwik.dev/router';
 import { formAction$, useForm, zodForm$, type InitialValues } from '@modular-forms/qwik';
 import { eq } from 'drizzle-orm';
 import AppCard from '~/components/app-card';
@@ -10,7 +10,6 @@ import {
   dbGetUsersForApplication,
   dbRemoveUserFromApplication,
 } from '~/db/sql-user';
-import { appUrl } from '~/routes.config';
 import { ApplicationForm } from '../app.form';
 import { EditIcon } from '~/components/icons/edit';
 
@@ -43,7 +42,7 @@ export const useFormAction = formAction$<ApplicationForm>(
       })
       .where(eq(applicationTable.publicApiKey, params.publicApiKey))
       .run();
-    throw redirect(302, appUrl(`/app/[publicApiKey]/`, { publicApiKey: params.publicApiKey }));
+    throw redirect(302, `/app/${params.publicApiKey}/`);
   },
   zodForm$(ApplicationForm)
 );

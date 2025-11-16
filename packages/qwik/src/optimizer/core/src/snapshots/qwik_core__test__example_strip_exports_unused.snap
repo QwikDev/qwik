@@ -1,39 +1,40 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1657
+assertion_line: 1767
 expression: output
 snapshot_kind: text
 ---
 ==INPUT==
 
 
-import { component$ } from '@builder.io/qwik';
+import { component$ } from '@qwik.dev/core';
 import mongodb from 'mongodb';
 
 export const onGet = () => {
-    const data = mongodb.collection.whatever;
-    return {
-        body: {
-        data
-        }
-    }
+	const data = mongodb.collection.whatever;
+	return {
+		body: {
+		data
+		}
+	}
 };
 
 export default component$(()=> {
-    return <div>cmp</div>
+	return <div>cmp</div>
 });
 
 ============================= test.tsx ==
 
-import { componentQrl } from "@builder.io/qwik";
-import { qrl } from "@builder.io/qwik";
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_LUXeXe0DQrg = ()=>import("./test.tsx_test_component_LUXeXe0DQrg");
 export const onGet = ()=>{
     throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";
 };
-export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_LUXeXe0DQrg"), "test_component_LUXeXe0DQrg"));
+export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_LUXeXe0DQrg, "test_component_LUXeXe0DQrg"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;aAIa;;;AASb,6BAAe,mHAEZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;aAIa;;;AASb,6BAAe,6EAEZ\"}")
 ============================= test.tsx_test_component_LUXeXe0DQrg.tsx (ENTRY POINT)==
 
 export const test_component_LUXeXe0DQrg = ()=>{
@@ -41,7 +42,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B;IACtB,QAAQ,IAAI,GAAG,EAAE;AACrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"0CAa0B;IACzB,QAAQ,IAAI,GAAG,EAAE;AAClB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -57,8 +58,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "component$",
   "captures": false,
   "loc": [
-    244,
-    278
+    215,
+    246
   ]
 }
 */

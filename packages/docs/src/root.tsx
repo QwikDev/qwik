@@ -1,10 +1,10 @@
-import { component$, useContextProvider, useStore } from '@builder.io/qwik';
-import { QwikCityProvider, RouterOutlet, ServiceWorkerRegister } from '@builder.io/qwik-city';
-import { Insights } from '@builder.io/qwik-labs';
-import RealMetricsOptimization from './components/real-metrics-optimization/real-metrics-optimization';
+import { component$, useContextProvider, useStore } from '@qwik.dev/core';
+import { Insights } from '@qwik.dev/core/insights';
+import { RouterOutlet, useQwikRouter } from '@qwik.dev/router';
 import { RouterHead } from './components/router-head/router-head';
-import { BUILDER_PUBLIC_API_KEY } from './constants';
+import { InjectThemeScript } from './components/theme-toggle';
 import { GlobalStore, type SiteStore } from './context';
+
 import './global.css';
 
 export const uwu = /*javascript*/ `
@@ -41,6 +41,8 @@ export const uwu = /*javascript*/ `
 `;
 
 export default component$(() => {
+  useQwikRouter();
+
   const store = useStore<SiteStore>({
     headerMenuOpen: false,
     sideMenuOpen: false,
@@ -51,16 +53,27 @@ export default component$(() => {
   useContextProvider(GlobalStore, store);
 
   return (
-    <QwikCityProvider>
+    <>
       <head>
         <meta charset="utf-8" />
-        <script dangerouslySetInnerHTML={uwu} />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="apple-mobile-web-app-title" content="Qwik" />
+        <meta name="application-name" content="Qwik" />
+        <meta name="apple-mobile-web-app-title" content="Qwik" />
+        <meta name="theme-color" content="#006ce9" />
+        <meta name="color-scheme" content="dark light" />
+
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+        <link rel="icon" href="/favicons/favicon.svg" type="image/svg+xml" />
+
         <RouterHead />
 
-        <ServiceWorkerRegister />
+        <InjectThemeScript />
+        <script dangerouslySetInnerHTML={uwu} />
 
         <script dangerouslySetInnerHTML={`(${collectSymbols})()`} />
-        <Insights publicApiKey={import.meta.env.PUBLIC_QWIK_INSIGHTS_KEY} />
+        <Insights />
       </head>
       <body
         class={{
@@ -68,10 +81,10 @@ export default component$(() => {
           'menu-open': store.sideMenuOpen,
         }}
       >
+        {/* This renders the current route, including all Layout components. */}
         <RouterOutlet />
-        <RealMetricsOptimization builderApiKey={BUILDER_PUBLIC_API_KEY} />
       </body>
-    </QwikCityProvider>
+    </>
   );
 });
 

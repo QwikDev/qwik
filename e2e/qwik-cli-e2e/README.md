@@ -10,9 +10,9 @@ Tests can be invoked by running `pnpm run test.e2e.cli`.
 
 E2E project does the following internally:
 
-0. Vitest is configured to run a setup function once **PRIOR TO ALL** tests. During the setup `@builder.io/qwik`, `@builder.io/qwik-city` and `eslint-plugin-qwik` packages will be packed with `pnpm pack` Those will be used at a step 2 for every test. Tarballs are located in `temp/tarballs` folder within this repo. It is assumed that packages are built before E2E is executed.
+0. Vitest is configured to run a setup function once **PRIOR TO ALL** tests. During the setup `@qwik.dev/core`, `@qwik.dev/router` and `eslint-plugin-qwik` packages will be packed with `pnpm pack` Those will be used at a step 2 for every test. Tarballs are located in `temp/tarballs` folder within this repo. It is assumed that packages are built before E2E is executed.
 
-1. Simulates `npm create qwik` locally using direct command `node packages/create-qwik/create-qwik.cjs playground {outputDir}`
+1. Simulates `npm create qwik` locally using direct command `node packages/create-qwik/create-qwik.mjs playground {outputDir}`
    - By default `outputDir` is an auto-generated one using `tmp` npm package. The application that is created here will be removed after the test is executed
    - It is possible to install into custom folder using environment variable `TEMP_E2E_PATH`. Here's how the command would look like in this case:
    - with absolute path `TEMP_E2E_PATH=/Users/name/projects/tests pnpm run test.e2e.cli`
@@ -20,7 +20,7 @@ E2E project does the following internally:
 
    Note that provided folder should exist. If custom path is used, generated application will not be removed after the test completes, which is helpful for debugging.
 
-2. Uses packed `@builder.io/qwik`, `@builder.io/qwik-city` and `eslint-plugin-qwik` packages to update package.json file of the generated application with `file:path-to-package.tgz`.
+2. Uses packed `@qwik.dev/core`, `@qwik.dev/router` and `eslint-plugin-qwik` packages to update package.json file of the generated application with `file:path-to-package.tgz`.
 
 3. Runs actual tests. Please pay attention at the `beforeAll` hook in the spec file
 

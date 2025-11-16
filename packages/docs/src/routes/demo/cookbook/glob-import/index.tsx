@@ -1,11 +1,6 @@
-import {
-  type Component,
-  component$,
-  useSignal,
-  useTask$,
-} from '@builder.io/qwik';
+import { component$, type Component } from '@qwik.dev/core';
 
-const metaGlobComponents: Record<string, any> = import.meta.glob(
+const metaGlobComponents = import.meta.glob<Component>(
   '/src/routes/demo/cookbook/glob-import/examples/*',
   { import: 'default' }
 );
@@ -20,13 +15,14 @@ export default component$(() => {
   );
 });
 
+const loaded: Record<string, Component> = {};
 export const MetaGlobExample = component$<{ name: string }>(({ name }) => {
-  const MetaGlobComponent = useSignal<Component<any>>();
-  const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
+  const Cmp = loaded[name];
+  if (!Cmp) {
+    const componentPath = `/src/routes/demo/cookbook/glob-import/examples/${name}.tsx`;
+    const promise = metaGlobComponents[componentPath]();
+    throw promise.then((c) => (loaded[name] = c));
+  }
 
-  useTask$(async () => {
-    await metaGlobComponents[componentPath]();
-  });
-
-  return <>{MetaGlobComponent.value && <MetaGlobComponent.value />}</>;
+  return <Cmp />;
 });

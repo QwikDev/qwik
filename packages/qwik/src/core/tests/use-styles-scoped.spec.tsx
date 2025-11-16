@@ -6,13 +6,15 @@ import {
   Fragment as Projection,
   Fragment as Signal,
   Slot,
+  useAsyncComputed$,
   useSignal,
+  useStylesScoped$,
   useStylesScopedQrl,
 } from '@qwik.dev/core';
 import { renderToString } from '@qwik.dev/core/server';
 import { createDocument, domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { useStore } from '..';
 import { getPlatform, setPlatform } from '../shared/platform/platform';
 import { QStyleSelector } from '../shared/utils/markers';
@@ -20,11 +22,6 @@ import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
-
-vi.hoisted(() => {
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
-});
 
 describe.each([
   { render: ssrRenderToDom }, //
@@ -599,6 +596,26 @@ describe.each([
       <>
         <div class={(globalThis as any).rawStyleId}>Hello world</div>
       </>
+    );
+  });
+
+  it('should await for async component jsx output before setting style scoped id', async () => {
+    (globalThis as any).rawStyleId = '';
+    const Cmp = component$(() => {
+      const sig = useAsyncComputed$(async () => {
+        return 'computed';
+      });
+      sig.value;
+      (globalThis as any).rawStyleId = useStylesScoped$(`.red {color: red;}`).scopeId;
+
+      return <div class="red">this should be red</div>;
+    });
+
+    const { vNode } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div class={(globalThis as any).rawStyleId + ' red'}>this should be red</div>
+      </Component>
     );
   });
 

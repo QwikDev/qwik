@@ -210,6 +210,7 @@
     "docs.dev": "pnpm -C packages/docs build.repl-sw && pnpm -C packages/docs dev",
     "docs.preview": "pnpm -C packages/docs preview",
     "docs.sync": "node --require ./scripts/runBefore.ts scripts/docs_sync/index.ts && pnpm fmt",
+    "docs.showcase": "pnpm -C packages/docs run build.showcase",
     "eslint.update": "node --require ./scripts/runBefore.ts scripts/eslint-docs.ts",
     "fmt": "pnpm prettier.fix && pnpm syncpack format",
     "fmt.staged": "pretty-quick --staged",

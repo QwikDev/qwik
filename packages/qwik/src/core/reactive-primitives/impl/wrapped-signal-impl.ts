@@ -22,8 +22,8 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $funcStr$: string | null;
 
   $flags$: AllSignalFlags;
-  $hostElement$: HostElement | null = null;
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
+  $hostElement$: HostElement | undefined = undefined;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
     container: Container | null,

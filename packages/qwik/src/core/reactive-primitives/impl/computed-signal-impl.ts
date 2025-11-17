@@ -34,7 +34,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
    */
   $computeQrl$: S;
   $flags$: SignalFlags | SerializationSignalFlags;
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
     container: Container | null,
@@ -55,7 +55,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
     this.$flags$ |= SignalFlags.INVALID;
     this.$container$?.$scheduler$(
       ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      null,
+      undefined,
       this,
       this.$effects$
     );

@@ -16,7 +16,7 @@ import { _PROPS_HANDLER } from '../shared/utils/constants';
 
 /** Class for back reference to the EffectSubscription */
 export abstract class BackRef {
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 }
 
 export function clearAllEffects(container: Container, consumer: Consumer): void {
@@ -62,7 +62,7 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
   }
 
   if (producer instanceof WrappedSignalImpl) {
-    producer.$hostElement$ = null;
+    producer.$hostElement$ = undefined;
     clearAllEffects(container, producer);
   }
 }

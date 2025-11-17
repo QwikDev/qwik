@@ -221,9 +221,9 @@ export const createScheduler = (
    */
   function schedule(
     type: ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-    host: HostElement | null,
+    host: HostElement | undefined,
     target: Signal<unknown> | StoreTarget,
-    effects: Set<EffectSubscription> | null
+    effects: Set<EffectSubscription> | undefined
   ): Chore<ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS>;
   function schedule(
     type: ChoreType.TASK | ChoreType.VISIBLE,

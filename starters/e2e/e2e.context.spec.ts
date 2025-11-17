@@ -187,7 +187,6 @@ test.describe("context", () => {
     test.beforeEach(async ({ page }) => {
       const rerender = page.locator("#btn-rerender");
       await rerender.click();
-      await page.waitForTimeout(100);
     });
     tests();
   });

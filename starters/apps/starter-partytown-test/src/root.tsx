@@ -9,7 +9,12 @@ export default () => {
       <head>
         <meta charset="utf-8" />
         <title>Qwik + Partytown Blank App</title>
-        <script dangerouslySetInnerHTML={partytownSnippet({ debug: true })} />
+        <script
+          dangerouslySetInnerHTML={partytownSnippet({
+            fallbackTimeout: 1000,
+            debug: true,
+          })}
+        />
       </head>
       <body>
         <App />

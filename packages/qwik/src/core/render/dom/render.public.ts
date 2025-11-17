@@ -124,7 +124,7 @@ export const injectQContainer = (containerEl: Element) => {
 
 function cleanupContainer(renderCtx: RenderContext, container: Element) {
   const subsManager = renderCtx.$static$.$containerState$.$subsManager$;
-  cleanupTree(container, renderCtx.$static$, subsManager, true);
+  cleanupTree(container, renderCtx.$static$, subsManager, true, true);
 
   removeContainerState(container);
 

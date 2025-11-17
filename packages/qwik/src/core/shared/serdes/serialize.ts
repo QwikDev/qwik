@@ -72,17 +72,17 @@ export async function serialize(serializationContext: SerializationContext): Pro
   /** Helper to output an array */
   const outputArray = (
     value: unknown[],
-    keepNulls: boolean,
+    keepUndefined: boolean,
     writeFn: (value: unknown, idx: number) => void
   ) => {
     $writer$.write('[');
     let separator = false;
     let length;
-    if (keepNulls) {
+    if (keepUndefined) {
       length = value.length;
     } else {
       length = value.length - 1;
-      while (length >= 0 && value[length] === null) {
+      while (length >= 0 && value[length] === undefined) {
         length--;
       }
       length++;
@@ -99,7 +99,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   };
 
   /** Output a type,value pair. If the value is an array, it calls writeValue on each item. */
-  const output = (type: number, value: number | string | any[], keepNulls?: boolean) => {
+  const output = (type: number, value: number | string | any[], keepUndefined?: boolean) => {
     $writer$.write(`${type},`);
     if (typeof value === 'number') {
       $writer$.write(value.toString());
@@ -114,7 +114,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
       }
       $writer$.write(lastIdx === 0 ? s : s.slice(lastIdx));
     } else {
-      outputArray(value, keepNulls!, (valueItem, idx) => {
+      outputArray(value, !!keepUndefined, (valueItem, idx) => {
         writeValue(valueItem, idx);
       });
     }
@@ -341,7 +341,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
         }
 
         const out = [storeTarget, flags, effects, ...innerStores];
-        while (out[out.length - 1] == null) {
+        while (out[out.length - 1] === undefined) {
           out.pop();
         }
         output(TypeIds.Store, out);
@@ -350,7 +350,13 @@ export async function serialize(serializationContext: SerializationContext): Pro
       const result = value[SerializerSymbol](value);
       if (isPromise(result)) {
         const forwardRef = resolvePromise(result, $addRoot$, (resolved, resolvedValue) => {
-          return new PromiseResult(TypeIds.SerializerSignal, resolved, resolvedValue, null, null);
+          return new PromiseResult(
+            TypeIds.SerializerSignal,
+            resolved,
+            resolvedValue,
+            undefined,
+            undefined
+          );
         });
         output(TypeIds.ForwardRef, forwardRef);
       } else {
@@ -434,12 +440,29 @@ export async function serialize(serializationContext: SerializationContext): Pro
           );
         }
 
+        let keepUndefined = false;
+
         if (v !== NEEDS_COMPUTATION) {
           out.push(v);
+
+          if (!isAsync && v === undefined) {
+            /**
+             * If value is undefined, we need to keep it in the output. If we don't do that, later
+             * during resuming, the value will be set to symbol(invalid) with flag invalid, and
+             * thats is incorrect.
+             */
+            keepUndefined = true;
+          }
         }
-        output(isAsync ? TypeIds.AsyncComputedSignal : TypeIds.ComputedSignal, out);
+        output(isAsync ? TypeIds.AsyncComputedSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {
-        output(TypeIds.Signal, [value.$untrackedValue$, ...(value.$effects$ || [])]);
+        const v = value.$untrackedValue$;
+        const keepUndefined = v === undefined;
+        const out = [v];
+        if (value.$effects$) {
+          out.push(...value.$effects$);
+        }
+        output(TypeIds.Signal, out, keepUndefined);
       }
     } else if (value instanceof URL) {
       output(TypeIds.URL, value.href);
@@ -512,9 +535,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
         value.varProps,
         value.constProps,
         value.children,
-        value.toSort || null,
+        value.toSort || undefined,
       ];
-      while (out[out.length - 1] == null) {
+      while (out[out.length - 1] === undefined) {
         out.pop();
       }
       output(TypeIds.JSXNode, out);
@@ -527,7 +550,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
         value[_EFFECT_BACK_REF],
         value.$state$,
       ];
-      while (out[out.length - 1] == null) {
+      while (out[out.length - 1] === undefined) {
         out.pop();
       }
       output(TypeIds.Task, out);
@@ -658,8 +681,8 @@ export class PromiseResult {
     public $effects$:
       | Map<string | symbol, Set<EffectSubscription>>
       | Set<EffectSubscription>
-      | null = null,
-    public $qrl$: QRLInternal | null = null
+      | undefined = undefined,
+    public $qrl$: QRLInternal | undefined = undefined
   ) {}
 }
 function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
@@ -741,8 +764,8 @@ function serializeWrappingFn(
   return [syncFnId, value.$args$] as const;
 }
 
-function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | null) {
-  let effectBackRefToSerialize: Map<string, EffectSubscription> | null = null;
+function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | undefined) {
+  let effectBackRefToSerialize: Map<string, EffectSubscription> | undefined = undefined;
   if (effectBackRef) {
     for (const [effectProp, effect] of effectBackRef) {
       if (effect[EffectSubscriptionProp.BACK_REF]) {

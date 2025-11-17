@@ -16,7 +16,11 @@ import {
   isSignal,
 } from '../../reactive-primitives/signal.public';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
-import { StoreFlags } from '../../reactive-primitives/types';
+import {
+  EffectProperty,
+  StoreFlags,
+  type EffectSubscription,
+} from '../../reactive-primitives/types';
 import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
@@ -350,7 +354,7 @@ describe('shared-serialization', () => {
           {number} 0
           {number} 0
           RootRef 1
-          Constant null
+          Constant undefined
           Object [
             {string} "shared"
             {number} 2
@@ -411,6 +415,62 @@ describe('shared-serialization', () => {
         ]
         (25 chars)"
       `);
+
+      const objsNull = await serialize({ foo: createSignal(null) });
+      expect(_dumpState(objsNull)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "foo"
+          Signal [
+            Constant null
+          ]
+        ]
+        (22 chars)"
+      `);
+
+      // undefined signal without effects
+      const undefinedSignal = createSignal(undefined);
+      const objsUndefined = await serialize({ foo: undefinedSignal });
+      expect(_dumpState(objsUndefined)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "foo"
+          Signal [
+            Constant undefined
+          ]
+        ]
+        (22 chars)"
+      `);
+
+      // undefined signal with effects
+      const ctxSignal = createSignal('test');
+      const effectSubscription: EffectSubscription = [
+        ctxSignal as SignalImpl,
+        EffectProperty.COMPONENT,
+        null,
+        null,
+      ];
+      (undefinedSignal as SignalImpl).$effects$ = new Set([effectSubscription]);
+
+      const objsUndefinedWithEffects = await serialize({ foo: undefinedSignal });
+      expect(_dumpState(objsUndefinedWithEffects)).toMatchInlineSnapshot(`
+        "
+        0 Object [
+          {string} "foo"
+          Signal [
+            Constant undefined
+            Array [
+              Signal [
+                {string} "test"
+              ]
+              {string} ":"
+              Constant null
+              Constant null
+            ]
+          ]
+        ]
+        (54 chars)"
+      `);
     });
     it(title(TypeIds.WrappedSignal), async () => {
       const foo = createSignal(3);
@@ -429,7 +489,7 @@ describe('shared-serialization', () => {
           Array [
             {number} 3
           ]
-          Constant null
+          Constant undefined
           {number} 5
         ]
         1 WrappedSignal [
@@ -440,7 +500,7 @@ describe('shared-serialization', () => {
             ]
             {string} "value"
           ]
-          Constant null
+          Constant undefined
           {number} 7
         ]
         (66 chars)"
@@ -474,7 +534,7 @@ describe('shared-serialization', () => {
         ]
         1 ComputedSignal [
           RootRef 5
-          Constant null
+          Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
@@ -482,7 +542,7 @@ describe('shared-serialization', () => {
         ]
         3 ComputedSignal [
           RootRef 7
-          Constant null
+          Constant undefined
           {number} 2
         ]
         4 PreloadQRL "9 10 8"
@@ -525,7 +585,7 @@ describe('shared-serialization', () => {
         3 {string} "custom_createSerializer_qrl"
         4 SerializerSignal [
           RootRef 1
-          Constant null
+          Constant undefined
           {number} 4
         ]
         5 ForwardRefs [
@@ -585,32 +645,32 @@ describe('shared-serialization', () => {
         "
         0 AsyncComputedSignal [
           RootRef 4
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         1 AsyncComputedSignal [
           RootRef 5
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         2 AsyncComputedSignal [
           RootRef 6
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
         ]
         3 AsyncComputedSignal [
           RootRef 7
-          Constant null
-          Constant null
-          Constant null
+          Constant undefined
+          Constant undefined
+          Constant undefined
           Constant false
-          Constant null
+          Constant undefined
           {number} 2
         ]
         4 PreloadQRL "9 10 8"

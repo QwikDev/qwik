@@ -36,15 +36,15 @@ export class AsyncComputedSignalImpl<T>
   implements BackRef
 {
   $untrackedLoading$: boolean = false;
-  $untrackedError$: Error | null = null;
+  $untrackedError$: Error | undefined = undefined;
 
-  $loadingEffects$: null | Set<EffectSubscription> = null;
-  $errorEffects$: null | Set<EffectSubscription> = null;
+  $loadingEffects$: undefined | Set<EffectSubscription> = undefined;
+  $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $destroy$: NoSerialize<() => void> | null;
   $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
   private $promise$: Promise<T> | null = null;
 
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | null = null;
+  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
     container: Container | null,
@@ -71,7 +71,7 @@ export class AsyncComputedSignalImpl<T>
       this.$untrackedLoading$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
+        undefined,
         this,
         this.$loadingEffects$
       );
@@ -83,7 +83,7 @@ export class AsyncComputedSignalImpl<T>
   }
 
   /** The error that occurred when the signal was resolved. */
-  get error(): Error | null {
+  get error(): Error | undefined {
     return setupSignalValueAccess(
       this,
       () => (this.$errorEffects$ ||= new Set()),
@@ -91,12 +91,12 @@ export class AsyncComputedSignalImpl<T>
     );
   }
 
-  set untrackedError(value: Error | null) {
+  set untrackedError(value: Error | undefined) {
     if (value !== this.$untrackedError$) {
       this.$untrackedError$ = value;
       this.$container$?.$scheduler$(
         ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        null,
+        undefined,
         this,
         this.$errorEffects$
       );
@@ -136,7 +136,7 @@ export class AsyncComputedSignalImpl<T>
     if (isPromise(untrackedValue)) {
       const isFirstComputation = this.$promiseValue$ === NEEDS_COMPUTATION;
       this.untrackedLoading = true;
-      this.untrackedError = null;
+      this.untrackedError = undefined;
 
       if (this.$promiseValue$ !== NEEDS_COMPUTATION) {
         // skip cleanup after resuming
@@ -148,7 +148,7 @@ export class AsyncComputedSignalImpl<T>
           DEBUG && log('Promise resolved', promiseValue);
           this.$promiseValue$ = promiseValue;
           this.untrackedLoading = false;
-          this.untrackedError = null;
+          this.untrackedError = undefined;
           if (this.setValue(promiseValue)) {
             DEBUG && log('Scheduling effects for subscribers', this.$effects$?.size);
             scheduleEffects(this.$container$, this, this.$effects$);

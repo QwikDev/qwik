@@ -87,7 +87,11 @@ test.describe("nav", () => {
           "/qwikrouter-test/scroll-restoration/hash/#hash-1",
         );
         await page.waitForTimeout(50);
-        const scrollY2 = (await getWindowScrollXY(page))[1];
+        let scrollY2;
+        do {
+          await page.waitForTimeout(10);
+          scrollY2 = (await getWindowScrollXY(page))[1];
+        } while (scrollY2 > 500);
         expect(scrollY2).toBeGreaterThan(70);
         expect(scrollY2).toBeLessThan(90);
 
@@ -99,6 +103,11 @@ test.describe("nav", () => {
           "/qwikrouter-test/scroll-restoration/hash/",
         );
         await page.waitForTimeout(50);
+        let scrollY3;
+        do {
+          await page.waitForTimeout(10);
+          scrollY3 = (await getWindowScrollXY(page))[1];
+        } while (scrollY3 > 1000);
         expect(await getWindowScrollXY(page)).toStrictEqual([0, 0]);
       });
       test("should restore scroll on back and forward navigations", async ({

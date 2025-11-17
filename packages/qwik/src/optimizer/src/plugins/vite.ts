@@ -68,6 +68,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let rootDir: string | null = null;
 
   let ssrOutDir: string | null = null;
+  // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
+  const userClientOutDir = qwikViteOpts.client?.outDir;
+  // Cache the resolved plugin options from config() to reuse in configResolved()
+  let cachedPluginOpts: QwikPluginOptions | null = null;
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
@@ -168,9 +172,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         outDir: viteConfig.build?.outDir,
         ssrOutDir: qwikViteOpts.ssr?.outDir || viteConfig.build?.outDir,
         clientOutDir:
-          qwikViteOpts.client?.outDir ||
+          userClientOutDir ||
           // When ssr is true, this is probably an adapter build and not where the client build is
-          (viteConfig.build?.ssr ? undefined : viteConfig.build?.outDir),
+          // However, if client.outDir was explicitly set, always use it
+          (viteConfig.build?.ssr && !userClientOutDir ? undefined : viteConfig.build?.outDir),
         assetsDir: useAssetsDir ? viteAssetsDir : undefined,
         devTools: qwikViteOpts.devTools,
         sourcemap: !!viteConfig.build?.sourcemap,
@@ -184,6 +189,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
 
       const opts = await qwikPlugin.normalizeOptions(pluginOpts);
       input ||= opts.input;
+
+      // Cache pluginOpts for use in configResolved()
+      cachedPluginOpts = pluginOpts;
 
       manifestInput = opts.manifestInput;
       srcDir = opts.srcDir;
@@ -358,7 +366,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         qwikPlugin.setSourceMapSupport(true);
       }
       // Ensure that the final settings are applied
-      qwikPlugin.normalizeOptions(qwikViteOpts);
+      // Use cachedPluginOpts if available to preserve clientOutDir
+      if (cachedPluginOpts) {
+        qwikPlugin.normalizeOptions(cachedPluginOpts);
+      } else {
+        qwikPlugin.normalizeOptions(qwikViteOpts);
+      }
     },
 
     async buildStart() {

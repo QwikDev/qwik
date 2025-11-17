@@ -17,6 +17,7 @@ import {
   type StoreTarget,
 } from '../types';
 import { ChoreType } from '../../shared/util-chore-type';
+import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
 
 const DEBUG = false;
 
@@ -257,9 +258,9 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 }
 
 export function addStoreEffect(
-  target: StoreTarget,
+  target: StoreTarget | PropsProxy,
   prop: string | symbol,
-  store: StoreHandler,
+  store: StoreHandler | PropsProxyHandler,
   effectSubscription: EffectSubscription
 ) {
   const effectsMap = (store.$effects$ ||= new Map());
@@ -276,6 +277,7 @@ export function addStoreEffect(
   // to unsubscribe from. So we need to store the reference from the effect back
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
+  // TODO is this needed with the preloader?
   addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));

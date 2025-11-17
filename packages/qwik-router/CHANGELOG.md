@@ -1,5 +1,20 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
+### Minor Changes
+
+- ✨ extend routeLoader$ signal type and eslint rule (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+
+### Patch Changes
+
+- Updated dependencies [[`2d69c94`](https://github.com/QwikDev/qwik/commit/2d69c9421bb5dd81aa884def45d5059e2bd8c31f), [`d8767fb`](https://github.com/QwikDev/qwik/commit/d8767fb3ff186446aa7254047c28ee2292133c63), [`3bbd3d8`](https://github.com/QwikDev/qwik/commit/3bbd3d8040b6bf12e62b1e92570ec34df7ea5a72), [`e20e531`](https://github.com/QwikDev/qwik/commit/e20e53148d59dd370774552b4bfb69129547523e), [`022969a`](https://github.com/QwikDev/qwik/commit/022969ace44a07a40ab73daeae0e414fc3200ba9), [`0c81e2a`](https://github.com/QwikDev/qwik/commit/0c81e2aecffea24e2539a7750fcddb9547f2d863), [`a369eeb`](https://github.com/QwikDev/qwik/commit/a369eebb2637fbd46ca13960277e9c45f41422b7), [`0a69921`](https://github.com/QwikDev/qwik/commit/0a69921049732b732d39bc36824ab1f11d68c21e), [`dd12f2f`](https://github.com/QwikDev/qwik/commit/dd12f2f7df28ef4cc480a01498b0c573307b2644)]:
+  - @qwik.dev/core@2.0.0-beta.14
+
 ## 2.0.0-beta.13
 
 ### Patch Changes
@@ -141,6 +156,26 @@
 ### Major Changes
 
 - Renamed "Qwik City" to "Qwik Router" and package to "@qwik.dev/router" (by [@shairez](https://github.com/shairez) in [#7008](https://github.com/QwikDev/qwik/pull/7008))
+
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 `zod` is now imported as `import * as z from 'zod'`, which vastly improves bundling. The Insights app client code reduced by 12kB. (by [@wmertens](https://github.com/wmertens) in [#8042](https://github.com/QwikDev/qwik/pull/8042))
+
+## 1.17.0
+
+### Patch Changes
+
+- 🐞🩹 SSG sometimes hangs after completion, now we forcibly exit the SSG process when this happens. (by [@wmertens](https://github.com/wmertens) in [#7957](https://github.com/QwikDev/qwik/pull/7957))
+
+- 🐞🩹 return 404 for missing /build/ files. (by [@gioboa](https://github.com/gioboa) in [#7914](https://github.com/QwikDev/qwik/pull/7914))
+
+- 🐞🩹 redirecting internal q-data.json requests will keep the q-data.json suffix so that the client can still fetch the correct one (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 while prefetching Link data, don't navigate to captive portals (by [@wmertens](https://github.com/wmertens) in [#7988](https://github.com/QwikDev/qwik/pull/7988))
 
 ## 1.16.1
 

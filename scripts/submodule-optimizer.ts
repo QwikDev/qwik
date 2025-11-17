@@ -2,9 +2,9 @@ import { platformArchTriples } from '@napi-rs/triples';
 import { constants, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { build as viteBuild, type UserConfig } from 'vite';
-import { compiledStringPlugin } from './compiled-string-plugin';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { access, getBanner, target, writeFile, type BuildConfig } from './util';
+import { compiledStringPlugin } from './compiled-string-plugin.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
 /** Builds @qwik.dev/core/optimizer */
 export async function submoduleOptimizer(config: BuildConfig) {
@@ -30,7 +30,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       lib: {
         entry: entryPoint,
         name: 'optimizer',
-        fileName: (format) => `optimizer.${format === 'es' ? 'mjs' : 'cjs'}`,
+        fileName: () => `optimizer.mjs`,
       },
     },
     define: {
@@ -73,38 +73,11 @@ export async function submoduleOptimizer(config: BuildConfig) {
     },
     define: {
       ...commonConfig.define,
-      'globalThis.IS_CJS': 'false',
-      'globalThis.IS_ESM': 'true',
-    },
-  };
-
-  // CJS Build
-  const cjsConfig: UserConfig = {
-    ...commonConfig,
-    build: {
-      ...commonConfig.build,
-      outDir: config.distQwikPkgDir,
-      lib: {
-        ...commonConfig.build!.lib,
-        formats: ['cjs'],
-      },
-      rollupOptions: {
-        ...commonConfig.build?.rollupOptions,
-        output: {
-          banner: `globalThis.qwikOptimizer = (function (module) {\n${getBanner('@qwik.dev/core/optimizer', config.distVersion)}`,
-          footer: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-        },
-      },
-    },
-    define: {
-      ...commonConfig.define,
-      'globalThis.IS_CJS': 'true',
-      'globalThis.IS_ESM': 'false',
     },
   };
 
   // Build both formats
-  await Promise.all([viteBuild(esmConfig), viteBuild(cjsConfig)]);
+  await Promise.all([viteBuild(esmConfig)]);
 
   // Note: Minification is now handled automatically by Vite in production builds
   // The output files will be minified when config.dev is false

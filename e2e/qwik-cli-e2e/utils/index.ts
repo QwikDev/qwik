@@ -61,7 +61,7 @@ function getTmpDirSync(tmpDirOverride?: string) {
 function runCreateQwikCommand(tmpDir: string, type: 'playground' | 'library' | 'empty'): string {
   const appDir = 'e2e-app';
   execSync(
-    `node "${workspaceRoot}/packages/create-qwik/create-qwik.cjs" ${type} "${join(tmpDir, appDir)}"`
+    `node "${workspaceRoot}/packages/create-qwik/create-qwik.mjs" ${type} "${join(tmpDir, appDir)}"`
   );
   return join(tmpDir, appDir);
 }
@@ -205,4 +205,4 @@ export function log(text: string) {
   console.log(yellow('E2E: ' + text));
 }
 
-export const DEFAULT_TIMEOUT = 30000;
+export const DEFAULT_TIMEOUT = process.env.CI ? 120000 : 30000;

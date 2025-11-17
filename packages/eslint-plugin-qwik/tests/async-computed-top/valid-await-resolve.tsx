@@ -4,7 +4,7 @@ export default component$(() => {
   const async1 = useAsyncComputed$(() => Promise.resolve(1));
 
   useTask$(async () => {
-    await async1.resolve();
+    await async1.promise();
     const x = 1;
     async1.value;
   });

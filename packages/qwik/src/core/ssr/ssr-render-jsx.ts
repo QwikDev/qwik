@@ -279,12 +279,22 @@ function processJSXNode(
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
           enqueue(new ParentComponentData(options.styleScoped, options.parentComponentFrame));
           enqueue(ssr.closeComponent);
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
-          enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+          if (isPromise(jsxOutput)) {
+            // Defer reading QScopedStyle until after the promise resolves
+            enqueue(async () => {
+              const resolvedOutput = await jsxOutput;
+              const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+
+              enqueue(resolvedOutput);
+              enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+            });
+          } else {
+            enqueue(jsxOutput);
+            const compStyleComponentId = addComponentStylePrefix(host.getProp(QScopedStyle));
+            enqueue(new ParentComponentData(compStyleComponentId, componentFrame));
+          }
         } else {
           const inlineComponentProps = [ELEMENT_KEY, jsx.key];
           ssr.openFragment(
@@ -405,7 +415,7 @@ function setEvent(
      *
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
-    if (!qrl.$symbol$.startsWith('_') && (qrl.$captureRef$ || qrl.$capture$)) {
+    if (!qrl.$symbol$.startsWith('_') && qrl.$captureRef$?.length) {
       qrl = createQRL(null, '_run', _run, null, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);

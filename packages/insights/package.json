@@ -33,7 +33,7 @@
     "tailwindcss": "4.1.14",
     "typescript": "5.9.3",
     "typescript-eslint": "8.45.0",
-    "vite": "7.1.11",
+    "vite": "7.2.2",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "4.0.1",
     "zod": "3.25.48"
@@ -65,7 +65,7 @@
     "qManifest.post.local": "curl -X POST -H 'Content-Type: application/json' -d @./dist/q-manifest.json http://localhost:5173/api/v1/221smyuj5gl/post/manifest/",
     "qwik": "qwik",
     "start": "vite --open --mode ssr",
-    "test.cluster": "tsx src/cluster.ts",
+    "test.cluster": "node src/cluster.ts",
     "test.unit": "vitest",
     "test.watch": "vitest --watch"
   },

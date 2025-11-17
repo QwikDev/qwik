@@ -1,5 +1,31 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
+### Minor Changes
+
+- ✨ `useAsyncComputed$`: rename .resolve() to .promise() (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+
+- ✨ introduce deferUpdates option for useTask$ (by [@Varixo](https://github.com/Varixo) in [#8107](https://github.com/QwikDev/qwik/pull/8107))
+
+- ✨ support promises in attributes (by [@Varixo](https://github.com/Varixo) in [#8117](https://github.com/QwikDev/qwik/pull/8117))
+
+- ✨ change behavior of useAsyncComputed$ to throw only once (by [@Varixo](https://github.com/Varixo) in [#8126](https://github.com/QwikDev/qwik/pull/8126))
+
+### Patch Changes
+
+- 🐞🩹 Qwik vite plugin respects outDir change (by [@gnemanja](https://github.com/gnemanja) in [#8127](https://github.com/QwikDev/qwik/pull/8127))
+
+- 🐞🩹 serializing reused qrl (by [@Varixo](https://github.com/Varixo) in [#8131](https://github.com/QwikDev/qwik/pull/8131))
+
+- 🐞🩹 allow to modify inline component's children component props (by [@Varixo](https://github.com/Varixo) in [#8141](https://github.com/QwikDev/qwik/pull/8141))
+
+- 🐞🩹 The types for the JSX event handlers are more precise about their scope (e.g. no `document:OnQVisible$` or `onQIdle$`). (by [@wmertens](https://github.com/wmertens) in [#8134](https://github.com/QwikDev/qwik/pull/8134))
+
 ## 2.0.0-beta.13
 
 ### Minor Changes
@@ -480,6 +506,34 @@
 ### Patch Changes
 
 - 🐞🩹 do not trigger effects if computed value is not changed (by [@Varixo](https://github.com/Varixo) in [#6996](https://github.com/QwikDev/qwik/pull/6996))
+
+## 1.17.1
+
+### Patch Changes
+
+- 🐞🩹 the bunding won't lead to circular dependencies in qwik-astro apps anymore. (by [@maiieul](https://github.com/maiieul) in [#8052](https://github.com/QwikDev/qwik/pull/8052))
+
+- ✨ The optimizer is now built with a recent Rust toolchain. Fresher bits! (by [@wmertens](https://github.com/wmertens) in [#8040](https://github.com/QwikDev/qwik/pull/8040))
+
+## 1.17.0
+
+### Minor Changes
+
+- 🐞🩹 Qwik now leverages Rollup's new `output.onlyExplicitManualChunks` feature, which improves preloading performance and reduces cache invalidation for a snappier user experience. (by [@maiieul](https://github.com/maiieul) in [#7982](https://github.com/QwikDev/qwik/pull/7982))
+
+- ✨ the qwikloader can now be inlined again if required (for testing or specific network conditions). Pass `qwikLoader: 'inline'` to the render options. (by [@wmertens](https://github.com/wmertens) in [#8008](https://github.com/QwikDev/qwik/pull/8008))
+
+### Patch Changes
+
+- 🐞🩹 The Deno integration now builds successfully with version v2.4.3 and above. (by [@gioboa](https://github.com/gioboa) in [#7913](https://github.com/QwikDev/qwik/pull/7913))
+
+- TEST: qwik react mount and unmount (by [@sashkashishka](https://github.com/sashkashishka) in [#7950](https://github.com/QwikDev/qwik/pull/7950))
+
+- 🐞🩹 solve type error when using async \_resolved function (by [@JerryWu1234](https://github.com/JerryWu1234) in [#7426](https://github.com/QwikDev/qwik/pull/7426))
+
+- 🐞🩹 Click-to-Component is now more reliable across platforms (by [@wmertens](https://github.com/wmertens) in [#7923](https://github.com/QwikDev/qwik/pull/7923))
+
+- 🛠 add qwik react e2e test runs to ci (by [@sashkashishka](https://github.com/sashkashishka) in [#7952](https://github.com/QwikDev/qwik/pull/7952))
 
 ## 1.16.1
 

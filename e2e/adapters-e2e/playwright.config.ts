@@ -20,7 +20,7 @@ export default defineConfig({
   },
 
   // Increase global timeout for service worker tests
-  timeout: 30000,
+  timeout: process.env.CI ? 120000 : 30000,
 
   projects: [
     {
@@ -44,6 +44,6 @@ export default defineConfig({
     port: 3000,
     stdout: 'pipe',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: process.env.CI ? 120000 : 30000,
   },
 });

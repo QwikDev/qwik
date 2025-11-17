@@ -1,5 +1,16 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
+### Patch Changes
+
+- Updated dependencies [[`2d69c94`](https://github.com/QwikDev/qwik/commit/2d69c9421bb5dd81aa884def45d5059e2bd8c31f), [`d8767fb`](https://github.com/QwikDev/qwik/commit/d8767fb3ff186446aa7254047c28ee2292133c63), [`3bbd3d8`](https://github.com/QwikDev/qwik/commit/3bbd3d8040b6bf12e62b1e92570ec34df7ea5a72), [`e20e531`](https://github.com/QwikDev/qwik/commit/e20e53148d59dd370774552b4bfb69129547523e), [`022969a`](https://github.com/QwikDev/qwik/commit/022969ace44a07a40ab73daeae0e414fc3200ba9), [`0c81e2a`](https://github.com/QwikDev/qwik/commit/0c81e2aecffea24e2539a7750fcddb9547f2d863), [`a369eeb`](https://github.com/QwikDev/qwik/commit/a369eebb2637fbd46ca13960277e9c45f41422b7), [`0a69921`](https://github.com/QwikDev/qwik/commit/0a69921049732b732d39bc36824ab1f11d68c21e), [`dd12f2f`](https://github.com/QwikDev/qwik/commit/dd12f2f7df28ef4cc480a01498b0c573307b2644)]:
+  - @qwik.dev/core@2.0.0-beta.14
+
 ## 2.0.0-beta.13
 
 ### Patch Changes
@@ -167,3 +178,14 @@
 
 - Updated dependencies [[`d00396e`](https://github.com/QwikDev/qwik/commit/d00396eed65e971809c16af3ad89118cf1d0235f), [`00c599d`](https://github.com/QwikDev/qwik/commit/00c599d7689a1d67601d3e7e61a81a689cf7ece0), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`70c732f`](https://github.com/QwikDev/qwik/commit/70c732fdc6befed71809e1885bc187623996b3b1), [`d609244`](https://github.com/QwikDev/qwik/commit/d609244c454457e919e359dc745bdd7b52fb4c60), [`bb11c5f`](https://github.com/QwikDev/qwik/commit/bb11c5f104c3f2c944e58072f433504d7e9cbc92), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`1cecfde`](https://github.com/QwikDev/qwik/commit/1cecfdea15a032dd0258cd8c7e488ebe8b2a51c2), [`681fcdc`](https://github.com/QwikDev/qwik/commit/681fcdca43b2f51f753f4d247eed6dc729cb8c6c)]:
   - @qwik.dev/core@2.0.0-alpha.0
+
+# @builder.io/qwik-react
+
+## 0.5.7
+
+### Patch Changes
+
+- 🐞🩹 unmount qwikify react root alongside with qwik component (done by @shashkashishka in #7864) (by [@shairez](https://github.com/shairez) in [#8017](https://github.com/QwikDev/qwik/pull/8017))
+
+- Updated dependencies [[`a797237`](https://github.com/QwikDev/qwik/commit/a7972373bb31cebae8eae00843ca246795503372), [`96b3f8e`](https://github.com/QwikDev/qwik/commit/96b3f8e44a8642b4e91705f999d1f01a61cc5a46), [`5f749fa`](https://github.com/QwikDev/qwik/commit/5f749fac92631924601aa2d00f90c991c7ec1b3a), [`f6369a0`](https://github.com/QwikDev/qwik/commit/f6369a097dfa3375cc30f2f950a2f12ff1342494), [`e33abbb`](https://github.com/QwikDev/qwik/commit/e33abbbfaf4130a4b7caf8f3ed93d425b9593a3f), [`04da311`](https://github.com/QwikDev/qwik/commit/04da3112f93c095b4f1114d533c2295edb9441e4), [`e90e5f8`](https://github.com/QwikDev/qwik/commit/e90e5f80e599d5049e652548d52bc4ed84ebf13d)]:
+  - @builder.io/qwik@1.17.0

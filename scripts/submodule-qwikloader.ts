@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { minify } from 'terser';
 import { build } from 'vite';
-import { writePackageJson } from './package-json';
+import { writePackageJson } from './package-json.ts';
 import {
   type BuildConfig,
   ensureDir,
@@ -9,7 +9,7 @@ import {
   type PackageJSON,
   readFile,
   writeFile,
-} from './util';
+} from './util.ts';
 
 /**
  * Builds the qwikloader javascript files. These files can be used by other tooling, and are
@@ -111,11 +111,6 @@ async function generateLoaderSubmodule(config: BuildConfig) {
   ];
 
   const esmCode = [...code, `export { QWIK_LOADER, QWIK_LOADER_DEBUG };`];
-  const cjsCode = [
-    ...code,
-    `exports.QWIK_LOADER = QWIK_LOADER;`,
-    `exports.QWIK_LOADER_DEBUG = QWIK_LOADER_DEBUG;`,
-  ];
   const dtsCode = [
     `export declare const QWIK_LOADER: string;`,
     `export declare const QWIK_LOADER_DEBUG: string;`,
@@ -123,7 +118,6 @@ async function generateLoaderSubmodule(config: BuildConfig) {
 
   ensureDir(loaderDistDir);
   await writeFile(join(loaderDistDir, 'index.mjs'), esmCode.join('\n') + '\n');
-  await writeFile(join(loaderDistDir, 'index.cjs'), cjsCode.join('\n') + '\n');
   await writeFile(join(loaderDistDir, 'index.d.ts'), dtsCode.join('\n') + '\n');
 
   const loaderPkg: PackageJSON = {

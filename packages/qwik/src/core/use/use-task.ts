@@ -6,7 +6,6 @@ import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type Container, type HostElement } from '../shared/types';
 import { ChoreType } from '../shared/util-chore-type';
-import { logError } from '../shared/utils/log';
 import { TaskEvent } from '../shared/utils/markers';
 import { isPromise, safeCall } from '../shared/utils/promises';
 import { type NoSerialize } from '../shared/serdes/verify';
@@ -16,12 +15,14 @@ import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
 import { cleanupFn, trackFn } from './utils/tracker';
+import { cleanupDestroyable } from './utils/destroyable';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
   TASK = 1 << 1,
   RESOURCE = 1 << 2,
   DIRTY = 1 << 3,
+  RENDER_BLOCKING = 1 << 4,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -124,7 +125,6 @@ export interface TaskCtx {
 /** @public */
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
 
-/** @public */
 export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $flags$: number;
   $index$: number;
@@ -134,8 +134,14 @@ export interface DescriptorBase<T = unknown, B = unknown> extends BackRef {
   $destroy$: NoSerialize<() => void> | null;
 }
 
+/** @public */
+export interface TaskOptions {
+  /** Block the rendering of the component until the task completes. Default is `true` */
+  deferUpdates?: boolean;
+}
+
 /** @internal */
-export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
+export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   const { val, set, iCtx, i } = useSequentialScope<1 | Task>();
   if (val) {
     return;
@@ -143,8 +149,12 @@ export const useTaskQrl = (qrl: QRL<TaskFn>): void => {
   assertQrl(qrl);
   set(1);
 
+  const taskFlags =
+    // enabled by default
+    opts?.deferUpdates === false ? 0 : TaskFlags.RENDER_BLOCKING;
+
   const task = new Task(
-    TaskFlags.DIRTY | TaskFlags.TASK,
+    TaskFlags.DIRTY | TaskFlags.TASK | taskFlags,
     i,
     iCtx.$hostElement$,
     qrl,
@@ -168,7 +178,7 @@ export const runTask = (
   host: HostElement
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
-  cleanupTask(task);
+  cleanupDestroyable(task);
   const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
   iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
@@ -189,18 +199,6 @@ export const runTask = (
       }
     }
   );
-};
-
-export const cleanupTask = (task: Task) => {
-  const destroy = task.$destroy$;
-  if (destroy) {
-    task.$destroy$ = null;
-    try {
-      destroy();
-    } catch (err) {
-      logError(err);
-    }
-  }
 };
 
 export class Task<T = unknown, B = T>

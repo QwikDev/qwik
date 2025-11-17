@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/react",
   "description": "Qwik React allows adding React components into existing Qwik application",
-  "version": "2.0.0-beta.13",
+  "version": "2.0.0-beta.14",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
@@ -10,7 +10,7 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "typescript": "5.9.3",
-    "vite": "7.1.11"
+    "vite": "7.2.2"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -18,13 +18,11 @@
   "exports": {
     ".": {
       "types": "./lib/types/index.qwik.d.ts",
-      "import": "./lib/index.qwik.mjs",
-      "require": "./lib/index.qwik.cjs"
+      "import": "./lib/index.qwik.mjs"
     },
     "./vite": {
       "types": "./lib/types/vite.d.ts",
-      "import": "./lib/vite.mjs",
-      "require": "./lib/vite.cjs"
+      "import": "./lib/vite.mjs"
     }
   },
   "files": [

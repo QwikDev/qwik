@@ -3,6 +3,7 @@ import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-t
 import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './serdes/index';
 import type { VNode } from '../client/vnode-impl';
+import type { ValueOrPromise } from './utils/types';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
@@ -57,7 +58,7 @@ export interface Container {
 export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
-  qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => boolean;
+  qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => ValueOrPromise<unknown>;
   vNode?: VNode;
 }
 

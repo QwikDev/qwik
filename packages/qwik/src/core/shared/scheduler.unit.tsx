@@ -1159,6 +1159,26 @@ describe('scheduler', () => {
       nextTickSpy.mockRestore();
     });
   });
+
+  it('should early return if chore is already running', async () => {
+    const mockHost = vnode_newVirtual();
+    mockHost.setProp('q:id', 'test-host');
+    const mockQrl = { $hash$: 'test-qrl-hash' } as any;
+
+    // Create and start a chore
+    const chore1 = scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+    runningChores.add(chore1!);
+    choreQueue.length = 0;
+    expect(choreQueue.length).toBe(0);
+
+    // Schedule the same chore again
+    scheduler(ChoreType.COMPONENT, mockHost as any, mockQrl, null);
+
+    // still 0
+    expect(choreQueue.length).toBe(0);
+    expect(blockedChores.length).toBe(0);
+    expect(runningChores.size).toBe(1);
+  });
 });
 
 function mockTask(host: VNode, opts: { index?: number; qrl?: QRL; visible?: boolean }): Task {

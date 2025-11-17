@@ -355,6 +355,13 @@ This is often caused by modifying a signal in an already rendered component duri
       chore.$type$ !== ChoreType.QRL_RESOLVE && chore.$type$ !== ChoreType.RUN_QRL;
 
     if (shouldBlock) {
+      const runningChore = getRunningChore(chore);
+      if (runningChore) {
+        if (isResourceChore(runningChore)) {
+          addBlockedChore(chore, runningChore, blockedChores);
+        }
+        return chore;
+      }
       const blockingChore = findBlockingChore(
         chore,
         choreQueue,
@@ -364,12 +371,6 @@ This is often caused by modifying a signal in an already rendered component duri
       );
       if (blockingChore) {
         addBlockedChore(chore, blockingChore, blockedChores);
-        return chore;
-      }
-
-      const runningChore = getRunningChore(chore);
-      if (runningChore) {
-        addBlockedChore(chore, runningChore, blockedChores);
         return chore;
       }
     }
@@ -890,19 +891,20 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
   return !!(chore.$host$ && vnode_isVNode(chore.$host$) && chore.$host$.flags & VNodeFlags.Deleted);
 }
 
+function isResourceChore(chore: Chore): boolean {
+  return (
+    chore.$type$ === ChoreType.TASK &&
+    !!chore.$payload$ &&
+    !!((chore.$payload$ as Task).$flags$ & TaskFlags.RESOURCE)
+  );
+}
+
 export function addBlockedChore(
   blockedChore: Chore,
   blockingChore: Chore,
   blockedChores: ChoreArray
 ): void {
-  if (
-    !(
-      blockedChore.$type$ === ChoreType.TASK &&
-      blockedChore.$payload$ &&
-      (blockedChore.$payload$ as Task).$flags$ & TaskFlags.RESOURCE
-    ) &&
-    choreComparator(blockedChore, blockingChore) === 0
-  ) {
+  if (!isResourceChore(blockedChore) && choreComparator(blockedChore, blockingChore) === 0) {
     return;
   }
   DEBUG &&

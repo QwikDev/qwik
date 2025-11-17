@@ -30,7 +30,7 @@ describe('should block journal flush during node-diff and component runs', () =>
   let vA: ElementVNode = null!;
   let vAHost: VirtualVNode = null!;
   let choreQueue: ChoreArray;
-  let blockedChores: Set<Chore>;
+  let blockedChores: ChoreArray;
   let runningChores: Set<Chore>;
 
   async function waitForDrain() {
@@ -44,7 +44,7 @@ describe('should block journal flush during node-diff and component runs', () =>
     const container = getDomContainer(document.body);
     container.handleError = vi.fn();
     choreQueue = new ChoreArray();
-    blockedChores = new Set();
+    blockedChores = new ChoreArray();
     runningChores = new Set();
     scheduler = createScheduler(
       container,

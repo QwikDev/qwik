@@ -172,7 +172,7 @@ export const scopeUseTask: Rule.RuleModule = {
 
       // If there are definitions, check if any of them are standard declaration types.
       // This means the identifier refers to a user-declared variable, parameter, function, class, or an import.
-      return variable?.defs.some((def) => {
+      return variable.defs.some((def) => {
         return (
           def.type === 'Variable' ||
           def.type === 'Parameter' ||
@@ -180,7 +180,7 @@ export const scopeUseTask: Rule.RuleModule = {
           def.type === 'ClassName' ||
           def.type === 'ImportBinding'
         );
-      }) as boolean;
+      });
     }
 
     /**

@@ -43,7 +43,7 @@
     "prettier": "3.6.2",
     "prism-themes": "1.9.0",
     "prismjs": "1.30.0",
-    "playwright": "1.55.1",
+    "playwright": "1.54.1",
     "qwik-image": "0.0.16",
     "react": "18.3.1",
     "react-dom": "18.3.1",

@@ -94,7 +94,7 @@ export const preloaderPre = (
       `import("${preloaderBundle}").then(({l})=>` +
       `l(${JSON.stringify(base)},b${optsStr})` +
       `);`;
-    const scriptAttrs = ['type', 'module', 'async', true];
+    const scriptAttrs = ['type', 'module', 'async', true, 'crossorigin', 'anonymous'];
     if (nonce) {
       scriptAttrs.push('nonce', nonce);
     }

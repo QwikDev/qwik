@@ -11,7 +11,7 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
-import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 import { qwikDevtools } from '@qwik.dev/devtools';
@@ -144,6 +144,7 @@ export default defineConfig(() => {
         'qwik-image',
         // optimizing breaks the wasm import
         '@rolldown/browser',
+        '@qwik.dev/devtools',
       ],
     },
     preview: {

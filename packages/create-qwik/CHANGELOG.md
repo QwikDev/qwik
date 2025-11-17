@@ -1,5 +1,11 @@
 # create-qwik
 
+## 2.0.0-beta.14
+
+### Major Changes
+
+- BREAKING: the CJS/UMD builds have been removed; ESM is well-supported everywhere and allows better optimizations. (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8103](https://github.com/QwikDev/qwik/pull/8103))
+
 ## 2.0.0-beta.13
 
 ## 2.0.0-beta.12
@@ -47,6 +53,10 @@
 ## 2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
+
+## 1.17.1
+
+## 1.17.0
 
 ## 1.16.1
 

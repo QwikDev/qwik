@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { emptyDir, panic, type BuildConfig } from './util';
+import { emptyDir, panic, type BuildConfig } from './util.ts';
 
 export async function buildQwikRouter(config: BuildConfig) {
   if (!config.dev) {

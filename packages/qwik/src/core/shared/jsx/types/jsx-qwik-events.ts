@@ -1,8 +1,11 @@
 import type { AllEventKeys } from './jsx-qwik-attributes';
 
-/** Emitted by qwik-loader when an element becomes visible. Used by `useVisibleTask$` @public */
+/**
+ * Handled by qwik-loader when an element becomes visible. Used by `useVisibleTask$`. Does not
+ * bubble. @public
+ */
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
-/** Emitted by qwik-loader when a module was lazily loaded @public */
+/** Emitted by qwik-loader on document when a module was lazily loaded @public */
 export type QwikSymbolEvent = CustomEvent<{
   symbol: string;
   element: Element;
@@ -16,6 +19,11 @@ export type QwikSymbolEvent = CustomEvent<{
 export type QwikInitEvent = CustomEvent<{}>;
 /** Emitted by qwik-loader on document when the document first becomes idle @public */
 export type QwikIdleEvent = CustomEvent<{}>;
+/**
+ * Emitted by qwik-core on the container element when it resumes from a paused state. You cannot put
+ * a Qwik event handler on the container so you must listen on the document instead. @public
+ */
+export type QwikResumeEvent = CustomEvent<{}>;
 /** Emitted by qwik-core on document when the a view transition start @public */
 export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 /** Emitted by qwik-loader on document when there was an error loading a module @public */

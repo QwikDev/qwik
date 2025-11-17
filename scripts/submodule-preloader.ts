@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { fileSize, type BuildConfig } from './util';
+import { fileSize, type BuildConfig } from './util.ts';
 import { minify } from 'terser';
 import type { Plugin } from 'vite';
 
@@ -55,8 +55,8 @@ export async function submodulePreloader(config: BuildConfig) {
       copyPublicDir: false,
       lib: {
         entry: join(config.srcQwikDir, 'core/preloader'),
-        formats: ['es', 'cjs'],
-        fileName: (format) => (format === 'es' ? 'preloader.mjs' : 'preloader.cjs'),
+        formats: ['es'],
+        fileName: () => 'preloader.mjs',
       },
       rollupOptions: {
         external: ['@qwik.dev/core/build'],

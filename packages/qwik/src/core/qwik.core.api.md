@@ -24,8 +24,7 @@ export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
 export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
     error: Error | null;
     loading: boolean;
-    // (undocumented)
-    resolve(): Promise<T>;
+    promise(): Promise<T>;
 }
 
 // @public (undocumented)
@@ -651,7 +650,7 @@ export type QRL<TYPE = unknown> = {
     getCaptured(): unknown[] | null;
     getSymbol(): string;
     getHash(): string;
-    dev: QRLDev | null;
+    dev?: QRLDev | null;
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
@@ -663,7 +662,7 @@ export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: st
 export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
 
 // @public
-export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[] | EventHandler<EV, EL>;
+export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
@@ -751,6 +750,9 @@ export type QwikMouseEvent<T = Element, E = NativeMouseEvent> = E;
 // @public @deprecated (undocumented)
 export type QwikPointerEvent<T = Element> = NativePointerEvent;
 
+// @public
+export type QwikResumeEvent = CustomEvent<{}>;
+
 // @public @deprecated (undocumented)
 export type QwikSubmitEvent<T = Element> = SubmitEvent;
 
@@ -778,6 +780,9 @@ export type QwikTransitionEvent<T = Element> = NativeTransitionEvent;
 
 // @public @deprecated (undocumented)
 export type QwikUIEvent<T = Element> = NativeUIEvent;
+
+// @public
+export type QwikViewTransitionEvent = CustomEvent<ViewTransition>;
 
 // @public
 export type QwikVisibleEvent = CustomEvent<IntersectionObserverEntry>;
@@ -1637,15 +1642,11 @@ export interface SVGProps<T extends Element> extends SVGAttributes, QwikAttribut
 export const sync$: <T extends Function>(fn: T) => SyncQRL<T>;
 
 // @public (undocumented)
-export interface SyncQRL<TYPE extends Function = any> extends QRL<TYPE> {
-    // (undocumented)
+export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
     __brand__SyncQRL__: TYPE;
-    (...args: TYPE extends (...args: infer ARGS) => any ? ARGS : never): TYPE extends (...args: any[]) => infer RETURN ? RETURN : never;
-    // (undocumented)
-    dev: QRLDev | null;
-    // (undocumented)
     resolved: TYPE;
-}
+    dev?: QRLDev | null;
+} & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
 export const _task: (_event: Event, element: Element) => void;
@@ -1660,6 +1661,11 @@ export interface TaskCtx {
 
 // @public (undocumented)
 export type TaskFn = (ctx: TaskCtx) => ValueOrPromise<void | (() => void)>;
+
+// @public (undocumented)
+export interface TaskOptions {
+    deferUpdates?: boolean;
+}
 
 // @internal (undocumented)
 export class _TextVNode extends _VNode {
@@ -1802,12 +1808,12 @@ export interface UseStylesScoped {
 export const useStylesScopedQrl: (styles: QRL<string>) => UseStylesScoped;
 
 // @public
-export const useTask$: (fn: TaskFn) => void;
+export const useTask$: (fn: TaskFn, opts?: TaskOptions) => void;
 
 // Warning: (ae-internal-missing-underscore) The name "useTaskQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useTaskQrl: (qrl: QRL<TaskFn>) => void;
+export const useTaskQrl: (qrl: QRL<TaskFn>, opts?: TaskOptions) => void;
 
 // @public
 export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;

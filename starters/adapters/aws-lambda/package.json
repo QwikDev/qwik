@@ -19,5 +19,6 @@
       "https://aws.amazon.com/es/lambda/",
       "https://www.serverless.com/cloud/docs/get-started"
     ]
-  }
+  },
+  "type": "module"
 }

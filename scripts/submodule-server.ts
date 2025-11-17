@@ -1,9 +1,9 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { readPackageJson } from './package-json';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
+import { readPackageJson } from './package-json.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { inlineBackpatchScriptsEsBuild } from './submodule-backpatch.ts';
+import { type BuildConfig, getBanner, importPath, target } from './util.ts';
 
 /**
  * Builds @qwik.dev/core/server
@@ -76,47 +76,12 @@ export async function submoduleServer(config: BuildConfig) {
     define: {
       ...(await inlineQwikScriptsEsBuild(config)),
       ...(await inlineBackpatchScriptsEsBuild(config)),
-      'globalThis.IS_CJS': 'false',
-      'globalThis.IS_ESM': 'true',
       'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
       'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
     },
   });
 
-  const cjsBanner = [
-    getBanner('@qwik.dev/core/server', config.distVersion),
-    `globalThis.qwikServer = (function (module) {`,
-    browserCjsRequireShim,
-  ].join('\n');
-
-  const cjs = build({
-    ...opts,
-    format: 'cjs',
-    banner: {
-      js: cjsBanner,
-    },
-    footer: {
-      js: `return module.exports; })(typeof module === 'object' && module.exports ? module : { exports: {} });`,
-    },
-    outExtension: { '.js': '.cjs' },
-    plugins: [importPath(/^@qwik\.dev\/core$/, '@qwik.dev/core'), qwikDomPlugin],
-    target: nodeTarget,
-    define: {
-      ...(await inlineQwikScriptsEsBuild(config)),
-      ...(await inlineBackpatchScriptsEsBuild(config)),
-      'globalThis.IS_CJS': 'true',
-      'globalThis.IS_ESM': 'false',
-      'globalThis.QWIK_VERSION': JSON.stringify(config.distVersion),
-      'globalThis.QWIK_DOM_VERSION': JSON.stringify(qwikDomVersion),
-      // We need to get rid of the import.meta.env values
-      // Vite's base url
-      'import.meta.env.BASE_URL': 'globalThis.BASE_URL',
-      // Vite's devserver mode
-      'import.meta.env.DEV': 'false',
-    },
-  });
-
-  await Promise.all([esm, cjs]);
+  await Promise.all([esm]);
 
   console.log('🐰', submodule);
 }
@@ -156,26 +121,3 @@ async function getQwikDomVersion(config: BuildConfig) {
   const pkgJson = await readPackageJson(pkgJsonPath);
   return pkgJson.version;
 }
-
-const browserCjsRequireShim = `
-if (typeof require !== 'function' && typeof location !== 'undefined' && typeof navigator !== 'undefined') {
-  // shim cjs require() for core.cjs within a browser
-  globalThis.require = function(path) {
-    if (path === './core.cjs' || path === '@qwik.dev/core') {
-      if (!self.qwikCore) {
-        throw new Error('Qwik Core global, "globalThis.qwikCore", must already be loaded for the Qwik Server to be used within a browser.');
-      }
-      return self.qwikCore;
-    }
-    if (path === '@qwik.dev/core/build') {
-      if (!self.qwikBuild) {
-        throw new Error('Qwik Build global, "globalThis.qwikBuild", must already be loaded for the Qwik Server to be used within a browser.');
-      }
-      return self.qwikBuild;
-    }
-    if (path === '@qwik-client-manifest') {
-      return {};
-    }
-    throw new Error('Unable to require() path "' + path + '" from a browser environment.');
-  };
-}`;

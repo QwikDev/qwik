@@ -3,7 +3,7 @@ import { userData } from '../../test-fixtures/async-computed/exported';
 
 export default component$(() => {
   useTask$(async () => {
-    await userData.resolve();
+    await userData.promise();
     const z = 1;
     userData.value;
   });

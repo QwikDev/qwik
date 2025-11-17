@@ -10,8 +10,8 @@ export default defineConfig((config) => {
       outDir: 'lib',
       lib: {
         entry: ['./src/index.ts'],
-        formats: ['es', 'cjs'],
-        fileName: (format) => `index.qwik.${format === 'es' ? 'mjs' : 'cjs'}`,
+        formats: ['es'],
+        fileName: () => `index.qwik.mjs`,
       },
       rollupOptions: {
         external: [

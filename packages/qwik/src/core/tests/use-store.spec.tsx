@@ -10,6 +10,7 @@ import {
   useTask$,
   useVisibleTask$,
   type PropsOf,
+  type EventHandler,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it, vi } from 'vitest';
@@ -332,7 +333,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -344,7 +345,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -356,7 +357,7 @@ describe.each([
       interface InnerButtonProps {
         text: string;
         isActive: boolean;
-        onClick$: PropsOf<'button'>['onClick$'];
+        onClick$: EventHandler<MouseEvent, HTMLButtonElement>;
       }
 
       const Parent = component$(() => {
@@ -396,7 +397,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -408,7 +409,7 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <InlineComponent>
-            <InlineComponent>
+            <InlineComponent ssr-required>
               <button class="active-tab repl-tab-button">Options</button>
             </InlineComponent>
           </InlineComponent>
@@ -1190,9 +1191,9 @@ describe.each([
       const { vNode, document } = await render(<Issue5001 />, { debug });
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Component>
-            <Fragment>
-              <Component>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
                 <div>
                   <button>+1</button>
                 </div>
@@ -1209,9 +1210,9 @@ describe.each([
       await trigger(document.body, 'button', 'click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Component>
-            <Fragment>
-              <Component>
+          <Component ssr-required>
+            <Fragment ssr-required>
+              <Component ssr-required>
                 <div>
                   <button>+1</button>
                 </div>

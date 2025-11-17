@@ -3,11 +3,13 @@ import {
   Fragment,
   Fragment as InlineComponent,
   Fragment as Projection,
+  Fragment as Signal,
   Slot,
   component$,
   useSignal,
   useStore,
   useVisibleTask$,
+  type FunctionComponent,
   type PublicProps,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
@@ -261,13 +263,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal>qwik</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal>bar</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>
@@ -280,13 +288,19 @@ describe.each([
         <footer>
           <button></button>
           <InlineComponent>
-            <div>bar</div>
+            <div>
+              <Signal>bar</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>foo</div>
+            <div>
+              <Signal>foo</Signal>
+            </div>
           </InlineComponent>
           <InlineComponent>
-            <div>qwik</div>
+            <div>
+              <Signal>qwik</Signal>
+            </div>
           </InlineComponent>
         </footer>
       </Component>
@@ -553,7 +567,7 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            aaa
+            <Signal>aaa</Signal>
             {': '}
             <Projection>
               <div>
@@ -607,12 +621,12 @@ describe.each([
       <InlineComponent>
         <Component>
           <div>
-            {'bar'}
+            <Signal>{'bar'}</Signal>
             {': '}
             <Projection>Test</Projection>
             <Component>
               <div>
-                {'bbb'}
+                <Signal>{'bbb'}</Signal>
                 {': '}
                 <Projection>Test2</Projection>
               </div>
@@ -689,6 +703,33 @@ describe.each([
           </Component>
         </Fragment>
       </Component>
+    );
+  });
+
+  it('should allow to modify children component props', async () => {
+    const Child = component$((props: { name: string }) => {
+      return <>{props.name}</>;
+    });
+
+    const Parent: FunctionComponent = (props) => {
+      (props as any).children.props.name = 'World';
+      return (props as any).children;
+    };
+
+    const { vNode } = await render(
+      <Parent>
+        <Child name="Hello" />
+      </Parent>,
+      { debug }
+    );
+    expect(vNode).toMatchVDOM(
+      <InlineComponent>
+        <Component>
+          <Fragment>
+            <Signal>World</Signal>
+          </Fragment>
+        </Component>
+      </InlineComponent>
     );
   });
 });

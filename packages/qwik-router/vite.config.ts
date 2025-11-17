@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { compiledStringPlugin } from '../../scripts/compiled-string-plugin';
+import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig(() => {
@@ -8,7 +8,7 @@ export default defineConfig(() => {
       emptyOutDir: false,
       ssr: true,
       modulePreload: false,
-      target: 'es2020',
+      target: 'esnext',
       outDir: 'lib',
       minify: false,
       rollupOptions: {
@@ -47,15 +47,6 @@ export default defineConfig(() => {
                 : 'chunks/[name].mjs',
             entryFileNames: (chunkInfo) =>
               chunkInfo.name === 'index' ? '[name].qwik.mjs' : '[name]/index.mjs',
-          },
-          {
-            format: 'cjs',
-            chunkFileNames: (chunkInfo) =>
-              chunkInfo.moduleIds.some((id) => id.includes('runtime'))
-                ? 'chunks/[name].qwik.cjs'
-                : 'chunks/[name].cjs',
-            entryFileNames: (chunkInfo) =>
-              chunkInfo.name === 'index' ? '[name].qwik.cjs' : '[name]/index.cjs',
           },
         ],
         external: [

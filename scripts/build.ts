@@ -1,35 +1,35 @@
 import { rmSync } from 'fs';
 import { copyFile, watch } from 'fs/promises';
 import { join } from 'path';
-import { apiExtractorQwik, apiExtractorQwikRouter } from './api';
-import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform';
-import { buildWasmBinding } from './binding-wasm';
-import { buildCreateQwikCli } from './create-qwik-cli';
-import { buildEslint } from './eslint';
-import { buildQwikReact } from './qwik-react';
-import { buildQwikRouter } from './qwik-router';
+import { apiExtractorQwik, apiExtractorQwikRouter } from './api.ts';
+import { buildPlatformBinding, copyPlatformBindingWasm } from './binding-platform.ts';
+import { buildWasmBinding } from './binding-wasm.ts';
+import { buildCreateQwikCli } from './create-qwik-cli.ts';
+import { buildEslint } from './eslint.ts';
+import { buildQwikReact } from './qwik-react.ts';
+import { buildQwikRouter } from './qwik-router.ts';
 import {
   commitPrepareReleaseVersion,
   prepareReleaseVersion,
   publish,
   setDistVersion,
   setReleaseVersion,
-} from './release';
-import { submoduleBuild } from './submodule-build';
-import { submoduleCli } from './submodule-cli';
-import { submoduleCore } from './submodule-core';
-import { submoduleInsights } from './submodule-insights';
-import { submoduleOptimizer } from './submodule-optimizer';
-import { submoduleQwikLoader } from './submodule-qwikloader';
-import { submoduleBackpatch } from './submodule-backpatch';
-import { submoduleServer } from './submodule-server';
-import { submoduleTesting } from './submodule-testing';
-import { buildSupabaseAuthHelpers } from './supabase-auth-helpers';
-import { tsc, tscQwik, tscQwikRouter } from './tsc';
-import { tscDocs } from './tsc-docs';
-import { emptyDir, ensureDir, panic, type BuildConfig } from './util';
-import { validateBuild } from './validate-build';
-import { submodulePreloader } from './submodule-preloader';
+} from './release.ts';
+import { submoduleBuild } from './submodule-build.ts';
+import { submoduleCli } from './submodule-cli.ts';
+import { submoduleCore } from './submodule-core.ts';
+import { submoduleInsights } from './submodule-insights.ts';
+import { submoduleOptimizer } from './submodule-optimizer.ts';
+import { submoduleQwikLoader } from './submodule-qwikloader.ts';
+import { submoduleBackpatch } from './submodule-backpatch.ts';
+import { submoduleServer } from './submodule-server.ts';
+import { submoduleTesting } from './submodule-testing.ts';
+import { buildSupabaseAuthHelpers } from './supabase-auth-helpers.ts';
+import { tsc, tscQwik, tscQwikRouter } from './tsc.ts';
+import { tscDocs } from './tsc-docs.ts';
+import { emptyDir, ensureDir, panic, type BuildConfig } from './util.ts';
+import { validateBuild } from './validate-build.ts';
+import { submodulePreloader } from './submodule-preloader.ts';
 
 /**
  * Complete a full build for all of the package's submodules. Passed in config has all the correct
@@ -160,16 +160,8 @@ export async function build(config: BuildConfig) {
         [join(config.srcQwikDir, 'core')]: async () => {
           await submoduleCore({ ...config, dev: true });
           await copyFile(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
-          );
-          await copyFile(
             join(config.srcQwikDir, '..', 'dist', 'core.mjs'),
             join(config.srcQwikDir, '..', 'dist', 'core.prod.mjs')
-          );
-          console.log(
-            join(config.srcQwikDir, '..', 'dist', 'core.cjs'),
-            join(config.srcQwikDir, '..', 'dist', 'core.prod.cjs')
           );
         },
         [join(config.srcQwikDir, 'cli')]: () => submoduleCli(config),

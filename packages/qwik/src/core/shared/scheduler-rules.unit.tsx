@@ -1192,4 +1192,24 @@ describe('addBlockedChore', () => {
     expect(blockedChores.has(blockedChore)).toBe(true);
     expect(blockedChores.size).toBe(1);
   });
+
+  it('should not add blocked chore if it is the same as the blocking chore', () => {
+    const chore = createMockChore(ChoreType.VISIBLE, { el: 'host1' });
+    const blockedChores = new Set<Chore>();
+
+    addBlockedChore(chore, chore, blockedChores);
+
+    expect(blockedChores.size).toBe(0);
+  });
+
+  it('should not add blocked chore if it looks the same as the blocking chore', () => {
+    const host = { el: 'host1' };
+    const chore1 = createMockChore(ChoreType.VISIBLE, host);
+    const chore2 = createMockChore(ChoreType.VISIBLE, host);
+    const blockedChores = new Set<Chore>();
+
+    addBlockedChore(chore1, chore2, blockedChores);
+
+    expect(blockedChores.size).toBe(0);
+  });
 });

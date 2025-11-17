@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { chromium, type Page } from 'playwright';
 import { fetch } from 'undici';
-// @ts-ignore
 import pages from './pages.json' with { type: 'json' };
 
 type InputPageData = {

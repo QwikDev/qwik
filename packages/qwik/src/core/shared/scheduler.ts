@@ -125,7 +125,7 @@ import { cleanupDestroyable } from '../use/utils/destroyable';
 // Turn this on to get debug output of what the scheduler is doing.
 const DEBUG: boolean = false;
 
-enum ChoreState {
+export enum ChoreState {
   NONE = 0,
   RUNNING = 1,
   FAILED = 2,
@@ -177,7 +177,7 @@ export const createScheduler = (
   container: Container,
   journalFlush: () => void,
   choreQueue: ChoreArray,
-  blockedChores: Set<Chore>,
+  blockedChores: ChoreArray,
   runningChores: Set<Chore>
 ) => {
   let drainChore: Chore<ChoreType.WAIT_FOR_QUEUE> | null = null;
@@ -893,7 +893,7 @@ function vNodeAlreadyDeleted(chore: Chore): boolean {
 export function addBlockedChore(
   blockedChore: Chore,
   blockingChore: Chore,
-  blockedChores: Set<Chore>
+  blockedChores: ChoreArray
 ): void {
   if (
     !(
@@ -973,7 +973,7 @@ function debugTrace(
   action: string,
   arg?: any | null,
   queue?: ChoreArray,
-  blockedChores?: Set<Chore>
+  blockedChores?: ChoreArray
 ) {
   const lines: string[] = [];
 
@@ -1043,9 +1043,9 @@ function debugTrace(
   }
 
   // Blocked chores section
-  if (blockedChores && blockedChores.size > 0) {
+  if (blockedChores && blockedChores.length > 0) {
     lines.push('');
-    lines.push(`🚫 Blocked Chores (${blockedChores.size} items):`);
+    lines.push(`🚫 Blocked Chores (${blockedChores.length} items):`);
 
     Array.from(blockedChores).forEach((chore, index) => {
       const type = debugChoreTypeToString(chore.$type$);

@@ -5,7 +5,7 @@ import {
 } from '../client/vnode';
 import { Task, TaskFlags } from '../use/use-task';
 import type { QRLInternal } from './qrl/qrl-class';
-import type { Chore } from './scheduler';
+import { ChoreState, type Chore } from './scheduler';
 import type { Container, HostElement } from './types';
 import { ChoreType } from './util-chore-type';
 import { ELEMENT_SEQ } from './utils/markers';
@@ -147,7 +147,8 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
           blockingChore.$type$ < ChoreType.VISIBLE &&
           blockingChore.$type$ !== ChoreType.TASK &&
           blockingChore.$type$ !== ChoreType.QRL_RESOLVE &&
-          blockingChore.$type$ !== ChoreType.RUN_QRL
+          blockingChore.$type$ !== ChoreType.RUN_QRL &&
+          blockingChore.$state$ === ChoreState.NONE
         ) {
           return blockingChore;
         }
@@ -161,7 +162,7 @@ function findAncestorBlockingChore(chore: Chore, type: ChoreSetType): Chore | nu
 export function findBlockingChore(
   chore: Chore,
   choreQueue: ChoreArray,
-  blockedChores: Set<Chore>,
+  blockedChores: ChoreArray,
   runningChores: Set<Chore>,
   container: Container
 ): Chore | null {
@@ -185,20 +186,32 @@ export function findBlockingChore(
     // Check in choreQueue
     // TODO(perf): better to iterate in reverse order?
     for (const candidate of choreQueue) {
-      if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
+      if (
+        candidate.$type$ === rule.blockingType &&
+        rule.match(chore, candidate, container) &&
+        candidate.$state$ === ChoreState.NONE
+      ) {
         return candidate;
       }
     }
     // Check in blockedChores
     for (const candidate of blockedChores) {
-      if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
+      if (
+        candidate.$type$ === rule.blockingType &&
+        rule.match(chore, candidate, container) &&
+        candidate.$state$ === ChoreState.NONE
+      ) {
         return candidate;
       }
     }
 
     // Check in runningChores
     for (const candidate of runningChores) {
-      if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
+      if (
+        candidate.$type$ === rule.blockingType &&
+        rule.match(chore, candidate, container) &&
+        candidate.$state$ !== ChoreState.FAILED
+      ) {
         return candidate;
       }
     }
@@ -236,7 +249,11 @@ export function findBlockingChoreForVisible(
     }
 
     for (const candidate of runningChores) {
-      if (candidate.$type$ === rule.blockingType && rule.match(chore, candidate, container)) {
+      if (
+        candidate.$type$ === rule.blockingType &&
+        rule.match(chore, candidate, container) &&
+        candidate.$state$ !== ChoreState.FAILED
+      ) {
         return candidate;
       }
     }

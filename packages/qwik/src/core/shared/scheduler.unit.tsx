@@ -42,7 +42,7 @@ describe('scheduler', () => {
   let vBHost2: VirtualVNode = null!;
   let handleError: (err: any, host: HostElement | null) => void;
   let choreQueue: ChoreArray;
-  let blockedChores: Set<Chore>;
+  let blockedChores: ChoreArray;
   let runningChores: Set<Chore>;
 
   async function waitForDrain() {
@@ -57,7 +57,7 @@ describe('scheduler', () => {
     const container = getDomContainer(document.body);
     handleError = container.handleError = vi.fn();
     choreQueue = new ChoreArray();
-    blockedChores = new Set();
+    blockedChores = new ChoreArray();
     runningChores = new Set();
     scheduler = createScheduler(
       container,
@@ -256,7 +256,7 @@ describe('scheduler', () => {
     // schedule only first task
     expect(choreQueue.length).toBe(1);
     // block the rest
-    expect(blockedChores.size).toBe(2);
+    expect(blockedChores.length).toBe(2);
     await waitForDrain();
     expect(testLog).toEqual(['b1.0', 'b1.1', 'b1.2', 'journalFlush']);
   });
@@ -280,7 +280,7 @@ describe('scheduler', () => {
       document.body.setAttribute(QContainerAttr, 'paused');
       const container = getDomContainer(document.body);
       const choreQueue = new ChoreArray();
-      const blockedChores = new Set<Chore>();
+      const blockedChores = new ChoreArray();
       const runningChores = new Set<Chore>();
       scheduler = createScheduler(
         container,
@@ -428,7 +428,7 @@ describe('scheduler', () => {
       document.body.setAttribute(QContainerAttr, 'paused');
       const container = getDomContainer(document.body);
       const choreQueue = new ChoreArray();
-      const blockedChores = new Set<Chore>();
+      const blockedChores = new ChoreArray();
       const runningChores = new Set<Chore>();
       scheduler = createScheduler(
         container,
@@ -827,7 +827,7 @@ describe('scheduler', () => {
   describe('getRunningChore', () => {
     let scheduler: ReturnType<typeof createScheduler> = null!;
     let choreQueue: ChoreArray;
-    let blockedChores: Set<Chore>;
+    let blockedChores: ChoreArray;
     let runningChores: Set<Chore>;
     let vHost: VirtualVNode;
 
@@ -838,7 +838,7 @@ describe('scheduler', () => {
       document.body.setAttribute(QContainerAttr, 'paused');
       const container = getDomContainer(document.body);
       choreQueue = new ChoreArray();
-      blockedChores = new Set();
+      blockedChores = new ChoreArray();
       runningChores = new Set();
 
       // Mock nextTick to prevent automatic draining of chores
@@ -867,7 +867,7 @@ describe('scheduler', () => {
 
       // The chore should be scheduled (not blocked)
       expect(choreQueue.length).toBe(1);
-      expect(blockedChores.size).toBe(0);
+      expect(blockedChores.length).toBe(0);
     });
 
     it('should return false when running chores do not match', async () => {
@@ -1006,9 +1006,9 @@ describe('scheduler', () => {
     // chore1 should be scheduled, chore2 blocked by chore1, chore3 blocked by chore2
     expect(choreQueue.length).toBe(1);
     expect(choreQueue[0]).toBe(chore1);
-    expect(blockedChores.size).toBe(2);
-    expect(blockedChores.has(chore2!)).toBe(true);
-    expect(blockedChores.has(chore3!)).toBe(true);
+    expect(blockedChores.length).toBe(2);
+    expect(blockedChores.includes(chore2!)).toBe(true);
+    expect(blockedChores.includes(chore3!)).toBe(true);
     expect(vBHost1.blockedChores?.length).toBe(2);
     expect(vBHost1.blockedChores).toContain(chore2);
     expect(vBHost1.blockedChores).toContain(chore3);
@@ -1036,7 +1036,7 @@ describe('scheduler', () => {
     expect(testLog).toEqual(['task1', 'task2', 'task3', 'journalFlush']);
 
     // After drain, everything should be clear
-    expect(blockedChores.size).toBe(0);
+    expect(blockedChores.length).toBe(0);
     expect(vBHost1.blockedChores?.length).toBe(0);
   });
 
@@ -1070,9 +1070,9 @@ describe('scheduler', () => {
 
     // Initial state: A1 and B1 scheduled (depth-first), A2 and B2 blocked
     expect(choreQueue.length).toBe(2); // A1, B1
-    expect(blockedChores.size).toBe(2); // A2, B2
-    expect(blockedChores.has(choreA2!)).toBe(true);
-    expect(blockedChores.has(choreB2!)).toBe(true);
+    expect(blockedChores.length).toBe(2); // A2, B2
+    expect(blockedChores.includes(choreA2!)).toBe(true);
+    expect(blockedChores.includes(choreB2!)).toBe(true);
 
     // vnode blocked chores should match
     expect(vAHost.blockedChores?.length).toBe(1);
@@ -1088,7 +1088,7 @@ describe('scheduler', () => {
     expect(testLog).toEqual(['taskA1', 'taskA2', 'taskB1', 'taskB2', 'journalFlush']);
 
     // After drain, everything should be clear
-    expect(blockedChores.size).toBe(0);
+    expect(blockedChores.length).toBe(0);
     expect(vAHost.blockedChores?.length).toBe(0);
     expect(vBHost1.blockedChores?.length).toBe(0);
   });
@@ -1120,7 +1120,7 @@ describe('scheduler', () => {
       const chore2 = scheduler(ChoreType.RUN_QRL, vAHost as HostElement, mockQrl, []);
 
       // chore2 should NOT be blocked
-      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(blockedChores.includes(chore2!)).toBe(false);
       expect(chore1!.$blockedChores$).toBeNull();
       // Verify no blocked chores for RUN_QRL type
       for (const chore of blockedChores) {
@@ -1148,7 +1148,7 @@ describe('scheduler', () => {
       const chore2 = scheduler(ChoreType.QRL_RESOLVE, null, mockComputeQRL);
 
       // chore2 should NOT be blocked
-      expect(blockedChores.has(chore2!)).toBe(false);
+      expect(blockedChores.includes(chore2!)).toBe(false);
       expect(chore1!.$blockedChores$).toBeNull();
       // Verify no blocked chores for QRL_RESOLVE type
       for (const chore of blockedChores) {

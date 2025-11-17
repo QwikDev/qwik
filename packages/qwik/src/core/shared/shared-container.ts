@@ -37,7 +37,7 @@ export abstract class _SharedContainer implements Container {
     };
 
     const choreQueue = new ChoreArray();
-    const blockedChores = new Set<Chore>();
+    const blockedChores = new ChoreArray();
     const runningChores = new Set<Chore>();
     this.$scheduler$ = createScheduler(
       this,

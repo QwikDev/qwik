@@ -1136,11 +1136,11 @@ export const cleanupTree = (
   staticCtx: RenderStaticContext,
   subsManager: SubscriptionManager,
   stopSlots: boolean,
-  unmount = false
+  dispose = false
 ) => {
   subsManager.$clearSub$(elm);
   if (isQwikElement(elm)) {
-    if (!unmount && stopSlots && elm.hasAttribute(QSlotS)) {
+    if (!dispose && stopSlots && elm.hasAttribute(QSlotS)) {
       staticCtx.$rmSlots$.push(elm);
       return;
     }
@@ -1151,7 +1151,7 @@ export const cleanupTree = (
     const end = isVirtualElement(elm) ? elm.close : null;
     let node: Node | null | VirtualElement = elm.firstChild;
     while ((node = processVirtualNodes(node))) {
-      cleanupTree(node!, staticCtx, subsManager, true, unmount);
+      cleanupTree(node!, staticCtx, subsManager, true, dispose);
       node = node.nextSibling;
       if (node === end) {
         break;

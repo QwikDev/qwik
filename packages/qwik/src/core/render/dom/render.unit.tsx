@@ -778,14 +778,37 @@ test('should clean up subscriptions after calling the returned cleanup function'
   const fixture = new ElementFixture();
 
   const spies = {
-    cleanupSpy: false,
+    cleanup: false,
   };
 
   const { cleanup } = await render(fixture.host, <CleanupComponent spies={spies} />);
 
   cleanup();
 
-  assert.equal(spies.cleanupSpy, true);
+  assert.equal(spies.cleanup, true);
+});
+
+test('should clean up nested subscriptions after calling the returned cleanup function', async () => {
+  const fixture = new ElementFixture();
+
+  const spies = {
+    parentCleanup: false,
+    cleanup: false,
+    slottedCleanup: false,
+  };
+
+  const { cleanup } = await render(
+    fixture.host,
+    <ParentCleanupComponent spies={spies}>
+      <SlottedCleanupComponent spies={spies} />
+    </ParentCleanupComponent>
+  );
+
+  cleanup();
+
+  assert.equal(spies.parentCleanup, true);
+  assert.equal(spies.cleanup, true);
+  assert.equal(spies.slottedCleanup, true);
 });
 
 async function expectRendered(fixture: ElementFixture, expected: string) {
@@ -1045,16 +1068,56 @@ export const Hooks = component$(() => {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-export const CleanupComponent = component$((props: { spies: { cleanupSpy: boolean } }) => {
+interface CleanupProps {
+  spies: {
+    parentCleanup?: boolean;
+    cleanup?: boolean;
+    slottedCleanup?: boolean;
+  };
+}
+
+export const ParentCleanupComponent = component$((props: CleanupProps) => {
   useTask$(({ cleanup }) => {
     cleanup(() => {
-      props.spies.cleanupSpy = true;
+      props.spies.parentCleanup = true;
+    });
+  });
+
+  return (
+    <div>
+      <div id="parent-cleanup">true</div>
+      <CleanupComponent spies={props.spies}>
+        <Slot />
+      </CleanupComponent>
+    </div>
+  );
+});
+
+export const CleanupComponent = component$((props: CleanupProps) => {
+  useTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.spies.cleanup = true;
     });
   });
 
   return (
     <div>
       <div id="cleanup">true</div>
+      <Slot />
+    </div>
+  );
+});
+
+export const SlottedCleanupComponent = component$((props: CleanupProps) => {
+  useTask$(({ cleanup }) => {
+    cleanup(() => {
+      props.spies.slottedCleanup = true;
+    });
+  });
+
+  return (
+    <div>
+      <div id="slotted-cleanup">true</div>
     </div>
   );
 });

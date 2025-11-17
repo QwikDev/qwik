@@ -6,4 +6,4 @@
 '@builder.io/qwik': patch
 ---
 
-execute cleanup cb for all component tree while callint dispose.cleanup method returned by render fn
+execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn

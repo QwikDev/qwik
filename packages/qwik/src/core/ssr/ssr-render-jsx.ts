@@ -18,6 +18,8 @@ import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import {
   getEventDataFromHtmlAttribute,
+  getLoaderScopedEventName,
+  getScopedEventName,
   isHtmlAttributeAnEventName,
   isPreventDefault,
 } from '../shared/utils/event-names';
@@ -167,13 +169,13 @@ function processJSXNode(
 
         const innerHTML = ssr.openElement(
           type,
-          varPropsToSsrAttrs(jsx.varProps, jsx.constProps, {
+          toSsrAttrs(jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
             key: jsx.key,
             toSort: jsx.toSort,
           }),
-          constPropsToSsrAttrs(jsx.constProps, jsx.varProps, {
+          toSsrAttrs(jsx.constProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
           }),
@@ -325,22 +327,6 @@ interface SsrAttrsOptions {
   toSort?: boolean;
 }
 
-export function varPropsToSsrAttrs(
-  varProps: Record<string, unknown>,
-  constProps: Record<string, unknown> | null,
-  options: SsrAttrsOptions
-): SsrAttrs | null {
-  return toSsrAttrs(varProps, options);
-}
-
-export function constPropsToSsrAttrs(
-  constProps: Record<string, unknown> | null,
-  varProps: Record<string, unknown>,
-  options: SsrAttrsOptions
-): SsrAttrs | null {
-  return toSsrAttrs(constProps, options);
-}
-
 export function toSsrAttrs(
   record: Record<string, unknown> | null | undefined,
   options: SsrAttrsOptions
@@ -451,8 +437,10 @@ function addQwikEventToSerializationContext(
   // TODO extract window/document too so qwikloader can precisely listen
   const data = getEventDataFromHtmlAttribute(key);
   if (data) {
-    const eventName = data[1];
-    serializationCtx.$eventNames$.add(eventName);
+    const [scope, eventName] = data;
+    const scopedEvent = getScopedEventName(scope, eventName);
+    const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
+    serializationCtx.$eventNames$.add(loaderScopedEvent);
     serializationCtx.$eventQrls$.add(qrl);
   }
 }
@@ -461,8 +449,8 @@ function addPreventDefaultEventToSerializationContext(
   serializationCtx: SerializationContext,
   key: string
 ) {
-  // skip first 15 chars, this is length of the `preventdefault:`
-  const eventName = key.substring(15);
+  // skip first 15 chars, this is length of the `preventdefault`, leave the ":"
+  const eventName = key.substring(14);
   if (eventName) {
     serializationCtx.$eventNames$.add(eventName);
   }

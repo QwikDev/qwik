@@ -21,8 +21,8 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { _qrlSync } from '../shared/qrl/qrl.public';
 import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
-import { constPropsToSsrAttrs, varPropsToSsrAttrs } from '../ssr/ssr-render-jsx';
 import { type SSRContainer } from '../ssr/ssr-types';
+import { toSsrAttrs } from '../ssr/ssr-render-jsx';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -605,12 +605,12 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
-          varPropsToSsrAttrs(jsx.varProps as any, jsx.constProps, {
+          toSsrAttrs(jsx.varProps, {
             serializationCtx: ssrContainer.serializationCtx,
             styleScopedId: null,
             key: jsx.key,
           }),
-          constPropsToSsrAttrs(jsx.constProps as any, jsx.varProps, {
+          toSsrAttrs(jsx.constProps, {
             serializationCtx: ssrContainer.serializationCtx,
             styleScopedId: null,
           })

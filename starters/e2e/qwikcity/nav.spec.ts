@@ -59,8 +59,6 @@ test.describe("actions", () => {
 
         const link = page.locator("#hash-1");
         await link.click();
-        // Without this, sometimes the URL is #hash-1
-        await page.waitForTimeout(100);
 
         await expect(page).toHaveURL(
           "/qwikcity-test/scroll-restoration/hash/#hash-2",

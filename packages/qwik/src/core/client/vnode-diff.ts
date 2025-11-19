@@ -37,6 +37,8 @@ import { _OWNER, _PROPS_HANDLER } from '../shared/utils/constants';
 import {
   fromCamelToKebabCase,
   getEventDataFromHtmlAttribute,
+  getLoaderScopedEventName,
+  getScopedEventName,
   isHtmlAttributeAnEventName,
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
@@ -660,16 +662,18 @@ export const vnode_diff = (
         if (isHtmlAttributeAnEventName(key)) {
           const data = getEventDataFromHtmlAttribute(key);
           if (data) {
-            const scope = data[0];
-            const eventName = data[1];
+            const [scope, eventName] = data;
+            const scopedEvent = getScopedEventName(scope, eventName);
+            const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
 
             if (eventName) {
-              vNewNode!.setProp(HANDLER_PREFIX + ':' + scope + ':' + eventName, value);
+              vNewNode!.setProp(HANDLER_PREFIX + ':' + scopedEvent, value);
               if (scope) {
                 // window and document need attrs so qwik loader can find them
                 vNewNode!.setAttr(key, '', journal);
               }
-              registerQwikLoaderEvent(eventName);
+              // register an event for qwik loader (window/document prefixed with '-')
+              registerQwikLoaderEvent(loaderScopedEvent);
             }
           }
 
@@ -932,9 +936,11 @@ export const vnode_diff = (
       const data = getEventDataFromHtmlAttribute(key);
       if (data) {
         const [scope, eventName] = data;
-        record(':' + scope + ':' + eventName, value);
-        // register an event for qwik loader
-        registerQwikLoaderEvent(eventName);
+        const scopedEvent = getScopedEventName(scope, eventName);
+        const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
+        record(':' + scopedEvent, value);
+        // register an event for qwik loader (window/document prefixed with '-')
+        registerQwikLoaderEvent(loaderScopedEvent);
         patchEventDispatch = true;
       }
     };

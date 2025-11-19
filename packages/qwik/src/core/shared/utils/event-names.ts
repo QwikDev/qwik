@@ -109,3 +109,12 @@ export const getEventDataFromHtmlAttribute = (htmlKey: string): [string, string]
   }
   return ['document', htmlKey.substring(12)];
 };
+
+export const getScopedEventName = (scope: string, eventName: string): string => {
+  const suffix = ':' + eventName;
+  return scope ? scope + suffix : suffix;
+};
+
+export const getLoaderScopedEventName = (scope: string, scopedEvent: string): string => {
+  return scope ? '-' + scopedEvent : scopedEvent;
+};

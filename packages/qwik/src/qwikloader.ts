@@ -24,6 +24,8 @@ const win = window as unknown as qWindow;
 const events = new Set<string>();
 const roots = new Set<EventTarget & ParentNode>([doc]);
 const symbols: Record<string, unknown> = {};
+const windowPrefix = '-window';
+const documentPrefix = '-document';
 
 let hasInitialized: number;
 
@@ -104,12 +106,12 @@ const dispatch = async (
     }
     return;
   }
-  const attrValue = element.getAttribute(attrName);
   // </DELETE ME LATER>
   const qDispatchEvent = (element as QElement).qDispatchEvent;
   if (qDispatchEvent) {
     return qDispatchEvent(ev, scope);
   }
+  const attrValue = element.getAttribute(attrName);
   if (attrValue) {
     const container = element.closest(
       '[q\\:container]:not([q\\:container=html]):not([q\\:container=text])'
@@ -207,11 +209,14 @@ const camelToKebab = (str: string) => str.replace(/([A-Z-])/g, (a) => '-' + a.to
  *
  * @param ev - Browser event.
  */
-const processDocumentEvent = async (ev: Event) => {
+const processDocumentEvent = async (ev: Event, scope: string) => {
   // eslint-disable-next-line prefer-const
   let type = camelToKebab(ev.type);
   let element = ev.target as Element | null;
-  broadcast('-document', ev, type);
+  if (scope === documentPrefix) {
+    broadcast(documentPrefix, ev, type);
+    return;
+  }
 
   while (element && element.getAttribute) {
     const results = dispatch(element, '', ev, type);
@@ -227,7 +232,7 @@ const processDocumentEvent = async (ev: Event) => {
 };
 
 const processWindowEvent = (ev: Event) => {
-  broadcast('-window', ev, camelToKebab(ev.type));
+  broadcast(windowPrefix, ev, camelToKebab(ev.type));
 };
 
 const processReadyStateChange = () => {
@@ -241,7 +246,7 @@ const processReadyStateChange = () => {
     const riC = win.requestIdleCallback ?? win.setTimeout;
     riC.bind(win)(() => emitEvent('qidle'));
 
-    if (events.has('qvisible')) {
+    if (events.has(':qvisible')) {
       const results = querySelectorAll('[on\\:qvisible]');
       const observer = new IntersectionObserver((entries) => {
         for (const entry of entries) {
@@ -268,23 +273,47 @@ const addEventListener = (
 // Keep in sync with ./qwikloader.unit.ts
 const kebabToCamel = (eventName: string) => eventName.replace(/-./g, (a) => a[1].toUpperCase());
 
+const processEventName = (event: string) => {
+  const i = event.indexOf(':');
+  let scope = '';
+  let eventName = event;
+  if (i >= 0) {
+    const s = event.substring(0, i);
+    if (s === '' || s === windowPrefix || s === documentPrefix) {
+      scope = s;
+      eventName = event.substring(i + 1);
+    }
+  }
+  return { scope, eventName: kebabToCamel(eventName) };
+};
+
 const processEventOrNode = (...eventNames: (string | (EventTarget & ParentNode))[]) => {
   for (const eventNameOrNode of eventNames) {
     if (typeof eventNameOrNode === 'string') {
       // If it is string we just add the event to window and each of our roots.
       if (!events.has(eventNameOrNode)) {
         events.add(eventNameOrNode);
-        const eventName = kebabToCamel(eventNameOrNode);
-        roots.forEach((root) => addEventListener(root, eventName, processDocumentEvent, true));
+        const { scope, eventName } = processEventName(eventNameOrNode);
 
-        addEventListener(win, eventName, processWindowEvent, true);
+        if (scope === windowPrefix) {
+          addEventListener(win, eventName, processWindowEvent, true);
+        } else {
+          roots.forEach((root) =>
+            addEventListener(root, eventName, (ev) => processDocumentEvent(ev, scope), true)
+          );
+        }
       }
     } else {
       // If it is a new root, we also need this root to catch up to all of the document events so far.
       if (!roots.has(eventNameOrNode)) {
         events.forEach((kebabEventName) => {
-          const eventName = kebabToCamel(kebabEventName);
-          addEventListener(eventNameOrNode, eventName, processDocumentEvent, true);
+          const { scope, eventName } = processEventName(kebabEventName);
+          addEventListener(
+            eventNameOrNode,
+            eventName,
+            (ev) => processDocumentEvent(ev, scope),
+            true
+          );
         });
 
         roots.add(eventNameOrNode);

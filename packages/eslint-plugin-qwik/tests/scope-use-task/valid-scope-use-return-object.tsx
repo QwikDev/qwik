@@ -6,6 +6,7 @@ export default component$(() => {
     if (isBrowser) {
       track(() => {
         if (state.value) {
+          // `path` will be treated as a built-in node API under isBrowser
           const values = [
             {
               path: '1',

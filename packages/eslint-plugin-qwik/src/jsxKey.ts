@@ -344,7 +344,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </Fragment>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -366,7 +366,7 @@ export const Person = component$(() => {
         <Card value={person[key]} />
         <Summary value={person[key]} />
       </>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -380,7 +380,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key={\`color-\${color}\`}>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -395,7 +395,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li>{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -412,7 +412,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "\${color}" is a great color.</p>
       </Fragment>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -428,7 +428,7 @@ export const ColorList = component$(() => {
         <h2>{color}</h2>
         <p>The color "\${color}" is a great color.</p>
       </>
-    )}
+    ))}
   );
 });`.trim();
 
@@ -444,7 +444,7 @@ export const ColorList = component$(() => {
     <ul>
       {colors.map((color) => (
         <li key="not-a-good-idea">{color}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();

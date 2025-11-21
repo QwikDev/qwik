@@ -302,7 +302,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li key={\`person-\${key}\`}>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();
@@ -321,7 +321,7 @@ export const Person = component$(() => {
     <ul>
       {Object.keys(person).map((color) => (
         <li>{person[key]}</li>
-      )}
+      ))}
     </ul>
   );
 });`.trim();

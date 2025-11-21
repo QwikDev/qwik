@@ -52,7 +52,6 @@ import {
   QDefaultSlot,
   QSlot,
   QTemplate,
-  Q_PREFIX,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
@@ -66,6 +65,7 @@ import type { DomContainer } from './dom-container';
 import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import {
+  VNodeJournalOpCode,
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
   vnode_getElementName,
@@ -90,7 +90,7 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
-import type { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
+import { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
@@ -858,15 +858,44 @@ export const vnode_diff = (
     let dstIdx = 0;
     let patchEventDispatch = false;
 
-    const setAttribute = (key: string, value: any, vHost: ElementVNode) => {
-      vHost.setAttr(
-        key,
-        value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null,
-        journal
-      );
+    /**
+     * Optimized setAttribute that bypasses redundant checks when we already know:
+     *
+     * - The index in dstAttrs (no need for binary search)
+     * - The vnode is ElementVNode (no instanceof check)
+     * - The value has changed (no comparison needed)
+     */
+    const setAttributeDirect = (
+      vnode: ElementVNode,
+      key: string,
+      value: any,
+      dstIdx: number,
+      isNewKey: boolean
+    ) => {
+      const serializedValue =
+        value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
+
+      if (isNewKey) {
+        // Adding new key - splice into sorted position
+        if (serializedValue != null) {
+          (dstAttrs as any).splice(dstIdx, 0, key, serializedValue);
+          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, serializedValue);
+        }
+      } else {
+        // Updating or removing existing key at dstIdx
+        if (serializedValue != null) {
+          // Update existing value
+          (dstAttrs as any)[dstIdx + 1] = serializedValue;
+          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, serializedValue);
+        } else {
+          // Remove key (value is null)
+          dstAttrs.splice(dstIdx, 2);
+          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, null);
+        }
+      }
     };
 
-    const record = (key: string, value: any) => {
+    const record = (key: string, value: any, dstIdx: number, isNewKey: boolean) => {
       if (key.startsWith(':')) {
         vnode.setProp(key, value);
         return;
@@ -921,15 +950,21 @@ export const vnode_diff = (
       }
 
       if (isPromise(value)) {
+        // For async values, we can't use the known index since it will be stale by the time
+        // the promise resolves. Do a binary search to find the current index.
         const vHost = vnode as ElementVNode;
-        const attributePromise = value.then((resolvedValue) =>
-          setAttribute(key, resolvedValue, vHost)
-        );
+        const attributePromise = value.then((resolvedValue) => {
+          const idx = mapApp_findIndx(dstAttrs, key, 0);
+          const isNewKey = idx < 0;
+          const currentDstIdx = isNewKey ? idx ^ -1 : idx;
+          setAttributeDirect(vHost, key, resolvedValue, currentDstIdx, isNewKey);
+        });
         asyncAttributePromises.push(attributePromise);
         return;
       }
 
-      setAttribute(key, value, vnode);
+      // Always use optimized direct path - we know the index from the merge algorithm
+      setAttributeDirect(vnode, key, value, dstIdx, isNewKey);
     };
 
     const recordJsxEvent = (key: string, value: any) => {
@@ -938,7 +973,8 @@ export const vnode_diff = (
         const [scope, eventName] = data;
         const scopedEvent = getScopedEventName(scope, eventName);
         const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-        record(':' + scopedEvent, value);
+        // Pass dummy index values since ':' prefixed keys take early return via setProp
+        record(':' + scopedEvent, value, 0, false);
         // register an event for qwik loader (window/document prefixed with '-')
         registerQwikLoaderEvent(loaderScopedEvent);
         patchEventDispatch = true;
@@ -951,8 +987,8 @@ export const vnode_diff = (
       const srcKey = srcIdx < srcAttrs.length ? (srcAttrs[srcIdx] as string) : undefined;
       const dstKey = dstIdx < dstAttrs.length ? (dstAttrs[dstIdx] as string) : undefined;
 
-      // Skip special keys in destination (HANDLER_PREFIX, Q_PREFIX)
-      if (dstKey?.startsWith(HANDLER_PREFIX) || dstKey?.startsWith(Q_PREFIX)) {
+      // Skip special keys in destination HANDLER_PREFIX
+      if (dstKey?.startsWith(HANDLER_PREFIX)) {
         dstIdx += 2; // skip key and value
         continue;
       }
@@ -963,7 +999,7 @@ export const vnode_diff = (
           // HTML event attributes are immutable and not removed from DOM
           dstIdx += 2; // skip key and value
         } else {
-          record(dstKey!, null);
+          record(dstKey!, null, dstIdx, false);
           // After removal, dstAttrs shrinks by 2, so don't advance dstIdx
         }
       } else if (dstKey === undefined) {
@@ -972,7 +1008,7 @@ export const vnode_diff = (
         if (isHtmlAttributeAnEventName(srcKey)) {
           recordJsxEvent(srcKey, srcValue);
         } else {
-          record(srcKey, srcValue);
+          record(srcKey, srcValue, dstIdx, true);
         }
         srcIdx += 2; // skip key and value
         // After addition, dstAttrs grows by 2 at sorted position, advance dstIdx
@@ -986,7 +1022,7 @@ export const vnode_diff = (
           if (isEventHandler) {
             recordJsxEvent(srcKey, srcValue);
           } else {
-            record(srcKey, srcValue);
+            record(srcKey, srcValue, dstIdx, false);
           }
         } else if (isEventHandler && !vnode.element.qDispatchEvent) {
           // Special case: add event handlers after resume
@@ -1001,7 +1037,7 @@ export const vnode_diff = (
         if (isHtmlAttributeAnEventName(srcKey)) {
           recordJsxEvent(srcKey, srcValue);
         } else {
-          record(srcKey, srcValue);
+          record(srcKey, srcValue, dstIdx, true);
         }
         srcIdx += 2; // skip key and value
         // After addition, dstAttrs grows at sorted position (before dstIdx), advance dstIdx
@@ -1012,7 +1048,7 @@ export const vnode_diff = (
           // HTML event attributes are immutable and not removed from DOM
           dstIdx += 2; // skip key and value
         } else {
-          record(dstKey, null);
+          record(dstKey, null, dstIdx, false);
           // After removal, dstAttrs shrinks at dstIdx, so don't advance dstIdx
         }
       }

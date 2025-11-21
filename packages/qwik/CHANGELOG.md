@@ -1,5 +1,23 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.15
+
+### Minor Changes
+
+- 🐞🩹 don't trigger document and window events for normal events (by [@Varixo](https://github.com/Varixo) in [#8170](https://github.com/QwikDev/qwik/pull/8170))
+
+- ✨ make props more reactive for var props (by [@Varixo](https://github.com/Varixo) in [#8156](https://github.com/QwikDev/qwik/pull/8156))
+
+### Patch Changes
+
+- 🐞🩹 defer setting scoped style until jsx is resolved (by [@Varixo](https://github.com/Varixo) in [#8161](https://github.com/QwikDev/qwik/pull/8161))
+
+- 🐞🩹 serialize correctly null or undefined value for signals (by [@Varixo](https://github.com/Varixo) in [#8160](https://github.com/QwikDev/qwik/pull/8160))
+
+- 🐞🩹 correct running chores handling edge case (by [@Varixo](https://github.com/Varixo) in [#8167](https://github.com/QwikDev/qwik/pull/8167))
+
+- 🐞🩹 setting undefined as input value (by [@Varixo](https://github.com/Varixo) in [#8157](https://github.com/QwikDev/qwik/pull/8157))
+
 ## 2.0.0-beta.14
 
 ### Major Changes

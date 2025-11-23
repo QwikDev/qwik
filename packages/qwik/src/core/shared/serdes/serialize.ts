@@ -34,7 +34,7 @@ import { isQrl, isSyncQrl } from '../qrl/qrl-utils';
 import { _OWNER, _PROPS_HANDLER, _UNINITIALIZED } from '../utils/constants';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { ELEMENT_ID, ELEMENT_PROPS, QBackRefs } from '../utils/markers';
-import { isPromise } from '../utils/promises';
+import { isPromise, maybeThen } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
@@ -386,10 +386,9 @@ export async function serialize(serializationContext: SerializationContext): Pro
     } else if (value instanceof SignalImpl) {
       if (value instanceof SerializerSignalImpl) {
         addPreloadQrl(value.$computeQrl$);
-        const forwardRefId = resolvePromise(
-          getCustomSerializerPromise(value, value.$untrackedValue$),
-          $addRoot$,
-          (resolved, resolvedValue) => {
+        const maybeValue = getCustomSerializerPromise(value, value.$untrackedValue$);
+        if (isPromise(maybeValue)) {
+          const forwardRefId = resolvePromise(maybeValue, $addRoot$, (resolved, resolvedValue) => {
             return new PromiseResult(
               TypeIds.SerializerSignal,
               resolved,
@@ -397,9 +396,11 @@ export async function serialize(serializationContext: SerializationContext): Pro
               value.$effects$,
               value.$computeQrl$
             );
-          }
-        );
-        output(TypeIds.ForwardRef, forwardRefId);
+          });
+          output(TypeIds.ForwardRef, forwardRefId);
+        } else {
+          output(TypeIds.SerializerSignal, [value.$computeQrl$, value.$effects$, maybeValue]);
+        }
         return;
       }
 
@@ -606,7 +607,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
   function resolvePromise(
     promise: Promise<unknown>,
     $addRoot$: (obj: unknown) => number,
-    classCreator: (resolved: boolean, resolvedValue: unknown) => PromiseResult
+    classCreator: (didResolve: boolean, resolvedValue: unknown) => PromiseResult
   ) {
     const forwardRefId = forwardRefsId++;
     promise
@@ -686,20 +687,27 @@ export class PromiseResult {
   ) {}
 }
 function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
-  return new Promise((resolve) => {
-    (signal.$computeQrl$ as QRLInternal<SerializerArg<T, S>>).resolve().then((arg) => {
+  return maybeThen(
+    (signal.$computeQrl$.resolved || signal.$computeQrl$.resolve()) as any as SerializerArg<
+      unknown,
+      unknown
+    >,
+    (arg) => {
       let data;
-      if ((arg as any).serialize) {
+      if (typeof arg === 'function') {
+        arg = arg();
+      }
+      if (arg.serialize) {
         data = (arg as any).serialize(value);
-      } else if (SerializerSymbol in value) {
+      } else if (typeof value === 'object' && SerializerSymbol in value) {
         data = (value as any)[SerializerSymbol](value);
       }
       if (data === undefined) {
         data = NEEDS_COMPUTATION;
       }
-      resolve(data);
-    });
-  });
+      return data;
+    }
+  );
 }
 
 const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {

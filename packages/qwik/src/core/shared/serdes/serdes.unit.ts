@@ -1,17 +1,13 @@
 import { $, componentQrl, noSerialize } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
-import { _createDeserializeContainer } from './serdes.public';
-import { _dumpState } from './dump-state';
-import { createSerializationContext } from './serialization-context';
-import { _typeIdNames } from './constants';
-import { TypeIds } from './constants';
 import { _fnSignal, _wrapProp } from '../../internal';
+import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { createStore } from '../../reactive-primitives/impl/store';
 import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
 import {
   createComputedQrl,
-  createSerializerQrl,
+  createSerializer$,
   createSignal,
   isSignal,
 } from '../../reactive-primitives/signal.public';
@@ -29,9 +25,12 @@ import { createQRL, type QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { retryOnPromise } from '../utils/promises';
-import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from './verify';
-import { _constants } from './constants';
+import { _constants, _typeIdNames, TypeIds } from './constants';
+import { _dumpState } from './dump-state';
+import { _createDeserializeContainer } from './serdes.public';
+import { createSerializationContext } from './serialization-context';
 import { _serializationWeakRef } from './serialize';
+import { NoSerializeSymbol, SerializerSymbol, verifySerializable } from './verify';
 
 const DEBUG = false;
 
@@ -561,37 +560,65 @@ describe('shared-serialization', () => {
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
-      const custom = createSerializerQrl(
-        inlinedQrl<{
-          serialize: (data: any | undefined) => any;
-          deserialize: (data: any) => any;
-          initial?: any;
-        }>(
-          {
-            deserialize: (n?: number) => new MyCustomSerializable(n || 3),
-            serialize: (obj) => obj.n,
-          },
-          'custom_createSerializer_qrl'
-        )
-      );
+      const plain = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+      });
       // Force the value to be created
-      custom.value.inc();
-      const objs = await serialize(custom);
+      plain.value.inc();
+      const unread = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+      });
+      const thunked = createSerializer$(() => ({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+      }));
+      const promised = createSerializer$(() => ({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+      })) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      promised.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
+
+      const objs = await serialize([plain, unread, thunked, promised]);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 ForwardRef 0
-        1 PreloadQRL "2 3"
-        2 {string} "mock-chunk"
-        3 {string} "custom_createSerializer_qrl"
-        4 SerializerSignal [
-          RootRef 1
+        0 Array [
+          SerializerSignal [
+            RootRef 1
+            Constant undefined
+            {number} 4
+          ]
+          SerializerSignal [
+            RootRef 2
+            Constant undefined
+            Constant NEEDS_COMPUTATION
+          ]
+          SerializerSignal [
+            RootRef 3
+            Constant undefined
+            Constant NEEDS_COMPUTATION
+          ]
+          ForwardRef 0
+        ]
+        1 PreloadQRL "5 6"
+        2 PreloadQRL "5 7"
+        3 PreloadQRL "5 8"
+        4 PreloadQRL "5 9"
+        5 {string} "mock-chunk"
+        6 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
+        7 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
+        8 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
+        9 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
+        10 SerializerSignal [
+          RootRef 4
           Constant undefined
-          {number} 4
+          Constant NEEDS_COMPUTATION
         ]
-        5 ForwardRefs [
-          4
+        11 ForwardRefs [
+          10
         ]
-        (85 chars)"
+        (382 chars)"
       `);
     });
     it(title(TypeIds.AsyncComputedSignal), async () => {

@@ -148,15 +148,15 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$setServerData$();
     element.setAttribute(QContainerAttr, QContainerValue.RESUMED);
     element.qContainer = this;
-    if (!qTest && element.isConnected) {
-      element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
-    }
     const qwikStates = element.querySelectorAll('script[type="qwik/state"]');
     if (qwikStates.length !== 0) {
       const lastState = qwikStates[qwikStates.length - 1];
       this.$rawStateData$ = JSON.parse(lastState.textContent!);
       preprocessState(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
+    }
+    if (!qTest && element.isConnected) {
+      element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
   }
 

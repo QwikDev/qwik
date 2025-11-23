@@ -7,6 +7,8 @@ export const NoResume = component$(() => {
       <div>This turns red on resume</div>
       <button
         document:onQResume$={() => {
+          // this should not crash
+          void sig.value;
           document.body.style.color = "red";
         }}
         onClick$={() => {

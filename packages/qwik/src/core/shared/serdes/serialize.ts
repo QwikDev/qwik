@@ -687,6 +687,9 @@ export class PromiseResult {
   ) {}
 }
 function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, value: any) {
+  if (value === NEEDS_COMPUTATION) {
+    return value;
+  }
   return maybeThen(
     (signal.$computeQrl$.resolved || signal.$computeQrl$.resolve()) as any as SerializerArg<
       unknown,

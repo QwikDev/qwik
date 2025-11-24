@@ -569,18 +569,28 @@ describe('shared-serialization', () => {
       const unread = createSerializer$({
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
+        initial: 7,
       });
       const thunked = createSerializer$(() => ({
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
       }));
+      thunked.value.inc();
       const promised = createSerializer$(() => ({
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
       })) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      promised.value.inc();
+      // Fake promise
       promised.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
+      const unreadPromise = createSerializer$({
+        deserialize: (n?: number) => new MyCustomSerializable(n || 3),
+        serialize: (obj) => obj.n,
+        initial: 7,
+      }) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      unreadPromise.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
 
-      const objs = await serialize([plain, unread, thunked, promised]);
+      const objs = await serialize([plain, unread, thunked, promised, unreadPromise]);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 Array [
@@ -597,28 +607,35 @@ describe('shared-serialization', () => {
           SerializerSignal [
             RootRef 3
             Constant undefined
-            Constant NEEDS_COMPUTATION
+            {number} 4
           ]
           ForwardRef 0
+          SerializerSignal [
+            RootRef 5
+            Constant undefined
+            Constant NEEDS_COMPUTATION
+          ]
         ]
-        1 PreloadQRL "5 6"
-        2 PreloadQRL "5 7"
-        3 PreloadQRL "5 8"
-        4 PreloadQRL "5 9"
-        5 {string} "mock-chunk"
-        6 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
-        7 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
-        8 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
-        9 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
-        10 SerializerSignal [
+        1 PreloadQRL "6 7"
+        2 PreloadQRL "6 8"
+        3 PreloadQRL "6 9"
+        4 PreloadQRL "6 10"
+        5 PreloadQRL "6 11"
+        6 {string} "mock-chunk"
+        7 {string} "describe_describe_it_plain_createSerializer_IrZN04alftE"
+        8 {string} "describe_describe_it_unread_createSerializer_oYdaCRjw9Q0"
+        9 {string} "describe_describe_it_thunked_createSerializer_ufw7hr9vFDo"
+        10 {string} "describe_describe_it_promised_createSerializer_YCkDOYPyCO0"
+        11 {string} "describe_describe_it_unreadPromise_createSerializer_8vLYtMSnQio"
+        12 SerializerSignal [
           RootRef 4
           Constant undefined
-          Constant NEEDS_COMPUTATION
+          {number} 4
         ]
-        11 ForwardRefs [
-          10
+        13 ForwardRefs [
+          12
         ]
-        (382 chars)"
+        (478 chars)"
       `);
     });
     it(title(TypeIds.AsyncComputedSignal), async () => {

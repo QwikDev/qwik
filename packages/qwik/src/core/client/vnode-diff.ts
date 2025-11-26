@@ -498,6 +498,7 @@ export const vnode_diff = (
     if (vProjectedNode == null) {
       // Nothing to project, so render content of the slot.
       vnode_insertBefore(
+        container,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
@@ -512,6 +513,7 @@ export const vnode_diff = (
     } else {
       // move from q:template to the target node
       vnode_insertBefore(
+        container,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
@@ -544,7 +546,7 @@ export const vnode_diff = (
           continue;
         }
         cleanup(container, vNode);
-        vnode_remove(vParent, vNode, true);
+        vnode_remove(container, vParent, vNode, true);
       }
       vSideBuffer.clear();
       vSideBuffer = null;
@@ -589,7 +591,7 @@ export const vnode_diff = (
         cleanup(container, vChild);
         vChild = vChild.nextSibling as VNode | null;
       }
-      vnode_truncate(vCurrent as ElementVNode | VirtualVNode, vFirstChild);
+      vnode_truncate(container, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
   }
 
@@ -604,7 +606,7 @@ export const vnode_diff = (
           cleanup(container, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
-          vnode_remove(vParent, toRemove, true);
+          vnode_remove(container, vParent, toRemove, true);
         }
       }
     }
@@ -615,7 +617,7 @@ export const vnode_diff = (
       cleanup(container, vCurrent);
       const toRemove = vCurrent;
       advanceToNextSibling();
-      vnode_remove(vParent, toRemove, true);
+      vnode_remove(container, vParent, toRemove, true);
     }
   }
 
@@ -666,7 +668,7 @@ export const vnode_diff = (
               vnode_setProp(vNewNode!, HANDLER_PREFIX + ':' + scopedEvent, value);
               if (scope) {
                 // window and document need attrs so qwik loader can find them
-                vnode_setAttr(vNewNode!, key, '');
+                vnode_setAttr(container, vNewNode!, key, '');
               }
               // register an event for qwik loader (window/document prefixed with '-')
               registerQwikLoaderEvent(loaderScopedEvent);
@@ -744,7 +746,7 @@ export const vnode_diff = (
       }
     }
 
-    vnode_insertBefore(vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
+    vnode_insertBefore(container, vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
 
     return needsQDispatchEventPatch;
   }
@@ -829,7 +831,7 @@ export const vnode_diff = (
     const setAttribute = (vnode: ElementVNode, key: string, value: any) => {
       const serializedValue =
         value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-      vnode_setAttr(vnode, key, serializedValue);
+      vnode_setAttr(container, vnode, key, serializedValue);
     };
 
     const record = (key: string, value: any) => {
@@ -1092,7 +1094,12 @@ export const vnode_diff = (
             }
           }
         }
-        vnode_insertBefore(parentForInsert as ElementVNode | VirtualVNode, buffered, vCurrent);
+        vnode_insertBefore(
+          container,
+          parentForInsert as ElementVNode | VirtualVNode,
+          buffered,
+          vCurrent
+        );
         vCurrent = buffered;
         vNewNode = null;
         return;
@@ -1117,6 +1124,7 @@ export const vnode_diff = (
 
     const createNew = () => {
       vnode_insertBefore(
+        container,
         vParent as VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
@@ -1259,6 +1267,7 @@ export const vnode_diff = (
       clearAllEffects(container, host);
     }
     vnode_insertBefore(
+      container,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -1272,6 +1281,7 @@ export const vnode_diff = (
 
   function insertNewInlineComponent() {
     vnode_insertBefore(
+      container,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -1289,13 +1299,14 @@ export const vnode_diff = (
       const type = vnode_getType(vCurrent);
       if (type === 3 /* Text */) {
         if (text !== vnode_getText(vCurrent as TextVNode)) {
-          vnode_setText(vCurrent as TextVNode, text);
+          vnode_setText(container, vCurrent as TextVNode, text);
           return;
         }
         return;
       }
     }
     vnode_insertBefore(
+      container,
       vParent as VirtualVNode,
       (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent
@@ -1542,7 +1553,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(projection);
+                cleanupStaleUnclaimedProjection(container, projection);
               }
             }
           }
@@ -1615,7 +1626,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(projection: VNode) {
+function cleanupStaleUnclaimedProjection(container: ClientContainer, projection: VNode) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -1626,7 +1637,7 @@ function cleanupStaleUnclaimedProjection(projection: VNode) {
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
-      vnode_remove(projectionParent as ElementVNode | VirtualVNode, projection, true);
+      vnode_remove(container, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }
 }

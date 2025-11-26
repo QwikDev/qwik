@@ -23,6 +23,7 @@ import {
   setVNodePromise,
   setNextChildIndex,
   getNextChildIndex,
+  getCursorContainer,
 } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
@@ -34,6 +35,7 @@ import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
+import { assertDefined } from '../error/assert';
 
 const DEBUG = true;
 
@@ -75,22 +77,6 @@ export function processCursorQueue(
   }
 }
 
-export function findContainerForVNode(vNode: VNode): Container {
-  let element: Element;
-  if (vnode_isElementVNode(vNode)) {
-    element = vNode.node;
-  } else {
-    let parent = vNode.parent;
-    while (parent) {
-      if (vnode_isElementVNode(parent)) {
-        element = parent.node;
-        break;
-      }
-      parent = parent.parent;
-    }
-  }
-  return getDomContainer(element!);
-}
 let globalCount = 0;
 
 /**
@@ -134,7 +120,8 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     throw new Error('Infinite loop detected in cursor walker');
   }
 
-  const container = findContainerForVNode(cursor);
+  const container = getCursorContainer(cursor);
+  assertDefined(container, 'Cursor container not found');
   // Get starting position (resume from last position or start at root)
   let currentVNode: VNode | null = null;
 
@@ -237,7 +224,7 @@ function getNextVNode(vNode: VNode): VNode | null {
   while (count-- > 0) {
     const nextVNode = dirtyChildren[index];
     if (nextVNode.dirty & ChoreBits.DIRTY_MASK) {
-      setNextChildIndex(parent, index + 1);
+      setNextChildIndex(parent, (index + 1) % len);
       return nextVNode;
     }
     index++;

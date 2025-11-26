@@ -403,8 +403,8 @@ importers:
         specifier: 3.3.0
         version: 3.3.0
       playwright:
-        specifier: 1.56.0
-        version: 1.56.0
+        specifier: 1.55.1
+        version: 1.55.1
       prettier:
         specifier: 3.6.2
         version: 3.6.2
@@ -445,8 +445,8 @@ importers:
         specifier: '*'
         version: 7.16.0
       valibot:
-        specifier: 1.2.0
-        version: 1.2.0(typescript@5.4.5)
+        specifier: 0.33.3
+        version: 0.33.3
       vite:
         specifier: 7.2.4
         version: 7.2.4(@types/node@20.19.0)(jiti@2.6.0)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.6.1)
@@ -8221,8 +8221,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright-core@1.56.0:
-    resolution: {integrity: sha512-1SXl7pMfemAMSDn5rkPeZljxOCYAmQnYLBTExuh6E8USHXGSX3dx6lYZN/xPpTz1vimXmPA9CDnILvmJaB8aSQ==}
+  playwright-core@1.55.1:
+    resolution: {integrity: sha512-Z6Mh9mkwX+zxSlHqdr5AOcJnfp+xUWLCt9uKV18fhzA8eyxUd8NUWzAjxUh55RZKSYwDGX0cfaySdhZJGMoJ+w==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -8231,8 +8231,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.56.0:
-    resolution: {integrity: sha512-X5Q1b8lOdWIE4KAoHpW3SE8HvUB+ZZsUoN64ZhjnN8dOb1UpujxBtENGiZFE+9F/yhzJwYa+ca3u43FeLbboHA==}
+  playwright@1.55.1:
+    resolution: {integrity: sha512-cJW4Xd/G3v5ovXtJJ52MAOclqeac9S/aGGgRzLabuF8TnIb6xHvMzKIa6JmrRzUkeXJgfL1MhukP0NK6l39h3A==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -9814,6 +9814,9 @@ packages:
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
+
+  valibot@0.33.3:
+    resolution: {integrity: sha512-/fuY1DlX8uiQ7aphlzrrI2DbG0YJk84JMgvz2qKpUIdXRNsS53varfo4voPjSrjUr5BSV2K0miSEJUOlA5fQFg==}
 
   valibot@1.2.0:
     resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
@@ -18490,7 +18493,7 @@ snapshots:
 
   playwright-core@1.54.1: {}
 
-  playwright-core@1.56.0: {}
+  playwright-core@1.55.1: {}
 
   playwright@1.54.1:
     dependencies:
@@ -18498,9 +18501,9 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.2
 
-  playwright@1.56.0:
+  playwright@1.55.1:
     dependencies:
-      playwright-core: 1.56.0
+      playwright-core: 1.55.1
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -20217,6 +20220,8 @@ snapshots:
       sade: 1.8.1
 
   v8-compile-cache-lib@3.0.1: {}
+
+  valibot@0.33.3: {}
 
   valibot@1.2.0(typescript@5.4.5):
     optionalDependencies:

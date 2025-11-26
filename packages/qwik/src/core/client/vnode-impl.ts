@@ -7,10 +7,9 @@ import {
   type VNodeJournal,
 } from './vnode';
 import type { ChoreArray } from './chore-array';
-import { _EFFECT_BACK_REF } from '../reactive-primitives/types';
-import { BackRef } from '../reactive-primitives/cleanup';
 import { isDev } from '@qwik.dev/core/build';
 import type { QElement } from '../shared/types';
+import { BackRef } from '../reactive-primitives/backref';
 
 /** @internal */
 export abstract class VNode extends BackRef {

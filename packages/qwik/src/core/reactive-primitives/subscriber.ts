@@ -1,9 +1,9 @@
 import { isServer } from '@qwik.dev/core/build';
 import { QBackRefs } from '../shared/utils/markers';
 import type { ISsrNode } from '../ssr/ssr-types';
-import { BackRef } from './cleanup';
 import type { Consumer, EffectProperty, EffectSubscription } from './types';
-import { _EFFECT_BACK_REF, EffectSubscriptionProp } from './types';
+import { EffectSubscriptionProp } from './types';
+import { _EFFECT_BACK_REF, type BackRef } from './backref';
 
 export function getSubscriber(
   effect: Consumer,

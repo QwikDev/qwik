@@ -1,13 +1,11 @@
 import { qwikDebugToString } from '../../debug';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
-import { ChoreType } from '../../shared/util-chore-type';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
-import type { BackRef } from '../cleanup';
+import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import {
-  _EFFECT_BACK_REF,
   AsyncComputeQRL,
   EffectProperty,
   EffectSubscription,
@@ -69,12 +67,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedLoading(value: boolean) {
     if (value !== this.$untrackedLoading$) {
       this.$untrackedLoading$ = value;
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        undefined,
-        this,
-        this.$loadingEffects$
-      );
+      scheduleEffects(this.$container$, this, this.$loadingEffects$);
     }
   }
 
@@ -94,12 +87,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedError(value: Error | undefined) {
     if (value !== this.$untrackedError$) {
       this.$untrackedError$ = value;
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        undefined,
-        this,
-        this.$errorEffects$
-      );
+      scheduleEffects(this.$container$, this, this.$errorEffects$);
     }
   }
 

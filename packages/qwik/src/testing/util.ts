@@ -1,6 +1,5 @@
 import { normalize } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ChoreType } from '../core/shared/util-chore-type';
 import type { Container } from '../core/shared/types';
 
 /** @public */
@@ -104,5 +103,5 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
  * @public
  */
 export async function waitForDrain(container: Container) {
-  await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+  await container.$renderPromise$;
 }

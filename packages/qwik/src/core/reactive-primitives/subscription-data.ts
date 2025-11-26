@@ -17,3 +17,9 @@ export class SubscriptionData {
     this.data = data;
   }
 }
+
+export interface NodeProp {
+  isConst: boolean;
+  scopedStyleIdPrefix: string | null;
+  value: Signal<unknown> | string;
+}

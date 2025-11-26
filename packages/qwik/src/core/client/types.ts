@@ -2,8 +2,8 @@
 
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
-import type { VNodeJournal } from './vnode';
-import type { ElementVNode, VirtualVNode } from './vnode-impl';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 export type ClientAttrKey = string;
 export type ClientAttrValue = string | null;
@@ -17,9 +17,7 @@ export interface ClientContainer extends Container {
   $locale$: string;
   qManifestHash: string;
   rootVNode: ElementVNode;
-  $journal$: VNodeJournal;
   $forwardRefs$: Array<number> | null;
-  $flushEpoch$: number;
   parseQRL<T = unknown>(qrl: string): QRL<T>;
   $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void;
 }
@@ -74,30 +72,32 @@ export interface QDocument extends Document {
  * @internal
  */
 export const enum VNodeFlags {
-  Element /* ****************** */ = 0b00_000001,
-  Virtual /* ****************** */ = 0b00_000010,
-  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_000011,
-  Text /* ********************* */ = 0b00_000100,
-  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_000101,
-  TYPE_MASK /* **************** */ = 0b00_000111,
-  INFLATED_TYPE_MASK /* ******* */ = 0b00_001111,
+  Element /* ****************** */ = 0b00_0000001,
+  Virtual /* ****************** */ = 0b00_0000010,
+  ELEMENT_OR_VIRTUAL_MASK /* ** */ = 0b00_0000011,
+  Text /* ********************* */ = 0b00_0000100,
+  ELEMENT_OR_TEXT_MASK /* ***** */ = 0b00_0000101,
+  TYPE_MASK /* **************** */ = 0b00_0000111,
+  INFLATED_TYPE_MASK /* ******* */ = 0b00_0001111,
   /// Extra flag which marks if a node needs to be inflated.
-  Inflated /* ***************** */ = 0b00_001000,
+  Inflated /* ***************** */ = 0b00_0001000,
   /// Marks if the `ensureProjectionResolved` has been called on the node.
-  Resolved /* ***************** */ = 0b00_010000,
+  Resolved /* ***************** */ = 0b00_0010000,
   /// Marks if the vnode is deleted.
-  Deleted /* ****************** */ = 0b00_100000,
+  Deleted /* ****************** */ = 0b00_0100000,
+  /// Marks if the vnode is a cursor (has priority set).
+  Cursor /* ******************* */ = 0b00_1000000,
   /// Flags for Namespace
-  NAMESPACE_MASK /* *********** */ = 0b11_000000,
-  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_000000,
-  NS_html /* ****************** */ = 0b00_000000, // http://www.w3.org/1999/xhtml
-  NS_svg /* ******************* */ = 0b01_000000, // http://www.w3.org/2000/svg
-  NS_math /* ****************** */ = 0b10_000000, // http://www.w3.org/1998/Math/MathML
+  NAMESPACE_MASK /* *********** */ = 0b11_0000000,
+  NEGATED_NAMESPACE_MASK /* ** */ = ~0b11_0000000,
+  NS_html /* ****************** */ = 0b00_0000000, // http://www.w3.org/1999/xhtml
+  NS_svg /* ******************* */ = 0b01_0000000, // http://www.w3.org/2000/svg
+  NS_math /* ****************** */ = 0b10_0000000, // http://www.w3.org/1998/Math/MathML
 }
 
 export const enum VNodeFlagsIndex {
-  mask /* ************** */ = 0b11_111111,
-  shift /* ************* */ = 8,
+  mask /* ************** */ = 0b11_1111111,
+  shift /* ************* */ = 9,
 }
 
 export const enum VNodeProps {

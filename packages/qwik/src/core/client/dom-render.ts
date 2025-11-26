@@ -1,13 +1,15 @@
-import type { FunctionComponent, JSXNode, JSXOutput } from '../shared/jsx/types/jsx-node';
+import type { FunctionComponent, JSXOutput } from '../shared/jsx/types/jsx-node';
 import { isDocument, isElement } from '../shared/utils/element';
-import { ChoreType } from '../shared/util-chore-type';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
-import { QContainerAttr } from '../shared/utils/markers';
+import { NODE_DIFF_DATA_KEY, QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
 import { qDev } from '../shared/utils/qdev';
 import { QError, qError } from '../shared/error/error';
+import { vnode_setProp } from './vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 
 /**
  * Render JSX.
@@ -42,8 +44,9 @@ export const render = async (
   const container = getDomContainer(parent as HTMLElement) as DomContainer;
   container.$serverData$ = opts.serverData || {};
   const host = container.rootVNode;
-  container.$scheduler$(ChoreType.NODE_DIFF, host, host, jsxNode as JSXNode);
-  await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+  vnode_setProp(host, NODE_DIFF_DATA_KEY, jsxNode);
+  markVNodeDirty(container, host, ChoreBits.NODE_DIFF);
+  await container.$renderPromise$;
   return {
     cleanup: () => {
       cleanup(container, container.rootVNode);

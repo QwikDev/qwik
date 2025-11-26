@@ -10,14 +10,13 @@ import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
 import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ClientContainer, type ContainerElement } from '../client/types';
+import { type ClientContainer } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { ChoreType } from '../shared/util-chore-type';
 
 declare const document: QwikDocument;
 
@@ -39,7 +38,7 @@ export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.
   $hostElement$: HostElement;
   $event$: PossibleEvents;
-  $waitOn$: Promise<unknown>[];
+  $waitOn$: Promise<unknown> | null;
   $container$: Container;
 }
 
@@ -283,28 +282,8 @@ export const _jsxBranch = <T>(input?: T) => {
 };
 
 /** @internal */
-export const _waitUntilRendered = (elm: Element) => {
-  const container = (_getQContainerElement(elm) as ContainerElement | undefined)?.qContainer;
-  if (!container) {
-    return Promise.resolve();
-  }
-
-  // Multi-cycle idle: loop WAIT_FOR_QUEUE until the flush epoch stays stable
-  // across an extra microtask, which signals that no new work re-scheduled.
-  return (async () => {
-    for (;;) {
-      await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
-
-      const firstEpoch = container.$flushEpoch$ || 0;
-      // Give a microtask for any immediate follow-up scheduling to enqueue
-      await Promise.resolve();
-      const secondEpoch = container.$flushEpoch$ || 0;
-
-      // If no epoch change occurred during and after WAIT_FOR_QUEUE, we are idle.
-      if (firstEpoch === secondEpoch) {
-        return;
-      }
-      // Continue loop if epoch advanced, meaning more work flushed.
-    }
-  })();
+export const _waitUntilRendered = (elm: Element): Promise<void> => {
+  const container = getDomContainer(elm);
+  const promise = container?.$renderPromise$;
+  return promise || Promise.resolve();
 };

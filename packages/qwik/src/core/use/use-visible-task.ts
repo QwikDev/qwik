@@ -3,7 +3,8 @@ import { isServerPlatform } from '../shared/platform/platform';
 import { createQRL, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { ChoreType } from '../shared/util-chore-type';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { useOn, useOnDocument } from './use-on';
 import { useSequentialScope } from './use-sequential-scope';
 import { Task, TaskFlags, scheduleTask, type TaskFn } from './use-task';
@@ -42,8 +43,10 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   set(task);
   useRunTask(task, eagerness);
   if (!isServerPlatform()) {
-    (qrl as QRLInternal).resolve(iCtx.$element$);
-    iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
+    if (!qrl.resolved) {
+      (qrl as QRLInternal).resolve(iCtx.$element$);
+    }
+    markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.VISIBLE_TASKS);
   }
 };
 

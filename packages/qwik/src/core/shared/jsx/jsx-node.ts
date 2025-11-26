@@ -82,7 +82,6 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
         }
       }
 
-      // TODO let the optimizer do this instead
       if ('className' in this.varProps) {
         this.varProps.class = this.varProps.className;
         this.varProps.className = undefined;
@@ -93,6 +92,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
           );
         }
       }
+      // TODO let the optimizer do this instead
       if (this.constProps && 'className' in this.constProps) {
         this.constProps.class = this.constProps.className;
         this.constProps.className = undefined;

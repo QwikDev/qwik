@@ -1,5 +1,4 @@
 import { isBrowser } from '@builder.io/qwik';
-// @ts-expect-error we don't have types for the preloader yet
 import { p as preload } from '@builder.io/qwik/preloader';
 import type { NavigationType, ScrollState } from './types';
 import { isSamePath, toPath } from './utils';

@@ -81,11 +81,8 @@ export function getDomContainerFromQContainerElement(qContainerElement: Element)
 }
 
 /** @internal */
-export function _getQContainerElement(element: Element | VNode): Element | null {
-  const qContainerElement: Element | null = vnode_isVNode(element)
-    ? (vnode_getDomParent(element, true) as Element)
-    : element;
-  return qContainerElement.closest(QContainerSelector);
+export function _getQContainerElement(element: Element): Element | null {
+  return element.closest(QContainerSelector);
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {

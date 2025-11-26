@@ -35,7 +35,7 @@ export function qwikDebugToString(value: any): any {
         stringifyPath.push(value);
         if (Array.isArray(value)) {
           if (vnode_isVNode(value)) {
-            return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+            return '(' + (vnode_getProp(value, DEBUG_TYPE, null) || 'vnode') + ')';
           } else {
             return value.map(qwikDebugToString);
           }
@@ -52,7 +52,7 @@ export function qwikDebugToString(value: any): any {
         } else if (isJSXNode(value)) {
           return jsxToString(value);
         } else if (vnode_isVNode(value)) {
-          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+          return '(' + (vnode_getProp(value, DEBUG_TYPE, null) || 'vnode') + ')';
         }
       } finally {
         stringifyPath.pop();

@@ -173,6 +173,7 @@ import { TextVNode } from '../shared/vnode/text-vnode';
 import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import { VNodeOperationType } from '../shared/vnode/enums/vnode-operation-type.enum';
 import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
+import { isCursor } from '../shared/cursor/cursor';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1801,6 +1802,15 @@ export function vnode_toString(
     } else if (vnode_isElementVNode(vnode)) {
       const tag = vnode_getElementName(vnode);
       const attrs: string[] = [];
+      if (isCursor(vnode)) {
+        attrs.push(' cursor');
+      }
+      if (vnode.dirty) {
+        attrs.push(` dirty:${vnode.dirty}`);
+      }
+      if (vnode.dirtyChildren) {
+        attrs.push(` dirtyChildren[${vnode.dirtyChildren.length}]`);
+      }
       const keys = vnode_getAttrKeys(vnode);
       keys.forEach((key) => {
         const value = vnode_getProp(vnode!, key, null);

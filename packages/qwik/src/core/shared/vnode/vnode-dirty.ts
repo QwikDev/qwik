@@ -1,4 +1,3 @@
-import { getDomContainer } from '../../client/dom-container';
 import { addCursor, findCursor } from '../cursor/cursor';
 import { getCursorPosition, setCursorPosition } from '../cursor/cursor-props';
 import { findContainerForVNode } from '../cursor/cursor-walker';
@@ -52,7 +51,7 @@ export function markVNodeDirty(container: Container | null, vNode: VNode, bits: 
       try {
         container = findContainerForVNode(vNode)!;
       } catch {
-        console.error('markVNodeDirty: unable to find container for', vNode);
+        console.error('markVNodeDirty: unable to find container for', vNode.toString());
         return;
       }
     }

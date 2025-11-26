@@ -1,4 +1,3 @@
-import type { DomContainer } from '../../client/dom-container';
 import { _EFFECT_BACK_REF } from '../../internal';
 import type { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import type { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -24,7 +23,6 @@ import { PropsProxy } from '../jsx/props-proxy';
 import { JSXNodeImpl } from '../jsx/jsx-node';
 import type { QRLInternal } from '../qrl/qrl-class';
 import type { DeserializeContainer, HostElement } from '../types';
-import { ChoreType } from '../util-chore-type';
 import {
   _CONST_PROPS,
   _OWNER,
@@ -38,12 +36,13 @@ import { resolvers } from './allocate';
 import { TypeIds } from './constants';
 import {
   vnode_getFirstChild,
+  vnode_getProp,
   vnode_getText,
   vnode_isTextVNode,
   vnode_isVNode,
 } from '../../client/vnode';
-import type { VirtualVNode } from '../../client/vnode-impl';
 import { isString } from '../utils/types';
+import type { VirtualVNode } from '../vnode/virtual-vnode';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -207,7 +206,6 @@ export const inflate = (
          */
         // try to download qrl in this tick
         computed.$computeQrl$.resolve();
-        (container as DomContainer).$scheduler$(ChoreType.QRL_RESOLVE, null, computed.$computeQrl$);
       }
       break;
     }
@@ -347,7 +345,7 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
       for (const [_, key] of effects) {
         if (isString(key)) {
           // This is an attribute name, try to read its value
-          const attrValue = hostVNode.getAttr(key);
+          const attrValue = vnode_getProp(hostVNode, key, null);
           if (attrValue !== null) {
             signal.$untrackedValue$ = attrValue;
             hasAttrValue = true;

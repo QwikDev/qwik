@@ -3,21 +3,11 @@ import type { Container } from '../shared/types';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { StoreHandler, getStoreHandler } from './impl/store';
-import {
-  EffectSubscriptionProp,
-  _EFFECT_BACK_REF,
-  type Consumer,
-  type EffectProperty,
-  type EffectSubscription,
-} from './types';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
-import { isPropsProxy, type PropsProxyHandler } from '../shared/jsx/props-proxy';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
-
-/** Class for back reference to the EffectSubscription */
-export abstract class BackRef {
-  [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
-}
+import { BackRef, _EFFECT_BACK_REF } from './backref';
+import { EffectSubscriptionProp, type Consumer, type EffectSubscription } from './types';
+import { isPropsProxy, type PropsProxyHandler } from '../shared/jsx/props-proxy';
 
 export function clearAllEffects(container: Container, consumer: Consumer): void {
   if (vnode_isVNode(consumer) && vnode_isElementVNode(consumer)) {

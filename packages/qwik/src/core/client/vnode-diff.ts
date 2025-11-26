@@ -1,5 +1,4 @@
 import { isDev } from '@qwik.dev/core/build';
-import { _CONST_PROPS, _EFFECT_BACK_REF, _VAR_PROPS } from '../internal';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
@@ -27,13 +26,11 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { isSyncQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
-import { ChoreType } from '../shared/util-chore-type';
 import { escapeHTML } from '../shared/utils/character-escaping';
-import { _OWNER, _PROPS_HANDLER } from '../shared/utils/constants';
+import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
 import {
   fromCamelToKebabCase,
   getEventDataFromHtmlAttribute,
@@ -43,7 +40,6 @@ import {
 } from '../shared/utils/event-names';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
-  ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   OnRenderProp,
@@ -61,17 +57,15 @@ import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
-import type { DomContainer } from './dom-container';
-import { VNodeFlags, type ClientAttrs, type ClientContainer } from './types';
-import { mapApp_findIndx, mapArray_set } from './util-mapArray';
+import { VNodeFlags, type ClientContainer } from './types';
+import { mapApp_findIndx } from './util-mapArray';
 import {
-  VNodeJournalOpCode,
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getProjectionParentComponent,
-  vnode_getProps,
+  vnode_getProp,
   vnode_getText,
   vnode_getType,
   vnode_insertBefore,
@@ -85,17 +79,24 @@ import {
   vnode_newText,
   vnode_newVirtual,
   vnode_remove,
+  vnode_setAttr,
+  vnode_setProp,
   vnode_setText,
   vnode_truncate,
   vnode_walkVNode,
-  type VNodeJournal,
 } from './vnode';
-import { ElementVNode, TextVNode, VNode, VirtualVNode } from './vnode-impl';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isStore } from '../reactive-primitives/impl/store';
 import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import type { VNode } from '../shared/vnode/vnode';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import type { TextVNode } from '../shared/vnode/text-vnode';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 
 export const vnode_diff = (
   container: ClientContainer,
@@ -103,8 +104,6 @@ export const vnode_diff = (
   vStartNode: VNode,
   scopedStyleIdPrefix: string | null
 ) => {
-  let journal = (container as DomContainer).$journal$;
-
   /**
    * Stack is used to keep track of the state of the traversal.
    *
@@ -247,7 +246,6 @@ export const vnode_diff = (
           }
         } else if (jsxValue === (SkipRender as JSXChildren)) {
           // do nothing, we are skipping this node
-          journal = [];
         } else {
           expectText('');
         }
@@ -415,14 +413,15 @@ export const vnode_diff = (
 
     const projections: Array<string | JSXNodeInternal> = [];
     if (host) {
-      const props = vnode_getProps(host);
-      // we need to create empty projections for all the slots to remove unused slots content
-      for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
-        if (isSlotProp(prop)) {
-          const slotName = prop;
-          projections.push(slotName);
-          projections.push(createProjectionJSXNode(slotName));
+      const props = host.props;
+      if (props) {
+        // we need to create empty projections for all the slots to remove unused slots content
+        for (const prop of Object.keys(props)) {
+          if (isSlotProp(prop)) {
+            const slotName = prop;
+            projections.push(slotName);
+            projections.push(createProjectionJSXNode(slotName));
+          }
         }
       }
     }
@@ -462,7 +461,7 @@ export const vnode_diff = (
     const slotName = jsxNode.key as string;
     // console.log('expectProjection', JSON.stringify(slotName));
     // The parent is the component and it should have our portal.
-    vCurrent = (vParent as VirtualVNode).getProp<VirtualVNode | null>(slotName, (id) =>
+    vCurrent = vnode_getProp<VNode | null>(vParent as VirtualVNode, slotName, (id: string) =>
       vnode_locate(container.rootVNode, id)
     );
     // if projection is marked as deleted then we need to create a new one
@@ -473,11 +472,11 @@ export const vnode_diff = (
       // that is wrong. We don't yet know if the projection will be projected, so
       // we should leave it unattached.
       // vNewNode[VNodeProps.parent] = vParent;
-      isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.Projection);
-      isDev && (vNewNode as VirtualVNode).setProp('q:code', 'expectProjection');
-      (vNewNode as VirtualVNode).setProp(QSlot, slotName);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, 'q:code', 'expectProjection');
+      vnode_setProp(vNewNode as VirtualVNode, QSlot, slotName);
       (vNewNode as VirtualVNode).slotParent = vParent;
-      (vParent as VirtualVNode).setProp(slotName, vNewNode);
+      vnode_setProp(vParent as VirtualVNode, slotName, vNewNode);
     }
   }
 
@@ -485,45 +484,42 @@ export const vnode_diff = (
     const vHost = vnode_getProjectionParentComponent(vParent);
 
     const slotNameKey = getSlotNameKey(vHost);
-    // console.log('expectSlot', JSON.stringify(slotNameKey));
 
     const vProjectedNode = vHost
-      ? (vHost as VirtualVNode).getProp<VirtualVNode | null>(
+      ? vnode_getProp<VirtualVNode | null>(
+          vHost as VirtualVNode,
           slotNameKey,
           // for slots this id is vnode ref id
           null // Projections should have been resolved through container.ensureProjectionResolved
           //(id) => vnode_locate(container.rootVNode, id)
         )
       : null;
-    // console.log('   ', String(vHost), String(vProjectedNode));
+
     if (vProjectedNode == null) {
       // Nothing to project, so render content of the slot.
       vnode_insertBefore(
-        journal,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
-      (vNewNode as VirtualVNode).setProp(QSlot, slotNameKey);
-      vHost && (vHost as VirtualVNode).setProp(slotNameKey, vNewNode);
-      isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.Projection);
-      isDev && (vNewNode as VirtualVNode).setProp('q:code', 'expectSlot' + count++);
+      vnode_setProp(vNewNode as VirtualVNode, QSlot, slotNameKey);
+      vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, vNewNode);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
       return false;
     } else if (vProjectedNode === vCurrent) {
       // All is good.
-      // console.log('  NOOP', String(vCurrent));
     } else {
       // move from q:template to the target node
       vnode_insertBefore(
-        journal,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
       );
-      (vNewNode as VirtualVNode).setProp(QSlot, slotNameKey);
-      vHost && (vHost as VirtualVNode).setProp(slotNameKey, vNewNode);
-      isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.Projection);
-      isDev && (vNewNode as VirtualVNode).setProp('q:code', 'expectSlot' + count++);
+      vnode_setProp(vNewNode as VirtualVNode, QSlot, slotNameKey);
+      vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, vNewNode);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
+      isDev && vnode_setProp(vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
     }
     return true;
   }
@@ -548,7 +544,7 @@ export const vnode_diff = (
           continue;
         }
         cleanup(container, vNode);
-        vnode_remove(journal, vParent, vNode, true);
+        vnode_remove(vParent, vNode, true);
       }
       vSideBuffer.clear();
       vSideBuffer = null;
@@ -593,7 +589,7 @@ export const vnode_diff = (
         cleanup(container, vChild);
         vChild = vChild.nextSibling as VNode | null;
       }
-      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
+      vnode_truncate(vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
   }
 
@@ -608,7 +604,7 @@ export const vnode_diff = (
           cleanup(container, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
-          vnode_remove(journal, vParent, toRemove, true);
+          vnode_remove(vParent, toRemove, true);
         }
       }
     }
@@ -619,7 +615,7 @@ export const vnode_diff = (
       cleanup(container, vCurrent);
       const toRemove = vCurrent;
       advanceToNextSibling();
-      vnode_remove(journal, vParent, toRemove, true);
+      vnode_remove(vParent, toRemove, true);
     }
   }
 
@@ -667,10 +663,10 @@ export const vnode_diff = (
             const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
 
             if (eventName) {
-              vNewNode!.setProp(HANDLER_PREFIX + ':' + scopedEvent, value);
+              vnode_setProp(vNewNode!, HANDLER_PREFIX + ':' + scopedEvent, value);
               if (scope) {
                 // window and document need attrs so qwik loader can find them
-                vNewNode!.setAttr(key, '', journal);
+                vnode_setAttr(vNewNode!, key, '');
               }
               // register an event for qwik loader (window/document prefixed with '-')
               registerQwikLoaderEvent(loaderScopedEvent);
@@ -736,7 +732,7 @@ export const vnode_diff = (
     }
     const key = jsx.key;
     if (key) {
-      (vNewNode as ElementVNode).setProp(ELEMENT_KEY, key);
+      (vNewNode as ElementVNode).key = key;
     }
 
     // append class attribute if styleScopedId exists and there is no class attribute
@@ -748,7 +744,7 @@ export const vnode_diff = (
       }
     }
 
-    vnode_insertBefore(journal, vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
+    vnode_insertBefore(vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
 
     return needsQDispatchEventPatch;
   }
@@ -771,7 +767,7 @@ export const vnode_diff = (
       vCurrent && vnode_isElementVNode(vCurrent) && elementName === vnode_getElementName(vCurrent);
     const jsxKey: string | null = jsx.key;
     let needsQDispatchEventPatch = false;
-    const currentKey = getKey(vCurrent);
+    const currentKey = getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null);
     if (!isSameElementName || jsxKey !== currentKey) {
       const sideBufferKey = getSideBufferKey(elementName, jsxKey);
       const createNew = () => (needsQDispatchEventPatch = createNewElement(jsx, elementName));
@@ -783,37 +779,23 @@ export const vnode_diff = (
 
     // reconcile attributes
 
-    const jsxAttrs = [] as ClientAttrs;
-    const props = jsx.varProps;
-    if (jsx.toSort) {
-      const keys = Object.keys(props).sort();
-      for (const key of keys) {
-        const value = props[key];
-        if (value != null) {
-          jsxAttrs.push(key, value as any);
-        }
-      }
-    } else {
-      for (const key in props) {
-        const value = props[key];
-        if (value != null) {
-          jsxAttrs.push(key, value as any);
-        }
-      }
-    }
-    if (jsxKey !== null) {
-      mapArray_set(jsxAttrs, ELEMENT_KEY, jsxKey, 0);
-    }
+    const jsxProps = jsx.varProps;
     const vNode = (vNewNode || vCurrent) as ElementVNode;
 
-    const element = vNode.element as QElement;
+    const element = vNode.node as QElement;
     if (!element.vNode) {
       element.vNode = vNode;
     }
 
-    needsQDispatchEventPatch =
-      setBulkProps(vNode, jsxAttrs, (isDev && getFileLocationFromJsx(jsx.dev)) || null) ||
-      needsQDispatchEventPatch;
+    if (jsxProps) {
+      needsQDispatchEventPatch =
+        diffProps(
+          vNode,
+          jsxProps,
+          (vNode.props ||= {}),
+          (isDev && getFileLocationFromJsx(jsx.dev)) || null
+        ) || needsQDispatchEventPatch;
+    }
     if (needsQDispatchEventPatch) {
       // Event handler needs to be patched onto the element.
       if (!element.qDispatchEvent) {
@@ -821,97 +803,50 @@ export const vnode_diff = (
           const eventName = fromCamelToKebabCase(event.type);
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [
-            vNode.getProp<QRL>(eventProp, null),
-            vNode.getProp<QRL>(HANDLER_PREFIX + eventProp, null),
+            vnode_getProp<QRL>(vNode, eventProp, null),
+            vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
           ];
-          let returnValue = false;
-          qrls.flat(2).forEach((qrl) => {
+
+          for (const qrl of qrls.flat(2)) {
             if (qrl) {
-              if (isSyncQrl(qrl)) {
-                qrl(event, element);
-              } else {
-                const value = container.$scheduler$(
-                  ChoreType.RUN_QRL,
-                  vNode,
-                  qrl as QRLInternal<(...args: unknown[]) => unknown>,
-                  [event, element]
-                ) as unknown;
-                returnValue = returnValue || value === true;
-              }
+              qrl(event, element);
             }
-          });
-          return returnValue;
+          }
         };
       }
     }
   }
 
-  /** @returns True if `qDispatchEvent` needs patching */
-  function setBulkProps(
+  function diffProps(
     vnode: ElementVNode,
-    srcAttrs: ClientAttrs,
+    newAttrs: Record<string, any>,
+    oldAttrs: Record<string, any>,
     currentFile: string | null
   ): boolean {
     vnode_ensureElementInflated(vnode);
-    const dstAttrs = vnode_getProps(vnode) as ClientAttrs;
-    let srcIdx = 0;
-    let dstIdx = 0;
     let patchEventDispatch = false;
 
-    /**
-     * Optimized setAttribute that bypasses redundant checks when we already know:
-     *
-     * - The index in dstAttrs (no need for binary search)
-     * - The vnode is ElementVNode (no instanceof check)
-     * - The value has changed (no comparison needed)
-     */
-    const setAttributeDirect = (
-      vnode: ElementVNode,
-      key: string,
-      value: any,
-      dstIdx: number,
-      isNewKey: boolean
-    ) => {
+    const setAttribute = (vnode: ElementVNode, key: string, value: any) => {
       const serializedValue =
         value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-
-      if (isNewKey) {
-        // Adding new key - splice into sorted position
-        if (serializedValue != null) {
-          (dstAttrs as any).splice(dstIdx, 0, key, serializedValue);
-          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, serializedValue);
-        }
-      } else {
-        // Updating or removing existing key at dstIdx
-        if (serializedValue != null) {
-          // Update existing value
-          (dstAttrs as any)[dstIdx + 1] = serializedValue;
-          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, serializedValue);
-        } else {
-          // Remove key (value is null)
-          dstAttrs.splice(dstIdx, 2);
-          journal.push(VNodeJournalOpCode.SetAttribute, vnode.element, key, null);
-        }
-      }
+      vnode_setAttr(vnode, key, serializedValue);
     };
 
-    const record = (key: string, value: any, dstIdx: number, isNewKey: boolean) => {
+    const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
-        vnode.setProp(key, value);
+        vnode_setProp(vnode, key, value);
         return;
       }
 
       if (key === 'ref') {
-        const element = vnode.element;
+        const element = vnode.node;
         if (isSignal(value)) {
           value.value = element;
           return;
         } else if (typeof value === 'function') {
           value(element);
           return;
-        }
-        // handling null value is not needed here, because we are filtering null values earlier
-        else {
+        } else {
           throw qError(QError.invalidRefValue, [currentFile]);
         }
       }
@@ -925,8 +860,6 @@ export const vnode_diff = (
           return;
         }
         if (currentEffect) {
-          // Clear current effect subscription if it exists
-          // Only if we want to track the signal again
           clearEffectSubscription(container, currentEffect);
         }
 
@@ -942,29 +875,20 @@ export const vnode_diff = (
         );
       } else {
         if (currentEffect) {
-          // Clear current effect subscription if it exists
-          // and the value is not a signal
-          // It means that the previous value was a signal and we need to clear the effect subscription
           clearEffectSubscription(container, currentEffect);
         }
       }
 
       if (isPromise(value)) {
-        // For async values, we can't use the known index since it will be stale by the time
-        // the promise resolves. Do a binary search to find the current index.
         const vHost = vnode as ElementVNode;
         const attributePromise = value.then((resolvedValue) => {
-          const idx = mapApp_findIndx(dstAttrs, key, 0);
-          const isNewKey = idx < 0;
-          const currentDstIdx = isNewKey ? idx ^ -1 : idx;
-          setAttributeDirect(vHost, key, resolvedValue, currentDstIdx, isNewKey);
+          setAttribute(vHost, key, resolvedValue);
         });
         asyncAttributePromises.push(attributePromise);
         return;
       }
 
-      // Always use optimized direct path - we know the index from the merge algorithm
-      setAttributeDirect(vnode, key, value, dstIdx, isNewKey);
+      setAttribute(vnode, key, value);
     };
 
     const recordJsxEvent = (key: string, value: any) => {
@@ -973,86 +897,38 @@ export const vnode_diff = (
         const [scope, eventName] = data;
         const scopedEvent = getScopedEventName(scope, eventName);
         const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-        // Pass dummy index values since ':' prefixed keys take early return via setProp
-        record(':' + scopedEvent, value, 0, false);
-        // register an event for qwik loader (window/document prefixed with '-')
+        record(':' + scopedEvent, value);
         registerQwikLoaderEvent(loaderScopedEvent);
         patchEventDispatch = true;
       }
     };
 
-    // Two-pointer merge algorithm: both arrays are sorted by key
-    // Note: dstAttrs mutates during iteration (setAttr uses splice), so we re-read keys each iteration
-    while (srcIdx < srcAttrs.length || dstIdx < dstAttrs.length) {
-      const srcKey = srcIdx < srcAttrs.length ? (srcAttrs[srcIdx] as string) : undefined;
-      const dstKey = dstIdx < dstAttrs.length ? (dstAttrs[dstIdx] as string) : undefined;
+    // Actual diffing logic
+    // Apply all new attributes
+    for (const key in newAttrs) {
+      const newValue = newAttrs[key];
+      const isEvent = isHtmlAttributeAnEventName(key);
 
-      // Skip special keys in destination HANDLER_PREFIX
-      if (dstKey?.startsWith(HANDLER_PREFIX)) {
-        dstIdx += 2; // skip key and value
-        continue;
-      }
-
-      if (srcKey === undefined) {
-        // Source exhausted: remove remaining destination keys
-        if (isHtmlAttributeAnEventName(dstKey!)) {
-          // HTML event attributes are immutable and not removed from DOM
-          dstIdx += 2; // skip key and value
-        } else {
-          record(dstKey!, null, dstIdx, false);
-          // After removal, dstAttrs shrinks by 2, so don't advance dstIdx
+      if (key in oldAttrs) {
+        if (newValue !== oldAttrs[key]) {
+          isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
         }
-      } else if (dstKey === undefined) {
-        // Destination exhausted: add remaining source keys
-        const srcValue = srcAttrs[srcIdx + 1];
-        if (isHtmlAttributeAnEventName(srcKey)) {
-          recordJsxEvent(srcKey, srcValue);
-        } else {
-          record(srcKey, srcValue, dstIdx, true);
-        }
-        srcIdx += 2; // skip key and value
-        // After addition, dstAttrs grows by 2 at sorted position, advance dstIdx
-        dstIdx += 2;
-      } else if (srcKey === dstKey) {
-        // Keys match: update if values differ
-        const srcValue = srcAttrs[srcIdx + 1];
-        const dstValue = dstAttrs[dstIdx + 1];
-        const isEventHandler = isHtmlAttributeAnEventName(srcKey);
-        if (srcValue !== dstValue) {
-          if (isEventHandler) {
-            recordJsxEvent(srcKey, srcValue);
-          } else {
-            record(srcKey, srcValue, dstIdx, false);
-          }
-        } else if (isEventHandler && !vnode.element.qDispatchEvent) {
-          // Special case: add event handlers after resume
-          recordJsxEvent(srcKey, srcValue);
-        }
-        // Update in place doesn't change array length
-        srcIdx += 2; // skip key and value
-        dstIdx += 2; // skip key and value
-      } else if (srcKey < dstKey) {
-        // Source has a key not in destination: add it
-        const srcValue = srcAttrs[srcIdx + 1];
-        if (isHtmlAttributeAnEventName(srcKey)) {
-          recordJsxEvent(srcKey, srcValue);
-        } else {
-          record(srcKey, srcValue, dstIdx, true);
-        }
-        srcIdx += 2; // skip key and value
-        // After addition, dstAttrs grows at sorted position (before dstIdx), advance dstIdx
-        dstIdx += 2;
       } else {
-        // Destination has a key not in source: remove it (dstKey > srcKey)
-        if (isHtmlAttributeAnEventName(dstKey)) {
-          // HTML event attributes are immutable and not removed from DOM
-          dstIdx += 2; // skip key and value
-        } else {
-          record(dstKey, null, dstIdx, false);
-          // After removal, dstAttrs shrinks at dstIdx, so don't advance dstIdx
-        }
+        isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
       }
     }
+
+    // Remove attributes that no longer exist in new props
+    for (const key in oldAttrs) {
+      if (
+        !(key in newAttrs) &&
+        !key.startsWith(HANDLER_PREFIX) &&
+        !isHtmlAttributeAnEventName(key)
+      ) {
+        record(key, null);
+      }
+    }
+
     return patchEventDispatch;
   }
 
@@ -1075,7 +951,9 @@ export const vnode_diff = (
       let vNode = vCurrent;
       while (vNode) {
         const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
-        const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
+        const vKey =
+          getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
+          getComponentHash(vNode, container.$getObjectById$);
         if (vNodeWithKey === null && vKey == key && name == nodeName) {
           vNodeWithKey = vNode as ElementVNode | VirtualVNode;
         } else {
@@ -1115,7 +993,9 @@ export const vnode_diff = (
     if (!targetNode) {
       if (vCurrent) {
         const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
-        const vKey = getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
+        const vKey =
+          getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
+          getComponentHash(vCurrent, container.$getObjectById$);
         if (vKey != null) {
           const sideBufferKey = getSideBufferKey(name, vKey);
           vSideBuffer ||= new Map();
@@ -1131,7 +1011,9 @@ export const vnode_diff = (
     let vNode = vCurrent;
     while (vNode && vNode !== targetNode) {
       const name = vnode_isElementVNode(vNode) ? vnode_getElementName(vNode) : null;
-      const vKey = getKey(vNode) || getComponentHash(vNode, container.$getObjectById$);
+      const vKey =
+        getKey(vNode as VirtualVNode | ElementVNode | TextVNode | null) ||
+        getComponentHash(vNode, container.$getObjectById$);
 
       if (vKey != null) {
         const sideBufferKey = getSideBufferKey(name, vKey);
@@ -1197,7 +1079,8 @@ export const vnode_diff = (
         vSideBuffer!.delete(sideBufferKey);
         if (addCurrentToSideBufferOnSideInsert && vCurrent) {
           const currentKey =
-            getKey(vCurrent) || getComponentHash(vCurrent, container.$getObjectById$);
+            getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
+            getComponentHash(vCurrent, container.$getObjectById$);
           if (currentKey != null) {
             const currentName = vnode_isElementVNode(vCurrent)
               ? vnode_getElementName(vCurrent)
@@ -1209,7 +1092,7 @@ export const vnode_diff = (
             }
           }
         }
-        vnode_insertBefore(journal, parentForInsert as any, buffered, vCurrent);
+        vnode_insertBefore(parentForInsert as ElementVNode | VirtualVNode, buffered, vCurrent);
         vCurrent = buffered;
         vNewNode = null;
         return;
@@ -1222,7 +1105,7 @@ export const vnode_diff = (
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
     const checkKey = type === VirtualType.Fragment;
-    const currentKey = getKey(vCurrent);
+    const currentKey = getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null);
     const currentIsVirtual = vCurrent && vnode_isVirtualVNode(vCurrent);
     const isSameNode = currentIsVirtual && currentKey === jsxKey && (checkKey ? !!jsxKey : true);
 
@@ -1234,13 +1117,12 @@ export const vnode_diff = (
 
     const createNew = () => {
       vnode_insertBefore(
-        journal,
         vParent as VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
       );
-      (vNewNode as VirtualVNode).setProp(ELEMENT_KEY, jsxKey);
-      isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, type);
+      (vNewNode as VirtualVNode).key = jsxKey;
+      isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, type);
     };
     // For fragments without a key, always create a new virtual node (ensures rerender semantics)
     if (jsxKey === null) {
@@ -1293,7 +1175,8 @@ export const vnode_diff = (
       }
 
       if (host) {
-        const vNodeProps = (host as VirtualVNode).getProp<PropsProxy | null>(
+        const vNodeProps = vnode_getProp<PropsProxy | null>(
+          host as VirtualVNode,
           ELEMENT_PROPS,
           container.$getObjectById$
         );
@@ -1304,7 +1187,7 @@ export const vnode_diff = (
         if (shouldRender) {
           // Assign the new QRL instance to the host.
           // Unfortunately it is created every time, something to fix in the optimizer.
-          (host as VirtualVNode).setProp(OnRenderProp, componentQRL);
+          vnode_setProp(host as VirtualVNode, OnRenderProp, componentQRL);
 
           /**
            * Mark host as not deleted. The host could have been marked as deleted if it there was a
@@ -1312,7 +1195,7 @@ export const vnode_diff = (
            * deleted.
            */
           (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
-          container.$scheduler$(ChoreType.COMPONENT, host, componentQRL, vNodeProps);
+          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1344,7 +1227,8 @@ export const vnode_diff = (
         while (
           componentHost &&
           (vnode_isVirtualVNode(componentHost)
-            ? (componentHost as VirtualVNode).getProp<OnRenderFn<any> | null>(
+            ? vnode_getProp<OnRenderFn<any> | null>(
+                componentHost as VirtualVNode,
                 OnRenderProp,
                 null
               ) === null
@@ -1375,30 +1259,28 @@ export const vnode_diff = (
       clearAllEffects(container, host);
     }
     vnode_insertBefore(
-      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
     );
     const jsxNode = jsxValue as JSXNodeInternal;
-    isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.Component);
-    container.setHostProp(vNewNode, OnRenderProp, componentQRL);
-    container.setHostProp(vNewNode, ELEMENT_PROPS, jsxProps);
-    container.setHostProp(vNewNode, ELEMENT_KEY, jsxNode.key);
+    isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Component);
+    vnode_setProp(vNewNode as VirtualVNode, OnRenderProp, componentQRL);
+    vnode_setProp(vNewNode as VirtualVNode, ELEMENT_PROPS, jsxProps);
+    (vNewNode as VirtualVNode).key = jsxNode.key;
   }
 
   function insertNewInlineComponent() {
     vnode_insertBefore(
-      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
     );
     const jsxNode = jsxValue as JSXNodeInternal;
-    isDev && (vNewNode as VirtualVNode).setProp(DEBUG_TYPE, VirtualType.InlineComponent);
-    (vNewNode as VirtualVNode).setProp(ELEMENT_PROPS, jsxNode.props);
+    isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.InlineComponent);
+    vnode_setProp(vNewNode as VirtualVNode, ELEMENT_PROPS, jsxNode.props);
     if (jsxNode.key) {
-      (vNewNode as VirtualVNode).setProp(ELEMENT_KEY, jsxNode.key);
+      (vNewNode as VirtualVNode).key = jsxNode.key;
     }
   }
 
@@ -1407,14 +1289,13 @@ export const vnode_diff = (
       const type = vnode_getType(vCurrent);
       if (type === 3 /* Text */) {
         if (text !== vnode_getText(vCurrent as TextVNode)) {
-          vnode_setText(journal, vCurrent as TextVNode, text);
+          vnode_setText(vCurrent as TextVNode, text);
           return;
         }
         return;
       }
     }
     vnode_insertBefore(
-      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent
@@ -1428,11 +1309,11 @@ export const vnode_diff = (
  * @param vNode - VNode to retrieve the key from
  * @returns Key
  */
-function getKey(vNode: VNode | null): string | null {
-  if (vNode == null) {
+function getKey(vNode: VirtualVNode | ElementVNode | TextVNode | null): string | null {
+  if (vNode == null || vnode_isTextVNode(vNode)) {
     return null;
   }
-  return (vNode as VirtualVNode).getProp<string>(ELEMENT_KEY, null);
+  return vNode.key;
 }
 
 /**
@@ -1443,10 +1324,10 @@ function getKey(vNode: VNode | null): string | null {
  * @returns Hash
  */
 function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): string | null {
-  if (vNode == null) {
+  if (vNode == null || vnode_isTextVNode(vNode)) {
     return null;
   }
-  const qrl = (vNode as VirtualVNode).getProp<QRLInternal>(OnRenderProp, getObject);
+  const qrl = vnode_getProp<QRLInternal>(vNode as VirtualVNode, OnRenderProp, getObject);
   return qrl ? qrl.$hash$ : null;
 }
 
@@ -1518,7 +1399,7 @@ function handleProps(
     } else if (jsxProps) {
       // If there is no props instance, create a new one.
       // We can do this because we are not using the props instance for anything else.
-      (host as VirtualVNode).setProp(ELEMENT_PROPS, jsxProps);
+      vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxProps);
       vNodeProps = jsxProps;
     }
   }
@@ -1618,7 +1499,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
 
       const isComponent =
         type & VNodeFlags.Virtual &&
-        (vCursor as VirtualVNode).getProp<OnRenderFn<any> | null>(OnRenderProp, null) !== null;
+        vnode_getProp<OnRenderFn<any> | null>(vCursor as VirtualVNode, OnRenderProp, null) !== null;
       if (isComponent) {
         // cleanup q:seq content
         const seq = container.getHostProp<Array<any>>(vCursor as VirtualVNode, ELEMENT_SEQ);
@@ -1628,7 +1509,9 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
               if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                container.$scheduler$(ChoreType.CLEANUP_VISIBLE, obj);
+                obj.$flags$ |= TaskFlags.DIRTY;
+                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP);
+
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;
               } else if (obj instanceof SignalImpl || isStore(obj)) {
@@ -1643,24 +1526,24 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
         }
 
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
-        const attrs = vnode_getProps(vCursor as VirtualVNode);
-        for (let i = 0; i < attrs.length; i = i + 2) {
-          const key = attrs[i] as string;
-          if (isSlotProp(key)) {
-            const value = attrs[i + 1];
-            if (value) {
-              attrs[i + 1] = null; // prevent infinite loop
-              const projection =
-                typeof value === 'string'
-                  ? vnode_locate(container.rootVNode, value)
-                  : (value as unknown as VNode);
-              let projectionChild = vnode_getFirstChild(projection);
-              while (projectionChild) {
-                cleanup(container, projectionChild);
-                projectionChild = projectionChild.nextSibling as VNode | null;
-              }
+        const attrs = (vCursor as VirtualVNode).props;
+        if (attrs) {
+          for (const [key, value] of Object.entries(attrs)) {
+            if (isSlotProp(key)) {
+              if (value) {
+                attrs[key] = null; // prevent infinite loop
+                const projection =
+                  typeof value === 'string'
+                    ? vnode_locate(container.rootVNode, value)
+                    : (value as unknown as VNode);
+                let projectionChild = vnode_getFirstChild(projection);
+                while (projectionChild) {
+                  cleanup(container, projectionChild);
+                  projectionChild = projectionChild.nextSibling as VNode | null;
+                }
 
-              cleanupStaleUnclaimedProjection(container.$journal$, projection);
+                cleanupStaleUnclaimedProjection(projection);
+              }
             }
           }
         }
@@ -1732,7 +1615,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
+function cleanupStaleUnclaimedProjection(projection: VNode) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -1743,7 +1626,7 @@ function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNod
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
-      vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
+      vnode_remove(projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }
 }

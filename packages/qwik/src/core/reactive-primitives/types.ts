@@ -1,4 +1,3 @@
-import type { ISsrNode } from '../ssr/ssr-types';
 import type { Task, Tracker } from '../use/use-task';
 import type { SubscriptionData } from './subscription-data';
 import type { ReadonlySignal } from './signal.public';
@@ -8,7 +7,7 @@ import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
 import type { AsyncComputedFn } from '../use/use-async-computed';
 import type { Container, SerializationStrategy } from '../shared/types';
-import type { VNode } from '../client/vnode-impl';
+import type { VNode } from '../shared/vnode/vnode';
 
 /**
  * # ================================
@@ -23,9 +22,6 @@ import type { VNode } from '../client/vnode-impl';
  * "marked as dirty" flag.
  */
 export const NEEDS_COMPUTATION: any = Symbol('invalid');
-
-/** @internal */
-export const _EFFECT_BACK_REF = Symbol('backRef');
 
 export interface InternalReadonlySignal<T = unknown> extends ReadonlySignal<T> {
   readonly untrackedValue: T;
@@ -77,7 +73,7 @@ export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSig
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Consumer = Task | VNode | ISsrNode | SignalImpl;
+export type Consumer = Task | VNode | SignalImpl;
 
 /**
  * An effect consumer plus type of effect, back references to producers and additional data

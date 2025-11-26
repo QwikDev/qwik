@@ -10,7 +10,7 @@ import type { Props } from './jsx-runtime';
 import type { JSXNodeInternal } from './types/jsx-node';
 import type { Container } from '../types';
 import { assertTrue } from '../error/assert';
-import { ChoreType } from '../util-chore-type';
+import { scheduleEffects } from '../../reactive-primitives/utils';
 
 export function createPropsProxy(owner: JSXNodeImpl): Props {
   // TODO don't make a proxy but populate getters? benchmark
@@ -174,12 +174,7 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
 export const triggerPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbol) => {
   const effects = getEffects(propsProxy.$effects$, prop);
   if (effects) {
-    propsProxy.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      undefined,
-      propsProxy,
-      effects
-    );
+    scheduleEffects(propsProxy.$container$, propsProxy, effects);
   }
 };
 

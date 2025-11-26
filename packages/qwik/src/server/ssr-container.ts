@@ -233,7 +233,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private promiseAttributes: Array<Promise<any>> | null = null;
 
   constructor(opts: Required<SSRRenderOptions>) {
-    super(() => null, opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
+    super(opts.renderOptions.serverData ?? EMPTY_OBJ, opts.locale);
     this.symbolToChunkResolver = (symbol: string): string => {
       const idx = symbol.lastIndexOf('_');
       const chunk = this.resolvedManifest.mapper[idx == -1 ? symbol : symbol.substring(idx + 1)];

@@ -1,20 +1,17 @@
+import { vnode_setProp } from '../../client/vnode';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
-import { ChoreType } from '../../shared/util-chore-type';
+import { HOST_EFFECTS } from '../../shared/utils/markers';
+import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
 import { trackSignal } from '../../use/use-core';
-import type { BackRef } from '../cleanup';
 import { getValueProp } from '../internal-api';
 import type { AllSignalFlags, EffectSubscription } from '../types';
-import {
-  _EFFECT_BACK_REF,
-  EffectProperty,
-  NEEDS_COMPUTATION,
-  SignalFlags,
-  WrappedSignalFlags,
-} from '../types';
+import { EffectProperty, NEEDS_COMPUTATION, SignalFlags, WrappedSignalFlags } from '../types';
 import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
+import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
+import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $args$: any[];
@@ -48,12 +45,10 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
     try {
       this.$computeIfNeeded$();
     } catch (_) {
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        this.$hostElement$,
-        this,
-        this.$effects$
-      );
+      if (this.$container$ && this.$hostElement$) {
+        vnode_setProp(this.$hostElement$, HOST_EFFECTS, this.$effects$);
+        markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
+      }
     }
     // if the computation not failed, we can run the effects directly
     if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
@@ -68,12 +63,10 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
    */
   force() {
     this.$flags$ |= SignalFlags.RUN_EFFECTS;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      this.$hostElement$,
-      this,
-      this.$effects$
-    );
+    if (this.$container$ && this.$hostElement$) {
+      vnode_setProp(this.$hostElement$, HOST_EFFECTS, this.$effects$);
+      markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
+    }
   }
 
   get untrackedValue() {

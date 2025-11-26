@@ -20,18 +20,15 @@ export {
   vnode_ensureElementInflated as _vnode_ensureElementInflated,
   vnode_getAttrKeys as _vnode_getAttrKeys,
   vnode_getFirstChild as _vnode_getFirstChild,
-  vnode_getProps as _vnode_getProps,
   vnode_isMaterialized as _vnode_isMaterialized,
   vnode_isTextVNode as _vnode_isTextVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_toString as _vnode_toString,
 } from './client/vnode';
-export type {
-  ElementVNode as _ElementVNode,
-  TextVNode as _TextVNode,
-  VirtualVNode as _VirtualVNode,
-  VNode as _VNode,
-} from './client/vnode-impl';
+export type { VNode as _VNode } from './shared/vnode/vnode';
+export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
+export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
+export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
 
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';

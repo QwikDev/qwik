@@ -1,21 +1,23 @@
 import { getDomContainer } from '../client/dom-container';
-import { BackRef, clearAllEffects } from '../reactive-primitives/cleanup';
+import { BackRef } from '../reactive-primitives/backref';
+import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import { type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { type Container, type HostElement } from '../shared/types';
-import { ChoreType } from '../shared/util-chore-type';
-import { TaskEvent } from '../shared/utils/markers';
-import { isPromise, safeCall } from '../shared/utils/promises';
 import { type NoSerialize } from '../shared/serdes/verify';
+import { type Container, type HostElement } from '../shared/types';
+import { TaskEvent } from '../shared/utils/markers';
+import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
-import { cleanupFn, trackFn } from './utils/tracker';
 import { cleanupDestroyable } from './utils/destroyable';
+import { cleanupFn, trackFn } from './utils/tracker';
 
 export const enum TaskFlags {
   VISIBLE_TASK = 1 << 0,
@@ -166,9 +168,10 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   // deleted and we need to be able to release the task subscriptions.
   set(task);
   const container = iCtx.$container$;
-  const result = runTask(task, container, iCtx.$hostElement$);
+  const { $waitOn$: waitOn } = iCtx;
+  const result = maybeThen(waitOn, () => runTask(task, container, iCtx.$hostElement$));
   if (isPromise(result)) {
-    throw result;
+    iCtx.$waitOn$ = result;
   }
 };
 
@@ -228,7 +231,11 @@ export const isTask = (value: any): value is Task => {
  */
 export const scheduleTask = (_event: Event, element: Element) => {
   const [task] = useLexicalScope<[Task]>();
-  const type = task.$flags$ & TaskFlags.VISIBLE_TASK ? ChoreType.VISIBLE : ChoreType.TASK;
   const container = getDomContainer(element);
-  container.$scheduler$(type, task);
+  task.$flags$ |= TaskFlags.DIRTY;
+  markVNodeDirty(
+    container,
+    task.$el$,
+    task.$flags$ & TaskFlags.TASK ? ChoreBits.TASKS : ChoreBits.VISIBLE_TASKS
+  );
 };

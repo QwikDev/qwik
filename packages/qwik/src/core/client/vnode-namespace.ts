@@ -19,9 +19,10 @@ import {
   vnode_getFirstChild,
   vnode_isElementVNode,
   vnode_isTextVNode,
-  type VNodeJournal,
 } from './vnode';
-import type { ElementVNode, VNode } from './vnode-impl';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VNode } from '../shared/vnode/vnode';
+import type { TextVNode } from '../shared/vnode/text-vnode';
 
 export const isForeignObjectElement = (elementName: string) => {
   return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';
@@ -50,29 +51,28 @@ export const vnode_getElementNamespaceFlags = (element: Element) => {
 };
 
 export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
-  journal: VNodeJournal,
   domParentVNode: ElementVNode,
   newChild: VNode
-) {
+): (ElementVNode | TextVNode)[] {
   const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
     domParentVNode,
     newChild
   );
 
-  let domChildren: (Element | Text)[] = [];
+  let domChildren: (ElementVNode | TextVNode)[] = [];
   if (elementNamespace === HTML_NS) {
     // parent is in the default namespace, so just get the dom children. This is the fast path.
-    domChildren = vnode_getDOMChildNodes(journal, newChild);
+    domChildren = vnode_getDOMChildNodes(newChild, true);
   } else {
     // parent is in a different namespace, so we need to clone the children with the correct namespace.
     // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildNodes(journal, newChild, true);
+    const children = vnode_getDOMChildNodes(newChild, true);
 
     for (let i = 0; i < children.length; i++) {
       const childVNode = children[i];
       if (vnode_isTextVNode(childVNode)) {
         // text nodes are always in the default namespace
-        domChildren.push(childVNode.textNode as Text);
+        domChildren.push(childVNode);
         continue;
       }
       if (
@@ -80,7 +80,7 @@ export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
         (domParentVNode.flags & VNodeFlags.NAMESPACE_MASK)
       ) {
         // if the child and parent have the same namespace, we don't need to clone the element
-        domChildren.push(childVNode.element as Element);
+        domChildren.push(childVNode);
         continue;
       }
 
@@ -93,7 +93,8 @@ export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
       );
 
       if (newChildElement) {
-        domChildren.push(newChildElement);
+        childVNode.node = newChildElement;
+        domChildren.push(childVNode);
       }
     }
   }
@@ -154,7 +155,7 @@ function vnode_cloneElementWithNamespace(
     let newChildElement: Element | null = null;
     if (vnode_isElementVNode(vCursor)) {
       // Clone the element
-      childElement = vCursor.element as Element;
+      childElement = vCursor.node;
       const childElementTag = vnode_getElementName(vCursor);
 
       // We need to check if the parent is a foreignObject element
@@ -197,7 +198,7 @@ function vnode_cloneElementWithNamespace(
 
       // Then we can overwrite the cursor with newly created element.
       // This is because we need to materialize the children before we assign new element
-      vCursor.element = newChildElement;
+      vCursor.node = newChildElement;
       // Set correct namespace flag
       vCursor.flags &= VNodeFlags.NEGATED_NAMESPACE_MASK;
       vCursor.flags |= namespaceFlag;

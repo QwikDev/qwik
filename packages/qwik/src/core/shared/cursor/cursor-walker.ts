@@ -35,6 +35,8 @@ import { VNodeFlags } from '../../client/types';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 
+const DEBUG = true;
+
 const nextTick = createNextTick(processCursorQueue);
 let isNextTickScheduled = false;
 
@@ -138,6 +140,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
   let count = 0;
   while ((currentVNode = getCursorPosition(cursor))) {
+    DEBUG && console.warn('walkCursor', currentVNode.toString());
     if (count++ > 100) {
       throw new Error('Infinite loop detected in cursor walker');
     }
@@ -188,6 +191,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
     // Handle blocking promise
     if (result && isPromise(result)) {
+      DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
       setVNodePromise(cursor, result);
       // pauseCursor(cursor, currentVNode);

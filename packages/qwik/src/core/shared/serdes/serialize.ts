@@ -38,7 +38,11 @@ import { isPromise, maybeThen } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
-import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';
+import {
+  SerializationBackRef,
+  type SeenRef,
+  type SerializationContext,
+} from './serialization-context';
 
 /**
  * Format:
@@ -169,7 +173,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
 
     // Now we know it's a root and we should output a RootRef
-    const rootIdx = value instanceof BackRef ? value.$path$ : seen.$index$;
+    const rootIdx = value instanceof SerializationBackRef ? value.$path$ : seen.$index$;
 
     // But make sure we do output ourselves
     if (!parent && rootIdx === index) {
@@ -280,7 +284,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             output(TypeIds.Constant, Constants.EMPTY_OBJ);
           } else if (value === null) {
             output(TypeIds.Constant, Constants.Null);
-          } else if (value instanceof BackRef) {
+          } else if (value instanceof SerializationBackRef) {
             output(TypeIds.RootRef, value.$path$);
           } else {
             const newSeenRef = getSeenRefOrOutput(value, index);

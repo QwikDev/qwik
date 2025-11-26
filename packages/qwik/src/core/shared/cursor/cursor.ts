@@ -1,7 +1,7 @@
 import { VNodeFlags } from '../../client/types';
 import type { Container } from '../types';
 import type { VNode } from '../vnode/vnode';
-import { setCursorPriority, setCursorPosition } from './cursor-props';
+import { setCursorPriority, setCursorPosition, setCursorContainer } from './cursor-props';
 import { addCursorToQueue } from './cursor-queue';
 import { triggerCursors } from './cursor-walker';
 
@@ -24,6 +24,7 @@ export type Cursor = VNode;
 export function addCursor(container: Container, root: VNode, priority: number): Cursor {
   setCursorPriority(root, priority);
   setCursorPosition(root, root);
+  setCursorContainer(root, container);
 
   const cursor = root as Cursor;
   cursor.flags |= VNodeFlags.Cursor;

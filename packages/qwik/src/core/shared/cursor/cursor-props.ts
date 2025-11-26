@@ -3,16 +3,18 @@ import type { VNode } from '../vnode/vnode';
 import type { Props } from '../jsx/jsx-runtime';
 import { isCursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
+import type { Container } from '../types';
 
 /**
  * Keys used to store cursor-related data in vNode props. These are internal properties that should
  * not conflict with user props.
  */
-const CURSOR_PRIORITY_KEY = 'q:priority';
-const CURSOR_POSITION_KEY = 'q:position';
-const CURSOR_CHILD_KEY = 'q:childIndex';
-const VNODE_PROMISE_KEY = 'q:promise';
-const CURSOR_EXTRA_PROMISES_KEY = 'q:extraPromises';
+const CURSOR_PRIORITY_KEY = ':priority';
+const CURSOR_POSITION_KEY = ':position';
+const CURSOR_CHILD_KEY = ':childIndex';
+const CURSOR_CONTAINER_KEY = ':cursorContainer';
+const VNODE_PROMISE_KEY = ':promise';
+const CURSOR_EXTRA_PROMISES_KEY = ':extraPromises';
 
 /**
  * Gets the priority of a cursor vNode.
@@ -133,4 +135,26 @@ export function getExtraPromises(vNode: VNode): Promise<void>[] | null {
 export function setExtraPromises(vNode: VNode, extraPromises: Promise<void>[] | null): void {
   const props = (vNode.props ||= {});
   props[CURSOR_EXTRA_PROMISES_KEY] = extraPromises;
+}
+
+/**
+ * Sets the cursor container on a vNode.
+ *
+ * @param vNode - The vNode
+ * @param container - The container to set
+ */
+export function setCursorContainer(vNode: VNode, container: Container): void {
+  const props = (vNode.props ||= {});
+  props[CURSOR_CONTAINER_KEY] = container;
+}
+
+/**
+ * Gets the cursor container from a vNode.
+ *
+ * @param vNode - The vNode
+ * @returns The container, or null if none or not a cursor
+ */
+export function getCursorContainer(vNode: VNode): Container | null {
+  const props = vNode.props;
+  return (props?.[CURSOR_CONTAINER_KEY] as Container | null) ?? null;
 }

@@ -73,11 +73,7 @@ export function getDomContainer(element: Element): IClientContainer {
 
 export function getDomContainerFromQContainerElement(qContainerElement: Element): IClientContainer {
   const qElement = qContainerElement as ContainerElement;
-  let container = qElement.qContainer;
-  if (!container) {
-    container = new DomContainer(qElement);
-  }
-  return container;
+  return (qElement.qContainer ||= new DomContainer(qElement));
 }
 
 /** @internal */

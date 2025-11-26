@@ -1,6 +1,5 @@
 import { addCursor, findCursor } from '../cursor/cursor';
 import { getCursorPosition, setCursorPosition } from '../cursor/cursor-props';
-import { findContainerForVNode } from '../cursor/cursor-walker';
 import type { Container } from '../types';
 import type { ElementVNode } from './element-vnode';
 import { ChoreBits } from './enums/chore-bits.enum';
@@ -9,8 +8,7 @@ import type { VNodeOperation } from './types/dom-vnode-operation';
 import type { VirtualVNode } from './virtual-vnode';
 import type { VNode } from './vnode';
 
-export function propagateDirty(vNode: VNode, bits: ChoreBits): void {}
-export function markVNodeDirty(container: Container | null, vNode: VNode, bits: ChoreBits): void {
+export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBits): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
@@ -47,22 +45,15 @@ export function markVNodeDirty(container: Container | null, vNode: VNode, bits: 
       }
     }
   } else {
-    if (!container) {
-      try {
-        container = findContainerForVNode(vNode)!;
-      } catch {
-        console.error('markVNodeDirty: unable to find container for', vNode.toString());
-        return;
-      }
-    }
     addCursor(container, vNode, 0);
   }
 }
 
 export function addVNodeOperation(
+  container: Container,
   vNode: ElementVNode | TextVNode | VirtualVNode,
   operation: VNodeOperation
 ): void {
   vNode.operation = operation;
-  markVNodeDirty(null, vNode, ChoreBits.OPERATION);
+  markVNodeDirty(container, vNode, ChoreBits.OPERATION);
 }

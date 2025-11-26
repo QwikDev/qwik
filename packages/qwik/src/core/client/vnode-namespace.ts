@@ -23,6 +23,7 @@ import {
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';
+import type { Container } from '../shared/types';
 
 export const isForeignObjectElement = (elementName: string) => {
   return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';
@@ -51,6 +52,7 @@ export const vnode_getElementNamespaceFlags = (element: Element) => {
 };
 
 export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
+  container: Container,
   domParentVNode: ElementVNode,
   newChild: VNode
 ): (ElementVNode | TextVNode)[] {
@@ -62,11 +64,11 @@ export function vnode_getDomChildrenWithCorrectNamespacesToInsert(
   let domChildren: (ElementVNode | TextVNode)[] = [];
   if (elementNamespace === HTML_NS) {
     // parent is in the default namespace, so just get the dom children. This is the fast path.
-    domChildren = vnode_getDOMChildNodes(newChild, true);
+    domChildren = vnode_getDOMChildNodes(container, newChild, true);
   } else {
     // parent is in a different namespace, so we need to clone the children with the correct namespace.
     // The namespace cannot be changed on nodes, so we need to clone these nodes
-    const children = vnode_getDOMChildNodes(newChild, true);
+    const children = vnode_getDOMChildNodes(container, newChild, true);
 
     for (let i = 0; i < children.length; i++) {
       const childVNode = children[i];

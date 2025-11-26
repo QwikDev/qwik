@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Slot, componentQrl, render, type JSXOutput, type OnRenderFn } from '@qwik.dev/core';
+import { Slot, componentQrl, render, type JSXOutput } from '@qwik.dev/core';
 import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
@@ -15,6 +15,7 @@ import { expect } from 'vitest';
 import {
   vnode_getElementName,
   vnode_getFirstChild,
+  vnode_getProp,
   vnode_getVNodeForChildNode,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -22,18 +23,14 @@ import {
   vnode_locate,
   vnode_newVirtual,
   vnode_remove,
+  vnode_setProp,
   vnode_toString,
-  type VNodeJournal,
 } from '../core/client/vnode';
-import type { VNode, VirtualVNode } from '../core/client/vnode-impl';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
-import type { Props } from '../core/shared/jsx/jsx-runtime';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { _dumpState, preprocessState } from '../core/shared/serdes/index';
-import { ChoreType } from '../core/shared/util-chore-type';
 import {
-  ELEMENT_PROPS,
   OnRenderProp,
   QContainerSelector,
   QFuncsPrefix,
@@ -43,11 +40,15 @@ import {
 } from '../core/shared/utils/markers';
 import { useContextProvider } from '../core/use/use-context';
 import { DEBUG_TYPE, ELEMENT_BACKPATCH_DATA, VirtualType } from '../server/qwik-copy';
-import type { HostElement, QRLInternal } from '../server/qwik-types';
+import type { HostElement } from '../server/qwik-types';
 import { Q_FUNCS_PREFIX, renderToString } from '../server/ssr-render';
 import { createDocument } from './document';
-import { getTestPlatform } from './platform';
 import './vdom-diff.unit-util';
+import type { VNode } from '../core/shared/vnode/vnode';
+import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
+import { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
+import { markVNodeDirty } from '../core/shared/vnode/vnode-dirty';
+import type { ElementVNode } from '../core/shared/vnode/element-vnode';
 
 /** @public */
 export async function domRender(
@@ -59,7 +60,6 @@ export async function domRender(
 ) {
   const document = createDocument();
   await render(document.body, jsx);
-  await getTestPlatform().flush();
   const getStyles = getStylesFactory(document);
   const container = _getDomContainer(document.body);
   if (opts.debug) {
@@ -185,7 +185,7 @@ export async function ssrRenderToDom(
 
     // Create a fragment
     const fragment = vnode_newVirtual();
-    fragment.setProp(DEBUG_TYPE, VirtualType.Fragment);
+    vnode_setProp(fragment, DEBUG_TYPE, VirtualType.Fragment);
 
     const childrenToMove = [];
 
@@ -197,9 +197,9 @@ export async function ssrRenderToDom(
       if (
         vnode_isElementVNode(child) &&
         ((vnode_getElementName(child) === 'script' &&
-          (child.getAttr('type') === 'qwik/state' ||
-            child.getAttr('type') === ELEMENT_BACKPATCH_DATA ||
-            child.getAttr('id') === 'qwikloader')) ||
+          (vnode_getProp(child, 'type', null) === 'qwik/state' ||
+            vnode_getProp(child, 'type', null) === ELEMENT_BACKPATCH_DATA ||
+            vnode_getProp(child, 'id', null) === 'qwikloader')) ||
           vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
@@ -210,10 +210,10 @@ export async function ssrRenderToDom(
     }
 
     // Set the container vnode as a parent of the fragment
-    vnode_insertBefore(container.$journal$, containerVNode, fragment, insertBefore);
+    vnode_insertBefore(containerVNode, fragment, insertBefore);
     // Set the fragment as a parent of the children
     for (const child of childrenToMove) {
-      vnode_moveToVirtual(container.$journal$, fragment, child, null);
+      vnode_moveToVirtual(fragment, child, null);
     }
     vNode = fragment;
   } else {
@@ -223,16 +223,11 @@ export async function ssrRenderToDom(
   return { container, document, vNode, getStyles };
 }
 
-function vnode_moveToVirtual(
-  journal: VNodeJournal,
-  parent: VirtualVNode,
-  newChild: VNode,
-  insertBefore: VNode | null
-) {
+function vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore: VNode | null) {
   // ensure that the previous node is unlinked.
   const newChildCurrentParent = newChild.parent;
   if (newChildCurrentParent && (newChild.previousSibling || newChild.nextSibling)) {
-    vnode_remove(journal, newChildCurrentParent, newChild, false);
+    vnode_remove(newChildCurrentParent as ElementVNode | VirtualVNode, newChild, false);
   }
 
   // link newChild into the previous/next list
@@ -323,22 +318,16 @@ function renderStyles(getStyles: () => Record<string, string | string[]>) {
   });
 }
 
-export async function rerenderComponent(element: HTMLElement, flush?: boolean) {
+export async function rerenderComponent(element: HTMLElement) {
   const container = _getDomContainer(element);
   const vElement = vnode_locate(container.rootVNode, element);
   const host = getHostVNode(vElement) as HostElement;
-  const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp)!;
-  const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-  container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
-  if (flush) {
-    // Note that this can deadlock
-    await getTestPlatform().flush();
-  }
+  markVNodeDirty(container, host, ChoreBits.COMPONENT);
 }
 
 function getHostVNode(vElement: _VNode | null) {
   while (vElement != null) {
-    if (vElement.getAttr(OnRenderProp) != null) {
+    if (vnode_getProp(vElement, OnRenderProp, null) != null) {
       return vElement as _VirtualVNode;
     }
     vElement = vElement.parent;

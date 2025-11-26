@@ -7,6 +7,7 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  scheduleEffects,
 } from '../utils';
 import {
   STORE_ALL_PROPS,
@@ -16,7 +17,6 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from '../types';
-import { ChoreType } from '../../shared/util-chore-type';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
 
 const DEBUG = false;
@@ -109,12 +109,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
 
   force(prop: keyof StoreTarget): void {
     const target = getStoreTarget(this)!;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      undefined,
-      this,
-      getEffects(target, prop, this.$effects$)
-    );
+    scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
   }
 
   get(target: StoreTarget, prop: string | symbol) {
@@ -199,12 +194,7 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
     if (!Array.isArray(target)) {
       // If the target is an array, we don't need to trigger effects.
       // Changing the length property will trigger effects.
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        undefined,
-        this,
-        getEffects(target, prop, this.$effects$)
-      );
+      scheduleEffects(this.$container$, this, getEffects(target, prop, this.$effects$));
     }
     return true;
   }
@@ -292,12 +282,7 @@ function setNewValueAndTriggerEffects<T extends Record<string | symbol, any>>(
   (target as any)[prop] = value;
   const effects = getEffects(target, prop, currentStore.$effects$);
   if (effects) {
-    currentStore.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      undefined,
-      currentStore,
-      effects
-    );
+    scheduleEffects(currentStore.$container$, currentStore, effects);
   }
 }
 

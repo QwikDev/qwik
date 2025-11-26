@@ -1,6 +1,6 @@
 import { isSignal } from './reactive-primitives/utils';
 // ^ keep this first to avoid circular dependency breaking class extend
-import { vnode_isVNode } from './client/vnode';
+import { vnode_getProp, vnode_isVNode } from './client/vnode';
 import { ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 import { isStore } from './reactive-primitives/impl/store';
 import { WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';
@@ -11,51 +11,56 @@ import { isTask } from './use/use-task';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
-  if (value === null) {
-    return 'null';
-  } else if (value === undefined) {
-    return 'undefined';
-  } else if (typeof value === 'string') {
-    return '"' + value + '"';
-  } else if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  } else if (isTask(value)) {
-    return `Task(${qwikDebugToString(value.$qrl$)})`;
-  } else if (isQrl(value)) {
-    return `Qrl(${value.$symbol$})`;
-  } else if (typeof value === 'object' || typeof value === 'function') {
-    if (stringifyPath.includes(value)) {
-      return '*';
-    }
-    if (stringifyPath.length > 10) {
-      // debugger;
-    }
-    try {
-      stringifyPath.push(value);
-      if (Array.isArray(value)) {
-        if (vnode_isVNode(value)) {
-          return '(' + value.getProp(DEBUG_TYPE, null) + ')';
-        } else {
-          return value.map(qwikDebugToString);
-        }
-      } else if (isSignal(value)) {
-        if (value instanceof WrappedSignalImpl) {
-          return 'WrappedSignal';
-        } else if (value instanceof ComputedSignalImpl) {
-          return 'ComputedSignal';
-        } else {
-          return 'Signal';
-        }
-      } else if (isStore(value)) {
-        return 'Store';
-      } else if (isJSXNode(value)) {
-        return jsxToString(value);
-      } else if (vnode_isVNode(value)) {
-        return '(' + value.getProp(DEBUG_TYPE, null) + ')';
+  try {
+    if (value === null) {
+      return 'null';
+    } else if (value === undefined) {
+      return 'undefined';
+    } else if (typeof value === 'string') {
+      return '"' + value + '"';
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    } else if (isTask(value)) {
+      return `Task(${qwikDebugToString(value.$qrl$)})`;
+    } else if (isQrl(value)) {
+      return `Qrl(${value.$symbol$})`;
+    } else if (typeof value === 'object' || typeof value === 'function') {
+      if (stringifyPath.includes(value)) {
+        return '*';
       }
-    } finally {
-      stringifyPath.pop();
+      if (stringifyPath.length > 10) {
+        // debugger;
+      }
+      try {
+        stringifyPath.push(value);
+        if (Array.isArray(value)) {
+          if (vnode_isVNode(value)) {
+            return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+          } else {
+            return value.map(qwikDebugToString);
+          }
+        } else if (isSignal(value)) {
+          if (value instanceof WrappedSignalImpl) {
+            return 'WrappedSignal';
+          } else if (value instanceof ComputedSignalImpl) {
+            return 'ComputedSignal';
+          } else {
+            return 'Signal';
+          }
+        } else if (isStore(value)) {
+          return 'Store';
+        } else if (isJSXNode(value)) {
+          return jsxToString(value);
+        } else if (vnode_isVNode(value)) {
+          return '(' + vnode_getProp(value, DEBUG_TYPE, null) + ')';
+        }
+      } finally {
+        stringifyPath.pop();
+      }
     }
+  } catch (e) {
+    console.error('ERROR in qwikDebugToString', e);
+    return '*error*';
   }
   return value;
 }

@@ -19,6 +19,9 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { delay } from '../shared/utils/promises';
+import { ELEMENT_SEQ } from '../../server/qwik-copy';
+import { Task, TaskFlags } from '../use/use-task';
+import { USE_ON_LOCAL } from '../shared/utils/markers';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -796,6 +799,43 @@ describe.each([
   });
 
   describe('regression', () => {
+    it('should not double-register events on component re-render', async () => {
+      const Cmp = component$(() => {
+        const count = useSignal(0);
+
+        useVisibleTask$(() => {});
+        // component rerender
+        count.value;
+
+        return (
+          <div>
+            <button onClick$={() => count.value++}>Click</button>
+          </div>
+        );
+      });
+
+      const { document, vNode, container } = await render(<Cmp />, { debug });
+
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'div', 'qvisible');
+      }
+      const seq = vNode!.getProp<any[]>(ELEMENT_SEQ, container.$getObjectById$)!;
+      const task = seq.find((task) => task instanceof Task)!;
+      expect((task.$flags$ & TaskFlags.EVENTS_REGISTERED) === TaskFlags.EVENTS_REGISTERED).toBe(
+        false
+      );
+      if (render === ssrRenderToDom) {
+        // only on SSR after resuming we have no useOn props
+        expect(vNode!.getProp(USE_ON_LOCAL, null)).toBeNull();
+      }
+
+      await trigger(document.body, 'button', 'click');
+      expect((task.$flags$ & TaskFlags.EVENTS_REGISTERED) === TaskFlags.EVENTS_REGISTERED).toBe(
+        true
+      );
+      expect(vNode!.getProp(USE_ON_LOCAL, null)).not.toBeNull();
+    });
+
     it('#1717 - custom hooks should work', async () => {
       const Issue1717 = component$(() => {
         const val1 = useDelay('valueA');

@@ -23,6 +23,7 @@ export const enum TaskFlags {
   RESOURCE = 1 << 2,
   DIRTY = 1 << 3,
   RENDER_BLOCKING = 1 << 4,
+  EVENTS_REGISTERED = 1 << 5,
 }
 
 // <docs markdown="../readme.md#Tracker">

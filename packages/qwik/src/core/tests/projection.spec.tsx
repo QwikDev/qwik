@@ -22,8 +22,10 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { vnode_locate } from '../client/vnode';
-import { HTML_NS, QContainerAttr, SVG_NS } from '../shared/utils/markers';
+import { HTML_NS, QContainerAttr, QDefaultSlot, SVG_NS } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
+import { VNodeFlags } from '../client/types';
+import { VirtualVNode } from '../client/vnode-impl';
 
 const DEBUG = false;
 
@@ -1571,6 +1573,23 @@ describe.each([
           <span>here my raw HTML</span>
         </div>
       );
+    });
+
+    it('should resolve projection when component is resumed', async () => {
+      const Child = component$(() => {
+        return <div></div>;
+      });
+      const Cmp = component$(() => {
+        return <Slot />;
+      });
+      const { vNode } = await render(
+        <Cmp>
+          <Child />
+        </Cmp>,
+        { debug: DEBUG }
+      );
+      expect((vNode!.flags & VNodeFlags.Resolved) === VNodeFlags.Resolved).toBe(true);
+      expect(vNode?.getProp(QDefaultSlot, null)).toBeInstanceOf(VirtualVNode);
     });
   });
 

@@ -31,8 +31,9 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   const { val, set, i, iCtx } = useSequentialScope<Task<TaskFn>>();
   const eagerness = opts?.strategy ?? 'intersection-observer';
   if (val) {
-    if (isServerPlatform()) {
-      useRunTask(val, eagerness);
+    if (!(val.$flags$ & TaskFlags.EVENTS_REGISTERED) && !isServerPlatform()) {
+      val.$flags$ |= TaskFlags.EVENTS_REGISTERED;
+      useRegisterTaskEvents(val, eagerness);
     }
     return;
   }
@@ -40,14 +41,14 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
 
   const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
   set(task);
-  useRunTask(task, eagerness);
+  useRegisterTaskEvents(task, eagerness);
   if (!isServerPlatform()) {
     (qrl as QRLInternal).resolve(iCtx.$element$);
     iCtx.$container$.$scheduler$(ChoreType.VISIBLE, task);
   }
 };
 
-export const useRunTask = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {
+export const useRegisterTaskEvents = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {
   if (eagerness === 'intersection-observer') {
     useOn('qvisible', getTaskHandlerQrl(task));
   } else if (eagerness === 'document-ready') {

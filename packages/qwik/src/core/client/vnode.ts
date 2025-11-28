@@ -1847,6 +1847,8 @@ function materializeFromVNodeData(
     return !nodeIsElement || (nodeIsElement && shouldSkipElement(node));
   };
 
+  let components: VirtualVNode[] | null = null;
+
   processVNodeData(vData, (peek, consumeValue, consume, getChar, nextToConsumeIdx) => {
     if (isNumber(peek())) {
       // Element counts get encoded as numbers.
@@ -1871,6 +1873,7 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
       vParent.setAttr(QScopedStyle, consumeValue(), null);
     } else if (peek() === VNodeDataChar.RENDER_FN) {
+      (components ||= []).push(vParent as VirtualVNode);
       vParent.setAttr(OnRenderProp, consumeValue(), null);
     } else if (peek() === VNodeDataChar.ID) {
       if (!container) {
@@ -1956,6 +1959,15 @@ function materializeFromVNodeData(
       // Text nodes get encoded as alphanumeric characters.
     }
   });
+  if (components) {
+    if (!container) {
+      container = getDomContainer(element);
+    }
+    for (const component of components as VirtualVNode[]) {
+      container.ensureProjectionResolved(component);
+    }
+    components = null;
+  }
   vParent.lastChild = vLast;
   return vFirst!;
 }

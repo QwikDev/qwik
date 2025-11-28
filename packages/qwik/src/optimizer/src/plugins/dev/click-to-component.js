@@ -2,7 +2,7 @@ if (typeof document !== 'undefined') {
   const register = () => {
     const inspectAttribute = 'data-qwik-inspector';
     const hotKeys = globalThis.__HOTKEYS__;
-    const srcDir = globalThis.__SRC_DIR__;
+    const base = globalThis.__BASE__;
     let popup = document.querySelector('#qwik-inspector-info-popup');
     if (!popup) {
       popup = document.createElement('div');
@@ -92,7 +92,7 @@ if (typeof document !== 'undefined') {
               const match = inspectUrl.match(/^(.*?)(:\d+(:\d+)?)?$/);
               if (match) {
                 const [, filePath, location] = match;
-                fetch(`${filePath}?editor${location}`).then(() => {
+                fetch(`${base}${filePath}?editor${location}`).then(() => {
                   body.style.removeProperty('cursor');
                 });
               }

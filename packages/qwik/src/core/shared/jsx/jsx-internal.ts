@@ -66,12 +66,12 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
       for (const k in varProps) {
         if (k === 'children') {
           children ||= varProps.children as JSXChildren;
-          varProps.children = undefined;
+          delete varProps.children;
         } else if (k === 'key') {
           key ||= varProps.key as string;
-          varProps.key = undefined;
+          delete varProps.key;
         } else if (constProps && k in constProps) {
-          varProps[k] = undefined;
+          delete varProps[k];
         }
       }
     }

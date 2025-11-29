@@ -6,6 +6,7 @@ import {
   Fragment as Signal,
   Slot,
   component$,
+  jsx,
   useSignal,
   useStore,
   useVisibleTask$,
@@ -39,6 +40,16 @@ const Id = (props: any) => <div>Id: {props.id}</div>;
 
 const ChildInline = () => {
   return <div>Child inline</div>;
+};
+
+const OwnKeys = {
+  HAccordionRoot: (props: any) => {
+    return jsx('div', props);
+  },
+  Root: (props: any) => <OwnKeys.HAccordionRoot {...props} accordionItemComponent={OwnKeys.Item} />,
+  Item: component$(() => {
+    return <></>;
+  }),
 };
 
 describe.each([
@@ -731,5 +742,17 @@ describe.each([
         </Component>
       </InlineComponent>
     );
+  });
+
+  it('should remove children from varProps and not throw', async () => {
+    const Cmp = component$(() => {
+      return (
+        <OwnKeys.Root class="w-96">
+          <OwnKeys.Item />
+        </OwnKeys.Root>
+      );
+    });
+
+    await expect(render(<Cmp />, { debug })).resolves.not.toThrow();
   });
 });

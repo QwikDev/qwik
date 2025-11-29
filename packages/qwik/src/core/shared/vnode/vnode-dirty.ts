@@ -1,11 +1,9 @@
+import type { VNodeJournal } from '../../client/vnode';
 import { addCursor, findCursor } from '../cursor/cursor';
 import { getCursorPosition, setCursorPosition } from '../cursor/cursor-props';
 import type { Container } from '../types';
-import type { ElementVNode } from './element-vnode';
 import { ChoreBits } from './enums/chore-bits.enum';
-import type { TextVNode } from './text-vnode';
 import type { VNodeOperation } from './types/dom-vnode-operation';
-import type { VirtualVNode } from './virtual-vnode';
 import type { VNode } from './vnode';
 
 export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBits): void {
@@ -18,7 +16,7 @@ export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBi
   }
   const parent = vNode.parent || vNode.slotParent;
   // We must attach to a cursor subtree if it exists
-  if (parent && parent.dirty) {
+  if (parent && parent.dirty & ChoreBits.DIRTY_MASK) {
     if (isRealDirty) {
       parent.dirty |= ChoreBits.CHILDREN;
     }
@@ -37,7 +35,7 @@ export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBi
             cursorPosition = cursorPosition.parent || cursorPosition.slotParent!;
             if (cursorPosition === vNode) {
               // set cursor position to this node
-              setCursorPosition(cursor, vNode);
+              setCursorPosition(container, cursor, vNode);
               break;
             }
           }
@@ -49,11 +47,6 @@ export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBi
   }
 }
 
-export function addVNodeOperation(
-  container: Container,
-  vNode: ElementVNode | TextVNode | VirtualVNode,
-  operation: VNodeOperation
-): void {
-  vNode.operation = operation;
-  markVNodeDirty(container, vNode, ChoreBits.OPERATION);
+export function addVNodeOperation(journal: VNodeJournal, operation: VNodeOperation): void {
+  journal.push(operation);
 }

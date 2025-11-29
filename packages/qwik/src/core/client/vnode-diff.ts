@@ -84,6 +84,7 @@ import {
   vnode_setText,
   vnode_truncate,
   vnode_walkVNode,
+  type VNodeJournal,
 } from './vnode';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { cleanupDestroyable } from '../use/utils/destroyable';
@@ -100,6 +101,7 @@ import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 
 export const vnode_diff = (
   container: ClientContainer,
+  journal: VNodeJournal,
   jsxNode: JSXChildren,
   vStartNode: VNode,
   scopedStyleIdPrefix: string | null
@@ -498,7 +500,7 @@ export const vnode_diff = (
     if (vProjectedNode == null) {
       // Nothing to project, so render content of the slot.
       vnode_insertBefore(
-        container,
+        journal,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
@@ -513,7 +515,7 @@ export const vnode_diff = (
     } else {
       // move from q:template to the target node
       vnode_insertBefore(
-        container,
+        journal,
         vParent as ElementVNode | VirtualVNode,
         (vNewNode = vProjectedNode),
         vCurrent && getInsertBefore()
@@ -545,8 +547,8 @@ export const vnode_diff = (
         if (vNode.flags & VNodeFlags.Deleted) {
           continue;
         }
-        cleanup(container, vNode);
-        vnode_remove(container, vParent, vNode, true);
+        cleanup(container, journal, vNode);
+        vnode_remove(journal, vParent, vNode, true);
       }
       vSideBuffer.clear();
       vSideBuffer = null;
@@ -588,10 +590,10 @@ export const vnode_diff = (
     if (vFirstChild !== null) {
       let vChild: VNode | null = vFirstChild;
       while (vChild) {
-        cleanup(container, vChild);
+        cleanup(container, journal, vChild);
         vChild = vChild.nextSibling as VNode | null;
       }
-      vnode_truncate(container, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
+      vnode_truncate(container, journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
   }
 
@@ -603,10 +605,10 @@ export const vnode_diff = (
         const toRemove = vCurrent;
         advanceToNextSibling();
         if (vParent === toRemove.parent) {
-          cleanup(container, toRemove);
+          cleanup(container, journal, toRemove);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
-          vnode_remove(container, vParent, toRemove, true);
+          vnode_remove(journal, vParent, toRemove, true);
         }
       }
     }
@@ -614,10 +616,10 @@ export const vnode_diff = (
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_isTextVNode(vCurrent)) {
-      cleanup(container, vCurrent);
+      cleanup(container, journal, vCurrent);
       const toRemove = vCurrent;
       advanceToNextSibling();
-      vnode_remove(container, vParent, toRemove, true);
+      vnode_remove(journal, vParent, toRemove, true);
     }
   }
 
@@ -668,7 +670,7 @@ export const vnode_diff = (
               vnode_setProp(vNewNode!, HANDLER_PREFIX + ':' + scopedEvent, value);
               if (scope) {
                 // window and document need attrs so qwik loader can find them
-                vnode_setAttr(container, vNewNode!, key, '');
+                vnode_setAttr(journal, vNewNode!, key, '');
               }
               // register an event for qwik loader (window/document prefixed with '-')
               registerQwikLoaderEvent(loaderScopedEvent);
@@ -746,7 +748,7 @@ export const vnode_diff = (
       }
     }
 
-    vnode_insertBefore(container, vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
+    vnode_insertBefore(journal, vParent as ElementVNode, vNewNode as ElementVNode, vCurrent);
 
     return needsQDispatchEventPatch;
   }
@@ -831,7 +833,7 @@ export const vnode_diff = (
     const setAttribute = (vnode: ElementVNode, key: string, value: any) => {
       const serializedValue =
         value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-      vnode_setAttr(container, vnode, key, serializedValue);
+      vnode_setAttr(journal, vnode, key, serializedValue);
     };
 
     const record = (key: string, value: any) => {
@@ -1095,7 +1097,7 @@ export const vnode_diff = (
           }
         }
         vnode_insertBefore(
-          container,
+          journal,
           parentForInsert as ElementVNode | VirtualVNode,
           buffered,
           vCurrent
@@ -1124,7 +1126,7 @@ export const vnode_diff = (
 
     const createNew = () => {
       vnode_insertBefore(
-        container,
+        journal,
         vParent as VirtualVNode,
         (vNewNode = vnode_newVirtual()),
         vCurrent && getInsertBefore()
@@ -1267,7 +1269,7 @@ export const vnode_diff = (
       clearAllEffects(container, host);
     }
     vnode_insertBefore(
-      container,
+      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -1281,7 +1283,7 @@ export const vnode_diff = (
 
   function insertNewInlineComponent() {
     vnode_insertBefore(
-      container,
+      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newVirtual()),
       vCurrent && getInsertBefore()
@@ -1299,14 +1301,14 @@ export const vnode_diff = (
       const type = vnode_getType(vCurrent);
       if (type === 3 /* Text */) {
         if (text !== vnode_getText(vCurrent as TextVNode)) {
-          vnode_setText(container, vCurrent as TextVNode, text);
+          vnode_setText(journal, vCurrent as TextVNode, text);
           return;
         }
         return;
       }
     }
     vnode_insertBefore(
-      container,
+      journal,
       vParent as VirtualVNode,
       (vNewNode = vnode_newText(container.document.createTextNode(text), text)),
       vCurrent
@@ -1493,7 +1495,7 @@ function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {
  * - Projection nodes by not recursing into them.
  * - Component nodes by recursing into the component content nodes (which may be projected).
  */
-export function cleanup(container: ClientContainer, vNode: VNode) {
+export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode: VNode) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -1549,11 +1551,11 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
                     : (value as unknown as VNode);
                 let projectionChild = vnode_getFirstChild(projection);
                 while (projectionChild) {
-                  cleanup(container, projectionChild);
+                  cleanup(container, journal, projectionChild);
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 
-                cleanupStaleUnclaimedProjection(container, projection);
+                cleanupStaleUnclaimedProjection(journal, projection);
               }
             }
           }
@@ -1626,7 +1628,7 @@ export function cleanup(container: ClientContainer, vNode: VNode) {
   } while (true as boolean);
 }
 
-function cleanupStaleUnclaimedProjection(container: ClientContainer, projection: VNode) {
+function cleanupStaleUnclaimedProjection(journal: VNodeJournal, projection: VNode) {
   // we are removing a node where the projection would go after slot render.
   // This is not needed, so we need to cleanup still unclaimed projection
   const projectionParent = projection.parent;
@@ -1637,7 +1639,7 @@ function cleanupStaleUnclaimedProjection(container: ClientContainer, projection:
       vnode_getElementName(projectionParent as ElementVNode) === QTemplate
     ) {
       // if parent is the q:template element then projection is still unclaimed - remove it
-      vnode_remove(container, projectionParent as ElementVNode | VirtualVNode, projection, true);
+      vnode_remove(journal, projectionParent as ElementVNode | VirtualVNode, projection, true);
     }
   }
 }

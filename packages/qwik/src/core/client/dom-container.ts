@@ -48,7 +48,6 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  VNodeJournalOpCode,
   vnode_createErrorDiv,
   vnode_getProp,
   vnode_insertBefore,
@@ -57,6 +56,7 @@ import {
   vnode_locate,
   vnode_newUnMaterializedElement,
   vnode_setProp,
+  type VNodeJournal,
 } from './vnode';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
@@ -168,12 +168,18 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         const vHost = host;
         const vHostParent = vHost.parent;
         const vHostNextSibling = vHost.nextSibling as VNode | null;
-        const vErrorDiv = vnode_createErrorDiv(document, vHost, err);
+        const journal: VNodeJournal = [];
+        const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
         // If the host is an element node, we need to insert the error div into its parent.
         const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
         // If the host is different then we need to insert errored-host in the same position as the host.
         const insertBefore = insertHost === vHost ? null : vHostNextSibling;
-        vnode_insertBefore(insertHost as ElementVNode | VirtualVNode, vErrorDiv, insertBefore);
+        vnode_insertBefore(
+          journal,
+          insertHost as ElementVNode | VirtualVNode,
+          vErrorDiv,
+          insertBefore
+        );
       }
 
       if (err && err instanceof Error) {
@@ -260,7 +266,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       if (props) {
         for (const prop of Object.keys(props)) {
           if (isSlotProp(prop)) {
-            const value = prop;
+            const value = props[prop];
             if (typeof value == 'string') {
               const projection = this.vNodeLocate(value);
               props[prop] = projection;

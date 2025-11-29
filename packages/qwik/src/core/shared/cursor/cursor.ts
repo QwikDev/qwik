@@ -23,7 +23,7 @@ export type Cursor = VNode;
  */
 export function addCursor(container: Container, root: VNode, priority: number): Cursor {
   setCursorPriority(root, priority);
-  setCursorPosition(root, root);
+  setCursorPosition(container, root, root);
   setCursorContainer(root, container);
 
   const cursor = root as Cursor;
@@ -53,8 +53,8 @@ export function isCursor(vNode: VNode): vNode is Cursor {
  * @param cursor - The cursor (vNode with CURSOR flag set) to pause
  * @param vNode - The vNode position to pause at
  */
-export function pauseCursor(cursor: Cursor, vNode: VNode): void {
-  setCursorPosition(cursor, vNode);
+export function pauseCursor(container: Container, cursor: Cursor, vNode: VNode): void {
+  setCursorPosition(container, cursor, vNode);
 }
 
 /**

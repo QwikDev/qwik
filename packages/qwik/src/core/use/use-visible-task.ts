@@ -40,14 +40,21 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   }
   assertQrl(qrl);
 
-  const task = new Task(TaskFlags.VISIBLE_TASK, i, iCtx.$hostElement$, qrl, undefined, null);
+  const task = new Task(
+    TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY,
+    i,
+    iCtx.$hostElement$,
+    qrl,
+    undefined,
+    null
+  );
   set(task);
   useRegisterTaskEvents(task, eagerness);
   if (!isServerPlatform()) {
     if (!qrl.resolved) {
       (qrl as QRLInternal).resolve(iCtx.$element$);
     }
-    markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.VISIBLE_TASKS);
+    markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
   }
 };
 

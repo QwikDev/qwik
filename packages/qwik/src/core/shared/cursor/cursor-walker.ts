@@ -15,7 +15,7 @@ import {
   executeNodeProps,
   executeTasks,
 } from './chore-execution';
-import type { Cursor } from './cursor';
+import { type Cursor } from './cursor';
 import {
   getCursorPosition,
   setCursorPosition,
@@ -24,20 +24,19 @@ import {
   setNextChildIndex,
   getNextChildIndex,
   getCursorContainer,
+  getCursorJournal,
+  setCursorJournal,
 } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
-import { getDomContainer } from '../../client/dom-container';
 import { createNextTick } from '../platform/next-tick';
-import { vnode_isElementVNode } from '../../client/vnode';
-import type { Container } from '../types';
-import { VNodeFlags } from '../../client/types';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { assertDefined } from '../error/assert';
+import type { Container } from '../types';
 
-const DEBUG = true;
+const DEBUG = false;
 
 const nextTick = createNextTick(processCursorQueue);
 let isNextTickScheduled = false;
@@ -58,7 +57,6 @@ export interface WalkOptions {
 /**
  * Processes the cursor queue, walking each cursor in turn.
  *
- * @param container - The container
  * @param options - Walk options (time budget, etc.)
  */
 export function processCursorQueue(
@@ -71,13 +69,8 @@ export function processCursorQueue(
   let cursor: Cursor | null = null;
   while ((cursor = getHighestPriorityCursor())) {
     walkCursor(cursor, options);
-    if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
-      removeCursorFromQueue(cursor);
-    }
   }
 }
-
-let globalCount = 0;
 
 /**
  * Walks a cursor through the vDOM tree, processing dirty vNodes in depth-first order.
@@ -95,7 +88,6 @@ let globalCount = 0;
  * Note that there is only one walker for all containers in the app with the same Qwik version.
  *
  * @param cursor - The cursor to walk
- * @param container - The container
  * @param options - Walk options (time budget, etc.)
  * @returns Walk result indicating completion status
  */
@@ -115,13 +107,15 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     return;
   }
 
-  globalCount++;
-  if (globalCount > 100) {
-    throw new Error('Infinite loop detected in cursor walker');
-  }
-
   const container = getCursorContainer(cursor);
   assertDefined(container, 'Cursor container not found');
+
+  let journal = getCursorJournal(cursor);
+  if (!journal) {
+    journal = [];
+    setCursorJournal(cursor, journal);
+  }
+
   // Get starting position (resume from last position or start at root)
   let currentVNode: VNode | null = null;
 
@@ -144,36 +138,40 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK) || getVNodePromise(currentVNode)) {
       // Move to next node
-      setCursorPosition(cursor, getNextVNode(currentVNode));
+      setCursorPosition(container, cursor, getNextVNode(currentVNode));
       continue;
     }
 
     let result: ValueOrPromise<void> | undefined;
-    // Execute chores in order
-    if (currentVNode.dirty & ChoreBits.TASKS) {
-      result = executeTasks(currentVNode, container, cursor);
-    } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
-      result = executeNodeDiff(currentVNode, container);
-    } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
-      result = executeComponentChore(currentVNode, container);
-    } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
-      executeNodeProps(currentVNode, container);
-    } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
-      result = executeCompute(currentVNode, container);
-    } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
-      const dirtyChildren = currentVNode.dirtyChildren;
-      if (!dirtyChildren || dirtyChildren.length === 0) {
-        // No dirty children
-        currentVNode.dirty &= ~ChoreBits.CHILDREN;
-      } else {
-        setNextChildIndex(currentVNode, 0);
-        // descend
-        currentVNode = getNextVNode(dirtyChildren[0])!;
-        setCursorPosition(cursor, currentVNode);
-        continue;
+    try {
+      // Execute chores in order
+      if (currentVNode.dirty & ChoreBits.TASKS) {
+        result = executeTasks(currentVNode, container, cursor);
+      } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
+        result = executeNodeDiff(currentVNode, container, journal);
+      } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
+        result = executeComponentChore(currentVNode, container, journal);
+      } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
+        executeNodeProps(currentVNode, container, journal);
+      } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
+        result = executeCompute(currentVNode, container);
+      } else if (currentVNode.dirty & ChoreBits.CHILDREN) {
+        const dirtyChildren = currentVNode.dirtyChildren;
+        if (!dirtyChildren || dirtyChildren.length === 0) {
+          // No dirty children
+          currentVNode.dirty &= ~ChoreBits.CHILDREN;
+        } else {
+          setNextChildIndex(currentVNode, 0);
+          // descend
+          currentVNode = getNextVNode(dirtyChildren[0])!;
+          setCursorPosition(container, cursor, currentVNode);
+          continue;
+        }
+      } else if (currentVNode.dirty & ChoreBits.CLEANUP) {
+        executeCleanup(currentVNode, container);
       }
-    } else if (currentVNode.dirty & ChoreBits.CLEANUP) {
-      executeCleanup(currentVNode, container);
+    } catch (error) {
+      container.handleError(error, currentVNode);
     }
 
     // Handle blocking promise
@@ -195,18 +193,26 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       return;
     }
   }
+  finishWalk(container, cursor, isServer);
+}
+
+function finishWalk(container: Container, cursor: Cursor, isServer: boolean): void {
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
-    // Walk complete
-    cursor.flags &= ~VNodeFlags.Cursor;
+    removeCursorFromQueue(cursor);
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
-    // TODO streaming as a cursor? otherwise we need to wait separately for it
-    // or just ignore and resolve manually
-    if (--container.$cursorCount$ === 0) {
-      container.$resolveRenderPromise$!();
-      container.$renderPromise$ = null;
-    }
+
+    resolveCursor(container);
+  }
+}
+
+export function resolveCursor(container: Container): void {
+  // TODO streaming as a cursor? otherwise we need to wait separately for it
+  // or just ignore and resolve manually
+  if (--container.$cursorCount$ === 0) {
+    container.$resolveRenderPromise$!();
+    container.$renderPromise$ = null;
   }
 }
 

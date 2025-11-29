@@ -1378,7 +1378,6 @@ function handleProps(
   container: ClientContainer
 ): boolean {
   let shouldRender = false;
-  let propsAreDifferent = false;
   if (vNodeProps) {
     const effects = vNodeProps[_PROPS_HANDLER].$effects$;
     const constPropsDifferent = handleChangedProps(
@@ -1388,33 +1387,24 @@ function handleProps(
       container,
       false
     );
-    propsAreDifferent = constPropsDifferent;
     shouldRender ||= constPropsDifferent;
     if (effects && effects.size > 0) {
-      const varPropsDifferent = handleChangedProps(
+      handleChangedProps(
         jsxProps[_VAR_PROPS],
         vNodeProps[_VAR_PROPS],
         vNodeProps[_PROPS_HANDLER],
-        container
+        container,
+        true
       );
-
-      propsAreDifferent ||= varPropsDifferent;
       // don't mark as should render, effects will take care of it
-      // shouldRender ||= varPropsDifferent;
     }
-  }
-
-  if (propsAreDifferent) {
-    if (vNodeProps) {
-      // Reuse the same props instance, qrls can use the current props instance
-      // as a capture ref, so we can't change it.
-      vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
-    } else if (jsxProps) {
-      // If there is no props instance, create a new one.
-      // We can do this because we are not using the props instance for anything else.
-      vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxProps);
-      vNodeProps = jsxProps;
-    }
+    // Update the owner after all props have been synced
+    vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
+  } else if (jsxProps) {
+    // If there is no props instance, create a new one.
+    // We can do this because we are not using the props instance for anything else.
+    vnode_setProp(host as VirtualVNode, ELEMENT_PROPS, jsxProps);
+    vNodeProps = jsxProps;
   }
   return shouldRender;
 }
@@ -1426,51 +1416,49 @@ function handleChangedProps(
   container: ClientContainer,
   triggerEffects: boolean = true
 ): boolean {
-  const srcEmpty = isPropsEmpty(src);
-  const dstEmpty = isPropsEmpty(dst);
-
-  if (srcEmpty && dstEmpty) {
+  if (isPropsEmpty(src) && isPropsEmpty(dst)) {
     return false;
   }
 
-  if (srcEmpty || dstEmpty) {
-    return true;
-  }
-
-  const srcKeys = Object.keys(src!);
-  const dstKeys = Object.keys(dst!);
-
-  let srcLen = srcKeys.length;
-  let dstLen = dstKeys.length;
-  if ('children' in src!) {
-    srcLen--;
-  }
-  if (QBackRefs in src!) {
-    srcLen--;
-  }
-  if ('children' in dst!) {
-    dstLen--;
-  }
-  if (QBackRefs in dst!) {
-    dstLen--;
-  }
-
-  if (srcLen !== dstLen) {
-    return true;
-  }
-
-  let changed = false;
   propsHandler.$container$ = container;
-  for (const key of srcKeys) {
-    if (key === 'children' || key === QBackRefs) {
-      continue;
+  let changed = false;
+
+  // Update changed/added props from src
+  if (src) {
+    for (const key in src) {
+      if (key === 'children' || key === QBackRefs) {
+        continue;
+      }
+      if (!dst || src[key] !== dst[key]) {
+        changed = true;
+        if (triggerEffects) {
+          if (dst) {
+            // Update the value in dst BEFORE triggering effects
+            // so effects see the new value
+            // Note: Value is not triggering effects, because we are modyfing direct VAR_PROPS object
+            dst[key] = src[key];
+          }
+          triggerPropsProxyEffect(propsHandler, key);
+        } else {
+          // Early return for const props (no effects)
+          return true;
+        }
+      }
     }
-    if (!Object.prototype.hasOwnProperty.call(dst, key) || src![key] !== dst![key]) {
-      changed = true;
-      if (triggerEffects) {
-        triggerPropsProxyEffect(propsHandler, key);
-      } else {
-        return true;
+  }
+
+  // Remove props that are in dst but not in src
+  if (dst) {
+    for (const key in dst) {
+      if (key === 'children' || key === QBackRefs) {
+        continue;
+      }
+      if (!src || !(key in src)) {
+        changed = true;
+        if (triggerEffects) {
+          delete dst[key];
+          triggerPropsProxyEffect(propsHandler, key);
+        }
       }
     }
   }

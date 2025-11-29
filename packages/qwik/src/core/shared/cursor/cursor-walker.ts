@@ -240,5 +240,6 @@ function getNextVNode(vNode: VNode): VNode | null {
   }
   // all array items checked, children are no longer dirty
   parent!.dirty &= ~ChoreBits.CHILDREN;
+  parent!.dirtyChildren = null;
   return getNextVNode(parent!);
 }

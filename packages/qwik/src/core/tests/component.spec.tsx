@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { ELEMENT_PROPS, OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_locate } from '../client/vnode';
+import { vnode_getProp, vnode_locate } from '../client/vnode';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 
@@ -2332,7 +2332,7 @@ describe.each([
     );
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
-    expect(h1Element.parent!.getProp(OnRenderProp, null)).toBeNull();
+    expect(vnode_getProp(h1Element.parent!, OnRenderProp, null)).toBeNull();
   });
 
   it('should reuse the same props instance when props are changing', async () => {
@@ -2741,7 +2741,11 @@ describe.each([
       </Component>
     );
 
-    const propsProxy = vNode!.getProp<PropsProxy>(ELEMENT_PROPS, container.$getObjectById$)!;
+    const propsProxy = vnode_getProp<PropsProxy>(
+      vNode!,
+      ELEMENT_PROPS,
+      container.$getObjectById$ as ((id: string) => PropsProxy) | null
+    )!;
     expect(propsProxy[_PROPS_HANDLER]?.$effects$).toBeDefined();
     expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(1);
 

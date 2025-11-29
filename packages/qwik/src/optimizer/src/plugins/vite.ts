@@ -564,7 +564,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       if (viteCommand !== 'serve') {
         return;
       }
-      return getViteIndexTags(qwikPlugin.getOptions(), srcDir!);
+      return getViteIndexTags(qwikPlugin.getOptions(), basePathname);
     },
     configureServer(server: ViteDevServer) {
       qwikPlugin.configureServer(server);

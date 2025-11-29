@@ -35,6 +35,7 @@ import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { assertDefined } from '../error/assert';
 import type { Container } from '../types';
+import { VNodeFlags } from '../../client/types';
 
 const DEBUG = false;
 
@@ -142,6 +143,14 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       continue;
     }
 
+    // Skip if the vNode is deleted
+    if (currentVNode.flags & VNodeFlags.Deleted) {
+      // Clear dirty bits and move to next node
+      currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
+      setCursorPosition(container, cursor, getNextVNode(currentVNode));
+      continue;
+    }
+
     let result: ValueOrPromise<void> | undefined;
     try {
       // Execute chores in order
@@ -179,18 +188,17 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
       setVNodePromise(cursor, result);
-      // pauseCursor(cursor, currentVNode);
 
+      const host = currentVNode;
       result
         .catch((error) => {
           setVNodePromise(cursor, null);
-          container.handleError(error, currentVNode);
+          container.handleError(error, host);
         })
         .finally(() => {
           setVNodePromise(cursor, null);
           triggerCursors();
         });
-      return;
     }
   }
   finishWalk(container, cursor, isServer);

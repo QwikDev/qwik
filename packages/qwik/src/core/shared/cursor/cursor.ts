@@ -47,17 +47,6 @@ export function isCursor(vNode: VNode): vNode is Cursor {
 }
 
 /**
- * Pauses a cursor at the given vNode position. Sets the cursor position for time-slicing or promise
- * waiting.
- *
- * @param cursor - The cursor (vNode with CURSOR flag set) to pause
- * @param vNode - The vNode position to pause at
- */
-export function pauseCursor(container: Container, cursor: Cursor, vNode: VNode): void {
-  setCursorPosition(container, cursor, vNode);
-}
-
-/**
  * Checks if a cursor is complete (root vNode is clean). According to RFC section 3.2: "when a
  * cursor finally marks its root vNode clean, that means the entire subtree is clean."
  *

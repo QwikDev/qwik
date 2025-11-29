@@ -9,6 +9,5 @@ export const enum ChoreBits {
   CLEANUP = 1 << 6,
   // marker used to identify if vnode has visible tasks
   VISIBLE_TASKS = 1 << 7,
-  OPERATION = 1 << 8,
   DIRTY_MASK = TASKS | NODE_DIFF | COMPONENT | NODE_PROPS | COMPUTE | CHILDREN | CLEANUP,
 }

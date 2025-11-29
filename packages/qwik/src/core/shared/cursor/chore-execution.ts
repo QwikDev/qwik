@@ -1,4 +1,4 @@
-import { vnode_isVNode } from '../../client/vnode';
+import { vnode_isVNode, type VNodeJournal } from '../../client/vnode';
 import { vnode_diff } from '../../client/vnode-diff';
 import { clearAllEffects } from '../../reactive-primitives/cleanup';
 import { runResource, type ResourceDescriptor } from '../../use/use-resource';
@@ -32,7 +32,7 @@ import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { JSXOutput } from '../jsx/types/jsx-node';
-import { setExtraPromises } from './cursor-props';
+import { getAfterFlushTasks, setAfterFlushTasks, setExtraPromises } from './cursor-props';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -84,8 +84,12 @@ export function executeTasks(
         runResource(task as ResourceDescriptor<TaskFn>, container, vNode);
       } else if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
         // VisibleTasks: store for execution after flush (don't execute now)
-        // no dirty propagation needed, dirtyChildren array is enough
-        vNode.dirty |= ChoreBits.VISIBLE_TASKS;
+        let visibleTasks = getAfterFlushTasks(cursor);
+        if (!visibleTasks) {
+          visibleTasks = [];
+          setAfterFlushTasks(cursor, visibleTasks);
+        }
+        visibleTasks.push(task);
       } else {
         // Regular tasks: chain promises only between each other
         const result = runTask(task, container, vNode);
@@ -119,7 +123,11 @@ export function setNodeDiffPayload(vNode: VNode, payload: JSXOutput | Signal<JSX
   props[NODE_DIFF_DATA_KEY] = payload;
 }
 
-export function executeNodeDiff(vNode: VNode, container: Container): ValueOrPromise<void> {
+export function executeNodeDiff(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal
+): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
   const domVNode = vNode as ElementVNode;
@@ -130,7 +138,7 @@ export function executeNodeDiff(vNode: VNode, container: Container): ValueOrProm
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
-  const result = vnode_diff(container as ClientContainer, jsx, domVNode, null);
+  const result = vnode_diff(container as ClientContainer, journal, jsx, domVNode, null);
   return result;
 }
 
@@ -142,7 +150,11 @@ export function executeNodeDiff(vNode: VNode, container: Container): ValueOrProm
  * @param container - The container
  * @returns Promise if component execution is async, void otherwise
  */
-export function executeComponentChore(vNode: VNode, container: Container): ValueOrPromise<void> {
+export function executeComponentChore(
+  vNode: VNode,
+  container: Container,
+  journal: VNodeJournal
+): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPONENT;
   const host = vNode as HostElement;
   const componentQRL = container.getHostProp<QRLInternal<OnRenderFn<unknown>> | null>(
@@ -167,6 +179,7 @@ export function executeComponentChore(vNode: VNode, container: Container): Value
         return retryOnPromise(() =>
           vnode_diff(
             container as ClientContainer,
+            journal,
             jsx,
             host,
             addComponentStylePrefix(styleScopedId)
@@ -227,21 +240,17 @@ function clearNodePropData(vNode: VNode): void {
 
 function setNodeProp(
   domVNode: ElementVNode,
+  journal: VNodeJournal,
   property: string,
   value: string | boolean | null,
   isConst: boolean
 ): void {
-  if (!domVNode.operation) {
-    domVNode.operation = {
-      operationType: VNodeOperationType.None,
-      attrs: {
-        [property]: value,
-      },
-    };
-  } else {
-    // TODO: is it safe to assume attrs is always defined here?
-    domVNode.operation.attrs![property] = value;
-  }
+  journal.push({
+    operationType: VNodeOperationType.SetAttribute,
+    target: domVNode.node!,
+    attrName: property,
+    attrValue: value,
+  });
   if (!isConst) {
     if (domVNode.props && value == null) {
       delete domVNode.props[property];
@@ -259,7 +268,7 @@ function setNodeProp(
  * @param container - The container
  * @returns Void
  */
-export function executeNodeProps(vNode: VNode, container: Container): void {
+export function executeNodeProps(vNode: VNode, container: Container, journal: VNodeJournal): void {
   vNode.dirty &= ~ChoreBits.NODE_PROPS;
   if (!(vNode.flags & VNodeFlags.Element)) {
     return;
@@ -293,7 +302,7 @@ export function executeNodeProps(vNode: VNode, container: Container): void {
       );
     } else {
       const isConst = nodeProp.isConst;
-      setNodeProp(domVNode, property, serializedValue, isConst);
+      setNodeProp(domVNode, journal, property, serializedValue, isConst);
     }
   }
 

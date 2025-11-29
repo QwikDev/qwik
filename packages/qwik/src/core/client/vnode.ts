@@ -175,6 +175,7 @@ import { VNodeOperationType } from '../shared/vnode/enums/vnode-operation-type.e
 import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
 import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -195,9 +196,7 @@ export const enum VNodeJournalOpCode {
   Insert = 6, // ------- [Insert, target(parent), reference, ...nodes]
 }
 
-export type VNodeJournal = Array<
-  VNodeJournalOpCode | Document | Element | Text | string | boolean | null
->;
+export type VNodeJournal = Array<VNodeOperation>;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -410,18 +409,18 @@ export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
 };
 
 export const vnode_setAttr = (
-  container: Container,
+  journal: VNodeJournal,
   vNode: VNode,
   key: string,
   value: string | null | boolean
 ) => {
   if (vnode_isElementVNode(vNode)) {
     vnode_setProp(vNode, key, value);
-    addVNodeOperation(container, vNode, {
-      operationType: VNodeOperationType.None,
-      attrs: {
-        [key]: value,
-      },
+    addVNodeOperation(journal, {
+      operationType: VNodeOperationType.SetAttribute,
+      target: vNode.node,
+      attrName: key,
+      attrValue: value,
     });
   }
 };
@@ -509,19 +508,19 @@ export function vnode_walkVNode(
 }
 
 export function vnode_getDOMChildNodes(
-  container: Container,
+  journal: VNodeJournal,
   root: VNode,
   isVNode: true,
   childNodes?: (ElementVNode | TextVNode)[]
 ): (ElementVNode | TextVNode)[];
 export function vnode_getDOMChildNodes(
-  container: Container,
+  journal: VNodeJournal,
   root: VNode,
   isVNode?: false,
   childNodes?: (Element | Text)[]
 ): (Element | Text)[];
 export function vnode_getDOMChildNodes(
-  container: Container,
+  journal: VNodeJournal,
   root: VNode,
   isVNode: boolean = false,
   childNodes: (ElementVNode | TextVNode | Element | Text)[] = []
@@ -533,7 +532,7 @@ export function vnode_getDOMChildNodes(
        * we would return a single text node which represents many actual text nodes, or removing a
        * single text node would remove many text nodes.
        */
-      vnode_ensureTextInflated(container, root);
+      vnode_ensureTextInflated(journal, root);
     }
     childNodes.push(isVNode ? root : vnode_getNode(root)!);
     return childNodes;
@@ -548,12 +547,12 @@ export function vnode_getDOMChildNodes(
        * we would return a single text node which represents many actual text nodes, or removing a
        * single text node would remove many text nodes.
        */
-      vnode_ensureTextInflated(container, vNode);
+      vnode_ensureTextInflated(journal, vNode);
       childNodes.push(isVNode ? vNode : vnode_getNode(vNode)!);
     } else {
       isVNode
-        ? vnode_getDOMChildNodes(container, vNode, true, childNodes as (ElementVNode | TextVNode)[])
-        : vnode_getDOMChildNodes(container, vNode, false, childNodes as (Element | Text)[]);
+        ? vnode_getDOMChildNodes(journal, vNode, true, childNodes as (ElementVNode | TextVNode)[])
+        : vnode_getDOMChildNodes(journal, vNode, false, childNodes as (Element | Text)[]);
     }
     vNode = vNode.nextSibling as VNode | null;
   }
@@ -651,13 +650,13 @@ const vnode_getDomSibling = (
   return null;
 };
 
-const vnode_ensureInflatedIfText = (container: Container, vNode: VNode): void => {
+const vnode_ensureInflatedIfText = (journal: VNodeJournal, vNode: VNode): void => {
   if (vnode_isTextVNode(vNode)) {
-    vnode_ensureTextInflated(container, vNode);
+    vnode_ensureTextInflated(journal, vNode);
   }
 };
 
-const vnode_ensureTextInflated = (container: Container, vnode: TextVNode) => {
+const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode.flags;
   if ((flags & VNodeFlags.Inflated) === 0) {
@@ -666,7 +665,7 @@ const vnode_ensureTextInflated = (container: Container, vnode: TextVNode) => {
     const sharedTextNode = textVNode.node as Text;
     const doc = parentNode.ownerDocument;
     // Walk the previous siblings and inflate them.
-    let subCursor = vnode_getDomSibling(vnode, false, true);
+    let vCursor = vnode_getDomSibling(vnode, false, true);
     // If text node is 0 length, than there is no text node.
     // In that case we use the next node as a reference, in which
     // case we know that the next node MUST be either NULL or an Element.
@@ -676,42 +675,46 @@ const vnode_ensureTextInflated = (container: Container, vnode: TextVNode) => {
       (((node instanceof ElementVNode ? node.node : node?.node) || null) as Element | Text | null);
 
     let lastPreviousTextNode = insertBeforeNode;
-    while (subCursor && vnode_isTextVNode(subCursor)) {
-      if ((subCursor.flags & VNodeFlags.Inflated) === 0) {
-        const textNode = doc.createTextNode(subCursor.text!);
+    while (vCursor && vnode_isTextVNode(vCursor)) {
+      if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
+        const textNode = doc.createTextNode(vCursor.text!);
         lastPreviousTextNode = textNode;
-        subCursor.node = textNode;
-        subCursor.flags |= VNodeFlags.Inflated;
-        addVNodeOperation(container, subCursor, {
+        vCursor.node = textNode;
+        vCursor.flags |= VNodeFlags.Inflated;
+        addVNodeOperation(journal, {
           operationType: VNodeOperationType.InsertOrMove,
           parent: parentNode,
-          target: lastPreviousTextNode,
+          beforeTarget: lastPreviousTextNode,
+          target: textNode,
         });
       }
-      subCursor = vnode_getDomSibling(subCursor, false, true);
+      vCursor = vnode_getDomSibling(vCursor, false, true);
     }
     // Walk the next siblings and inflate them.
-    subCursor = vnode;
-    while (subCursor && vnode_isTextVNode(subCursor)) {
-      const next = vnode_getDomSibling(subCursor, true, true);
+    vCursor = vnode;
+    while (vCursor && vnode_isTextVNode(vCursor)) {
+      const next = vnode_getDomSibling(vCursor, true, true);
       const isLastNode = next ? !vnode_isTextVNode(next) : true;
-      if ((subCursor.flags & VNodeFlags.Inflated) === 0) {
+      if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         if (isLastNode && sharedTextNode) {
-          addVNodeOperation(container, subCursor, {
+          addVNodeOperation(journal, {
             operationType: VNodeOperationType.SetText,
+            target: sharedTextNode,
+            text: vCursor.text!,
           });
         } else {
-          const textNode = doc.createTextNode(subCursor.text!);
-          addVNodeOperation(container, subCursor, {
+          const textNode = doc.createTextNode(vCursor.text!);
+          addVNodeOperation(journal, {
             operationType: VNodeOperationType.InsertOrMove,
             parent: parentNode,
-            target: insertBeforeNode,
+            beforeTarget: insertBeforeNode,
+            target: textNode,
           });
-          subCursor.node = textNode;
+          vCursor.node = textNode;
         }
-        subCursor.flags |= VNodeFlags.Inflated;
+        vCursor.flags |= VNodeFlags.Inflated;
       }
-      subCursor = next;
+      vCursor = next;
     }
   }
 };
@@ -846,7 +849,7 @@ const indexOfAlphanumeric = (id: string, length: number): number => {
 };
 
 export const vnode_createErrorDiv = (
-  container: Container,
+  journal: VNodeJournal,
   document: Document,
   host: VNode,
   err: Error
@@ -859,8 +862,8 @@ export const vnode_createErrorDiv = (
 
   const vErrorDiv = vnode_newElement(errorDiv, 'errored-host');
 
-  vnode_getDOMChildNodes(container, host, true).forEach((child) => {
-    vnode_insertBefore(container, vErrorDiv, child, null);
+  vnode_getDOMChildNodes(journal, host, true).forEach((child) => {
+    vnode_insertBefore(journal, vErrorDiv, child, null);
   });
   return vErrorDiv;
 };
@@ -1056,7 +1059,7 @@ export const vnode_applyJournal = (journal: VNodeJournal) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const vnode_insertBefore = (
-  container: Container,
+  journal: VNodeJournal,
   parent: ElementVNode | VirtualVNode,
   newChild: VNode,
   insertBefore: VNode | null
@@ -1103,7 +1106,7 @@ export const vnode_insertBefore = (
   let domChildren: (ElementVNode | TextVNode)[] | null = null;
   if (domParentVNode) {
     domChildren = vnode_getDomChildrenWithCorrectNamespacesToInsert(
-      container,
+      journal,
       domParentVNode,
       newChild
     );
@@ -1150,7 +1153,7 @@ export const vnode_insertBefore = (
     newChildCurrentParent &&
     (newChild.previousSibling || newChild.nextSibling || newChildCurrentParent !== parent)
   ) {
-    vnode_remove(container, newChildCurrentParent, newChild, false);
+    vnode_remove(journal, newChildCurrentParent, newChild, false);
   }
 
   const parentIsDeleted = parent.flags & VNodeFlags.Deleted;
@@ -1172,14 +1175,15 @@ export const vnode_insertBefore = (
     } else {
       adjustedInsertBefore = insertBefore;
     }
-    adjustedInsertBefore && vnode_ensureInflatedIfText(container, adjustedInsertBefore);
+    adjustedInsertBefore && vnode_ensureInflatedIfText(journal, adjustedInsertBefore);
 
     if (domChildren && domChildren.length) {
       for (const child of domChildren) {
-        addVNodeOperation(container, child, {
+        addVNodeOperation(journal, {
           operationType: VNodeOperationType.InsertOrMove,
           parent: parentNode!,
-          target: vnode_getNode(adjustedInsertBefore),
+          beforeTarget: vnode_getNode(adjustedInsertBefore),
+          target: child.node!,
         });
       }
     }
@@ -1223,14 +1227,14 @@ export const vnode_getDomParentVNode = (
 };
 
 export const vnode_remove = (
-  container: Container,
+  journal: VNodeJournal,
   vParent: ElementVNode | VirtualVNode,
   vToRemove: VNode,
   removeDOM: boolean
 ) => {
   assertEqual(vParent, vToRemove.parent, 'Parent mismatch.');
   if (vnode_isTextVNode(vToRemove)) {
-    vnode_ensureTextInflated(container, vToRemove);
+    vnode_ensureTextInflated(journal, vToRemove);
   }
 
   if (removeDOM) {
@@ -1240,12 +1244,13 @@ export const vnode_remove = (
       // ignore children, as they are inserted via innerHTML
       return;
     }
-    const children = vnode_getDOMChildNodes(container, vToRemove, true);
+    const children = vnode_getDOMChildNodes(journal, vToRemove, true);
     //&& //journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
     if (domParent && children.length) {
       for (const child of children) {
-        addVNodeOperation(container, child, {
+        addVNodeOperation(journal, {
           operationType: VNodeOperationType.Delete,
+          target: child.node!,
         });
       }
     }
@@ -1269,6 +1274,7 @@ export const vnode_remove = (
 
 export const vnode_queryDomNodes = (
   container: Container,
+  journal: VNodeJournal,
   vNode: VNode,
   selector: string,
   cb: (element: Element) => void
@@ -1283,7 +1289,7 @@ export const vnode_queryDomNodes = (
   } else {
     let child = vnode_getFirstChild(vNode);
     while (child) {
-      vnode_queryDomNodes(container, child, selector, cb);
+      vnode_queryDomNodes(container, journal, child, selector, cb);
       child = child.nextSibling as VNode | null;
     }
   }
@@ -1291,6 +1297,7 @@ export const vnode_queryDomNodes = (
 
 export const vnode_truncate = (
   container: Container,
+  journal: VNodeJournal,
   vParent: ElementVNode | VirtualVNode,
   vDelete: VNode
 ) => {
@@ -1298,15 +1305,17 @@ export const vnode_truncate = (
   const parent = vnode_getDomParent(vParent);
   if (parent) {
     if (vnode_isElementVNode(vParent)) {
-      addVNodeOperation(container, vParent, {
+      addVNodeOperation(journal, {
         operationType: VNodeOperationType.RemoveAllChildren,
+        target: vParent.node!,
       });
     } else {
-      const children = vnode_getDOMChildNodes(container, vParent, true);
+      const children = vnode_getDOMChildNodes(journal, vParent, true);
       if (children.length) {
         for (const child of children) {
-          addVNodeOperation(container, child, {
+          addVNodeOperation(journal, {
             operationType: VNodeOperationType.Delete,
+            target: child.node!,
           });
         }
       }
@@ -1343,11 +1352,13 @@ export const vnode_getText = (textVNode: TextVNode): string => {
   return text;
 };
 
-export const vnode_setText = (container: Container, textVNode: TextVNode, text: string) => {
-  vnode_ensureTextInflated(container, textVNode);
+export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text: string) => {
+  vnode_ensureTextInflated(journal, textVNode);
   textVNode.text = text;
-  addVNodeOperation(container, textVNode, {
+  addVNodeOperation(journal, {
     operationType: VNodeOperationType.SetText,
+    target: textVNode.node!,
+    text: text,
   });
 };
 

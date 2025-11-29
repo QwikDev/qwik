@@ -46,7 +46,7 @@ export function getHighestPriorityCursor(): Cursor | null {
 }
 
 /**
- * Removes a cursor from the global queue using swap-and-remove algorithm for O(1) removal.
+ * Removes a cursor from the global queue.
  *
  * @param cursor - The cursor to remove
  */
@@ -54,12 +54,14 @@ export function removeCursorFromQueue(cursor: Cursor): void {
   cursor.flags &= ~VNodeFlags.Cursor;
   const index = globalCursorQueue.indexOf(cursor);
   if (index !== -1) {
-    // Move last element to the position of the element to remove, then pop
-    const lastIndex = globalCursorQueue.length - 1;
-    if (index !== lastIndex) {
-      globalCursorQueue[index] = globalCursorQueue[lastIndex];
-    }
-    globalCursorQueue.pop();
+    // TODO: we can't use swap-and-remove algorithm because it will break the priority order
+    // // Move last element to the position of the element to remove, then pop
+    // const lastIndex = globalCursorQueue.length - 1;
+    // if (index !== lastIndex) {
+    //   globalCursorQueue[index] = globalCursorQueue[lastIndex];
+    // }
+    // globalCursorQueue.pop();
+    globalCursorQueue.splice(index, 1);
   }
 }
 

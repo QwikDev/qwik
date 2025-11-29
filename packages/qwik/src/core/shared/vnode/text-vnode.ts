@@ -1,11 +1,8 @@
 import type { VNodeFlags } from '../../client/types';
 import type { Props } from '../jsx/jsx-runtime';
-import type { VNodeOperation } from './types/dom-vnode-operation';
 import { VNode } from './vnode';
 
 export class TextVNode extends VNode {
-  operation: VNodeOperation | null = null;
-
   constructor(
     flags: VNodeFlags,
     parent: VNode | null,

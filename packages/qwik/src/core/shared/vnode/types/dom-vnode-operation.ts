@@ -1,23 +1,38 @@
 import type { VNodeOperationType } from '../enums/vnode-operation-type.enum';
 
-export type VNodeOperation = TargetAndParentDomVNodeOperation | SimpleDomVNodeOperation;
+export type VNodeOperation =
+  | DeleteOperation
+  | RemoveAllChildrenOperation
+  | SetTextOperation
+  | InsertOrMoveOperation
+  | SetAttributeOperation;
 
-export type TargetAndParentDomVNodeOperation = {
+export type DeleteOperation = {
+  operationType: VNodeOperationType.Delete;
+  target: Element | Text;
+};
+
+export type RemoveAllChildrenOperation = {
+  operationType: VNodeOperationType.RemoveAllChildren;
+  target: Element;
+};
+
+export type SetTextOperation = {
+  operationType: VNodeOperationType.SetText;
+  target: Text;
+  text: string;
+};
+
+export type InsertOrMoveOperation = {
   operationType: VNodeOperationType.InsertOrMove;
-  target: Element | Text | null;
+  target: Element | Text;
   parent: Element;
-  attrs?: Record<string, string | null | boolean>;
+  beforeTarget: Element | Text | null;
 };
 
-export type SimpleDomVNodeOperation = {
-  operationType:
-    | VNodeOperationType.None
-    | VNodeOperationType.Delete
-    | VNodeOperationType.RemoveAllChildren
-    | VNodeOperationType.SetText;
-  attrs?: Record<string, string | null | boolean>;
-};
-
-export type VirtualVNodeOperation = {
-  operationType: VNodeOperationType.SkipRender;
+export type SetAttributeOperation = {
+  operationType: VNodeOperationType.SetAttribute;
+  target: Element;
+  attrName: string;
+  attrValue: string | null | boolean;
 };

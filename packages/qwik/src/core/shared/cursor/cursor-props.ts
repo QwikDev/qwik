@@ -205,7 +205,7 @@ export function getCursorContainer(vNode: VNode): Container | null {
  * @param vNode - The vNode
  * @param journal - The journal to set
  */
-export function setCursorJournal(vNode: VNode, journal: VNodeJournal): void {
+export function setCursorJournal(vNode: VNode, journal: VNodeJournal | null): void {
   const props = (vNode.props ||= {});
   props[CURSOR_JOURNAL_KEY] = journal;
 }

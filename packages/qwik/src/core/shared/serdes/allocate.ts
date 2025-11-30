@@ -51,11 +51,22 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.QRL:
     case TypeIds.PreloadQRL: {
       if (typeof value === 'string') {
-        const data = value.split(' ').map(Number);
-        const chunk = container.$getObjectById$(data[0]) as string;
-        const symbol = container.$getObjectById$(data[1]) as string;
-        const captureIds = data.length > 2 ? data.slice(2) : null;
-        return createQRLWithBackChannel(chunk, symbol, captureIds);
+        const firstSpace = value.indexOf(' ');
+        const chunkIdx = Number(value.slice(0, firstSpace));
+        const secondSpace = value.indexOf(' ', firstSpace + 1);
+        const symbolIdx = Number(
+          secondSpace === -1
+            ? value.slice(firstSpace + 1)
+            : value.slice(firstSpace + 1, secondSpace)
+        );
+        const chunk = container.$getObjectById$(chunkIdx) as string;
+        const symbol = container.$getObjectById$(symbolIdx) as string;
+        const qrl = createQRLWithBackChannel(chunk, symbol);
+        if (secondSpace !== -1) {
+          // temporarily store the captured references for inflate
+          qrl.$captureRef$ = value.slice(secondSpace + 1) as unknown as unknown[];
+        }
+        return qrl;
       } else {
         return createQRLWithBackChannel('', String(value));
       }

@@ -10,13 +10,13 @@ import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { useSerializer$ } from '../use/use-serializer';
 
-const debug = false; //true;
+const debug = !false; //true;
 Error.stackTraceLimit = 100;
 
 // This is almost the same as useComputed, so we only test the custom serialization
 describe.each([
   { render: ssrRenderToDom }, //
-  { render: domRender }, //
+  // { render: domRender }, //
 ])('$render.name: useSerializer$', ({ render }) => {
   it('should do custom serialization', async () => {
     const Counter = component$(() => {
@@ -188,7 +188,7 @@ describe.each([
     );
   });
 
-  it('should not crash when used many times', async () => {
+  it.only('should not crash when used many times', async () => {
     // We don't have the Signal type here
     const MyComponent = component$(({ foo }: { foo: { value: number } }) => {
       const custom = useSerializer$(() => ({

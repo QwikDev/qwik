@@ -1,13 +1,12 @@
 import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
-import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
-import type { VNode } from '../client/vnode-impl';
+import { vnode_getFirstChild, vnode_getProp, vnode_getText } from '../client/vnode';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { SignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
@@ -23,11 +22,7 @@ import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { toSsrAttrs } from '../ssr/ssr-render-jsx';
-
-vi.hoisted(() => {
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
-});
+import type { VNode } from '../shared/vnode/vnode';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -131,7 +126,7 @@ describe('serializer v2', () => {
           ssr.closeElement();
         });
         const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnodeSpan.getAttr('id')).toBe('myId');
+        expect(vnode_getProp(vnodeSpan, 'id', null)).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {

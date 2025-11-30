@@ -28,7 +28,7 @@ import {
   setCursorJournal,
 } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
+import { addCursorToQueue, getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
 import { createNextTick } from '../platform/next-tick';
 import { isPromise } from '../utils/promises';
@@ -97,11 +97,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   const isServer = isServerPlatform();
   const startTime = performance.now();
 
-  // Check if cursor is already complete
-  if (!cursor.dirty) {
-    return;
-  }
-
   // Check if cursor is blocked by a promise
   const blockingPromise = getVNodePromise(cursor);
   if (blockingPromise) {
@@ -110,6 +105,12 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
   const container = getCursorContainer(cursor);
   assertDefined(container, 'Cursor container not found');
+
+  // Check if cursor is already complete
+  if (!cursor.dirty) {
+    finishWalk(container, cursor, isServer);
+    return;
+  }
 
   let journal = getCursorJournal(cursor);
   if (!journal) {
@@ -188,6 +189,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
       setVNodePromise(cursor, result);
+      removeCursorFromQueue(cursor);
 
       const host = currentVNode;
       result
@@ -197,6 +199,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
         })
         .finally(() => {
           setVNodePromise(cursor, null);
+          addCursorToQueue(container, cursor);
           triggerCursors();
         });
     }

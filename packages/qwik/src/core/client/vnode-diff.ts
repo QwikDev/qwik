@@ -50,7 +50,7 @@ import {
   QTemplate,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
-import { isPromise, retryOnPromise } from '../shared/utils/promises';
+import { isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -813,7 +813,13 @@ export const vnode_diff = (
 
           for (const qrl of qrls.flat(2)) {
             if (qrl) {
-              qrl(event, element);
+              safeCall(
+                () => qrl(event, element),
+                () => {},
+                (e) => {
+                  container.handleError(e, vNode);
+                }
+              );
             }
           }
         };
@@ -917,7 +923,7 @@ export const vnode_diff = (
         if (newValue !== oldAttrs[key]) {
           isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
         }
-      } else {
+      } else if (newValue != null) {
         isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
       }
     }

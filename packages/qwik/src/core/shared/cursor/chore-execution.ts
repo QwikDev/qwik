@@ -193,7 +193,6 @@ export function executeComponentChore(
     },
     (err: any) => {
       container.handleError(err, host);
-      throw err;
     }
   );
 

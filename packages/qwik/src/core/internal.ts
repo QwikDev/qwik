@@ -33,7 +33,7 @@ export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';
 export { SubscriptionData as _SubscriptionData } from './reactive-primitives/subscription-data';
-export { _EFFECT_BACK_REF } from './reactive-primitives/types';
+export { _EFFECT_BACK_REF } from './reactive-primitives/backref';
 export {
   isStringifiable as _isStringifiable,
   type Stringifiable as _Stringifiable,

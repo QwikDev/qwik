@@ -16,16 +16,17 @@ import {
   QScopedStyle,
   NODE_PROPS_DATA_KEY,
   NODE_DIFF_DATA_KEY,
+  HOST_SIGNAL,
 } from '../utils/markers';
 import { addComponentStylePrefix } from '../utils/scoped-styles';
-import { isPromise, retryOnPromise, safeCall } from '../utils/promises';
+import { isPromise, maybeThen, retryOnPromise, safeCall } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import type { Container, HostElement } from '../types';
 import type { VNode } from '../vnode/vnode';
 import { VNodeFlags, type ClientContainer } from '../../client/types';
 import type { Cursor } from './cursor';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
-import { isSignal } from '../../reactive-primitives/utils';
+import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { serializeAttribute } from '../utils/styles';
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
@@ -33,6 +34,9 @@ import type { ElementVNode } from '../vnode/element-vnode';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import { getAfterFlushTasks, setAfterFlushTasks, setExtraPromises } from './cursor-props';
+import { invoke, newInvokeContext } from '../../use/use-core';
+import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
+import { SignalFlags } from '../../reactive-primitives/types';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -337,11 +341,24 @@ export function executeCleanup(vNode: VNode, container: Container): void {
  */
 export function executeCompute(vNode: VNode, container: Container): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPUTE;
+  const target = container.getHostProp<WrappedSignalImpl<unknown> | null>(vNode, HOST_SIGNAL);
+  if (!target) {
+    return;
+  }
+  const effects = target.$effects$;
 
-  // Compute chores are typically handled by the reactive system.
-  // This is a placeholder for explicit compute chores if needed.
-
-  // TODO remove or use
-
-  return;
+  const ctx = newInvokeContext();
+  ctx.$container$ = container;
+  // needed for computed signals and throwing QRLs
+  return maybeThen(
+    retryOnPromise(() =>
+      invoke.call(target, ctx, (target as WrappedSignalImpl<unknown>).$computeIfNeeded$)
+    ),
+    () => {
+      if ((target as WrappedSignalImpl<unknown>).$flags$ & SignalFlags.RUN_EFFECTS) {
+        (target as WrappedSignalImpl<unknown>).$flags$ &= ~SignalFlags.RUN_EFFECTS;
+        return scheduleEffects(container, target, effects);
+      }
+    }
+  );
 }

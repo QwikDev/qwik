@@ -24,7 +24,7 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
 
 function flushChanges(vNode: VNode): void {
   const journal = getCursorJournal(vNode);
-  if (!journal) {
+  if (!journal || journal.length === 0) {
     return;
   }
   for (const operation of journal) {
@@ -74,7 +74,7 @@ function flushChanges(vNode: VNode): void {
       }
     }
   }
-  setCursorJournal(vNode, []);
+  setCursorJournal(vNode, null);
 }
 
 function executeAfterFlush(container: Container, cursor: Cursor): void {

@@ -2,7 +2,7 @@ import { vnode_setProp } from '../../client/vnode';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
-import { HOST_EFFECTS } from '../../shared/utils/markers';
+import { HOST_SIGNAL } from '../../shared/utils/markers';
 import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
 import { trackSignal } from '../../use/use-core';
 import { getValueProp } from '../internal-api';
@@ -46,7 +46,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       this.$computeIfNeeded$();
     } catch (_) {
       if (this.$container$ && this.$hostElement$) {
-        vnode_setProp(this.$hostElement$, HOST_EFFECTS, this.$effects$);
+        vnode_setProp(this.$hostElement$, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
       }
     }
@@ -64,7 +64,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   force() {
     this.$flags$ |= SignalFlags.RUN_EFFECTS;
     if (this.$container$ && this.$hostElement$) {
-      vnode_setProp(this.$hostElement$, HOST_EFFECTS, this.$effects$);
+      vnode_setProp(this.$hostElement$, HOST_SIGNAL, this);
       markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
     }
   }

@@ -103,7 +103,7 @@ function mergeCursors(container: Container, newCursor: VNode, oldCursor: VNode):
   resolveCursor(container);
   // merge after flush tasks
   const oldAfterFlushTasks = getAfterFlushTasks(oldCursor);
-  if (oldAfterFlushTasks) {
+  if (oldAfterFlushTasks && oldAfterFlushTasks.length > 0) {
     const newAfterFlushTasks = getAfterFlushTasks(newCursor);
     if (newAfterFlushTasks) {
       newAfterFlushTasks.push(...oldAfterFlushTasks);
@@ -113,7 +113,7 @@ function mergeCursors(container: Container, newCursor: VNode, oldCursor: VNode):
   }
   // merge extra promises
   const oldExtraPromises = getExtraPromises(oldCursor);
-  if (oldExtraPromises) {
+  if (oldExtraPromises && oldExtraPromises.length > 0) {
     const newExtraPromises = getExtraPromises(newCursor);
     if (newExtraPromises) {
       newExtraPromises.push(...oldExtraPromises);
@@ -123,7 +123,7 @@ function mergeCursors(container: Container, newCursor: VNode, oldCursor: VNode):
   }
   // merge journal
   const oldJournal = getCursorJournal(oldCursor);
-  if (oldJournal) {
+  if (oldJournal && oldJournal.length > 0) {
     const newJournal = getCursorJournal(newCursor);
     if (newJournal) {
       newJournal.push(...oldJournal);

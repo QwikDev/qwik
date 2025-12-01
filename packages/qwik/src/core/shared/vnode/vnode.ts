@@ -9,6 +9,7 @@ export abstract class VNode extends BackRef {
   slotParent: VNode | null = null;
   dirty: ChoreBits = 0;
   dirtyChildren: VNode[] | null = null;
+  nextDirtyChildIndex: number = 0;
 
   constructor(
     public flags: VNodeFlags,

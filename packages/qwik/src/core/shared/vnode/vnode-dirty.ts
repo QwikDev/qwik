@@ -1,6 +1,6 @@
 import type { VNodeJournal } from '../../client/vnode';
-import { addCursor, findCursor } from '../cursor/cursor';
-import { getCursorPosition, setCursorPosition } from '../cursor/cursor-props';
+import { addCursor, findCursor, isCursor } from '../cursor/cursor';
+import { getCursorData } from '../cursor/cursor-props';
 import type { Container } from '../types';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
@@ -28,21 +28,22 @@ export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBi
       // if so we must restart from here
       const cursor = findCursor(vNode);
       if (cursor) {
-        let cursorPosition = getCursorPosition(cursor);
+        const cursorData = getCursorData(cursor)!;
+        let cursorPosition = cursorData.position;
         if (cursorPosition) {
           // find the ancestor of the cursor position that is current vNode
           while (cursorPosition !== cursor) {
             cursorPosition = cursorPosition.parent || cursorPosition.slotParent!;
             if (cursorPosition === vNode) {
               // set cursor position to this node
-              setCursorPosition(container, cursor, vNode);
+              cursorData.position = vNode;
               break;
             }
           }
         }
       }
     }
-  } else {
+  } else if (!isCursor(vNode)) {
     addCursor(container, vNode, 0);
   }
 }

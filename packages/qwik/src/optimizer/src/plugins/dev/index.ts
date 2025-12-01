@@ -77,7 +77,7 @@ function invalidPreviewMessage(middlewares: Connect.Server, msg: string) {
   });
 }
 
-export const getViteIndexTags = (opts: NormalizedQwikPluginOptions, srcDir: string) => {
+export const getViteIndexTags = (opts: NormalizedQwikPluginOptions, base: string) => {
   const tags: HtmlTagDescriptor[] = [
     { tag: 'style', children: qwikErrorOverlayStyles, injectTo: 'body' },
     { tag: 'style', children: inspectorStyles, injectTo: 'body' },
@@ -104,13 +104,16 @@ export const getViteIndexTags = (opts: NormalizedQwikPluginOptions, srcDir: stri
   }
   if (opts.devTools?.clickToSource ?? true) {
     const hotKeys = opts.devTools.clickToSource ?? [];
-    const srcDirUrl = new URL(srcDir + '/', 'http://local.local').href;
+    // the filepaths start with /
+    if (base.endsWith('/')) {
+      base = base.slice(0, -1);
+    }
     tags.push({
       tag: 'script',
       attrs: { type: 'module' },
       children: clickToComponent
         .replace('globalThis.__HOTKEYS__', JSON.stringify(hotKeys))
-        .replace('globalThis.__SRC_DIR__', JSON.stringify(srcDirUrl)),
+        .replace('globalThis.__BASE__', JSON.stringify(base)),
       injectTo: 'body',
     });
   }

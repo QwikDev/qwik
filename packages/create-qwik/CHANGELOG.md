@@ -1,5 +1,7 @@
 # create-qwik
 
+## 2.0.0-beta.15
+
 ## 2.0.0-beta.14
 
 ### Major Changes

@@ -1,7 +1,7 @@
 {
   "name": "supabase-auth-helpers-qwik",
   "description": "A collection of Qwik framework specific Auth utilities for working with Supabase.",
-  "version": "1.0.0-beta.0",
+  "version": "0.0.3",
   "author": "Qwik Team",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {

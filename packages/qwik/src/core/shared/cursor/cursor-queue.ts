@@ -7,7 +7,7 @@
 import { VNodeFlags } from '../../client/types';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
-import { getCursorPriority } from './cursor-props';
+import { getCursorData, setCursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
 let globalCursorQueue: Cursor[] = [];
@@ -19,11 +19,11 @@ let globalCursorQueue: Cursor[] = [];
  * @param cursor - The cursor to add
  */
 export function addCursorToQueue(container: Container, cursor: Cursor): void {
-  const priority = getCursorPriority(cursor)!;
+  const priority = getCursorData(cursor)!.priority;
   let insertIndex = globalCursorQueue.length;
 
   for (let i = 0; i < globalCursorQueue.length; i++) {
-    const existingPriority = getCursorPriority(globalCursorQueue[i])!;
+    const existingPriority = getCursorData(globalCursorQueue[i])!.priority;
     if (priority < existingPriority) {
       insertIndex = i;
       break;

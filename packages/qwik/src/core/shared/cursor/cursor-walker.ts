@@ -16,17 +16,7 @@ import {
   executeTasks,
 } from './chore-execution';
 import { type Cursor } from './cursor';
-import {
-  getCursorPosition,
-  setCursorPosition,
-  getVNodePromise,
-  setVNodePromise,
-  setNextChildIndex,
-  getNextChildIndex,
-  getCursorContainer,
-  getCursorJournal,
-  setCursorJournal,
-} from './cursor-props';
+import { setCursorPosition, getCursorData, setCursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { addCursorToQueue, getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
@@ -97,13 +87,15 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   const isServer = isServerPlatform();
   const startTime = performance.now();
 
+  const cursorData = getCursorData(cursor)!;
+
   // Check if cursor is blocked by a promise
-  const blockingPromise = getVNodePromise(cursor);
+  const blockingPromise = cursorData.promise;
   if (blockingPromise) {
     return;
   }
 
-  const container = getCursorContainer(cursor);
+  const container = cursorData.container;
   assertDefined(container, 'Cursor container not found');
 
   // Check if cursor is already complete
@@ -112,17 +104,13 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     return;
   }
 
-  let journal = getCursorJournal(cursor);
-  if (!journal) {
-    journal = [];
-    setCursorJournal(cursor, journal);
-  }
+  const journal = (cursorData.journal ||= []);
 
   // Get starting position (resume from last position or start at root)
   let currentVNode: VNode | null = null;
 
   let count = 0;
-  while ((currentVNode = getCursorPosition(cursor))) {
+  while ((currentVNode = cursorData.position)) {
     DEBUG && console.warn('walkCursor', currentVNode.toString());
     if (count++ > 100) {
       throw new Error('Infinite loop detected in cursor walker');
@@ -138,9 +126,9 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     }
 
     // Skip if the vNode is not dirty
-    if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK) || getVNodePromise(currentVNode)) {
+    if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK) || cursorData.promise) {
       // Move to next node
-      setCursorPosition(container, cursor, getNextVNode(currentVNode));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode));
       continue;
     }
 
@@ -148,7 +136,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     if (currentVNode.flags & VNodeFlags.Deleted) {
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
-      setCursorPosition(container, cursor, getNextVNode(currentVNode));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode));
       continue;
     }
 
@@ -156,7 +144,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     try {
       // Execute chores in order
       if (currentVNode.dirty & ChoreBits.TASKS) {
-        result = executeTasks(currentVNode, container, cursor);
+        result = executeTasks(currentVNode, container, cursorData);
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
         result = executeNodeDiff(currentVNode, container, journal);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
@@ -171,10 +159,10 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           // No dirty children
           currentVNode.dirty &= ~ChoreBits.CHILDREN;
         } else {
-          setNextChildIndex(currentVNode, 0);
+          currentVNode.nextDirtyChildIndex = 0;
           // descend
           currentVNode = getNextVNode(dirtyChildren[0])!;
-          setCursorPosition(container, cursor, currentVNode);
+          setCursorPosition(container, cursorData, currentVNode);
           continue;
         }
       } else if (currentVNode.dirty & ChoreBits.CLEANUP) {
@@ -188,17 +176,17 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     if (result && isPromise(result)) {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
-      setVNodePromise(cursor, result);
+      cursorData.promise = result;
       removeCursorFromQueue(cursor);
 
       const host = currentVNode;
       result
         .catch((error) => {
-          setVNodePromise(cursor, null);
+          cursorData.promise = null;
           container.handleError(error, host);
         })
         .finally(() => {
-          setVNodePromise(cursor, null);
+          cursorData.promise = null;
           addCursorToQueue(container, cursor);
           triggerCursors();
         });
@@ -213,7 +201,6 @@ function finishWalk(container: Container, cursor: Cursor, isServer: boolean): vo
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
-
     resolveCursor(container);
   }
 }
@@ -234,14 +221,14 @@ function getNextVNode(vNode: VNode): VNode | null {
     return null;
   }
   const dirtyChildren = parent.dirtyChildren!;
-  let index = getNextChildIndex(parent)!;
+  let index = parent.nextDirtyChildIndex;
 
   const len = dirtyChildren!.length;
   let count = len;
   while (count-- > 0) {
     const nextVNode = dirtyChildren[index];
     if (nextVNode.dirty & ChoreBits.DIRTY_MASK) {
-      setNextChildIndex(parent, (index + 1) % len);
+      parent.nextDirtyChildIndex = (index + 1) % len;
       return nextVNode;
     }
     index++;

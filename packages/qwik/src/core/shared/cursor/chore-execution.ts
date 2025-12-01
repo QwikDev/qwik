@@ -24,7 +24,6 @@ import type { ValueOrPromise } from '../utils/types';
 import type { Container, HostElement } from '../types';
 import type { VNode } from '../vnode/vnode';
 import { VNodeFlags, type ClientContainer } from '../../client/types';
-import type { Cursor } from './cursor';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
@@ -33,7 +32,7 @@ import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { JSXOutput } from '../jsx/types/jsx-node';
-import { getAfterFlushTasks, setAfterFlushTasks, setExtraPromises } from './cursor-props';
+import { type CursorData } from './cursor-props';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
@@ -58,7 +57,7 @@ import { SignalFlags } from '../../reactive-primitives/types';
 export function executeTasks(
   vNode: VNode,
   container: Container,
-  cursor: Cursor
+  cursorData: CursorData
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.TASKS;
 
@@ -71,7 +70,6 @@ export function executeTasks(
 
   // Execute all tasks in sequence
   let taskPromise: Promise<void> | undefined;
-  let extraPromises: Promise<void>[] | undefined;
 
   for (const item of elementSeq) {
     if (item instanceof Task) {
@@ -88,12 +86,7 @@ export function executeTasks(
         runResource(task as ResourceDescriptor<TaskFn>, container, vNode);
       } else if (task.$flags$ & TaskFlags.VISIBLE_TASK) {
         // VisibleTasks: store for execution after flush (don't execute now)
-        let visibleTasks = getAfterFlushTasks(cursor);
-        if (!visibleTasks) {
-          visibleTasks = [];
-          setAfterFlushTasks(cursor, visibleTasks);
-        }
-        visibleTasks.push(task);
+        (cursorData.afterFlushTasks ||= []).push(task);
       } else {
         // Regular tasks: chain promises only between each other
         const result = runTask(task, container, vNode);
@@ -103,7 +96,8 @@ export function executeTasks(
               ? taskPromise.then(() => result as Promise<void>)
               : (result as Promise<void>);
           } else {
-            extraPromises ||= [];
+            // TODO: set extrapromises on vNode instead of cursorData if server
+            const extraPromises = (cursorData.extraPromises ||= []);
             extraPromises.push(result as Promise<void>);
           }
         }
@@ -111,9 +105,6 @@ export function executeTasks(
     }
   }
 
-  if (extraPromises) {
-    setExtraPromises(isServerPlatform() ? vNode : cursor, extraPromises);
-  }
   return taskPromise;
 }
 

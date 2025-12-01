@@ -2,14 +2,8 @@ import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
-import type { VNode } from '../vnode/vnode';
 import type { Cursor } from './cursor';
-import {
-  getAfterFlushTasks,
-  getCursorJournal,
-  setAfterFlushTasks,
-  setCursorJournal,
-} from './cursor-props';
+import { getCursorData, type CursorData } from './cursor-props';
 
 /**
  * Executes the flush phase for a cursor.
@@ -18,12 +12,13 @@ import {
  * @param container - The container to execute the flush phase for
  */
 export function executeFlushPhase(cursor: Cursor, container: Container): void {
-  flushChanges(cursor);
-  executeAfterFlush(container, cursor);
+  const cursorData = getCursorData(cursor)!;
+  flushChanges(cursorData);
+  executeAfterFlush(container, cursorData);
 }
 
-function flushChanges(vNode: VNode): void {
-  const journal = getCursorJournal(vNode);
+function flushChanges(cursorData: CursorData): void {
+  const journal = cursorData.journal;
   if (!journal || journal.length === 0) {
     return;
   }
@@ -74,11 +69,11 @@ function flushChanges(vNode: VNode): void {
       }
     }
   }
-  setCursorJournal(vNode, null);
+  cursorData.journal = null;
 }
 
-function executeAfterFlush(container: Container, cursor: Cursor): void {
-  const visibleTasks = getAfterFlushTasks(cursor);
+function executeAfterFlush(container: Container, cursorData: CursorData): void {
+  const visibleTasks = cursorData.afterFlushTasks;
   if (!visibleTasks || visibleTasks.length === 0) {
     return;
   }
@@ -86,7 +81,7 @@ function executeAfterFlush(container: Container, cursor: Cursor): void {
     const task = visibleTask;
     runTask(task, container, task.$el$);
   }
-  setAfterFlushTasks(cursor, null);
+  cursorData.afterFlushTasks = null;
 }
 
 const isBooleanAttr = (element: Element, key: string): boolean => {

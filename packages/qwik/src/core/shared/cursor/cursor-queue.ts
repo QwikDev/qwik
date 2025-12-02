@@ -7,7 +7,7 @@
 import { VNodeFlags } from '../../client/types';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
-import { getCursorData, setCursorData } from './cursor-props';
+import { getCursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
 let globalCursorQueue: Cursor[] = [];

@@ -1535,8 +1535,9 @@ export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode
         // SPECIAL CASE: If we are a component, we need to descend into the projected content and release the content.
         const attrs = (vCursor as VirtualVNode).props;
         if (attrs) {
-          for (const [key, value] of Object.entries(attrs)) {
+          for (const key of Object.keys(attrs)) {
             if (isSlotProp(key)) {
+              const value = attrs[key];
               if (value) {
                 attrs[key] = null; // prevent infinite loop
                 const projection =
@@ -1565,7 +1566,9 @@ export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode
           vCursor = vFirstChild;
           continue;
         }
-      } else if (vCursor === vNode) {
+      }
+      // TODO: probably can be removed
+      else if (vCursor === vNode) {
         /**
          * If it is a projection and we are at the root, then we should only walk the children to
          * materialize the projection content. This is because we could have references in the vnode

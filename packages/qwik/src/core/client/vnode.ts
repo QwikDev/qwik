@@ -399,7 +399,7 @@ export const vnode_getProp = <T = unknown>(
 
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {
-    if (!value && vNode.props) {
+    if (value == null && vNode.props) {
       delete vNode.props[key];
     } else {
       vNode.props ||= {};

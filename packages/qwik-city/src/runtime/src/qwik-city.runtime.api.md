@@ -15,7 +15,7 @@ import { QRL } from '@builder.io/qwik';
 import { QRLEventHandlerMulti } from '@builder.io/qwik';
 import { QwikIntrinsicElements } from '@builder.io/qwik';
 import { QwikJSX } from '@builder.io/qwik';
-import type { ReadonlySignal } from '@builder.io/qwik';
+import { ReadonlySignal } from '@builder.io/qwik';
 import { RequestEvent } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventAction } from '@builder.io/qwik-city/middleware/request-handler';
 import { RequestEventBase } from '@builder.io/qwik-city/middleware/request-handler';
@@ -484,6 +484,12 @@ export const useLocation: () => RouteLocation;
 
 // @public (undocumented)
 export const useNavigate: () => RouteNavigate;
+
+// @alpha
+export const usePreloaderInfo: () => {
+    userEventPreloadsCount: ReadonlySignal<number>;
+    activePreloadsLength: ReadonlySignal;
+};
 
 // @public
 export const usePreventNavigate$: (qrl: PreventNavigateCallback) => void;

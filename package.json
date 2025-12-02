@@ -137,7 +137,7 @@
     "eslint-plugin-no-only-tests": "3.3.0",
     "eslint-plugin-qwik": "workspace:^",
     "execa": "9.6.0",
-    "express": "4.20.0",
+    "express": "4.22.0",
     "globals": "16.4.0",
     "install": "0.13.0",
     "memfs": "4.49.0",

@@ -158,10 +158,10 @@ const handleBindProp = (props: Props, prop: string) => {
   if (value) {
     if (prop === BIND_CHECKED) {
       props.checked = value;
-      props['on:input'] = createQRL(null, '_chk', _chk, null, null, [value]);
+      props['on:input'] = createQRL(null, '_chk', _chk, null, [value]);
     } else {
       props.value = value;
-      props['on:input'] = createQRL(null, '_val', _val, null, null, [value]);
+      props['on:input'] = createQRL(null, '_val', _val, null, [value]);
     }
     return true;
   }

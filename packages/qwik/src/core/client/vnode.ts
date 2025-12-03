@@ -176,25 +176,9 @@ import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
 import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
+import { _flushJournal } from '../shared/cursor/cursor-flush';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Fundamental DOM operations are:
- *
- * - Insert new DOM element/text
- * - Remove DOM element/text
- * - Set DOM element attributes
- * - Set text node value
- */
-export const enum VNodeJournalOpCode {
-  SetText = 1, // ------ [SetAttribute, target, text]
-  SetAttribute = 2, // - [SetAttribute, target, ...(key, values)]]
-  HoistStyles = 3, // -- [HoistStyles, document]
-  Remove = 4, // ------- [Remove, target(parent), ...nodes]
-  RemoveAll = 5, // ------- [RemoveAll, target(parent)]
-  Insert = 6, // ------- [Insert, target(parent), reference, ...nodes]
-}
 
 export type VNodeJournal = Array<VNodeOperation>;
 
@@ -900,43 +884,30 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
   }
 
   while (idx < length) {
-    const op = journal[idx++] as VNodeJournalOpCode;
-    switch (op) {
-      case VNodeJournalOpCode.SetText:
+    const op = journal[idx++];
+    switch (op.operationType) {
+      case VNodeOperationType.SetText:
         stringify('SetText');
-        stringify('  ', journal[idx++]);
-        stringify('   -->', journal[idx++]);
+        stringify('  ', op.text);
+        stringify('   -->', op.target);
         break;
-      case VNodeJournalOpCode.SetAttribute:
+      case VNodeOperationType.SetAttribute:
         stringify('SetAttribute');
-        stringify('  ', journal[idx++]);
-        stringify('   key', journal[idx++]);
-        stringify('   val', journal[idx++]);
+        stringify('  ', op.attrName);
+        stringify('   key', op.attrName);
+        stringify('   val', op.attrValue);
         break;
-      case VNodeJournalOpCode.HoistStyles:
-        stringify('HoistStyles');
-        break;
-      case VNodeJournalOpCode.Remove: {
-        stringify('Remove');
-        const parent = journal[idx++];
-        stringify('  ', parent);
-        let nodeToRemove: any;
-        while (idx < length && typeof (nodeToRemove = journal[idx]) !== 'number') {
-          stringify('   -->', nodeToRemove);
-          idx++;
-        }
+      case VNodeOperationType.Delete: {
+        stringify('Delete');
+        stringify('   -->', op.target);
         break;
       }
-      case VNodeJournalOpCode.Insert: {
-        stringify('Insert');
-        const parent = journal[idx++];
-        const insertBefore = journal[idx++];
+      case VNodeOperationType.InsertOrMove: {
+        stringify('InsertOrMove');
+        const parent = op.parent;
+        const insertBefore = op.beforeTarget;
         stringify('  ', parent);
-        let newChild: any;
-        while (idx < length && typeof (newChild = journal[idx]) !== 'number') {
-          stringify('   -->', newChild);
-          idx++;
-        }
+        stringify('   -->', op.target);
         if (insertBefore) {
           stringify('      ', insertBefore);
         }
@@ -947,114 +918,7 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
   lines.push('END JOURNAL');
   return lines.join('\n');
 };
-
-const parseBoolean = (value: string | boolean | null): boolean => {
-  if (value === 'false') {
-    return false;
-  }
-  return Boolean(value);
-};
-
-const isBooleanAttr = (element: Element, key: string): boolean => {
-  const isBoolean =
-    key == 'allowfullscreen' ||
-    key == 'async' ||
-    key == 'autofocus' ||
-    key == 'autoplay' ||
-    key == 'checked' ||
-    key == 'controls' ||
-    key == 'default' ||
-    key == 'defer' ||
-    key == 'disabled' ||
-    key == 'formnovalidate' ||
-    key == 'inert' ||
-    key == 'ismap' ||
-    key == 'itemscope' ||
-    key == 'loop' ||
-    key == 'multiple' ||
-    key == 'muted' ||
-    key == 'nomodule' ||
-    key == 'novalidate' ||
-    key == 'open' ||
-    key == 'playsinline' ||
-    key == 'readonly' ||
-    key == 'required' ||
-    key == 'reversed' ||
-    key == 'selected';
-  return isBoolean && key in element;
-};
-
-export const vnode_applyJournal = (journal: VNodeJournal) => {
-  // console.log('APPLY JOURNAL', vnode_journalToString(journal));
-  let idx = 0;
-  const length = journal.length;
-  while (idx < length) {
-    const op = journal[idx++] as VNodeJournalOpCode;
-    switch (op) {
-      case VNodeJournalOpCode.SetText:
-        const text = journal[idx++] as Text;
-        text.nodeValue = journal[idx++] as string;
-        break;
-      case VNodeJournalOpCode.SetAttribute:
-        const element = journal[idx++] as Element;
-        let key = journal[idx++] as string;
-        if (key === 'className') {
-          key = 'class';
-        }
-        const value = journal[idx++] as string | null | boolean;
-        const shouldRemove = value == null || value === false;
-        if (isBooleanAttr(element, key)) {
-          (element as any)[key] = parseBoolean(value);
-        } else if (key === dangerouslySetInnerHTML) {
-          (element as any).innerHTML = value!;
-          element.setAttribute(QContainerAttr, QContainerValue.HTML);
-        } else if (shouldRemove) {
-          element.removeAttribute(key);
-        } else if (key === 'value' && key in element) {
-          (element as any).value = String(value);
-        } else {
-          element.setAttribute(key, String(value));
-        }
-        break;
-      case VNodeJournalOpCode.HoistStyles:
-        // TODO move  DOM container start
-        const document = journal[idx++] as Document;
-        const head = document.head;
-        const styles = document.querySelectorAll(QStylesAllSelector);
-        for (let i = 0; i < styles.length; i++) {
-          head.appendChild(styles[i]);
-        }
-        break;
-      case VNodeJournalOpCode.Remove:
-        const removeParent = journal[idx++] as Element;
-        let nodeToRemove: any;
-        while (idx < length && typeof (nodeToRemove = journal[idx]) !== 'number') {
-          removeParent.removeChild(nodeToRemove as Element | Text);
-          idx++;
-        }
-        break;
-      case VNodeJournalOpCode.RemoveAll:
-        const removeAllParent = journal[idx++] as Element;
-        if (removeAllParent.replaceChildren) {
-          removeAllParent.replaceChildren();
-        } else {
-          // fallback if replaceChildren is not supported
-          removeAllParent.textContent = '';
-        }
-        break;
-      case VNodeJournalOpCode.Insert:
-        const insertParent = journal[idx++] as Element;
-        const insertBefore = journal[idx++] as Element | Text | null;
-        let newChild: any;
-        while (idx < length && typeof (newChild = journal[idx]) !== 'number') {
-          insertParent.insertBefore(newChild, insertBefore);
-          idx++;
-        }
-        break;
-    }
-  }
-  journal.length = 0;
-};
+export const vnode_applyJournal = _flushJournal;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1245,7 +1109,7 @@ export const vnode_remove = (
       return;
     }
     const children = vnode_getDOMChildNodes(journal, vToRemove, true);
-    //&& //journal.push(VNodeJournalOpCode.Remove, domParent, ...children);
+    //&& //journal.push(VNodeOperationType.Remove, domParent, ...children);
     if (domParent && children.length) {
       for (const child of children) {
         addVNodeOperation(journal, {

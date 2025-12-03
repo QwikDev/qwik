@@ -16,7 +16,7 @@ import {
   executeTasks,
 } from './chore-execution';
 import { type Cursor } from './cursor';
-import { setCursorPosition, getCursorData, setCursorData } from './cursor-props';
+import { setCursorPosition, getCursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { addCursorToQueue, getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';

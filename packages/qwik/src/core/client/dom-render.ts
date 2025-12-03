@@ -49,7 +49,11 @@ export const render = async (
   await container.$renderPromise$;
   return {
     cleanup: () => {
-      cleanup(container, container.rootVNode);
+      /**
+       * This can lead to cleaning up projection vnodes via the journal, but since we're cleaning up
+       * they don't matter so we ignore the journal
+       */
+      cleanup(container, [], container.rootVNode);
     },
   };
 };

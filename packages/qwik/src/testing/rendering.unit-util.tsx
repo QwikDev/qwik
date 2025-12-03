@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Slot, componentQrl, render, type JSXOutput } from '@qwik.dev/core';
+import { Slot, component$, render, type JSXOutput } from '@qwik.dev/core';
 import { _getDomContainer } from '@qwik.dev/core/internal';
 import type {
   _ContainerElement,
@@ -13,6 +13,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { expect } from 'vitest';
 import {
+  type VNodeJournal,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getProp,
@@ -28,7 +29,6 @@ import {
 } from '../core/client/vnode';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
-import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { _dumpState, preprocessState } from '../core/shared/serdes/index';
 import {
   OnRenderProp,
@@ -175,6 +175,7 @@ export async function ssrRenderToDom(
 
   const firstContainerChild = vnode_getFirstChild(containerVNode);
 
+  const journal: VNodeJournal = [];
   let vNode: VNode | null = null;
   if (!firstContainerChild) {
     // No children, so we can't get the first child
@@ -210,7 +211,7 @@ export async function ssrRenderToDom(
     }
 
     // Set the container vnode as a parent of the fragment
-    vnode_insertBefore(containerVNode, fragment, insertBefore);
+    vnode_insertBefore(journal, containerVNode, fragment, insertBefore);
     // Set the fragment as a parent of the children
     for (const child of childrenToMove) {
       vnode_moveToVirtual(fragment, child, null);
@@ -220,14 +221,22 @@ export async function ssrRenderToDom(
     vNode = firstContainerChild;
   }
 
+  if (journal.length > 0) {
+    throw new Error('Journal not empty after moving nodes to fragment.');
+  }
+
   return { container, document, vNode, getStyles };
 }
 
 function vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore: VNode | null) {
+  const journal: VNodeJournal = [];
   // ensure that the previous node is unlinked.
   const newChildCurrentParent = newChild.parent;
   if (newChildCurrentParent && (newChild.previousSibling || newChild.nextSibling)) {
-    vnode_remove(newChildCurrentParent as ElementVNode | VirtualVNode, newChild, false);
+    vnode_remove(journal, newChildCurrentParent as ElementVNode | VirtualVNode, newChild, false);
+  }
+  if (journal.length > 0) {
+    throw new Error('Journal not empty after removing node.');
   }
 
   // link newChild into the previous/next list
@@ -336,12 +345,10 @@ function getHostVNode(vElement: _VNode | null) {
 }
 
 export const ErrorProvider = Object.assign(
-  componentQrl(
-    inlinedQrl(() => {
-      (ErrorProvider as any).error = null;
-      useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
-      return <Slot />;
-    }, 's_ErrorProvider')
-  ),
+  component$(() => {
+    (ErrorProvider as any).error = null;
+    useContextProvider(ERROR_CONTEXT, ErrorProvider as any);
+    return <Slot />;
+  }),
   { error: null as any }
 );

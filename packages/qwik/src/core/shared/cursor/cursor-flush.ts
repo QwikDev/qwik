@@ -1,3 +1,4 @@
+import type { VNodeJournal } from '../../client/vnode';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
@@ -13,15 +14,15 @@ import { getCursorData, type CursorData } from './cursor-props';
  */
 export function executeFlushPhase(cursor: Cursor, container: Container): void {
   const cursorData = getCursorData(cursor)!;
-  flushChanges(cursorData);
+  const journal = cursorData.journal;
+  if (journal && journal.length > 0) {
+    _flushJournal(journal);
+    cursorData.journal = null;
+  }
   executeAfterFlush(container, cursorData);
 }
 
-function flushChanges(cursorData: CursorData): void {
-  const journal = cursorData.journal;
-  if (!journal || journal.length === 0) {
-    return;
-  }
+export function _flushJournal(journal: VNodeJournal): void {
   for (const operation of journal) {
     switch (operation.operationType) {
       case VNodeOperationType.InsertOrMove: {
@@ -69,7 +70,6 @@ function flushChanges(cursorData: CursorData): void {
       }
     }
   }
-  cursorData.journal = null;
 }
 
 function executeAfterFlush(container: Container, cursorData: CursorData): void {

@@ -14,6 +14,7 @@ import type {
 } from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
+  type VNodeJournal,
   vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
@@ -52,8 +53,9 @@ import { prettyJSX } from './jsx';
 import { isElement, prettyHtml } from './html';
 import { QContainerValue } from '../core/shared/types';
 import type { VNode } from '../core/shared/vnode/vnode';
-import type { ElementVNode } from '../core/shared/vnode/element-vnode';
+import { ElementVNode } from '../core/shared/vnode/element-vnode';
 import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
+import { _flushJournal } from '../core/shared/cursor/cursor-flush';
 
 expect.extend({
   toMatchVDOM(
@@ -455,6 +457,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   const container: ClientContainer = _getDomContainer(doc.body);
   const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: _ElementVNode | _VirtualVNode = vBody;
+  const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
@@ -471,7 +474,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
         throw new Error('Unknown type:' + type);
       }
 
-      vnode_insertBefore(vParent, child, null);
+      vnode_insertBefore(journal, vParent, child, null);
       const props = jsx.varProps;
       for (const key in props) {
         if (Object.prototype.hasOwnProperty.call(props, key)) {
@@ -481,12 +484,12 @@ export function vnode_fromJSX(jsx: JSXOutput) {
           if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
             vnode_setProp(child, key, props[key]);
           } else {
-            vnode_setAttr(child, key, String(props[key]));
+            vnode_setAttr(journal, child, key, String(props[key]));
           }
         }
       }
-      if (jsx.key != null) {
-        vnode_setAttr(child, ELEMENT_KEY, String(jsx.key));
+      if (jsx.key != null && vnode_isElementVNode(child)) {
+        child.key = jsx.key;
       }
       vParent = child as ElementVNode | VirtualVNode;
     },
@@ -495,12 +498,14 @@ export function vnode_fromJSX(jsx: JSXOutput) {
     },
     text: (value) => {
       vnode_insertBefore(
+        journal,
         vParent,
         vnode_newText(doc.createTextNode(String(value)), String(value)),
         null
       );
     },
   });
+  _flushJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc, container };
 }
 function constPropsFromElement(element: Element) {

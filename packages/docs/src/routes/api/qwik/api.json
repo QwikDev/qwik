@@ -3,6 +3,20 @@
   "package": "@qwik.dev/qwik",
   "members": [
     {
+      "name": "_QRLInternal",
+      "id": "_qrlinternal",
+      "hierarchy": [
+        {
+          "name": "_QRLInternal",
+          "id": "_qrlinternal"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;\n```\n**References:** [QRL](#qrl)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/qrl/qrl-class.ts",
+      "mdFile": "core._qrlinternal.md"
+    },
+    {
       "name": "\"q:slot\"",
       "id": "componentbaseprops-_q_slot_",
       "hierarchy": [

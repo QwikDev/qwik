@@ -664,6 +664,11 @@ export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol:
 // @public
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
 
+// Warning: (ae-forgotten-export) The symbol "QRLInternalMethods" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type _QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
+
 // @internal
 export const _qrlSync: <TYPE extends Function>(fn: TYPE, serializedFn?: string) => SyncQRL<TYPE>;
 

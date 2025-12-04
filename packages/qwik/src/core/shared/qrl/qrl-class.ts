@@ -56,6 +56,7 @@ export type QRLInternalMethods<TYPE> = {
   $setContainer$(containerEl: Element | undefined): Element | undefined;
 };
 
+/** @public */
 export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
 
 const resolvedSymbol = Symbol('resolved');

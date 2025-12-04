@@ -1,12 +1,17 @@
 import type { VNodeJournal } from '../../client/vnode';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
-import { getCursorData } from '../cursor/cursor-props';
+import { getCursorData, type CursorData } from '../cursor/cursor-props';
 import type { Container } from '../types';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
 import type { VNode } from './vnode';
 
-export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBits): void {
+export function markVNodeDirty(
+  container: Container,
+  vNode: VNode,
+  bits: ChoreBits,
+  mergeWithParentCursor = false
+): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
@@ -14,7 +19,28 @@ export function markVNodeDirty(container: Container, vNode: VNode, bits: ChoreBi
   if (isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) {
     return;
   }
-  const parent = vNode.parent || vNode.slotParent;
+  let parent = vNode.parent || vNode.slotParent;
+  if (mergeWithParentCursor && isRealDirty && parent && !parent.dirty) {
+    let previousParent = vNode;
+    while (parent) {
+      const parentWasDirty = parent.dirty & ChoreBits.DIRTY_MASK;
+      parent.dirty |= ChoreBits.CHILDREN;
+      parent.dirtyChildren ||= [];
+      parent.dirtyChildren.push(previousParent);
+      if (isCursor(parent)) {
+        const cursorData: CursorData = getCursorData(parent)!;
+        if (cursorData.position !== parent) {
+          cursorData.position = vNode;
+        }
+      }
+      if (parentWasDirty) {
+        break;
+      }
+      previousParent = parent;
+      parent = parent.parent || parent.slotParent;
+    }
+    return;
+  }
   // We must attach to a cursor subtree if it exists
   if (parent && parent.dirty & ChoreBits.DIRTY_MASK) {
     if (isRealDirty) {

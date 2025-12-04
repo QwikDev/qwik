@@ -1211,7 +1211,7 @@ export const vnode_diff = (
            * deleted.
            */
           (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
-          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT);
+          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT, true);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1517,7 +1517,7 @@ export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode
               const objIsTask = isTask(obj);
               if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
                 obj.$flags$ |= TaskFlags.DIRTY;
-                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP);
+                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, true);
 
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;

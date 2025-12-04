@@ -8,6 +8,7 @@ import { isJSXNode } from './shared/jsx/jsx-node';
 import { isQrl } from './shared/qrl/qrl-utils';
 import { DEBUG_TYPE } from './shared/types';
 import { isTask } from './use/use-task';
+import { SERIALIZABLE_STATE } from './shared/component.public';
 
 const stringifyPath: any[] = [];
 export function qwikDebugToString(value: any): any {
@@ -74,6 +75,14 @@ export const pad = (text: string, prefix: string) => {
 
 export const jsxToString = (value: any): string => {
   if (isJSXNode(value)) {
+    if (typeof value.type === 'function') {
+      const componentMeta = (value.type as any)[SERIALIZABLE_STATE];
+      if (componentMeta) {
+        const [componentQRL] = componentMeta;
+        return 'Component(' + componentQRL.$symbol$ + ')';
+      }
+      return 'Function(' + value.type.name + ')';
+    }
     let str = '<' + value.type;
     if (value.props) {
       for (const [key, val] of Object.entries(value.props)) {

@@ -23,7 +23,7 @@ import { executeFlushPhase } from './cursor-flush';
 import { createNextTick } from '../platform/next-tick';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
-import { assertDefined } from '../error/assert';
+import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
 
@@ -125,8 +125,12 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       }
     }
 
+    if (cursorData.promise) {
+      return;
+    }
+
     // Skip if the vNode is not dirty
-    if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK) || cursorData.promise) {
+    if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
       setCursorPosition(container, cursorData, getNextVNode(currentVNode));
       continue;
@@ -178,6 +182,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       // Store promise on cursor and pause
       cursorData.promise = result;
       removeCursorFromQueue(cursor);
+      container.$cursorCount$--;
 
       const host = currentVNode;
       result
@@ -190,8 +195,13 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           addCursorToQueue(container, cursor);
           triggerCursors();
         });
+      return;
     }
   }
+  assertFalse(
+    !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
+    'Cursor is still dirty and position is not set after walking'
+  );
   finishWalk(container, cursor, isServer);
 }
 
@@ -216,8 +226,15 @@ export function resolveCursor(container: Container): void {
 
 /** @returns Next vNode to process, or null if traversal is complete */
 function getNextVNode(vNode: VNode): VNode | null {
-  const parent = vNode.parent || vNode.slotParent;
-  if (!parent || !(parent.dirty & ChoreBits.CHILDREN)) {
+  // Prefer parent if it's dirty, otherwise try slotParent
+  let parent: VNode | null = null;
+  if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
+    parent = vNode.parent;
+  } else if (vNode.slotParent && vNode.slotParent.dirty & ChoreBits.CHILDREN) {
+    parent = vNode.slotParent;
+  }
+
+  if (!parent) {
     return null;
   }
   const dirtyChildren = parent.dirtyChildren!;

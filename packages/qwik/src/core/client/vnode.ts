@@ -1617,9 +1617,7 @@ export const vnode_getAttrKeys = (vnode: ElementVNode | VirtualVNode): string[] 
     const keys: string[] = [];
     const props = vnode.props;
     if (props) {
-      const keys = Object.keys(props);
-      for (let i = 0; i < Math.min(keys.length, 20); i++) {
-        const key = keys[i];
+      for (const key of Object.keys(props)) {
         if (!key.startsWith(Q_PROPS_SEPARATOR)) {
           keys.push(key);
         }

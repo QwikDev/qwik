@@ -267,7 +267,7 @@ export const runResource = <T>(
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupDestroyable(task);
 
-  const iCtx = newInvokeContext(container.$locale$, host, undefined, ResourceEvent);
+  const iCtx = newInvokeContext(container.$locale$, host, ResourceEvent);
   iCtx.$container$ = container;
 
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task));

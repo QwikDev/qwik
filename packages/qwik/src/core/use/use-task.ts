@@ -182,7 +182,7 @@ export const runTask = (
 ): ValueOrPromise<void> => {
   task.$flags$ &= ~TaskFlags.DIRTY;
   cleanupDestroyable(task);
-  const iCtx = newInvokeContext(container.$locale$, host, undefined, TaskEvent);
+  const iCtx = newInvokeContext(container.$locale$, host, TaskEvent);
   iCtx.$container$ = container;
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task)) as TaskFn;
 

@@ -37,8 +37,8 @@ export type PossibleEvents =
 export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.
   $hostElement$: HostElement;
-  $event$: PossibleEvents;
-  $waitOn$: Promise<unknown> | null;
+  $event$: typeof RenderEvent;
+  $waitOn$: Promise<unknown> | undefined;
   $container$: Container;
 }
 
@@ -50,8 +50,6 @@ export interface InvokeContext {
   $url$: URL | undefined;
   /** The Virtual parent component for the current component code */
   $hostElement$: HostElement | undefined;
-  /** The current DOM element */
-  $element$: Element | undefined;
   /** The event we're currently handling */
   $event$: PossibleEvents | undefined;
   /** The QRL function we're currently executing */
@@ -143,24 +141,42 @@ export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) =>
   const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, hostElement, element, event, url);
+  return newInvokeContext(locale, hostElement, event, url);
 };
 
+export function newRenderInvokeContext(
+  locale: string | undefined,
+  hostElement: HostElement,
+  container: Container,
+  url?: URL
+): RenderInvokeContext {
+  const ctx: RenderInvokeContext = {
+    $url$: url,
+    $hostElement$: hostElement,
+    $event$: RenderEvent,
+    $qrl$: undefined,
+    $effectSubscriber$: undefined,
+    $locale$: locale,
+    $container$: container,
+    $waitOn$: undefined,
+  };
+  seal(ctx);
+  return ctx;
+}
+
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
-export const newInvokeContext = (
+export function newInvokeContext(
   locale?: string,
   hostElement?: HostElement,
-  element?: Element,
-  event?: PossibleEvents,
+  event?: Exclude<PossibleEvents, typeof RenderEvent>,
   url?: URL
-): InvokeContext => {
+): InvokeContext {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
     locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $hostElement$: hostElement,
-    $element$: element,
     $event$: event,
     $qrl$: undefined,
     $effectSubscriber$: undefined,
@@ -169,7 +185,7 @@ export const newInvokeContext = (
   };
   seal(ctx);
   return ctx;
-};
+}
 
 /**
  * Don't track listeners for this callback
@@ -190,12 +206,7 @@ export const untrack = <T>(fn: () => T): T => {
   }
 };
 
-const trackInvocation = /*#__PURE__*/ newInvokeContext(
-  undefined,
-  undefined,
-  undefined,
-  RenderEvent
-);
+const trackInvocation = /*#__PURE__*/ newRenderInvokeContext(undefined, undefined!, undefined!);
 
 /**
  * @param fn

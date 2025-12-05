@@ -23,6 +23,7 @@ import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
+import { ElementVNode } from '../vnode/element-vnode';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -201,7 +202,12 @@ export const createQRL = <TYPE>(
         }
         if (isPromise(symbolRef)) {
           symbolRef.then(
-            () => emitUsedSymbol(symbol, ctx?.$element$, start),
+            () =>
+              emitUsedSymbol(
+                symbol,
+                ctx?.$hostElement$ instanceof ElementVNode ? ctx?.$hostElement$.node : undefined,
+                start
+              ),
             (err) => {
               console.error(`qrl ${symbol} failed to load`, err);
               // We shouldn't cache rejections, we can try again later

@@ -51,7 +51,7 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   useRunTask(task, eagerness);
   if (!isServerPlatform()) {
     if (!qrl.resolved) {
-      (qrl as QRLInternal).resolve(iCtx.$element$);
+      (qrl as QRLInternal).resolve();
     }
     markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
   }

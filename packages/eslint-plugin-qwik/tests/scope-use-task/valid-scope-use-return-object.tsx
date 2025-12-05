@@ -6,14 +6,15 @@ export default component$(() => {
     if (isBrowser) {
       track(() => {
         if (state.value) {
-          // `path` will be treated as a built-in node API under isBrowser
           const values = [
             {
+              // `path` will be treated as a built-in node API under isBrowser
               path: '1',
             },
           ];
         }
       });
+      const process = { cwd: 'hi' };
     }
   });
   return <></>;

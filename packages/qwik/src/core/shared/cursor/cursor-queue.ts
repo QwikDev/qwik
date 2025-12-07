@@ -50,8 +50,15 @@ export function getHighestPriorityCursor(): Cursor | null {
  *
  * @param cursor - The cursor to remove
  */
-export function removeCursorFromQueue(cursor: Cursor): void {
-  cursor.flags &= ~VNodeFlags.Cursor;
+export function removeCursorFromQueue(
+  cursor: Cursor,
+  container: Container,
+  keepCursorFlag?: boolean
+): void {
+  container.$cursorCount$--;
+  if (!keepCursorFlag) {
+    cursor.flags &= ~VNodeFlags.Cursor;
+  }
   const index = globalCursorQueue.indexOf(cursor);
   if (index !== -1) {
     // TODO: we can't use swap-and-remove algorithm because it will break the priority order

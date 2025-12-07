@@ -547,7 +547,7 @@ export const vnode_diff = (
         if (vNode.flags & VNodeFlags.Deleted) {
           continue;
         }
-        cleanup(container, journal, vNode);
+        cleanup(container, journal, vNode, vStartNode);
         vnode_remove(journal, vParent, vNode, true);
       }
       vSideBuffer.clear();
@@ -590,7 +590,7 @@ export const vnode_diff = (
     if (vFirstChild !== null) {
       let vChild: VNode | null = vFirstChild;
       while (vChild) {
-        cleanup(container, journal, vChild);
+        cleanup(container, journal, vChild, vStartNode);
         vChild = vChild.nextSibling as VNode | null;
       }
       vnode_truncate(container, journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
@@ -605,7 +605,7 @@ export const vnode_diff = (
         const toRemove = vCurrent;
         advanceToNextSibling();
         if (vParent === toRemove.parent) {
-          cleanup(container, journal, toRemove);
+          cleanup(container, journal, toRemove, vStartNode);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
           vnode_remove(journal, vParent, toRemove, true);
@@ -616,7 +616,7 @@ export const vnode_diff = (
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_isTextVNode(vCurrent)) {
-      cleanup(container, journal, vCurrent);
+      cleanup(container, journal, vCurrent, vStartNode);
       const toRemove = vCurrent;
       advanceToNextSibling();
       vnode_remove(journal, vParent, toRemove, true);
@@ -1211,7 +1211,7 @@ export const vnode_diff = (
            * deleted.
            */
           (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
-          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT, true);
+          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT, vStartNode);
         }
       }
       descendContentToProject(jsxNode.children, host);
@@ -1488,8 +1488,15 @@ function isPropsEmpty(props: Record<string, any> | null | undefined): boolean {
  *
  * - Projection nodes by not recursing into them.
  * - Component nodes by recursing into the component content nodes (which may be projected).
+ *
+ * @param cursorRoot - Optional cursor root (vStartNode) to propagate dirty bits to during diff.
  */
-export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode: VNode) {
+export function cleanup(
+  container: ClientContainer,
+  journal: VNodeJournal,
+  vNode: VNode,
+  cursorRoot: VNode | null = null
+) {
   let vCursor: VNode | null = vNode;
   // Depth first traversal
   if (vnode_isTextVNode(vNode)) {
@@ -1517,7 +1524,7 @@ export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode
               const objIsTask = isTask(obj);
               if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
                 obj.$flags$ |= TaskFlags.DIRTY;
-                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, true);
+                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
 
                 // don't call cleanupDestroyable yet, do it by the scheduler
                 continue;
@@ -1546,7 +1553,7 @@ export function cleanup(container: ClientContainer, journal: VNodeJournal, vNode
                     : (value as unknown as VNode);
                 let projectionChild = vnode_getFirstChild(projection);
                 while (projectionChild) {
-                  cleanup(container, journal, projectionChild);
+                  cleanup(container, journal, projectionChild, cursorRoot);
                   projectionChild = projectionChild.nextSibling as VNode | null;
                 }
 

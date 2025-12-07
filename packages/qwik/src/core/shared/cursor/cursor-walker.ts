@@ -112,7 +112,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   let count = 0;
   while ((currentVNode = cursorData.position)) {
     DEBUG && console.warn('walkCursor', currentVNode.toString());
-    if (count++ > 100) {
+    if (DEBUG && count++ > 1000) {
       throw new Error('Infinite loop detected in cursor walker');
     }
     // Check time budget (only for DOM, not SSR)
@@ -181,13 +181,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
       cursorData.promise = result;
-      removeCursorFromQueue(cursor);
-      container.$cursorCount$--;
+      removeCursorFromQueue(cursor, container, true);
 
       const host = currentVNode;
       result
         .catch((error) => {
-          cursorData.promise = null;
           container.handleError(error, host);
         })
         .finally(() => {
@@ -207,7 +205,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
 function finishWalk(container: Container, cursor: Cursor, isServer: boolean): void {
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
-    removeCursorFromQueue(cursor);
+    removeCursorFromQueue(cursor, container);
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
@@ -218,7 +216,7 @@ function finishWalk(container: Container, cursor: Cursor, isServer: boolean): vo
 export function resolveCursor(container: Container): void {
   // TODO streaming as a cursor? otherwise we need to wait separately for it
   // or just ignore and resolve manually
-  if (--container.$cursorCount$ === 0) {
+  if (container.$cursorCount$ === 0) {
     container.$resolveRenderPromise$!();
     container.$renderPromise$ = null;
   }

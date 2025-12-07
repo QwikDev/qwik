@@ -20,6 +20,8 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
+  /** True when executing a render-blocking task (before promise is set) */
+  isBlocking: boolean;
 }
 
 /**
@@ -41,8 +43,7 @@ export function setCursorPosition(
 
 function mergeCursors(container: Container, newCursorData: CursorData, oldCursor: VNode): void {
   // delete from global cursors queue
-  removeCursorFromQueue(oldCursor);
-  resolveCursor(container);
+  removeCursorFromQueue(oldCursor, container);
   const oldCursorData = getCursorData(oldCursor)!;
   // merge after flush tasks
   const oldAfterFlushTasks = oldCursorData.afterFlushTasks;

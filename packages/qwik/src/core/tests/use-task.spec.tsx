@@ -697,6 +697,7 @@ describe.each([
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
+      await vi.advanceTimersToNextTimerAsync();
       await triggerPromise;
 
       // Should have the new value
@@ -714,6 +715,7 @@ describe.each([
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
+      await vi.advanceTimersToNextTimerAsync();
       await triggerPromise;
 
       // Should have the new value

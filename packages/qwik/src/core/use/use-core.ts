@@ -287,7 +287,11 @@ export const _getContextContainer = (): ClientContainer | undefined => {
   }
 };
 
-/** @internal */
+/**
+ * @deprecated
+ * @internal
+ * No longer used since v2
+ */
 export const _jsxBranch = <T>(input?: T) => {
   return input;
 };

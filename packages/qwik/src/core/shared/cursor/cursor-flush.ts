@@ -1,4 +1,4 @@
-import type { VNodeJournal } from '../../client/vnode';
+import { vnode_journalToString, type VNodeJournal } from '../../client/vnode';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
@@ -23,6 +23,7 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
 }
 
 export function _flushJournal(journal: VNodeJournal): void {
+  // console.log(vnode_journalToString(journal));
   for (const operation of journal) {
     switch (operation.operationType) {
       case VNodeOperationType.InsertOrMove: {

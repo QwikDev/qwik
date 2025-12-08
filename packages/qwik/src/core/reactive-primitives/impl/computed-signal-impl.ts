@@ -52,7 +52,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    scheduleEffects(this.$container$, this, this.$effects$);
+    this.$computeIfNeeded$();
+    if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
+      this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+      scheduleEffects(this.$container$, this, this.$effects$);
+    }
   }
 
   /**

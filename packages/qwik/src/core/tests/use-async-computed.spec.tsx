@@ -227,6 +227,7 @@ describe.each([
       );
 
       await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+      await waitForDrain(container);
 
       expect(vNode).toMatchVDOM(
         <>
@@ -237,6 +238,9 @@ describe.each([
       );
 
       await (globalThis as any).delay.resolve();
+      // wait after resolving the delay
+      await waitForDrain(container);
+      // wait for effects
       await waitForDrain(container);
       expect(vNode).toMatchVDOM(
         <>

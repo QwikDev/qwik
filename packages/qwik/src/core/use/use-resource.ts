@@ -94,9 +94,9 @@ export const useResourceQrl = <T>(
   qrl: QRL<ResourceFn<T>>,
   opts?: ResourceOptions
 ): ResourceReturn<T> => {
-  const { val, set, i, iCtx } = useSequentialScope<ResourceReturn<T>>();
+  const { val, set, i, iCtx } = useSequentialScope<ResourceDescriptor<any>>();
   if (val != null) {
-    return val;
+    return val.$state$ as ResourceReturn<T>;
   }
   assertQrl(qrl);
 
@@ -111,7 +111,7 @@ export const useResourceQrl = <T>(
     resource,
     null
   ) as ResourceDescriptor<any>;
-  set(resource);
+  set(task);
   runResource(task, container, el);
 
   return resource;

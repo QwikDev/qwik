@@ -163,6 +163,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           // No dirty children
           currentVNode.dirty &= ~ChoreBits.CHILDREN;
         } else {
+          partitionDirtyChildren(dirtyChildren, currentVNode);
           currentVNode.nextDirtyChildIndex = 0;
           // descend
           currentVNode = getNextVNode(dirtyChildren[0])!;
@@ -219,6 +220,26 @@ export function resolveCursor(container: Container): void {
   if (container.$cursorCount$ === 0) {
     container.$resolveRenderPromise$!();
     container.$renderPromise$ = null;
+  }
+}
+
+/**
+ * Partitions dirtyChildren array so non-projections come first, projections last. Uses in-place
+ * swapping to avoid allocations.
+ */
+function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
+  let writeIndex = 0;
+  for (let readIndex = 0; readIndex < dirtyChildren.length; readIndex++) {
+    const child = dirtyChildren[readIndex];
+    if (child.parent === parent) {
+      // Non-projection, move to front
+      if (writeIndex !== readIndex) {
+        const temp = dirtyChildren[writeIndex];
+        dirtyChildren[writeIndex] = child;
+        dirtyChildren[readIndex] = temp;
+      }
+      writeIndex++;
+    }
   }
 }
 

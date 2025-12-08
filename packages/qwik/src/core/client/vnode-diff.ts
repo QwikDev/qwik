@@ -804,6 +804,9 @@ export const vnode_diff = (
       // Event handler needs to be patched onto the element.
       if (!element.qDispatchEvent) {
         element.qDispatchEvent = (event: Event, scope: QwikLoaderEventScope) => {
+          if (vNode.flags & VNodeFlags.Deleted) {
+            return;
+          }
           const eventName = fromCamelToKebabCase(event.type);
           const eventProp = ':' + scope.substring(1) + ':' + eventName;
           const qrls = [

@@ -67,6 +67,7 @@ export class AsyncComputedSignalImpl<T>
   set untrackedLoading(value: boolean) {
     if (value !== this.$untrackedLoading$) {
       this.$untrackedLoading$ = value;
+      DEBUG && log('Set untrackedLoading', value);
       scheduleEffects(this.$container$, this, this.$loadingEffects$);
     }
   }
@@ -96,9 +97,9 @@ export class AsyncComputedSignalImpl<T>
   }
 
   override invalidate() {
-    super.invalidate();
     // clear the promise, we need to get function again
     this.$promise$ = null;
+    super.invalidate();
   }
 
   async promise(): Promise<T> {
@@ -139,6 +140,8 @@ export class AsyncComputedSignalImpl<T>
           this.untrackedError = undefined;
           if (this.setValue(promiseValue)) {
             DEBUG && log('Scheduling effects for subscribers', this.$effects$?.size);
+
+            this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
             scheduleEffects(this.$container$, this, this.$effects$);
           }
         })

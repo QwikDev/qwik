@@ -69,11 +69,10 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   let current: VNode | null = vNode.parent || vNode.slotParent;
 
   while (current) {
-    const isDirty = current.dirty & ChoreBits.DIRTY_MASK;
     const currentIsCursor = isCursor(current);
     const isBlockingCursor = currentIsCursor && getCursorData(current)?.isBlocking;
 
-    if (isDirty || isBlockingCursor) {
+    if (isBlockingCursor) {
       propagatePath(current);
       reusablePath.length = 0;
       return true;

@@ -278,6 +278,10 @@ importers:
         version: 19.1.1(react@19.1.1)
 
   packages/create-qwik:
+    dependencies:
+      execa:
+        specifier: 9.6.0
+        version: 9.6.0
     devDependencies:
       '@clack/prompts':
         specifier: 0.11.0
@@ -6794,6 +6798,7 @@ packages:
 
   moize@6.1.6:
     resolution: {integrity: sha512-vSKdIUO61iCmTqhdoIDrqyrtp87nWZUmBPniNjO0fX49wEYmyDO4lvlnFXiGcaH1JLE/s/9HbiK4LSHsbiUY6Q==}
+    deprecated: This library has been deprecated in favor of micro-memoize, which as-of version 5 incorporates most of the functionality that this library offers at nearly half the size and better speed.
 
   monaco-editor@0.54.0:
     resolution: {integrity: sha512-hx45SEUoLatgWxHKCmlLJH81xBo0uXP4sRkESUpmDQevfi+e7K1VuiSprK6UpQ8u4zOcKNiH0pMvHvlMWA/4cw==}

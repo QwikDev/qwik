@@ -16,7 +16,7 @@ import {
   executeTasks,
 } from './chore-execution';
 import { type Cursor } from './cursor';
-import { setCursorPosition, getCursorData } from './cursor-props';
+import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
 import { addCursorToQueue, getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
@@ -100,7 +100,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
   // Check if cursor is already complete
   if (!cursor.dirty) {
-    finishWalk(container, cursor, isServer);
+    finishWalk(container, cursor, cursorData, isServer);
     return;
   }
 
@@ -138,6 +138,10 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
     // Skip if the vNode is deleted
     if (currentVNode.flags & VNodeFlags.Deleted) {
+      // if deleted, run cleanup if needed
+      if (currentVNode.dirty & ChoreBits.CLEANUP) {
+        executeCleanup(currentVNode, container);
+      }
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
       setCursorPosition(container, cursorData, getNextVNode(currentVNode));
@@ -170,8 +174,6 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           setCursorPosition(container, cursorData, currentVNode);
           continue;
         }
-      } else if (currentVNode.dirty & ChoreBits.CLEANUP) {
-        executeCleanup(currentVNode, container);
       }
     } catch (error) {
       container.handleError(error, currentVNode);
@@ -201,15 +203,28 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
     'Cursor is still dirty and position is not set after walking'
   );
-  finishWalk(container, cursor, isServer);
+  finishWalk(container, cursor, cursorData, isServer);
 }
 
-function finishWalk(container: Container, cursor: Cursor, isServer: boolean): void {
+function finishWalk(
+  container: Container,
+  cursor: Cursor,
+  cursorData: CursorData,
+  isServer: boolean
+): void {
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
     removeCursorFromQueue(cursor, container);
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
+
+    if (cursorData.extraPromises) {
+      Promise.all(cursorData.extraPromises).then(() => {
+        resolveCursor(container);
+      });
+      return;
+    }
+
     resolveCursor(container);
   }
 }

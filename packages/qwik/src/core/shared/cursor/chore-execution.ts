@@ -9,15 +9,7 @@ import type { OnRenderFn } from '../component.public';
 import type { Props } from '../jsx/jsx-runtime';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import {
-  ELEMENT_SEQ,
-  ELEMENT_PROPS,
-  OnRenderProp,
-  QScopedStyle,
-  NODE_PROPS_DATA_KEY,
-  NODE_DIFF_DATA_KEY,
-  HOST_SIGNAL,
-} from '../utils/markers';
+import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
 import { addComponentStylePrefix } from '../utils/scoped-styles';
 import { isPromise, maybeThen, retryOnPromise, safeCall } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
@@ -32,10 +24,16 @@ import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { JSXOutput } from '../jsx/types/jsx-node';
-import { type CursorData } from './cursor-props';
+import {
+  HOST_SIGNAL,
+  NODE_DIFF_DATA_KEY,
+  NODE_PROPS_DATA_KEY,
+  type CursorData,
+} from './cursor-props';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
+import { cleanupDestroyable } from '../../use/utils/destroyable';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -103,8 +101,7 @@ export function executeTasks(
               : (result as Promise<void>);
           } else {
             // TODO: set extrapromises on vNode instead of cursorData if server
-            const extraPromises = (cursorData.extraPromises ||= []);
-            extraPromises.push(result as Promise<void>);
+            (cursorData.extraPromises ||= []).push(result as Promise<void>);
           }
         } else if (isRenderBlocking) {
           // Task completed synchronously, clear the blocking flag
@@ -322,11 +319,25 @@ export function executeNodeProps(vNode: VNode, container: Container, journal: VN
  */
 export function executeCleanup(vNode: VNode, container: Container): void {
   vNode.dirty &= ~ChoreBits.CLEANUP;
+  console.log('executeCleanup');
 
-  if (vnode_isVNode(vNode)) {
-    // TODO I dont think this runs the cleanups of visible tasks
-    // TODO add promises to extraPromises
-    clearAllEffects(container, vNode);
+  // TODO add promises to extraPromises
+
+  const elementSeq = container.getHostProp<unknown[] | null>(vNode, ELEMENT_SEQ);
+
+  if (!elementSeq || elementSeq.length === 0) {
+    // No tasks to execute, clear the bit
+    return;
+  }
+
+  for (const item of elementSeq) {
+    if (item instanceof Task) {
+      if (item.$flags$ & TaskFlags.NEEDS_CLEANUP) {
+        item.$flags$ &= ~TaskFlags.NEEDS_CLEANUP;
+        const task = item as Task<TaskFn, TaskFn>;
+        cleanupDestroyable(task);
+      }
+    }
   }
 }
 

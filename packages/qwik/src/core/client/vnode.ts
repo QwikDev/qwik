@@ -149,7 +149,6 @@ import {
   QScopedStyle,
   QSlot,
   QStyle,
-  QStylesAllSelector,
 } from '../shared/utils/markers';
 import { isHtmlElement } from '../shared/utils/types';
 import { VNodeDataChar } from '../shared/vnode-data-types';

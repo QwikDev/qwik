@@ -445,14 +445,7 @@ describe.each([
     const { document } = await render(<Cmp />, { debug });
     await trigger(document.body, 'script', ':document:qinit');
 
-    expect((globalThis as any).counter).toBe(
-      render === ssrRenderToDom
-        ? // visible + inline
-          2
-        : // TODO: is it correct?
-          // visible itself from scheduling it + inline + visible from triggering document:qinit
-          3
-    );
+    expect((globalThis as any).counter).toBe(2);
 
     (globalThis as any).counter = undefined;
   });

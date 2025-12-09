@@ -1526,7 +1526,7 @@ export function cleanup(
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
               if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                obj.$flags$ |= TaskFlags.DIRTY;
+                obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
                 markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
 
                 // don't call cleanupDestroyable yet, do it by the scheduler

@@ -25,7 +25,8 @@ export const enum TaskFlags {
   RESOURCE = 1 << 2,
   DIRTY = 1 << 3,
   RENDER_BLOCKING = 1 << 4,
-  EVENTS_REGISTERED = 1 << 5,
+  NEEDS_CLEANUP = 1 << 5,
+  EVENTS_REGISTERED = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -199,7 +200,7 @@ export const runTask = (
       if (isPromise(err)) {
         return err.then(() => runTask(task, container, host));
       } else {
-        throw err;
+        container.handleError(err, host);
       }
     }
   );

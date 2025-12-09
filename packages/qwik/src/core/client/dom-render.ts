@@ -3,13 +3,14 @@ import { isDocument, isElement } from '../shared/utils/element';
 import { QContainerValue } from '../shared/types';
 import { DomContainer, getDomContainer } from './dom-container';
 import { cleanup } from './vnode-diff';
-import { NODE_DIFF_DATA_KEY, QContainerAttr } from '../shared/utils/markers';
+import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
 import { qDev } from '../shared/utils/qdev';
 import { QError, qError } from '../shared/error/error';
 import { vnode_setProp } from './vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
 
 /**
  * Render JSX.

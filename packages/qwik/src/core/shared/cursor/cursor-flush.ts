@@ -1,4 +1,5 @@
-import { vnode_journalToString, type VNodeJournal } from '../../client/vnode';
+import { isPromise } from 'util/types';
+import { type VNodeJournal } from '../../client/vnode';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
@@ -76,11 +77,19 @@ export function _flushJournal(journal: VNodeJournal): void {
 function executeAfterFlush(container: Container, cursorData: CursorData): void {
   const visibleTasks = cursorData.afterFlushTasks;
   if (!visibleTasks || visibleTasks.length === 0) {
+    cursorData.afterFlushTasks = null;
     return;
   }
+  let visibleTaskPromise: Promise<void> | undefined;
   for (const visibleTask of visibleTasks) {
     const task = visibleTask;
-    runTask(task, container, task.$el$);
+    const result = runTask(task, container, task.$el$);
+    if (isPromise(result)) {
+      visibleTaskPromise = visibleTaskPromise ? visibleTaskPromise.then(() => result) : result;
+    }
+  }
+  if (visibleTaskPromise) {
+    (cursorData.extraPromises ||= []).push(visibleTaskPromise);
   }
   cursorData.afterFlushTasks = null;
 }

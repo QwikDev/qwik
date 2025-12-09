@@ -2,7 +2,6 @@ import { vnode_setProp } from '../../client/vnode';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';
-import { HOST_SIGNAL } from '../../shared/utils/markers';
 import { ChoreBits } from '../../shared/vnode/enums/chore-bits.enum';
 import { trackSignal } from '../../use/use-core';
 import { getValueProp } from '../internal-api';
@@ -12,6 +11,7 @@ import { isSignal, scheduleEffects } from '../utils';
 import { SignalImpl } from './signal-impl';
 import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
+import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $args$: any[];

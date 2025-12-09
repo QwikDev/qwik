@@ -4,13 +4,17 @@ import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode';
 import type { Task } from '../../use/use-task';
-import { resolveCursor } from './cursor-walker';
 
 /**
  * Keys used to store cursor-related data in vNode props. These are internal properties that should
  * not conflict with user props.
  */
 const CURSOR_DATA_KEY = ':cursor';
+
+/** Key used to store pending node prop updates in vNode props. */
+export const NODE_PROPS_DATA_KEY = ':nodeProps';
+export const NODE_DIFF_DATA_KEY = ':nodeDiff';
+export const HOST_SIGNAL = ':signal';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;

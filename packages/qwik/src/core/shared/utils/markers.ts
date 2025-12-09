@@ -81,10 +81,6 @@ export const ELEMENT_PROPS = 'q:props';
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
-/** Key used to store pending node prop updates in vNode props. */
-export const NODE_PROPS_DATA_KEY = 'q:nodeProps';
-export const NODE_DIFF_DATA_KEY = 'q:nodeDiff';
-export const HOST_SIGNAL = 'q:signal';
 export const Q_PREFIX = 'q:';
 
 /** Non serializable markers - always begins with `:` character */

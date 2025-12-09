@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.16
+
+### Patch Changes
+
+- ✨ Introduced the QRLInternal type (by [@JerryWu1234](https://github.com/JerryWu1234) in [#8193](https://github.com/QwikDev/qwik/pull/8193))
+
 ## 2.0.0-beta.15
 
 ### Minor Changes

@@ -1,10 +1,8 @@
-import { vnode_isVNode, type VNodeJournal } from '../../client/vnode';
+import { type VNodeJournal } from '../../client/vnode';
 import { vnode_diff } from '../../client/vnode-diff';
-import { clearAllEffects } from '../../reactive-primitives/cleanup';
 import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';
 import { executeComponent } from '../component-execution';
-import { isServerPlatform } from '../platform/platform';
 import type { OnRenderFn } from '../component.public';
 import type { Props } from '../jsx/jsx-runtime';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -20,7 +18,6 @@ import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { serializeAttribute } from '../utils/styles';
-import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { JSXOutput } from '../jsx/types/jsx-node';
@@ -34,6 +31,7 @@ import { invoke, newInvokeContext } from '../../use/use-core';
 import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
+import type { ISsrNode } from '../../ssr/ssr-types';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -167,26 +165,21 @@ export function executeComponentChore(
     return;
   }
 
-  const isServer = isServerPlatform();
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
 
   const result = safeCall(
     () => executeComponent(container, host, host, componentQRL, props),
     (jsx) => {
-      if (isServer) {
-        return jsx;
-      } else {
-        const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
-        return retryOnPromise(() =>
-          vnode_diff(
-            container as ClientContainer,
-            journal,
-            jsx,
-            host,
-            addComponentStylePrefix(styleScopedId)
-          )
-        );
-      }
+      const styleScopedId = container.getHostProp<string>(host, QScopedStyle);
+      return retryOnPromise(() =>
+        vnode_diff(
+          container as ClientContainer,
+          journal,
+          jsx,
+          host as VNode,
+          addComponentStylePrefix(styleScopedId)
+        )
+      );
     },
     (err: any) => {
       container.handleError(err, host);
@@ -207,7 +200,7 @@ export function executeComponentChore(
  * @returns Array of NodeProp, or null if none
  */
 function getNodePropData(vNode: VNode): Map<string, NodeProp> | null {
-  const props = vNode.props as Props;
+  const props = (vNode.props ||= {}) as Props;
   return (props[NODE_PROPS_DATA_KEY] as Map<string, NodeProp> | null) ?? null;
 }
 
@@ -219,7 +212,7 @@ function getNodePropData(vNode: VNode): Map<string, NodeProp> | null {
  * @param nodeProp - The node prop data to set
  */
 export function setNodePropData(vNode: VNode, property: string, nodeProp: NodeProp): void {
-  const props = vNode.props as Props;
+  const props = (vNode.props ||= {}) as Props;
   let data = props[NODE_PROPS_DATA_KEY] as Map<string, NodeProp> | null;
   if (!data) {
     data = new Map();
@@ -234,7 +227,7 @@ export function setNodePropData(vNode: VNode, property: string, nodeProp: NodePr
  * @param vNode - The vNode to clear node prop data from
  */
 function clearNodePropData(vNode: VNode): void {
-  const props = vNode.props as Props;
+  const props = (vNode.props ||= {}) as Props;
   delete props[NODE_PROPS_DATA_KEY];
 }
 
@@ -281,8 +274,6 @@ export function executeNodeProps(vNode: VNode, container: Container, journal: VN
 
   const domVNode = vNode as ElementVNode;
 
-  const isServer = isServerPlatform();
-
   // Process all pending node prop updates
   for (const [property, nodeProp] of allPropData.entries()) {
     let value: Signal<any> | string = nodeProp.value;
@@ -293,17 +284,8 @@ export function executeNodeProps(vNode: VNode, container: Container, journal: VN
 
     // Process synchronously (same logic as scheduler)
     const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
-    if (isServer) {
-      (container as SSRContainer).addBackpatchEntry(
-        // TODO: type
-        (vNode as unknown as ISsrNode).id,
-        property,
-        serializedValue
-      );
-    } else {
-      const isConst = nodeProp.isConst;
-      setNodeProp(domVNode, journal, property, serializedValue, isConst);
-    }
+    const isConst = nodeProp.isConst;
+    setNodeProp(domVNode, journal, property, serializedValue, isConst);
   }
 
   // Clear pending prop data after processing
@@ -319,7 +301,6 @@ export function executeNodeProps(vNode: VNode, container: Container, journal: VN
  */
 export function executeCleanup(vNode: VNode, container: Container): void {
   vNode.dirty &= ~ChoreBits.CLEANUP;
-  console.log('executeCleanup');
 
   // TODO add promises to extraPromises
 
@@ -349,7 +330,10 @@ export function executeCleanup(vNode: VNode, container: Container): void {
  * @param container - The container
  * @returns Promise if computation is async, void otherwise
  */
-export function executeCompute(vNode: VNode, container: Container): ValueOrPromise<void> {
+export function executeCompute(
+  vNode: VNode | ISsrNode,
+  container: Container
+): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPUTE;
   const target = container.getHostProp<WrappedSignalImpl<unknown> | null>(vNode, HOST_SIGNAL);
   if (!target) {

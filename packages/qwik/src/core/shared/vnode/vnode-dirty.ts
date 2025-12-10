@@ -1,7 +1,11 @@
 import type { VNodeJournal } from '../../client/vnode';
+import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
 import { getCursorData, type CursorData } from '../cursor/cursor-props';
+import { _executeSsrChores } from '../cursor/ssr-chore-execution';
+import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
+import { isPromise } from '../utils/promises';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
 import type { VNode } from './vnode';
@@ -91,6 +95,9 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
   return false;
 }
 
+function isSsrNodeGuard(_vNode: VNode | ISsrNode): _vNode is ISsrNode {
+  return isServerPlatform();
+}
 /**
  * Marks a vNode as dirty and propagates dirty bits up the tree.
  *
@@ -102,12 +109,21 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
  */
 export function markVNodeDirty(
   container: Container,
-  vNode: VNode,
+  vNode: VNode | ISsrNode,
   bits: ChoreBits,
   cursorRoot: VNode | null = null
 ): void {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
+  if (isSsrNodeGuard(vNode)) {
+    const result = _executeSsrChores(container as SSRContainer, vNode as ISsrNode);
+    if (isPromise(result)) {
+      container.$renderPromise$ = container.$renderPromise$
+        ? container.$renderPromise$.then(() => result)
+        : result;
+    }
+    return;
+  }
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
   // If already dirty, no need to propagate again
   if (isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) {

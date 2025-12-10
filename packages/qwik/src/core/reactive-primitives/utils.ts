@@ -7,7 +7,7 @@ import type { Container, SerializationStrategy } from '../shared/types';
 import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
-import type { SSRContainer } from '../ssr/ssr-types';
+import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
@@ -27,6 +27,7 @@ import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
+import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
 
 const DEBUG = false;
 
@@ -105,7 +106,7 @@ export const scheduleEffects = (
         markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
         if (isBrowser) {
-          setNodeDiffPayload(consumer, signal as Signal);
+          setNodeDiffPayload(consumer as VNode, signal as Signal);
           markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
@@ -117,7 +118,18 @@ export const scheduleEffects = (
             scopedStyleIdPrefix: data.$scopedStyleIdPrefix$,
             value: signal as SignalImpl,
           };
-          setNodePropData(consumer, property, payload);
+          if (isBrowser) {
+            setNodePropData(consumer as VNode, property, payload);
+          } else {
+            const node = consumer as ISsrNode;
+            let data = node.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
+            if (!data) {
+              data = new Map();
+              node.setProp(NODE_PROPS_DATA_KEY, data);
+            }
+            data.set(property, payload);
+            (consumer as ISsrNode).setProp(property, payload);
+          }
           markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
         }
       }

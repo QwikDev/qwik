@@ -1486,6 +1486,7 @@ describe.each([
   });
 
   it('should update signals', async () => {
+    vi.useFakeTimers();
     const MultipleServerFunctionsInvokedInTask = component$(() => {
       const methodA = useSignal('');
       const methodB = useSignal('');
@@ -1520,16 +1521,20 @@ describe.each([
         </div>
       );
     });
-    const { document } = await render(<MultipleServerFunctionsInvokedInTask />, { debug });
+    const renderPromise = render(<MultipleServerFunctionsInvokedInTask />, { debug });
+    await vi.advanceTimersToNextTimerAsync();
+    const { document } = await renderPromise;
     const div = document.querySelector('#server-error')!;
-    // console.log('vNode', String(vNode));
-    await trigger(document.body, 'div', 'click');
-    // console.log('vNode', String(vNode));
-    await trigger(document.body, 'div', 'qvisible');
-    await delay(10);
-    // console.log('vNode', String(vNode));
-    // console.log('>>>>', div.outerHTML);
+    const clickPromise = trigger(document.body, 'div', 'click');
+    await vi.advanceTimersToNextTimerAsync();
+    await clickPromise;
+    await vi.advanceTimersToNextTimerAsync();
+    const visiblePromise = trigger(document.body, 'div', 'qvisible');
+    await vi.advanceTimersToNextTimerAsync();
+    await vi.advanceTimersToNextTimerAsync();
+    await visiblePromise;
     expect(cleanupAttrs(div.innerHTML)).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
+    vi.useRealTimers();
   });
 
   it('should render items in order', async () => {

@@ -235,9 +235,5 @@ export const scheduleTask = (_event: Event, element: Element) => {
   const [task] = useLexicalScope<[Task]>();
   const container = getDomContainer(element);
   task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(
-    container,
-    task.$el$,
-    task.$flags$ & TaskFlags.TASK ? ChoreBits.TASKS : ChoreBits.VISIBLE_TASKS
-  );
+  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
 };

@@ -8,6 +8,7 @@ import type { ComputedFn } from '../use/use-computed';
 import type { AsyncComputedFn } from '../use/use-async-computed';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
+import type { ISsrNode } from '../ssr/ssr-types';
 
 /**
  * # ================================
@@ -73,7 +74,7 @@ export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSig
  * - `VNode` and `ISsrNode`: Either a component or `<Signal>`
  * - `Signal2`: A derived signal which contains a computation function.
  */
-export type Consumer = Task | VNode | SignalImpl;
+export type Consumer = Task | VNode | SignalImpl | ISsrNode;
 
 /**
  * An effect consumer plus type of effect, back references to producers and additional data

@@ -197,11 +197,7 @@ export async function ssrRenderToDom(
       // Stop when we reach the state script tag
       if (
         vnode_isElementVNode(child) &&
-        ((vnode_getElementName(child) === 'script' &&
-          (vnode_getProp(child, 'type', null) === 'qwik/state' ||
-            vnode_getProp(child, 'type', null) === ELEMENT_BACKPATCH_DATA ||
-            vnode_getProp(child, 'id', null) === 'qwikloader')) ||
-          vnode_getElementName(child) === 'q:template')
+        (isQwikScript(child) || vnode_getElementName(child) === 'q:template')
       ) {
         insertBefore = child;
         break;
@@ -226,6 +222,19 @@ export async function ssrRenderToDom(
   }
 
   return { container, document, vNode, getStyles };
+}
+
+function isQwikScript(node: ElementVNode): boolean {
+  const element = node.node;
+  return (
+    vnode_getElementName(node) === 'script' &&
+    (vnode_getProp(node, 'type', null) === 'qwik/state' ||
+      vnode_getProp(node, 'type', null) === ELEMENT_BACKPATCH_DATA ||
+      vnode_getProp(node, 'id', null) === 'qwikloader' ||
+      element.getAttribute('type') === 'qwik/state' ||
+      element.getAttribute('type') === ELEMENT_BACKPATCH_DATA ||
+      element.getAttribute('id') === 'qwikloader')
+  );
 }
 
 function vnode_moveToVirtual(parent: VirtualVNode, newChild: VNode, insertBefore: VNode | null) {

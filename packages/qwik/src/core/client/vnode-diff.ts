@@ -593,7 +593,7 @@ export const vnode_diff = (
         cleanup(container, journal, vChild, vStartNode);
         vChild = vChild.nextSibling as VNode | null;
       }
-      vnode_truncate(container, journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
+      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
     }
   }
 

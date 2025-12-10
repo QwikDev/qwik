@@ -13,6 +13,7 @@ import {
   NON_SERIALIZABLE_MARKER_PREFIX,
   QBackRefs,
   SsrNodeFlags,
+  ChoreBits,
 } from './qwik-copy';
 import type { SsrAttrs, ISsrNode, ISsrComponentFrame, JSXChildren } from './qwik-types';
 import type { CleanupQueue } from './ssr-container';
@@ -34,6 +35,7 @@ export class SsrNode implements ISsrNode {
    */
   public id: string;
   public flags: SsrNodeFlags;
+  public dirty = ChoreBits.NONE;
 
   public children: ISsrNode[] | null = null;
   private attrs: SsrAttrs;

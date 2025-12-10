@@ -29,6 +29,7 @@ export type { VNode as _VNode } from './shared/vnode/vnode';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';
 export type { VirtualVNode as _VirtualVNode } from './shared/vnode/virtual-vnode';
+export { _executeSsrChores } from './shared/cursor/ssr-chore-execution';
 
 export { _hasStoreEffects, isStore as _isStore } from './reactive-primitives/impl/store';
 export { _wrapProp, _wrapSignal } from './reactive-primitives/internal-api';

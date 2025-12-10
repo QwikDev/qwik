@@ -1,6 +1,5 @@
 import type { DomContainer } from '../../client/dom-container';
 import { ensureMaterialized, vnode_getNode, vnode_isVNode, vnode_locate } from '../../client/vnode';
-import type { ElementVNode, VNode } from '../../client/vnode-impl';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
@@ -17,6 +16,8 @@ import { JSXNodeImpl } from '../jsx/jsx-node';
 import { createPropsProxy } from '../jsx/props-proxy';
 import type { DeserializeContainer } from '../types';
 import { _UNINITIALIZED } from '../utils/constants';
+import type { ElementVNode } from '../vnode/element-vnode';
+import type { VNode } from '../vnode/vnode';
 import { _constants, TypeIds, type Constants } from './constants';
 import { needsInflation } from './deser-proxy';
 import { createQRLWithBackChannel } from './qrl-to-string';

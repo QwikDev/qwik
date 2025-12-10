@@ -84,7 +84,7 @@ export const renderToStream = async (
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrContainer.render(jsx);
-  // await ssrContainer.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+  await ssrContainer.$renderPromise$;
 
   // Flush remaining chunks in the buffer
   flush();

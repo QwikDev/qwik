@@ -1,5 +1,5 @@
 import type { ContextId } from '../use/use-context';
-import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
+import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
 import type { SerializationContext } from './serdes/index';
 import type { ValueOrPromise } from './utils/types';
 import type { VNode } from './vnode/vnode';
@@ -55,7 +55,7 @@ export interface Container {
   ): SerializationContext;
 }
 
-export type HostElement = VNode;
+export type HostElement = VNode | ISsrNode;
 
 export interface QElement extends Element {
   qDispatchEvent?: (event: Event, scope: QwikLoaderEventScope) => ValueOrPromise<unknown>;

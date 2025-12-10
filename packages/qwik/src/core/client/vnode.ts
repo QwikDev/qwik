@@ -122,12 +122,12 @@ import { qwikDebugToString } from '../debug';
 import { assertDefined, assertEqual, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import {
+  type Container,
   DEBUG_TYPE,
   QContainerValue,
+  type QElement,
   VirtualType,
   VirtualTypeName,
-  type Container,
-  type QElement,
 } from '../shared/types';
 import { isText } from '../shared/utils/element';
 import {
@@ -408,10 +408,19 @@ export const vnode_setAttr = (
   }
 };
 
+export const vnode_ensureElementKeyInflated = (vnode: ElementVNode) => {
+  if (vnode.key) {
+    return;
+  }
+  const value = vnode.node.getAttribute(ELEMENT_KEY);
+  if (value) {
+    vnode.key = value;
+  }
+};
+
 /** @internal */
 export const vnode_ensureElementInflated = (vnode: VNode) => {
-  const flags = vnode.flags;
-  if ((flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
+  if ((vnode.flags & VNodeFlags.INFLATED_TYPE_MASK) === VNodeFlags.Element) {
     const elementVNode = vnode as ElementVNode;
     elementVNode.flags ^= VNodeFlags.Inflated;
     const element = elementVNode.node;
@@ -423,6 +432,8 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
         break;
+      } else if (key === ELEMENT_KEY) {
+        elementVNode.key = attr.value;
       } else if (key.startsWith(QContainerAttr)) {
         if (attr.value === QContainerValue.HTML) {
           vnode_setProp(elementVNode, 'dangerouslySetInnerHTML', element.innerHTML);
@@ -661,15 +672,15 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     while (vCursor && vnode_isTextVNode(vCursor)) {
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         const textNode = doc.createTextNode(vCursor.text!);
-        lastPreviousTextNode = textNode;
-        vCursor.node = textNode;
-        vCursor.flags |= VNodeFlags.Inflated;
         addVNodeOperation(journal, {
           operationType: VNodeOperationType.InsertOrMove,
           parent: parentNode,
           beforeTarget: lastPreviousTextNode,
           target: textNode,
         });
+        lastPreviousTextNode = textNode;
+        vCursor.node = textNode;
+        vCursor.flags |= VNodeFlags.Inflated;
       }
       vCursor = vnode_getDomSibling(vCursor, false, true);
     }
@@ -1159,7 +1170,6 @@ export const vnode_queryDomNodes = (
 };
 
 export const vnode_truncate = (
-  container: Container,
   journal: VNodeJournal,
   vParent: ElementVNode | VirtualVNode,
   vDelete: VNode
@@ -1252,6 +1262,7 @@ const materialize = (
   firstChild: Node | null,
   vNodeData?: string
 ): VNode | null => {
+  vnode_ensureElementKeyInflated(vNode);
   if (vNodeData) {
     if (vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR) {
       /**
@@ -1837,7 +1848,7 @@ function materializeFromVNodeData(
       } else {
         value = consumeValue();
       }
-      vnode_setProp(vParent, ELEMENT_KEY, value);
+      vParent.key = value;
     } else if (peek() === VNodeDataChar.SEQ) {
       vnode_setProp(vParent, ELEMENT_SEQ, consumeValue());
     } else if (peek() === VNodeDataChar.SEQ_IDX) {

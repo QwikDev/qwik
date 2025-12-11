@@ -38,7 +38,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'useComputed$ QRL {{0}} {{1}} cannot return a Promise', // 29
       'ComputedSignal is read-only', // 30
       'WrappedSignal is read-only', // 31
-      'Attribute value is unsafe for SSR', // 32
+      'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
     ];

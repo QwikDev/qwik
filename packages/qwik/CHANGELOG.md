@@ -1,5 +1,19 @@
 # @builder.io/qwik
 
+## 1.18.0
+
+### Minor Changes
+
+- PERF: Computed signals now only trigger listeners if their value has changed (by [@wmertens](https://github.com/wmertens) in [#8148](https://github.com/QwikDev/qwik/pull/8148))
+
+### Patch Changes
+
+- execute cleanup cb for all component tree while calling dispose.cleanup method returned by render fn (by [@sashkashishka](https://github.com/sashkashishka) in [#8164](https://github.com/QwikDev/qwik/pull/8164))
+
+- 🐞🩹 useResource's onRejected now catches errors again; preventing unhandled errors in test environments. (by [@maiieul](https://github.com/maiieul) in [#8197](https://github.com/QwikDev/qwik/pull/8197))
+
+- ✨ `qwik add compiled-i18` now adds easy i18n to your app. (by [@wmertens](https://github.com/wmertens) in [#8177](https://github.com/QwikDev/qwik/pull/8177))
+
 ## 1.17.2
 
 ## 1.17.1

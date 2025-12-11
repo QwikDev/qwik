@@ -79,6 +79,7 @@ export interface SSRContainer extends Container {
 
   openElement(
     elementName: string,
+    key: string | null,
     varAttrs: SsrAttrs | null,
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null

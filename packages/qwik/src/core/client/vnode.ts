@@ -133,7 +133,6 @@ import { isText } from '../shared/utils/element';
 import {
   dangerouslySetInnerHTML,
   ELEMENT_ID,
-  ELEMENT_KEY,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
@@ -412,7 +411,7 @@ export const vnode_ensureElementKeyInflated = (vnode: ElementVNode) => {
   if (vnode.key) {
     return;
   }
-  const value = vnode.node.getAttribute(ELEMENT_KEY);
+  const value = vnode.node.getAttribute(Q_PROPS_SEPARATOR);
   if (value) {
     vnode.key = value;
   }
@@ -431,13 +430,17 @@ export const vnode_ensureElementInflated = (vnode: VNode) => {
       if (key === Q_PROPS_SEPARATOR || !key) {
         // SVG in Domino does not support ':' so it becomes an empty string.
         // all attributes after the ':' are considered immutable, and so we ignore them.
+        const value = attr.value;
+        if (value) {
+          // don't assign empty string as a key
+          elementVNode.key = value;
+        }
         break;
-      } else if (key === ELEMENT_KEY) {
-        elementVNode.key = attr.value;
       } else if (key.startsWith(QContainerAttr)) {
-        if (attr.value === QContainerValue.HTML) {
+        const value = attr.value;
+        if (value === QContainerValue.HTML) {
           vnode_setProp(elementVNode, 'dangerouslySetInnerHTML', element.innerHTML);
-        } else if (attr.value === QContainerValue.TEXT && 'value' in element) {
+        } else if (value === QContainerValue.TEXT && 'value' in element) {
           vnode_setProp(elementVNode, 'value', element.value);
         }
       } else if (!key.startsWith(EventNameHtmlScope.on)) {

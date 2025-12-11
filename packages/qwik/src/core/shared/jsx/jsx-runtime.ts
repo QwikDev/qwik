@@ -71,9 +71,6 @@ export function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends 
     }
   }
 
-  if (typeof type === 'string' && !key && 'dangerouslySetInnerHTML' in normalizedProps) {
-    key = 'innerhtml';
-  }
   return _jsxSplit(type, props!, null, normalizedProps.children, 0, key);
 }
 

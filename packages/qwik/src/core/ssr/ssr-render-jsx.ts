@@ -169,10 +169,10 @@ function processJSXNode(
 
         const innerHTML = ssr.openElement(
           type,
+          jsx.key,
           toSsrAttrs(jsx.varProps, {
             serializationCtx: ssr.serializationCtx,
             styleScopedId: options.styleScoped,
-            key: jsx.key,
             toSort: jsx.toSort,
           }),
           toSsrAttrs(jsx.constProps, {
@@ -323,7 +323,6 @@ function processJSXNode(
 interface SsrAttrsOptions {
   serializationCtx: SerializationContext;
   styleScopedId: string | null;
-  key?: string | null;
   toSort?: boolean;
 }
 
@@ -376,9 +375,6 @@ export function toSsrAttrs(
     for (const key in record) {
       handleProp(key, record[key]);
     }
-  }
-  if (options.key != null) {
-    ssrAttrs.push(ELEMENT_KEY, options.key);
   }
   return ssrAttrs;
 }

@@ -378,7 +378,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       []
     );
 
-    this.openElement(this.tag, containerAttributeArray);
+    this.openElement(this.tag, null, containerAttributeArray);
   }
 
   /** Renders closing tag for current container */
@@ -391,6 +391,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   /** Renders opening tag for DOM element */
   openElement(
     elementName: string,
+    key: string | null,
     varAttrs: SsrAttrs | null,
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
@@ -430,8 +431,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       innerHTML = this.writeAttrs(elementName, varAttrs, false, currentFile);
     }
     this.write(' ' + Q_PROPS_SEPARATOR);
-    // Domino sometimes does not like empty attributes, so we need to add a empty value
-    isDev && this.write('=""');
+    if (key !== null) {
+      this.write(`="${key}"`);
+    } else if (isDev) {
+      // Domino sometimes does not like empty attributes, so we need to add a empty value
+      this.write('=""');
+    }
     if (constAttrs && constAttrs.length) {
       innerHTML = this.writeAttrs(elementName, constAttrs, true, currentFile) || innerHTML;
     }
@@ -673,7 +678,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   private _styleNode(styleId: string, content: string) {
-    this.openElement('style', [QStyle, styleId]);
+    this.openElement('style', null, [QStyle, styleId]);
     this.write(content);
     this.closeElement();
   }
@@ -719,7 +724,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.serializationCtx.$roots$.length) {
       return;
     }
-    this.openElement('script', ['type', 'qwik/vnode']);
+    this.openElement('script', null, ['type', 'qwik/vnode']);
     const vNodeAttrsStack: SsrAttrs[] = [];
     const vNodeData = this.vNodeDatas;
     let lastSerializedIdx = 0;
@@ -863,7 +868,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (!this.serializationCtx.$roots$.length) {
       return;
     }
-    this.openElement('script', ['type', 'qwik/state']);
+    this.openElement('script', null, ['type', 'qwik/state']);
     return maybeThen(this.serializationCtx.$serialize$(), () => {
       this.closeElement();
     });
@@ -876,7 +881,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
-      this.openElement('script', scriptAttrs);
+      this.openElement('script', null, scriptAttrs);
       this.write(Q_FUNCS_PREFIX.replace('HASH', this.$instanceHash$));
       this.write('[');
       this.writeArray(fns, ',');
@@ -901,7 +906,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (this.renderOptions.serverData?.nonce) {
         scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
       }
-      this.openElement('script', scriptAttrs);
+      this.openElement('script', null, scriptAttrs);
       this.write(JSON.stringify(patches));
       this.closeElement();
     }
@@ -916,7 +921,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
-    this.openElement('script', scriptAttrs);
+    this.openElement('script', null, scriptAttrs);
 
     const backpatchScript = getQwikBackpatchExecutorScript({ debug: isDev });
     this.write(backpatchScript);
@@ -942,14 +947,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (nonce) {
         linkAttrs.push('nonce', nonce);
       }
-      this.openElement('link', linkAttrs);
+      this.openElement('link', null, linkAttrs);
       this.closeElement();
       // browser must support modules for Qwik to work
       const scriptAttrs = ['async', true, 'type', 'module', 'src', qwikLoaderBundle];
       if (nonce) {
         scriptAttrs.push('nonce', nonce);
       }
-      this.openElement('script', scriptAttrs);
+      this.openElement('script', null, scriptAttrs);
       this.closeElement();
     }
   }
@@ -963,7 +968,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (this.renderOptions.serverData?.nonce) {
       scriptAttrs.push('nonce', this.renderOptions.serverData.nonce);
     }
-    this.openElement('script', scriptAttrs);
+    this.openElement('script', null, scriptAttrs);
     this.write(qwikLoaderScript);
     this.closeElement();
   }
@@ -987,7 +992,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (nonce) {
         scriptAttrs.push('nonce', nonce);
       }
-      this.openElement('script', scriptAttrs);
+      this.openElement('script', null, scriptAttrs);
       this.write(`(window.qwikevents||(window.qwikevents=[])).push(`);
       this.writeArray(eventNames, ', ');
       this.write(')');
@@ -1000,7 +1005,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     if (unclaimedProjections.length) {
       const previousCurrentComponentNode = this.currentComponentNode;
       try {
-        this.openElement(QTemplate, ['hidden', true, 'aria-hidden', 'true'], null);
+        this.openElement(QTemplate, null, ['hidden', true, 'aria-hidden', 'true'], null);
         let idx = 0;
         let ssrComponentNode: ISsrNode | null = null;
         let ssrComponentFrame: ISsrComponentFrame | null = null;
@@ -1187,7 +1192,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
         if (isSSRUnsafeAttr(key)) {
           if (isDev) {
-            throw qError(QError.unsafeAttr);
+            throw qError(QError.unsafeAttr, [key]);
           }
           continue;
         }

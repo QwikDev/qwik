@@ -1175,11 +1175,12 @@ export const vnode_queryDomNodes = (
 export const vnode_truncate = (
   journal: VNodeJournal,
   vParent: ElementVNode | VirtualVNode,
-  vDelete: VNode
+  vDelete: VNode,
+  removeDOM = true
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDomParent(vParent);
-  if (parent) {
+  if (parent && removeDOM) {
     if (vnode_isElementVNode(vParent)) {
       addVNodeOperation(journal, {
         operationType: VNodeOperationType.RemoveAllChildren,

@@ -26,6 +26,21 @@ export const safeCall = <T, B, C>(
   }
 };
 
+export const catchError = <T, B, C>(
+  call: () => ValueOrPromise<T>,
+  rejectFn: { f(reason: any): ValueOrPromise<C> }['f']
+): ValueOrPromise<T | C> => {
+  try {
+    const result = call();
+    if (isPromise(result)) {
+      return result.catch(rejectFn);
+    }
+    return result;
+  } catch (e) {
+    return rejectFn(e);
+  }
+};
+
 export const maybeThen = <T, B>(
   valueOrPromise: ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>

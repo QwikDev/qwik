@@ -2859,7 +2859,8 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>World</div>
+            {/* TODO: q:container is const and div is reused, is it ok? */}
+            <div {...qContainerAttr}>World</div>
           </div>
           <div>
             <div>World</div>
@@ -2885,7 +2886,7 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>World</div>
+            <div {...qContainerAttr}>World</div>
           </div>
           <div>
             <div>World</div>

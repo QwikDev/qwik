@@ -214,7 +214,15 @@ export const vnode_diff = (
             if (typeof type === 'string') {
               expectNoMoreTextNodes();
               expectElement(jsxValue, type);
-              descend(jsxValue.children, true);
+
+              const hasDangerousInnerHTML =
+                (jsxValue.constProps && dangerouslySetInnerHTML in jsxValue.constProps) ||
+                dangerouslySetInnerHTML in jsxValue.varProps;
+              if (hasDangerousInnerHTML) {
+                expectNoChildren(false);
+              } else {
+                descend(jsxValue.children, true);
+              }
             } else if (typeof type === 'function') {
               if (type === Fragment) {
                 expectNoMoreTextNodes();
@@ -585,7 +593,7 @@ export const vnode_diff = (
     }
   }
 
-  function expectNoChildren() {
+  function expectNoChildren(removeDOM = true) {
     const vFirstChild = vCurrent && vnode_getFirstChild(vCurrent);
     if (vFirstChild !== null) {
       let vChild: VNode | null = vFirstChild;
@@ -593,7 +601,7 @@ export const vnode_diff = (
         cleanup(container, journal, vChild, vStartNode);
         vChild = vChild.nextSibling as VNode | null;
       }
-      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild);
+      vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild, removeDOM);
     }
   }
 

@@ -228,7 +228,7 @@ export const vnode_newSharedText = (
   textContent: string
 ): TextVNode => {
   sharedTextNode &&
-    assertEqual(fastNodeType(sharedTextNode), 3 /* TEXT_NODE */, 'Expecting element node.');
+    assertEqual(fastNodeType(sharedTextNode), 3 /* TEXT_NODE */, 'Expecting text node.');
   const vnode: TextVNode = new TextVNode(
     VNodeFlags.Text | (-1 << VNodeFlagsIndex.shift), // Flag
     null, // Parent
@@ -251,7 +251,7 @@ export const vnode_newText = (textNode: Text, textContent: string | undefined): 
     textNode, // TextNode
     textContent // Text Content
   );
-  assertEqual(fastNodeType(textNode), 3 /* TEXT_NODE */, 'Expecting element node.');
+  assertEqual(fastNodeType(textNode), 3 /* TEXT_NODE */, 'Expecting text node.');
   assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
   assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
   assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');

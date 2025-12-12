@@ -204,5 +204,6 @@ export function cleanupAttrs(innerHTML: string | undefined): any {
   return innerHTML
     ?.replaceAll(/ q:key="[^"]+"/g, '')
     .replaceAll(/ :=""/g, '')
+    .replaceAll(/ :="[^"]+"/g, '')
     .replaceAll(/ on:\w+="[^"]+"/g, '');
 }

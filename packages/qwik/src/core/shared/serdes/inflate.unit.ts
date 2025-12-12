@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { NEEDS_COMPUTATION, EffectProperty } from '../../reactive-primitives/types';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { VNodeFlags } from '../../client/types';
-import { ElementVNode, VirtualVNode } from '../../client/vnode-impl';
 import { inflateWrappedSignalValue } from './inflate';
+import { vnode_newElement, vnode_newText, vnode_setProp } from '../../client/vnode';
+import { ElementVNode } from '../vnode/element-vnode';
+import { TextVNode } from '../vnode/text-vnode';
+import { VirtualVNode } from '../vnode/virtual-vnode';
 
 describe('inflateWrappedSignalValue', () => {
   it('should read value from class attribute', () => {
@@ -20,16 +23,18 @@ describe('inflateWrappedSignalValue', () => {
     } as any;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
-      null, // parent
-      null, // previousSibling
-      null, // nextSibling
-      null, // firstChild
-      null, // lastChild
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
       element,
       'div'
     );
-    vnode.setAttr('class', 'active', null);
+    vnode_setProp(vnode, 'class', 'active');
 
     signal.$hostElement$ = vnode;
 
@@ -52,7 +57,9 @@ describe('inflateWrappedSignalValue', () => {
     } as any;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
+      null,
       null,
       null,
       null,
@@ -61,7 +68,7 @@ describe('inflateWrappedSignalValue', () => {
       element,
       'div'
     );
-    vnode.setAttr('data-state', 'initial', null);
+    vnode_setProp(vnode, 'data-state', 'initial');
 
     signal.$hostElement$ = vnode;
     signal.$effects$ = new Set([[vnode, 'data-state', null, null]] as any);
@@ -80,7 +87,9 @@ describe('inflateWrappedSignalValue', () => {
     } as any;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
+      null,
       null,
       null,
       null,
@@ -107,7 +116,9 @@ describe('inflateWrappedSignalValue', () => {
     } as any;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
+      null,
       null,
       null,
       null,
@@ -137,7 +148,9 @@ describe('inflateWrappedSignalValue', () => {
     } as unknown as HTMLElement;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
+      null,
       null,
       null,
       null,
@@ -146,8 +159,8 @@ describe('inflateWrappedSignalValue', () => {
       element,
       'div'
     );
-    vnode.setAttr('first-attr', 'first-value', null);
-    vnode.setAttr('second-attr', 'second-value', null);
+    vnode_setProp(vnode, 'first-attr', 'first-value');
+    vnode_setProp(vnode, 'second-attr', 'second-value');
 
     signal.$hostElement$ = vnode;
     signal.$effects$ = new Set([
@@ -165,9 +178,18 @@ describe('inflateWrappedSignalValue', () => {
     signal.$untrackedValue$ = NEEDS_COMPUTATION;
 
     const textNode = { nodeValue: 'hello' } as any;
-    const textVNode = { flags: VNodeFlags.Text, textNode } as any;
+    const textVNode = new TextVNode(VNodeFlags.Text, null, null, null, null, textNode, 'hello');
 
-    const vnode = new VirtualVNode(VNodeFlags.Virtual, null, null, null, textVNode, textVNode);
+    const vnode = new VirtualVNode(
+      null,
+      VNodeFlags.Virtual,
+      null,
+      null,
+      null,
+      null,
+      textVNode,
+      textVNode
+    );
 
     signal.$hostElement$ = vnode;
     // No attribute effects, only VNODE effect
@@ -191,16 +213,20 @@ describe('inflateWrappedSignalValue', () => {
     } as any;
 
     const vnode = new ElementVNode(
+      null,
       VNodeFlags.Element,
       null,
       null,
       null,
-      textVNode,
-      textVNode,
+      null,
+      null,
+      null,
       element,
       'div'
     );
-    vnode.setAttr('data-value', 'attr-value', null);
+    vnode_setProp(vnode, 'data-value', 'attr-value');
+    vnode.firstChild = textVNode;
+    vnode.lastChild = textVNode;
 
     signal.$hostElement$ = vnode;
     signal.$effects$ = new Set([[vnode, 'data-value', null, null]] as any);

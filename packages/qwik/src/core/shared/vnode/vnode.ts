@@ -26,6 +26,6 @@ export abstract class VNode extends BackRef {
     if (isDev) {
       return vnode_toString.call(this);
     }
-    return String(this);
+    return super.toString();
   }
 }

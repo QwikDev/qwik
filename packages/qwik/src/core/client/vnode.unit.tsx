@@ -7,6 +7,7 @@ import { VNodeFlags, type ContainerElement, type QDocument } from './types';
 import {
   vnode_applyJournal,
   vnode_getFirstChild,
+  vnode_getProp,
   vnode_insertBefore,
   vnode_locate,
   vnode_newElement,
@@ -14,11 +15,16 @@ import {
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
   vnode_remove,
+  vnode_setAttr,
+  vnode_setProp,
   vnode_setText,
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode';
-import type { ElementVNode, TextVNode, VirtualVNode, VNode } from './vnode-impl';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VNode } from '../shared/vnode/vnode';
+import type { TextVNode } from '../shared/vnode/text-vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -450,9 +456,9 @@ describe('vnode', () => {
       const fragment1 = vnode_newVirtual();
       const fragment2 = vnode_newVirtual();
       const fragment3 = vnode_newVirtual();
-      (fragment1 as VirtualVNode).setAttr('q:id', '1', null);
-      (fragment2 as VirtualVNode).setAttr('q:id', '2', null);
-      (fragment3 as VirtualVNode).setAttr('q:id', '3', null);
+      vnode_setProp(fragment1 as VirtualVNode, 'q:id', '1');
+      vnode_setProp(fragment2 as VirtualVNode, 'q:id', '2');
+      vnode_setProp(fragment3 as VirtualVNode, 'q:id', '3');
       const textA = vnode_newText(document.createTextNode('1A'), '1A');
       const textB = vnode_newText(document.createTextNode('2B'), '2B');
       const textC = vnode_newText(document.createTextNode('3C'), '3C');
@@ -2560,8 +2566,8 @@ describe('vnode', () => {
       const v2 = v1.nextSibling as VirtualVNode;
       expect(v1).toMatchVDOM(<>A</>);
       expect(v2).toMatchVDOM(<>B</>);
-      expect(v1.getProp('', getVNode)).toBe(v2);
-      expect(v2.getProp(':', getVNode)).toBe(v1);
+      expect(vnode_getProp(v1, '', getVNode)).toBe(v2);
+      expect(vnode_getProp(v2, ':', getVNode)).toBe(v1);
     });
   });
   describe('attributes', () => {
@@ -2578,7 +2584,7 @@ describe('vnode', () => {
       it('should update innerHTML', () => {
         parent.innerHTML = '<div q:container="html" :><i>content</i></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        (div as VirtualVNode).setAttr('dangerouslySetInnerHTML', '<b>new content</b>', journal);
+        vnode_setAttr(journal, div, 'dangerouslySetInnerHTML', '<b>new content</b>');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div q:container="html" :=""><b>new content</b></div>');
         expect(vParent).toMatchVDOM(
@@ -2587,7 +2593,7 @@ describe('vnode', () => {
             <div q:container="html" dangerouslySetInnerHTML="<b>new content</b>" />
           </test>
         );
-        expect((div as VirtualVNode).getAttr('dangerouslySetInnerHTML')).toBe('<b>new content</b>');
+        expect(vnode_getProp(div, 'dangerouslySetInnerHTML', null)).toBe('<b>new content</b>');
       });
       it('should have empty child for dangerouslySetInnerHTML', () => {
         parent.innerHTML = '<div q:container="html" :><i>content</i></div>';
@@ -2614,7 +2620,7 @@ describe('vnode', () => {
       it('should update textContent', () => {
         parent.innerHTML = '<textarea q:container="text" :>content</textarea>';
         const textarea = vnode_getFirstChild(vParent) as ElementVNode;
-        (textarea as VirtualVNode).setAttr('value', 'new content', journal);
+        vnode_setAttr(journal, textarea as VirtualVNode, 'value', 'new content');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<textarea q:container="text" :="">new content</textarea>');
         expect(vParent).toMatchVDOM(
@@ -2623,7 +2629,7 @@ describe('vnode', () => {
             <textarea q:container="text" value="new content" />
           </test>
         );
-        expect((textarea as VirtualVNode).getAttr('value')).toBe('new content');
+        expect(vnode_getProp(textarea, 'value', null)).toBe('new content');
       });
       it('should have empty child for value', () => {
         parent.innerHTML = '<textarea q:container="text" :>content</textarea>';
@@ -2728,10 +2734,10 @@ describe('vnode', () => {
       it('should set attribute', () => {
         parent.innerHTML = '<div foo="bar" :></div>';
         const div = vnode_getFirstChild(vParent) as ElementVNode;
-        (div as VirtualVNode).setAttr('key', '123', journal);
+        vnode_setAttr(journal, div as VirtualVNode, 'key', '123');
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div foo="bar" :="" key="123"></div>');
-        (div as VirtualVNode).setAttr('foo', null, journal);
+        vnode_setAttr(journal, div as VirtualVNode, 'foo', null);
         vnode_applyJournal(journal);
         expect(parent.innerHTML).toBe('<div :="" key="123"></div>');
       });

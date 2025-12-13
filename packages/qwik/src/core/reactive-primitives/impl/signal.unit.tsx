@@ -27,6 +27,8 @@ import {
   type Signal,
 } from '../signal.public';
 import { getSubscriber } from '../subscriber';
+import { vnode_newVirtual, vnode_setProp } from '../../client/vnode';
+import { ELEMENT_SEQ } from '../../shared/utils/markers';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -118,8 +120,7 @@ describe('signal', () => {
 
   afterEach(async () => {
     delayMap.clear();
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
-    await getTestPlatform().flush();
+    await container.$renderPromise$;
     container = null!;
   });
 
@@ -189,9 +190,9 @@ describe('signal', () => {
       await withContainer(async () => {
         const a = createSignal(true) as InternalSignal<boolean>;
         const b = createSignal(true) as InternalSignal<boolean>;
-        await retryOnPromise(async () => {
-          let signal!: InternalReadonlySignal<boolean>;
-          effect$(() => {
+        let signal!: InternalReadonlySignal<boolean>;
+        await retryOnPromise(() =>
+          effect$(async () => {
             signal =
               signal ||
               createComputedQrl(
@@ -201,14 +202,13 @@ describe('signal', () => {
                   })
                 )
               );
-            log.push(signal.value); // causes subscription
-          });
-          expect(log).toEqual([true]);
-          a.value = !a.untrackedValue;
-          await flushSignals();
-          b.value = !b.untrackedValue;
-        });
-        await flushSignals();
+            const signalValue = await retryOnPromise(() => signal.value);
+            log.push(signalValue); // causes subscription
+          })
+        );
+        expect(log).toEqual([true]);
+        a.value = !a.untrackedValue;
+        b.value = !b.untrackedValue;
         expect(log).toEqual([true, false]);
       });
     });
@@ -264,7 +264,7 @@ describe('signal', () => {
   }
 
   async function flushSignals() {
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$renderPromise$;
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */
@@ -286,8 +286,9 @@ describe('signal', () => {
 
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
-    const element: HostElement = null!;
+    const element: HostElement = vnode_newVirtual();
     const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();
     } else {

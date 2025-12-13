@@ -48,13 +48,13 @@ export async function postBuild(
     }
   };
 
-  const loadDir = async (fsDir: string, pathname: string) => {
+  const loadDir = async (fsDir: string, pathname = '') => {
     const itemNames = await fs.promises.readdir(fsDir);
     await Promise.all(itemNames.map((i) => loadItem(fsDir, i, pathname)));
   };
 
   if (fs.existsSync(clientOutDir)) {
-    await loadDir(clientOutDir, pathName);
+    await loadDir(clientOutDir);
   }
 
   const notFoundPathsCode = createNotFoundPathsModule(pathName, notFounds, format);

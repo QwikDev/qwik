@@ -1,4 +1,3 @@
-import { isPromise } from 'util/types';
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { runTask, Task, TaskFlags, type TaskFn } from '../../use/use-task';
@@ -12,6 +11,7 @@ import { NODE_PROPS_DATA_KEY } from './cursor-props';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, type Signal } from '../../reactive-primitives/signal.public';
 import { executeCompute } from './chore-execution';
+import { isPromise } from '../utils/promises';
 
 /** @internal */
 export function _executeSsrChores(

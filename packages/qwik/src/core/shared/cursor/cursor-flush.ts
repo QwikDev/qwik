@@ -1,8 +1,8 @@
-import { isPromise } from 'util/types';
 import { type VNodeJournal } from '../../client/vnode';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
+import { isPromise } from '../utils/promises';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { Cursor } from './cursor';
 import { getCursorData, type CursorData } from './cursor-props';

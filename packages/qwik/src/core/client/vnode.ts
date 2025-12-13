@@ -372,7 +372,9 @@ export const vnode_getProp = <T = unknown>(
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {
     const value = vNode.props?.[key] ?? null;
     if (typeof value === 'string' && getObject) {
-      return getObject(value) as T | null;
+      const result = getObject(value) as T | null;
+      vNode.props![key] = result;
+      return result;
     }
     return value as T | null;
   }
@@ -583,17 +585,16 @@ export function vnode_getDOMChildNodes(
  * @param descend - If true, than we will descend into the children first.
  * @returns
  */
+// TODO: split this function into two, one for next and one for previous.
 const vnode_getDomSibling = (
   vNode: VNode,
   nextDirection: boolean,
   descend: boolean
 ): ElementVNode | TextVNode | null => {
-  const childProp = nextDirection ? 'firstChild' : 'lastChild';
-  const siblingProp = nextDirection ? 'nextSibling' : 'previousSibling';
   let cursor: VNode | null = vNode;
   // first make sure we have a DOM node or no children.
   while (descend && cursor && vnode_isVirtualVNode(cursor)) {
-    const child: VNode | null | undefined = cursor[childProp];
+    const child: VNode | null | undefined = nextDirection ? cursor.firstChild : cursor.lastChild;
     if (!child) {
       break;
     }
@@ -604,7 +605,9 @@ const vnode_getDomSibling = (
   }
   while (cursor) {
     // Look at the previous/next sibling.
-    let sibling: VNode | null | undefined = cursor[siblingProp];
+    let sibling: VNode | null | undefined = nextDirection
+      ? cursor.nextSibling
+      : cursor.previousSibling;
     if (sibling && sibling.flags & VNodeFlags.ELEMENT_OR_TEXT_MASK) {
       // we found a previous/next DOM node, return it.
       return sibling as ElementVNode | TextVNode;
@@ -614,7 +617,10 @@ const vnode_getDomSibling = (
       if (virtual && !vnode_isVirtualVNode(virtual)) {
         return null;
       }
-      while (virtual && !(sibling = virtual[siblingProp])) {
+      while (
+        virtual &&
+        !(sibling = nextDirection ? virtual.nextSibling : virtual.previousSibling)
+      ) {
         virtual = virtual.parent;
 
         if (virtual && !vnode_isVirtualVNode(virtual)) {
@@ -640,7 +646,9 @@ const vnode_getDomSibling = (
         // zero length and which does not have a representation in the DOM.
         return cursor as ElementVNode | TextVNode;
       }
-      sibling = (cursor as VirtualVNode)[childProp];
+      sibling = nextDirection
+        ? (cursor as VirtualVNode).firstChild
+        : (cursor as VirtualVNode).lastChild;
     }
     // If we are here we did not find anything and we need to go up the tree again.
   }

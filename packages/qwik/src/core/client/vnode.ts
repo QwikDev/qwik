@@ -367,12 +367,12 @@ export const vnode_getNodeTypeName = (vNode: VNode): string => {
 export const vnode_getProp = <T = unknown>(
   vNode: VNode,
   key: string,
-  getObject: ((id: string) => T) | null
+  getObject: ((id: string) => unknown) | null
 ): T | null => {
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {
     const value = vNode.props?.[key] ?? null;
     if (typeof value === 'string' && getObject) {
-      return getObject(value);
+      return getObject(value) as T | null;
     }
     return value as T | null;
   }

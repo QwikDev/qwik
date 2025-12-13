@@ -445,7 +445,8 @@ describe('html wrapper', () => {
           <body>
             <Test />
           </body>
-        </Provider>
+        </Provider>,
+        { qwikLoader: 'never' }
       );
       document = createDocument({ html: result.html });
     } finally {

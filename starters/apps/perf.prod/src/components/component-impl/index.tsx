@@ -8,6 +8,7 @@ import {
   createContextId,
   useContext,
   useContextProvider,
+  untrack,
 } from "@qwik.dev/core";
 
 type Item = { id: number; label: string; selected: boolean };
@@ -138,8 +139,8 @@ export const Buttons = component$(() => {
   const h = useContext(helpers);
   return (
     <>
-      <Button id="run" onClick$={() => h.reset$(1000)}>
-        Create 1,000 rows
+      <Button id="run" onClick$={() => h.reset$(5)}>
+        Create 5 rows
       </Button>
       <Button id="runlots" onClick$={() => h.reset$(10000)}>
         Create 10,000 rows
@@ -216,7 +217,7 @@ export default component$(() => {
           </div>
         </div>
       </div>
-      <Table key={redraw.value} data={state.data} />
+      <Table key={untrack(() => redraw.value)} data={state.data} />
       <span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true" />
     </div>
   );

@@ -3,8 +3,9 @@ title: Debugging | Introduction
 description: Learn a few debugging tips to streamline your journey with Qwik.
 contributors:
   - gioboa
-updated_at: '2025-08-08T00:00:00Z'
-created_at: '2025-08-08T00:00:00Z'
+  - KyeongJooni
+updated_at: '2025-12-13T00:00:00Z'
+created_at: '2025-12-13T00:00:00Z'
 ---
 # Debugging
 
@@ -19,3 +20,79 @@ If it guesses wrong, no biggie! Just give Qwik a hint by setting the `LAUNCH_EDI
 For example, if you're on a Mac and use VS Code, you'd type `export LAUNCH_EDITOR=code` in your terminal.
 
 Under the hood [launch-editor library](https://github.com/yyx990803/launch-editor/tree/master) is used, here are the [supported editors](https://github.com/yyx990803/launch-editor/tree/master?tab=readme-ov-file#supported-editors)
+
+## Finding leftover `console.log` statements
+
+When working on larger codebases, you might occasionally leave `console.log` statements in your code unintentionally. These can clutter your terminal output, and it's often difficult to identify which file and line number produced each log message.
+
+### Using stack traces in client-side components
+
+You can override `console.log` to include stack trace information in your component code. For example, in your root component or a layout component:
+
+```tsx
+// root.tsx or layout.tsx
+export default component$(() => {
+  // Override console.log to include stack traces
+  useVisibleTask$(() => {
+    const originalLog = console.log;
+    console.log = (...args: any[]) => {
+      const stack = new Error()
+        .stack?.split('\n')
+        .filter((i) => !/^.*(\.vite|\.main\.jsx|node_modules).*/.test(i));
+      originalLog(stack, ...args);
+    };
+  });
+
+  return (
+    // your component JSX
+  );
+});
+```
+
+Now when you call `console.log("something")`, you'll see the stack trace pointing to the exact location where the log was called, making it much easier to locate and remove leftover debug statements.
+
+### Using stack traces in server-side entry files
+
+For entry files like `entry.express.tsx`, `entry.dev.tsx`, or `entry.preview.tsx`, you can override `console.log` at the module level:
+
+```tsx
+// entry.express.tsx or entry.dev.tsx or entry.preview.tsx
+
+// Override console.log at the top level
+const originalLog = console.log;
+console.log = (...args: any[]) => {
+  const stack = new Error()
+    .stack?.split('\n')
+    .filter((i) => !/^.*(node_modules|internal).*/.test(i));
+  originalLog(stack, ...args);
+};
+
+// Rest of your entry file code...
+```
+
+> **Note:** The filter regex should be adjusted based on your specific build setup. Common patterns to filter out include `.vite`, `.main.jsx`, `node_modules`, and `internal` paths.
+
+### Using ESLint rules
+
+You can configure ESLint to warn or error on `console.log` statements in production code:
+
+```js
+// eslint.config.js
+export default [
+  {
+    rules: {
+      'no-console': ['error', { allow: ['warn', 'error'] }],
+    },
+  },
+];
+```
+
+This will catch `console.log` statements during development, preventing them from being committed.
+
+### Using IDE search
+
+Most IDEs provide powerful search functionality to find all occurrences of `console.log` across your codebase. For example:
+- **VS Code**: Press `Ctrl+Shift+F` (or `Cmd+Shift+F` on Mac) and search for `console\.log`
+- **Enable regex mode** to match only exact `console.log` calls and not `console.error` or `console.warn`
+
+This approach is simple but requires manual review of each occurrence to determine if it's intentional or leftover debug code.

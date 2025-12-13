@@ -23,9 +23,12 @@ import { StoreFlags } from '../reactive-primitives/types';
 import { QError, qError } from '../shared/error/error';
 import type { QElement } from '../shared/types';
 import { VNodeFlags } from './types';
-import { vnode_getFirstChild, vnode_getNode, type VNodeJournal } from './vnode';
+import { vnode_getFirstChild, vnode_getNode, vnode_setProp, type VNodeJournal } from './vnode';
 import { vnode_diff } from './vnode-diff';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';
 
 describe('vNode-diff', () => {
   it('should find no difference', () => {
@@ -1287,7 +1290,8 @@ describe('vNode-diff', () => {
               null
             ) as any;
             const journal: VNodeJournal = [];
-            await vnode_diff(container, journal, test1, vParent, null);
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
             _flushJournal(journal);
             await container.$renderPromise$;
 
@@ -1309,7 +1313,8 @@ describe('vNode-diff', () => {
               null
             ) as any;
             const journal2: VNodeJournal = [];
-            await vnode_diff(container, journal2, test2, vParent, null);
+            vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test2);
+            markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
             _flushJournal(journal2);
             await container.$renderPromise$;
 
@@ -1710,7 +1715,8 @@ describe('vNode-diff', () => {
 
       const test1 = _jsxSorted(Child, null, { value: signal }, null, 3, null) as JSXChildren;
       const journal: VNodeJournal = [];
-      await vnode_diff(container, journal, test1, vParent, null);
+      vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test1);
+      markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
       _flushJournal(journal);
       await container.$renderPromise$;
 
@@ -1737,7 +1743,9 @@ describe('vNode-diff', () => {
 
       const test = _jsxSorted(Child as unknown as any, null, null, null, 3, null) as any;
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+
+      vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test);
+      markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
       await container.$renderPromise$;
       _flushJournal(journal);
 
@@ -1764,7 +1772,8 @@ describe('vNode-diff', () => {
 
       const test = _jsxSorted(Child as unknown as any, null, null, null, 3, null) as any;
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_setProp(vParent, NODE_DIFF_DATA_KEY, test);
+      markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
       await container.$renderPromise$;
       _flushJournal(journal);
 

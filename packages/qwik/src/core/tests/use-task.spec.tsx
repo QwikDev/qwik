@@ -391,7 +391,11 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      if (render === ssrRenderToDom) {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'quadruple', 'Counter']);
+      } else {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      }
       expect(vNode).toMatchVDOM(
         <Component>
           <button>

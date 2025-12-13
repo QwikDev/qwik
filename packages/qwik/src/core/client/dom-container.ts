@@ -110,7 +110,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     }
     this.document = element.ownerDocument as QDocument;
     this.element = element;
-    this.$hoistStyles$();
     this.$buildBase$ = element.getAttribute(QBaseAttr)!;
     this.$instanceHash$ = element.getAttribute(QInstanceAttr)!;
     this.qManifestHash = element.getAttribute(QManifestHashAttr)!;
@@ -132,6 +131,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       preprocessState(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
+    this.$hoistStyles$();
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }

@@ -46,7 +46,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
       this.$computeIfNeeded$();
     } catch (_) {
       if (this.$container$ && this.$hostElement$) {
-        vnode_setProp(this.$hostElement$, HOST_SIGNAL, this);
+        this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
         markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
       }
     }
@@ -64,7 +64,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   force() {
     this.$flags$ |= SignalFlags.RUN_EFFECTS;
     if (this.$container$ && this.$hostElement$) {
-      vnode_setProp(this.$hostElement$, HOST_SIGNAL, this);
+      this.$container$.setHostProp(this.$hostElement$ as HostElement, HOST_SIGNAL, this);
       markVNodeDirty(this.$container$, this.$hostElement$, ChoreBits.COMPUTE);
     }
   }

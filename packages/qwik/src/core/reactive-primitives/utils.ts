@@ -28,7 +28,6 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
-import { retryOnPromise } from '../shared/utils/promises';
 
 const DEBUG = false;
 
@@ -102,9 +101,7 @@ export const scheduleEffects = (
         consumer.$flags$ |= TaskFlags.DIRTY;
         markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
       } else if (consumer instanceof SignalImpl) {
-        retryOnPromise(() =>
-          (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate()
-        );
+        (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
         markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {

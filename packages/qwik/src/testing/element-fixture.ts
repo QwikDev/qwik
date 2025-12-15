@@ -9,6 +9,7 @@ import { delay } from '../core/shared/utils/promises';
 import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
+import { waitForDrain } from './util';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -131,7 +132,7 @@ export async function trigger(
     await dispatch(element, attrName, event, scope);
   }
   if (waitForIdle && container) {
-    await container.$renderPromise$;
+    await waitForDrain(container);
   }
 }
 

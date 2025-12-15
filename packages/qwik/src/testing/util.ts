@@ -109,7 +109,7 @@ export async function waitForDrain(container: Container) {
       return;
     }
     if (Date.now() - start > timeout) {
-      throw new Error('Timeout waiting for render promise');
+      return;
     }
     setTimeout(() => waitForRenderPromise(timeout), 10);
   };

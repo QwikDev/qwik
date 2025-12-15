@@ -2,7 +2,7 @@ import { qwikDebugToString } from '../../debug';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { isPromise } from '../../shared/utils/promises';
+import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import { tryGetInvokeContext } from '../../use/use-core';
 import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { getSubscriber } from '../subscriber';
@@ -52,11 +52,15 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$computeIfNeeded$();
-    if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
-      this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
-      scheduleEffects(this.$container$, this, this.$effects$);
-    }
+    maybeThen(
+      retryOnPromise(() => this.$computeIfNeeded$()),
+      () => {
+        if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
+          this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+          scheduleEffects(this.$container$, this, this.$effects$);
+        }
+      }
+    );
   }
 
   /**

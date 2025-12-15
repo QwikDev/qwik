@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
-import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
@@ -1780,7 +1780,7 @@ export function cleanup(
                 clearAllEffects(container, obj as Consumer);
               }
 
-              if (objIsTask || obj instanceof AsyncComputedSignalImpl) {
+              if (objIsTask || obj instanceof AsyncSignalImpl) {
                 cleanupDestroyable(obj);
               }
             }

@@ -5,7 +5,7 @@ import type { Container } from '../shared/types';
 import { clearAllEffects, clearEffectSubscription } from './cleanup';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
-import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getOrCreateStore, getStoreHandler, getStoreTarget } from './impl/store';
 import { EffectProperty, EffectSubscription, StoreFlags } from './types';
 import { _EFFECT_BACK_REF } from './backref';
@@ -154,9 +154,9 @@ describe('cleanup', () => {
       });
     });
 
-    describe('AsyncComputedSignalImpl cleanup', () => {
+    describe('AsyncSignalImpl cleanup', () => {
       it('should remove effect from both regular and loading effects', () => {
-        const asyncSignal = new AsyncComputedSignalImpl(
+        const asyncSignal = new AsyncSignalImpl(
           container,
           inlinedQrl(async () => 'test', 'test') as any
         );
@@ -177,7 +177,7 @@ describe('cleanup', () => {
       });
 
       it('should handle missing loadingEffects', () => {
-        const asyncSignal = new AsyncComputedSignalImpl(
+        const asyncSignal = new AsyncSignalImpl(
           container,
           inlinedQrl(async () => 'test', 'test') as any
         );
@@ -193,7 +193,7 @@ describe('cleanup', () => {
       });
 
       it('should only remove from loadingEffects if not in regular effects', () => {
-        const asyncSignal = new AsyncComputedSignalImpl(
+        const asyncSignal = new AsyncSignalImpl(
           container,
           inlinedQrl(async () => 'test', 'test') as any
         );
@@ -424,7 +424,7 @@ describe('cleanup', () => {
 
       it('should handle effect with multiple producer types', () => {
         const signal = new SignalImpl(container, 'test');
-        const asyncSignal = new AsyncComputedSignalImpl(
+        const asyncSignal = new AsyncSignalImpl(
           container,
           inlinedQrl(async () => 'async', 'async') as any
         );
@@ -617,7 +617,7 @@ describe('cleanup', () => {
 
     it('should clear effects from async computed signals', () => {
       const vnode = vnode_newVirtual();
-      const asyncSignal = new AsyncComputedSignalImpl(
+      const asyncSignal = new AsyncSignalImpl(
         container,
         inlinedQrl(async () => 'test', 'test') as any
       );

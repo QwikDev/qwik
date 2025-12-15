@@ -3,7 +3,7 @@ import { VNodeDataFlag } from 'packages/qwik/src/server/types';
 import type { VNodeData } from 'packages/qwik/src/server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
-import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
 import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
@@ -438,7 +438,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
           filterEffectBackRefs(value[_EFFECT_BACK_REF]),
           value.$effects$,
         ];
-        const isAsync = value instanceof AsyncComputedSignalImpl;
+        const isAsync = value instanceof AsyncSignalImpl;
         if (isAsync) {
           out.push(
             value.$loadingEffects$,
@@ -462,7 +462,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             keepUndefined = true;
           }
         }
-        output(isAsync ? TypeIds.AsyncComputedSignal : TypeIds.ComputedSignal, out, keepUndefined);
+        output(isAsync ? TypeIds.AsyncSignal : TypeIds.ComputedSignal, out, keepUndefined);
       } else {
         const v = value.$untrackedValue$;
         const keepUndefined = v === undefined;

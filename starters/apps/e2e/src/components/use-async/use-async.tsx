@@ -1,6 +1,6 @@
-import { component$, useAsyncComputed$, useSignal } from "@qwik.dev/core";
+import { component$, useAsync$, useSignal } from "@qwik.dev/core";
 
-export const AsyncComputedRoot = component$(() => {
+export const AsyncRoot = component$(() => {
   const rerender = useSignal(0);
 
   return (
@@ -9,24 +9,18 @@ export const AsyncComputedRoot = component$(() => {
         Rerender
       </button>
       <span id="render-count">Renders: {rerender.value}</span>
-      <AsyncComputedBasic />
+      <AsyncBasic />
       <PendingComponent />
     </div>
   );
 });
 
-export const AsyncComputedBasic = component$(() => {
+export const AsyncBasic = component$(() => {
   const count = useSignal(0);
-  const double = useAsyncComputed$(({ track }) =>
-    Promise.resolve(track(count) * 2),
-  );
-  const plus3 = useAsyncComputed$(({ track }) =>
-    Promise.resolve(track(double) + 3),
-  );
-  const triple = useAsyncComputed$(({ track }) =>
-    Promise.resolve(track(plus3) * 3),
-  );
-  const sum = useAsyncComputed$(({ track }) =>
+  const double = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
+  const plus3 = useAsync$(({ track }) => Promise.resolve(track(double) + 3));
+  const triple = useAsync$(({ track }) => Promise.resolve(track(plus3) * 3));
+  const sum = useAsync$(({ track }) =>
     Promise.resolve(track(double) + track(plus3) + track(triple)),
   );
 
@@ -46,7 +40,7 @@ export const AsyncComputedBasic = component$(() => {
 
 export const PendingComponent = component$(() => {
   const count = useSignal(0);
-  const double = useAsyncComputed$(
+  const double = useAsync$(
     ({ track }) =>
       new Promise<number>((resolve) => {
         setTimeout(() => {

@@ -4,7 +4,7 @@
 
 ```ts
 
-import type { AsyncComputedReadonlySignal } from '@qwik.dev/core/internal';
+import type { AsyncSignal } from '@qwik.dev/core/internal';
 import { Component } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
 import { CookieOptions } from '@qwik.dev/router/middleware/request-handler';
@@ -265,7 +265,7 @@ type Loader_2<RETURN> = {
 export { Loader_2 as Loader }
 
 // @public (undocumented)
-export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>) & Pick<AsyncComputedReadonlySignal, 'promise' | 'loading' | 'error'>;
+export type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? ReadonlySignal<ValueOrPromise<VALIDATOR>> : ReadonlySignal<TYPE>) & Pick<AsyncSignal, 'promise' | 'loading' | 'error'>;
 
 // Warning: (ae-forgotten-export) The symbol "MenuModuleLoader" needs to be exported by the entry point index.d.ts
 //

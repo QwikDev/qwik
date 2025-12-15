@@ -1,8 +1,6 @@
 import {
   $,
-  _fnSignal,
   _verifySerializable,
-  _wrapProp,
   componentQrl,
   createComputedQrl,
   createSerializer$,
@@ -13,10 +11,11 @@ import {
   SerializerSymbol,
 } from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
+import { _fnSignal, _wrapProp } from '../../internal';
 import type { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';
-import type { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
+import { type SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { createStore } from '../../reactive-primitives/impl/store';
-import { createAsyncComputedSignal } from '../../reactive-primitives/signal-api';
+import { createAsyncSignal } from '../../reactive-primitives/signal-api';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import { EffectProperty, EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
 import { createResourceReturn } from '../../use/use-resource';
@@ -637,16 +636,16 @@ describe('shared-serialization', () => {
         (466 chars)"
       `);
     });
-    it(title(TypeIds.AsyncComputedSignal), async () => {
+    it(title(TypeIds.AsyncSignal), async () => {
       const foo = createSignal(1);
-      const dirty = createAsyncComputedSignal(
+      const dirty = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'dirty',
           [foo]
         )
       );
-      const clean = createAsyncComputedSignal(
+      const clean = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'clean',
@@ -654,7 +653,7 @@ describe('shared-serialization', () => {
         )
       );
 
-      const never = createAsyncComputedSignal(
+      const never = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'never',
@@ -665,7 +664,7 @@ describe('shared-serialization', () => {
         }
       );
 
-      const always = createAsyncComputedSignal(
+      const always = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
           'always',
@@ -686,7 +685,7 @@ describe('shared-serialization', () => {
       const objs = await serialize(dirty, clean, never, always);
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
-        0 AsyncComputedSignal [
+        0 AsyncSignal [
           QRL "5#6#4"
           Constant undefined
           Constant undefined
@@ -694,7 +693,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant false
         ]
-        1 AsyncComputedSignal [
+        1 AsyncSignal [
           QRL "5#7#4"
           Constant undefined
           Constant undefined
@@ -702,7 +701,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant false
         ]
-        2 AsyncComputedSignal [
+        2 AsyncSignal [
           QRL "5#8#4"
           Constant undefined
           Constant undefined
@@ -710,7 +709,7 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant false
         ]
-        3 AsyncComputedSignal [
+        3 AsyncSignal [
           QRL "5#9#4"
           Constant undefined
           Constant undefined

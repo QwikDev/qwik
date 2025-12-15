@@ -74,7 +74,7 @@ function getFirstStatementIfValueRead(
   return null;
 }
 
-function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boolean {
+function isAsyncIdentifier(context: Rule.RuleContext, ident: any): boolean {
   const variable = resolveVariableForIdentifier(context, ident);
   if (!variable || (variable.defs && variable.defs.length === 0)) {
     return false;
@@ -84,7 +84,7 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
   const checker: ts.TypeChecker | undefined = services?.program?.getTypeChecker();
   const esTreeNodeToTSNodeMap = services?.esTreeNodeToTSNodeMap;
 
-  function declIsAsyncComputedCall(decl: ts.Declaration | undefined): boolean {
+  function declIsAsyncCall(decl: ts.Declaration | undefined): boolean {
     if (!decl) {
       return false;
     }
@@ -96,9 +96,7 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
       const callee = decl.initializer.expression;
       if (ts.isIdentifier(callee)) {
         const name = callee.text;
-        return (
-          name === 'createAsyncComputed$' || name === 'useAsyncComputed$' || name === 'routeLoader$'
-        );
+        return name === 'createAsync$' || name === 'useAsync$' || name === 'routeLoader$';
       }
     }
     if (ts.isExportSpecifier(decl) || ts.isImportSpecifier(decl)) {
@@ -116,9 +114,7 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
         if (callee.type === AST_NODE_TYPES.Identifier) {
           const name = callee.name;
           if (
-            (name === 'useAsyncComputed$' ||
-              name === 'createAsyncComputed$' ||
-              name === 'routeLoader$') &&
+            (name === 'useAsync$' || name === 'createAsync$' || name === 'routeLoader$') &&
             isFromQwikModule(resolveVariableForIdentifier(context, callee))
           ) {
             return true;
@@ -163,13 +159,13 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
           }
           if (symbol) {
             for (const d of symbol.declarations ?? []) {
-              if (declIsAsyncComputedCall(d)) {
+              if (declIsAsyncCall(d)) {
                 return true;
               }
               // Variable statement with multiple declarations
               if (ts.isVariableStatement(d)) {
                 for (const decl of d.declarationList.declarations) {
-                  if (declIsAsyncComputedCall(decl)) {
+                  if (declIsAsyncCall(decl)) {
                     return true;
                   }
                 }
@@ -178,7 +174,7 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
             // As an extra heuristic, use the inferred return type of the symbol if it's a const
             const type = checker.getTypeOfSymbolAtLocation(symbol, tsNode);
             const typeStr = checker.typeToString(type.getNonNullableType());
-            if (/AsyncComputed/i.test(typeStr)) {
+            if (/Async/i.test(typeStr)) {
               return true;
             }
           }
@@ -195,8 +191,8 @@ function isAsyncComputedIdentifier(context: Rule.RuleContext, ident: any): boole
       const tsNode = esTreeNodeToTSNodeMap.get(ident as any);
       const type = checker.getTypeAtLocation(tsNode);
       const typeStr = checker.typeToString(type.getNonNullableType());
-      // Heuristic: type name includes AsyncComputed or LoaderSignal
-      if (/AsyncComputed|LoaderSignal/i.test(typeStr)) {
+      // Heuristic: type name includes Async or LoaderSignal
+      if (/Async|LoaderSignal/i.test(typeStr)) {
         return true;
       }
     } catch {
@@ -335,7 +331,7 @@ export const asyncComputedTop: Rule.RuleModule = {
           return;
         }
 
-        if (!isAsyncComputedIdentifier(context, obj)) {
+        if (!isAsyncIdentifier(context, obj)) {
           return;
         }
 

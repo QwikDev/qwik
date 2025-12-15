@@ -4,14 +4,14 @@ import { SignalImpl } from './impl/signal-impl';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import type { Signal } from './signal.public';
 import {
-  type AsyncComputedCtx,
-  type AsyncComputeQRL,
+  type AsyncCtx,
+  type AsyncQRL,
   type ComputedOptions,
   type ComputeQRL,
   type SerializerArg,
 } from './types';
 import { SerializerSignalImpl } from './impl/serializer-signal-impl';
-import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getComputedSignalFlags } from './utils';
 
 /** @internal */
@@ -32,13 +32,13 @@ export const createComputedSignal = <T>(
 };
 
 /** @internal */
-export const createAsyncComputedSignal = <T>(
-  qrl: QRL<(ctx: AsyncComputedCtx) => Promise<T>>,
+export const createAsyncSignal = <T>(
+  qrl: QRL<(ctx: AsyncCtx) => Promise<T>>,
   options?: ComputedOptions
-): AsyncComputedSignalImpl<T> => {
-  return new AsyncComputedSignalImpl<T>(
+): AsyncSignalImpl<T> => {
+  return new AsyncSignalImpl<T>(
     options?.container || null,
-    qrl as AsyncComputeQRL<T>,
+    qrl as AsyncQRL<T>,
     getComputedSignalFlags(options?.serializationStrategy || 'never')
   );
 };

@@ -3,7 +3,7 @@ import type { Container } from '../shared/types';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import { StoreHandler, getStoreHandler } from './impl/store';
-import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
+import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { BackRef, _EFFECT_BACK_REF } from './backref';
 import { type Consumer, type EffectSubscription } from './types';
@@ -29,9 +29,9 @@ export function clearEffectSubscription(container: Container, effect: EffectSubs
     return;
   }
   for (const producer of backRefs) {
-    // Check AsyncComputedSignalImpl before SignalImpl since it extends SignalImpl
-    if (producer instanceof AsyncComputedSignalImpl) {
-      clearAsyncComputedSignal(producer, effect);
+    // Check AsyncSignalImpl before SignalImpl since it extends SignalImpl
+    if (producer instanceof AsyncSignalImpl) {
+      clearAsyncSignal(producer, effect);
     } else if (producer instanceof SignalImpl) {
       clearSignal(container, producer, effect);
     } else if (isPropsProxy(producer)) {
@@ -59,10 +59,7 @@ function clearSignal(container: Container, producer: SignalImpl, effect: EffectS
   }
 }
 
-function clearAsyncComputedSignal(
-  producer: AsyncComputedSignalImpl<unknown>,
-  effect: EffectSubscription
-) {
+function clearAsyncSignal(producer: AsyncSignalImpl<unknown>, effect: EffectSubscription) {
   const effects = producer.$effects$;
   if (effects && effects.has(effect)) {
     effects.delete(effect);

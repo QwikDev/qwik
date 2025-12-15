@@ -126,7 +126,7 @@ describe.each([
       </Component>
     );
 
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
@@ -195,7 +195,7 @@ describe.each([
         </Fragment>
       </Component>
     );
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -214,6 +214,7 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
+    await waitForDrain(container);
     await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
@@ -275,8 +276,8 @@ describe.each([
       </Component>
     );
     // double click
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
     await (global as any).delay.resolve();
     await waitForDrain(container);
 
@@ -393,6 +394,8 @@ describe.each([
       </Component>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>

@@ -1,5 +1,4 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
@@ -46,12 +45,8 @@ export const maybeThen = <T, B>(
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
 ): ValueOrPromise<B> => {
   return isPromise(valueOrPromise)
-    ? valueOrPromise.then(thenFn as any, shouldNotError)
+    ? valueOrPromise.then(thenFn as any)
     : thenFn(valueOrPromise as any);
-};
-
-export const shouldNotError = (reason: any): any => {
-  throwErrorAndStop(reason);
 };
 
 export const maybeThenMap = <T, MAP_RET, RET>(

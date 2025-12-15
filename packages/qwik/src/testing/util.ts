@@ -103,5 +103,16 @@ export const platformGlobal: { document: Document | undefined } = (__globalThis 
  * @public
  */
 export async function waitForDrain(container: Container) {
+  const start = Date.now();
+  const waitForRenderPromise = async (timeout: number) => {
+    if (container.$renderPromise$) {
+      return;
+    }
+    if (Date.now() - start > timeout) {
+      throw new Error('Timeout waiting for render promise');
+    }
+    setTimeout(() => waitForRenderPromise(timeout), 10);
+  };
+  await waitForRenderPromise(500);
   await container.$renderPromise$;
 }

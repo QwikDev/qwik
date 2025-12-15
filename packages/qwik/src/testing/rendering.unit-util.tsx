@@ -26,7 +26,7 @@ import {
   vnode_remove,
   vnode_setProp,
   vnode_toString,
-} from '../core/client/vnode';
+} from '../core/client/vnode-utils';
 import { ERROR_CONTEXT } from '../core/shared/error/error-handling';
 import { getPlatform, setPlatform } from '../core/shared/platform/platform';
 import { _dumpState, preprocessState } from '../core/shared/serdes/index';

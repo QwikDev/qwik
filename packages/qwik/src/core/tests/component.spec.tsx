@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { ELEMENT_PROPS, OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_getProp, vnode_locate } from '../client/vnode';
+import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 

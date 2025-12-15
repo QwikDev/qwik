@@ -31,7 +31,7 @@ import {
   vnode_newVirtual,
   vnode_setAttr,
   vnode_setProp,
-} from '../core/client/vnode';
+} from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
 import { serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';

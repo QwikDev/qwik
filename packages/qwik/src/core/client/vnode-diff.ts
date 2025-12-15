@@ -85,7 +85,7 @@ import {
   vnode_truncate,
   vnode_walkVNode,
   type VNodeJournal,
-} from './vnode';
+} from './vnode-utils';
 import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';

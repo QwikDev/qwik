@@ -44,7 +44,7 @@ import {
   type _ContainerElement,
   type _DomContainer,
 } from '../internal';
-import { vnode_getFirstChild } from '../client/vnode';
+import { vnode_getFirstChild } from '../client/vnode-utils';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 

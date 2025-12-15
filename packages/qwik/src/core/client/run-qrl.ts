@@ -1,5 +1,5 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { catchError, retryOnPromise, safeCall } from '../shared/utils/promises';
+import { catchError, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { getInvokeContext } from '../use/use-core';

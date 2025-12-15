@@ -1,6 +1,6 @@
 import { isSignal } from './reactive-primitives/utils';
 // ^ keep this first to avoid circular dependency breaking class extend
-import { vnode_getProp, vnode_isVNode } from './client/vnode';
+import { vnode_getProp, vnode_isVNode } from './client/vnode-utils';
 import { ComputedSignalImpl } from './reactive-primitives/impl/computed-signal-impl';
 import { isStore } from './reactive-primitives/impl/store';
 import { WrappedSignalImpl } from './reactive-primitives/impl/wrapped-signal-impl';

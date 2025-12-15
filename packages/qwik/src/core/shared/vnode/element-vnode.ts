@@ -2,6 +2,7 @@ import type { VNodeFlags } from '../../client/types';
 import type { Props } from '../jsx/jsx-runtime';
 import { VNode } from './vnode';
 
+/** @internal */
 export class ElementVNode extends VNode {
   constructor(
     public key: string | null,

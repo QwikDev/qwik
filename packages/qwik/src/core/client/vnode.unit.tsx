@@ -20,7 +20,7 @@ import {
   vnode_setText,
   vnode_walkVNode,
   type VNodeJournal,
-} from './vnode';
+} from './vnode-utils';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';

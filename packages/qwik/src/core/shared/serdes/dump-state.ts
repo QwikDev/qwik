@@ -1,4 +1,4 @@
-import { vnode_isVNode, vnode_toString } from '../../client/vnode';
+import { vnode_isVNode, vnode_toString } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
 import { type Constants, TypeIds, _typeIdNames, _constantNames } from './constants';
 

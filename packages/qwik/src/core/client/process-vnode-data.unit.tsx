@@ -7,7 +7,7 @@ import { processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
-import { vnode_getFirstChild } from './vnode';
+import { vnode_getFirstChild } from './vnode-utils';
 import { Fragment } from '@qwik.dev/core';
 
 describe('processVnodeData', () => {

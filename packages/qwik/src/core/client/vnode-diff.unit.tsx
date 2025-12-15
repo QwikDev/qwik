@@ -23,7 +23,12 @@ import { StoreFlags } from '../reactive-primitives/types';
 import { QError, qError } from '../shared/error/error';
 import type { QElement } from '../shared/types';
 import { VNodeFlags } from './types';
-import { vnode_getFirstChild, vnode_getNode, vnode_setProp, type VNodeJournal } from './vnode';
+import {
+  vnode_getFirstChild,
+  vnode_getNode,
+  vnode_setProp,
+  type VNodeJournal,
+} from './vnode-utils';
 import { vnode_diff } from './vnode-diff';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';

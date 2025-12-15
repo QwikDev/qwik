@@ -11,7 +11,7 @@ import {
   vnode_getFirstChild,
   vnode_getProp,
   vnode_getText,
-} from '../client/vnode';
+} from '../client/vnode-utils';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { SignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';

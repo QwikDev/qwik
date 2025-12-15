@@ -1,6 +1,6 @@
 import { TypeIds } from './constants';
 import type { DomContainer } from '../../client/dom-container';
-import { vnode_isVNode } from '../../client/vnode';
+import { vnode_isVNode } from '../../client/vnode-utils';
 import { isObject } from '../utils/types';
 import { allocate } from './allocate';
 import { inflate } from './inflate';

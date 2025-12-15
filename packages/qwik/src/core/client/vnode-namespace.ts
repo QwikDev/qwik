@@ -20,11 +20,10 @@ import {
   vnode_isElementVNode,
   vnode_isTextVNode,
   type VNodeJournal,
-} from './vnode';
+} from './vnode-utils';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';
-import type { Container } from '../shared/types';
 
 export const isForeignObjectElement = (elementName: string) => {
   return isDev ? elementName.toLowerCase() === 'foreignobject' : elementName === 'foreignObject';

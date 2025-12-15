@@ -7,7 +7,7 @@ import { QContainerAttr } from '../shared/utils/markers';
 import type { RenderOptions, RenderResult } from './types';
 import { qDev } from '../shared/utils/qdev';
 import { QError, qError } from '../shared/error/error';
-import { vnode_setProp } from './vnode';
+import { vnode_setProp } from './vnode-utils';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { NODE_DIFF_DATA_KEY } from '../shared/cursor/cursor-props';

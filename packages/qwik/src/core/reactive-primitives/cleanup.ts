@@ -1,4 +1,4 @@
-import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../client/vnode';
+import { ensureMaterialized, vnode_isElementVNode, vnode_isVNode } from '../client/vnode-utils';
 import type { Container } from '../shared/types';
 import { SignalImpl } from './impl/signal-impl';
 import { WrappedSignalImpl } from './impl/wrapped-signal-impl';

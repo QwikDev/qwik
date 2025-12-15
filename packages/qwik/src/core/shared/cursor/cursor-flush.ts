@@ -1,4 +1,4 @@
-import { type VNodeJournal } from '../../client/vnode';
+import { type VNodeJournal } from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';

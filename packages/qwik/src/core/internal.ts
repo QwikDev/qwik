@@ -25,7 +25,7 @@ export {
   vnode_isTextVNode as _vnode_isTextVNode,
   vnode_isVirtualVNode as _vnode_isVirtualVNode,
   vnode_toString as _vnode_toString,
-} from './client/vnode';
+} from './client/vnode-utils';
 export type { VNode as _VNode } from './shared/vnode/vnode';
 export type { ElementVNode as _ElementVNode } from './shared/vnode/element-vnode';
 export type { TextVNode as _TextVNode } from './shared/vnode/text-vnode';

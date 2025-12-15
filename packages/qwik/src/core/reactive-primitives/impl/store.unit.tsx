@@ -9,7 +9,7 @@ import { newInvokeContext } from '../../use/use-core';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { Task } from '../../use/use-task';
 import { getSubscriber } from '../subscriber';
-import { vnode_newVirtual, vnode_setProp } from '../../client/vnode';
+import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
 import { ELEMENT_SEQ } from 'packages/qwik/src/server/qwik-copy';
 
 describe('v2/store', () => {

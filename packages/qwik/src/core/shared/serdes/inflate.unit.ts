@@ -3,7 +3,7 @@ import { NEEDS_COMPUTATION, EffectProperty } from '../../reactive-primitives/typ
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { VNodeFlags } from '../../client/types';
 import { inflateWrappedSignalValue } from './inflate';
-import { vnode_newElement, vnode_newText, vnode_setProp } from '../../client/vnode';
+import { vnode_setProp } from '../../client/vnode-utils';
 import { ElementVNode } from '../vnode/element-vnode';
 import { TextVNode } from '../vnode/text-vnode';
 import { VirtualVNode } from '../vnode/virtual-vnode';

@@ -57,7 +57,7 @@ import {
   vnode_newUnMaterializedElement,
   vnode_setProp,
   type VNodeJournal,
-} from './vnode';
+} from './vnode-utils';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';

@@ -1,5 +1,10 @@
 import type { DomContainer } from '../../client/dom-container';
-import { ensureMaterialized, vnode_getNode, vnode_isVNode, vnode_locate } from '../../client/vnode';
+import {
+  ensureMaterialized,
+  vnode_getNode,
+  vnode_isVNode,
+  vnode_locate,
+} from '../../client/vnode-utils';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
 import { SerializerSignalImpl } from '../../reactive-primitives/impl/serializer-signal-impl';

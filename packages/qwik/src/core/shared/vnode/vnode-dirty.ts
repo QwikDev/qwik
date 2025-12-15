@@ -1,4 +1,4 @@
-import type { VNodeJournal } from '../../client/vnode';
+import type { VNodeJournal } from '../../client/vnode-utils';
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
 import { getCursorData, type CursorData } from '../cursor/cursor-props';

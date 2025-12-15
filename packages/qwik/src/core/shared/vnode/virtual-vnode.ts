@@ -3,6 +3,7 @@ import type { Props } from '../jsx/jsx-runtime';
 import type { ElementVNode } from './element-vnode';
 import { VNode } from './vnode';
 
+/** @internal */
 export class VirtualVNode extends VNode {
   constructor(
     public key: string | null,

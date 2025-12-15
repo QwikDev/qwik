@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { vnode_isVNode } from '../client/vnode';
+import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import {

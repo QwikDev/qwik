@@ -40,7 +40,7 @@ import {
   vnode_getText,
   vnode_isTextVNode,
   vnode_isVNode,
-} from '../../client/vnode';
+} from '../../client/vnode-utils';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
 

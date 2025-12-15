@@ -1,4 +1,4 @@
-import { type VNodeJournal } from '../../client/vnode';
+import { type VNodeJournal } from '../../client/vnode-utils';
 import { vnode_diff } from '../../client/vnode-diff';
 import { runResource, type ResourceDescriptor } from '../../use/use-resource';
 import { Task, TaskFlags, runTask, type TaskFn } from '../../use/use-task';

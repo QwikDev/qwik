@@ -8,7 +8,12 @@ import { seal } from '../shared/utils/qdev';
 import { isArray, isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
-import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
+import {
+  vnode_getNode,
+  vnode_isElementVNode,
+  vnode_isVNode,
+  vnode_locate,
+} from '../client/vnode-utils';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
 import { type ClientContainer } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';

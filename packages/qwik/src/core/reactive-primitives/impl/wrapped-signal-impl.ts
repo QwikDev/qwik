@@ -1,4 +1,3 @@
-import { vnode_setProp } from '../../client/vnode';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container, HostElement } from '../../shared/types';

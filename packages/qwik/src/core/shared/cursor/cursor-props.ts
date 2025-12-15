@@ -2,7 +2,7 @@ import type { VNode } from '../vnode/vnode';
 import { isCursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
-import type { VNodeJournal } from '../../client/vnode';
+import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
 
 /**

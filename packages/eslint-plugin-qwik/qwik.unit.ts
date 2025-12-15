@@ -49,7 +49,7 @@ await (async function setupEsLintRuleTesters() {
     testDir = testDir.substring(1);
   }
 
-  const ruleNames = await readdir(testDir);
+  const ruleNames = (await readdir(testDir)) as (keyof typeof rules)[];
   for (const ruleName of ruleNames) {
     const rule = rules[ruleName];
     if (ruleName.endsWith('.json')) {
@@ -97,7 +97,7 @@ await (async function setupEsLintRuleTesters() {
       }
     }
     if (valid.length || invalid.length) {
-      await ruleTester.run(ruleName, rule, { valid, invalid });
+      ruleTester.run(ruleName, rule as any, { valid, invalid });
     }
   }
 })();

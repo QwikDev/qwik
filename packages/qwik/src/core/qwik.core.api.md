@@ -12,20 +12,20 @@ import { isServer } from '@qwik.dev/core/build';
 // @public
 export const $: <T>(expression: T) => QRL<T>;
 
-// Warning: (ae-forgotten-export) The symbol "AsyncComputedCtx" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "AsyncCtx" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
-export type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;
+export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 
 // @public (undocumented)
-export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> {
+export type AsyncReturnType<T> = T extends Promise<infer T> ? AsyncSignal<T> : AsyncSignal<T>;
+
+// @public (undocumented)
+export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
     error: Error | null;
     loading: boolean;
     promise(): Promise<T>;
 }
-
-// @public (undocumented)
-export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
 // @internal
 export let _captures: Readonly<unknown[]> | null;
@@ -193,13 +193,13 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public
-export const createAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncComputedReturnType<T>;
+export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncReturnType<T>;
 
-// Warning: (ae-forgotten-export) The symbol "AsyncComputedSignalImpl" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "createAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+// Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
+// Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createAsyncComputedQrl: <T>(qrl: QRL<(ctx: AsyncComputedCtx) => Promise<T>>, options?: ComputedOptions) => AsyncComputedSignalImpl<T>;
+export const createAsyncQrl: <T>(qrl: QRL<(ctx: AsyncCtx) => Promise<T>>, options?: ComputedOptions) => AsyncSignalImpl<T>;
 
 // @public
 export const createComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>;
@@ -1740,12 +1740,12 @@ export const untrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T>
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>;
+export const useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncReturnType<T>;
 
-// Warning: (ae-internal-missing-underscore) The name "useAsyncComputedQrl" should be prefixed with an underscore because the declaration is marked as @internal
+// Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useAsyncComputedQrl: <T>(qrl: QRL<AsyncComputedFn<T>>, options?: ComputedOptions) => AsyncComputedReturnType<T>;
+export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => AsyncReturnType<T>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;

@@ -221,46 +221,46 @@
       "mdFile": "core._.md"
     },
     {
-      "name": "AsyncComputedFn",
-      "id": "asynccomputedfn",
+      "name": "AsyncFn",
+      "id": "asyncfn",
       "hierarchy": [
         {
-          "name": "AsyncComputedFn",
-          "id": "asynccomputedfn"
+          "name": "AsyncFn",
+          "id": "asyncfn"
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedFn<T> = (ctx: AsyncComputedCtx) => Promise<T>;\n```",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.asynccomputedfn.md"
+      "content": "```typescript\nexport type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "mdFile": "core.asyncfn.md"
     },
     {
-      "name": "AsyncComputedReadonlySignal",
-      "id": "asynccomputedreadonlysignal",
+      "name": "AsyncReturnType",
+      "id": "asyncreturntype",
       "hierarchy": [
         {
-          "name": "AsyncComputedReadonlySignal",
-          "id": "asynccomputedreadonlysignal"
+          "name": "AsyncReturnType",
+          "id": "asyncreturntype"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AsyncReturnType<T> = T extends Promise<infer T> ? AsyncSignal<T> : AsyncSignal<T>;\n```\n**References:** [AsyncSignal](#asyncsignal)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "mdFile": "core.asyncreturntype.md"
+    },
+    {
+      "name": "AsyncSignal",
+      "id": "asyncsignal",
+      "hierarchy": [
+        {
+          "name": "AsyncSignal",
+          "id": "asyncsignal"
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asynccomputedreadonlysignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed.\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface AsyncSignal<T = unknown> extends ComputedSignal<T> \n```\n**Extends:** [ComputedSignal](#computedsignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[error](#)\n\n\n</td><td>\n\n\n</td><td>\n\nError \\| null\n\n\n</td><td>\n\nThe error that occurred while computing the signal.\n\n\n</td></tr>\n<tr><td>\n\n[loading](#)\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\nWhether the signal is currently loading.\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[promise()](#asyncsignal-promise)\n\n\n</td><td>\n\nA promise that resolves when the value is computed.\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.asynccomputedreadonlysignal.md"
-    },
-    {
-      "name": "AsyncComputedReturnType",
-      "id": "asynccomputedreturntype",
-      "hierarchy": [
-        {
-          "name": "AsyncComputedReturnType",
-          "id": "asynccomputedreturntype"
-        }
-      ],
-      "kind": "TypeAlias",
-      "content": "```typescript\nexport type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;\n```\n**References:** [AsyncComputedReadonlySignal](#asynccomputedreadonlysignal)",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.asynccomputedreturntype.md"
+      "mdFile": "core.asyncsignal.md"
     },
     {
       "name": "cache",
@@ -451,18 +451,18 @@
       "mdFile": "core.correctedtoggleevent.md"
     },
     {
-      "name": "createAsyncComputed$",
-      "id": "createasynccomputed_",
+      "name": "createAsync$",
+      "id": "createasync_",
       "hierarchy": [
         {
-          "name": "createAsyncComputed$",
-          "id": "createasynccomputed_"
+          "name": "createAsync$",
+          "id": "createasync_"
         }
       ],
       "kind": "Function",
-      "content": "Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.\n\n\n```typescript\ncreateAsyncComputed$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Create an async computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals or async operation. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it can be async.\n\n\n```typescript\ncreateAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; Promise&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncReturnType](#asyncreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
-      "mdFile": "core.createasynccomputed_.md"
+      "mdFile": "core.createasync_.md"
     },
     {
       "name": "createComputed$",
@@ -474,7 +474,7 @@
         }
       ],
       "kind": "Function",
-      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useAsyncComputed$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
+      "content": "Create a computed signal which is calculated from the given QRL. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated.\n\nThe QRL must be a function which returns the value of the signal. The function must not have side effects, and it must be synchronous.\n\nIf you need the function to be async, use `useAsync$` instead.\n\n\n```typescript\ncreateComputed$: <T>(qrl: () => T, options?: ComputedOptions) => ComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n() =&gt; T\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[ComputedReturnType](#computedreturntype)<!-- -->&lt;T&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts",
       "mdFile": "core.createcomputed_.md"
     },
@@ -1257,20 +1257,20 @@
     },
     {
       "name": "promise",
-      "id": "asynccomputedreadonlysignal-promise",
+      "id": "asyncsignal-promise",
       "hierarchy": [
         {
-          "name": "AsyncComputedReadonlySignal",
-          "id": "asynccomputedreadonlysignal-promise"
+          "name": "AsyncSignal",
+          "id": "asyncsignal-promise"
         },
         {
           "name": "promise",
-          "id": "asynccomputedreadonlysignal-promise"
+          "id": "asyncsignal-promise"
         }
       ],
       "kind": "MethodSignature",
       "content": "A promise that resolves when the value is computed.\n\n\n```typescript\npromise(): Promise<T>;\n```\n**Returns:**\n\nPromise&lt;T&gt;",
-      "mdFile": "core.asynccomputedreadonlysignal.promise.md"
+      "mdFile": "core.asyncsignal.promise.md"
     },
     {
       "name": "PropFunction",
@@ -2351,18 +2351,18 @@
       "mdFile": "core.unwrapstore.md"
     },
     {
-      "name": "useAsyncComputed$",
-      "id": "useasynccomputed_",
+      "name": "useAsync$",
+      "id": "useasync_",
       "hierarchy": [
         {
-          "name": "useAsyncComputed$",
-          "id": "useasynccomputed_"
+          "name": "useAsync$",
+          "id": "useasync_"
         }
       ],
       "kind": "Function",
-      "content": "Creates a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.\n\nThe function must be synchronous and must not have any side effects.\n\n\n```typescript\nuseAsyncComputed$: <T>(qrl: AsyncComputedFn<T>, options?: ComputedOptions | undefined) => AsyncComputedReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncComputedFn](#asynccomputedfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncComputedReturnType](#asynccomputedreturntype)<!-- -->&lt;T&gt;",
-      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async-computed.ts",
-      "mdFile": "core.useasynccomputed_.md"
+      "content": "Creates an AsyncSignal which is calculated from the given async function. If the function uses reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all components that read the AsyncSignal will be re-rendered.\n\nThe function must not have any side effects, as it can run multiple times.\n\nIf the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.\n\nWhile the async function is running, the `loading` property will be set to `true`<!-- -->. Once the function completes, `loading` will be set to `false`<!-- -->.\n\nIf the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.\n\nIf the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.\n\n\n```typescript\nuseAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncReturnType<T>\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nqrl\n\n\n</td><td>\n\n[AsyncFn](#asyncfn)<!-- -->&lt;T&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\noptions\n\n\n</td><td>\n\n[ComputedOptions](#computedoptions) \\| undefined\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AsyncReturnType](#asyncreturntype)<!-- -->&lt;T&gt;",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts",
+      "mdFile": "core.useasync_.md"
     },
     {
       "name": "useComputed$",

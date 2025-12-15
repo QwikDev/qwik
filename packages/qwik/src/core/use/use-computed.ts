@@ -6,7 +6,7 @@ import { throwIfQRLNotResolved } from '../reactive-primitives/utils';
 import type { ComputedSignal, Signal } from '../reactive-primitives/signal.public';
 import { useSequentialScope } from './use-sequential-scope';
 import { createComputedSignal } from '../reactive-primitives/signal-api';
-import type { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import type { AsyncSignalImpl } from '../reactive-primitives/impl/async-signal-impl';
 import type { SerializerSignalImpl } from '../reactive-primitives/impl/serializer-signal-impl';
 import type { ComputedOptions } from '../reactive-primitives/types';
 
@@ -25,7 +25,7 @@ export const useComputedCommon = <
   createFn: (
     qrl: QRL<any>,
     options?: ComputedOptions
-  ) => ComputedSignalImpl<T> | AsyncComputedSignalImpl<T> | SerializerSignalImpl<T, S>,
+  ) => ComputedSignalImpl<T> | AsyncSignalImpl<T> | SerializerSignalImpl<T, S>,
   options?: ComputedOptions
 ): RETURN => {
   const { val, set } = useSequentialScope<Signal<T>>();

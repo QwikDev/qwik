@@ -36,7 +36,7 @@ import { Watch } from "./components/watch/watch";
 
 import "./global.css";
 import { QRL } from "./components/qrl/qrl";
-import { AsyncComputedRoot } from "./components/async-computed/async-computed";
+import { AsyncRoot } from "./components/use-async/use-async";
 import { Backpatching } from "./components/backpatching/backpatching";
 
 const tests: Record<string, FunctionComponent> = {
@@ -75,7 +75,7 @@ const tests: Record<string, FunctionComponent> = {
   "/e2e/exception/render": () => <RenderExceptions />,
   "/e2e/exception/use-task": () => <UseTaskExceptions />,
   "/e2e/qrl": () => <QRL />,
-  "/e2e/async-computed": () => <AsyncComputedRoot />,
+  "/e2e/async-computed": () => <AsyncRoot />,
   "/e2e/backpatching": () => <Backpatching />,
 };
 

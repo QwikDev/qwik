@@ -1,6 +1,6 @@
 import type { SimpleURL } from './types';
 
-import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
+import { createAsync$, isBrowser } from '@qwik.dev/core';
 import {
   _UNINITIALIZED,
   type _Container,
@@ -95,7 +95,7 @@ export const createLoaderSignal = (
   serializationStrategy: SerializationStrategy,
   container?: _Container
 ) => {
-  return createAsyncComputed$(
+  return createAsync$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
         const data = await loadClientData(url, {

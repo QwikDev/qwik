@@ -2,11 +2,12 @@ import { qwikDebugToString } from '../../debug';
 import type { NoSerialize } from '../../shared/serdes/verify';
 import type { Container } from '../../shared/types';
 import { isPromise, retryOnPromise } from '../../shared/utils/promises';
+import type { ValueOrPromise } from '../../shared/utils/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import { cleanupFn, trackFn } from '../../use/utils/tracker';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import {
-  AsyncComputeQRL,
+  AsyncQRL,
   EffectProperty,
   EffectSubscription,
   NEEDS_COMPUTATION,
@@ -25,14 +26,11 @@ const log = (...args: any[]) =>
 /**
  * # ================================
  *
- * AsyncComputedSignalImpl
+ * AsyncSignalImpl
  *
  * # ================================
  */
-export class AsyncComputedSignalImpl<T>
-  extends ComputedSignalImpl<T | undefined, AsyncComputeQRL<T>>
-  implements BackRef
-{
+export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> implements BackRef {
   $untrackedLoading$: boolean = false;
   $untrackedError$: Error | undefined = undefined;
 
@@ -40,13 +38,13 @@ export class AsyncComputedSignalImpl<T>
   $errorEffects$: undefined | Set<EffectSubscription> = undefined;
   $destroy$: NoSerialize<() => void> | null;
   $promiseValue$: T | typeof NEEDS_COMPUTATION = NEEDS_COMPUTATION;
-  private $promise$: Promise<T> | null = null;
+  private $promise$: ValueOrPromise<T> | null = null;
 
   [_EFFECT_BACK_REF]: Map<EffectProperty | string, EffectSubscription> | undefined = undefined;
 
   constructor(
     container: Container | null,
-    fn: AsyncComputeQRL<T>,
+    fn: AsyncQRL<T>,
     flags: SignalFlags | SerializationSignalFlags = SignalFlags.INVALID
   ) {
     super(container, fn, flags);
@@ -177,7 +175,44 @@ export class AsyncComputedSignalImpl<T>
       this.$promise$ = this.$computeQrl$.getFn()({
         track: trackFn(this, this.$container$),
         cleanup,
-      }) as Promise<T>;
+      }) as ValueOrPromise<T>;
+
+      // TODO implement these
+      // const arg: {
+      //   track: Tracker;
+      //   cleanup: ReturnType<typeof cleanupFn>[0];
+      //   poll: (ms: number) => void;
+      // } = {
+      //   poll: (ms: number) => {
+      //     setTimeout(() => {
+      //       super.invalidate();
+      //       if (this.$effects$?.size) {
+      //         this.$computeIfNeeded$();
+      //       }
+      //     }, ms);
+      //   },
+      // } as any;
+      // Object.defineProperty(arg, 'track', {
+      //   get() {
+      //     const fn = trackFn(this, this.$container$);
+      //     arg.track = fn;
+      //     return fn;
+      //   },
+      //   configurable: true,
+      //   enumerable: true,
+      //   writable: true,
+      // });
+      // Object.defineProperty(arg, 'cleanup', {
+      //   get() {
+      //     const [fn] = cleanupFn(this, (err) => this.$container$?.handleError(err, null!));
+      //     arg.cleanup = fn;
+      //     return fn;
+      //   },
+      //   configurable: true,
+      //   enumerable: true,
+      //   writable: true,
+      // });
+      // this.$promise$ = this.$computeQrl$.getFn()(arg) as ValueOrPromise<T>;
     }
     return this.$promise$;
   }

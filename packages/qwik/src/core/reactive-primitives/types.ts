@@ -5,7 +5,7 @@ import type { SignalImpl } from './impl/signal-impl';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
 import type { SerializerSymbol } from '../shared/serdes/verify';
 import type { ComputedFn } from '../use/use-computed';
-import type { AsyncComputedFn } from '../use/use-async-computed';
+import type { AsyncFn } from '../use/use-async';
 import type { Container, SerializationStrategy } from '../shared/types';
 import type { VNode } from '../shared/vnode/vnode';
 import type { ISsrNode } from '../ssr/ssr-types';
@@ -34,11 +34,11 @@ export interface InternalSignal<T = any> extends InternalReadonlySignal<T> {
 }
 
 export type ComputeQRL<T> = QRLInternal<ComputedFn<T>>;
-export type AsyncComputedCtx = {
+export type AsyncCtx = {
   track: Tracker;
   cleanup: (callback: () => void) => void;
 };
-export type AsyncComputeQRL<T> = QRLInternal<AsyncComputedFn<T>>;
+export type AsyncQRL<T> = QRLInternal<AsyncFn<T>>;
 
 /** @public */
 export interface ComputedOptions {

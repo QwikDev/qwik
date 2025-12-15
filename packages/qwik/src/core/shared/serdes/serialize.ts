@@ -403,7 +403,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
           });
           output(TypeIds.ForwardRef, forwardRefId);
         } else {
-          output(TypeIds.SerializerSignal, [value.$computeQrl$, value.$effects$, maybeValue]);
+          output(TypeIds.SerializerSignal, [
+            value.$computeQrl$,
+            filterEffectBackRefs(value[_EFFECT_BACK_REF]),
+            value.$effects$,
+            maybeValue,
+          ]);
         }
         return;
       }
@@ -434,7 +439,11 @@ export async function serialize(serializationContext: SerializationContext): Pro
         }
         addPreloadQrl(value.$computeQrl$);
 
-        const out: unknown[] = [value.$computeQrl$, value.$effects$];
+        const out: unknown[] = [
+          value.$computeQrl$,
+          filterEffectBackRefs(value[_EFFECT_BACK_REF]),
+          value.$effects$,
+        ];
         const isAsync = value instanceof AsyncComputedSignalImpl;
         if (isAsync) {
           out.push(

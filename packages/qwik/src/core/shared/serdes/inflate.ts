@@ -159,6 +159,7 @@ export const inflate = (
       const asyncComputed = target as AsyncComputedSignalImpl<unknown>;
       const d = data as [
         AsyncComputeQRL<unknown>,
+        Map<EffectProperty | string, EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
         Array<EffectSubscription> | undefined,
@@ -167,15 +168,16 @@ export const inflate = (
         unknown?,
       ];
       asyncComputed.$computeQrl$ = d[0];
-      asyncComputed.$effects$ = new Set(d[1]);
-      asyncComputed.$loadingEffects$ = new Set(d[2]);
-      asyncComputed.$errorEffects$ = new Set(d[3]);
-      asyncComputed.$untrackedLoading$ = d[4];
-      asyncComputed.$untrackedError$ = d[5];
-      const hasValue = d.length > 6;
+      asyncComputed[_EFFECT_BACK_REF] = d[1];
+      asyncComputed.$effects$ = new Set(d[2]);
+      asyncComputed.$loadingEffects$ = new Set(d[3]);
+      asyncComputed.$errorEffects$ = new Set(d[4]);
+      asyncComputed.$untrackedLoading$ = d[5];
+      asyncComputed.$untrackedError$ = d[6];
+      const hasValue = d.length > 7;
       if (hasValue) {
-        asyncComputed.$untrackedValue$ = d[6];
-        asyncComputed.$promiseValue$ = d[6];
+        asyncComputed.$untrackedValue$ = d[7];
+        asyncComputed.$promiseValue$ = d[7];
       }
       asyncComputed.$flags$ |= SignalFlags.INVALID;
       break;
@@ -184,14 +186,20 @@ export const inflate = (
     case TypeIds.SerializerSignal:
     case TypeIds.ComputedSignal: {
       const computed = target as ComputedSignalImpl<unknown>;
-      const d = data as [QRLInternal<() => {}>, EffectSubscription[] | undefined, unknown?];
+      const d = data as [
+        QRLInternal<() => {}>,
+        Map<EffectProperty | string, EffectSubscription> | undefined,
+        EffectSubscription[] | undefined,
+        unknown?,
+      ];
       computed.$computeQrl$ = d[0];
-      if (d[1]) {
-        computed.$effects$ = new Set(d[1]);
+      computed[_EFFECT_BACK_REF] = d[1];
+      if (d[2]) {
+        computed.$effects$ = new Set(d[2]);
       }
-      const hasValue = d.length > 2;
+      const hasValue = d.length > 3;
       if (hasValue) {
-        computed.$untrackedValue$ = d[2];
+        computed.$untrackedValue$ = d[3];
         // The serialized signal is always invalid so it can recreate the custom object
         if (typeId === TypeIds.SerializerSignal) {
           computed.$flags$ |= SignalFlags.INVALID;

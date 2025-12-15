@@ -137,8 +137,7 @@ export function executeNodeDiff(
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
-  const result = vnode_diff(container as ClientContainer, journal, jsx, domVNode, null);
-  return result;
+  return vnode_diff(container as ClientContainer, journal, jsx, domVNode, null);
 }
 
 /**

@@ -121,13 +121,4 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       }
     }
   }
-
-  // Make this signal read-only
-  set value(_: any) {
-    throw qError(QError.computedReadOnly);
-  }
-  // Getters don't get inherited when overriding a setter
-  get value() {
-    return super.value;
-  }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@builder.io/qwik-react",
   "description": "QwikReact allows adding React components into existing Qwik application",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@builder.io/qwik": "workspace:^",

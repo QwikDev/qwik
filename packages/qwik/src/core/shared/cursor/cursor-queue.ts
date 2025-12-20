@@ -5,12 +5,15 @@
  */
 
 import { VNodeFlags } from '../../client/types';
+import { vnode_isDescendantOf } from '../../client/vnode-utils';
 import type { Container } from '../types';
 import type { Cursor } from './cursor';
 import { getCursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
 let globalCursorQueue: Cursor[] = [];
+
+let pausedCursorQueue: Cursor[] = [];
 
 /**
  * Adds a cursor to the global queue. If the cursor already exists, it's removed and re-added to
@@ -42,7 +45,41 @@ export function addCursorToQueue(container: Container, cursor: Cursor): void {
  * @returns The highest priority cursor, or null if queue is empty
  */
 export function getHighestPriorityCursor(): Cursor | null {
-  return globalCursorQueue.length > 0 ? globalCursorQueue[0] : null;
+  for (let i = 0; i < globalCursorQueue.length; i++) {
+    const cursor = globalCursorQueue[i];
+    let isDescendantOfPaused = false;
+
+    for (let j = 0; j < pausedCursorQueue.length; j++) {
+      const pausedCursor = pausedCursorQueue[j];
+      if (vnode_isDescendantOf(cursor, pausedCursor)) {
+        isDescendantOfPaused = true;
+        break;
+      }
+    }
+
+    if (!isDescendantOfPaused) {
+      return cursor;
+    }
+  }
+
+  return null;
+}
+
+export function pauseCursor(cursor: Cursor, container: Container): void {
+  pausedCursorQueue.push(cursor);
+  removeCursorFromQueue(cursor, container, true);
+}
+
+export function resumeCursor(cursor: Cursor, container: Container): void {
+  const index = pausedCursorQueue.indexOf(cursor);
+  if (index !== -1) {
+    const lastIndex = pausedCursorQueue.length - 1;
+    if (index !== lastIndex) {
+      pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
+    }
+    pausedCursorQueue.pop();
+  }
+  addCursorToQueue(container, cursor);
 }
 
 /**

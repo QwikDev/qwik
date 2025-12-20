@@ -18,7 +18,12 @@ import {
 import { type Cursor } from './cursor';
 import { setCursorPosition, getCursorData, type CursorData } from './cursor-props';
 import { ChoreBits } from '../vnode/enums/chore-bits.enum';
-import { addCursorToQueue, getHighestPriorityCursor, removeCursorFromQueue } from './cursor-queue';
+import {
+  getHighestPriorityCursor,
+  pauseCursor,
+  removeCursorFromQueue,
+  resumeCursor,
+} from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
 import { createNextTick } from '../platform/next-tick';
 import { isPromise } from '../utils/promises';
@@ -132,7 +137,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     // Skip if the vNode is not dirty
     if (!(currentVNode.dirty & ChoreBits.DIRTY_MASK)) {
       // Move to next node
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
       continue;
     }
 
@@ -144,7 +149,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       }
       // Clear dirty bits and move to next node
       currentVNode.dirty &= ~ChoreBits.DIRTY_MASK;
-      setCursorPosition(container, cursorData, getNextVNode(currentVNode));
+      setCursorPosition(container, cursorData, getNextVNode(currentVNode, cursor));
       continue;
     }
 
@@ -154,9 +159,9 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       if (currentVNode.dirty & ChoreBits.TASKS) {
         result = executeTasks(currentVNode, container, cursorData);
       } else if (currentVNode.dirty & ChoreBits.NODE_DIFF) {
-        result = executeNodeDiff(currentVNode, container, journal);
+        result = executeNodeDiff(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
-        result = executeComponentChore(currentVNode, container, journal);
+        result = executeComponentChore(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
         executeNodeProps(currentVNode, container, journal);
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
@@ -170,7 +175,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
           partitionDirtyChildren(dirtyChildren, currentVNode);
           currentVNode.nextDirtyChildIndex = 0;
           // descend
-          currentVNode = getNextVNode(dirtyChildren[0])!;
+          currentVNode = getNextVNode(dirtyChildren[0], cursor)!;
           setCursorPosition(container, cursorData, currentVNode);
           continue;
         }
@@ -184,7 +189,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       DEBUG && console.warn('walkCursor: blocking promise', currentVNode.toString());
       // Store promise on cursor and pause
       cursorData.promise = result;
-      removeCursorFromQueue(cursor, container, true);
+      pauseCursor(cursor, container);
 
       const host = currentVNode;
       result
@@ -193,7 +198,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
         })
         .finally(() => {
           cursorData.promise = null;
-          addCursorToQueue(container, cursor);
+          resumeCursor(cursor, container);
           triggerCursors();
         });
       return;
@@ -259,7 +264,10 @@ function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
 }
 
 /** @returns Next vNode to process, or null if traversal is complete */
-function getNextVNode(vNode: VNode): VNode | null {
+function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
+  if (vNode === cursor) {
+    return null;
+  }
   // Prefer parent if it's dirty, otherwise try slotParent
   let parent: VNode | null = null;
   if (vNode.parent && vNode.parent.dirty & ChoreBits.CHILDREN) {
@@ -290,5 +298,5 @@ function getNextVNode(vNode: VNode): VNode | null {
   // all array items checked, children are no longer dirty
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
-  return getNextVNode(parent!);
+  return getNextVNode(parent!, cursor);
 }

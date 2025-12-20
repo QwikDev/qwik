@@ -11,9 +11,9 @@ import type { Cursor } from './cursor';
 import { getCursorData } from './cursor-props';
 
 /** Global cursor queue array. Cursors are sorted by priority. */
-let globalCursorQueue: Cursor[] = [];
+const globalCursorQueue: Cursor[] = [];
 
-let pausedCursorQueue: Cursor[] = [];
+const pausedCursorQueue: Cursor[] = [];
 
 /**
  * Adds a cursor to the global queue. If the cursor already exists, it's removed and re-added to
@@ -107,27 +107,4 @@ export function removeCursorFromQueue(
     // globalCursorQueue.pop();
     globalCursorQueue.splice(index, 1);
   }
-}
-
-/**
- * Checks if the global cursor queue is empty.
- *
- * @returns True if the queue is empty
- */
-export function isCursorQueueEmpty(): boolean {
-  return globalCursorQueue.length === 0;
-}
-
-/**
- * Gets the number of cursors in the global queue.
- *
- * @returns The number of cursors
- */
-export function getCursorQueueSize(): number {
-  return globalCursorQueue.length;
-}
-
-/** Clears all cursors from the global queue. */
-export function clearCursorQueue(): void {
-  globalCursorQueue = [];
 }

@@ -25,7 +25,7 @@ import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
 import { HTML_NS, QContainerAttr, QDefaultSlot, SVG_NS } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 import { VNodeFlags } from '../client/types';
-import { VirtualVNode } from '../client/vnode-impl';
+import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 const DEBUG = false;
 
@@ -1589,7 +1589,7 @@ describe.each([
         { debug: DEBUG }
       );
       expect((vNode!.flags & VNodeFlags.Resolved) === VNodeFlags.Resolved).toBe(true);
-      expect(vnode_getProp(vNode, QDefaultSlot, null)).toBeInstanceOf(VirtualVNode);
+      expect(vnode_getProp(vNode!, QDefaultSlot, null)).toBeInstanceOf(VirtualVNode);
     });
   });
 

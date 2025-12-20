@@ -264,7 +264,7 @@ function setNodeProp(
  * @param container - The container
  * @returns Void
  */
-export function executeNodeProps(vNode: VNode, container: Container, journal: VNodeJournal): void {
+export function executeNodeProps(vNode: VNode, journal: VNodeJournal): void {
   vNode.dirty &= ~ChoreBits.NODE_PROPS;
   if (!(vNode.flags & VNodeFlags.Element)) {
     return;

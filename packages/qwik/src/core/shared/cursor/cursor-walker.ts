@@ -163,7 +163,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       } else if (currentVNode.dirty & ChoreBits.COMPONENT) {
         result = executeComponentChore(currentVNode, container, journal, cursor);
       } else if (currentVNode.dirty & ChoreBits.NODE_PROPS) {
-        executeNodeProps(currentVNode, container, journal);
+        executeNodeProps(currentVNode, journal);
       } else if (currentVNode.dirty & ChoreBits.COMPUTE) {
         result = executeCompute(currentVNode, container);
       } else if (currentVNode.dirty & ChoreBits.CHILDREN) {

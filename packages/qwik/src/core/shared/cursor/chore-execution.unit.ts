@@ -53,7 +53,9 @@ vi.mock('../component-execution', () => ({
 
 vi.mock('../utils/styles', () => ({
   serializeAttribute: vi.fn((property: string, value: any) => {
-    if (value == null) return null;
+    if (value == null) {
+      return null;
+    }
     return String(value);
   }),
 }));
@@ -397,9 +399,13 @@ describe('executeComponentChore', () => {
       throw error;
     });
 
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     executeComponentChore(vNode, container, journal, cursor);
 
     expect(container.handleError).toHaveBeenCalledWith(error, vNode);
+
+    consoleErrorSpy.mockRestore();
   });
 
   it('should return promise if execution is async', async () => {

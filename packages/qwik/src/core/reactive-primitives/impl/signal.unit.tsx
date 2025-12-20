@@ -1,6 +1,6 @@
 import { $, _wrapProp, isBrowser } from '@qwik.dev/core';
 import { createDocument } from '@qwik.dev/core/testing';
-import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../../shared/qrl/qrl';

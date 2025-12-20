@@ -1,4 +1,5 @@
 import {
+  $,
   component$,
   createSignal,
   untrack,
@@ -18,15 +19,20 @@ let nextId = 1;
 type Row = {
   id: number;
   label: Signal<string>;
+  selected: Signal<boolean>;
 };
 
-const buildData = (count: number) => {
+const buildData = (count: number): Signal<Row>[] => {
   const data = new Array(count);
   for (let i = 0; i < count; i++) {
     const label = createSignal(
       `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`,
     );
-    data[i] = createSignal({ id: nextId++, label });
+    data[i] = createSignal({
+      id: nextId++,
+      label,
+      selected: createSignal(false),
+    });
   }
   return data;
 };
@@ -54,7 +60,15 @@ const Button = component$<ButtonProps>(({ id, text, click$ }) => {
 
 export default component$(() => {
   const data = useSignal<Signal<Row>[]>([]);
-  const selected = useSignal<number | null>(null);
+  const selectedItem = useSignal<Row | null>(null);
+
+  const select$ = $((row: Row) => {
+    if (selectedItem.value) {
+      selectedItem.value.selected.value = false;
+    }
+    selectedItem.value = row;
+    row.selected.value = true;
+  });
 
   return (
     <div class="container">
@@ -123,11 +137,11 @@ export default component$(() => {
             return (
               <tr
                 key={untrack(() => row.value.id)}
-                class={selected.value === row.value.id ? "danger" : ""}
+                class={row.value.selected.value ? "danger" : ""}
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => (selected.value = row.value.id)}>
+                  <a onClick$={() => select$(row.value)}>
                     {row.value.label.value}
                   </a>
                 </td>

@@ -413,7 +413,7 @@ export const vnode_ensureElementKeyInflated = (vnode: ElementVNode) => {
   if (vnode.key) {
     return;
   }
-  const value = vnode.node.getAttribute(Q_PROPS_SEPARATOR);
+  const value = fastGetAttribute(vnode.node, Q_PROPS_SEPARATOR);
   if (value) {
     vnode.key = value;
   }
@@ -1342,6 +1342,14 @@ export const shouldIgnoreChildren = (node: Element): boolean => {
   return _fastHasAttribute.call(node, QContainerAttr);
 };
 
+let _fastGetAttribute: ((this: Element, key: string) => string | null) | null = null;
+export const fastGetAttribute = (element: Element, key: string): string | null => {
+  if (!_fastGetAttribute) {
+    _fastGetAttribute = element.getAttribute;
+  }
+  return _fastGetAttribute.call(element, key);
+};
+
 let _fastNodeType: ((this: Node) => number) | null = null;
 const fastNodeType = (node: Node): number => {
   if (!_fastNodeType) {
@@ -1496,6 +1504,7 @@ const materializeFromDOM = (vParent: ElementVNode, firstChild: Node | null, vDat
       vNextChild = vnode_newText(child as Text, child.textContent ?? undefined);
     } else if (nodeType === /* Node.ELEMENT_NODE */ 1) {
       vNextChild = vnode_newUnMaterializedElement(child as Element);
+      vnode_ensureElementKeyInflated(vNextChild as ElementVNode);
     }
     if (vNextChild) {
       vNextChild.parent = vParent;
@@ -1832,7 +1841,9 @@ function materializeFromVNodeData(
         value += consume() - 48; /* `0` */
       }
       while (value--) {
-        addVNode(vnode_newUnMaterializedElement(child as Element));
+        const elementVNode = vnode_newUnMaterializedElement(child as Element);
+        vnode_ensureElementKeyInflated(elementVNode);
+        addVNode(elementVNode);
         child = fastNextSibling(child);
       }
       // collect the elements;

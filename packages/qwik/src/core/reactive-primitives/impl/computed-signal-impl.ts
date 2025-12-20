@@ -3,7 +3,7 @@ import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
-import { tryGetInvokeContext } from '../../use/use-core';
+import { invoke, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
 import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { getSubscriber } from '../subscriber';
 import { SerializationSignalFlags, ComputeQRL, EffectSubscription } from '../types';
@@ -52,8 +52,10 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
+    const ctx = newInvokeContext();
+    ctx.$container$ = this.$container$ || undefined;
     maybeThen(
-      retryOnPromise(() => this.$computeIfNeeded$()),
+      retryOnPromise(() => invoke.call(this, ctx, this.$computeIfNeeded$)),
       () => {
         if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
           this.$flags$ &= ~SignalFlags.RUN_EFFECTS;

@@ -71,6 +71,7 @@ export interface ResourceReturnInternal<T> {
   _error: Error | undefined;
   _cache: number;
   _timeout: number;
+  _generation: number;
   value: Promise<T>;
   loading: boolean;
 }
@@ -237,6 +238,7 @@ export const _createResourceReturn = <T>(opts?: ResourceOptions): ResourceReturn
     _state: 'pending',
     _timeout: opts?.timeout ?? -1,
     _cache: 0,
+    _generation: 0,
   };
   return resource;
 };
@@ -304,30 +306,33 @@ export const runResource = <T>(
   let reject: (v: unknown) => void;
   let done = false;
 
-  const setState = (resolved: boolean, value: T | Error) => {
-    if (!done) {
-      done = true;
-      if (resolved) {
-        done = true;
-        resourceTarget.loading = false;
-        resourceTarget._state = 'resolved';
-        resourceTarget._resolved = value as T;
-        resourceTarget._error = undefined;
-        resolve(value as T);
-      } else {
-        done = true;
-        resourceTarget.loading = false;
-        resourceTarget._state = 'rejected';
-        resourceTarget._error = value as Error;
-        reject(value as Error);
-      }
+  // Increment generation to track this execution
+  const currentGeneration = ++resourceTarget._generation;
 
-      if (!isServerPlatform()) {
-        forceStoreEffects(resource, '_state');
-      }
-      return true;
+  const setState = (resolved: boolean, value: T | Error) => {
+    // Ignore results from outdated executions
+    if (done || resourceTarget._generation !== currentGeneration) {
+      return false;
     }
-    return false;
+
+    done = true;
+    if (resolved) {
+      resourceTarget.loading = false;
+      resourceTarget._state = 'resolved';
+      resourceTarget._resolved = value as T;
+      resourceTarget._error = undefined;
+      resolve(value as T);
+    } else {
+      resourceTarget.loading = false;
+      resourceTarget._state = 'rejected';
+      resourceTarget._error = value as Error;
+      reject(value as Error);
+    }
+
+    if (!isServerPlatform()) {
+      forceStoreEffects(resource, '_state');
+    }
+    return true;
   };
 
   /**

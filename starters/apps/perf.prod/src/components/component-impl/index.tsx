@@ -3,12 +3,12 @@ import {
   useSignal,
   useStore,
   $,
-  type QwikIntrinsicElements,
   type FunctionComponent,
   createContextId,
   useContext,
   useContextProvider,
   untrack,
+  type PropsOf,
 } from "@qwik.dev/core";
 
 type Item = { id: number; label: string; selected: boolean };
@@ -97,7 +97,7 @@ const helpers = createContextId<{
   delete$: (item: Item) => void;
 }>("h");
 
-const Button: FunctionComponent<QwikIntrinsicElements["button"]> = (props) => (
+const Button: FunctionComponent<PropsOf<"button">> = (props) => (
   <div class="col-sm-6 smallpad">
     <button type="button" class="btn btn-primary btn-block" {...props} />
   </div>
@@ -139,8 +139,8 @@ export const Buttons = component$(() => {
   const h = useContext(helpers);
   return (
     <>
-      <Button id="run" onClick$={() => h.reset$(5)}>
-        Create 5 rows
+      <Button id="run" onClick$={() => h.reset$(1000)}>
+        Create 1,000 rows
       </Button>
       <Button id="runlots" onClick$={() => h.reset$(10000)}>
         Create 10,000 rows

@@ -41,7 +41,7 @@ describe('vNode-diff', () => {
     expect(vNode).toMatchVDOM(<div>Hello</div>);
     expect(vnode_getNode(vNode!)!.ownerDocument!.body.innerHTML).toEqual('<div>Hello</div>');
     const journal: VNodeJournal = [];
-    vnode_diff(container, journal, <div key="KA_0">Hello</div>, vParent, null);
+    vnode_diff(container, journal, <div key="KA_0">Hello</div>, vParent, vParent, null);
     expect(journal.length).toEqual(0);
   });
 
@@ -49,7 +49,7 @@ describe('vNode-diff', () => {
     it('should update text', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_0">Hello</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div key="KA_0">World</div>, vParent, null);
+      vnode_diff(container, journal, <div key="KA_0">World</div>, vParent, vParent, null);
       expect(vNode).toMatchVDOM(<div>World</div>);
       expect(journal).not.toEqual([]);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div>Hello</div>');
@@ -60,7 +60,7 @@ describe('vNode-diff', () => {
     it('should add missing text node', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_0"></div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div key="KA_0">Hello</div>, vParent, null);
+      vnode_diff(container, journal, <div key="KA_0">Hello</div>, vParent, vParent, null);
       expect(vNode).toMatchVDOM(<div key="KA_0">Hello</div>);
       expect((vnode_getNode(vNode) as Element).outerHTML).toEqual('<div></div>');
       _flushJournal(journal);
@@ -70,7 +70,7 @@ describe('vNode-diff', () => {
     it('should update and add missing text node', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div key="KA_6">Hello {'World'}</div>, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6">Hello {'World'}</div>, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello {'World'}</div>);
     });
@@ -78,21 +78,21 @@ describe('vNode-diff', () => {
     it('should remove extra text nodes', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div key="KA_6">text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div key="KA_6">Hello</div>, vParent, null);
+      vnode_diff(container, journal, <div key="KA_6">Hello</div>, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div key="KA_6">Hello</div>);
     });
     it('should remove all text nodes', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div></div>, vParent, null);
+      vnode_diff(container, journal, <div></div>, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
     });
     it('should treat undefined as no children', () => {
       const { vNode, vParent, container } = vnode_fromJSX(<div>text{'removeMe'}</div>);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div>{undefined}</div>, vParent, null);
+      vnode_diff(container, journal, <div>{undefined}</div>, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(<div></div>);
     });
@@ -112,7 +112,7 @@ describe('vNode-diff', () => {
         </test>
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       expect(vNode).toMatchVDOM(test);
       expect(journal.length).toEqual(0);
     });
@@ -124,7 +124,7 @@ describe('vNode-diff', () => {
         </test>
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -142,7 +142,7 @@ describe('vNode-diff', () => {
         </test>
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       await expect(container.document.querySelector('test')).toMatchDOM(test);
@@ -178,7 +178,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -209,7 +209,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -240,7 +240,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -271,7 +271,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -293,7 +293,7 @@ describe('vNode-diff', () => {
       );
       const test = _jsxSorted('span', {}, null, [], 0, null);
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -324,7 +324,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -355,7 +355,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -386,7 +386,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -408,7 +408,7 @@ describe('vNode-diff', () => {
         null
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -437,7 +437,7 @@ describe('vNode-diff', () => {
       const bOriginal = container.document.querySelector('#b1')!;
       expect(bOriginal).toBeDefined();
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       const bSecond = container.document.querySelector('b')!;
@@ -480,7 +480,7 @@ describe('vNode-diff', () => {
       expect(b1).toBeDefined();
       expect(b2).toBeDefined();
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       expect(b1).toBe(selectB1());
@@ -507,7 +507,7 @@ describe('vNode-diff', () => {
         'KA_6'
       );
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
     });
@@ -531,7 +531,7 @@ describe('vNode-diff', () => {
       expect(signalFragment).toBeDefined();
 
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(expected);
       expect(signalFragment).toBe(vnode_getFirstChild(vNode!));
@@ -555,7 +555,7 @@ describe('vNode-diff', () => {
       expect(promiseFragment).toBeDefined();
 
       const journal: VNodeJournal = [];
-      await vnode_diff(container, journal, test, vParent, null);
+      await vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(expected);
       expect(promiseFragment).toBe(vnode_getFirstChild(vNode!));
@@ -578,7 +578,7 @@ describe('vNode-diff', () => {
       expect(fragment).toBeDefined();
 
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vNode).toMatchVDOM(test);
       expect(fragment).not.toBe(vnode_getFirstChild(vNode!));
@@ -589,7 +589,7 @@ describe('vNode-diff', () => {
       const test = Promise.resolve('2') as unknown as JSXOutput; //_jsxSorted(Fragment, {}, null, ['1'], 0, null);
 
       const journal: VNodeJournal = [];
-      await vnode_diff(container, journal, test, vParent, null);
+      await vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
       expect(vParent).toMatchVDOM(
         <body>
@@ -604,7 +604,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(<Fragment></Fragment>);
         const test = _jsxSorted('span', {}, { class: 'abcd', id: 'b' }, null, 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         const firstChildNode = vnode_getNode(firstChild) as Element;
@@ -629,7 +629,7 @@ describe('vNode-diff', () => {
           null
         );
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
       });
@@ -650,7 +650,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', {}, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
       });
@@ -681,7 +681,7 @@ describe('vNode-diff', () => {
           null
         );
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
       });
@@ -702,7 +702,7 @@ describe('vNode-diff', () => {
           null
         );
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
       });
@@ -723,7 +723,7 @@ describe('vNode-diff', () => {
           null
         );
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         expect(vnode_getFirstChild(vParent)).toMatchVDOM(<span id="a"></span>);
       });
@@ -734,7 +734,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'a' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -748,7 +748,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'a', onClick$: $(() => {}) }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -762,7 +762,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -776,7 +776,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -790,7 +790,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { name: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -802,7 +802,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { name: 'bbb', title: 'ccc' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -814,7 +814,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { name: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -826,7 +826,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -838,7 +838,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'bbb', title: 'ccc' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -850,7 +850,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { id: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -862,7 +862,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { onClick$: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -876,7 +876,7 @@ describe('vNode-diff', () => {
         );
         const test = _jsxSorted('span', { onDblClick$: 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(test);
@@ -888,7 +888,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
         const test = _jsxSorted('span', { 'window:onClick$': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
-        vnode_diff(container, journal, test, vParent, null);
+        vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
         const firstChild = vnode_getFirstChild(vParent);
         expect(firstChild).toMatchVDOM(<span on-window:click></span>);
@@ -902,7 +902,7 @@ describe('vNode-diff', () => {
           const signal = createSignal();
           const test = _jsxSorted('span', { ref: signal }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span></span>);
@@ -921,7 +921,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span></span>);
@@ -933,7 +933,7 @@ describe('vNode-diff', () => {
           const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
           const test = _jsxSorted('span', { ref: null }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span></span>);
@@ -944,7 +944,7 @@ describe('vNode-diff', () => {
           const test = _jsxSorted('span', { ref: 'abc' }, null, [], 0, null);
           expect(() => {
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test, vParent, null);
+            vnode_diff(container, journal, test, vParent, vParent, null);
           }).toThrowError(qError(QError.invalidRefValue, [null]));
         });
       });
@@ -955,7 +955,7 @@ describe('vNode-diff', () => {
           const signal = createSignal('test');
           const test = _jsxSorted('span', { class: signal }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="test"></span>);
@@ -967,7 +967,7 @@ describe('vNode-diff', () => {
             const signal = createSignal('initial') as SignalImpl;
             const test1 = _jsxSorted('span', { class: signal }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="initial"></span>);
@@ -979,7 +979,7 @@ describe('vNode-diff', () => {
             // Replace signal with regular string value
             const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="static"></span>);
 
@@ -992,7 +992,7 @@ describe('vNode-diff', () => {
             const signal1 = createSignal('first') as SignalImpl;
             const test1 = _jsxSorted('span', { class: signal1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="first"></span>);
@@ -1005,7 +1005,7 @@ describe('vNode-diff', () => {
             const signal2 = createSignal('second') as SignalImpl;
             const test2 = _jsxSorted('span', { class: signal2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="second"></span>);
 
@@ -1021,7 +1021,7 @@ describe('vNode-diff', () => {
             const signal = createSignal('test') as SignalImpl;
             const test1 = _jsxSorted('span', { class: signal }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="test"></span>);
@@ -1033,7 +1033,7 @@ describe('vNode-diff', () => {
             // Remove the attribute entirely
             const test2 = _jsxSorted('span', {}, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span></span>);
 
@@ -1053,7 +1053,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="initial"></span>);
@@ -1068,7 +1068,7 @@ describe('vNode-diff', () => {
             // Replace wrapped signal with regular string value
             const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="static"></span>);
 
@@ -1088,7 +1088,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="first"></span>);
@@ -1109,7 +1109,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="second"></span>);
 
@@ -1135,7 +1135,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="test"></span>);
@@ -1150,7 +1150,7 @@ describe('vNode-diff', () => {
             // Remove the attribute entirely
             const test2 = _jsxSorted('span', {}, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span></span>);
 
@@ -1171,7 +1171,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="initial"></span>);
@@ -1185,7 +1185,7 @@ describe('vNode-diff', () => {
             // Replace wrapped signal with regular string value
             const test2 = _jsxSorted('span', { class: 'static' }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="static"></span>);
 
@@ -1205,7 +1205,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="first"></span>);
@@ -1224,7 +1224,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span class="second"></span>);
 
@@ -1247,7 +1247,7 @@ describe('vNode-diff', () => {
             ) as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
-            vnode_diff(container, journal, test1, vParent, null);
+            vnode_diff(container, journal, test1, vParent, vParent, null);
             _flushJournal(journal);
             const firstChild = vnode_getFirstChild(vParent);
             expect(firstChild).toMatchVDOM(<span class="test"></span>);
@@ -1260,7 +1260,7 @@ describe('vNode-diff', () => {
             // Remove the attribute entirely
             const test2 = _jsxSorted('span', {}, null, [], 0, null);
             const journal2: VNodeJournal = [];
-            vnode_diff(container, journal2, test2, vParent, null);
+            vnode_diff(container, journal2, test2, vParent, vParent, null);
             _flushJournal(journal2);
             expect(firstChild).toMatchVDOM(<span></span>);
 
@@ -1342,7 +1342,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1360,7 +1360,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', {}, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1378,7 +1378,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { class: 'test', id: 'b' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1396,7 +1396,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1414,7 +1414,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1425,7 +1425,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { z: '26' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1436,7 +1436,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { a: '1', b: '2', c: '3', z: '26' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1447,7 +1447,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { a: '1', c: '3', e: '5' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1472,7 +1472,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="new" id="b"></span>);
@@ -1493,7 +1493,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { id: 'test' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(test);
@@ -1514,7 +1514,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           const element = vnode_getNode(firstChild) as QElement;
@@ -1527,7 +1527,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { a: '10', b: '20', c: '30' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1538,7 +1538,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', { a: '1', b: '2', c: '3' }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           // Journal should be empty since no changes were made
           expect(journal.length).toEqual(0);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
@@ -1551,7 +1551,7 @@ describe('vNode-diff', () => {
           );
           const test1 = _jsxSorted('span', { a: 'NEW', b: '2', c: '3' }, null, [], 0, null);
           const journal1: VNodeJournal = [];
-          vnode_diff(container1, journal1, test1, vParent1, null);
+          vnode_diff(container1, journal1, test1, vParent1, vParent1, null);
           _flushJournal(journal1);
           expect(vnode_getFirstChild(vParent1)).toMatchVDOM(test1);
 
@@ -1561,7 +1561,7 @@ describe('vNode-diff', () => {
           );
           const test2 = _jsxSorted('span', { a: '1', b: 'NEW', c: '3' }, null, [], 0, null);
           const journal2: VNodeJournal = [];
-          vnode_diff(container2, journal2, test2, vParent2, null);
+          vnode_diff(container2, journal2, test2, vParent2, vParent2, null);
           _flushJournal(journal2);
           expect(vnode_getFirstChild(vParent2)).toMatchVDOM(test2);
 
@@ -1571,7 +1571,7 @@ describe('vNode-diff', () => {
           );
           const test3 = _jsxSorted('span', { a: '1', b: '2', c: 'NEW' }, null, [], 0, null);
           const journal3: VNodeJournal = [];
-          vnode_diff(container3, journal3, test3, vParent3, null);
+          vnode_diff(container3, journal3, test3, vParent3, vParent3, null);
           _flushJournal(journal3);
           expect(vnode_getFirstChild(vParent3)).toMatchVDOM(test3);
         });
@@ -1587,7 +1587,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span on-document:click on-window:scroll></span>);
@@ -1625,7 +1625,7 @@ describe('vNode-diff', () => {
             null
           );
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="update-new" id="keep" title="add"></span>);
@@ -1638,7 +1638,7 @@ describe('vNode-diff', () => {
           const signal1 = createSignal('value1');
           const test1 = _jsxSorted('span', { class: signal1 }, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test1, vParent, null);
+          vnode_diff(container, journal, test1, vParent, vParent, null);
           _flushJournal(journal);
           const firstChild = vnode_getFirstChild(vParent);
           expect(firstChild).toMatchVDOM(<span class="value1"></span>);
@@ -1647,7 +1647,7 @@ describe('vNode-diff', () => {
           const signal2 = createSignal('value2');
           const test2 = _jsxSorted('span', { class: signal2 }, null, [], 0, null);
           const journal2: VNodeJournal = [];
-          vnode_diff(container, journal2, test2, vParent, null);
+          vnode_diff(container, journal2, test2, vParent, vParent, null);
           _flushJournal(journal2);
           expect(firstChild).toMatchVDOM(<span class="value2"></span>);
         });
@@ -1666,7 +1666,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted('span', manyAttrsUpdated, null, [], 0, null);
           const journal: VNodeJournal = [];
-          vnode_diff(container, journal, test, vParent, null);
+          vnode_diff(container, journal, test, vParent, vParent, null);
           _flushJournal(journal);
           expect(vnode_getFirstChild(vParent)).toMatchVDOM(test);
         });
@@ -1681,7 +1681,7 @@ describe('vNode-diff', () => {
       vParent.flags |= VNodeFlags.Deleted;
 
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, <div key="KA_0">World</div>, vParent, null);
+      vnode_diff(container, journal, <div key="KA_0">World</div>, vParent, vParent, null);
 
       expect(journal.length).toEqual(0);
 
@@ -1696,14 +1696,21 @@ describe('vNode-diff', () => {
       const signal = createSignal('test') as SignalImpl;
       const test = _jsxSorted('div', { class: signal }, null, [], 0, 'KA_0');
       const journal: VNodeJournal = [];
-      vnode_diff(container, journal, test, vParent, null);
+      vnode_diff(container, journal, test, vParent, vParent, null);
       _flushJournal(journal);
 
       expect(signal.$effects$).toBeDefined();
       expect(signal.$effects$!.size).toBeGreaterThan(0);
 
       const journal2: VNodeJournal = [];
-      vnode_diff(container, journal2, _jsxSorted('div', {}, null, [], 0, 'KA_0'), vParent, null);
+      vnode_diff(
+        container,
+        journal2,
+        _jsxSorted('div', {}, null, [], 0, 'KA_0'),
+        vParent,
+        vParent,
+        null
+      );
       _flushJournal(journal2);
 
       expect(signal.$effects$!.size).toBe(0);
@@ -1729,7 +1736,7 @@ describe('vNode-diff', () => {
       expect(signal.$effects$!.size).toBeGreaterThan(0);
 
       const journal2: VNodeJournal = [];
-      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, null);
+      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, vParent, null);
       _flushJournal(journal2);
       await container.$renderPromise$;
 
@@ -1758,7 +1765,7 @@ describe('vNode-diff', () => {
       expect((globalThis as any).innerSignal.$effects$!.size).toBeGreaterThan(0);
 
       const journal2: VNodeJournal = [];
-      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, null);
+      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, vParent, null);
       await container.$renderPromise$;
       _flushJournal(journal2);
 
@@ -1787,7 +1794,7 @@ describe('vNode-diff', () => {
       expect(store!.$effects$?.size).toBeGreaterThan(0);
 
       const journal2: VNodeJournal = [];
-      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, null);
+      await vnode_diff(container, journal2, <Fragment></Fragment>, vParent, vParent, null);
       _flushJournal(journal2);
       await container.$renderPromise$;
       expect(store!.$effects$?.size).toBe(0);

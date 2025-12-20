@@ -5,6 +5,7 @@ import { getCursorData, type CursorData } from '../cursor/cursor-props';
 import { _executeSsrChores } from '../cursor/ssr-chore-execution';
 import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
+import { throwErrorAndStop } from '../utils/log';
 import { isPromise } from '../utils/promises';
 import { ChoreBits } from './enums/chore-bits.enum';
 import type { VNodeOperation } from './types/dom-vnode-operation';
@@ -62,6 +63,7 @@ function propagateToCursorRoot(vNode: VNode, cursorRoot: VNode): void {
     current = current.parent || current.slotParent;
   }
   reusablePath.length = 0;
+  throwErrorAndStop('Cursor root not found in current path!');
 }
 
 /**

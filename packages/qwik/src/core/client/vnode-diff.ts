@@ -98,12 +98,14 @@ import type { TextVNode } from '../shared/vnode/text-vnode';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
+import type { Cursor } from '../shared/cursor/cursor';
 
 export const vnode_diff = (
   container: ClientContainer,
   journal: VNodeJournal,
   jsxNode: JSXChildren,
   vStartNode: VNode,
+  cursor: Cursor,
   scopedStyleIdPrefix: string | null
 ) => {
   /**
@@ -555,7 +557,7 @@ export const vnode_diff = (
         if (vNode.flags & VNodeFlags.Deleted) {
           continue;
         }
-        cleanup(container, journal, vNode, vStartNode);
+        cleanup(container, journal, vNode, cursor);
         vnode_remove(journal, vParent, vNode, true);
       }
       vSideBuffer.clear();
@@ -598,7 +600,7 @@ export const vnode_diff = (
     if (vFirstChild !== null) {
       let vChild: VNode | null = vFirstChild;
       while (vChild) {
-        cleanup(container, journal, vChild, vStartNode);
+        cleanup(container, journal, vChild, cursor);
         vChild = vChild.nextSibling as VNode | null;
       }
       vnode_truncate(journal, vCurrent as ElementVNode | VirtualVNode, vFirstChild, removeDOM);
@@ -613,7 +615,7 @@ export const vnode_diff = (
         const toRemove = vCurrent;
         advanceToNextSibling();
         if (vParent === toRemove.parent) {
-          cleanup(container, journal, toRemove, vStartNode);
+          cleanup(container, journal, toRemove, cursor);
           // If we are diffing projection than the parent is not the parent of the node.
           // If that is the case we don't want to remove the node from the parent.
           vnode_remove(journal, vParent, toRemove, true);
@@ -624,7 +626,7 @@ export const vnode_diff = (
 
   function expectNoMoreTextNodes() {
     while (vCurrent !== null && vnode_isTextVNode(vCurrent)) {
-      cleanup(container, journal, vCurrent, vStartNode);
+      cleanup(container, journal, vCurrent, cursor);
       const toRemove = vCurrent;
       advanceToNextSibling();
       vnode_remove(journal, vParent, toRemove, true);
@@ -1222,7 +1224,7 @@ export const vnode_diff = (
            * deleted.
            */
           (host as VirtualVNode).flags &= ~VNodeFlags.Deleted;
-          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT, vStartNode);
+          markVNodeDirty(container, host as VirtualVNode, ChoreBits.COMPONENT, cursor);
         }
       }
       descendContentToProject(jsxNode.children, host);

@@ -32,6 +32,7 @@ import type { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-s
 import { SignalFlags } from '../../reactive-primitives/types';
 import { cleanupDestroyable } from '../../use/utils/destroyable';
 import type { ISsrNode } from '../../ssr/ssr-types';
+import type { Cursor } from './cursor';
 
 /**
  * Executes tasks for a vNode if the TASKS dirty bit is set. Tasks are stored in the ELEMENT_SEQ
@@ -125,7 +126,8 @@ export function setNodeDiffPayload(vNode: VNode, payload: JSXOutput | Signal<JSX
 export function executeNodeDiff(
   vNode: VNode,
   container: Container,
-  journal: VNodeJournal
+  journal: VNodeJournal,
+  cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.NODE_DIFF;
 
@@ -137,7 +139,7 @@ export function executeNodeDiff(
   if (isSignal(jsx)) {
     jsx = jsx.value as any;
   }
-  return vnode_diff(container as ClientContainer, journal, jsx, domVNode, null);
+  return vnode_diff(container as ClientContainer, journal, jsx, domVNode, cursor, null);
 }
 
 /**
@@ -151,7 +153,8 @@ export function executeNodeDiff(
 export function executeComponentChore(
   vNode: VNode,
   container: Container,
-  journal: VNodeJournal
+  journal: VNodeJournal,
+  cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.COMPONENT;
   const host = vNode as HostElement;
@@ -176,6 +179,7 @@ export function executeComponentChore(
           journal,
           jsx,
           host as VNode,
+          cursor,
           addComponentStylePrefix(styleScopedId)
         )
       );

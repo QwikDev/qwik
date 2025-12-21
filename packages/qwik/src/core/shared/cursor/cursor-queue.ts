@@ -92,7 +92,9 @@ export function removeCursorFromQueue(
   container: Container,
   keepCursorFlag?: boolean
 ): void {
-  container.$cursorCount$--;
+  if (container.$cursorCount$ > 0) {
+    container.$cursorCount$--;
+  }
   if (!keepCursorFlag) {
     cursor.flags &= ~VNodeFlags.Cursor;
   }

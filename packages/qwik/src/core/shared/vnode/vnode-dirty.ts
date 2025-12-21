@@ -128,7 +128,7 @@ export function markVNodeDirty(
   }
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
   // If already dirty, no need to propagate again
-  if (isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) {
+  if ((isRealDirty ? prevDirty & ChoreBits.DIRTY_MASK : prevDirty) || vNode === cursorRoot) {
     return;
   }
   const parent = vNode.parent || vNode.slotParent;

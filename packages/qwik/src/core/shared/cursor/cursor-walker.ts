@@ -266,6 +266,9 @@ function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
 /** @returns Next vNode to process, or null if traversal is complete */
 function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   if (vNode === cursor) {
+    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
+      return cursor;
+    }
     return null;
   }
   // Prefer parent if it's dirty, otherwise try slotParent
@@ -277,6 +280,9 @@ function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   }
 
   if (!parent) {
+    if (cursor.dirty & ChoreBits.DIRTY_MASK) {
+      return cursor;
+    }
     return null;
   }
   const dirtyChildren = parent.dirtyChildren!;

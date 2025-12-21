@@ -49,6 +49,12 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
   // delete from global cursors queue
   removeCursorFromQueue(oldCursor, container);
   const oldCursorData = getCursorData(oldCursor)!;
+
+  if (oldCursorData === newCursorData) {
+    // same cursor data, no need to merge
+    return;
+  }
+
   // merge after flush tasks
   const oldAfterFlushTasks = oldCursorData.afterFlushTasks;
   if (oldAfterFlushTasks && oldAfterFlushTasks.length > 0) {

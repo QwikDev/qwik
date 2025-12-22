@@ -115,11 +115,11 @@ export function executeTasks(
 
 function getNodeDiffPayload(vNode: VNode): JSXOutput | null {
   const props = vNode.props as Props;
-  return props[NODE_DIFF_DATA_KEY] as JSXOutput | null;
+  return props?.[NODE_DIFF_DATA_KEY] as JSXOutput | null;
 }
 
 export function setNodeDiffPayload(vNode: VNode, payload: JSXOutput | Signal<JSXOutput>): void {
-  const props = vNode.props as Props;
+  const props = (vNode.props ||= {}) as Props;
   props[NODE_DIFF_DATA_KEY] = payload;
 }
 

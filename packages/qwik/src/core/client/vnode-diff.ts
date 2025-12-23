@@ -928,7 +928,7 @@ export const vnode_diff = (
 
     // Actual diffing logic
     // Apply all new attributes
-    for (const key in newAttrs) {
+    for (const key of Object.keys(newAttrs)) {
       const newValue = newAttrs[key];
       const isEvent = isHtmlAttributeAnEventName(key);
 
@@ -942,7 +942,7 @@ export const vnode_diff = (
     }
 
     // Remove attributes that no longer exist in new props
-    for (const key in oldAttrs) {
+    for (const key of Object.keys(oldAttrs)) {
       if (
         !(key in newAttrs) &&
         !key.startsWith(HANDLER_PREFIX) &&

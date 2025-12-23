@@ -20,6 +20,7 @@ import type {
 import { convertManifestToBundleGraph, type BundleGraphAdder } from './bundle-graph';
 import { createLinter, type QwikLinter } from './eslint-plugin';
 import { isVirtualId, isWin, parseId } from './vite-utils';
+import MagicString from 'magic-string';
 
 const REG_CTX_NAME = ['server'];
 
@@ -562,6 +563,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         };
       }
     } else if (pathId.endsWith(QWIK_CLIENT_MANIFEST_ID)) {
+      console.error(
+        `${importerId ? `${importerId}: ` : ''}importing ${QWIK_CLIENT_MANIFEST_ID} is deprecated. Use \`getClientManifest()\` instead.`
+      );
       debug(`resolveId(${count})`, 'Resolved', QWIK_CLIENT_MANIFEST_ID);
       result = {
         id: QWIK_CLIENT_MANIFEST_ID,
@@ -685,7 +689,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       debug(`load(${count})`, QWIK_CLIENT_MANIFEST_ID, opts.buildMode);
       return {
         moduleSideEffects: false,
-        code: await getQwikServerManifestModule(isServer),
+        code: `import { getClientManifest } from '@qwik.dev/core'; export const manifest = getClientManifest();\n`,
       };
     }
     /**
@@ -754,23 +758,27 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     return null;
   };
 
+  let theManifest: string | null | undefined;
   let transformCount = 0;
   const transform = async function (
     ctx: Rollup.PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
-  ): Promise<Rollup.TransformResult> {
+  ): Promise<Rollup.SourceDescription | undefined> {
     if (isVirtualId(id)) {
       return;
     }
-    const count = transformCount++;
     const isServer = getIsServer(ctx, transformOpts);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further
       return;
     }
+
+    let shouldReturn = false;
+
+    const count = transformCount++;
 
     const optimizer = getOptimizer();
     const path = getPath();
@@ -780,6 +788,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     const dir = parsedPathId.dir;
     const base = parsedPathId.base;
     const ext = parsedPathId.ext.toLowerCase();
+    let map;
+    let meta;
 
     const mode =
       opts.target === 'lib'
@@ -790,11 +800,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             : 'dev'
           : 'prod';
 
-    let didChange = false;
     if (mode !== 'lib') {
       // this messes a bit with the source map, but it's ok for if statements
       code = code.replaceAll(/__EXPERIMENTAL__\.(\w+)/g, (_, feature) => {
-        didChange = true;
+        shouldReturn = true;
         if (opts.experimental?.[feature as ExperimentalFeatures]) {
           return 'true';
         }
@@ -908,19 +917,36 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
       ctx.addWatchFile(id);
 
-      return {
-        code: module.code,
-        map: module.map,
-        meta: {
-          segment: module.segment,
-          qwikdeps: Array.from(deps),
-        },
+      code = module.code;
+      map = module.map;
+      meta = {
+        segment: module.segment,
+        qwikdeps: Array.from(deps),
       };
+      shouldReturn = true;
     }
 
-    debug(`transform(${count})`, 'Not transforming', id);
+    if (code.includes(`globalThis.${globalManifestKey}`)) {
+      if (theManifest === undefined) {
+        theManifest = await getQwikServerManifest(isServer);
+      }
+      const s = new MagicString(code);
+      // Always replace the check
+      s.replace(`!globalThis.${globalManifestKey}`, 'false');
+      if (theManifest) {
+        s.replace(`globalThis.${globalManifestKey}`, theManifest);
+      }
+      code = s.toString();
+      // Don't clobber the original source map if we already have one from the transform
+      map ||= s.generateMap({ source: id, includeContent: false });
+      shouldReturn = true;
+      debug(`transform(${count})`, `Replaced globalThis.${globalManifestKey} with manifest input`);
+    }
 
-    return didChange ? { code } : null;
+    if (shouldReturn) {
+      return { code, map, meta };
+    }
+    debug(`transform(${count})`, 'Not transforming', id);
   };
 
   type OutputAnalyzer = {
@@ -1019,7 +1045,7 @@ export const isDev = ${JSON.stringify(isDev)};
 `;
   }
 
-  async function getQwikServerManifestModule(isServer: boolean) {
+  async function getQwikServerManifest(isServer: boolean) {
     if (
       !opts.manifestInput &&
       opts.target === 'ssr' &&
@@ -1063,8 +1089,7 @@ export const isDev = ${JSON.stringify(isDev)};
         bundleGraph: manifest.bundleGraph,
       };
     }
-    return `// @qwik-client-manifest
-export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'globalThis.__QWIK_MANIFEST__'};\n`;
+    return serverManifest && JSON.stringify(serverManifest);
   }
 
   function setSourceMapSupport(sourcemap: boolean) {
@@ -1270,10 +1295,11 @@ export const QWIK_JSX_DEV_RUNTIME_ID = '@qwik.dev/core/jsx-dev-runtime';
 
 export const QWIK_CORE_SERVER = '@qwik.dev/core/server';
 
+/** To be removed in v3 */
 export const QWIK_CLIENT_MANIFEST_ID = '@qwik-client-manifest';
 
 export const QWIK_PRELOADER_ID = '@qwik.dev/core/preloader';
-
+/** @internal virtual import to ensure the _run etc handlers are exported as-is */
 export const QWIK_HANDLERS_ID = '@qwik-handlers';
 
 export const SRC_DIR_DEFAULT = 'src';
@@ -1376,3 +1402,5 @@ export type QwikBuildTarget = 'client' | 'ssr' | 'lib' | 'test';
 
 /** @public */
 export type QwikBuildMode = 'production' | 'development';
+
+const globalManifestKey = '__QWIK_MANIFEST__';

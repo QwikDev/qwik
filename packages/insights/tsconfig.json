@@ -19,8 +19,7 @@
     "noEmit": true,
     "types": ["node", "vite/client"],
     "paths": {
-      "~/*": ["./src/*"],
-      "@qwik-client-manifest": ["../../qwik/src/server/server-modules.d.ts"]
+      "~/*": ["./src/*"]
     }
   },
   "exclude": ["./dist", "eslint.config.mjs"]

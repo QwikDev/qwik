@@ -11,6 +11,7 @@
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.12.0",
+    "magic-string": "0.30.21",
     "rollup": "^4.59.0"
   },
   "devDependencies": {

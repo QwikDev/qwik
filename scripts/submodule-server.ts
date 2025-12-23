@@ -37,7 +37,6 @@ export async function submoduleServer(config: BuildConfig, nameCache?: object) {
       '@qwik.dev/core',
       '@qwik.dev/core/build',
       '@qwik.dev/core/preloader',
-      '@qwik-client-manifest',
     ],
   };
 

@@ -58,6 +58,7 @@ export { getPlatform, setPlatform } from './shared/platform/platform';
 export type { CorePlatform } from './shared/platform/types';
 export type { ClientContainer } from './client/types';
 export type { DomContainer } from './client/dom-container';
+export { getClientManifest } from './shared/get-client-manifest';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // JSX Runtime

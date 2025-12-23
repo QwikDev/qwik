@@ -1,12 +1,14 @@
+import { getClientManifest } from '@qwik.dev/core';
 import { getSymbolHash, setServerPlatform } from './platform';
 import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
 import type {
   JSXOutput,
   ResolvedManifest,
   SSRContainer,
-  SymbolMapper,
   StreamWriter,
+  SymbolMapper,
 } from './qwik-types';
+import { ssrCreateContainer } from './ssr-container';
 import type {
   QwikManifest,
   RenderToStreamOptions,
@@ -16,8 +18,6 @@ import type {
   SnapshotResult,
 } from './types';
 import { createTimer, getBuildBase } from './utils';
-import { ssrCreateContainer } from './ssr-container';
-import { manifest as builtManifest } from '@qwik-client-manifest';
 
 /**
  * Creates a server-side `document`, renders to root node to the document, then serializes the
@@ -232,6 +232,7 @@ function shouldSkipChunk(chunk: string): boolean {
 export function resolveManifest(
   manifest?: Partial<QwikManifest | ResolvedManifest> | undefined
 ): ResolvedManifest | undefined {
+  const builtManifest = getClientManifest();
   const mergedManifest = (manifest ? { ...builtManifest, ...manifest } : builtManifest) as
     | ResolvedManifest
     | QwikManifest;

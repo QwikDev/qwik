@@ -296,7 +296,7 @@ describe('resolveId', () => {
       'id',
       '@qwik.dev/core/build'
     );
-    expect(await plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar')).toHaveProperty(
+    expect(await plugin.resolveId(null!, '@qwik-client-manifest', '/foo/bar/core')).toHaveProperty(
       'id',
       '@qwik-client-manifest'
     );

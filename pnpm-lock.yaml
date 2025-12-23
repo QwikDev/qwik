@@ -591,6 +591,9 @@ importers:
       launch-editor:
         specifier: ^2.12.0
         version: 2.12.0
+      magic-string:
+        specifier: 0.30.21
+        version: 0.30.21
       rollup:
         specifier: ^4.55.1
         version: 4.55.1

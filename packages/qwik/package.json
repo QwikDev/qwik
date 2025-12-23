@@ -10,6 +10,7 @@
   "dependencies": {
     "csstype": "^3.2.3",
     "launch-editor": "^2.12.0",
+    "magic-string": "0.30.21",
     "rollup": "^4.55.1",
     "ts-morph": "27.0.2"
   },

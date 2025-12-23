@@ -8,6 +8,7 @@ import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
+import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -397,6 +398,9 @@ export const Fragment: FunctionComponent<{
 export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
+
+// @public
+export const getClientManifest: () => ServerQwikManifest;
 
 // Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
 //

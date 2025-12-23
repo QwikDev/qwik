@@ -292,6 +292,7 @@ function generateServerReferenceModules(config: BuildConfig) {
   // server-modules.d.ts
   const referenceDts = `/// <reference types="./server" />
 declare module '@qwik-client-manifest' {
+  /** @deprecated Use \`getClientManifest()\` instead */
   const manifest: import('./optimizer').QwikManifest;
   export { manifest };
 }

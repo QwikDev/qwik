@@ -189,6 +189,9 @@ describe.each([
 
   it('should not run next visible task until previous async visible task is finished', async () => {
     (globalThis as any).log = [] as string[];
+    (globalThis as any).delay = () =>
+      new Promise<void>((res) => ((global as any).delay.resolve = res));
+
     const Counter = component$(() => {
       (globalThis as any).log.push('Counter');
       const count = useSignal('');
@@ -205,6 +208,7 @@ describe.each([
         await delay(10);
         (globalThis as any).log.push('2:resolved');
         count.value += 'B';
+        (globalThis as any).delay.resolve();
       });
       (globalThis as any).log.push('render');
       return <span>{count.value}</span>;
@@ -214,6 +218,7 @@ describe.each([
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
+    await (global as any).delay();
     expect((globalThis as any).log).toEqual([
       'Counter',
       'render',

@@ -1,4 +1,5 @@
 declare module '@qwik-client-manifest' {
+  /** @deprecated Use `getClientManifest()` instead */
   const manifest: import('.').ServerQwikManifest;
   export { manifest };
 }

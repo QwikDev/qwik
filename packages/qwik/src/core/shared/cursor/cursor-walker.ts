@@ -25,7 +25,7 @@ import {
   resumeCursor,
 } from './cursor-queue';
 import { executeFlushPhase } from './cursor-flush';
-import { createNextTick } from '../platform/next-tick';
+import { createMicroTask, createMacroTask } from '../platform/next-tick';
 import { isPromise } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
@@ -34,13 +34,22 @@ import { VNodeFlags } from '../../client/types';
 
 const DEBUG = false;
 
-const nextTick = createNextTick(processCursorQueue);
+const nextMicroTask = createMicroTask(processCursorQueue);
+const nextMacroTask = createMacroTask(processCursorQueue);
 let isNextTickScheduled = false;
 
 export function triggerCursors(): void {
   if (!isNextTickScheduled) {
     isNextTickScheduled = true;
-    nextTick();
+    nextMicroTask();
+  }
+}
+
+/** Schedule continuation as macrotask to yield to browser (for time-slicing) */
+function scheduleYield(): void {
+  if (!isNextTickScheduled) {
+    isNextTickScheduled = true;
+    nextMacroTask();
   }
 }
 
@@ -124,8 +133,8 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
     if (!isServer && !import.meta.env.TEST) {
       const elapsed = performance.now() - startTime;
       if (elapsed >= timeBudget) {
-        // Run in next tick
-        triggerCursors();
+        // Schedule continuation as macrotask to actually yield to browser
+        scheduleYield();
         return;
       }
     }

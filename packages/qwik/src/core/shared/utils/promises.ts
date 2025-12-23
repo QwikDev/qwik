@@ -26,15 +26,14 @@ export const safeCall = <T, B, C>(
 };
 
 export const catchError = <T, B, C>(
-  call: () => ValueOrPromise<T>,
+  valueOrPromise: ValueOrPromise<T>,
   rejectFn: { f(reason: any): ValueOrPromise<C> }['f']
 ): ValueOrPromise<T | C> => {
   try {
-    const result = call();
-    if (isPromise(result)) {
-      return result.catch(rejectFn);
+    if (isPromise(valueOrPromise)) {
+      return valueOrPromise.catch(rejectFn);
     }
-    return result;
+    return valueOrPromise;
   } catch (e) {
     return rejectFn(e);
   }

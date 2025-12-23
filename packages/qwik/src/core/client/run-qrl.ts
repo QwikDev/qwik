@@ -20,19 +20,16 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   if (hostElement) {
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        return catchError(
-          () => runQrl(...args),
-          (err) => {
-            const container = (context.$container$ ||= getDomContainer(
-              (hostElement as ElementVNode).node
-            ));
-            if (container) {
-              container.handleError(err, hostElement);
-            } else {
-              throw err;
-            }
+        return catchError(runQrl(...args), (err) => {
+          const container = (context.$container$ ||= getDomContainer(
+            (hostElement as ElementVNode).node
+          ));
+          if (container) {
+            container.handleError(err, hostElement);
+          } else {
+            throw err;
           }
-        );
+        });
       }
     });
   }

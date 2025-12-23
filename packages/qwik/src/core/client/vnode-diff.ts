@@ -50,7 +50,7 @@ import {
   QTemplate,
   dangerouslySetInnerHTML,
 } from '../shared/utils/markers';
-import { isPromise, retryOnPromise, safeCall } from '../shared/utils/promises';
+import { isPromise, retryOnPromise, catchError } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -826,13 +826,9 @@ export const vnode_diff = (
 
           for (const qrl of qrls.flat(2)) {
             if (qrl) {
-              safeCall(
-                () => qrl(event, element),
-                () => {},
-                (e) => {
-                  container.handleError(e, vNode);
-                }
-              );
+              catchError(qrl(event, element), (e) => {
+                container.handleError(e, vNode);
+              });
             }
           }
         };

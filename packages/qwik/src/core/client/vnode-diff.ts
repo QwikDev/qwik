@@ -810,9 +810,6 @@ export const vnode_diff = (
     const vNode = (vNewNode || vCurrent) as ElementVNode;
 
     const element = vNode.node as QElement;
-    if (!element.vNode) {
-      element.vNode = vNode;
-    }
 
     if (jsxProps) {
       needsQDispatchEventPatch =

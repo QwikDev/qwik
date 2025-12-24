@@ -11,6 +11,8 @@ import { createPropsProxy } from './props-proxy';
 import type { DevJSX, FunctionComponent, JSXNodeInternal } from './types/jsx-node';
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
+const _hasOwnProperty = Object.prototype.hasOwnProperty;
+
 const BIND_VALUE = 'bind:value';
 const BIND_CHECKED = 'bind:checked';
 
@@ -60,7 +62,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
         const attr = jsxEventToHtmlAttribute(k);
         if (attr) {
           // constProps always wins
-          if (!constProps || !(k in constProps)) {
+          if (!constProps || !_hasOwnProperty.call(constProps, k)) {
             toSort = mergeHandlers(this.varProps, attr, this.varProps[k] as QRL) || toSort;
           }
           delete this.varProps[k];
@@ -68,21 +70,21 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
       }
 
       // bind:*
-      if (BIND_CHECKED in this.varProps) {
+      if (_hasOwnProperty.call(this.varProps, BIND_CHECKED)) {
         toSort = handleBindProp(this.varProps, BIND_CHECKED)! || toSort;
-      } else if (BIND_VALUE in this.varProps) {
+      } else if (_hasOwnProperty.call(this.varProps, BIND_VALUE)) {
         toSort = handleBindProp(this.varProps, BIND_VALUE)! || toSort;
       } else if (this.constProps) {
-        if (BIND_CHECKED in this.constProps) {
+        if (_hasOwnProperty.call(this.constProps, BIND_CHECKED)) {
           handleBindProp(this.constProps, BIND_CHECKED);
         } else {
-          if (BIND_VALUE in this.constProps) {
+          if (_hasOwnProperty.call(this.constProps, BIND_VALUE)) {
             handleBindProp(this.constProps, BIND_VALUE);
           }
         }
       }
 
-      if ('className' in this.varProps) {
+      if (_hasOwnProperty.call(this.varProps, 'className')) {
         this.varProps.class = this.varProps.className;
         this.varProps.className = undefined;
         toSort = true;
@@ -93,7 +95,7 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
         }
       }
       // TODO let the optimizer do this instead
-      if (this.constProps && 'className' in this.constProps) {
+      if (this.constProps && _hasOwnProperty.call(this.constProps, 'className')) {
         this.constProps.class = this.constProps.className;
         this.constProps.className = undefined;
         if (qDev) {
@@ -133,7 +135,12 @@ export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
     if (n instanceof JSXNodeImpl) {
       return true;
     }
-    if (isObject(n) && 'key' in n && 'props' in n && 'type' in n) {
+    if (
+      isObject(n) &&
+      _hasOwnProperty.call(n, 'key') &&
+      _hasOwnProperty.call(n, 'props') &&
+      _hasOwnProperty.call(n, 'type')
+    ) {
       logWarn(`Duplicate implementations of "JSXNode" found`);
       return true;
     }

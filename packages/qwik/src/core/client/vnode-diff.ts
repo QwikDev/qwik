@@ -874,8 +874,7 @@ export const vnode_diff = (
       if (isSignal(value)) {
         const unwrappedSignal =
           value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-        const currentSignal = currentEffect?.[EffectSubscriptionProp.CONSUMER];
-        if (currentSignal === unwrappedSignal) {
+        if (currentEffect?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal)) {
           return;
         }
         if (currentEffect) {
@@ -952,9 +951,11 @@ export const vnode_diff = (
   }
 
   function registerQwikLoaderEvent(eventName: string) {
-    const window = container.document.defaultView as qWindow | null;
-    if (window) {
-      (window.qwikevents ||= [] as any).push(eventName);
+    const qWindow = import.meta.env.TEST
+      ? (container.document.defaultView as qWindow | null)
+      : (window as unknown as qWindow);
+    if (qWindow) {
+      (qWindow.qwikevents ||= [] as any).push(eventName);
     }
   }
 

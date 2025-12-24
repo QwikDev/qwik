@@ -100,6 +100,29 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { Cursor } from '../shared/cursor/cursor';
 
+/**
+ * Helper to get the next sibling of a VNode. Extracted to module scope to help V8 inline it
+ * reliably.
+ */
+function peekNextSibling(vCurrent: VNode | null): VNode | null {
+  return vCurrent ? (vCurrent.nextSibling as VNode | null) : null;
+}
+
+const _hasOwnProperty = Object.prototype.hasOwnProperty;
+
+/** Helper to set an attribute on a vnode. Extracted to module scope to avoid closure allocation. */
+function setAttribute(
+  journal: VNodeJournal,
+  vnode: ElementVNode,
+  key: string,
+  value: any,
+  scopedStyleIdPrefix: string | null
+) {
+  const serializedValue =
+    value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
+  vnode_setAttr(journal, vnode, key, serializedValue);
+}
+
 export const vnode_diff = (
   container: ClientContainer,
   journal: VNodeJournal,
@@ -218,8 +241,9 @@ export const vnode_diff = (
               expectElement(jsxValue, type);
 
               const hasDangerousInnerHTML =
-                (jsxValue.constProps && dangerouslySetInnerHTML in jsxValue.constProps) ||
-                dangerouslySetInnerHTML in jsxValue.varProps;
+                (jsxValue.constProps &&
+                  _hasOwnProperty.call(jsxValue.constProps, dangerouslySetInnerHTML)) ||
+                _hasOwnProperty.call(jsxValue.varProps, dangerouslySetInnerHTML);
               if (hasDangerousInnerHTML) {
                 expectNoChildren(false);
               } else {
@@ -292,7 +316,7 @@ export const vnode_diff = (
     jsxIdx++;
     if (jsxIdx < jsxCount) {
       jsxValue = jsxChildren[jsxIdx];
-    } else if (stack[stack.length - 1] === false) {
+    } else if (stack.length > 0 && stack[stack.length - 1] === false) {
       // this was special `descendVNode === false` so pop and try again
       return ascend();
     }
@@ -303,20 +327,8 @@ export const vnode_diff = (
       // vNewNode  and try again.
       vNewNode = null;
     } else {
-      advanceToNextSibling();
+      vCurrent = peekNextSibling(vCurrent);
     }
-  }
-
-  /** Advance the `vCurrent` to the next sibling. */
-  function peekNextSibling() {
-    // If we don't have a `vNewNode`, than that means we just reconciled the current node.
-    // So advance it.
-    return vCurrent ? (vCurrent.nextSibling as VNode | null) : null;
-  }
-
-  /** Advance the `vCurrent` to the next sibling. */
-  function advanceToNextSibling() {
-    vCurrent = peekNextSibling();
   }
 
   /**
@@ -409,7 +421,7 @@ export const vnode_diff = (
     if (vNewNode) {
       return vCurrent;
     } else {
-      return peekNextSibling();
+      return peekNextSibling(vCurrent);
     }
   }
 
@@ -541,7 +553,7 @@ export const vnode_diff = (
   function getSlotNameKey(vHost: VNode | null) {
     const jsxNode = jsxValue as JSXNodeInternal;
     const constProps = jsxNode.constProps;
-    if (constProps && typeof constProps == 'object' && 'name' in constProps) {
+    if (constProps && typeof constProps == 'object' && _hasOwnProperty.call(constProps, 'name')) {
       const constValue = constProps.name;
       if (vHost && constValue instanceof WrappedSignalImpl) {
         return trackSignalAndAssignHost(constValue, vHost, EffectProperty.COMPONENT, container);
@@ -613,7 +625,7 @@ export const vnode_diff = (
     if (vCurrent !== null) {
       while (vCurrent) {
         const toRemove = vCurrent;
-        advanceToNextSibling();
+        vCurrent = peekNextSibling(vCurrent);
         if (vParent === toRemove.parent) {
           cleanup(container, journal, toRemove, cursor);
           // If we are diffing projection than the parent is not the parent of the node.
@@ -628,7 +640,7 @@ export const vnode_diff = (
     while (vCurrent !== null && vnode_isTextVNode(vCurrent)) {
       cleanup(container, journal, vCurrent, cursor);
       const toRemove = vCurrent;
-      advanceToNextSibling();
+      vCurrent = peekNextSibling(vCurrent);
       vnode_remove(journal, vParent, toRemove, true);
     }
   }
@@ -677,7 +689,7 @@ export const vnode_diff = (
             const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
 
             if (eventName) {
-              vnode_setProp(vNewNode!, HANDLER_PREFIX + ':' + scopedEvent, value);
+              vnode_setProp(vNewNode!, '::' + scopedEvent, value);
               if (scope) {
                 // window and document need attrs so qwik loader can find them
                 vnode_setAttr(journal, vNewNode!, key, '');
@@ -764,7 +776,7 @@ export const vnode_diff = (
   }
 
   function createElementWithNamespace(elementName: string): Element {
-    const domParentVNode = vnode_getDomParentVNode(vParent);
+    const domParentVNode = vnode_getDomParentVNode(vParent, true);
     const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
       domParentVNode,
       elementName
@@ -784,8 +796,9 @@ export const vnode_diff = (
     const currentKey = getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null);
     if (!isSameElementName || jsxKey !== currentKey) {
       const sideBufferKey = getSideBufferKey(elementName, jsxKey);
-      const createNew = () => (needsQDispatchEventPatch = createNewElement(jsx, elementName));
-      moveOrCreateKeyedNode(elementName, jsxKey, sideBufferKey, vParent as ElementVNode, createNew);
+      if (moveOrCreateKeyedNode(elementName, jsxKey, sideBufferKey, vParent as ElementVNode)) {
+        needsQDispatchEventPatch = createNewElement(jsx, elementName, null);
+      }
     } else {
       // delete the key from the side buffer if it is the same element
       deleteFromSideBuffer(elementName, jsxKey);
@@ -845,14 +858,10 @@ export const vnode_diff = (
     vnode_ensureElementInflated(vnode);
     let patchEventDispatch = false;
 
-    const setAttribute = (vnode: ElementVNode, key: string, value: any) => {
-      const serializedValue =
-        value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-      vnode_setAttr(journal, vnode, key, serializedValue);
-    };
-
     const record = (key: string, value: any) => {
       if (key.startsWith(':')) {
+        // TODO: there is a potential deoptimization here, because we are setting different keys on props.
+        // Eager bailout - Insufficient type feedback for generic keyed access
         vnode_setProp(vnode, key, value);
         return;
       }
@@ -900,13 +909,13 @@ export const vnode_diff = (
       if (isPromise(value)) {
         const vHost = vnode as ElementVNode;
         const attributePromise = value.then((resolvedValue) => {
-          setAttribute(vHost, key, resolvedValue);
+          setAttribute(journal, vHost, key, resolvedValue, scopedStyleIdPrefix);
         });
         asyncAttributePromises.push(attributePromise);
         return;
       }
 
-      setAttribute(vnode, key, value);
+      setAttribute(journal, vnode, key, value, scopedStyleIdPrefix);
     };
 
     const recordJsxEvent = (key: string, value: any) => {
@@ -927,7 +936,7 @@ export const vnode_diff = (
       const newValue = newAttrs[key];
       const isEvent = isHtmlAttributeAnEventName(key);
 
-      if (key in oldAttrs) {
+      if (_hasOwnProperty.call(oldAttrs, key)) {
         if (newValue !== oldAttrs[key]) {
           isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
         }
@@ -939,7 +948,7 @@ export const vnode_diff = (
     // Remove attributes that no longer exist in new props
     for (const key of Object.keys(oldAttrs)) {
       if (
-        !(key in newAttrs) &&
+        !_hasOwnProperty.call(newAttrs, key) &&
         !key.startsWith(HANDLER_PREFIX) &&
         !isHtmlAttributeAnEventName(key)
       ) {
@@ -1080,16 +1089,15 @@ export const vnode_diff = (
     lookupKey: string | null,
     sideBufferKey: string | null,
     parentForInsert: VNode,
-    createNew: () => any,
     addCurrentToSideBufferOnSideInsert?: boolean
-  ): any {
+  ): boolean {
     // 1) Try to find the node among upcoming siblings
     vNewNode = retrieveChildWithKey(nodeName, lookupKey);
 
     if (vNewNode) {
       vCurrent = vNewNode;
       vNewNode = null;
-      return;
+      return false;
     }
 
     // 2) Try side buffer
@@ -1120,12 +1128,12 @@ export const vnode_diff = (
         );
         vCurrent = buffered;
         vNewNode = null;
-        return;
+        return false;
       }
     }
 
     // 3) Create new
-    return createNew();
+    return true;
   }
 
   function expectVirtual(type: VirtualType, jsxKey: string | null) {
@@ -1140,7 +1148,8 @@ export const vnode_diff = (
       return;
     }
 
-    const createNew = () => {
+    // For fragments without a key, always create a new virtual node (ensures rerender semantics)
+    if (jsxKey === null) {
       vnode_insertBefore(
         journal,
         vParent as VirtualVNode,
@@ -1149,20 +1158,26 @@ export const vnode_diff = (
       );
       (vNewNode as VirtualVNode).key = jsxKey;
       isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, type);
-    };
-    // For fragments without a key, always create a new virtual node (ensures rerender semantics)
-    if (jsxKey === null) {
-      createNew();
       return;
     }
-    moveOrCreateKeyedNode(
-      null,
-      jsxKey,
-      getSideBufferKey(null, jsxKey),
-      vParent as VirtualVNode,
-      createNew,
-      true
-    );
+    if (
+      moveOrCreateKeyedNode(
+        null,
+        jsxKey,
+        getSideBufferKey(null, jsxKey),
+        vParent as VirtualVNode,
+        true
+      )
+    ) {
+      vnode_insertBefore(
+        journal,
+        vParent as VirtualVNode,
+        (vNewNode = vnode_newVirtual()),
+        vCurrent && getInsertBefore()
+      );
+      (vNewNode as VirtualVNode).key = jsxKey;
+      isDev && vnode_setProp(vNewNode as VirtualVNode, DEBUG_TYPE, type);
+    }
   }
 
   function expectComponent(component: Function) {
@@ -1185,11 +1200,10 @@ export const vnode_diff = (
       const hashesAreEqual = componentHash === vNodeComponentHash;
 
       if (!lookupKeysAreEqual) {
-        const createNew = () => {
+        if (moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode)) {
           insertNewComponent(host, componentQRL, jsxProps);
           shouldRender = true;
-        };
-        moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode, createNew);
+        }
         host = (vNewNode || vCurrent) as VirtualVNode;
       } else if (!hashesAreEqual || !jsxNode.key) {
         insertNewComponent(host, componentQRL, jsxProps);
@@ -1236,11 +1250,10 @@ export const vnode_diff = (
         insertNewInlineComponent();
         host = vNewNode as VirtualVNode;
       } else if (!lookupKeysAreEqual) {
-        const createNew = () => {
+        if (moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode)) {
           // We did not find the inline component, create it.
           insertNewInlineComponent();
-        };
-        moveOrCreateKeyedNode(null, lookupKey, lookupKey, vParent as VirtualVNode, createNew);
+        }
         host = (vNewNode || vCurrent) as VirtualVNode;
       } else {
         // delete the key from the side buffer if it is the same component
@@ -1469,7 +1482,7 @@ function handleChangedProps(
       if (key === 'children' || key === QBackRefs) {
         continue;
       }
-      if (!src || !(key in src)) {
+      if (!src || !_hasOwnProperty.call(src, key)) {
         changed = true;
         if (triggerEffects) {
           delete dst[key];

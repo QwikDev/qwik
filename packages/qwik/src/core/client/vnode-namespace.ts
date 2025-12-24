@@ -167,7 +167,9 @@ function vnode_cloneElementWithNamespace(
       // this is because vNode is not moved yet.
       // rootElement is null only for the first vNode
       const vCursorDomParent =
-        rootElement == null ? parentVNode : vCursorParent && vnode_getDomParentVNode(vCursorParent);
+        rootElement == null
+          ? parentVNode
+          : vCursorParent && vnode_getDomParentVNode(vCursorParent, true);
       if (vCursorDomParent) {
         const namespaceData = getNewElementNamespaceData(
           vCursorDomParent,

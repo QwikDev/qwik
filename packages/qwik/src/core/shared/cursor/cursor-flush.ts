@@ -23,6 +23,19 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
   executeAfterFlush(container, cursorData);
 }
 
+let _insertBefore: typeof Element.prototype.insertBefore | null = null;
+
+const fastInsertBefore = (
+  insertBeforeParent: Node,
+  target: Node,
+  insertBefore: Node | null
+): void => {
+  if (!_insertBefore) {
+    _insertBefore = insertBeforeParent.insertBefore;
+  }
+  _insertBefore.call(insertBeforeParent, target, insertBefore);
+};
+
 export function _flushJournal(journal: VNodeJournal): void {
   // console.log(vnode_journalToString(journal));
   for (const operation of journal) {
@@ -30,7 +43,7 @@ export function _flushJournal(journal: VNodeJournal): void {
       case VNodeOperationType.InsertOrMove: {
         const insertBefore = operation.beforeTarget;
         const insertBeforeParent = operation.parent;
-        insertBeforeParent.insertBefore(operation.target, insertBefore);
+        fastInsertBefore(insertBeforeParent, operation.target, insertBefore);
         break;
       }
       case VNodeOperationType.Delete: {

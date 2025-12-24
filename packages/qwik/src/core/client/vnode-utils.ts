@@ -175,6 +175,7 @@ import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
+import { fastGetter } from './prototype-utils';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -665,7 +666,7 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const textVNode = ensureTextVNode(vnode);
   const flags = textVNode.flags;
   if ((flags & VNodeFlags.Inflated) === 0) {
-    const parentNode = vnode_getDomParent(vnode);
+    const parentNode = vnode_getDomParent(vnode, true);
     assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode.node as Text;
     const doc = parentNode.ownerDocument;
@@ -1096,14 +1097,14 @@ export const vnode_insertBefore = (
   }
 };
 
-export const vnode_getDomParent = (vnode: VNode, includeProjection = true): Element | null => {
+export const vnode_getDomParent = (vnode: VNode, includeProjection: boolean): Element | null => {
   vnode = vnode_getDomParentVNode(vnode, includeProjection) as VNode;
   return (vnode && (vnode as ElementVNode).node) as Element | null;
 };
 
 export const vnode_getDomParentVNode = (
   vnode: VNode,
-  includeProjection = true
+  includeProjection: boolean
 ): ElementVNode | null => {
   while (vnode && !vnode_isElementVNode(vnode)) {
     vnode = vnode.parent || (includeProjection ? vnode.slotParent : null)!;
@@ -1187,7 +1188,7 @@ export const vnode_truncate = (
   removeDOM = true
 ) => {
   assertDefined(vDelete, 'Missing vDelete.');
-  const parent = vnode_getDomParent(vParent);
+  const parent = vnode_getDomParent(vParent, true);
   if (parent && removeDOM) {
     if (vnode_isElementVNode(vParent)) {
       addVNodeOperation(journal, {
@@ -1459,19 +1460,6 @@ export const fastNodeName = (element: Element): string | null => {
     _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
   }
   return _fastNodeName.call(element);
-};
-
-const fastGetter = <T>(prototype: any, name: string): T => {
-  let getter: any;
-  while (prototype && !(getter = Object.getOwnPropertyDescriptor(prototype, name)?.get)) {
-    prototype = Object.getPrototypeOf(prototype);
-  }
-  return (
-    getter ||
-    function (this: any) {
-      return this[name];
-    }
-  );
 };
 
 const hasQStyleAttribute = (element: Element): boolean => {

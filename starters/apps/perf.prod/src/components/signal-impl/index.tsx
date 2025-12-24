@@ -7,6 +7,7 @@ import {
   type QRL,
   type Signal,
 } from "@qwik.dev/core";
+import type { _ElementVNode } from "@qwik.dev/core/internal";
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -62,12 +63,24 @@ export default component$(() => {
   const data = useSignal<Signal<Row>[]>([]);
   const selectedItem = useSignal<Row | null>(null);
 
-  const select$ = $((row: Row) => {
+  const selectSingle$ = $((_: unknown, element: Element) => {
+    const vNode = (element as any).vNode as _ElementVNode;
+    const row = vNode.props?.[":row"] as Signal<Row>;
     if (selectedItem.value) {
       selectedItem.value.selected.value = false;
     }
-    selectedItem.value = row;
-    row.selected.value = true;
+    selectedItem.value = row.value;
+    row.value.selected.value = true;
+  });
+
+  const deleteSingle$ = $((_: unknown, element: Element) => {
+    const vNode = (element as any).vNode as _ElementVNode;
+    const row = vNode.props?.[":row"] as Signal<Row>;
+    const dataValue = untrack(() => data.value);
+    data.value = dataValue.toSpliced(
+      dataValue.findIndex((d) => d.value.id === row.value.id),
+      1,
+    );
   });
 
   return (
@@ -134,6 +147,10 @@ export default component$(() => {
       <table class="table table-hover table-striped test-data">
         <tbody>
           {data.value.map((row) => {
+            const assignRow = (element: Element) => {
+              const vNode = (element as any).vNode as _ElementVNode;
+              (vNode.props ||= {})[":row"] = row;
+            };
             return (
               <tr
                 key={untrack(() => row.value.id)}
@@ -141,23 +158,12 @@ export default component$(() => {
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => select$(row.value)}>
+                  <a ref={assignRow} onClick$={selectSingle$}>
                     {row.value.label.value}
                   </a>
                 </td>
                 <td class="col-md-1">
-                  <a
-                    onClick$={() => {
-                      const dataValue = untrack(() => data.value);
-                      const currentRow = row.value;
-                      data.value = dataValue.toSpliced(
-                        dataValue.findIndex(
-                          (d) => d.value.id === currentRow.id,
-                        ),
-                        1,
-                      );
-                    }}
-                  >
+                  <a ref={assignRow} onClick$={deleteSingle$}>
                     <span aria-hidden="true">x</span>
                   </a>
                 </td>

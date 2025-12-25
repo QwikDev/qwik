@@ -176,6 +176,7 @@ import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
 import { fastGetter } from './prototype-utils';
+import { decodeVNodeDataString } from '../shared/utils/character-escaping';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1269,6 +1270,14 @@ const vnode_materialize = (vNode: ElementVNode) => {
   return vFirstChild;
 };
 
+export const splitVNodeData = (vNodeData: string) => {
+  const elementVNodeDataStartIdx = 2;
+  const elementVNodeDataEndIdx = vNodeData.indexOf('||', elementVNodeDataStartIdx);
+  const elementVNodeData = vNodeData.substring(elementVNodeDataStartIdx, elementVNodeDataEndIdx);
+  const virtualVNodeData = vNodeData.substring(elementVNodeDataEndIdx + 2);
+  return { elementVNodeData, virtualVNodeData };
+};
+
 const materialize = (
   vNode: ElementVNode,
   element: Element,
@@ -1277,28 +1286,21 @@ const materialize = (
 ): VNode | null => {
   vnode_ensureElementKeyInflated(vNode);
   if (vNodeData) {
-    if (vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR) {
+    if (
+      vNodeData.charCodeAt(0) === VNodeDataChar.SEPARATOR &&
+      vNodeData.charCodeAt(1) === VNodeDataChar.SEPARATOR
+    ) {
       /**
        * If vNodeData start with the `VNodeDataChar.SEPARATOR` then it means that the vNodeData
        * contains some data for DOM element. We need to split it to DOM element vNodeData and
        * virtual element vNodeData.
        *
-       * For example `|=6`4|2{J=7`3|q:type|S}` should split into `=6`4`and`2{J=7`3|q:type|S}`, where
-       * `=6`4` is vNodeData for the DOM element.
+       * For example `||=6`4||2{J=7`3|q:type|S}` should split into `=6`4`and`2{J=7`3|q:type|S}`,
+       * where `=6`4` is vNodeData for the DOM element.
        */
-
-      const elementVNodeDataStartIdx = 1;
-      let elementVNodeDataEndIdx = 1;
-      while (vNodeData.charCodeAt(elementVNodeDataEndIdx) !== VNodeDataChar.SEPARATOR) {
-        elementVNodeDataEndIdx++;
-      }
-      const elementVNodeData = vNodeData.substring(
-        elementVNodeDataStartIdx,
-        elementVNodeDataEndIdx
-      );
-
-      // Override vNodeData variable for materializing a virtual element
-      vNodeData = vNodeData.substring(elementVNodeDataEndIdx + 1);
+      const split = splitVNodeData(vNodeData);
+      const elementVNodeData = split.elementVNodeData;
+      vNodeData = split.virtualVNodeData;
 
       // Materialize DOM element from HTML. If the `vNodeData` is not empty,
       // then also materialize virtual element from vNodeData
@@ -1605,6 +1607,7 @@ const processVNodeData = (
     const start = nextToConsumeIdx;
     while (
       (peek() <= 58 /* `:` */ && peekCh !== 0) ||
+      peekCh === 92 /* `\` backslash escape */ ||
       peekCh === 95 /* `_` */ ||
       (peekCh >= 65 /* `A` */ && peekCh <= 90) /* `Z` */ ||
       (peekCh >= 97 /* `a` */ && peekCh <= 122) /* `z` */
@@ -1854,7 +1857,7 @@ function materializeFromVNodeData(
       let value;
       if (isEscapedValue) {
         consume();
-        value = decodeURI(consumeValue());
+        value = decodeURI(decodeVNodeDataString(consumeValue()));
         consume();
       } else {
         value = consumeValue();
@@ -1884,8 +1887,9 @@ function materializeFromVNodeData(
       vParent = vLast as ElementVNode | VirtualVNode;
       vFirst = vLast = null;
     } else if (peek() === VNodeDataChar.SEPARATOR) {
+      // Custom attribute: |key|value
       const key = consumeValue();
-      const value = consumeValue();
+      const value = decodeVNodeDataString(consumeValue());
       vnode_setProp(vParent, key, value);
     } else if (peek() === VNodeDataChar.CLOSE) {
       consume();

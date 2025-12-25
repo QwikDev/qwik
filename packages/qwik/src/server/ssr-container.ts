@@ -44,6 +44,7 @@ import {
   convertStyleIdsToString,
   dangerouslySetInnerHTML,
   escapeHTML,
+  encodeVNodeDataString,
   isPromise,
   mapArray_get,
   mapArray_has,
@@ -767,10 +768,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
               depth--;
               this.write(VNodeDataChar.CLOSE_CHAR);
             } else if (value === WRITE_ELEMENT_ATTRS) {
-              // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `|some encoded attrs here|`
+              // this is executed only for VNodeDataFlag.ELEMENT_NODE and written as `||some encoded attrs here||`
               if (fragmentAttrs && fragmentAttrs.length) {
+                // double `|` to handle the case when the separator character is also at the beginning or end of the string
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.writeFragmentAttrs(fragmentAttrs);
+                this.write(VNodeDataChar.SEPARATOR_CHAR);
                 this.write(VNodeDataChar.SEPARATOR_CHAR);
                 fragmentAttrs = vNodeAttrsStack.pop()!;
               }
@@ -846,12 +850,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         case QSlot:
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
-        default:
+        default: {
+          // For custom attributes, escape separator characters in key
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(key);
+          this.write(encodeVNodeDataString(key));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
+        }
       }
-      const encodedValue = encodeValue ? encodeURI(value) : value;
+      const encodedValue = encodeValue ? encodeVNodeDataString(encodeURI(value)) : value;
       const isEncoded = encodeValue ? encodedValue !== value : false;
       if (isEncoded) {
         // add separator only before and after the encoded value

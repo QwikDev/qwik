@@ -21,7 +21,7 @@ export {
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
 export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
-export { escapeHTML } from '../core/shared/utils/character-escaping';
+export { escapeHTML, encodeVNodeDataString } from '../core/shared/utils/character-escaping';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,

@@ -3,7 +3,7 @@ import { createDocument, mockAttachShadow } from '../../testing/document';
 import '../../testing/vdom-diff.unit-util';
 import { VNodeDataSeparator } from '../shared/vnode-data-types';
 import { getDomContainer } from './dom-container';
-import { processVNodeData } from './process-vnode-data';
+import { findVDataSectionEnd, processVNodeData } from './process-vnode-data';
 import type { ClientContainer } from './types';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
@@ -254,6 +254,13 @@ describe('emitVNodeSeparators', () => {
         VNodeDataSeparator.ADVANCE_8192_CH +
         VNodeDataSeparator.ADVANCE_1_CH
     );
+  });
+});
+describe('findVDataSectionEnd', () => {
+  it('should find the end of the VNodeData section with encoded separators', () => {
+    const vData =
+      '|||aria\\-labelledby|34`32=82||{{1||13A`33=5@i8_1<35[36^37||q:type|C}E|q:type|P?10AB~}';
+    expect(findVDataSectionEnd(vData, 0, vData.length)).toBe(vData.length);
   });
 });
 

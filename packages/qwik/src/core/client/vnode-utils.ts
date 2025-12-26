@@ -172,6 +172,7 @@ import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import { VNodeOperationType } from '../shared/vnode/enums/vnode-operation-type.enum';
 import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
 import { isCursor } from '../shared/cursor/cursor';
+import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { _flushJournal } from '../shared/cursor/cursor-flush';
@@ -382,6 +383,31 @@ export const vnode_getProp = <T = unknown>(
   }
   return null;
 };
+
+export function getKey(vNode: VirtualVNode | ElementVNode | TextVNode | null): string | null {
+  if (vNode == null || vnode_isTextVNode(vNode)) {
+    return null;
+  }
+  return vNode.key;
+}
+
+/**
+ * Retrieve the component hash from the VNode.
+ *
+ * @param vNode - VNode to retrieve the key from
+ * @param getObject - Function to retrieve the object by id for QComponent QRL
+ * @returns Hash
+ */
+export function getComponentHash(
+  vNode: VNode | null,
+  getObject: (id: string) => any
+): string | null {
+  if (vNode == null || vnode_isTextVNode(vNode)) {
+    return null;
+  }
+  const qrl = vnode_getProp<QRLInternal>(vNode as VirtualVNode, OnRenderProp, getObject);
+  return qrl ? qrl.$hash$ : null;
+}
 
 export const vnode_setProp = (vNode: VNode, key: string, value: unknown) => {
   if (vnode_isElementVNode(vNode) || vnode_isVirtualVNode(vNode)) {

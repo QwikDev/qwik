@@ -195,6 +195,7 @@ test.describe("context", () => {
       const rerender = page.locator("#btn-rerender");
       await rerender.click();
       await expect(page.locator("#render-count")).toHaveText("1");
+      await expect(page.locator("#context-app-count")).toHaveText("1");
     });
     tests(false);
   });

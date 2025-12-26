@@ -29,12 +29,12 @@ export const ContextRoot = component$(() => {
         Client Rerender
       </button>
       <span id="render-count">{count.value}</span>
-      <ContextApp key={count.value} />
+      <ContextApp key={count.value} count={count.value} />
     </div>
   );
 });
 
-export const ContextApp = component$(() => {
+export const ContextApp = component$(({ count }: { count: number }) => {
   const state1 = useStore({ displayName: "ROOT / state1", count: 0 });
   const state2 = useStore({ displayName: "ROOT / state2", count: 0 });
 
@@ -60,6 +60,7 @@ export const ContextApp = component$(() => {
       <Issue2894 />
       <Issue5356 />
       <Issue5793 />
+      <div id="context-app-count">{count}</div>
     </div>
   );
 });

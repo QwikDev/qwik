@@ -362,8 +362,10 @@ test.describe("slot", () => {
       const toggleRender = page.locator("#btn-toggle-render");
       const rendered = page.locator("#isRendered");
       await toggleRender.click();
+      await expect(page.locator("#slot-render-count")).toHaveText("1");
       await expect(rendered).toBeHidden();
       await toggleRender.click();
+      await expect(page.locator("#slot-render-count")).toHaveText("2");
       await expect(rendered).toBeVisible();
     });
     tests();

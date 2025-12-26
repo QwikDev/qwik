@@ -252,7 +252,7 @@ jobs:
             wasm: true
 
           # the last x86 macos available as a standard runner
-          - host: macos-13
+          - host: macos-latest
             target: x86_64-apple-darwin
 
           - host: macos-latest
@@ -354,7 +354,11 @@ jobs:
         if: needs.changes.outputs.build-rust == 'true'
         run: |
           mkdir -p packages/qwik/bindings
-          mv artifact-bindings-*/* packages/qwik/bindings
+          for dir in artifact-bindings-*; do
+            if [ -d "$dir" ]; then
+              mv "$dir"/* packages/qwik/bindings/
+            fi
+          done
 
       - name: Save rust cache
         if: needs.changes.outputs.build-rust == 'true'

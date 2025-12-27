@@ -1,206 +1,50 @@
 [
-  {
-    "href": "https://seyph.com/",
-    "size": "large",
-    "tags": "software development, landing pages, agency, site"
-  },
-  {
-    "href": "https://hypecode.tech/",
-    "size": "large",
-    "tags": "software development, landing pages, agency, site"
-  },
-  {
-    "href": "https://www.learn-qwik.com/",
-    "size": "large",
-    "tags": "site,tutorial,learn"
-  },
-  {
-    "href": "https://sasthyaseba.com",
-    "size": "large",
-    "tags": "site,healthcare,services,webrtc,websocket"
-  },
-  {
-    "href": "https://ohayo-dev-design.com/",
-    "tags": "web, dev, agency"
-  },
-  {
-    "href": "https://linkfang-portfolio.vercel.app/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://blueagle.top/",
-    "tags": "portfolio,site,blog"
-  },
-  {
-    "href": "https://quotemingle.com/",
-    "tags": "site"
-  },
-  {
-    "href": "https://frostytools.com",
-    "tags": "saas"
-  },
-  {
-    "href": "https://www.dimension.dev",
-    "tags": "saas"
-  },
-  {
-    "href": "https://index.app/beta",
-    "tags": "saas"
-  },
-  {
-    "href": "https://wope.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://www.builder.io/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://reflect.app/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://jose-aguilar.vercel.app/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://www.hexa.center/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://qwik-storefront.vendure.io/",
-    "tags": "ecommerce"
-  },
-  {
-    "href": "https://qwind.pages.dev/",
-    "tags": "template",
-    "repo": "https://github.com/onwidget/qwind",
-    "size": "large"
-  },
-  {
-    "href": "https://bot-whatsapp.netlify.app/",
-    "tags": "site"
-  },
-  {
-    "href": "https://usaibis.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://pricing.oasisdigital.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://www.burgersonfleek.ca/",
-    "tags": "site",
-    "repo": "https://github.com/saboooor/burgersonfleek"
-  },
-  {
-    "href": "https://birdflop.com/",
-    "tags": "site",
-    "repo": "https://github.com/birdflop/web"
-  },
-  {
-    "href": "https://goshi.dev/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://www.expobeds.com/",
-    "size": "large",
-    "tags": "company"
-  },
-  {
-    "href": "https://jbnado.dev/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://sanyamjainqwik.vercel.app/",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://qwik.dev",
-    "tags": "site",
-    "repo": "https://github.com/QwikDev/qwik/tree/main/packages/docs"
-  },
-  {
-    "href": "https://pulsestax.com/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://abdhashem.com",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://necatikcl.dev/",
-    "tags": "personal",
-    "size": "large"
-  },
-  {
-    "href": "https://itbusinesshub.com/",
-    "tags": "blog"
-  },
-  {
-    "href": "https://travelcalc.pages.dev",
-    "tags": "app"
-  },
-  {
-    "href": "https://pay4me.app",
-    "tags": "saas"
-  },
-  {
-    "href": "https://qwik-osm-poc.netlify.app/",
-    "tags": "site"
-  },
-  {
-    "href": "https://leonerd.blog",
-    "tags": "portfolio"
-  },
-  {
-    "href": "https://seifen.vercel.app/",
-    "tags": "site"
-  },
-  {
-    "href": "https://builtwith.appwrite.io/",
-    "tags": "site",
-    "repo": "https://github.com/appwrite/builtwith"
-  },
-  {
-    "href": "https://getpolaris.ai/",
-    "tags": "saas"
-  },
-  {
-    "href": "https://juneikerc.com",
-    "tags": "portfolio,site,blog,services"
-  },
-  {
-    "href": "https://valibot.dev/",
-    "tags": "site,documentation"
-  },
-  {
-    "href": "https://todaysdatenow.com/",
-    "tags": "site,tools,time"
-  },
-  {
-    "href": "https://finallyweb.com/",
-    "tags": "stock market education"
-  },
-  {
-    "href": "https://numeia.com",
-    "tags": "saas, marketing, ai"
-  },
-  {
-    "href": "https://qit.tools/",
-    "tags": "online,tools,converters"
-  },
-  {
-    "href": "https://www.placementpreparation.io/",
-    "tags": "aptitude,learning,platform"
-  },
-  {
-    "href": "https://sakenowa.com",
-    "tags": "sns,app"
-  },
-  {
-    "href": "https://qwikpdf.alexismoren.fr/",
-    "tags": "pdf,services,free"
-  }
+  { "href": "https://abdhashem.com", "tags": "portfolio" },
+  { "href": "https://abn.ooo/" },
+  { "href": "https://ale.gimona.it/" },
+  { "href": "https://amo.co/" },
+  { "href": "https://bato.si/" },
+  { "href": "https://birdflop.com/", "tags": "site", "repo": "https://github.com/birdflop/web" },
+  { "href": "https://blueagle.top/", "tags": "portfolio,site,blog" },
+  { "href": "https://bot-whatsapp.netlify.app/", "tags": "site" },
+  { "href": "https://builtwith.appwrite.io/" },
+  { "href": "https://finallyweb.com/", "tags": "stock market education" },
+  { "href": "https://frostytools.com", "size": "large", "tags": "saas" },
+  { "href": "https://goshi.dev/", "tags": "portfolio" },
+  { "href": "https://itbusinesshub.com/", "tags": "blog" },
+  { "href": "https://jobibox.fr/" },
+  { "href": "https://juneikerc.com", "tags": "portfolio,site,blog,services" },
+  { "href": "https://leonerd.blog", "tags": "portfolio" },
+  { "href": "https://linkfang-portfolio.vercel.app/", "tags": "portfolio" },
+  { "href": "https://ohayo-dev-design.com/", "tags": "web, dev, agency" },
+  { "href": "https://pricing.oasisdigital.com/", "tags": "saas" },
+  { "href": "https://pulsestax.com/", "tags": "saas" },
+  { "href": "https://qit.tools/", "tags": "online,tools,converters" },
+  { "href": "https://quotemingle.com/", "tags": "site" },
+  { "href": "https://qwik-pokedex.vercel.app/en" },
+  { "href": "https://qwik-storefront.vendure.io/", "size": "large", "tags": "ecommerce" },
+  { "href": "https://qwik.dev" },
+  { "href": "https://qwikpdf.alexismoren.fr/", "tags": "pdf,services,free" },
+  { "href": "https://qwind.pages.dev/", "tags": "template", "size": "large" },
+  { "href": "https://reflect.app/", "tags": "saas" },
+  { "href": "https://sakenowa.com", "tags": "sns,app" },
+  { "href": "https://sanyamjainqwik.vercel.app/", "tags": "portfolio" },
+  { "href": "https://sasthyaseba.com", "tags": "healthcare" },
+  { "href": "https://seifen.vercel.app/", "tags": "site" },
+  { "href": "https://si.com/", "size": "large" },
+  { "href": "https://todaysdatenow.com/", "tags": "site,tools,time" },
+  { "href": "https://travelcalc.pages.dev", "tags": "app" },
+  { "href": "https://valibot.dev/", "tags": "site,documentation" },
+  { "href": "https://wope.com/", "tags": "saas" },
+  { "href": "https://www.aimfox.com/" },
+  { "href": "https://www.brainrush.fun/" },
+  { "href": "https://www.burgersonfleek.ca/" },
+  { "href": "https://www.herold.at/" },
+  { "href": "https://www.honda.com.tr/" },
+  { "href": "https://www.le-cv-du-bantu.com/" },
+  { "href": "https://www.learn-qwik.com/", "size": "large", "tags": "site,tutorial,learn" },
+  { "href": "https://www.nau.ch/" },
+  { "href": "https://www.placementpreparation.io/", "tags": "aptitude,learning,platform" },
+  { "href": "https://www.sport-thieme.de/" },
+  { "href": "https://www.uswitch.com/" }
 ]

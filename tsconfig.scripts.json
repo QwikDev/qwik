@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "outDir": null,
+    "declarationDir": null,
+    "declaration": false
+  },
+  "include": ["scripts", "starters/dev-server.ts"],
+  "exclude": []
+}

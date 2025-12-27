@@ -1,8 +1,8 @@
 import { build, type BuildOptions, type Plugin } from 'esbuild';
 import { join } from 'node:path';
-import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util';
-import { inlineQwikScriptsEsBuild } from './submodule-qwikloader';
-import { readPackageJson } from './package-json';
+import { type BuildConfig, getBanner, importPath, nodeTarget, target } from './util.ts';
+import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { readPackageJson } from './package-json.ts';
 
 /**
  * Builds @builder.io/server

@@ -1,8 +1,8 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs';
-import { type BuildConfig, panic, copyFile, ensureDir } from './util';
+import { generateQwikApiMarkdownDocs, generateQwikCityApiMarkdownDocs } from './api-docs.ts';
+import { type BuildConfig, panic, copyFile, ensureDir } from './util.ts';
 
 /**
  * Create each submodule's bundled dts file, and ensure the public API has not changed for a

@@ -19,7 +19,7 @@ import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { serializeAttribute } from '../utils/styles';
 import type { ElementVNode } from '../vnode/element-vnode';
-import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
+import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { JSXOutput } from '../jsx/types/jsx-node';
 import {
   HOST_SIGNAL,
@@ -241,12 +241,7 @@ function setNodeProp(
   value: string | boolean | null,
   isConst: boolean
 ): void {
-  journal.push({
-    operationType: VNodeOperationType.SetAttribute,
-    target: domVNode.node!,
-    attrName: property,
-    attrValue: value,
-  });
+  journal.push(createSetAttributeOperation(domVNode.node!, property, value));
   if (!isConst) {
     if (domVNode.props && value == null) {
       delete domVNode.props[property];

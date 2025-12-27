@@ -50,6 +50,8 @@ export {
   type QwikCityProps,
   QwikCityProvider,
   type QwikCityMockProps,
+  type QwikCityMockLoaderProp,
+  type QwikCityMockActionProp,
   QwikCityMockProvider,
   QWIK_CITY_SCROLLER,
 } from './qwik-city-component';

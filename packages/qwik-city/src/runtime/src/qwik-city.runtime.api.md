@@ -24,7 +24,7 @@ import { RequestEventLoader } from '@builder.io/qwik-city/middleware/request-han
 import { RequestHandler } from '@builder.io/qwik-city/middleware/request-handler';
 import type { ResolveSyncValue } from '@builder.io/qwik-city/middleware/request-handler';
 import type * as v from 'valibot';
-import type { ValueOrPromise } from '@builder.io/qwik';
+import { ValueOrPromise } from '@builder.io/qwik';
 import { z } from 'zod';
 import type * as z_2 from 'zod';
 
@@ -332,7 +332,7 @@ export const QWIK_CITY_SCROLLER = "_qCityScroller";
 export interface QwikCityMockActionProp<T = any> {
     action: Action<T>;
     // Warning: (ae-forgotten-export) The symbol "RouteActionResolver" needs to be exported by the entry point index.d.ts
-    handler: QRL<(data: T) => RouteActionResolver>;
+    handler: QRL<(data: T) => ValueOrPromise<RouteActionResolver>>;
 }
 
 // @public (undocumented)

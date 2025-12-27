@@ -14,6 +14,7 @@ import {
   useStyles$,
   _waitUntilRendered,
   type QRL,
+  type ValueOrPromise,
 } from '@builder.io/qwik';
 import { isBrowser, isDev, isServer } from '@builder.io/qwik';
 import * as qwikCity from '@qwik-city-plan';
@@ -676,7 +677,7 @@ export interface QwikCityMockActionProp<T = any> {
   action: Action<T>;
 
   /** The QRL function that will be called when the action is submitted. */
-  handler: QRL<(data: T) => RouteActionResolver>;
+  handler: QRL<(data: T) => ValueOrPromise<RouteActionResolver>>;
 }
 
 /** @public */
@@ -739,13 +740,14 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
     { deep: false }
   );
 
-  const loaderState = useStore(
-    props.loaders?.reduce(
-      (acc, { loader, data }) => ({ ...acc, [(loader as LoaderInternal).__id]: data }),
-      {} as Record<string, any>
-    ) ?? {},
-    { deep: false }
+  const loadersData = props.loaders?.reduce(
+    (acc, { loader, data }) => {
+      acc[(loader as LoaderInternal).__id] = data;
+      return acc;
+    },
+    {} as Record<string, QwikCityMockLoaderProp['data']>
   );
+  const loaderState = useStore(loadersData ?? {}, { deep: false });
 
   const goto: RouteNavigate =
     props.goto ??
@@ -780,7 +782,7 @@ export const QwikCityMockProvider = component$<QwikCityMockProps>((props) => {
       acc[(action as ActionInternal).__id] = handler;
       return acc;
     },
-    {} as Record<string, QRL<(data: any) => RouteActionResolver>>
+    {} as Record<string, QwikCityMockActionProp['handler']>
   );
 
   useTask$(async ({ track }) => {

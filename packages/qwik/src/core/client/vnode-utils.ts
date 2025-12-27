@@ -670,7 +670,7 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     const parentNode = vnode_getDomParent(vnode, true);
     assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode.node as Text;
-    const doc = parentNode.ownerDocument;
+    const doc = fastOwnerDocument(parentNode);
     // Walk the previous siblings and inflate them.
     let vCursor = vnode_getDomSibling(vnode, false, true);
     // If text node is 0 length, than there is no text node.
@@ -1264,7 +1264,7 @@ export const vnode_getFirstChild = (vnode: VNode): VNode | null => {
 const vnode_materialize = (vNode: ElementVNode) => {
   const element = vNode.node;
   const firstChild = fastFirstChild(element);
-  const vNodeData = (element.ownerDocument as QDocument)?.qVNodeData?.get(element);
+  const vNodeData = (fastOwnerDocument(element) as QDocument)?.qVNodeData?.get(element);
 
   const vFirstChild = materialize(vNode, element, firstChild, vNodeData);
   return vFirstChild;
@@ -1462,6 +1462,14 @@ export const fastNodeName = (element: Element): string | null => {
     _fastNodeName = fastGetter<typeof _fastNodeName>(element, 'nodeName')!;
   }
   return _fastNodeName.call(element);
+};
+
+let _fastOwnerDocument: ((this: Node) => Document) | null = null;
+const fastOwnerDocument = (node: Node): Document => {
+  if (!_fastOwnerDocument) {
+    _fastOwnerDocument = fastGetter<typeof _fastOwnerDocument>(node, 'ownerDocument')!;
+  }
+  return _fastOwnerDocument.call(node)!;
 };
 
 const hasQStyleAttribute = (element: Element): boolean => {
@@ -1737,7 +1745,7 @@ export function vnode_toString(
       });
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
-        const vnodeData = (node.ownerDocument as QDocument).qVNodeData?.get(node);
+        const vnodeData = (fastOwnerDocument(node) as QDocument).qVNodeData?.get(node);
         if (vnodeData) {
           attrs.push(' q:vnodeData=' + qwikDebugToString(vnodeData));
         }

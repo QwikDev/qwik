@@ -1,10 +1,5 @@
 import { getSymbolHash, setServerPlatform } from './platform';
-import {
-  ChoreType,
-  FLUSH_COMMENT,
-  STREAM_BLOCK_END_COMMENT,
-  STREAM_BLOCK_START_COMMENT,
-} from './qwik-copy';
+import { FLUSH_COMMENT, STREAM_BLOCK_END_COMMENT, STREAM_BLOCK_START_COMMENT } from './qwik-copy';
 import type {
   JSXOutput,
   ResolvedManifest,
@@ -89,7 +84,7 @@ export const renderToStream = async (
 
   await setServerPlatform(opts, resolvedManifest);
   await ssrContainer.render(jsx);
-  await ssrContainer.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+  await ssrContainer.$renderPromise$;
 
   // Flush remaining chunks in the buffer
   flush();

@@ -5,6 +5,7 @@ import {
   createComputed$,
   createSignal,
   isBrowser,
+  untrack,
   useComputed$,
   useConstant,
   useResource$,
@@ -37,111 +38,117 @@ export const Signals = component$(() => {
         Rerender
       </button>
       <span id="rerender-count">Renders: {rerender.value}</span>
-      <SignalsChildren key={rerender.value} />
+      <SignalsChildren
+        key={untrack(() => rerender.value)}
+        rerenderCount={rerender.value}
+      />
     </>
   );
 });
-export const SignalsChildren = component$(() => {
-  const ref = useSignal<Element>();
-  const ref2 = useSignal<Element>();
-  const id = useSignal(0);
-  const signal = useSignal("");
-  const renders = useStore(
-    {
-      count: 0,
-    },
-    { reactive: false },
-  );
-  const store = useStore({
-    foo: 10,
-    attribute: "even",
-    signal,
-  });
+export const SignalsChildren = component$<{ rerenderCount: number }>(
+  ({ rerenderCount }) => {
+    const ref = useSignal<Element>();
+    const ref2 = useSignal<Element>();
+    const id = useSignal(0);
+    const signal = useSignal("");
+    const renders = useStore(
+      {
+        count: 0,
+      },
+      { reactive: false },
+    );
+    const store = useStore({
+      foo: 10,
+      attribute: "even",
+      signal,
+    });
 
-  const styles = useSignal("body { background: white}");
+    const styles = useSignal("body { background: white}");
 
-  useVisibleTask$(() => {
-    ref.value!.setAttribute("data-set", "ref");
-    ref2.value!.setAttribute("data-set", "ref2");
-  });
+    useVisibleTask$(() => {
+      ref.value!.setAttribute("data-set", "ref");
+      ref2.value!.setAttribute("data-set", "ref2");
+    });
 
-  renders.count++;
-  const rerenders = renders.count + 0;
-  return (
-    <div aria-label={store.attribute}>
-      <button
-        id="count"
-        onClick$={() => {
-          store.foo++;
-          store.attribute = store.foo % 2 === 0 ? "even" : "odd";
-        }}
-      >
-        Increment
-      </button>
-      <button
-        id="click"
-        onClick$={() => {
-          signal.value = "clicked";
-        }}
-      >
-        Click
-      </button>
-      <button
-        id="increment-id"
-        onClick$={() => {
-          id.value++;
-        }}
-      >
-        Increment ID
-      </button>
-      <button
-        id="background"
-        onClick$={() => {
-          styles.value = "body { background: black }";
-        }}
-      >
-        Black background
-      </button>
-      <div id="parent-renders">Parent renders: {rerenders}</div>
-      <Child
-        text="Message"
-        count={store.foo}
-        ref={ref}
-        ref2={ref2}
-        signal={signal}
-        signal2={store.signal}
-        id={id.value}
-        styles={styles.value}
-      />
-      <Issue1681 />
-      <Issue1733 />
-      <SideEffect />
-      <Issue1884 />
-      <Issue2176 />
-      <Issue2245 />
-      <Issue2245B />
-      <ComplexClassSignals />
-      <Issue2311 />
-      <Issue2344 />
-      <Issue2928 />
-      <Issue2930 />
-      <Issue3212 />
-      <FineGrainedTextSub />
-      <FineGrainedUnsubs />
-      <Issue3415 />
-      <BindSignal />
-      <Issue3482 />
-      <Issue3663 />
-      <Issue3440 />
-      <Issue4174 />
-      <Issue4249 />
-      <Issue4228 />
-      <Issue4368 />
-      <Issue4868 />
-      <ManySignals />
-    </div>
-  );
-});
+    renders.count++;
+    const rerenders = renders.count + 0;
+    return (
+      <div aria-label={store.attribute}>
+        <button
+          id="count"
+          onClick$={() => {
+            store.foo++;
+            store.attribute = store.foo % 2 === 0 ? "even" : "odd";
+          }}
+        >
+          Increment
+        </button>
+        <button
+          id="click"
+          onClick$={() => {
+            signal.value = "clicked";
+          }}
+        >
+          Click
+        </button>
+        <button
+          id="increment-id"
+          onClick$={() => {
+            id.value++;
+          }}
+        >
+          Increment ID
+        </button>
+        <button
+          id="background"
+          onClick$={() => {
+            styles.value = "body { background: black }";
+          }}
+        >
+          Black background
+        </button>
+        <div id="parent-renders">Parent renders: {rerenders}</div>
+        <Child
+          text="Message"
+          count={store.foo}
+          ref={ref}
+          ref2={ref2}
+          signal={signal}
+          signal2={store.signal}
+          id={id.value}
+          styles={styles.value}
+        />
+        <Issue1681 />
+        <Issue1733 />
+        <SideEffect />
+        <Issue1884 />
+        <Issue2176 />
+        <Issue2245 />
+        <Issue2245B />
+        <ComplexClassSignals />
+        <Issue2311 />
+        <Issue2344 />
+        <Issue2928 />
+        <Issue2930 />
+        <Issue3212 />
+        <FineGrainedTextSub />
+        <FineGrainedUnsubs />
+        <Issue3415 />
+        <BindSignal />
+        <Issue3482 />
+        <Issue3663 />
+        <Issue3440 />
+        <Issue4174 />
+        <Issue4249 />
+        <Issue4228 />
+        <Issue4368 />
+        <Issue4868 />
+        <ManySignals />
+        <span id="rerender-check">{rerenderCount}</span>
+      </div>
+    );
+  },
+);
 
 interface ChildProps {
   count: number;

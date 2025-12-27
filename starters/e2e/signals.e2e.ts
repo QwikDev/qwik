@@ -578,6 +578,7 @@ test.describe("signals", () => {
       const toggleRender = page.locator("#rerender");
       await toggleRender.click();
       await expect(page.locator("#rerender-count")).toHaveText("Renders: 1");
+      await expect(page.locator("#rerender-check")).toHaveText("1");
     });
     tests();
   });

@@ -44,7 +44,7 @@ import {
   type _ContainerElement,
   type _DomContainer,
 } from '../internal';
-import { vnode_getFirstChild } from '../client/vnode';
+import { vnode_getFirstChild } from '../client/vnode-utils';
 import { QContainerValue } from '../shared/types';
 import { QContainerAttr } from '../shared/utils/markers';
 
@@ -1045,7 +1045,7 @@ describe('render api', () => {
           streaming,
         });
         // This can change when the size of the output changes
-        expect(stream.write).toHaveBeenCalledTimes(5);
+        expect(stream.write).toHaveBeenCalledTimes(4);
       });
     });
   });

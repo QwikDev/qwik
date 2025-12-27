@@ -1,7 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { VNodeDataFlag } from 'packages/qwik/src/server/types';
 import type { VNodeData } from 'packages/qwik/src/server/vnode-data';
-import { vnode_isVNode } from '../../client/vnode';
+import { vnode_isVNode } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
 import { AsyncComputedSignalImpl } from '../../reactive-primitives/impl/async-computed-signal-impl';
 import { ComputedSignalImpl } from '../../reactive-primitives/impl/computed-signal-impl';
@@ -38,7 +38,11 @@ import { isPromise, maybeThen } from '../utils/promises';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 import { Constants, TypeIds } from './constants';
 import { qrlToString } from './qrl-to-string';
-import { BackRef, type SeenRef, type SerializationContext } from './serialization-context';
+import {
+  SerializationBackRef,
+  type SeenRef,
+  type SerializationContext,
+} from './serialization-context';
 
 /**
  * Format:
@@ -169,7 +173,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
     }
 
     // Now we know it's a root and we should output a RootRef
-    const rootIdx = value instanceof BackRef ? value.$path$ : seen.$index$;
+    const rootIdx = value instanceof SerializationBackRef ? value.$path$ : seen.$index$;
 
     // But make sure we do output ourselves
     if (!parent && rootIdx === index) {
@@ -280,7 +284,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
             output(TypeIds.Constant, Constants.EMPTY_OBJ);
           } else if (value === null) {
             output(TypeIds.Constant, Constants.Null);
-          } else if (value instanceof BackRef) {
+          } else if (value instanceof SerializationBackRef) {
             output(TypeIds.RootRef, value.$path$);
           } else {
             const newSeenRef = getSeenRefOrOutput(value, index);
@@ -399,7 +403,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
           });
           output(TypeIds.ForwardRef, forwardRefId);
         } else {
-          output(TypeIds.SerializerSignal, [value.$computeQrl$, value.$effects$, maybeValue]);
+          output(TypeIds.SerializerSignal, [
+            value.$computeQrl$,
+            filterEffectBackRefs(value[_EFFECT_BACK_REF]),
+            value.$effects$,
+            maybeValue,
+          ]);
         }
         return;
       }
@@ -430,7 +439,11 @@ export async function serialize(serializationContext: SerializationContext): Pro
         }
         addPreloadQrl(value.$computeQrl$);
 
-        const out: unknown[] = [value.$computeQrl$, value.$effects$];
+        const out: unknown[] = [
+          value.$computeQrl$,
+          filterEffectBackRefs(value[_EFFECT_BACK_REF]),
+          value.$effects$,
+        ];
         const isAsync = value instanceof AsyncComputedSignalImpl;
         if (isAsync) {
           out.push(

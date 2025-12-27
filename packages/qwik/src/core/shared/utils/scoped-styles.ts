@@ -6,11 +6,11 @@ export const styleContent = (styleId: string): string => {
 };
 
 export function hasClassAttr(props: Props): boolean {
-  return 'class' in props || 'className' in props;
+  return 'class' in props;
 }
 
 export function isClassAttr(key: string): boolean {
-  return key === 'class' || key === 'className';
+  return key === 'class';
 }
 
 export function getScopedStyleIdsAsPrefix(scopedStyleIds: Set<string>): string {

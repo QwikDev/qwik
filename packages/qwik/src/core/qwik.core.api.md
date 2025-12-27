@@ -42,13 +42,7 @@ export type ClassList = string | undefined | null | false | Record<string, boole
 // @internal (undocumented)
 export interface ClientContainer extends Container {
     // (undocumented)
-    $flushEpoch$: number;
-    // (undocumented)
     $forwardRefs$: Array<number> | null;
-    // Warning: (ae-forgotten-export) The symbol "VNodeJournal" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    $journal$: VNodeJournal;
     // (undocumented)
     $locale$: string;
     // (undocumented)
@@ -219,16 +213,15 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $forwardRefs$: Array<number> | null;
     // (undocumented)
     $getObjectById$: (id: number | string) => unknown;
+    $hoistStyles$(): void;
     // (undocumented)
     $instanceHash$: string;
-    // (undocumented)
-    $journal$: VNodeJournal;
     // (undocumented)
     $qFuncs$: Array<(...args: unknown[]) => unknown>;
     // (undocumented)
     $rawStateData$: unknown[];
     // (undocumented)
-    $setRawState$(id: number, vParent: _ElementVNode | _VirtualVNode): void;
+    $setRawState$(id: number, vParent: _VNode): void;
     // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
@@ -280,17 +273,18 @@ export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
 export class _ElementVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, element: QElement, elementName: string | undefined);
-    // Warning: (ae-forgotten-export) The symbol "QElement" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
-    element: QElement;
+    // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
+    constructor(key: string | null, flags: _VNodeFlags, parent: _VNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, node: Element, elementName: string | undefined);
     // (undocumented)
     elementName: string | undefined;
     // (undocumented)
     firstChild: _VNode | null | undefined;
     // (undocumented)
+    key: string | null;
+    // (undocumented)
     lastChild: _VNode | null | undefined;
+    // (undocumented)
+    node: Element;
 }
 
 // @internal (undocumented)
@@ -315,6 +309,12 @@ export type EventHandler<EV = Event, EL = Element> = {
 // @internal (undocumented)
 export const eventQrl: <T>(qrl: QRL<T>) => QRL<T>;
 
+// Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export function _executeSsrChores(container: SSRContainer, ssrNode: ISsrNode): ValueOrPromise<void>;
+
 // Warning: (ae-forgotten-export) The symbol "WrappedSignalImpl" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
@@ -337,7 +337,6 @@ export type FunctionComponent<P = unknown> = {
 }['renderFn'];
 
 // Warning: (ae-forgotten-export) The symbol "PropsProxy" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
 //
 // @internal
 export const _getConstProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
@@ -351,11 +350,10 @@ export const _getContextElement: () => unknown;
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
 
-// Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "_VNode" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
 // @public (undocumented)
-function getDomContainer(element: Element | _VNode): ClientContainer;
+function getDomContainer(element: Element): ClientContainer;
 export { getDomContainer as _getDomContainer }
 export { getDomContainer }
 
@@ -366,7 +364,7 @@ export function getLocale(defaultLocale?: string): string;
 export const getPlatform: () => CorePlatform;
 
 // @internal (undocumented)
-export function _getQContainerElement(element: Element | _VNode): Element | null;
+export function _getQContainerElement(element: Element): Element | null;
 
 // @internal
 export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
@@ -417,8 +415,6 @@ export const isSignal: (value: any) => value is Signal<unknown>;
 //
 // @internal (undocumented)
 export interface ISsrComponentFrame {
-    // Warning: (ae-forgotten-export) The symbol "ISsrNode" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     componentNode: ISsrNode;
     // (undocumented)
@@ -455,7 +451,7 @@ export const _isTask: (value: any) => value is Task;
 // @public
 export const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>;
 
-// @internal (undocumented)
+// @internal @deprecated (undocumented)
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal @deprecated (undocumented)
@@ -935,24 +931,24 @@ export abstract class _SharedContainer implements Container {
     // (undocumented)
     $currentUniqueId$: number;
     // (undocumented)
-    $flushEpoch$: number;
+    $cursorCount$: number;
     // (undocumented)
     readonly $getObjectById$: (id: number | string) => any;
     // (undocumented)
     $instanceHash$: string | null;
     // (undocumented)
     readonly $locale$: string;
-    // Warning: (ae-forgotten-export) The symbol "Scheduler" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
-    readonly $scheduler$: Scheduler;
+    $renderPromise$: Promise<void> | null;
+    // (undocumented)
+    $resolveRenderPromise$: (() => void) | null;
     // (undocumented)
     $serverData$: Record<string, any>;
     // (undocumented)
     readonly $storeProxyMap$: ObjToProxyMap;
     // (undocumented)
     readonly $version$: string;
-    constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string);
+    constructor(serverData: Record<string, any>, locale: string);
     // (undocumented)
     abstract ensureProjectionResolved(host: HostElement): void;
     // (undocumented)
@@ -1674,11 +1670,11 @@ export interface TaskOptions {
 
 // @internal (undocumented)
 export class _TextVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, textNode: Text | null, text: string | undefined);
+    constructor(flags: _VNodeFlags, parent: _VNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null, node: Text | null, text: string | undefined);
+    // (undocumented)
+    node: Text | null;
     // (undocumented)
     text: string | undefined;
-    // (undocumented)
-    textNode: Text | null;
 }
 
 // @public
@@ -1845,9 +1841,11 @@ export const version: string;
 
 // @internal (undocumented)
 export class _VirtualVNode extends _VNode {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
+    constructor(key: string | null, flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined);
     // (undocumented)
     firstChild: _VNode | null | undefined;
+    // (undocumented)
+    key: string | null;
     // (undocumented)
     lastChild: _VNode | null | undefined;
 }
@@ -1859,31 +1857,25 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 //
 // @internal (undocumented)
 export abstract class _VNode extends BackRef {
-    constructor(flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined);
-    // (undocumented)
-    blockedChores: ChoreArray | null;
-    // Warning: (ae-forgotten-export) The symbol "ChoreArray" needs to be exported by the entry point index.d.ts
+    constructor(flags: _VNodeFlags, parent: _VNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null);
+    // Warning: (ae-forgotten-export) The symbol "ChoreBits" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    chores: ChoreArray | null;
+    dirty: ChoreBits;
+    // (undocumented)
+    dirtyChildren: _VNode[] | null;
     // (undocumented)
     flags: _VNodeFlags;
     // (undocumented)
-    getAttr(key: string): string | null;
-    // (undocumented)
-    getProp<T>(key: string, getObject: ((id: string) => any) | null): T | null;
+    nextDirtyChildIndex: number;
     // (undocumented)
     nextSibling: _VNode | null | undefined;
     // (undocumented)
-    parent: _ElementVNode | _VirtualVNode | null;
+    parent: _VNode | null;
     // (undocumented)
     previousSibling: _VNode | null | undefined;
     // (undocumented)
-    props: unknown[] | null;
-    // (undocumented)
-    setAttr(key: string, value: string | null | boolean, journal: VNodeJournal | null): void;
-    // (undocumented)
-    setProp(key: string, value: any): void;
+    props: Props | null;
     // (undocumented)
     slotParent: _VNode | null;
     // (undocumented)
@@ -1900,9 +1892,6 @@ export const _vnode_getAttrKeys: (vnode: _ElementVNode | _VirtualVNode) => strin
 export const _vnode_getFirstChild: (vnode: _VNode) => _VNode | null;
 
 // @internal (undocumented)
-export const _vnode_getProps: (vnode: _ElementVNode | _VirtualVNode) => unknown[];
-
-// @internal (undocumented)
 export const _vnode_isMaterialized: (vNode: _VNode) => boolean;
 
 // @internal (undocumented)
@@ -1917,6 +1906,8 @@ export function _vnode_toString(this: _VNode | null, depth?: number, offset?: st
 // @internal
 export const enum _VNodeFlags {
     // (undocumented)
+    Cursor = 64,
+    // (undocumented)
     Deleted = 32,
     // (undocumented)
     Element = 1,
@@ -1929,15 +1920,15 @@ export const enum _VNodeFlags {
     // (undocumented)
     INFLATED_TYPE_MASK = 15,
     // (undocumented)
-    NAMESPACE_MASK = 192,
+    NAMESPACE_MASK = 384,
     // (undocumented)
-    NEGATED_NAMESPACE_MASK = -193,
+    NEGATED_NAMESPACE_MASK = -385,
     // (undocumented)
     NS_html = 0,
     // (undocumented)
-    NS_math = 128,
+    NS_math = 256,
     // (undocumented)
-    NS_svg = 64,
+    NS_svg = 128,
     // (undocumented)
     Resolved = 16,
     // (undocumented)
@@ -1951,8 +1942,6 @@ export const enum _VNodeFlags {
 // @internal (undocumented)
 export const _waitUntilRendered: (elm: Element) => Promise<void>;
 
-// Warning: (ae-forgotten-export) The symbol "SSRContainer" needs to be exported by the entry point index.d.ts
-//
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {
     currentStyleScoped: string | null;

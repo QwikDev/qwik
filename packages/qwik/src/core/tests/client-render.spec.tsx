@@ -11,7 +11,7 @@ import {
 } from '@qwik.dev/core';
 import '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { vnode_getFirstChild } from '../client/vnode';
+import { vnode_getFirstChild } from '../client/vnode-utils';
 import { createDocument } from '@qwik.dev/dom';
 import { getTestPlatform, trigger } from '@qwik.dev/core/testing';
 import type { _ContainerElement } from '@qwik.dev/core/internal';

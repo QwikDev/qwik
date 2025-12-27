@@ -534,6 +534,7 @@ describe('shared-serialization', () => {
         1 ComputedSignal [
           RootRef 5
           Constant undefined
+          Constant undefined
           {number} 2
         ]
         2 ComputedSignal [
@@ -541,6 +542,7 @@ describe('shared-serialization', () => {
         ]
         3 ComputedSignal [
           RootRef 7
+          Constant undefined
           Constant undefined
           {number} 2
         ]
@@ -556,7 +558,7 @@ describe('shared-serialization', () => {
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (166 chars)"
+        (174 chars)"
       `);
     });
     it(title(TypeIds.SerializerSignal), async () => {
@@ -597,21 +599,25 @@ describe('shared-serialization', () => {
           SerializerSignal [
             RootRef 1
             Constant undefined
+            Constant undefined
             {number} 4
           ]
           SerializerSignal [
             RootRef 2
+            Constant undefined
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
           SerializerSignal [
             RootRef 3
             Constant undefined
+            Constant undefined
             {number} 4
           ]
           ForwardRef 0
           SerializerSignal [
             RootRef 5
+            Constant undefined
             Constant undefined
             Constant NEEDS_COMPUTATION
           ]
@@ -635,7 +641,7 @@ describe('shared-serialization', () => {
         13 ForwardRefs [
           12
         ]
-        (478 chars)"
+        (494 chars)"
       `);
     });
     it(title(TypeIds.AsyncComputedSignal), async () => {
@@ -692,10 +698,12 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          Constant undefined
           Constant false
         ]
         1 AsyncComputedSignal [
           RootRef 5
+          Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
@@ -706,10 +714,12 @@ describe('shared-serialization', () => {
           Constant undefined
           Constant undefined
           Constant undefined
+          Constant undefined
           Constant false
         ]
         3 AsyncComputedSignal [
           RootRef 7
+          Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
@@ -729,7 +739,7 @@ describe('shared-serialization', () => {
         11 {string} "clean"
         12 {string} "never"
         13 {string} "always"
-        (222 chars)"
+        (238 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {

@@ -30,7 +30,7 @@ export let isDomRef = (obj: unknown): obj is DomRef => false;
  * A back reference to a previously serialized object. Before deserialization, all backrefs are
  * swapped with their original locations.
  */
-export class BackRef {
+export class SerializationBackRef {
   constructor(
     /** The path from root to the original object */
     public $path$: string
@@ -156,7 +156,7 @@ export const createSerializationContext = (
     if (index === undefined) {
       index = roots.length;
     }
-    roots[index] = new BackRef(path);
+    roots[index] = new SerializationBackRef(path);
     ref.$parent$ = null;
     ref.$index$ = index;
   };

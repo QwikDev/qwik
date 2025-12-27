@@ -16,14 +16,24 @@ test.describe("resource", () => {
     const logs = page.locator(".logs");
     const increment = page.locator("button.increment");
     let logsContent = "";
-    // execute first task
-    logsContent += "[WATCH] 1 before\n[WATCH] 1 after\n";
-    // execute second task
-    logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
-    // execute the resource
-    logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
+    // first task starts, the second is blocked
+    logsContent += "[WATCH] 1 before\n";
+    // resource starts
+    logsContent += "[RESOURCE] 1 before\n";
+    // first task finishes
+    logsContent += "[WATCH] 1 after\n";
+    // second task starts and modifies tracking resource value
+    logsContent += "[WATCH] 2 before\n";
+    // resource starts again
+    logsContent += "[RESOURCE] 1 before\n";
+    // second task finishes
+    logsContent += "[WATCH] 2 after\n";
+    // first resource trigger finishes
+    logsContent += "[RESOURCE] 1 after\n\n";
+    // second resource trigger finishes
+    logsContent += "[RESOURCE] 1 after\n\n";
+
     await expect(resource1).toHaveText("resource 1 is 80");
-    // await expect(resource2).toHaveText('resource 2 is 160');
     await expect(logs).toHaveText(logsContent);
 
     // Increment
@@ -36,11 +46,11 @@ test.describe("resource", () => {
     logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
     // rexecute the resource
     logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
-    // await expect(resource2).toHaveText('loading resource 2...');
+
     await expect(logs).toHaveText(logsContent);
 
     await expect(resource1).toHaveText("resource 1 is 88");
-    // await expect(resource2).toHaveText('resource 2 is 176');
+
     await expect(logs).toHaveText(logsContent);
   });
 
@@ -48,12 +58,22 @@ test.describe("resource", () => {
     const resource1 = page.locator(".resource1");
     const logs = page.locator(".logs");
     let logsContent = "";
-    // execute first task
-    logsContent += "[WATCH] 1 before\n[WATCH] 1 after\n";
-    // execute second task
-    logsContent += "[WATCH] 2 before\n[WATCH] 2 after\n";
-    // execute the resource
-    logsContent += "[RESOURCE] 1 before\n[RESOURCE] 1 after\n\n";
+    // first task starts, the second is blocked
+    logsContent += "[WATCH] 1 before\n";
+    // resource starts
+    logsContent += "[RESOURCE] 1 before\n";
+    // first task finishes
+    logsContent += "[WATCH] 1 after\n";
+    // second task starts and modifies tracking resource value
+    logsContent += "[WATCH] 2 before\n";
+    // resource starts again
+    logsContent += "[RESOURCE] 1 before\n";
+    // second task finishes
+    logsContent += "[WATCH] 2 after\n";
+    // first resource trigger finishes
+    logsContent += "[RESOURCE] 1 after\n\n";
+    // second resource trigger finishes
+    logsContent += "[RESOURCE] 1 after\n\n";
     await expect(resource1).toHaveText("resource 1 is 80");
     await expect(logs).toHaveText(logsContent);
 

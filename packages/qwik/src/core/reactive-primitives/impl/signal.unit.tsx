@@ -1,12 +1,11 @@
 import { $, _wrapProp, isBrowser } from '@qwik.dev/core';
-import { createDocument, getTestPlatform } from '@qwik.dev/core/testing';
+import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from 'vitest';
 import { getDomContainer } from '../../client/dom-container';
 import { implicit$FirstArg } from '../../shared/qrl/implicit_dollar';
 import { inlinedQrl } from '../../shared/qrl/qrl';
 import { type QRLInternal } from '../../shared/qrl/qrl-class';
 import { type QRL } from '../../shared/qrl/qrl.public';
-import { ChoreType } from '../../shared/util-chore-type';
 import type { Container, HostElement } from '../../shared/types';
 import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
@@ -27,6 +26,9 @@ import {
   type Signal,
 } from '../signal.public';
 import { getSubscriber } from '../subscriber';
+import { vnode_newVirtual, vnode_setProp } from '../../client/vnode-utils';
+import { ELEMENT_SEQ } from '../../shared/utils/markers';
+import type { ComputedSignalImpl } from './computed-signal-impl';
 
 class Foo {
   constructor(public val: number = 0) {}
@@ -110,16 +112,17 @@ describe('signal', () => {
   const log: any[] = [];
   const delayMap = new Map();
   let container: Container = null!;
+  let task: Task | null = null;
   beforeEach(() => {
     log.length = 0;
     const document = createDocument({ html: '<html><body q:container="paused"></body></html>' });
     container = getDomContainer(document.body);
+    task = null;
   });
 
   afterEach(async () => {
     delayMap.clear();
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
-    await getTestPlatform().flush();
+    await container.$renderPromise$;
     container = null!;
   });
 
@@ -189,26 +192,39 @@ describe('signal', () => {
       await withContainer(async () => {
         const a = createSignal(true) as InternalSignal<boolean>;
         const b = createSignal(true) as InternalSignal<boolean>;
-        await retryOnPromise(async () => {
-          let signal!: InternalReadonlySignal<boolean>;
-          effect$(() => {
+        let signal!: ComputedSignalImpl<boolean>;
+
+        (globalThis as any).waitPromiseResolve = null;
+        const waitPromise = new Promise<void>((resolve) => {
+          (globalThis as any).waitPromiseResolve = resolve;
+        });
+
+        await retryOnPromise(() =>
+          effect$(async () => {
             signal =
               signal ||
               createComputedQrl(
                 delayQrl(
                   $(() => {
-                    return a.value || b.value;
+                    const val = a.value || b.value;
+                    if (!val) {
+                      // resolve promise after next macro task
+                      setTimeout(() => {
+                        (globalThis as any).waitPromiseResolve!();
+                      });
+                    }
+                    return val;
                   })
                 )
               );
             log.push(signal.value); // causes subscription
-          });
-          expect(log).toEqual([true]);
-          a.value = !a.untrackedValue;
-          await flushSignals();
-          b.value = !b.untrackedValue;
-        });
-        await flushSignals();
+          })
+        );
+        expect(log).toEqual([true]);
+        a.value = !a.untrackedValue;
+        b.value = !b.untrackedValue;
+
+        await waitPromise;
         expect(log).toEqual([true, false]);
       });
     });
@@ -264,7 +280,7 @@ describe('signal', () => {
   }
 
   async function flushSignals() {
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await container.$renderPromise$;
   }
 
   /** Simulates the QRLs being lazy loaded once per test. */
@@ -286,8 +302,9 @@ describe('signal', () => {
 
   function effectQrl(fnQrl: QRL<() => void>) {
     const qrl = fnQrl as QRLInternal<() => void>;
-    const element: HostElement = null!;
-    const task = new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    const element: HostElement = vnode_newVirtual();
+    task = task || new Task(0, 0, element, fnQrl as QRLInternal, undefined, null);
+    vnode_setProp(element, ELEMENT_SEQ, [task]);
     if (!qrl.resolved) {
       throw qrl.resolve();
     } else {

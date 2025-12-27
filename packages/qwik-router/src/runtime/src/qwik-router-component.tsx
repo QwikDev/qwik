@@ -765,7 +765,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
             }
           };
           _waitNextPage().then(() => {
-            const container = _getQContainerElement(elm as _ElementVNode)!;
+            const container = _getQContainerElement(elm as Element)!;
             container.setAttribute(Q_ROUTE, routeName);
             const scrollState = currentScrollState(scroller);
             saveScrollHistory(scrollState);

@@ -171,6 +171,13 @@ import { TextVNode } from '../shared/vnode/text-vnode';
 import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import { VNodeOperationType } from '../shared/vnode/enums/vnode-operation-type.enum';
 import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
+import {
+  createDeleteOperation,
+  createInsertOrMoveOperation,
+  createRemoveAllChildrenOperation,
+  createSetAttributeOperation,
+  createSetTextOperation,
+} from '../shared/vnode/types/dom-vnode-operation';
 import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { VNodeOperation } from '../shared/vnode/types/dom-vnode-operation';
@@ -402,12 +409,7 @@ export const vnode_setAttr = (
 ) => {
   if (vnode_isElementVNode(vNode)) {
     vnode_setProp(vNode, key, value);
-    addVNodeOperation(journal, {
-      operationType: VNodeOperationType.SetAttribute,
-      target: vNode.node,
-      attrName: key,
-      attrValue: value,
-    });
+    addVNodeOperation(journal, createSetAttributeOperation(vNode.node, key, value));
   }
 };
 
@@ -685,12 +687,10 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     while (vCursor && vnode_isTextVNode(vCursor)) {
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         const textNode = doc.createTextNode(vCursor.text!);
-        addVNodeOperation(journal, {
-          operationType: VNodeOperationType.InsertOrMove,
-          parent: parentNode,
-          beforeTarget: lastPreviousTextNode,
-          target: textNode,
-        });
+        addVNodeOperation(
+          journal,
+          createInsertOrMoveOperation(textNode, parentNode, lastPreviousTextNode)
+        );
         lastPreviousTextNode = textNode;
         vCursor.node = textNode;
         vCursor.flags |= VNodeFlags.Inflated;
@@ -704,19 +704,13 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
       const isLastNode = next ? !vnode_isTextVNode(next) : true;
       if ((vCursor.flags & VNodeFlags.Inflated) === 0) {
         if (isLastNode && sharedTextNode) {
-          addVNodeOperation(journal, {
-            operationType: VNodeOperationType.SetText,
-            target: sharedTextNode,
-            text: vCursor.text!,
-          });
+          addVNodeOperation(journal, createSetTextOperation(sharedTextNode, vCursor.text!));
         } else {
           const textNode = doc.createTextNode(vCursor.text!);
-          addVNodeOperation(journal, {
-            operationType: VNodeOperationType.InsertOrMove,
-            parent: parentNode,
-            beforeTarget: insertBeforeNode,
-            target: textNode,
-          });
+          addVNodeOperation(
+            journal,
+            createInsertOrMoveOperation(textNode, parentNode, insertBeforeNode)
+          );
           vCursor.node = textNode;
         }
         vCursor.flags |= VNodeFlags.Inflated;
@@ -1066,12 +1060,10 @@ export const vnode_insertBefore = (
 
     if (domChildren && domChildren.length) {
       for (const child of domChildren) {
-        addVNodeOperation(journal, {
-          operationType: VNodeOperationType.InsertOrMove,
-          parent: parentNode!,
-          beforeTarget: vnode_getNode(adjustedInsertBefore),
-          target: child.node!,
-        });
+        addVNodeOperation(
+          journal,
+          createInsertOrMoveOperation(child.node!, parentNode!, vnode_getNode(adjustedInsertBefore))
+        );
       }
     }
   }
@@ -1135,10 +1127,7 @@ export const vnode_remove = (
     //&& //journal.push(VNodeOperationType.Remove, domParent, ...children);
     if (domParent && children.length) {
       for (const child of children) {
-        addVNodeOperation(journal, {
-          operationType: VNodeOperationType.Delete,
-          target: child.node!,
-        });
+        addVNodeOperation(journal, createDeleteOperation(child.node!));
       }
     }
   }
@@ -1192,18 +1181,12 @@ export const vnode_truncate = (
   const parent = vnode_getDomParent(vParent, true);
   if (parent && removeDOM) {
     if (vnode_isElementVNode(vParent)) {
-      addVNodeOperation(journal, {
-        operationType: VNodeOperationType.RemoveAllChildren,
-        target: vParent.node!,
-      });
+      addVNodeOperation(journal, createRemoveAllChildrenOperation(vParent.node!));
     } else {
       const children = vnode_getDOMChildNodes(journal, vParent, true);
       if (children.length) {
         for (const child of children) {
-          addVNodeOperation(journal, {
-            operationType: VNodeOperationType.Delete,
-            target: child.node!,
-          });
+          addVNodeOperation(journal, createDeleteOperation(child.node!));
         }
       }
     }
@@ -1242,11 +1225,7 @@ export const vnode_getText = (textVNode: TextVNode): string => {
 export const vnode_setText = (journal: VNodeJournal, textVNode: TextVNode, text: string) => {
   vnode_ensureTextInflated(journal, textVNode);
   textVNode.text = text;
-  addVNodeOperation(journal, {
-    operationType: VNodeOperationType.SetText,
-    target: textVNode.node!,
-    text: text,
-  });
+  addVNodeOperation(journal, createSetTextOperation(textVNode.node!, text));
 };
 
 /** @internal */

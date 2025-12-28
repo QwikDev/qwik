@@ -1,4 +1,5 @@
 import {
+  $,
   component$,
   createSignal,
   untrack,
@@ -6,6 +7,7 @@ import {
   type QRL,
   type Signal,
 } from "@qwik.dev/core";
+import type { _ElementVNode } from "@qwik.dev/core/internal";
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -18,15 +20,20 @@ let nextId = 1;
 type Row = {
   id: number;
   label: Signal<string>;
+  selected: Signal<boolean>;
 };
 
-const buildData = (count: number) => {
+const buildData = (count: number): Signal<Row>[] => {
   const data = new Array(count);
   for (let i = 0; i < count; i++) {
     const label = createSignal(
       `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`,
     );
-    data[i] = createSignal({ id: nextId++, label });
+    data[i] = createSignal({
+      id: nextId++,
+      label,
+      selected: createSignal(false),
+    });
   }
   return data;
 };
@@ -54,7 +61,27 @@ const Button = component$<ButtonProps>(({ id, text, click$ }) => {
 
 export default component$(() => {
   const data = useSignal<Signal<Row>[]>([]);
-  const selected = useSignal<number | null>(null);
+  const selectedItem = useSignal<Row | null>(null);
+
+  const selectSingle$ = $((_: unknown, element: Element) => {
+    const vNode = (element as any).vNode as _ElementVNode;
+    const row = vNode.props?.[":row"] as Signal<Row>;
+    if (selectedItem.value) {
+      selectedItem.value.selected.value = false;
+    }
+    selectedItem.value = row.value;
+    row.value.selected.value = true;
+  });
+
+  const deleteSingle$ = $((_: unknown, element: Element) => {
+    const vNode = (element as any).vNode as _ElementVNode;
+    const row = vNode.props?.[":row"] as Signal<Row>;
+    const dataValue = untrack(() => data.value);
+    data.value = dataValue.toSpliced(
+      dataValue.findIndex((d) => d.value.id === row.value.id),
+      1,
+    );
+  });
 
   return (
     <div class="container">
@@ -120,30 +147,23 @@ export default component$(() => {
       <table class="table table-hover table-striped test-data">
         <tbody>
           {data.value.map((row) => {
+            const assignRow = (element: Element) => {
+              const vNode = (element as any).vNode as _ElementVNode;
+              (vNode.props ||= {})[":row"] = row;
+            };
             return (
               <tr
                 key={untrack(() => row.value.id)}
-                class={selected.value === row.value.id ? "danger" : ""}
+                class={row.value.selected.value ? "danger" : ""}
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a onClick$={() => (selected.value = row.value.id)}>
+                  <a ref={assignRow} onClick$={selectSingle$}>
                     {row.value.label.value}
                   </a>
                 </td>
                 <td class="col-md-1">
-                  <a
-                    onClick$={() => {
-                      const dataValue = untrack(() => data.value);
-                      const currentRow = row.value;
-                      data.value = dataValue.toSpliced(
-                        dataValue.findIndex(
-                          (d) => d.value.id === currentRow.id,
-                        ),
-                        1,
-                      );
-                    }}
-                  >
+                  <a ref={assignRow} onClick$={deleteSingle$}>
                     <span aria-hidden="true">x</span>
                   </a>
                 </td>

@@ -6,8 +6,6 @@ import { type ISsrNode, type SSRContainer } from './ssr-types';
 import { executeComponent } from '../shared/component-execution';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { JSXOutput } from '../shared/jsx/types/jsx-node';
-import { ChoreType } from '../shared/util-chore-type';
-import { getChorePromise } from '../shared/scheduler';
 
 export const applyInlineComponent = (
   ssr: SSRContainer,
@@ -35,6 +33,7 @@ export const applyQwikComponentBody = (
   if (jsx.key !== null) {
     host.setProp(ELEMENT_KEY, jsx.key);
   }
-  const componentChore = ssr.$scheduler$(ChoreType.COMPONENT, host, componentQrl, srcProps);
-  return getChorePromise(componentChore);
+  return executeComponent(ssr, host, host, componentQrl, srcProps);
+  // const componentChore = ssr.$scheduler$(ChoreType.COMPONENT, host, componentQrl, srcProps);
+  // return getChorePromise(componentChore);
 };

@@ -188,15 +188,15 @@ test.describe("slot", () => {
       const slotP = page.locator("#slot-p");
       const noslotP = page.locator("#noslot-p");
 
-      await expect(slotChild).not.toBeHidden();
-      await expect(slotP).not.toBeHidden();
-      await expect(noslotP).not.toBeHidden();
+      await expect(slotChild).toBeAttached();
+      await expect(slotP).toBeAttached();
+      await expect(noslotP).toBeAttached();
 
       await toggleBtn.click();
 
-      await expect(slotChild).not.toBeHidden();
-      await expect(slotP).not.toBeHidden();
-      await expect(noslotP).toBeHidden();
+      await expect(slotChild).toBeAttached();
+      await expect(slotP).toBeAttached();
+      await expect(noslotP).not.toBeAttached();
     });
 
     test("should toggle nested slot", async ({ page }) => {
@@ -362,8 +362,10 @@ test.describe("slot", () => {
       const toggleRender = page.locator("#btn-toggle-render");
       const rendered = page.locator("#isRendered");
       await toggleRender.click();
+      await expect(page.locator("#slot-render-count")).toHaveText("1");
       await expect(rendered).toBeHidden();
       await toggleRender.click();
+      await expect(page.locator("#slot-render-count")).toHaveText("2");
       await expect(rendered).toBeVisible();
     });
     tests();

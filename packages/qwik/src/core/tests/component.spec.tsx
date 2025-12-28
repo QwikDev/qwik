@@ -30,7 +30,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QContainerValue } from '../shared/types';
 import { ELEMENT_PROPS, OnRenderProp, QContainerAttr } from '../shared/utils/markers';
-import { vnode_locate } from '../client/vnode';
+import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
 import type { PropsProxy } from '../shared/jsx/props-proxy';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 
@@ -1486,6 +1486,7 @@ describe.each([
   });
 
   it('should update signals', async () => {
+    vi.useFakeTimers();
     const MultipleServerFunctionsInvokedInTask = component$(() => {
       const methodA = useSignal('');
       const methodB = useSignal('');
@@ -1520,16 +1521,20 @@ describe.each([
         </div>
       );
     });
-    const { document } = await render(<MultipleServerFunctionsInvokedInTask />, { debug });
+    const renderPromise = render(<MultipleServerFunctionsInvokedInTask />, { debug });
+    await vi.advanceTimersToNextTimerAsync();
+    const { document } = await renderPromise;
     const div = document.querySelector('#server-error')!;
-    // console.log('vNode', String(vNode));
-    await trigger(document.body, 'div', 'click');
-    // console.log('vNode', String(vNode));
-    await trigger(document.body, 'div', 'qvisible');
-    await delay(10);
-    // console.log('vNode', String(vNode));
-    // console.log('>>>>', div.outerHTML);
+    const clickPromise = trigger(document.body, 'div', 'click');
+    await vi.advanceTimersToNextTimerAsync();
+    await clickPromise;
+    await vi.advanceTimersToNextTimerAsync();
+    const visiblePromise = trigger(document.body, 'div', 'qvisible');
+    await vi.advanceTimersToNextTimerAsync();
+    await vi.advanceTimersToNextTimerAsync();
+    await visiblePromise;
     expect(cleanupAttrs(div.innerHTML)).toEqual('<b>(</b>SomeErrorPOST<b>)</b>');
+    vi.useRealTimers();
   });
 
   it('should render items in order', async () => {
@@ -2332,7 +2337,7 @@ describe.each([
     );
     const h1Element = vnode_locate(container.rootVNode, document.querySelector('h1')!);
 
-    expect(h1Element.parent!.getProp(OnRenderProp, null)).toBeNull();
+    expect(vnode_getProp(h1Element.parent!, OnRenderProp, null)).toBeNull();
   });
 
   it('should reuse the same props instance when props are changing', async () => {
@@ -2741,7 +2746,11 @@ describe.each([
       </Component>
     );
 
-    const propsProxy = vNode!.getProp<PropsProxy>(ELEMENT_PROPS, container.$getObjectById$)!;
+    const propsProxy = vnode_getProp<PropsProxy>(
+      vNode!,
+      ELEMENT_PROPS,
+      container.$getObjectById$ as ((id: string) => PropsProxy) | null
+    )!;
     expect(propsProxy[_PROPS_HANDLER]?.$effects$).toBeDefined();
     expect(propsProxy[_PROPS_HANDLER]?.$effects$?.size).toBe(1);
 
@@ -2850,7 +2859,8 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>World</div>
+            {/* TODO: q:container is const and div is reused, is it ok? */}
+            <div {...qContainerAttr}>World</div>
           </div>
           <div>
             <div>World</div>
@@ -2876,7 +2886,7 @@ describe.each([
         <main>
           <button>Toggle</button>
           <div>
-            <div>World</div>
+            <div {...qContainerAttr}>World</div>
           </div>
           <div>
             <div>World</div>

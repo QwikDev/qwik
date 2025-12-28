@@ -14,12 +14,13 @@ import type {
 } from '@qwik.dev/core/internal';
 import { expect } from 'vitest';
 import {
-  vnode_applyJournal,
+  type VNodeJournal,
   vnode_getAttrKeys,
   vnode_getElementName,
   vnode_getFirstChild,
   vnode_getNode,
   vnode_getNodeTypeName,
+  vnode_getProp,
   vnode_getText,
   vnode_insertBefore,
   vnode_isElementVNode,
@@ -28,8 +29,9 @@ import {
   vnode_newText,
   vnode_newUnMaterializedElement,
   vnode_newVirtual,
-  type VNodeJournal,
-} from '../core/client/vnode';
+  vnode_setAttr,
+  vnode_setProp,
+} from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
 import { serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
@@ -50,7 +52,10 @@ import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
 import { isElement, prettyHtml } from './html';
 import { QContainerValue } from '../core/shared/types';
-import type { ElementVNode, VirtualVNode, VNode } from '../core/client/vnode-impl';
+import type { VNode } from '../core/shared/vnode/vnode';
+import { ElementVNode } from '../core/shared/vnode/element-vnode';
+import type { VirtualVNode } from '../core/shared/vnode/virtual-vnode';
+import { _flushJournal } from '../core/shared/cursor/cursor-flush';
 
 expect.extend({
   toMatchVDOM(
@@ -189,8 +194,8 @@ function diffJsxVNode(
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
       let receivedValue =
-        received.getAttr(prop) ||
-        received.getAttr(propLowerCased) ||
+        vnode_getProp(received, prop, null) ||
+        vnode_getProp(received, propLowerCased, null) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -393,9 +398,9 @@ function shouldSkip(vNode: _VNode | null) {
     const tag = vnode_getElementName(vNode);
     if (
       tag === 'script' &&
-      (vNode.getAttr('type') === 'qwik/vnode' ||
-        vNode.getAttr('type') === 'x-qwik/vnode' ||
-        vNode.getAttr('type') === 'qwik/state')
+      (vnode_getProp(vNode, 'type', null) === 'qwik/vnode' ||
+        vnode_getProp(vNode, 'type', null) === 'x-qwik/vnode' ||
+        vnode_getProp(vNode, 'type', null) === 'qwik/state')
     ) {
       return true;
     }
@@ -452,7 +457,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
   const container: ClientContainer = _getDomContainer(doc.body);
   const vBody = vnode_newUnMaterializedElement(doc.body);
   let vParent: _ElementVNode | _VirtualVNode = vBody;
-  const journal: VNodeJournal = container.$journal$;
+  const journal: VNodeJournal = [];
   walkJSX(jsx, {
     enter: (jsx) => {
       const type = jsx.type;
@@ -477,14 +482,14 @@ export function vnode_fromJSX(jsx: JSXOutput) {
             continue;
           }
           if (key.startsWith(HANDLER_PREFIX) || isHtmlAttributeAnEventName(key)) {
-            child.setProp(key, props[key]);
+            vnode_setProp(child, key, props[key]);
           } else {
-            child.setAttr(key, String(props[key]), journal);
+            vnode_setAttr(journal, child, key, String(props[key]));
           }
         }
       }
-      if (jsx.key != null) {
-        child.setAttr(ELEMENT_KEY, String(jsx.key), journal);
+      if (jsx.key != null && vnode_isElementVNode(child)) {
+        child.key = jsx.key;
       }
       vParent = child as ElementVNode | VirtualVNode;
     },
@@ -500,7 +505,7 @@ export function vnode_fromJSX(jsx: JSXOutput) {
       );
     },
   });
-  vnode_applyJournal(journal);
+  _flushJournal(journal);
   return { vParent, vNode: vnode_getFirstChild(vParent), document: doc, container };
 }
 function constPropsFromElement(element: Element) {

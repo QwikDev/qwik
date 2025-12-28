@@ -20,9 +20,8 @@ export {
 } from '../core/client/util-mapArray';
 export { QError, qError } from '../core/shared/error/error';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
-export { ChoreType } from '../core/shared/util-chore-type';
 export { DEBUG_TYPE, QContainerValue, VirtualType } from '../core/shared/types';
-export { escapeHTML } from '../core/shared/utils/character-escaping';
+export { escapeHTML, encodeVNodeDataString } from '../core/shared/utils/character-escaping';
 export {
   ELEMENT_ID,
   ELEMENT_KEY,
@@ -66,3 +65,4 @@ export { getQueue, preload, resetQueue } from '../core/preloader/queue';
 export { initPreloader } from '../core/preloader/bundle-graph';
 export { SsrNodeFlags } from '../core/shared/types';
 export { isPromise, retryOnPromise } from '../core/shared/utils/promises';
+export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';

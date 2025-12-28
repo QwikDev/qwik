@@ -2,16 +2,15 @@ import { qwikDebugToString } from '../../debug';
 import { assertFalse } from '../../shared/error/assert';
 import { QError, qError } from '../../shared/error/error';
 import type { Container } from '../../shared/types';
-import { ChoreType } from '../../shared/util-chore-type';
-import { isPromise } from '../../shared/utils/promises';
-import { tryGetInvokeContext } from '../../use/use-core';
-import { throwIfQRLNotResolved } from '../utils';
-import type { BackRef } from '../cleanup';
+import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
+import { invoke, newInvokeContext, tryGetInvokeContext } from '../../use/use-core';
+import { scheduleEffects, throwIfQRLNotResolved } from '../utils';
 import { getSubscriber } from '../subscriber';
 import { SerializationSignalFlags, ComputeQRL, EffectSubscription } from '../types';
-import { _EFFECT_BACK_REF, EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
+import { EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
+import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -53,11 +52,16 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   invalidate() {
     this.$flags$ |= SignalFlags.INVALID;
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      undefined,
-      this,
-      this.$effects$
+    const ctx = newInvokeContext();
+    ctx.$container$ = this.$container$ || undefined;
+    maybeThen(
+      retryOnPromise(() => invoke.call(this, ctx, this.$computeIfNeeded$)),
+      () => {
+        if (this.$flags$ & SignalFlags.RUN_EFFECTS) {
+          this.$flags$ &= ~SignalFlags.RUN_EFFECTS;
+          scheduleEffects(this.$container$, this, this.$effects$);
+        }
+      }
     );
   }
 

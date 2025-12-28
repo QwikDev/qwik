@@ -3,11 +3,12 @@ import {
   useSignal,
   useStore,
   $,
-  type QwikIntrinsicElements,
   type FunctionComponent,
   createContextId,
   useContext,
   useContextProvider,
+  untrack,
+  type PropsOf,
 } from "@qwik.dev/core";
 
 type Item = { id: number; label: string; selected: boolean };
@@ -96,7 +97,7 @@ const helpers = createContextId<{
   delete$: (item: Item) => void;
 }>("h");
 
-const Button: FunctionComponent<QwikIntrinsicElements["button"]> = (props) => (
+const Button: FunctionComponent<PropsOf<"button">> = (props) => (
   <div class="col-sm-6 smallpad">
     <button type="button" class="btn btn-primary btn-block" {...props} />
   </div>
@@ -216,7 +217,7 @@ export default component$(() => {
           </div>
         </div>
       </div>
-      <Table key={redraw.value} data={state.data} />
+      <Table key={untrack(() => redraw.value)} data={state.data} />
       <span class="preloadicon glyphicon glyphicon-remove" aria-hidden="true" />
     </div>
   );

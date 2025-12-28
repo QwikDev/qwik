@@ -22,6 +22,7 @@ export const SlotParent = component$(() => {
     render: true,
     count: 0,
   });
+  const renderCount = useSignal(0);
   return (
     <section class="todoapp">
       {state.render && (
@@ -111,11 +112,15 @@ export const SlotParent = component$(() => {
         <button
           id="btn-toggle-render"
           class="border border-cyan-600"
-          onClick$={() => (state.render = !state.render)}
+          onClick$={() => {
+            state.render = !state.render;
+            renderCount.value++;
+          }}
         >
           Toogle render
         </button>
       </div>
+      <div id="slot-render-count">{renderCount.value}</div>
     </section>
   );
 });

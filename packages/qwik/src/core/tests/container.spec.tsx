@@ -1,13 +1,17 @@
 import { walkJSX } from '@qwik.dev/core/testing';
 import crypto from 'node:crypto';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ssrCreateContainer } from '../../server/ssr-container';
 import { SsrNode } from '../../server/ssr-node';
 import { createDocument } from '../../testing/document';
 import { getDomContainer } from '../client/dom-container';
 import type { ClientContainer } from '../client/types';
-import { vnode_getFirstChild, vnode_getText } from '../client/vnode';
-import type { VNode } from '../client/vnode-impl';
+import {
+  vnode_ensureElementInflated,
+  vnode_getFirstChild,
+  vnode_getProp,
+  vnode_getText,
+} from '../client/vnode-utils';
 import { createComputed$, createSignal } from '../reactive-primitives/signal.public';
 import { SignalFlags } from '../reactive-primitives/types';
 import { SERIALIZABLE_STATE, component$ } from '../shared/component.public';
@@ -23,11 +27,7 @@ import { TypeIds } from '../shared/serdes/constants';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { toSsrAttrs } from '../ssr/ssr-render-jsx';
-
-vi.hoisted(() => {
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
-  vi.stubGlobal('QWIK_LOADER_DEFAULT_DEBUG', 'debug');
-});
+import type { VNode } from '../shared/vnode/vnode';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -119,25 +119,26 @@ describe('serializer v2', () => {
       // doesn't use the vnode so not serialized
       it('should retrieve element', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', ['id', 'parent']);
+          ssr.openElement('div', null, ['id', 'parent']);
           ssr.textNode('Hello');
-          ssr.openElement('span', ['id', 'myId']);
+          ssr.openElement('span', null, ['id', 'myId']);
           const node = ssr.getOrCreateLastNode();
           ssr.addRoot({ someProp: node });
           ssr.textNode('Hello');
-          ssr.openElement('b', ['id', 'child']);
+          ssr.openElement('b', null, ['id', 'child']);
           ssr.closeElement();
           ssr.closeElement();
           ssr.closeElement();
         });
         const vnodeSpan: VNode = await clientContainer.$getObjectById$(0).someProp;
-        expect(vnodeSpan.getAttr('id')).toBe('myId');
+        vnode_ensureElementInflated(vnodeSpan);
+        expect(vnode_getProp(vnodeSpan, 'id', null)).toBe('myId');
       });
       it('should retrieve text node', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', ['id', 'parent']);
+          ssr.openElement('div', null, ['id', 'parent']);
           ssr.textNode('Hello');
-          ssr.openElement('span', ['id', 'div']);
+          ssr.openElement('span', null, ['id', 'myId']);
           ssr.textNode('Greetings');
           ssr.textNode(' ');
           ssr.textNode('World');
@@ -145,7 +146,7 @@ describe('serializer v2', () => {
           expect(node.id).toBe('2C');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
-          ssr.openElement('b', ['id', 'child']);
+          ssr.openElement('b', null, ['id', 'child']);
           ssr.closeElement();
           ssr.closeElement();
           ssr.closeElement();
@@ -155,9 +156,9 @@ describe('serializer v2', () => {
       });
       it('should retrieve text node in Fragments', async () => {
         const clientContainer = await withContainer((ssr) => {
-          ssr.openElement('div', ['id', 'parent']);
+          ssr.openElement('div', null, ['id', 'parent']);
           ssr.textNode('Hello');
-          ssr.openElement('span', ['id', 'div']); // 2
+          ssr.openElement('span', null, ['id', 'div']); // 2
           ssr.textNode('Greetings'); // 2A
           ssr.textNode(' '); // 2B
           ssr.openFragment([]); // 2C
@@ -166,7 +167,7 @@ describe('serializer v2', () => {
           expect(node.id).toBe('2CA');
           ssr.textNode('!');
           ssr.addRoot({ someProp: node });
-          ssr.openElement('b', ['id', 'child']);
+          ssr.openElement('b', null, ['id', 'child']);
           ssr.closeElement();
           ssr.closeFragment();
           ssr.closeElement();
@@ -525,11 +526,11 @@ describe('serializer v2', () => {
       await expect(() =>
         withContainer(
           (ssr) => {
-            ssr.openElement('body', [], null, filePath);
-            ssr.openElement('p', [], null, filePath);
+            ssr.openElement('body', null, [], null, filePath);
+            ssr.openElement('p', null, [], null, filePath);
             ssr.openFragment([]);
-            ssr.openElement('b', [], null, filePath);
-            ssr.openElement('div', [], null, filePath);
+            ssr.openElement('b', null, [], null, filePath);
+            ssr.openElement('div', null, [], null, filePath);
           },
           { containerTag: 'html' }
         )
@@ -552,9 +553,9 @@ describe('serializer v2', () => {
       const filePath = '/some/path/test-file.tsx';
       await expect(() =>
         withContainer((ssr) => {
-          ssr.openElement('img', [], null, filePath);
+          ssr.openElement('img', null, [], null, filePath);
           ssr.openFragment([]);
-          ssr.openElement('div', [], null, filePath);
+          ssr.openElement('div', null, [], null, filePath);
         })
       ).rejects.toThrowError(
         [
@@ -605,10 +606,10 @@ async function toHTML(jsx: JSXOutput): Promise<string> {
         }
         ssrContainer.openElement(
           jsx.type,
+          jsx.key,
           toSsrAttrs(jsx.varProps, {
             serializationCtx: ssrContainer.serializationCtx,
             styleScopedId: null,
-            key: jsx.key,
           }),
           toSsrAttrs(jsx.constProps, {
             serializationCtx: ssrContainer.serializationCtx,

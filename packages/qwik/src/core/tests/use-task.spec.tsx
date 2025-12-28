@@ -58,7 +58,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual(['Counter', 'task', 'resolved', 'Counter', 'render']);
+    expect(log).toEqual(['Counter', 'task', 'render', 'resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -134,16 +134,7 @@ describe.each([
     });
 
     const { vNode } = await render(<Counter />, { debug });
-    expect(log).toEqual([
-      'Counter',
-      '1:task',
-      '1:resolved',
-      'Counter',
-      '2:task',
-      '2:resolved',
-      'Counter', //
-      'render',
-    ]);
+    expect(log).toEqual(['Counter', '1:task', 'render', '1:resolved', '2:task', '2:resolved']);
     expect(vNode).toMatchVDOM(
       <Component>
         <span>
@@ -400,7 +391,11 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      if (render === ssrRenderToDom) {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'quadruple', 'Counter']);
+      } else {
+        expect((globalThis as any).log).toEqual(['quadruple', 'double', 'Counter', 'quadruple']);
+      }
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -588,7 +583,6 @@ describe.each([
         // async microtasks run, task 1 queues a delay
         'inside.1',
         '2b',
-        'render',
         // task 3 runs sync and attaches to the promise
         '3a',
         // microtasks run
@@ -707,6 +701,7 @@ describe.each([
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
+      await vi.advanceTimersToNextTimerAsync();
       await triggerPromise;
 
       // Should have the new value
@@ -724,6 +719,7 @@ describe.each([
       // Advance timers to complete the delay
       await vi.advanceTimersByTimeAsync(1);
       // Wait for the trigger to complete
+      await vi.advanceTimersToNextTimerAsync();
       await triggerPromise;
 
       // Should have the new value

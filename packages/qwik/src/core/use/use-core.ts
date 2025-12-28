@@ -8,16 +8,20 @@ import { seal } from '../shared/utils/qdev';
 import { isArray, isObject } from '../shared/utils/types';
 import { setLocale } from './use-locale';
 import type { Container, HostElement } from '../shared/types';
-import { vnode_getNode, vnode_isElementVNode, vnode_isVNode, vnode_locate } from '../client/vnode';
+import {
+  vnode_getNode,
+  vnode_isElementVNode,
+  vnode_isVNode,
+  vnode_locate,
+} from '../client/vnode-utils';
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ClientContainer, type ContainerElement } from '../client/types';
+import { type ClientContainer } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { ChoreType } from '../shared/util-chore-type';
 
 declare const document: QwikDocument;
 
@@ -38,8 +42,8 @@ export type PossibleEvents =
 export interface RenderInvokeContext extends InvokeContext {
   // The below are just always-defined attributes of InvokeContext.
   $hostElement$: HostElement;
-  $event$: PossibleEvents;
-  $waitOn$: Promise<unknown>[];
+  $event$: typeof RenderEvent;
+  $waitOn$: Promise<unknown> | undefined;
   $container$: Container;
 }
 
@@ -51,8 +55,6 @@ export interface InvokeContext {
   $url$: URL | undefined;
   /** The Virtual parent component for the current component code */
   $hostElement$: HostElement | undefined;
-  /** The current DOM element */
-  $element$: Element | undefined;
   /** The event we're currently handling */
   $event$: PossibleEvents | undefined;
   /** The QRL function we're currently executing */
@@ -144,24 +146,42 @@ export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) =>
   const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, hostElement, element, event, url);
+  return newInvokeContext(locale, hostElement, event, url);
 };
 
+export function newRenderInvokeContext(
+  locale: string | undefined,
+  hostElement: HostElement,
+  container: Container,
+  url?: URL
+): RenderInvokeContext {
+  const ctx: RenderInvokeContext = {
+    $url$: url,
+    $hostElement$: hostElement,
+    $event$: RenderEvent,
+    $qrl$: undefined,
+    $effectSubscriber$: undefined,
+    $locale$: locale,
+    $container$: container,
+    $waitOn$: undefined,
+  };
+  seal(ctx);
+  return ctx;
+}
+
 // TODO how about putting url and locale (and event/custom?) in to a "static" object
-export const newInvokeContext = (
+export function newInvokeContext(
   locale?: string,
   hostElement?: HostElement,
-  element?: Element,
-  event?: PossibleEvents,
+  event?: Exclude<PossibleEvents, typeof RenderEvent>,
   url?: URL
-): InvokeContext => {
+): InvokeContext {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
     locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
     $url$: url,
     $hostElement$: hostElement,
-    $element$: element,
     $event$: event,
     $qrl$: undefined,
     $effectSubscriber$: undefined,
@@ -170,7 +190,7 @@ export const newInvokeContext = (
   };
   seal(ctx);
   return ctx;
-};
+}
 
 /**
  * Don't track listeners for this callback
@@ -191,12 +211,7 @@ export const untrack = <T>(fn: () => T): T => {
   }
 };
 
-const trackInvocation = /*#__PURE__*/ newInvokeContext(
-  undefined,
-  undefined,
-  undefined,
-  RenderEvent
-);
+const trackInvocation = /*#__PURE__*/ newRenderInvokeContext(undefined, undefined!, undefined!);
 
 /**
  * @param fn
@@ -277,34 +292,18 @@ export const _getContextContainer = (): ClientContainer | undefined => {
   }
 };
 
-/** @internal */
+/**
+ * @deprecated
+ * @internal
+ * No longer used since v2
+ */
 export const _jsxBranch = <T>(input?: T) => {
   return input;
 };
 
 /** @internal */
-export const _waitUntilRendered = (elm: Element) => {
-  const container = (_getQContainerElement(elm) as ContainerElement | undefined)?.qContainer;
-  if (!container) {
-    return Promise.resolve();
-  }
-
-  // Multi-cycle idle: loop WAIT_FOR_QUEUE until the flush epoch stays stable
-  // across an extra microtask, which signals that no new work re-scheduled.
-  return (async () => {
-    for (;;) {
-      await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
-
-      const firstEpoch = container.$flushEpoch$ || 0;
-      // Give a microtask for any immediate follow-up scheduling to enqueue
-      await Promise.resolve();
-      const secondEpoch = container.$flushEpoch$ || 0;
-
-      // If no epoch change occurred during and after WAIT_FOR_QUEUE, we are idle.
-      if (firstEpoch === secondEpoch) {
-        return;
-      }
-      // Continue loop if epoch advanced, meaning more work flushed.
-    }
-  })();
+export const _waitUntilRendered = (elm: Element): Promise<void> => {
+  const container = getDomContainer(elm);
+  const promise = container?.$renderPromise$;
+  return promise || Promise.resolve();
 };

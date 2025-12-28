@@ -10,6 +10,7 @@ import {
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
 import { useAsyncComputed$ } from '../use/use-async-computed';
+import { delay } from '../shared/utils/promises';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -102,6 +103,8 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    // TODO: we should solve this in a better way
+    await delay(50);
     expect(vNode).toMatchVDOM(
       <>
         <button>
@@ -218,6 +221,7 @@ describe.each([
         );
       });
       const { vNode, container } = await render(<Counter />, { debug });
+      await waitForDrain(container);
       expect(vNode).toMatchVDOM(
         <>
           <button>
@@ -226,7 +230,7 @@ describe.each([
         </>
       );
 
-      await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+      await trigger(container.element, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
         <>
@@ -237,6 +241,7 @@ describe.each([
       );
 
       await (globalThis as any).delay.resolve();
+      await waitForDrain(container);
       await waitForDrain(container);
       expect(vNode).toMatchVDOM(
         <>

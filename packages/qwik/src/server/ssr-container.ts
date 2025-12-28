@@ -851,9 +851,8 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
-          // For custom attributes, escape separator characters in key
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(encodeVNodeDataString(key));
+          this.write(key);
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }

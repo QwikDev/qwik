@@ -27,6 +27,7 @@ import {
   QScopedStyle,
   QStyle,
   QStyleSelector,
+  QStylesAllSelector,
   Q_PROPS_SEPARATOR,
   USE_ON_LOCAL_SEQ_IDX,
   getQFuncs,
@@ -47,23 +48,22 @@ import {
 } from './types';
 import { mapArray_get, mapArray_has, mapArray_set } from './util-mapArray';
 import {
-  VNodeJournalOpCode,
-  vnode_applyJournal,
   vnode_createErrorDiv,
-  vnode_getDomParent,
-  vnode_getProps,
+  vnode_getProp,
   vnode_insertBefore,
   vnode_isElementVNode,
-  vnode_isVNode,
   vnode_isVirtualVNode,
   vnode_locate,
   vnode_newUnMaterializedElement,
+  vnode_setProp,
   type VNodeJournal,
-} from './vnode';
-import type { ElementVNode, VNode, VirtualVNode } from './vnode-impl';
+} from './vnode-utils';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VNode } from '../shared/vnode/vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 /** @public */
-export function getDomContainer(element: Element | VNode): IClientContainer {
+export function getDomContainer(element: Element): IClientContainer {
   const qContainerElement = _getQContainerElement(element);
   if (!qContainerElement) {
     throw qError(QError.containerNotFound);
@@ -73,19 +73,12 @@ export function getDomContainer(element: Element | VNode): IClientContainer {
 
 export function getDomContainerFromQContainerElement(qContainerElement: Element): IClientContainer {
   const qElement = qContainerElement as ContainerElement;
-  let container = qElement.qContainer;
-  if (!container) {
-    container = new DomContainer(qElement);
-  }
-  return container;
+  return (qElement.qContainer ||= new DomContainer(qElement));
 }
 
 /** @internal */
-export function _getQContainerElement(element: Element | VNode): Element | null {
-  const qContainerElement: Element | null = vnode_isVNode(element)
-    ? (vnode_getDomParent(element, true) as Element)
-    : element;
-  return qContainerElement.closest(QContainerSelector);
+export function _getQContainerElement(element: Element): Element | null {
+  return element.closest(QContainerSelector);
 }
 
 export const isDomContainer = (container: any): container is DomContainer => {
@@ -99,7 +92,6 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   public qManifestHash: string;
   public rootVNode: ElementVNode;
   public document: QDocument;
-  public $journal$: VNodeJournal;
   public $rawStateData$: unknown[];
   public $storeProxyMap$: ObjToProxyMap = new WeakMap();
   public $qFuncs$: Array<(...args: unknown[]) => unknown>;
@@ -111,27 +103,11 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   private $styleIds$: Set<string> | null = null;
 
   constructor(element: ContainerElement) {
-    super(
-      () => {
-        this.$flushEpoch$++;
-        vnode_applyJournal(this.$journal$);
-      },
-      {},
-      element.getAttribute(QLocaleAttr)!
-    );
+    super({}, element.getAttribute(QLocaleAttr)!);
     this.qContainer = element.getAttribute(QContainerAttr)!;
     if (!this.qContainer) {
       throw qError(QError.elementWithoutContainer);
     }
-    this.$journal$ = [
-      // The first time we render we need to hoist the styles.
-      // (Meaning we need to move all styles from component inline to <head>)
-      // We bulk move all of the styles, because the expensive part is
-      // for the browser to recompute the styles, (not the actual DOM manipulation.)
-      // By moving all of them at once we can minimize the reflow.
-      VNodeJournalOpCode.HoistStyles,
-      element.ownerDocument,
-    ];
     this.document = element.ownerDocument as QDocument;
     this.element = element;
     this.$buildBase$ = element.getAttribute(QBaseAttr)!;
@@ -155,12 +131,30 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       preprocessState(this.$rawStateData$, this);
       this.$stateData$ = wrapDeserializerProxy(this, this.$rawStateData$) as unknown[];
     }
+    this.$hoistStyles$();
     if (!qTest && element.isConnected) {
       element.dispatchEvent(new CustomEvent('qresume', { bubbles: true }));
     }
   }
 
-  $setRawState$(id: number, vParent: ElementVNode | VirtualVNode): void {
+  /**
+   * The first time we render we need to hoist the styles. (Meaning we need to move all styles from
+   * component inline to <head>)
+   *
+   * We bulk move all of the styles, because the expensive part is for the browser to recompute the
+   * styles, (not the actual DOM manipulation.) By moving all of them at once we can minimize the
+   * reflow.
+   */
+  $hoistStyles$(): void {
+    const document = this.element.ownerDocument;
+    const head = document.head;
+    const styles = document.querySelectorAll(QStylesAllSelector);
+    for (let i = 0; i < styles.length; i++) {
+      head.appendChild(styles[i]);
+    }
+  }
+
+  $setRawState$(id: number, vParent: VNode): void {
     this.$stateData$[id] = vParent;
   }
 
@@ -171,17 +165,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   handleError(err: any, host: VNode | null): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
-        const vHost = host as VirtualVNode;
-        const journal: VNodeJournal = [];
+        const vHost = host;
         const vHostParent = vHost.parent;
         const vHostNextSibling = vHost.nextSibling as VNode | null;
-        const vErrorDiv = vnode_createErrorDiv(document, vHost, err, journal);
+        const journal: VNodeJournal = [];
+        const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
         // If the host is an element node, we need to insert the error div into its parent.
         const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
         // If the host is different then we need to insert errored-host in the same position as the host.
         const insertBefore = insertHost === vHost ? null : vHostNextSibling;
-        vnode_insertBefore(journal, insertHost, vErrorDiv, insertBefore);
-        vnode_applyJournal(journal);
+        vnode_insertBefore(
+          journal,
+          insertHost as ElementVNode | VirtualVNode,
+          vErrorDiv,
+          insertBefore
+        );
       }
 
       if (err && err instanceof Error) {
@@ -223,7 +221,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     let vNode: VNode | null = host.parent;
     while (vNode) {
       if (vnode_isVirtualVNode(vNode)) {
-        if (vNode.getProp(OnRenderProp, null) !== null) {
+        if (vnode_getProp(vNode, OnRenderProp, null) !== null) {
           return vNode;
         }
         vNode =
@@ -239,7 +237,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   setHostProp<T>(host: HostElement, name: string, value: T): void {
     const vNode: VirtualVNode = host as any;
-    vNode.setProp(name, value);
+    vnode_setProp(vNode, name, value);
   }
 
   getHostProp<T>(host: HostElement, name: string): T | null {
@@ -258,20 +256,21 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
         getObjectById = parseInt;
         break;
     }
-    return vNode.getProp(name, getObjectById);
+    return vnode_getProp(vNode, name, getObjectById);
   }
 
   ensureProjectionResolved(vNode: VirtualVNode): void {
     if ((vNode.flags & VNodeFlags.Resolved) === 0) {
       vNode.flags |= VNodeFlags.Resolved;
-      const props = vnode_getProps(vNode);
-      for (let i = 0; i < props.length; i = i + 2) {
-        const prop = props[i] as string;
-        if (isSlotProp(prop)) {
-          const value = props[i + 1];
-          if (typeof value == 'string') {
-            const projection = this.vNodeLocate(value);
-            props[i + 1] = projection;
+      const props = vNode.props;
+      if (props) {
+        for (const prop of Object.keys(props)) {
+          if (isSlotProp(prop)) {
+            const value = props[prop];
+            if (typeof value == 'string') {
+              const projection = this.vNodeLocate(value);
+              props[prop] = projection;
+            }
           }
         }
       }
@@ -307,7 +306,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
       const styleElement = this.document.createElement('style');
       styleElement.setAttribute(QStyle, styleId);
       styleElement.textContent = content;
-      this.$journal$.push(VNodeJournalOpCode.Insert, this.document.head, null, styleElement);
+      this.document.head.appendChild(styleElement);
     }
   }
 

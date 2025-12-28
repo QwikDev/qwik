@@ -1,5 +1,6 @@
 /** @file Public types for the SSR */
 
+import type { ChoreBits } from '../../server/qwik-copy';
 import type {
   Container,
   JSXChildren,
@@ -27,6 +28,7 @@ export interface StreamWriter {
 export interface ISsrNode {
   id: string;
   flags: SsrNodeFlags;
+  dirty: ChoreBits;
   parentComponent: ISsrNode | null;
   vnodeData: VNodeData;
   currentFile: string | null;
@@ -77,6 +79,7 @@ export interface SSRContainer extends Container {
 
   openElement(
     elementName: string,
+    key: string | null,
     varAttrs: SsrAttrs | null,
     constAttrs?: SsrAttrs | null,
     currentFile?: string | null
@@ -114,6 +117,8 @@ export interface SSRContainer extends Container {
     attrName: string,
     serializedValue: string | boolean | null
   ): void;
+
+  executeChores(): ValueOrPromise<void>;
 }
 
 /** @public */

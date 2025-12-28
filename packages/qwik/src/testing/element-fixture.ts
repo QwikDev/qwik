@@ -8,9 +8,8 @@ import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
 import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
-import { getTestPlatform } from './platform';
 import type { MockDocument, MockWindow } from './types';
-import { ChoreType } from '../core/shared/util-chore-type';
+import { waitForDrain } from './util';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -132,9 +131,8 @@ export async function trigger(
     const attrName = prefix + fromCamelToKebabCase(eventName);
     await dispatch(element, attrName, event, scope);
   }
-  const waitForQueueChore = container?.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
-  if (waitForIdle && waitForQueueChore) {
-    await waitForQueueChore.$returnValue$;
+  if (waitForIdle && container) {
+    await waitForDrain(container);
   }
 }
 
@@ -198,10 +196,8 @@ export const dispatch = async (
 
 export async function advanceToNextTimerAndFlush(container: Container) {
   vi.advanceTimersToNextTimer();
-  const waitForQueueChore = container.$scheduler$(ChoreType.WAIT_FOR_QUEUE);
-  await getTestPlatform().flush();
-  if (waitForQueueChore) {
-    await waitForQueueChore.$returnValue$;
+  if (container) {
+    await container.$renderPromise$;
   }
 }
 
@@ -209,5 +205,6 @@ export function cleanupAttrs(innerHTML: string | undefined): any {
   return innerHTML
     ?.replaceAll(/ q:key="[^"]+"/g, '')
     .replaceAll(/ :=""/g, '')
+    .replaceAll(/ :="[^"]+"/g, '')
     .replaceAll(/ on:\w+="[^"]+"/g, '');
 }

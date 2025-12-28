@@ -1,5 +1,4 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
-import { throwErrorAndStop } from './log';
 import type { ValueOrPromise } from './types';
 
 export const MAX_RETRY_ON_PROMISE_COUNT = 100;
@@ -26,17 +25,27 @@ export const safeCall = <T, B, C>(
   }
 };
 
+export const catchError = <T, B, C>(
+  valueOrPromise: ValueOrPromise<T>,
+  rejectFn: { f(reason: any): ValueOrPromise<C> }['f']
+): ValueOrPromise<T | C> => {
+  try {
+    if (isPromise(valueOrPromise)) {
+      return valueOrPromise.catch(rejectFn);
+    }
+    return valueOrPromise;
+  } catch (e) {
+    return rejectFn(e);
+  }
+};
+
 export const maybeThen = <T, B>(
   valueOrPromise: ValueOrPromise<T>,
   thenFn: (arg: Awaited<T>) => ValueOrPromise<B>
 ): ValueOrPromise<B> => {
   return isPromise(valueOrPromise)
-    ? valueOrPromise.then(thenFn as any, shouldNotError)
+    ? valueOrPromise.then(thenFn as any)
     : thenFn(valueOrPromise as any);
-};
-
-export const shouldNotError = (reason: any): any => {
-  throwErrorAndStop(reason);
 };
 
 export const maybeThenMap = <T, MAP_RET, RET>(

@@ -1,23 +1,19 @@
 import { isDomContainer } from '../client/dom-container';
-import { pad, qwikDebugToString } from '../debug';
-import type { OnRenderFn } from '../shared/component.public';
+import { qwikDebugToString } from '../debug';
 import { assertDefined } from '../shared/error/assert';
-import type { Props } from '../shared/jsx/jsx-runtime';
 import { isServerPlatform } from '../shared/platform/platform';
-import { type QRLInternal } from '../shared/qrl/qrl-class';
 import type { QRL } from '../shared/qrl/qrl.public';
-import type { Container, HostElement, SerializationStrategy } from '../shared/types';
-import { ChoreType } from '../shared/util-chore-type';
-import { ELEMENT_PROPS, OnRenderProp } from '../shared/utils/markers';
+import type { Container, SerializationStrategy } from '../shared/types';
+import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import { TaskFlags, isTask } from '../use/use-task';
+import { TaskFlags, isTask, type Task } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
 import type { Signal } from './signal.public';
-import { SubscriptionData, type NodePropPayload } from './subscription-data';
+import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
@@ -27,6 +23,11 @@ import {
   type EffectSubscription,
   type StoreTarget,
 } from './types';
+import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
+import type { VNode } from '../shared/vnode/vnode';
+import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
 
 const DEBUG = false;
 
@@ -77,7 +78,7 @@ export const addQrlToSerializationCtx = (
     } else if (effect instanceof ComputedSignalImpl) {
       qrl = effect.$computeQrl$;
     } else if (property === EffectProperty.COMPONENT) {
-      qrl = container.getHostProp<QRL>(effect as ISsrNode, OnRenderProp);
+      qrl = container.getHostProp<QRL>(effect as VNode, OnRenderProp);
     }
     if (qrl) {
       (container as SSRContainer).serializationCtx.$eventQrls$.add(qrl);
@@ -92,56 +93,63 @@ export const scheduleEffects = (
 ) => {
   const isBrowser = !isServerPlatform();
   if (effects) {
+    let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
       const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
       assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
-        DEBUG && log('schedule.consumer.task', pad('\n' + String(consumer), '  '));
-        let choreType = ChoreType.TASK;
-        if (consumer.$flags$ & TaskFlags.VISIBLE_TASK) {
-          choreType = ChoreType.VISIBLE;
+        if (isBrowser) {
+          markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
+        } else {
+          // for server we run tasks sync, so they can change currently running effects
+          // in this case we could have infinite loop if we trigger tasks here
+          // so instead we collect them and trigger them after the effects are scheduled
+          (tasksToTrigger ||= []).push(consumer);
         }
-        container.$scheduler$(choreType, consumer);
       } else if (consumer instanceof SignalImpl) {
-        // we don't schedule ComputedSignal/DerivedSignal directly, instead we invalidate it and
-        // and schedule the signals effects (recursively)
-        if (consumer instanceof ComputedSignalImpl) {
-          // Ensure that the computed signal's QRL is resolved.
-          // If not resolved schedule it to be resolved.
-          if (!consumer.$computeQrl$.resolved) {
-            container.$scheduler$(ChoreType.QRL_RESOLVE, null, consumer.$computeQrl$);
-          }
-        }
-
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
-        const host: HostElement = consumer as any;
-        const qrl = container.getHostProp<QRLInternal<OnRenderFn<unknown>>>(host, OnRenderProp);
-        assertDefined(qrl, 'Component must have QRL');
-        const props = container.getHostProp<Props>(host, ELEMENT_PROPS);
-        container.$scheduler$(ChoreType.COMPONENT, host, qrl, props);
+        markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
         if (isBrowser) {
-          const host: HostElement = consumer;
-          container.$scheduler$(ChoreType.NODE_DIFF, host, host, signal as SignalImpl);
+          setNodeDiffPayload(consumer as VNode, signal as Signal);
+          markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
-        const host: HostElement = consumer;
         const effectData = effectSubscription[EffectSubscriptionProp.DATA];
         if (effectData instanceof SubscriptionData) {
           const data = effectData.data;
-          const payload: NodePropPayload = {
-            ...data,
-            $value$: signal as SignalImpl,
+          const payload: NodeProp = {
+            isConst: data.$isConst$,
+            scopedStyleIdPrefix: data.$scopedStyleIdPrefix$,
+            value: signal as SignalImpl,
           };
-          container.$scheduler$(ChoreType.NODE_PROP, host, property, payload);
+          if (isBrowser) {
+            setNodePropData(consumer as VNode, property, payload);
+          } else {
+            const node = consumer as ISsrNode;
+            let data = node.getProp(NODE_PROPS_DATA_KEY) as Map<string, NodeProp> | null;
+            if (!data) {
+              data = new Map();
+              node.setProp(NODE_PROPS_DATA_KEY, data);
+            }
+            data.set(property, payload);
+            (consumer as ISsrNode).setProp(property, payload);
+          }
+          markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
         }
       }
     };
     for (const effect of effects) {
       scheduleEffect(effect);
+    }
+
+    if (!isBrowser && container && tasksToTrigger) {
+      for (const task of tasksToTrigger as Task[]) {
+        markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
+      }
     }
   }
 

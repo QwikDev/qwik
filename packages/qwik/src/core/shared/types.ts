@@ -1,9 +1,8 @@
 import type { ContextId } from '../use/use-context';
 import type { ISsrNode, StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import type { Scheduler } from './scheduler';
 import type { SerializationContext } from './serdes/index';
-import type { VNode } from '../client/vnode-impl';
 import type { ValueOrPromise } from './utils/types';
+import type { VNode } from './vnode/vnode';
 
 export interface DeserializeContainer {
   $getObjectById$: (id: number | string) => unknown;
@@ -12,12 +11,10 @@ export interface DeserializeContainer {
   $state$?: unknown[];
   $storeProxyMap$: ObjToProxyMap;
   $forwardRefs$: Array<number> | null;
-  readonly $scheduler$: Scheduler | null;
 }
 
 export interface Container {
   readonly $version$: string;
-  readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
@@ -26,6 +23,9 @@ export interface Container {
   readonly $serverData$: Record<string, any>;
   $currentUniqueId$: number;
   $buildBase$: string | null;
+  $renderPromise$: Promise<void> | null;
+  $resolveRenderPromise$: (() => void) | null;
+  $cursorCount$: number;
 
   handleError(err: any, $host$: HostElement | null): void;
   getParentHost(host: HostElement): HostElement | null;

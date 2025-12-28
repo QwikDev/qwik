@@ -724,7 +724,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function getDomContainer(element: Element | VNode): IClientContainer;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelement\n\n\n</td><td>\n\nElement \\| VNode\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nIClientContainer",
+      "content": "```typescript\nexport declare function getDomContainer(element: Element): IClientContainer;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nelement\n\n\n</td><td>\n\nElement\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nIClientContainer",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/client/dom-container.ts",
       "mdFile": "core.getdomcontainer.md"
     },

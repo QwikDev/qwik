@@ -4,18 +4,15 @@ import { version } from '../version';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { StreamWriter, SymbolToChunkResolver } from '../ssr/ssr-types';
-import { createScheduler, Scheduler, type Chore } from './scheduler';
 import {
   createSerializationContext,
   type SerializationContext,
 } from './serdes/serialization-context';
 import type { Container, HostElement, ObjToProxyMap } from './types';
-import { ChoreArray } from '../client/chore-array';
 
 /** @internal */
 export abstract class _SharedContainer implements Container {
   readonly $version$: string;
-  readonly $scheduler$: Scheduler;
   readonly $storeProxyMap$: ObjToProxyMap;
   /// Current language locale
   readonly $locale$: string;
@@ -25,9 +22,11 @@ export abstract class _SharedContainer implements Container {
   $currentUniqueId$ = 0;
   $instanceHash$: string | null = null;
   $buildBase$: string | null = null;
-  $flushEpoch$: number = 0;
+  $renderPromise$: Promise<void> | null = null;
+  $resolveRenderPromise$: (() => void) | null = null;
+  $cursorCount$: number = 0;
 
-  constructor(journalFlush: () => void, serverData: Record<string, any>, locale: string) {
+  constructor(serverData: Record<string, any>, locale: string) {
     this.$serverData$ = serverData;
     this.$locale$ = locale;
     this.$version$ = version;
@@ -35,17 +34,6 @@ export abstract class _SharedContainer implements Container {
     this.$getObjectById$ = (_id: number | string) => {
       throw Error('Not implemented');
     };
-
-    const choreQueue = new ChoreArray();
-    const blockedChores = new ChoreArray();
-    const runningChores = new Set<Chore>();
-    this.$scheduler$ = createScheduler(
-      this,
-      journalFlush,
-      choreQueue,
-      blockedChores,
-      runningChores
-    );
   }
 
   trackSignalValue<T>(

@@ -9,10 +9,10 @@ import {
   addQrlToSerializationCtx,
   ensureContainsBackRef,
   ensureContainsSubscription,
+  scheduleEffects,
 } from '../utils';
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
-import { ChoreType } from '../../shared/util-chore-type';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
 
 const DEBUG = false;
@@ -38,12 +38,7 @@ export class SignalImpl<T = any> implements Signal<T> {
    * remained the same object
    */
   force() {
-    this.$container$?.$scheduler$(
-      ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-      undefined,
-      this,
-      this.$effects$
-    );
+    scheduleEffects(this.$container$, this, this.$effects$);
   }
 
   get untrackedValue() {
@@ -68,12 +63,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       DEBUG &&
         log('Signal.set', this.$untrackedValue$, '->', value, pad('\n' + this.toString(), '  '));
       this.$untrackedValue$ = value;
-      this.$container$?.$scheduler$(
-        ChoreType.RECOMPUTE_AND_SCHEDULE_EFFECTS,
-        undefined,
-        this,
-        this.$effects$
-      );
+      scheduleEffects(this.$container$, this, this.$effects$);
     }
   }
 

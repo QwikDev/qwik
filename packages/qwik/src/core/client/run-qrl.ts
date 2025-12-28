@@ -1,11 +1,11 @@
-import { QError, qError } from '../shared/error/error';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { getChorePromise } from '../shared/scheduler';
-import { ChoreType } from '../shared/util-chore-type';
+import { catchError, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
 import { getDomContainer } from './dom-container';
+import { VNodeFlags } from './types';
 
 /**
  * This is called by qwik-loader to run a QRL. It has to be synchronous.
@@ -17,20 +17,20 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   const [runQrl] = useLexicalScope<[QRLInternal<(...args: unknown[]) => unknown>]>();
   const context = getInvokeContext();
   const hostElement = context.$hostElement$;
-
-  if (!hostElement) {
-    // silently ignore if there is no host element, the element might have been removed
-    return;
+  if (hostElement) {
+    return retryOnPromise(() => {
+      if (!(hostElement.flags & VNodeFlags.Deleted)) {
+        return catchError(runQrl(...args), (err) => {
+          const container = (context.$container$ ||= getDomContainer(
+            (hostElement as ElementVNode).node
+          ));
+          if (container) {
+            container.handleError(err, hostElement);
+          } else {
+            throw err;
+          }
+        });
+      }
+    });
   }
-
-  const container = getDomContainer(context.$element$!);
-
-  const scheduler = container.$scheduler$;
-  if (!scheduler) {
-    throw qError(QError.schedulerNotFound);
-  }
-
-  // We don't return anything, the scheduler is in charge now
-  const chore = scheduler(ChoreType.RUN_QRL, hostElement, runQrl, args);
-  return getChorePromise(chore);
 };

@@ -1,8 +1,13 @@
 import { isDev } from '@qwik.dev/core/build';
-import { vnode_isVNode } from '../client/vnode';
+import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
-import { invokeApply, newInvokeContext, untrack } from '../use/use-core';
+import {
+  invokeApply,
+  newRenderInvokeContext,
+  untrack,
+  type RenderInvokeContext,
+} from '../use/use-core';
 import { type EventQRL, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
@@ -20,7 +25,6 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
-  RenderEvent,
   USE_ON_LOCAL,
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
@@ -58,12 +62,11 @@ export const executeComponent = (
   componentQRL: OnRenderFn<unknown> | QRLInternal<OnRenderFn<unknown>> | null,
   props: Props | null
 ): ValueOrPromise<JSXOutput> => {
-  const iCtx = newInvokeContext(
+  const iCtx = newRenderInvokeContext(
     container.$locale$,
-    subscriptionHost || undefined,
-    undefined,
-    RenderEvent
-  );
+    subscriptionHost || renderHost,
+    container
+  ) as RenderInvokeContext;
   if (subscriptionHost) {
     iCtx.$effectSubscriber$ = getSubscriber(subscriptionHost, EffectProperty.COMPONENT);
     iCtx.$container$ = container;
@@ -77,6 +80,7 @@ export const executeComponent = (
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;
+    // TODO is this possible? JSXNode handles this, no?
     if ('children' in props) {
       delete props.children;
     }
@@ -106,7 +110,7 @@ export const executeComponent = (
           clearAllEffects(container, renderHost);
         }
 
-        return componentFn(props);
+        return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
       },
       (jsx) => {
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);

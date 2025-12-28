@@ -1,7 +1,7 @@
 // NOTE: we want to move this function to qwikloader, and therefore this function should not have any external dependencies
 import { VNodeDataChar, VNodeDataSeparator } from '../shared/vnode-data-types';
 import type { ContainerElement, QDocument } from './types';
-import type { ElementVNode } from './vnode-impl';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
 
 /**
  * Process the VNodeData script tags and store the VNodeData in the VNodeDataMap.
@@ -151,35 +151,6 @@ export function processVNodeData(document: Document) {
       }
     }
     return NodeType.OTHER;
-  };
-
-  const isSeparator = (ch: number) =>
-    /* `!` */ VNodeDataSeparator.ADVANCE_1 <= ch && ch <= VNodeDataSeparator.ADVANCE_8192; /* `.` */
-  /**
-   * Given the `vData` string, `start` index, and `end` index, find the end of the VNodeData
-   * section.
-   */
-  const findVDataSectionEnd = (vData: string, start: number, end: number): number => {
-    let depth = 0;
-    while (true as boolean) {
-      // look for the end of VNodeData
-      if (start < end) {
-        const ch = vData.charCodeAt(start);
-        if (depth === 0 && isSeparator(ch)) {
-          break;
-        } else {
-          if (ch === VNodeDataChar.OPEN) {
-            depth++;
-          } else if (ch === VNodeDataChar.CLOSE) {
-            depth--;
-          }
-          start++;
-        }
-      } else {
-        break;
-      }
-    }
-    return start;
   };
 
   const nextSibling = (node: Node | null) => {
@@ -361,3 +332,33 @@ export function processVNodeData(document: Document) {
 
   walkContainer(walker, null, walker.firstChild(), null, '', null!, '');
 }
+
+const isSeparator = (ch: number) =>
+  /* `!` */ VNodeDataSeparator.ADVANCE_1 <= ch && ch <= VNodeDataSeparator.ADVANCE_8192; /* `.` */
+
+/** Given the `vData` string, `start` index, and `end` index, find the end of the VNodeData section. */
+export const findVDataSectionEnd = (vData: string, start: number, end: number): number => {
+  let depth = 0;
+  while (true as boolean) {
+    // look for the end of VNodeData
+    if (start < end) {
+      const ch = vData.charCodeAt(start);
+      if (ch === 92 /* \ */) {
+        // Backslash escape - skip both the backslash and the next character
+        start += 2;
+      } else if (depth === 0 && isSeparator(ch)) {
+        break;
+      } else {
+        if (ch === VNodeDataChar.OPEN) {
+          depth++;
+        } else if (ch === VNodeDataChar.CLOSE) {
+          depth--;
+        }
+        start++;
+      }
+    } else {
+      break;
+    }
+  }
+  return start;
+};

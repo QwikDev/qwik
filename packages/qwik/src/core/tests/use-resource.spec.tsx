@@ -11,9 +11,8 @@ import {
   useStore,
   type ResourceReturn,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { ChoreType } from '../shared/util-chore-type';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -127,7 +126,7 @@ describe.each([
       </Component>
     );
 
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <button>
@@ -140,7 +139,7 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -196,7 +195,7 @@ describe.each([
         </Fragment>
       </Component>
     );
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -215,7 +214,8 @@ describe.each([
       </Component>
     );
     await (global as any).delay.resolve();
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await waitForDrain(container);
+    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -276,10 +276,10 @@ describe.each([
       </Component>
     );
     // double click
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
-    await trigger(container.element, 'button', 'click', {}, { waitForIdle: false });
+    await trigger(container.element, 'button', 'click');
+    await trigger(container.element, 'button', 'click');
     await (global as any).delay.resolve();
-    await container.$scheduler$(ChoreType.WAIT_FOR_QUEUE).$returnValue$;
+    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -394,6 +394,8 @@ describe.each([
       </Component>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
 
     expect(vNode).toMatchVDOM(
       <Component ssr-required>

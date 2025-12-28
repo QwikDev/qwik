@@ -245,7 +245,7 @@ describe.each([
       });
 
       return (
-        <div>
+        <div id="ref-test">
           <div ref={element}>Test</div>
           {signal.value}
         </div>
@@ -254,12 +254,12 @@ describe.each([
 
     const { vNode, document } = await render(<Cmp />, { debug });
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
+      await trigger(document.body, '[id="ref-test"]', 'qvisible');
     }
 
     expect(vNode).toMatchVDOM(
       <Component>
-        <div>
+        <div id="ref-test">
           <div>Test</div>
           <Signal ssr-required>1</Signal>
         </div>

@@ -22,6 +22,7 @@ import { delay } from '../shared/utils/promises';
 import { ELEMENT_SEQ } from '../../server/qwik-copy';
 import { Task, TaskFlags } from '../use/use-task';
 import { USE_ON_LOCAL } from '../shared/utils/markers';
+import { vnode_getProp } from '../client/vnode-utils';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -188,6 +189,9 @@ describe.each([
 
   it('should not run next visible task until previous async visible task is finished', async () => {
     (globalThis as any).log = [] as string[];
+    (globalThis as any).delay = () =>
+      new Promise<void>((res) => ((global as any).delay.resolve = res));
+
     const Counter = component$(() => {
       (globalThis as any).log.push('Counter');
       const count = useSignal('');
@@ -204,6 +208,7 @@ describe.each([
         await delay(10);
         (globalThis as any).log.push('2:resolved');
         count.value += 'B';
+        (globalThis as any).delay.resolve();
       });
       (globalThis as any).log.push('render');
       return <span>{count.value}</span>;
@@ -213,6 +218,7 @@ describe.each([
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
+    await (global as any).delay();
     expect((globalThis as any).log).toEqual([
       'Counter',
       'render',
@@ -819,21 +825,21 @@ describe.each([
       if (render === ssrRenderToDom) {
         await trigger(document.body, 'div', 'qvisible');
       }
-      const seq = vNode!.getProp<any[]>(ELEMENT_SEQ, container.$getObjectById$)!;
+      const seq = vnode_getProp<any[]>(vNode!, ELEMENT_SEQ, container.$getObjectById$)!;
       const task = seq.find((task) => task instanceof Task)!;
       expect((task.$flags$ & TaskFlags.EVENTS_REGISTERED) === TaskFlags.EVENTS_REGISTERED).toBe(
         false
       );
       if (render === ssrRenderToDom) {
         // only on SSR after resuming we have no useOn props
-        expect(vNode!.getProp(USE_ON_LOCAL, null)).toBeNull();
+        expect(vnode_getProp<any>(vNode!, USE_ON_LOCAL, null)).toBeNull();
       }
 
       await trigger(document.body, 'button', 'click');
       expect((task.$flags$ & TaskFlags.EVENTS_REGISTERED) === TaskFlags.EVENTS_REGISTERED).toBe(
         true
       );
-      expect(vNode!.getProp(USE_ON_LOCAL, null)).not.toBeNull();
+      expect(vnode_getProp<any>(vNode!, USE_ON_LOCAL, null)).not.toBeNull();
     });
 
     it('#1717 - custom hooks should work', async () => {

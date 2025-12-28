@@ -21,11 +21,11 @@ import {
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { cleanupAttrs } from 'packages/qwik/src/testing/element-fixture';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { vnode_locate } from '../client/vnode';
+import { vnode_getProp, vnode_locate } from '../client/vnode-utils';
 import { HTML_NS, QContainerAttr, QDefaultSlot, SVG_NS } from '../shared/utils/markers';
 import { QContainerValue } from '../shared/types';
 import { VNodeFlags } from '../client/types';
-import { VirtualVNode } from '../client/vnode-impl';
+import { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 const DEBUG = false;
 
@@ -1589,7 +1589,7 @@ describe.each([
         { debug: DEBUG }
       );
       expect((vNode!.flags & VNodeFlags.Resolved) === VNodeFlags.Resolved).toBe(true);
-      expect(vNode?.getProp(QDefaultSlot, null)).toBeInstanceOf(VirtualVNode);
+      expect(vnode_getProp(vNode!, QDefaultSlot, null)).toBeInstanceOf(VirtualVNode);
     });
   });
 
@@ -2299,7 +2299,7 @@ describe.each([
 
     if (ssrRenderToDom === render) {
       const CmpVNode = vnode_locate(container.rootVNode, '4A');
-      const renderProp = CmpVNode.getProp('q:renderFn', null);
+      const renderProp = vnode_getProp(CmpVNode, 'q:renderFn', null);
       expect(renderProp).not.toBeNull();
     }
   });

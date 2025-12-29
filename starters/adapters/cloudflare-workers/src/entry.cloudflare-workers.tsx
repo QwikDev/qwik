@@ -1,10 +1,10 @@
 /*
  * WHAT IS THIS FILE?
  *
- * It's the entry point for Cloudflare Pages when building for production.
+ * It's the entry point for Cloudflare Workers when building for production.
  *
- * Learn more about the Cloudflare Pages integration here:
- * - https://qwik.dev/docs/deployments/cloudflare-pages/
+ * Learn more about the Cloudflare Workers integration here:
+ * - https://qwik.dev/docs/deployments/cloudflare-workers/
  *
  */
 import {

@@ -291,7 +291,7 @@ When the `cloudflare-workers` adapter is added, a new entry file will be created
 ```tsx title="src/entry.cloudflare-pages.tsx"
 import {
   createQwikCity,
-  type PlatformCloudflarePages,
+  type PlatformCloudflarePages as PlatformCloudflareWorkers,
 } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 import qwikCityPlan from '@qwik-city-plan';
 import render from './entry.ssr';
@@ -406,13 +406,13 @@ export const onRequest = async ({ platform }) => {
 };
 ```
 
-For better type safety, import the `RequestHandler` and `PlatformCloudflarePages` types:
+For better type safety, import the `RequestHandler` and `PlatformCloudflareWorkers` types:
 
 ```tsx
 import { type RequestHandler } from '@builder.io/qwik-city';
-import { type PlatformCloudflarePages } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import { type PlatformCloudflarePages as PlatformCloudflareWorkers } from '@builder.io/qwik-city/middleware/cloudflare-pages';
 
-export const onGet: RequestHandler<PlatformCloudflarePages> = async ({ platform }) => {
+export const onGet: RequestHandler<PlatformCloudflareWorkers> = async ({ platform }) => {
   // TypeScript will provide autocompletion for platform.env
   //...
 };

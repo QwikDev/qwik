@@ -1,15 +1,11 @@
 import type { VNode } from '../vnode/vnode';
-import { isCursor } from './cursor';
+import { isCursor, type Cursor } from './cursor';
 import { removeCursorFromQueue } from './cursor-queue';
 import type { Container } from '../types';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { Task } from '../../use/use-task';
 
-/**
- * Keys used to store cursor-related data in vNode props. These are internal properties that should
- * not conflict with user props.
- */
-const CURSOR_DATA_KEY = ':cursor';
+export const cursorDatas = new WeakMap<Cursor, CursorData>();
 
 /** Key used to store pending node prop updates in vNode props. */
 export const NODE_PROPS_DATA_KEY = ':nodeProps';
@@ -94,8 +90,7 @@ function mergeCursors(container: Container, newCursorData: CursorData, oldCursor
  * @returns The cursor data, or null if none or not a cursor
  */
 export function getCursorData(vNode: VNode): CursorData | null {
-  const props = vNode.props;
-  return (props?.[CURSOR_DATA_KEY] as CursorData | null) ?? null;
+  return cursorDatas.get(vNode) ?? null;
 }
 
 /**
@@ -104,7 +99,6 @@ export function getCursorData(vNode: VNode): CursorData | null {
  * @param vNode - The vNode
  * @param cursorData - The cursor data to set, or null to clear
  */
-export function setCursorData(vNode: VNode, cursorData: CursorData | null): void {
-  const props = (vNode.props ||= {});
-  props[CURSOR_DATA_KEY] = cursorData;
+export function setCursorData(vNode: VNode, cursorData: CursorData): void {
+  cursorDatas.set(vNode as Cursor, cursorData!);
 }

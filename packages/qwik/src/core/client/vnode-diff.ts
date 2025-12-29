@@ -209,7 +209,16 @@ export const vnode_diff = (
   ////////////////////////////////
 
   diff(diffContext, jsxNode, vStartNode);
-  return drainAsyncQueue(diffContext);
+  const result = drainAsyncQueue(diffContext);
+
+  // Cleanup diffContext after completion
+  if (isPromise(result)) {
+    return result.finally(() => {
+      cleanupDiffContext(diffContext);
+    });
+  } else {
+    cleanupDiffContext(diffContext);
+  }
 };
 
 //////////////////////////////////////////////
@@ -685,6 +694,11 @@ function drainAsyncQueue(diffContext: DiffContext): ValueOrPromise<void> {
       return drainAsyncQueue(diffContext);
     });
   }
+}
+
+function cleanupDiffContext(diffContext: DiffContext): void {
+  diffContext.journal = null!;
+  diffContext.cursor = null!;
 }
 
 function expectNoChildren(diffContext: DiffContext, removeDOM = true) {

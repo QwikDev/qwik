@@ -1,0 +1,425 @@
+---
+title: Cloudflare Workers Adapter and Middleware | Deployments
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Cloudflare Workers Adapter
+
+Qwik City Cloudflare Workers adapter allows you to connect Qwik City to [Cloudflare Workers](https://workers.cloudflare.com/).
+
+## Installation
+
+To integrate the `cloudflare-workers` adapter, use the `add` command:
+
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run qwik add cloudflare-workers
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run qwik add cloudflare-workers
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run qwik add cloudflare-workers
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run qwik add cloudflare-workers
+```
+</span>
+</PackageManagerTabs>
+
+The adapter will add a new `vite.config.ts` within the `adapters/` directory, a new entry file, and a `wrangler.jsonc` configuration file:
+
+```shell
+└── adapters/
+    └── cloudflare-workers/
+        └── vite.config.ts
+└── src/
+    └── entry.cloudflare-pages.tsx
+└── wrangler.jsonc
+└── worker-configuration.d.ts
+```
+
+Additionally, within the `package.json`, the following scripts will be added:
+
+- `"cf-typegen": "wrangler types"` - Generate TypeScript types for your Worker bindings
+- `"serve": "wrangler dev"` - Start a local development server
+- `"deploy": "wrangler deploy"` - Deploy your Worker to Cloudflare
+
+## Configuration
+
+### TypeScript Configuration
+
+Add the Cloudflare Workers types to your `tsconfig.json`:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "types": [
+      "@cloudflare/workers-types/2023-07-01",
+      "node"
+    ]
+  }
+}
+```
+
+This enables TypeScript autocompletion for Cloudflare Workers APIs and bindings.
+
+### Vite Configuration
+
+To enable local development with access to your Worker's bindings (KV, R2, D1, etc.), update your `vite.config.ts`:
+
+```ts title="vite.config.ts"
+import { defineConfig, type UserConfig } from "vite";
+import { qwikVite } from "@builder.io/qwik/optimizer";
+import { qwikCity } from "@builder.io/qwik-city/vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+
+let platform = {};
+
+if (process.env.NODE_ENV === 'development') {
+  const { getPlatformProxy } = await import('wrangler');
+  platform = await getPlatformProxy();
+}
+
+export default defineConfig(({ command, mode }): UserConfig => {
+  return {
+    plugins: [
+      qwikCity({
+        platform
+      }), 
+// the rest of your code
+```
+
+The `getPlatformProxy` function provides access to your Worker's bindings during local development, allowing you to test KV, R2, D1, and other Cloudflare resources locally.
+
+### Wrangler Configuration
+
+The `wrangler.jsonc` file contains your Worker's configuration. Make sure to update the `name` field to match your project:
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-qwik-app", // 👈 Change this to your Worker's name
+  "main": "./dist/_worker.js",
+  "compatibility_date": "2025-12-28",
+  // ... rest of configuration
+}
+```
+
+After adding any bindings (KV, R2, D1, etc.) to `wrangler.jsonc`, regenerate the TypeScript types:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run cf-typegen
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run cf-typegen
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run cf-typegen
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run cf-typegen
+```
+</span>
+</PackageManagerTabs>
+
+This will update the `worker-configuration.d.ts` file with proper types for your bindings.
+
+## Local Development
+
+To start a local development server with your Worker:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run serve
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run serve
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run serve
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run serve
+```
+</span>
+</PackageManagerTabs>
+
+This will start Wrangler's development server, typically at `http://localhost:8787/`.
+
+## Production Build
+
+To build the application for production, use the `build` command, this command will automatically run `build.server` and `build.client`:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run build
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run build
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run build
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run build
+```
+</span>
+</PackageManagerTabs>
+
+[Read the full guide here](https://github.com/QwikDev/qwik/tree/main/starters/adapters/cloudflare-workers/README.md)
+
+## Deploy to Cloudflare Workers
+
+After installing the integration the project is ready to be deployed to Cloudflare Workers.
+
+If the nodejs version is different in your environment than Cloudflare Workers (v16.20.2) you'll need to add a `NODE_VERSION` environment variable and set the value to the version that you got from running the `node -v` command in your environment:
+
+Then deploy your Worker:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run deploy
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run deploy
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run deploy
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run deploy
+```
+</span>
+</PackageManagerTabs>
+
+Your Worker will be deployed to `https://your-worker-name.your-subdomain.workers.dev`.
+
+Note that you will need a [Cloudflare account](https://dash.cloudflare.com/sign-up) in order to complete this step.
+
+## Environment Variables
+
+Cloudflare Workers support two types of environment variables:
+
+### Build-Time Variables
+
+Build-time variables are set in the Cloudflare Dashboard and are available during the build process. These are useful for configuration that doesn't change between deployments.
+
+To set build-time variables:
+1. Go to **Workers & Pages** in your Cloudflare Dashboard
+2. Select your Worker
+3. Go to **Settings > Build**
+4. Add your variables under **Variables and secrets** (not to be confused by Variables and secrets thats right under domains section)
+
+### Runtime Variables
+
+Runtime variables are defined in your `wrangler.jsonc` file using the `vars` property:
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-qwik-app",
+  "vars": {
+    "MY_VARIABLE": "production_value",
+    "API_URL": "https://api.example.com"
+  }
+}
+```
+
+
+## Custom Domains
+
+You can attach custom domains to your Worker for production use:
+
+1. Go to **Workers & Pages** in your Cloudflare Dashboard
+2. Select your Worker
+3. Go to **Settings > Triggers > Custom Domains**
+4. Click **Add Custom Domain**
+5. Enter your domain name (e.g., `app.example.com`)
+6. Follow the instructions to update your DNS settings
+
+
+For more details, see the [Cloudflare Custom Domains documentation](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+
+
+
+
+
+
+## Advanced
+
+### Cloudflare Workers Entry Middleware
+
+When the `cloudflare-workers` adapter is added, a new entry file will be created at `src/entry.cloudflare-pages.tsx`. Below is an example of using the built-in middleware within the entry file.
+
+```tsx title="src/entry.cloudflare-pages.tsx"
+import {
+  createQwikCity,
+  type PlatformCloudflarePages,
+} from '@builder.io/qwik-city/middleware/cloudflare-pages';
+import qwikCityPlan from '@qwik-city-plan';
+import render from './entry.ssr';
+
+const fetch = createQwikCity({ render, qwikCityPlan });
+
+export { fetch };
+```
+
+The compiled middleware will be built in the `server/` directory. The build process also creates a `_worker.js` file in the `dist/` directory, which is the entry point for your Cloudflare Worker.
+
+```tsx title="/dist/_worker.js"
+import { fetch } from "../server/entry.cloudflare-pages";
+export default { fetch };
+```
+
+This file exports the `fetch` handler that Cloudflare Workers uses to handle incoming requests.
+
+### Bindings
+
+Cloudflare Workers can access various Cloudflare resources through bindings. These are configured in your `wrangler.jsonc` file:
+
+#### KV Namespace
+
+```jsonc title="wrangler.jsonc"
+{
+  "kv_namespaces": [
+    {
+      "binding": "MY_KV",
+      "id": "your-kv-namespace-id"
+    }
+  ]
+}
+```
+
+Access in your code:
+
+```ts
+export const onGet = async ({ platform }) => {
+  const value = await platform.env.MY_KV.get('key');
+};
+```
+
+#### R2 Bucket
+
+```jsonc title="wrangler.jsonc"
+{
+  "r2_buckets": [
+    {
+      "binding": "MY_BUCKET",
+      "bucket_name": "my-bucket"
+    }
+  ]
+}
+```
+
+#### D1 Database
+
+```jsonc title="wrangler.jsonc"
+{
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-database",
+      "database_id": "your-database-id"
+    }
+  ]
+}
+```
+
+After adding any bindings, remember to regenerate types:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm run cf-typegen
+```
+</span>
+<span q:slot="npm">
+```shell
+npm run cf-typegen
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn run cf-typegen
+```
+</span>
+<span q:slot="bun">
+```shell
+bun run cf-typegen
+```
+</span>
+</PackageManagerTabs>
+
+For more information on bindings, see the [Cloudflare Workers Bindings documentation](https://developers.cloudflare.com/workers/runtime-apis/bindings/).
+
+### Context and Platform Access
+
+You can access Cloudflare Worker's environment variables, bindings, and context in your endpoint methods through the `platform` parameter:
+
+```ts
+export const onRequest = async ({ platform }) => {
+  // Access environment variables
+  const secret = platform.env['SUPER_SECRET_TOKEN'];
+  
+  // Access KV namespace
+  const value = await platform.env.MY_KV.get('key');
+  
+  // Access D1 database
+  const result = await platform.env.DB.prepare('SELECT * FROM users').all();
+};
+```
+
+For better type safety, import the `RequestHandler` and `PlatformCloudflarePages` types:
+
+```tsx
+import { type RequestHandler } from '@builder.io/qwik-city';
+import { type PlatformCloudflarePages } from '@builder.io/qwik-city/middleware/cloudflare-pages';
+
+export const onGet: RequestHandler<PlatformCloudflarePages> = async ({ platform }) => {
+  // TypeScript will provide autocompletion for platform.env
+  //...
+};
+```
+
+The `platform` object provides access to:
+- `platform.env` - Environment variables, secrets, and bindings (KV, R2, D1, etc.)
+- Request context and metadata
+
+For more information, see the [Cloudflare Workers Runtime APIs documentation](https://developers.cloudflare.com/workers/runtime-apis/).

@@ -31,6 +31,7 @@ The `wrangler.jsonc` file contains your Worker configuration. Key settings inclu
 - **bindings**: Resources your Worker can interact with (KV, R2, D1, etc.)
 
 After adding any binding, use this command to regenerate the worker-configuration.d.ts file
+
 ```
 npm run cf-typegen
 ```

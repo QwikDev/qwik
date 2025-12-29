@@ -401,7 +401,7 @@ export const onRequest = async ({ platform }) => {
   // Access KV namespace
   const value = await platform.env.MY_KV.get('key');
   
-  // Access D1 database
+  // Access D1 databases
   const result = await platform.env.DB.prepare('SELECT * FROM users').all();
 };
 ```

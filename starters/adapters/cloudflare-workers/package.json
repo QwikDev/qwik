@@ -1,7 +1,7 @@
 {
-  "description": "Cloudflare Pages",
+  "description": "Cloudflare Workers",
   "scripts": {
-    "build.server": "qwik check-client src dist && vite build -c adapters/cloudflare-pages/vite.config.ts",
+    "build.server": "qwik check-client src dist && vite build -c adapters/cloudflare-workers/vite.config.ts",
     "deploy": "wrangler deploy",
     "serve": "wrangler dev",
     "cf-typegen": "wrangler types"
@@ -11,15 +11,15 @@
   },
   "__qwik__": {
     "priority": 40,
-    "displayName": "Adapter: Cloudflare Pages",
+    "displayName": "Adapter: Cloudflare Workers",
     "docs": [
-      "https://qwik.dev/deployments/cloudflare-pages/",
-      "https://developers.cloudflare.com/pages"
+      "https://qwik.dev/deployments/cloudflare-workers/",
+      "https://developers.cloudflare.com/workers"
     ],
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
-        "Now you can build and deploy to Cloudflare Pages with:",
+        "Now you can build and deploy to Cloudflare Workers with:",
         "",
         "- pnpm run build: production build for Cloudflare",
         "- pnpm run deploy: it will use the Cloudflare CLI to deploy your site"

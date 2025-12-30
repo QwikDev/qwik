@@ -9132,10 +9132,11 @@ _(Optional)_
 
 Stores a value which is retained for the lifetime of the component. Subsequent calls to `useConstant` will always return the first value given.
 
-If the value is a function, the function is invoked once to calculate the actual value.
+If the value is a function, the function is invoked once to calculate the actual value. You can then also pass arguments to call the function with, so that you don't need to create a new function on every render.
 
 ```typescript
-useConstant: <T>(value: (() => T) | T) => T;
+useConstant: <T, A extends any[]>(value: ((...args: A) => T) | T, ...args: A) =>
+  T;
 ```
 
 <table><thead><tr><th>
@@ -9157,7 +9158,18 @@ value
 
 </td><td>
 
-(() =&gt; T) \| T
+((...args: A) =&gt; T) \| T
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+args
+
+</td><td>
+
+A
 
 </td><td>
 
@@ -9167,6 +9179,14 @@ value
 **Returns:**
 
 T
+
+```tsx
+const fixedRandomValue = useConstant(() => Math.random);
+const otherFixedRandomValue = useConstant(Math.random);
+
+const getConfig = (env: string) => { ... }
+const config = useConstant(getConfig, environment);
+```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-signal.ts)
 

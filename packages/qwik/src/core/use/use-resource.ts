@@ -190,6 +190,9 @@ export const Resource = <T>(props: ResourceProps<T>): JSXOutput => {
   return _jsxSorted(Fragment, null, null, getResourceValueAsPromise(props), 0, null);
 };
 
+const getResolved = <T>(resource: ResourceReturnInternal<T>) => resource._resolved;
+const getValue = <T>(resource: ResourceReturnInternal<T>) => resource.value;
+const getLoading = <T>(resource: ResourceReturnInternal<T>) => resource.loading;
 function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutput> | JSXOutput {
   const resource = props.value as ResourceReturnInternal<T> | Promise<T> | Signal<T>;
   if (isResourceReturn(resource)) {
@@ -197,7 +200,7 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
     const state = resource._state;
     const isBrowser = !isServerPlatform();
     if (isBrowser) {
-      DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(() => resource._resolved));
+      DEBUG && debugLog(`RESOURCE_CMP.${state}`, 'VALUE: ' + untrack(getResolved, resource));
 
       if (state === 'pending' && props.onPending) {
         resource.value.catch(() => {});
@@ -205,14 +208,14 @@ function getResourceValueAsPromise<T>(props: ResourceProps<T>): Promise<JSXOutpu
       } else if (state === 'rejected' && props.onRejected) {
         return Promise.resolve(resource._error!).then(useBindInvokeContext(props.onRejected));
       } else {
-        const resolvedValue = untrack(() => resource._resolved) as T;
+        const resolvedValue = untrack(getResolved, resource) as T;
         if (resolvedValue !== undefined) {
           // resolved, pending without onPending prop or rejected without onRejected prop
           return Promise.resolve(resolvedValue).then(useBindInvokeContext(props.onResolved));
         }
       }
     }
-    return untrack(() => resource.value).then(
+    return (untrack(getValue, resource) as Promise<T>).then(
       useBindInvokeContext(props.onResolved),
       useBindInvokeContext(props.onRejected)
     );
@@ -345,8 +348,8 @@ export const runResource = <T>(
    * previous one is not resolved yet. The next `runResource` run will call this cleanup
    */
   cleanups.push(() => {
-    if (untrack(() => resource!.loading) === true) {
-      const value = untrack(() => resource!._resolved) as T;
+    if (untrack(getLoading, resource!) === true) {
+      const value = untrack(getResolved, resource!) as T;
       setState(true, value);
     }
   });

@@ -106,10 +106,10 @@ describe('verifySerializable', () => {
 
     it('should verify value inside untrack callback', () => {
       let capturedCallback: any;
-      const untrackMock = vi.spyOn(useCore, 'untrack').mockImplementation(((fn: () => any) => {
+      const untrackMock = vi.spyOn(useCore, 'untrack').mockImplementation((fn, ...args: any[]) => {
         capturedCallback = fn;
-        return fn();
-      }) as any);
+        return (fn as any)(...args);
+      });
 
       const value = { test: 'value' };
       const result = verifySerializable(value);

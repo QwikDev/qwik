@@ -3,19 +3,24 @@ import { type AsyncSignal } from '../reactive-primitives/signal.public';
 import type { AsyncCtx, ComputedOptions } from '../reactive-primitives/types';
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
 import type { QRL } from '../shared/qrl/qrl.public';
-import { useComputedCommon } from './use-computed';
+import { useConstant } from './use-signal';
 
 /** @public */
 export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 /** @public */
 export type AsyncReturnType<T> = T extends Promise<infer T> ? AsyncSignal<T> : AsyncSignal<T>;
 
+const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => {
+  qrl.resolve();
+  return createAsyncSignal(qrl, options);
+};
+
 /** @internal */
 export const useAsyncQrl = <T>(
   qrl: QRL<AsyncFn<T>>,
   options?: ComputedOptions
 ): AsyncReturnType<T> => {
-  return useComputedCommon(qrl, createAsyncSignal, options);
+  return useConstant(creator, qrl, options) as any;
 };
 
 /**

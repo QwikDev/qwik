@@ -1802,7 +1802,7 @@ export const useSerializer$: typeof createSerializer$;
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ComputedSignal<unknown>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => SerializerSignalImpl<T, S>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;

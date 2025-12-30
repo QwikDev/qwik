@@ -136,7 +136,6 @@ export const scheduleEffects = (
               node.setProp(NODE_PROPS_DATA_KEY, data);
             }
             data.set(property, payload);
-            (consumer as ISsrNode).setProp(property, payload);
           }
           markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
         }

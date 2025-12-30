@@ -199,6 +199,64 @@ describe('SSR Backpatching', () => {
     expect(backpatchedLabel?.outerHTML).toContain('id="final-id"');
   });
 
+  it('should not serialize backpatched attributes into vnode data', async () => {
+    const Ctx = createContextId<{ id: Signal<string>; label: Signal<string> }>('ctx');
+
+    const Label = component$(() => {
+      const context = useContext(Ctx);
+      useTask$(() => {
+        context.label.value = 'final-label';
+        context.id.value = 'final-id';
+      });
+      return <label>Label</label>;
+    });
+
+    const Input = component$(() => {
+      const context = useContext(Ctx);
+      return (
+        <article aria-labelledby={context.label.value} id={context.id.value}>
+          <input />
+        </article>
+      );
+    });
+
+    const Root = component$(() => {
+      const id = useSignal('initial-id');
+      const label = useSignal('initial-label');
+      useContextProvider(Ctx, { id, label });
+      return (
+        <div>
+          <Input />
+          <Label />
+        </div>
+      );
+    });
+
+    const { document, vNode } = await ssrRenderToDom(<Root />, { debug });
+
+    expect(document.body.innerHTML).toContain(ELEMENT_BACKPATCH_DATA);
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <article aria-labelledby="final-label" id="final-id">
+              <input></input>
+            </article>
+          </Component>
+          <Component>
+            <label>Label</label>
+          </Component>
+        </div>
+      </Component>
+    );
+
+    const backpatchedArticle = document.querySelector('article');
+    expect(
+      (backpatchedArticle?.ownerDocument as any).qVNodeData?.get(backpatchedArticle)
+    ).not.toContain('aria');
+  });
+
   describe('removing attributes', () => {
     it('should remove attribute if the value is undefined', async () => {
       const Ctx = createContextId<{ descId: Signal<string | undefined> }>('bp-ctx-1');

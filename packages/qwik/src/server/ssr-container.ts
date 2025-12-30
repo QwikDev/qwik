@@ -851,12 +851,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
           this.write(VNodeDataChar.SLOT_CHAR);
           break;
         default: {
+          encodeValue = true;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(key);
+          this.write(encodeVNodeDataString(key));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
-      const encodedValue = encodeValue ? encodeVNodeDataString(encodeURI(value)) : value;
+      const encodedValue = encodeVNodeDataString(encodeValue ? encodeURI(value) : value);
       const isEncoded = encodeValue ? encodedValue !== value : false;
       if (isEncoded) {
         // add separator only before and after the encoded value

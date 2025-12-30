@@ -165,6 +165,107 @@ describe.each([
       </Component>
     );
   });
+  it('should project to named slot', async () => {
+    const Child = component$(() => {
+      return (
+        <div>
+          <Slot name="header" />
+          <Slot />
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      return (
+        <Child>
+          <h1 q:slot="header">Title</h1>
+          body-content
+        </Child>
+      );
+    });
+    const { vNode } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <Component>
+          <div>
+            <Projection>
+              <h1 q:slot="header">Title</h1>
+            </Projection>
+            <Projection>body-content</Projection>
+          </div>
+        </Component>
+      </Component>
+    );
+  });
+  it('should project to named slot with separator character', async () => {
+    const Child = component$(() => {
+      return (
+        <div>
+          <Slot name="main-header" />
+          <Slot />
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          <Child>
+            {toggle.value && <h1 q:slot="main-header">Title</h1>}
+            body-content
+          </Child>
+        </>
+      );
+    });
+    const { vNode, document } = await render(<Parent />, { debug: DEBUG });
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <h1 q:slot="main-header">Title</h1>
+              </Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required></Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          <button></button>
+          <Component ssr-required>
+            <div>
+              <Projection ssr-required>
+                <h1 q:slot="main-header">Title</h1>
+              </Projection>
+              <Projection ssr-required>body-content</Projection>
+            </div>
+          </Component>
+        </Fragment>
+      </Component>
+    );
+  });
+
   it('should project projected', async () => {
     const Child = component$(() => {
       return (

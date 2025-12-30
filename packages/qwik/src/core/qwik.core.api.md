@@ -1756,7 +1756,7 @@ export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | u
 export const useComputedQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: ComputedOptions) => ComputedReturnType<T>;
 
 // @public
-export const useConstant: <T>(value: (() => T) | T) => T;
+export const useConstant: <T, A extends any[]>(value: ((...args: A) => T) | T, ...args: A) => T;
 
 // Warning: (ae-forgotten-export) The symbol "UseContext" needs to be exported by the entry point index.d.ts
 //

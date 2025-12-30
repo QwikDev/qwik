@@ -103,7 +103,7 @@ export class AsyncSignalImpl<T> extends ComputedSignalImpl<T, AsyncQRL<T>> imple
   async promise(): Promise<T> {
     // make sure we get a new promise during the next computation
     this.$promise$ = null;
-    await retryOnPromise(() => this.$computeIfNeeded$());
+    await retryOnPromise(this.$computeIfNeeded$.bind(this));
     return this.$untrackedValue$!;
   }
 

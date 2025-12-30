@@ -31,18 +31,19 @@ const _hasOwnProperty = Object.prototype.hasOwnProperty;
  * @param children - JSX children. Any `children` in the props objects are ignored.
  * @internal
  */
-
 export const _jsxSorted = <T>(
   type: T,
   varProps: Props | null,
   constProps: Props | null,
   children: JSXChildren | null,
+  // TODO use this to know static parts of the tree
   flags: number,
   key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNodeInternal<T> => {
   return new JSXNodeImpl(type, varProps, constProps, children, key, false, dev);
 };
+
 /**
  * Create a JSXNode, with the properties split into variable and constant parts, but the variable
  * parts could include keys from `constProps`, as well as `key` and `children`.
@@ -59,7 +60,6 @@ export const _jsxSorted = <T>(
  *   for changes on re-render
  * @internal
  */
-
 export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   type: T,
   varProps: Props | null,
@@ -234,7 +234,6 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   return new JSXNodeImpl(type, varProps, constProps, children, key, toSort || true, dev);
 };
 /** @internal @deprecated v1 compat */
-
 export const _jsxC = (type: any, mutable: any, _flags: any, key: any) => jsx(type, mutable, key);
 /** @internal @deprecated v1 compat */
 export const _jsxS = (type: any, mutable: any, immutable: any, _flags: any, key: any) =>

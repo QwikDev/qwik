@@ -10,15 +10,16 @@ export interface UseSignal {
   <T>(value: T | (() => T)): Signal<T>;
 }
 
+const getSignal = <STATE>(initialState?: STATE) => {
+  const value =
+    isFunction(initialState) && !isQwikComponent(initialState)
+      ? invoke(undefined, initialState as any)
+      : initialState;
+  return createSignal<STATE>(value);
+};
 /** @public */
 export const useSignal: UseSignal = <STATE>(initialState?: STATE): Signal<STATE> => {
-  return useConstant(() => {
-    const value =
-      isFunction(initialState) && !isQwikComponent(initialState)
-        ? invoke(undefined, initialState as any)
-        : initialState;
-    return createSignal<STATE>(value);
-  });
+  return useConstant(getSignal<STATE>, initialState);
 };
 
 /**

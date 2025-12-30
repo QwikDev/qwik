@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { build } from 'vite';
-import { fileSize, type BuildConfig } from './util';
+import { fileSize, type BuildConfig } from './util.ts';
 import { minify } from 'terser';
 import type { Plugin } from 'vite';
 

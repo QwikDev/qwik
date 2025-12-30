@@ -18,9 +18,9 @@ import {
 } from "node:fs";
 import type { QwikManifest } from "@builder.io/qwik/optimizer";
 import type { Render, RenderToStreamOptions } from "@builder.io/qwik/server";
-import type { PackageJSON } from "../scripts/util";
+import type { PackageJSON } from "../scripts/types.ts";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler";
+import { getErrorHtml } from "../packages/qwik-city/src/middleware/request-handler/error-handler.ts";
 
 const isWindows = process.platform === "win32";
 

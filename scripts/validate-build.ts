@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { type BuildConfig, type PackageJSON, panic } from './util';
-import { access, readFile } from './util';
+import { type BuildConfig, type PackageJSON, panic } from './util.ts';
+import { access, readFile } from './util.ts';
 import { basename, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rollup } from 'rollup';

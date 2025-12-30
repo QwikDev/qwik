@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { readLines, scanFiles, writeFileLines } from './util';
+import { readLines, scanFiles, writeFileLines } from './util.ts';
 
 export function main(dir: string) {
   console.log('Fetching HackMD content...');

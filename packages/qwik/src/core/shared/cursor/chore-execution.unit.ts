@@ -124,7 +124,6 @@ function createMockCursorData(container: Container): CursorData {
     position: null,
     priority: 0,
     promise: null,
-    isBlocking: false,
   };
 }
 
@@ -228,7 +227,6 @@ describe('executeTasks', () => {
     const result = executeTasks(vNode, container, cursorData);
 
     expect(result).toBeInstanceOf(Promise);
-    expect(cursorData.isBlocking).toBe(true);
   });
 
   it('should add non-blocking task promises to extraPromises', () => {
@@ -241,19 +239,6 @@ describe('executeTasks', () => {
     executeTasks(vNode, container, cursorData);
 
     expect(cursorData.extraPromises).toEqual([promise]);
-  });
-
-  it('should clear blocking flag after render-blocking task completes synchronously', () => {
-    const task = createMockTask(
-      TaskFlags.TASK | TaskFlags.DIRTY | TaskFlags.RENDER_BLOCKING,
-      vNode as any
-    );
-    container.setHostProp(vNode, ELEMENT_SEQ, [task]);
-    vi.mocked(runTask).mockReturnValue(undefined);
-
-    executeTasks(vNode, container, cursorData);
-
-    expect(cursorData.isBlocking).toBe(false);
   });
 
   it('should handle multiple tasks of different types', () => {

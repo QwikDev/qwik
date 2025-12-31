@@ -20,8 +20,6 @@ export interface CursorData {
   position: VNode | null;
   priority: number;
   promise: Promise<void> | null;
-  /** True when executing a render-blocking task (before promise is set) */
-  isBlocking: boolean;
 }
 
 /**

@@ -108,6 +108,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <Issue5266 />
       <DynamicButton id="dynamic-button" />;
       <RerenderOnce />
+      <Issue8213 />
     </>
   );
 });
@@ -992,6 +993,66 @@ export const RerenderOnce = component$(() => {
         click
       </button>
       <RerenderOnceChild obj={globalObj[foo.value]} foo={foo} />
+    </div>
+  );
+});
+
+const ctxId = createContextId<{
+  isTitle: Signal<boolean>;
+}>("my-Issue8213");
+const Issue8213Render = component$((props: any): JSXOutput => {
+  const { fallback: _fallback, jsxType: _jsxType, movedProps, ...rest } = props;
+
+  const Comp = (props.jsxType ?? props.fallback) as any;
+
+  return (
+    <Comp {...rest} {...movedProps}>
+      <Slot />
+    </Comp>
+  );
+});
+const Issue8213Child = component$(() => {
+  const ctx = useContext(ctxId);
+  useTask$(() => {
+    ctx.isTitle.value = true;
+  });
+  return <Slot />;
+});
+const Issue8213Parent = component$((props: any) => {
+  const { align: _align, ...rest } = props;
+  const isTitle = useSignal(false);
+  const titleId = `title`;
+  useContextProvider(ctxId, {
+    isTitle,
+  });
+  return (
+    <>
+      <Issue8213Render
+        {...rest}
+        fallback="div"
+        id="issue-8213-render"
+        aria-labelledby={isTitle.value ? titleId : undefined}
+      >
+        <Slot />
+      </Issue8213Render>
+    </>
+  );
+});
+const Issue8213 = component$(() => {
+  const toggle = useSignal(false);
+  return (
+    <div>
+      <button
+        id="issue-8213-button"
+        onClick$={() => (toggle.value = !toggle.value)}
+      >
+        Toggle
+      </button>
+      {toggle.value && (
+        <Issue8213Parent data-testid="root">
+          <Issue8213Child>Child</Issue8213Child>
+        </Issue8213Parent>
+      )}
     </div>
   );
 });

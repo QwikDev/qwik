@@ -14,6 +14,7 @@ import {
 /** Builds and minifies the backpatch executor javascript files. This is based off of the qwikloader */
 export async function submoduleBackpatch(config: BuildConfig) {
   await build({
+    clearScreen: false,
     build: {
       emptyOutDir: false,
       copyPublicDir: false,

@@ -174,7 +174,10 @@
   "scripts": {
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/testing/vdom-diff.unit-util.ts",
+    "./src/testing/mocks.ts"
+  ],
   "type": "module",
   "types": "./public.d.ts"
 }

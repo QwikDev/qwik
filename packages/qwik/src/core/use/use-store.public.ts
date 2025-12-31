@@ -19,10 +19,15 @@ export interface UseStoreOptions {
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
 // (edit ../readme.md#useStore instead and run `pnpm docs.sync`)
 /**
- * Creates an object that Qwik can track across serializations.
+ * Creates a reactive object that Qwik can track across serialization.
  *
- * Use `useStore` to create a state for your application. The returned object is a proxy that has a
- * unique ID. The ID of the object is used in the `QRL`s to refer to the store.
+ * Use it to create state for your application. The returned object is a Proxy that tracks reads and
+ * writes. When any of the properties change, the functions that read those properties will re-run.
+ *
+ * `Store`s are deep by default, meaning that any objects assigned to properties will also become
+ * `Store`s. This includes arrays.
+ *
+ * Prefer `useSignal` over `useStore` when possible, as it is more efficient.
  *
  * ### Example
  *

@@ -1,6 +1,6 @@
 import { isDev } from '@qwik.dev/core/build';
-import { VNodeDataFlag } from 'packages/qwik/src/server/types';
-import type { VNodeData } from 'packages/qwik/src/server/vnode-data';
+import { VNodeDataFlag } from '../../../server/types';
+import type { VNodeData } from '../../../server/vnode-data';
 import { vnode_isVNode } from '../../client/vnode-utils';
 import { _EFFECT_BACK_REF } from '../../internal';
 import { AsyncSignalImpl } from '../../reactive-primitives/impl/async-signal-impl';

@@ -180,11 +180,11 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
  *   step?: number;
  * }
  * export const Counter = component$((props: CounterProps) => {
- *   const state = useStore({ count: props.initialValue || 0 });
+ *   const state = useSignal(props.initialValue || 0);
  *   return (
  *     <div>
- *       <span>{state.count}</span>
- *       <button onClick$={() => (state.count += props.step || 1)}>+</button>
+ *       <span>{state.value}</span>
+ *       <button onClick$={() => (state.value += props.step || 1)}>+</button>
  *     </div>
  *   );
  * });

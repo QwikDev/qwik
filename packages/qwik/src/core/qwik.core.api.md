@@ -18,11 +18,8 @@ export const $: <T>(expression: T) => QRL<T>;
 export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
 
 // @public (undocumented)
-export type AsyncReturnType<T> = T extends Promise<infer T> ? AsyncSignal<T> : AsyncSignal<T>;
-
-// @public (undocumented)
 export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
-    error: Error | null;
+    error: Error | undefined;
     loading: boolean;
     promise(): Promise<T>;
 }
@@ -193,7 +190,7 @@ export interface CorrectedToggleEvent extends Event {
 }
 
 // @public
-export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncReturnType<T>;
+export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T>;
 
 // Warning: (ae-forgotten-export) The symbol "AsyncSignalImpl" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1740,12 +1737,12 @@ export const untrack: <T, A extends any[]>(expr: ((...args: A) => T) | Signal<T>
 export const unwrapStore: <T>(value: T) => T;
 
 // @public
-export const useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncReturnType<T>;
+export const useAsync$: <T>(qrl: AsyncFn<T>, options?: ComputedOptions | undefined) => AsyncSignal<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => AsyncReturnType<T>;
+export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => AsyncSignal<T>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions | undefined) => ComputedReturnType<T>;
@@ -1818,7 +1815,7 @@ export interface UseSignal {
     <T>(value: T | (() => T)): Signal<T>;
 }
 
-// @public (undocumented)
+// @public
 export const useSignal: UseSignal;
 
 // @public

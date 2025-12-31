@@ -46,6 +46,39 @@ export interface ComputedOptions {
   container?: Container;
 }
 
+/** @public */
+export interface AsyncSignalOptions<T> extends ComputedOptions {
+  /**
+   * Like useSignal's `initial`; prevents the throw on first read when uninitialized
+   *
+   * @deprecated Not implemented yet
+   */
+  initial?: T | (() => T);
+  /**
+   * When subscribers drop to 0, run cleanup in the next tick, instead of waiting for the function
+   * inputs to change.
+   *
+   * @deprecated Not implemented yet
+   * @default false
+   */
+  eagerCleanup?: boolean;
+  /**
+   * Wait for previous invocation to complete before running again.
+   *
+   * @deprecated Not implemented yet
+   * @default true
+   */
+  awaitPrevious?: boolean;
+  /**
+   * In the browser, re-run the function after `poll` ms if subscribers exist, even when no input
+   * state changed. If `0`, does not poll.
+   *
+   * @deprecated Not implemented yet
+   * @default 0
+   */
+  poll?: number;
+}
+
 export const enum SignalFlags {
   INVALID = 1,
   RUN_EFFECTS = 2,
@@ -57,10 +90,15 @@ export const enum WrappedSignalFlags {
 }
 
 export const enum SerializationSignalFlags {
+  SERIALIZATION_STRATEGY_NEVER = 8,
+  SERIALIZATION_STRATEGY_ALWAYS = 16,
   // TODO: implement this in the future
-  // SERIALIZATION_STRATEGY_AUTO = 8,
-  SERIALIZATION_STRATEGY_NEVER = 16,
-  SERIALIZATION_STRATEGY_ALWAYS = 32,
+  // SERIALIZATION_STRATEGY_AUTO = SERIALIZATION_STRATEGY_NEVER | SERIALIZATION_STRATEGY_ALWAYS,
+}
+
+export const enum AsyncSignalFlags {
+  EAGER_CLEANUP = 32,
+  AWAIT_PREVIOUS = 64,
 }
 
 export type AllSignalFlags = SignalFlags | WrappedSignalFlags | SerializationSignalFlags;

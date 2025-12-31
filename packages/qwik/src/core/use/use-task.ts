@@ -55,6 +55,8 @@ export const enum TaskFlags {
  *   useTask$(({ track }) => {
  *     // Any signals or stores accessed inside the task will be tracked
  *     const count = track(() => store.count);
+ *     // For stores you can also pass the store and specify the property
+ *     track(store, 'count');
  *     // You can also pass a signal to track() directly
  *     const signalCount = track(signal);
  *     store.doubleCount = count + signalCount;

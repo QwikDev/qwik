@@ -7,8 +7,6 @@ import { useConstant } from './use-signal';
 
 /** @public */
 export type AsyncFn<T> = (ctx: AsyncCtx) => Promise<T>;
-/** @public */
-export type AsyncReturnType<T> = T extends Promise<infer T> ? AsyncSignal<T> : AsyncSignal<T>;
 
 const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => {
   qrl.resolve();
@@ -16,20 +14,15 @@ const creator = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions) => {
 };
 
 /** @internal */
-export const useAsyncQrl = <T>(
-  qrl: QRL<AsyncFn<T>>,
-  options?: ComputedOptions
-): AsyncReturnType<T> => {
-  return useConstant(creator, qrl, options) as any;
+export const useAsyncQrl = <T>(qrl: QRL<AsyncFn<T>>, options?: ComputedOptions): AsyncSignal<T> => {
+  return useConstant(creator<T>, qrl, options);
 };
 
 /**
- * Creates an AsyncSignal which is calculated from the given async function. If the function uses
- * reactive state, and that state changes, the AsyncSignal is recalculated, and if the result
- * changed, all tasks which are tracking the AsyncSignal will be re-run and all components that read
- * the AsyncSignal will be re-rendered.
- *
- * The function must not have any side effects, as it can run multiple times.
+ * Creates an AsyncSignal which holds the result of the given async function. If the function uses
+ * `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and
+ * if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all
+ * subscribers (components, tasks etc) that read the AsyncSignal will be updated.
  *
  * If the async function throws an error, the AsyncSignal will capture the error and set the `error`
  * property. The error can be cleared by re-running the async function successfully.

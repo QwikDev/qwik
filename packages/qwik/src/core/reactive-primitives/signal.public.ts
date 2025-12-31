@@ -7,7 +7,6 @@ import {
   createAsyncSignal as createAsyncQrl,
 } from './signal-api';
 import type { ComputedReturnType } from '../use/use-computed';
-import type { AsyncReturnType } from '../use/use-async';
 export { isSignal } from './utils';
 
 /** @public */
@@ -20,7 +19,7 @@ export interface AsyncSignal<T = unknown> extends ComputedSignal<T> {
   /** Whether the signal is currently loading. */
   loading: boolean;
   /** The error that occurred while computing the signal. */
-  error: Error | null;
+  error: Error | undefined;
   /** A promise that resolves when the value is computed. */
   promise(): Promise<T>;
 }
@@ -111,10 +110,8 @@ export { createComputedQrl };
  *
  * @public
  */
-export const createAsync$: <T>(
-  qrl: () => Promise<T>,
-  options?: ComputedOptions
-) => AsyncReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
+export const createAsync$: <T>(qrl: () => Promise<T>, options?: ComputedOptions) => AsyncSignal<T> =
+  /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };
 
 /**

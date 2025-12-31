@@ -494,8 +494,7 @@ test.describe("render", () => {
       await expect(result).toHaveAttribute("aria-labelledby", "title");
     });
 
-    // TODO: change scheduler to cursor-based and fix this test
-    test.skip("should rerender child once", async ({ page }) => {
+    test("should rerender child once", async ({ page }) => {
       const button = page.locator("#rerender-once-button");
       const rerenderOnceChild = page.locator("#rerender-once-child");
       await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');

@@ -87,11 +87,6 @@ export function executeTasks(
       } else {
         // Regular tasks: chain promises only between each other
         const isRenderBlocking = !!(task.$flags$ & TaskFlags.RENDER_BLOCKING);
-        // Set blocking flag before running task so signal changes during
-        // sync portion of task execution know to defer
-        if (isRenderBlocking) {
-          cursorData.isBlocking = true;
-        }
         const result = runTask(task, container, vNode);
         if (isPromise(result)) {
           if (isRenderBlocking) {
@@ -102,9 +97,6 @@ export function executeTasks(
             // TODO: set extrapromises on vNode instead of cursorData if server
             (cursorData.extraPromises ||= []).push(result as Promise<void>);
           }
-        } else if (isRenderBlocking) {
-          // Task completed synchronously, clear the blocking flag
-          cursorData.isBlocking = false;
         }
       }
     }

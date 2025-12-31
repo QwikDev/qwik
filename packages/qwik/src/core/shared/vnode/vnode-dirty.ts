@@ -76,18 +76,11 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
 
   while (current) {
     const currentIsCursor = isCursor(current);
-    const isBlockingCursor = currentIsCursor && getCursorData(current)?.isBlocking;
 
-    if (isBlockingCursor) {
+    if (currentIsCursor) {
       propagatePath(current);
       reusablePath.length = 0;
       return true;
-    }
-
-    // Found non-blocking cursor - no point looking further up
-    if (currentIsCursor) {
-      reusablePath.length = 0;
-      return false;
     }
 
     reusablePath.push(current);

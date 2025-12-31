@@ -7,6 +7,7 @@
     "cf-typegen": "wrangler types"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251228.0",
     "wrangler": "^3.0.0"
   },
   "__qwik__": {
@@ -19,6 +20,7 @@
     "nextSteps": {
       "title": "Next Steps",
       "lines": [
+        "Make sure to follow the instructions in the [Cloudflare Workers documentation](https://qwik.dev/deployments/cloudflare-workers/) to setup your Qwik app.",
         "Now you can build and deploy to Cloudflare Workers with:",
         "",
         "- pnpm run build: production build for Cloudflare",

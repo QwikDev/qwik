@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2862
+assertion_line: 2863
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -57,6 +56,12 @@ import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _fnSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>12 + p0.value;
+const _hf0_str = "12+p0.value";
+const _hf1 = (p0)=>p0.address.city.name;
+const _hf1_str = "p0.address.city.name";
+const _hf2 = (p0)=>p0.address.city.name ? 'true' : 'false';
+const _hf2_str = 'p0.address.city.name?"true":"false"';
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { useStore, mutable } from '@qwik.dev/core';
 import { dep } from './file';
@@ -85,15 +90,15 @@ const App_component_ckEPmXZlub0 = ()=>{
         /*#__PURE__*/ _jsxSorted("div", null, null, typeof `text${12}` === 'string' ? 12 : 43, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, signal, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, _wrapProp(signal), 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>12 + p0.value, [
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf0, [
             signal
-        ], "12+p0.value"), 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>p0.address.city.name, [
+        ], _hf0_str), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf1, [
             store
-        ], "p0.address.city.name"), 3, null),
-        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal((p0)=>p0.address.city.name ? 'true' : 'false', [
+        ], _hf1_str), 3, null),
+        /*#__PURE__*/ _jsxSorted("div", null, null, _fnSignal(_hf2, [
             store
-        ], 'p0.address.city.name?"true":"false"'), 3, null),
+        ], _hf2_str), 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, null, dep.thing + 'stuff', 3, null),
@@ -109,7 +114,7 @@ const App_component_ckEPmXZlub0 = ()=>{
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(App_component_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;AACA,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACtC,qBACC;sBACC,WAAC;YAAI;sBAAU;;sBACf,WAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,WAAC,mBAAK;sBACN,WAAC,mBAAK;sBACN,WAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;sBACjB,WAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;sBAC7C,WAAC,mBAAK;sBACN,WAAC,6BAAK;sBACN,WAAC,mCAAK,KAAK,GAAO,KAAK;;;sBACvB,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;;sBAC7B,WAAC,mCAAK,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;sBACzC,WAAC,mBAAK;sBACN,WAAC,mBAAK,IAAI,KAAK;sBACf,WAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,WAAC,mBAAK;sBACN,WAAC,mBAAK,YAAY,KAAK;sBACvB,WAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,WAAC,mBAAK,OAAO,KAAK;sBAClB,WAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,WAAC,mBAAK,QAAQ;sBACd,WAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBA2BS,KAAK,GAAO,KAAK;;mBACjB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI;;mBACvB,GAAM,OAAO,CAAC,IAAI,CAAC,IAAI,GAAG,SAAS;;;AA5B5C,SAAqB,QAAQ,EAAE,OAAO,QAAQ,iBAAiB;AAE/D,SAAQ,GAAG,QAAO,SAAS;0CAEW,CAAC;IACtC,qBACC;sBACC,WAAC;YAAI;sBAAU;;sBACf,WAAC;YAAI;sBAAQ;;;AAGhB;AAPA,OAAO,MAAM,4BAAc,+GAOxB;kCAE2B;IAC7B,MAAM,SAAS,UAAU;IACzB,MAAM,QAAQ,SAAS,CAAC;IACxB,qBACC;sBACC,WAAC,mBAAI;sBACL,WAAC,mBAAK,CAAC,IAAI,CAAC;sBACZ,WAAC,mBAAK;sBACN,WAAC,mBAAK;sBACN,WAAC,mBAAK,CAAC,IAAI,EAAE,IAAI;sBACjB,WAAC,mBAAK,OAAO,CAAC,IAAI,EAAE,IAAI,KAAK,WAAW,KAAK;sBAC7C,WAAC,mBAAK;sBACN,WAAC,6BAAK;sBACN,WAAC;;;sBACD,WAAC;;;sBACD,WAAC;;;sBACD,WAAC,mBAAK;sBACN,WAAC,mBAAK,IAAI,KAAK;sBACf,WAAC,mBAAK,IAAI,KAAK,GAAG;sBAClB,WAAC,mBAAK;sBACN,WAAC,mBAAK,YAAY,KAAK;sBACvB,WAAC,mBAAK,YAAY,KAAK,GAAG;sBAC1B,WAAC,mBAAK,OAAO,KAAK;sBAClB,WAAC,mBAAK,OAAO,KAAK,GAAG;sBACrB,WAAC,mBAAK,QAAQ;sBACd,WAAC,mBAAK,OAAO,KAAK,GAAG;;AAGxB;AA5BA,OAAO,MAAM,oBAAM,+FA4BhB\"}")
 == DIAGNOSTICS ==
 
 []

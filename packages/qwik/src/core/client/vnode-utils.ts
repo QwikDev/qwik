@@ -1718,10 +1718,10 @@ export function vnode_toString(
         attrs.push(` dirtyChildren[${vnode.dirtyChildren.length}]`);
       }
       const keys = vnode_getAttrKeys(vnode);
-      keys.forEach((key) => {
+      for (const key of keys) {
         const value = vnode_getProp(vnode!, key, null);
         attrs.push(' ' + key + '=' + qwikDebugToString(value));
-      });
+      }
       const node = vnode_getNode(vnode) as HTMLElement;
       if (node) {
         const vnodeData = (fastOwnerDocument(node) as QDocument).qVNodeData?.get(node);
@@ -1875,7 +1875,7 @@ function materializeFromVNodeData(
       vFirst = vLast = null;
     } else if (peek() === VNodeDataChar.SEPARATOR) {
       // Custom attribute: |key|value
-      const key = consumeValue();
+      const key = decodeVNodeDataString(consumeValue());
       const value = decodeVNodeDataString(consumeValue());
       vnode_setProp(vParent, key, value);
     } else if (peek() === VNodeDataChar.CLOSE) {
@@ -1887,7 +1887,8 @@ function materializeFromVNodeData(
       vFirst = stack.pop();
       vParent = stack.pop();
     } else if (peek() === VNodeDataChar.SLOT) {
-      vnode_setProp(vParent, QSlot, consumeValue());
+      const value = decodeVNodeDataString(consumeValue());
+      vnode_setProp(vParent, QSlot, value);
     } else {
       // skip over style or non-qwik elements in front of text nodes, where text node is the first child (except the style node)
       while (isElement(child) && shouldSkipElement(child)) {

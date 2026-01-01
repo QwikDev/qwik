@@ -1,5 +1,19 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.17
+
+### Minor Changes
+
+- ✨ cursor based chore scheduling (by [@Varixo](https://github.com/Varixo) in [#8181](https://github.com/QwikDev/qwik/pull/8181))
+
+### Patch Changes
+
+- 🐞🩹 apply journal in correct order for some edge cases (by [@Varixo](https://github.com/Varixo) in [#8218](https://github.com/QwikDev/qwik/pull/8218))
+
+- 🐞🩹 correct escaping separator characters in attributes (by [@Varixo](https://github.com/Varixo) in [#8216](https://github.com/QwikDev/qwik/pull/8216))
+
+- 🐞🩹 reduce memory allocation for cursors (by [@Varixo](https://github.com/Varixo) in [#8212](https://github.com/QwikDev/qwik/pull/8212))
+
 ## 2.0.0-beta.16
 
 ### Patch Changes

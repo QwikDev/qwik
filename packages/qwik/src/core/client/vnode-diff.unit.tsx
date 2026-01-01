@@ -1046,11 +1046,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is replaced with non-signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner = createSignal('initial') as SignalImpl;
-            const wrapped1 = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped1 = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1081,11 +1078,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is replaced with another wrapped signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner1 = createSignal('first') as SignalImpl;
-            const wrapped1 = _fnSignal(
-              () => inner1.value,
-              [],
-              '() => inner1.value'
-            ) as WrappedSignalImpl<any>;
+            const fn1 = () => inner1.value;
+            const wrapped1 = _fnSignal(fn1, [], '() => inner1.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1102,11 +1096,8 @@ describe('vNode-diff', () => {
 
             // Replace with another wrapped signal using a different inner signal
             const inner2 = createSignal('second') as SignalImpl;
-            const wrapped2 = _fnSignal(
-              () => inner2.value,
-              [],
-              '() => inner2.value'
-            ) as WrappedSignalImpl<any>;
+            const fn2 = () => inner2.value;
+            const wrapped2 = _fnSignal(fn2, [], '() => inner2.value') as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
             vnode_diff(container, journal2, test2, vParent, vParent, null);
@@ -1128,11 +1119,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when wrapped signal attribute is removed', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const inner = createSignal('test') as SignalImpl;
-            const wrapped = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1164,11 +1152,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is replaced with non-signal', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store = getOrCreateStore({ cls: 'initial' }, StoreFlags.RECURSIVE, container);
-            const wrapped1 = _fnSignal(
-              () => store.cls,
-              [],
-              '() => store.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => store.cls;
+            const wrapped1 = _fnSignal(fn, [], '() => store.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1198,11 +1183,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is replaced with another store wrapped attribute', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store1 = getOrCreateStore({ cls: 'first' }, StoreFlags.RECURSIVE, container);
-            const wrapped1 = _fnSignal(
-              () => store1.cls,
-              [],
-              '() => store1.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn1 = () => store1.cls;
+            const wrapped1 = _fnSignal(fn1, [], '() => store1.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped1 }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1217,11 +1199,8 @@ describe('vNode-diff', () => {
 
             // Replace with another wrapped signal using a different store
             const store2 = getOrCreateStore({ cls: 'second' }, StoreFlags.RECURSIVE, container);
-            const wrapped2 = _fnSignal(
-              () => store2.cls,
-              [],
-              '() => store2.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn2 = () => store2.cls;
+            const wrapped2 = _fnSignal(fn2, [], '() => store2.cls') as WrappedSignalImpl<any>;
             const test2 = _jsxSorted('span', { class: wrapped2 }, null, [], 0, null);
             const journal2: VNodeJournal = [];
             vnode_diff(container, journal2, test2, vParent, vParent, null);
@@ -1240,11 +1219,8 @@ describe('vNode-diff', () => {
           it('should cleanup effects when store wrapped attribute is removed', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
             const store = getOrCreateStore({ cls: 'test' }, StoreFlags.RECURSIVE, container);
-            const wrapped = _fnSignal(
-              () => store.cls,
-              [],
-              '() => store.cls'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => store.cls;
+            const wrapped = _fnSignal(fn, [], '() => store.cls') as WrappedSignalImpl<any>;
             const test1 = _jsxSorted('span', { class: wrapped }, null, [], 0, null);
             const journal: VNodeJournal = [];
             vnode_diff(container, journal, test1, vParent, vParent, null);
@@ -1275,11 +1251,8 @@ describe('vNode-diff', () => {
             const { vParent, container } = vnode_fromJSX(_jsxSorted('div', {}, null, [], 0, null));
 
             const inner = createSignal('cls') as SignalImpl<string>;
-            const wrapped = _fnSignal(
-              () => inner.value,
-              [],
-              '() => inner.value'
-            ) as WrappedSignalImpl<any>;
+            const fn = () => inner.value;
+            const wrapped = _fnSignal(fn, [], '() => inner.value') as WrappedSignalImpl<any>;
 
             const Child = component$((props: any) => {
               return <span class={props.cls.value}></span>;

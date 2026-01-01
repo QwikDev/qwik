@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3048
+assertion_line: 3049
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -30,6 +29,8 @@ import { _fnSignal } from "@qwik.dev/core";
 import { useLexicalScope } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`;
+const _hf0_str = '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`';
 import { useSignal } from '@qwik.dev/core';
 const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
     const [counter] = useLexicalScope();
@@ -38,10 +39,10 @@ const Issue3742_component_div_button_onClick_a504K2BCEXg = ()=>{
 const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
     const counter = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", {
-        title: _fnSignal((p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`, [
+        title: _fnSignal(_hf0, [
             _rawProps,
             counter
-        ], '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`')
+        ], _hf0_str)
     }, null, [
         "Issue3742",
         /*#__PURE__*/ _jsxSorted("button", null, {
@@ -54,7 +55,7 @@ const Issue3742_component_svSy0PlWTAw = (_rawProps)=>{
 export const Issue3742 = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Issue3742_component_svSy0PlWTAw, "Issue3742_component_svSy0PlWTAw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAqB,SAAS,QAAQ,iBAAiB;2DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK,sBAAE,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;;;;QACjG;sBAED,WAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAOS,AAAC,IAJ4B,eAAc,OAI3B,oBAJ+B,QAIL,CAAC,MAAM,EAAE,GAAQ,KAAK,EAAE,GAAG,CAAC,IAAI,EAAE,GAAQ,KAAK,EAAE;;AANpG,SAAqB,SAAS,QAAQ,iBAAiB;2DASnC;;WAAM,QAAQ,KAAK;;wCAPH;IACnC,MAAM,UAAU,UAAU;IAC1B,qBACC,WAAC;QACD,KAAK;;;;;QACJ;sBAED,WAAC;YAAO,QAAQ;;;WAAyB;;AAK1C;AAZD,OAAO,MAAM,0BAAY,2GAYrB\"}")
 == DIAGNOSTICS ==
 
 []

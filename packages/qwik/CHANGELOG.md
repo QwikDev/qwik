@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- ✨ cursor based chore scheduling (by [@Varixo](https://github.com/Varixo) in [#8181](https://github.com/QwikDev/qwik/pull/8181))
+- ✨ cursor based chore scheduling (by [@Varixo](https://github.com/Varixo) in [#8181](https://github.com/QwikDev/qwik/pull/8181)), for CSR.
 
 ### Patch Changes
 

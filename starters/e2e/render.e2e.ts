@@ -487,8 +487,14 @@ test.describe("render", () => {
       await expect(tag).toHaveAttribute("data-v", "bar");
     });
 
-    // TODO: change scheduler to cursor-based and fix this test
-    test.skip("should rerender child once", async ({ page }) => {
+    test("issue 8213 - correct journal flush order", async ({ page }) => {
+      const button = page.locator("#issue-8213-button");
+      const result = page.locator("#issue-8213-render");
+      await button.click();
+      await expect(result).toHaveAttribute("aria-labelledby", "title");
+    });
+
+    test("should rerender child once", async ({ page }) => {
       const button = page.locator("#rerender-once-button");
       const rerenderOnceChild = page.locator("#rerender-once-child");
       await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');

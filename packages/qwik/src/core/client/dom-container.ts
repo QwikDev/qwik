@@ -61,6 +61,7 @@ import {
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import { _jsxSorted } from '../internal';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -165,21 +166,24 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
   handleError(err: any, host: VNode | null): void {
     if (qDev && host) {
       if (typeof document !== 'undefined') {
-        const vHost = host;
-        const vHostParent = vHost.parent;
-        const vHostNextSibling = vHost.nextSibling as VNode | null;
-        const journal: VNodeJournal = [];
-        const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
-        // If the host is an element node, we need to insert the error div into its parent.
-        const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
-        // If the host is different then we need to insert errored-host in the same position as the host.
-        const insertBefore = insertHost === vHost ? null : vHostNextSibling;
-        vnode_insertBefore(
-          journal,
-          insertHost as ElementVNode | VirtualVNode,
-          vErrorDiv,
-          insertBefore
-        );
+        const createErrorWrapper = () => {
+          const vHost = host;
+          const vHostParent = vHost.parent;
+          const vHostNextSibling = vHost.nextSibling as VNode | null;
+          const journal: VNodeJournal = [];
+          const vErrorDiv = vnode_createErrorDiv(journal, document, vHost, err);
+          // If the host is an element node, we need to insert the error div into its parent.
+          const insertHost = vnode_isElementVNode(vHost) ? vHostParent || vHost : vHost;
+          // If the host is different then we need to insert errored-host in the same position as the host.
+          const insertBefore = insertHost === vHost ? null : vHostNextSibling;
+          vnode_insertBefore(
+            journal,
+            insertHost as ElementVNode | VirtualVNode,
+            vErrorDiv,
+            insertBefore
+          );
+        };
+        this.$renderPromise$ ? this.$renderPromise$.then(createErrorWrapper) : createErrorWrapper();
       }
 
       if (err && err instanceof Error) {

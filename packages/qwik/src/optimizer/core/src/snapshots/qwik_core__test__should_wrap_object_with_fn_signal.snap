@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4176
+assertion_line: 4177
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -32,19 +31,21 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
 import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.myobj.id + "test";
+const _hf0_str = 'p0.myobj.id+"test"';
 export const test_component_LUXeXe0DQrg = (props)=>{
     // not destructure it so it is a var prop
     const item = props.something.count;
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, /*#__PURE__*/ _jsxSorted("div", {
         "data-no-wrap": item ? item * 2 : null,
-        "data-wrap": _fnSignal((p0)=>p0.myobj.id + "test", [
+        "data-wrap": _fnSignal(_hf0, [
             props
-        ], 'p0.myobj.id+"test"')
+        ], _hf0_str)
     }, null, null, 3, null), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAE0B,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS,kBAAE,GAAM,KAAK,CAAC,EAAE,GAAG;;;;AAG1E\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAOyD,GAAM,KAAK,CAAC,EAAE,GAAG;;0CALhD,CAAC;IAC1B,yCAAyC;IACzC,MAAM,OAAO,MAAM,SAAS,CAAC,KAAK;IAClC,qBACC,gDACC,WAAC;QAAI,gBAAc,OAAO,OAAO,IAAI;QAAM,WAAS;;;;AAGvD\"}")
 /*
 {
   "origin": "test.tsx",

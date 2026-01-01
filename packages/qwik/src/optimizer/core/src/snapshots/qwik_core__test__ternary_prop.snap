@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3877
+assertion_line: 3878
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -61,6 +60,8 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.value ? true : undefined;
+const _hf0_str = "p0.value?true:undefined";
 const i_WawHV3HwS1A = ()=>import("./test.tsx_Cmp_component_handleClick_WawHV3HwS1A");
 export const Cmp_component_4ryKJTOKjWE = ()=>{
     const toggleSig = useSignal(false);
@@ -69,14 +70,14 @@ export const Cmp_component_4ryKJTOKjWE = ()=>{
     ]);
     return /*#__PURE__*/ _jsxSorted("button", null, {
         onClick$: handleClick$,
-        "data-open": _fnSignal((p0)=>p0.value ? true : undefined, [
+        "data-open": _fnSignal(_hf0, [
             toggleSig
-        ], "p0.value?true:undefined")
+        ], _hf0_str)
     }, "Removing data-open re-renders", 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAEgC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,UAAU;QAAc,WAAS,kBAAE,GAAU,KAAK,GAAG,OAAO;;;OAAW;AAIjF\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAU+C,GAAU,KAAK,GAAG,OAAO;;;yCARxC;IAC7B,MAAM,YAAY,UAAU;IAE5B,MAAM;;;IAIN,qBACC,WAAC;QAAO,UAAU;QAAc,WAAS;;;OAAsC;AAIjF\"}")
 /*
 {
   "origin": "test.tsx",

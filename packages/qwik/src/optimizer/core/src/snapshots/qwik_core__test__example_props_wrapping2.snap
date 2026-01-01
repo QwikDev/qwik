@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 595
+assertion_line: 596
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -29,33 +28,39 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _wrapProp } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
+const _hf0 = (p0, p1)=>p0 + p1.fromProps;
+const _hf0_str = "p0+p1.fromProps";
+const _hf1 = (p0)=>({
+        props: p0.fromProps
+    });
+const _hf1_str = "{props:p0.fromProps}";
+const _hf2 = (p0, p1)=>({
+        props: p1.fromProps,
+        local: p0
+    });
+const _hf2_str = "{props:p1.fromProps,local:p0}";
 import { useSignal } from '@qwik.dev/core';
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     let fromLocal = useSignal(0);
     return /*#__PURE__*/ _jsxSorted("div", {
-        computed: _fnSignal((p0, p1)=>p0 + p1.fromProps, [
+        computed: _fnSignal(_hf0, [
             fromLocal,
             props
-        ], "p0+p1.fromProps"),
+        ], _hf0_str),
         local: fromLocal,
-        props: _fnSignal((p0, p1)=>({
-                props: p1.fromProps,
-                local: p0
-            }), [
+        props: _fnSignal(_hf2, [
             fromLocal,
             props
-        ], "{props:p1.fromProps,local:p0}"),
-        "props-only": _fnSignal((p0)=>({
-                props: p0.fromProps
-            }), [
+        ], _hf2_str),
+        "props-only": _fnSignal(_hf1, [
             props
-        ], "{props:p0.fromProps}"),
+        ], _hf1_str),
         "props-wrap": _wrapProp(props, "fromProps")
     }, null, null, 3, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAAwB,SAAS,QAAQ,iBAAiB;AAC1D,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QACA,QAAQ,sBAAE,KAAY,GAAM,SAAS;;;;QACrC,OAAO;QAGP,KAAK,sBAAE,CAAA;gBAAC,OAAO,GAAM,SAAS;gBAAE,KAAK;YAAW,CAAA;;;;QADhD,YAAU,kBAAE,CAAA;gBAAC,OAAO,GAAM,SAAS;YAAA,CAAA;;;QADnC,YAAU,YAAE;;AAMf,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAMa,KAAY,GAAM,SAAS;;mBAGzB,CAAA;QAAC,OAAO,GAAM,SAAS;IAAA,CAAA;;uBAC5B,CAAA;QAAC,OAAO,GAAM,SAAS;QAAE,KAAK;IAAW,CAAA;;AATnD,SAAwB,SAAS,QAAQ,iBAAiB;AAC1D,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAChC,IAAI,YAAY,UAAU;IAC1B,qBACC,WAAC;QACA,QAAQ;;;;QACR,OAAO;QAGP,KAAK;;;;QADL,YAAU;;;QADV,YAAU,YAAE;;AAMf,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

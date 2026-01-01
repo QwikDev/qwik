@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { ssrCreateContainer } from './ssr-container';
-import { QStyle } from './qwik-copy';
+import { QStyle, VNodeDataChar, encodeVNodeDataString } from './qwik-copy';
+import { VNodeDataFlag } from './types';
+import { OPEN_FRAGMENT, CLOSE_FRAGMENT } from './vnode-data';
 
 vi.hoisted(() => {
   vi.stubGlobal('QWIK_LOADER_DEFAULT_MINIFIED', 'min');
@@ -45,5 +47,58 @@ describe('SSR Container', () => {
 
     const html = writer.toString();
     expect(html.indexOf('id="qwikloader"')).toBeGreaterThan(html.indexOf('my-style-id'));
+  });
+
+  it('should encode custom attributes with separators in emitVNodeData', () => {
+    const writer = {
+      chunks: [] as string[],
+      write(text: string) {
+        this.chunks.push(text);
+      },
+      toString() {
+        return this.chunks.join('');
+      },
+    };
+
+    const container = ssrCreateContainer({
+      tagName: 'div',
+      writer,
+    });
+    container.openContainer();
+
+    const mockRoot = {};
+    container.serializationCtx.$roots$.push(mockRoot);
+
+    // Create vNodeData with custom attribute in the default case
+    const customKey = 'custom-attr';
+    const customValue = 'test-value';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        [customKey, customValue],
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+
+    const vnodeStart = output.indexOf('<script type="qwik/vnode" :="">');
+    const vnodeEnd = output.indexOf('</script>', vnodeStart);
+    const vnodeContent = output.substring(
+      vnodeStart + '<script type="qwik/vnode" :="">'.length,
+      vnodeEnd
+    );
+
+    const encodedKey = encodeVNodeDataString(customKey);
+    const encodedValue = encodeVNodeDataString(customValue);
+    expect(vnodeContent).toContain(
+      `${VNodeDataChar.SEPARATOR_CHAR}${encodedKey}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
+    expect(vnodeContent).toContain(
+      `${VNodeDataChar.SEPARATOR_CHAR}${encodedValue}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
   });
 });

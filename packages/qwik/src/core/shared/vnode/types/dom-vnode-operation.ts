@@ -34,7 +34,8 @@ export type SetAttributeOperation = {
   operationType: VNodeOperationType.SetAttribute;
   target: Element;
   attrName: string;
-  attrValue: string | null | boolean;
+  attrValue: any;
+  scopedStyleIdPrefix: string | null;
 };
 
 /** Factory functions to create operations with consistent hidden classes. */
@@ -68,10 +69,12 @@ export const createInsertOrMoveOperation = (
 export const createSetAttributeOperation = (
   target: Element,
   attrName: string,
-  attrValue: string | null | boolean
+  attrValue: any,
+  scopedStyleIdPrefix: string | null = null
 ): SetAttributeOperation => ({
   operationType: VNodeOperationType.SetAttribute,
   target,
   attrName,
   attrValue,
+  scopedStyleIdPrefix,
 });

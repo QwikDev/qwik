@@ -34,7 +34,7 @@ import {
 } from '../core/client/vnode-utils';
 
 import { format } from 'prettier';
-import { serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
+import { serializeAttribute, serializeBooleanOrNumberAttribute } from '../core/shared/utils/styles';
 import {
   isHtmlAttributeAnEventName,
   isJsxPropertyAnEventName,
@@ -99,7 +99,8 @@ expect.extend({
   },
 });
 
-const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR];
+const scopedStyleIdPrefixAttr = '__scopedStyleIdPrefix__';
+const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR, scopedStyleIdPrefixAttr];
 
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
@@ -194,8 +195,12 @@ function diffJsxVNode(
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
       let receivedValue =
-        vnode_getProp(received, prop, null) ||
-        vnode_getProp(received, propLowerCased, null) ||
+        stringifyAttribute(received, prop, vnode_getProp(received, prop, null)) ||
+        stringifyAttribute(
+          received,
+          propLowerCased,
+          vnode_getProp(received, propLowerCased, null)
+        ) ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -544,7 +549,15 @@ function attrsEqual(expectedValue: any, receivedValue: any) {
       ? expectedValue
         ? receivedValue !== null
         : receivedValue === null || receivedValue === 'false'
-      : expectedValue == receivedValue;
+      : expectedValue === receivedValue;
   // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
   return isEqual;
+}
+
+function stringifyAttribute(vnode: VNode, key: string, value: any): string | null | boolean {
+  if (isSignal(value)) {
+    value = untrack(() => value.value);
+  }
+  const styleScopedId = vnode_getProp<string | null>(vnode, scopedStyleIdPrefixAttr, null);
+  return serializeAttribute(key, value, styleScopedId);
 }

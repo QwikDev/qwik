@@ -17,7 +17,6 @@ import { VNodeFlags, type ClientContainer } from '../../client/types';
 import type { NodeProp } from '../../reactive-primitives/subscription-data';
 import { isSignal, scheduleEffects } from '../../reactive-primitives/utils';
 import type { Signal } from '../../reactive-primitives/signal.public';
-import { serializeAttribute } from '../utils/styles';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { createSetAttributeOperation } from '../vnode/types/dom-vnode-operation';
 import type { JSXOutput } from '../jsx/types/jsx-node';
@@ -230,10 +229,11 @@ function setNodeProp(
   domVNode: ElementVNode,
   journal: VNodeJournal,
   property: string,
-  value: string | boolean | null,
-  isConst: boolean
+  value: any,
+  isConst: boolean,
+  scopedStyleIdPrefix: string | null = null
 ): void {
-  journal.push(createSetAttributeOperation(domVNode.node!, property, value));
+  journal.push(createSetAttributeOperation(domVNode.node!, property, value, scopedStyleIdPrefix));
   if (!isConst) {
     if (domVNode.props && value == null) {
       delete domVNode.props[property];
@@ -272,10 +272,9 @@ export function executeNodeProps(vNode: VNode, journal: VNodeJournal): void {
       value = value.value as any;
     }
 
-    // Process synchronously (same logic as scheduler)
-    const serializedValue = serializeAttribute(property, value, nodeProp.scopedStyleIdPrefix);
+    // Pass raw value and scopedStyleIdPrefix - serialization happens in flush
     const isConst = nodeProp.isConst;
-    setNodeProp(domVNode, journal, property, serializedValue, isConst);
+    setNodeProp(domVNode, journal, property, value, isConst, nodeProp.scopedStyleIdPrefix);
   }
 
   // Clear pending prop data after processing

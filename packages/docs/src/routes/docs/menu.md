@@ -95,6 +95,7 @@
 - [Firebase](deployments/firebase/index.mdx)
 - [Google Cloud Run](deployments/gcp-cloud-run/index.mdx)
 - [Cloudflare Pages](deployments/cloudflare-pages/index.mdx)
+- [Cloudflare Workers](deployments/cloudflare-workers/index.mdx)
 - [Deno](deployments/deno/index.mdx)
 - [Bun](deployments/bun/index.mdx)
 - [Netlify Edge](deployments/netlify-edge/index.mdx)

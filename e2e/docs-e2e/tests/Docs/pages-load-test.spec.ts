@@ -140,6 +140,7 @@ test('docs page loads', async ({ page }) => {
     'Firebase',
     'Google Cloud Run',
     'Cloudflare Pages',
+    'Cloudflare Workers',
     'Deno',
     'Bun',
     'Netlify Edge',

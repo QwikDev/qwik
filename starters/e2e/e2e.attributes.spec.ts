@@ -302,11 +302,13 @@ test.describe("attributes", () => {
   test.describe("client rerender", () => {
     test.beforeEach(async ({ page }) => {
       const toggleRender = page.locator("#force-rerender");
+      const renderCount = page.locator("#renderCount");
       const v = Number(await toggleRender.getAttribute("data-v"));
+
+      expect(v).toBe(0);
+      await expect(renderCount).toHaveText(`Render ${v}`);
       await toggleRender.click();
-      await expect(page.locator("#renderCount")).toHaveText(`Render ${v}`);
-      // Without this the tests still fail?
-      await page.waitForTimeout(50);
+      await expect(renderCount).toHaveText(`Render ${v + 1}`);
     });
     tests();
   });

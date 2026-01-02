@@ -210,3 +210,169 @@ The `headings` array includes data about a markdown file's `<h1>` to `<h6>` [htm
 
 Menus are contextual data declared with `menu.md` files. See [menus file definition](/docs/(qwikcity)/advanced/menu/index.mdx) for more information on the file format and location.
 
+# Dynamic Page Navigation with MDX
+
+When working with documentation or content-heavy pages in Qwik City, you often need to generate a table of contents or sidebar navigation based on the page's content. Qwik City provides a built-in solution for this through the `useContent()` hook, which can automatically extract headings from your MDX files.
+
+## Using `useContent()` for Page Navigation
+
+The `useContent()` hook allows you to access metadata about your current MDX page, including all its headings. This is particularly useful for:
+
+- Creating a table of contents for long articles
+- Building dynamic sidebar navigation
+- Implementing "jump to section" functionality
+- Generating progress indicators for article sections
+
+Here's a complete example of how to create a dynamic table of contents:
+
+```tsx
+import { component$, useContent } from '@builder.io/qwik';
+
+export const TableOfContents = component$(() => {
+  const content = useContent();
+
+  return (
+    <nav class="toc">
+      <h4>On this page</h4>
+      <ul>
+        {content.headings?.map((heading) => (
+          <li 
+            key={heading.id}
+            style={{ 
+              // Indent based on heading level
+              marginLeft: `${(heading.level - 1) * 12}px` 
+            }}
+          >
+            <a href={`#${heading.id}`}>{heading.text}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+});
+```
+
+## Understanding the Headings Data
+
+The `headings` property from `useContent()` provides an array of heading objects with the following information:
+
+- `id`: The auto-generated ID for the heading (used for anchor links)
+- `text`: The actual text content of the heading
+- `level`: The heading level (1 for h1, 2 for h2, etc.)
+
+This only works with `.mdx` files - headings in `.tsx` files are not detected.
+
+## Common Use Cases
+
+### Progressive Disclosure Navigation
+
+You can create a collapsible navigation that shows the current section and its sub-sections:
+
+```tsx
+export const ProgressiveNav = component$(() => {
+  const content = useContent();
+  const currentSection = useSignal<string | null>(null);
+
+  return (
+    <nav>
+      {content.headings?.map((heading) => {
+        if (heading.level === 2) { // Only show h2 as main sections
+          const subHeadings = content.headings.filter(h => 
+            h.level === 3 && 
+            h.id.startsWith(heading.id.split('-')[0])
+          );
+          
+          return (
+            <div key={heading.id}>
+              <a 
+                href={`#${heading.id}`}
+                onClick$={() => currentSection.value = heading.id}
+              >
+                {heading.text}
+              </a>
+              {currentSection.value === heading.id && (
+                <ul>
+                  {subHeadings.map(sub => (
+                    <li key={sub.id}>
+                      <a href={`#${sub.id}`}>{sub.text}</a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        }
+      })}
+    </nav>
+  );
+});
+```
+
+### Reading Progress Indicator
+
+You can combine heading information with scroll position to create a reading progress indicator:
+
+```tsx
+export const ReadingProgress = component$(() => {
+  const content = useContent();
+  const activeSection = useSignal('');
+
+  useOnWindow('scroll', $(() => {
+    const headingElements = content.headings?.map(h => 
+      document.getElementById(h.id)
+    ).filter(Boolean) || [];
+
+    const currentHeading = headingElements.find(el => {
+      const rect = el!.getBoundingClientRect();
+      return rect.top > 0 && rect.top < window.innerHeight / 2;
+    });
+
+    if (currentHeading) {
+      activeSection.value = currentHeading.id;
+    }
+  }));
+
+  return (
+    <nav>
+      {content.headings?.map(heading => (
+        <a
+          key={heading.id}
+          href={`#${heading.id}`}
+          class={{
+            active: activeSection.value === heading.id
+          }}
+        >
+          {heading.text}
+        </a>
+      ))}
+    </nav>
+  );
+});
+```
+
+## Tips and Best Practices
+
+1. **Consistent Heading Structure**: Maintain a logical heading hierarchy in your MDX files to ensure the navigation makes sense.
+
+2. **Performance**: The `useContent()` hook is optimized and won't cause unnecessary re-renders, so you can safely use it in navigation components.
+
+3. **Styling**: Consider using the heading level information to create visual hierarchy in your navigation:
+   ```css
+   .toc a {
+     /* Base styles */
+   }
+   
+   /* Style based on heading level */
+   [data-level="1"] { font-size: 1.2em; font-weight: bold; }
+   [data-level="2"] { font-size: 1.1em; }
+   [data-level="3"] { font-size: 1em; }
+   ```
+
+4. **Accessibility**: Always ensure your dynamic navigation includes proper ARIA labels and keyboard navigation support.
+
+## Notes and Limitations
+
+- This functionality only works with `.mdx` files, not with `.tsx` or other file types
+- Headings must have unique content to generate unique IDs
+- The heading data is available only on the client-side after hydration
+- Consider using `useVisibleTask$` if you need to interact with the heading elements in the DOM

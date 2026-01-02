@@ -293,7 +293,6 @@ describe('executeNodeDiff', () => {
   it('should unwrap signal payload', () => {
     const jsx = { type: 'div', props: {}, children: [] };
     const signal = { value: jsx };
-    vi.mocked(isSignal).mockReturnValue(true);
     setNodeDiffPayload(vNode, signal as any);
 
     executeNodeDiff(vNode, container, journal, cursor);
@@ -446,8 +445,6 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue('test-id');
-
     executeNodeProps(vNode, journal);
 
     expect(journal.length).toBe(1);
@@ -456,6 +453,7 @@ describe('executeNodeProps', () => {
       target: vNode.node,
       attrName: 'id',
       attrValue: 'test-id',
+      scopedStyleIdPrefix: null,
     });
     expect(vNode.props!['id']).toBe('test-id');
   });
@@ -472,8 +470,6 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockImplementation((prop: string, value: any) => String(value));
-
     executeNodeProps(vNode, journal);
 
     expect(journal.length).toBe(2);
@@ -489,8 +485,6 @@ describe('executeNodeProps', () => {
       scopedStyleIdPrefix: null,
     });
 
-    vi.mocked(serializeAttribute).mockReturnValue('signal-value');
-
     executeNodeProps(vNode, journal);
 
     expect(serializeAttribute).toHaveBeenCalledWith('data-test', 'signal-value', null);
@@ -500,12 +494,12 @@ describe('executeNodeProps', () => {
     vNode.props = { id: 'old-id' };
 
     setNodePropData(vNode, 'id', {
-      value: '',
+      value: {
+        value: null,
+      },
       isConst: false,
       scopedStyleIdPrefix: null,
     });
-
-    vi.mocked(serializeAttribute).mockReturnValue(null);
 
     executeNodeProps(vNode, journal);
 
@@ -514,6 +508,7 @@ describe('executeNodeProps', () => {
       target: vNode.node,
       attrName: 'id',
       attrValue: null,
+      scopedStyleIdPrefix: null,
     });
     expect(vNode.props!['id']).toBeUndefined();
   });
@@ -524,8 +519,6 @@ describe('executeNodeProps', () => {
       isConst: true,
       scopedStyleIdPrefix: null,
     });
-
-    vi.mocked(serializeAttribute).mockReturnValue('const-id');
 
     executeNodeProps(vNode, journal);
 
@@ -540,8 +533,6 @@ describe('executeNodeProps', () => {
       isConst: false,
       scopedStyleIdPrefix: 'scope-123',
     });
-
-    vi.mocked(serializeAttribute).mockReturnValue('my-class');
 
     executeNodeProps(vNode, journal);
 

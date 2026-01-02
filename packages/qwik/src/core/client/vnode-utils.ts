@@ -405,11 +405,15 @@ export const vnode_setAttr = (
   journal: VNodeJournal,
   vNode: VNode,
   key: string,
-  value: string | null | boolean
+  value: any,
+  scopedStyleIdPrefix: string | null = null
 ) => {
   if (vnode_isElementVNode(vNode)) {
     vnode_setProp(vNode, key, value);
-    addVNodeOperation(journal, createSetAttributeOperation(vNode.node, key, value));
+    addVNodeOperation(
+      journal,
+      createSetAttributeOperation(vNode.node, key, value, scopedStyleIdPrefix)
+    );
   }
 };
 

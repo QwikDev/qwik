@@ -3,6 +3,7 @@ import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { isPromise } from '../utils/promises';
+import { serializeAttribute } from '../utils/styles';
 import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import type { Cursor } from './cursor';
 import { getCursorData, type CursorData } from './cursor-props';
@@ -57,7 +58,11 @@ export function _flushJournal(journal: VNodeJournal): void {
       case VNodeOperationType.SetAttribute: {
         const element = operation.target;
         const attrName = operation.attrName;
-        const attrValue = operation.attrValue;
+        const rawValue = operation.attrValue;
+        const attrValue =
+          rawValue != null
+            ? serializeAttribute(attrName, rawValue, operation.scopedStyleIdPrefix)
+            : null;
         const shouldRemove = attrValue == null || attrValue === false;
         if (isBooleanAttr(element, attrName)) {
           (element as any)[attrName] = parseBoolean(attrValue);

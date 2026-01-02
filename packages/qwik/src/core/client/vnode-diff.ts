@@ -163,9 +163,7 @@ function setAttribute(
   value: any,
   scopedStyleIdPrefix: string | null
 ) {
-  const serializedValue =
-    value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-  vnode_setAttr(journal, vnode, key, serializedValue);
+  vnode_setAttr(journal, vnode, key, value, scopedStyleIdPrefix);
 }
 
 export const vnode_diff = (
@@ -257,9 +255,13 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
             diffContext.jsxValue instanceof WrappedSignalImpl
               ? diffContext.jsxValue.$unwrapIfSignal$()
               : diffContext.jsxValue;
-          const hasUnwrappedSignal = diffContext.vCurrent?.[_EFFECT_BACK_REF]
-            ?.get(EffectProperty.VNODE)
-            ?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal);
+          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
+            EffectSubscriptionProp.BACK_REF
+          ];
+          let hasUnwrappedSignal = signals?.has(unwrappedSignal);
+          if (signals && unwrappedSignal instanceof WrappedSignalImpl) {
+            hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
+          }
           if (!hasUnwrappedSignal) {
             const vHost = (diffContext.vNewNode || diffContext.vCurrent)!;
             descend(
@@ -1062,7 +1064,15 @@ function diffProps(
     const isEvent = isHtmlAttributeAnEventName(key);
 
     if (_hasOwnProperty.call(oldAttrs, key)) {
-      if (newValue !== oldAttrs[key]) {
+      const oldValue = oldAttrs[key];
+      if (newValue !== oldValue) {
+        if (
+          newValue instanceof WrappedSignalImpl &&
+          oldValue instanceof WrappedSignalImpl &&
+          areWrappedSignalsEqual(newValue, oldValue)
+        ) {
+          continue;
+        }
         isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
       }
     } else if (newValue != null) {
@@ -1836,6 +1846,45 @@ function markVNodeAsDeleted(vCursor: VNode) {
    */
 
   vCursor.flags |= VNodeFlags.Deleted;
+}
+
+function areWrappedSignalsEqual(
+  oldSignal: WrappedSignalImpl<any>,
+  newSignal: WrappedSignalImpl<any>
+): boolean {
+  if (oldSignal === newSignal) {
+    return true;
+  }
+  return (
+    newSignal.$func$ === oldSignal.$func$ && areArgumentsEqual(newSignal.$args$, oldSignal.$args$)
+  );
+}
+
+function areArgumentsEqual(oldArgs: any[] | undefined, newArgs: any[] | undefined): boolean {
+  if (oldArgs === newArgs) {
+    return true;
+  }
+  if (!oldArgs || !newArgs || oldArgs.length !== newArgs.length) {
+    return false;
+  }
+  for (let i = 0; i < oldArgs.length; i++) {
+    if (oldArgs[i] !== newArgs[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
+  if (!(signal instanceof WrappedSignalImpl)) {
+    return false;
+  }
+  for (const item of data) {
+    if (item instanceof WrappedSignalImpl && areWrappedSignalsEqual(item, signal)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

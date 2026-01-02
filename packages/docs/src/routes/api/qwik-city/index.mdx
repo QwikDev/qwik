@@ -2,7 +2,7 @@
 title: \@builder.io/qwik-city API Reference
 ---
 
-# [API](/api) → @builder.io/qwik-city
+# [API](/api) &rsaquo; @builder.io/qwik-city
 
 ## Action
 
@@ -2617,45 +2617,3 @@ zodQrl: ZodConstructorQRL;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
-
-## Retrieving Headings with `useContent`
-
-The `useContent` hook is a powerful utility in Qwik City that allows you to access the content state of the current page. One of its key features is the ability to retrieve all the headings from `.mdx` files. This is particularly useful for generating sidebar links or a table of contents for the current page.
-
-### Example: Generating Sidebar Links
-
-Here's an example of how you can use `useContent` to retrieve and display the headings of the current `.mdx` page:
-
-```tsx
-import { component$, useContent } from '@builder.io/qwik';
-
-export const Sidebar = component$(() => {
-  const content = useContent();
-
-  return (
-    <nav>
-      <ul>
-        {content.headings?.map((heading) => (
-          <li key={heading.id}>
-            <a href={`#${heading.id}`}>{heading.text}</a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-});
-```
-
-### Notes
-- The `useContent` hook only works with `.mdx` files. It does not retrieve headings from `.tsx` files.
-- The `headings` property contains an array of objects, each representing a heading with the following structure:
-  - `id`: The unique identifier for the heading.
-  - `text`: The text content of the heading.
-  - `level`: The heading level (e.g., `1` for `<h1>`, `2` for `<h2>`, etc.).
-
-### When to Use
-This feature is particularly useful for:
-- Creating a dynamic table of contents for documentation pages.
-- Building sidebar navigation for blog posts or articles.
-
-For more details, refer to the [`useContent` API documentation](https://qwik.dev/docs/api/#usecontent).

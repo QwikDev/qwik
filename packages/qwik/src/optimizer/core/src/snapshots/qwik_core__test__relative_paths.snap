@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3416
+assertion_line: 3417
 expression: output
-snapshot_kind: text
 ---
 ============================= ../../node_modules/dep/dist/lib.mjs_App_component_div_p_button_onClick_8dWUa0cJAr4.js (ENTRY POINT)==
 
@@ -26,7 +25,7 @@ Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoo
   "extension": "js",
   "parent": "App_component_AkbU84a8zes",
   "ctxKind": "jSXProp",
-  "ctxName": "onClick$",
+  "ctxName": "on:click",
   "captures": true,
   "loc": [
     570,
@@ -52,7 +51,7 @@ export const App_component_AkbU84a8zes = ()=>{
             _wrapProp(store, "count")
         ], 3, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
-            onClick$: /*#__PURE__*/ qrl(i_8dWUa0cJAr4, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
+            "on:click": /*#__PURE__*/ qrl(i_8dWUa0cJAr4, "App_component_div_p_button_onClick_8dWUa0cJAr4", [
                 store
             ])
         }, null, "Click", 2, null), 1, null)
@@ -60,7 +59,7 @@ export const App_component_AkbU84a8zes = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;yCAWyD;IACxD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,QAAQ;;;iBAME;KAGZ;AAEH\"}")
+Some("{\"version\":3,\"sources\":[\"node_modules/dep/dist/lib.mjs\"],\"sourceRoot\":\"/path/to/app/\",\"names\":[],\"mappings\":\";;;;;yCAWyD;IACxD,MAAM,QAAQ;IACd,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,UAAQ;;;iBAME;KAGZ;AAEH\"}")
 /*
 {
   "origin": "../../node_modules/dep/dist/lib.mjs",

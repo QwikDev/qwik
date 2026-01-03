@@ -178,7 +178,7 @@ describe.each([
         'button',
         {
           'data-count': _wrapProp(doubleCount, 'value'),
-          onClick$: $(() => count.value++),
+          'on:click': $(() => count.value++),
         },
         null,
         null,

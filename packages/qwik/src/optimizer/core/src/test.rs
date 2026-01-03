@@ -4665,6 +4665,77 @@ fn should_ignore_null_inlined_qrl() {
 	});
 }
 
+#[test]
+fn hoisted_fn_signal_in_loop() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const data = { value: [
+    { value: { id: 1, selected: { value: true } } },
+    { value: { id: 2, selected: { value: false } } },
+    { value: { id: 3, selected: { value: true } } }
+  ]};
+  
+  return (
+    <table>
+      {data.value.map((row) => {
+        return (
+          <tr
+            key={row.value.id}
+            class={row.value.selected.value ? "danger" : ""}
+          >
+            <td>{row.value.id}</td>
+          </tr>
+        );
+      })}
+    </table>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_convert_jsx_events() {
+	test_input!(TestInput {
+		code: r#"
+		import { component$ } from '@qwik.dev/core';
+
+		const ManyEventsComponent = component$(() => {
+			return (
+				<div>
+					<button
+						onClick$={() => {}}
+						onDblClick$={() => {}}
+					>
+						click
+					</button>
+					<button
+						onClick$={() => {}}
+						onBlur$={() => {}}
+						on-anotherCustom$={() => {}}
+						document:onFocus$={() => {}}
+						window:onClick$={() => {}}
+					>
+						click
+					</button>
+				</div>
+			);
+		});
+		"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }
@@ -4717,40 +4788,4 @@ impl TestInput {
 			is_server: None,
 		}
 	}
-}
-
-#[test]
-fn hoisted_fn_signal_in_loop() {
-	test_input!(TestInput {
-		code: r#"
-import { component$ } from '@qwik.dev/core';
-
-export const App = component$(() => {
-  const data = { value: [
-    { value: { id: 1, selected: { value: true } } },
-    { value: { id: 2, selected: { value: false } } },
-    { value: { id: 3, selected: { value: true } } }
-  ]};
-  
-  return (
-    <table>
-      {data.value.map((row) => {
-        return (
-          <tr
-            key={row.value.id}
-            class={row.value.selected.value ? "danger" : ""}
-          >
-            <td>{row.value.id}</td>
-          </tr>
-        );
-      })}
-    </table>
-  );
-});
-"#
-		.to_string(),
-		transpile_ts: true,
-		transpile_jsx: true,
-		..TestInput::default()
-	});
 }

@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 821
+assertion_line: 822
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -66,45 +65,18 @@ export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrlDEV(i_LUXeXe0DQrg, "t
 
 
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAMA,SAAS,UAAU,QAAQ,WAAW;AAKtC,CAAC;IACA,QAAQ,GAAG,CAAC;AACZ,CAAC;AACD,CAAC;IACD,QAAQ,GAAG,CAAC;AACZ,CAAC;AAEF;AAEA,OAAO,MAAM,MAAM;;;;;IAEhB;AAEH,6BAAe;;;;;IAIX\"}")
-============================= test.tsx_test_component_button_onClick_DGk9xLyRokA.js (ENTRY POINT)==
-
-import { api } from "./test";
-export const test_component_button_onClick_DGk9xLyRokA = ()=>await api();
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";yDA0BoB,IAAM,MAAM\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_button_onClick_DGk9xLyRokA",
-  "entry": null,
-  "displayName": "test.tsx_test_component_button_onClick",
-  "hash": "DGk9xLyRokA",
-  "canonicalFilename": "test.tsx_test_component_button_onClick_DGk9xLyRokA",
-  "path": "",
-  "extension": "js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    541,
-    558
-  ]
-}
-*/
 ============================= test.tsx_test_component_LUXeXe0DQrg.js (ENTRY POINT)==
 
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrlDEV } from "@qwik.dev/core";
-const i_DGk9xLyRokA = ()=>import("./test.tsx_test_component_button_onClick_DGk9xLyRokA");
+const i_6pPnWSWL0tY = ()=>import("./test.tsx_test_component_button_on_click_6pPnWSWL0tY");
 export const test_component_LUXeXe0DQrg = ()=>{
     return /*#__PURE__*/ _jsxSorted("button", null, {
-        onClick$: /*#__PURE__*/ qrlDEV(i_DGk9xLyRokA, "test_component_button_onClick_DGk9xLyRokA", {
+        "on:click": /*#__PURE__*/ qrlDEV(i_6pPnWSWL0tY, "test_component_button_on_click_6pPnWSWL0tY", {
             file: "/user/qwik/src/test.tsx",
             lo: 541,
             hi: 558,
-            displayName: "test.tsx_test_component_button_onClick"
+            displayName: "test.tsx_test_component_button_on_click"
         })
     }, null, 3, "u6_0", {
         fileName: "test.tsx",
@@ -114,7 +86,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAwB0B;IACzB,qBACC,WAAC;QAAO,QAAQ;;;;;;;;;;;AAEjB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAwB0B;IACzB,qBACC,WAAC;QAAO,UAAQ;;;;;;;;;;;AAEjB\"}")
 /*
 {
   "origin": "test.tsx",
@@ -132,6 +104,33 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     503,
     575
+  ]
+}
+*/
+============================= test.tsx_test_component_button_on_click_6pPnWSWL0tY.js (ENTRY POINT)==
+
+import { api } from "./test";
+export const test_component_button_on_click_6pPnWSWL0tY = ()=>await api();
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";0DA0BoB,IAAM,MAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_button_on_click_6pPnWSWL0tY",
+  "entry": null,
+  "displayName": "test.tsx_test_component_button_on_click",
+  "hash": "6pPnWSWL0tY",
+  "canonicalFilename": "test.tsx_test_component_button_on_click_6pPnWSWL0tY",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    541,
+    558
   ]
 }
 */

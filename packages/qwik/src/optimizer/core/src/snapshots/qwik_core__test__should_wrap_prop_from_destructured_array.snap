@@ -53,6 +53,39 @@ expression: output
 			);
 		});
 		
+============================= test.tsx_test_component_div_button_on_click_4abkecKXGAE.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const test_component_div_button_on_click_4abkecKXGAE = ()=>{
+    const [store] = useLexicalScope();
+    store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "test_component_div_button_on_click_4abkecKXGAE",
+  "entry": null,
+  "displayName": "test.tsx_test_component_div_button_on_click",
+  "hash": "4abkecKXGAE",
+  "canonicalFilename": "test.tsx_test_component_div_button_on_click_4abkecKXGAE",
+  "path": "",
+  "extension": "js",
+  "parent": "test_component_LUXeXe0DQrg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    835,
+    921
+  ],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
 ============================= test.js ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -77,7 +110,7 @@ const _hf0 = (p0)=>p0.errors.test;
 const _hf0_str = "p0.errors.test";
 const _hf1 = (p0)=>p0.store5.errors.test;
 const _hf1_str = "p0.store5.errors.test";
-const i_TfpwI5Xb2NU = ()=>import("./test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU");
+const i_4abkecKXGAE = ()=>import("./test.tsx_test_component_div_button_on_click_4abkecKXGAE");
 export const test_component_LUXeXe0DQrg = ()=>{
     const [store, math] = [
         useStore({
@@ -108,7 +141,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
     const form2 = useForm2();
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(i_TfpwI5Xb2NU, "test_component_div_button_onClick_TfpwI5Xb2NU", [
+            "on:click": /*#__PURE__*/ qrl(i_4abkecKXGAE, "test_component_div_button_on_click_4abkecKXGAE", [
                 store
             ])
         }, "click", 3, null),
@@ -138,7 +171,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,QAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAkCa,GAAM,MAAM,CAAC,IAAI;;mBAIhB,GAZJ,OAYW,MAAM,CAAC,IAAI;;;0CAnBJ;IACzB,MAAM,CAAC,OAAO,KAAK,GAAG;QAAC,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,KAAK,MAAM;KAAG;IAC7D,MAAM,CAAC,CAAC,OAAO,CAAC,GAAG;QAAC;YAAC,SAAS;gBAAC,QAAQ,CAAC;YAAC;SAAG;KAAC;IAC7C,MAAM,EAAE,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,QAAQ,SAAS;YAAC,QAAQ,CAAC;QAAC;QAAI,OAAO,KAAK,MAAM;IAAG;IACjF,MAAM,QAAQ;QAAC,KAAK,MAAM;KAAG;IAC7B,MAAM,EAAE,KAAK,EAAE,GAAG;QAAE,OAAO,KAAK,MAAM;IAAG;IACzC,MAAM,CAAC,OAAO,GAAG;IACjB,MAAM,QAAW;IAEjB,qBACC,WAAC;sBACA,WAAC;YAAO,UAAQ;;;WAEb;sBACH,WAAC;YAMA,MAAM;YACN,OAAO;YACP,OAAO;YACP,OAAO;;YARP,KAAK;;;YACL,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;YACN,MAAM;;;;;AAQV\"}")
 /*
 {
   "origin": "test.tsx",
@@ -156,39 +189,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "loc": [
     434,
     1225
-  ]
-}
-*/
-============================= test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU.js (ENTRY POINT)==
-
-import { useLexicalScope } from "@qwik.dev/core";
-export const test_component_div_button_onClick_TfpwI5Xb2NU = ()=>{
-    const [store] = useLexicalScope();
-    store.errors.test = store.errors.test ? undefined : 'ERROR TEST';
-};
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DA8BuB;;IACjB,MAAM,MAAM,CAAC,IAAI,GAAG,MAAM,MAAM,CAAC,IAAI,GAAG,YAAY\"}")
-/*
-{
-  "origin": "test.tsx",
-  "name": "test_component_div_button_onClick_TfpwI5Xb2NU",
-  "entry": null,
-  "displayName": "test.tsx_test_component_div_button_onClick",
-  "hash": "TfpwI5Xb2NU",
-  "canonicalFilename": "test.tsx_test_component_div_button_onClick_TfpwI5Xb2NU",
-  "path": "",
-  "extension": "js",
-  "parent": "test_component_LUXeXe0DQrg",
-  "ctxKind": "eventHandler",
-  "ctxName": "onClick$",
-  "captures": true,
-  "loc": [
-    835,
-    921
-  ],
-  "captureNames": [
-    "store"
   ]
 }
 */

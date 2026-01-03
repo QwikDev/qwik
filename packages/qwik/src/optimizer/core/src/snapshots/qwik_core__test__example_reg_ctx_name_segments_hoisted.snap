@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 912
+assertion_line: 913
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -27,11 +26,11 @@ import { inlinedQrl } from "@qwik.dev/core";
 import { serverQrl } from "@qwik.dev/core";
 import { _regSymbol } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
-const Works_component_div_onClick_server_OsNoEFc5SM4 = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4");
+const Works_component_div_on_click_server_I0KQOua02KE = /*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "I0KQOua02KE");
 const Works_component_t45qL4vNGv0 = (props)=>{
     useStyleQrl(/*#__PURE__*/ inlinedQrl(STYLES, "Works_component_useStyle_i40UL9JyQpg"));
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_onClick_server_OsNoEFc5SM4, "Works_component_div_onClick_server_OsNoEFc5SM4"))
+        "on:click": serverQrl(/*#__PURE__*/ inlinedQrl(Works_component_div_on_click_server_I0KQOua02KE, "Works_component_div_on_click_server_I0KQOua02KE"))
     }, null, null, 2, "u6_0");
 };
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(Works_component_t45qL4vNGv0, "Works_component_t45qL4vNGv0"));
@@ -39,7 +38,7 @@ const STYLES = '.class {}';
 export { STYLES as _auto_STYLES };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC;IAChC,qCAAU;IAEV,qBACC,WAAC;QAAI,UAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;iFAOyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;oCAFkB,CAAC;IAChC,qCAAU;IAEV,qBACC,WAAC;QAAI,YAAU;;AAEjB;AANA,OAAO,MAAM,sBAAQ,mGAMlB;AAEH,MAAM,SAAS\"}")
 == DIAGNOSTICS ==
 
 []

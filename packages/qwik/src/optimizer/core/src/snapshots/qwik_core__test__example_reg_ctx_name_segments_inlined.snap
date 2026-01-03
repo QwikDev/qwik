@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 891
+assertion_line: 892
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -24,12 +23,12 @@ import { inlinedQrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 export const Works = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((props)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "OsNoEFc5SM4"), "Works_component_div_onClick_server_OsNoEFc5SM4"))
+        "on:click": serverQrl(/*#__PURE__*/ inlinedQrl(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "I0KQOua02KE"), "Works_component_div_on_click_server_I0KQOua02KE"))
     }, null, null, 2, "u6_0");
 }, "Works_component_t45qL4vNGv0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAEhC,qBACC,WAAC;QAAI,UAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAF7B;;AAId,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,sBAAQ,sCAAW,CAAC;IAEhC,qBACC,WAAC;QAAI,YAAU,4DAAQ,IAAM,QAAQ,GAAG,CAAC,aAF7B;;AAId,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

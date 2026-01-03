@@ -113,6 +113,7 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
 }
@@ -254,6 +255,7 @@ impl<'a> QwikTransform<'a> {
 			immutable_function_cmp,
 			root_jsx_mode: true,
 			jsx_mutable: false,
+			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
 			options,
@@ -905,15 +907,16 @@ impl<'a> QwikTransform<'a> {
 			if let ast::JSXExpr::Expr(expr) = container.expr {
 				let is_fn = matches!(*expr, ast::Expr::Arrow(_) | ast::Expr::Fn(_));
 				if is_fn {
+					// Determine segment kind: EventHandler for event props, JSXProp otherwise
+					let segment_kind = if jsx_event_to_html_attribute(&ctx_name).is_some() {
+						SegmentKind::EventHandler
+					} else {
+						SegmentKind::JSXProp
+					};
 					Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
 						span: DUMMY_SP,
 						expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-							self.create_synthetic_qsegment(
-								*expr,
-								SegmentKind::JSXProp,
-								ctx_name,
-								None,
-							),
+							self.create_synthetic_qsegment(*expr, segment_kind, ctx_name, None),
 						))),
 					}))
 				} else {
@@ -966,14 +969,18 @@ impl<'a> QwikTransform<'a> {
 		let mut key_word = original_key_word.clone();
 		let mut transformed_event_key = None;
 
+		// Transform event props (e.g., onClick$ -> on:click)
+		// Only for native elements, not components
 		if !is_fn {
-			// Transform event props (e.g., onClick$ -> on:click)
 			if let Some(ref kw) = original_key_word {
 				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref()) {
 					transformed_event_key = Some(html_attr.clone());
 					key_word = Some(html_attr);
 				}
 			}
+		}
+
+		if !is_fn {
 			// Only for native elements
 			if let Some(ref kw) = original_key_word {
 				if kw == &*CLASS_NAME {
@@ -2470,15 +2477,22 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_jsx_element(&mut self, node: ast::JSXElement) -> ast::JSXElement {
-		let stacked = if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
+		let (stacked, is_native) = if let ast::JSXElementName::Ident(ref ident) = node.opening.name
+		{
+			// Native elements start with lowercase, components with uppercase
+			let is_native_element = ident.sym.chars().next().is_some_and(|c| c.is_lowercase());
 			self.stack_ctxt.push(ident.sym.to_string());
-			true
+			self.jsx_element_is_native.push(is_native_element);
+			(true, true)
 		} else {
-			false
+			(false, false)
 		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
+		}
+		if is_native {
+			self.jsx_element_is_native.pop();
 		}
 		o
 	}
@@ -2507,13 +2521,36 @@ impl<'a> Fold for QwikTransform<'a> {
 		let node = match node.name {
 			ast::JSXAttrName::Ident(ref ident) => {
 				let new_word = convert_qrl_word(&ident.sym);
-				self.stack_ctxt.push(ident.sym.to_string());
+
+				// Transform event names (onClick$ -> on:click) only on native HTML elements
+				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
+				let transformed_name = if is_native_element {
+					if let Some(html_attr) = jsx_event_to_html_attribute(&ident.sym) {
+						// Push transformed name to context for event handlers
+						self.stack_ctxt.push(html_attr.to_string());
+						Some(ast::JSXAttrName::Ident(ast::IdentName {
+							span: ident.span,
+							sym: html_attr,
+						}))
+					} else {
+						// Push original name for non-event attributes
+						self.stack_ctxt.push(ident.sym.to_string());
+						None
+					}
+				} else {
+					// On components, don't transform event names
+					self.stack_ctxt.push(ident.sym.to_string());
+					None
+				};
 
 				if new_word.is_some() {
 					ast::JSXAttr {
 						value: self.handle_jsx_value(ident.sym.clone(), node.value),
+						name: transformed_name.unwrap_or_else(|| node.name.clone()),
 						..node
 					}
+				} else if let Some(name) = transformed_name {
+					ast::JSXAttr { name, ..node }
 				} else {
 					node
 				}

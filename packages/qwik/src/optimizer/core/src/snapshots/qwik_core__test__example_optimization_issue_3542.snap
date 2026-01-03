@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 768
+assertion_line: 769
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -31,12 +30,12 @@ export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_
     let status = _rawProps.atom.status;
     if (!_rawProps.atom.real) status = "WILL-VANISH";
     else if (JSON.stringify(_rawProps.atom.atom) == JSON.stringify(_rawProps.atom.real)) status = "WTFED";
-    return <span title={_rawProps.atom.ID} onClick$={/*#__PURE__*/ inlinedQrl((ev)=>{
+    return <span title={_rawProps.atom.ID} on:click={/*#__PURE__*/ inlinedQrl((ev)=>{
         const [_rawProps] = useLexicalScope();
         return atomStatusClick(_rawProps.ctx, ev, [
             _rawProps.atom
         ]);
-    }, "AtomStatus_component_span_onClick_Owf5fKaOlF0", [
+    }, "AtomStatus_component_span_on_click_5d93rv80bw0", [
         _rawProps
     ])} class={[
         "atom",

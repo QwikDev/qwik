@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1573
+assertion_line: 1574
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -22,12 +21,12 @@ export default component$(() => {
 import { componentQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 export default /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
-    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_onClick_2EK0wZbP8qw")}>
+    return <div on:click={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "mongo_component_div_on_click_O41XkfEPk50")}>
 		</div>;
 }, "mongo_component_ouWLj4jA2oI"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACzB,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/index.tsx\"],\"names\":[],\"mappings\":\";;AAGA,6BAAe,sCAAW;IACzB,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,uDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

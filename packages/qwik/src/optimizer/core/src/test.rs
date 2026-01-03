@@ -4736,6 +4736,62 @@ fn should_convert_jsx_events() {
 	});
 }
 
+#[test]
+fn should_transform_event_names_without_jsx_transpile() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import mongo from 'mongodb';
+
+export const Greeter = component$(() => {
+	// Double count watch
+	useTask$(async () => {
+		await mongo.users();
+	});
+	return (
+		<div>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+			<div onClick$={() => {}}/>
+		</div>
+	)
+});
+
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_events_on_non_elements() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, $ } from '@qwik.dev/core';
+import { CustomComponent } from './custom-component';
+import { AnotherComponent } from './another-component';
+
+export const Greeter = component$(() => {
+	return (
+		<div>
+			<CustomComponent onClick$={() => {}}/>
+			{array.map(item => (
+				<AnotherComponent onClick$={() => {}}/>
+			))}
+		</div>
+	)
+});
+
+"#
+		.to_string(),
+		transpile_ts: false,
+		transpile_jsx: false,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

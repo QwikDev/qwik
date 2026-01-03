@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1594
+assertion_line: 1595
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -17,6 +16,32 @@ export default component$(() => {
 });
 
 
+============================= src/components/mongo/404.tsx__404_component_div_on_click_cQ5G4wKj1Ho.tsx (ENTRY POINT)==
+
+export const _404_component_div_on_click_cQ5G4wKj1Ho = ()=>console.log(mongodb);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"uDAKiB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "src/components/mongo/404.tsx",
+  "name": "_404_component_div_on_click_cQ5G4wKj1Ho",
+  "entry": null,
+  "displayName": "404.tsx__404_component_div_on_click",
+  "hash": "cQ5G4wKj1Ho",
+  "canonicalFilename": "404.tsx__404_component_div_on_click_cQ5G4wKj1Ho",
+  "path": "src/components/mongo",
+  "extension": "tsx",
+  "parent": "_404_component_zRvoWc98eqo",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    109,
+    135
+  ]
+}
+*/
 ============================= src/components/mongo/404.tsx ==
 
 import { componentQrl } from "@qwik.dev/core";
@@ -29,14 +54,14 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
 ============================= src/components/mongo/404.tsx__404_component_zRvoWc98eqo.tsx (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
-const i_OiMo9dvEW9Q = ()=>import("./404.tsx__404_component_div_onClick_OiMo9dvEW9Q");
+const i_cQ5G4wKj1Ho = ()=>import("./404.tsx__404_component_div_on_click_cQ5G4wKj1Ho");
 export const _404_component_zRvoWc98eqo = ()=>{
-    return <div onClick$={/*#__PURE__*/ qrl(i_OiMo9dvEW9Q, "_404_component_div_onClick_OiMo9dvEW9Q")}>
+    return <div on:click={/*#__PURE__*/ qrl(i_cQ5G4wKj1Ho, "_404_component_div_on_click_cQ5G4wKj1Ho")}>
 		</div>;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;0CAG0B;IACzB,QACE,IAAI,sFAAsC;EAC3C,EAAE;AAEJ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\";;0CAG0B;IACzB,QACE,IAAI,uFAAsC;EAC3C,EAAE;AAEJ\"}")
 /*
 {
   "origin": "src/components/mongo/404.tsx",
@@ -54,32 +79,6 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\
   "loc": [
     74,
     152
-  ]
-}
-*/
-============================= src/components/mongo/404.tsx__404_component_div_onClick_OiMo9dvEW9Q.tsx (ENTRY POINT)==
-
-export const _404_component_div_onClick_OiMo9dvEW9Q = ()=>console.log(mongodb);
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/src/components/mongo/404.tsx\"],\"names\":[],\"mappings\":\"sDAKiB,IAAM,QAAQ,GAAG,CAAC\"}")
-/*
-{
-  "origin": "src/components/mongo/404.tsx",
-  "name": "_404_component_div_onClick_OiMo9dvEW9Q",
-  "entry": null,
-  "displayName": "404.tsx__404_component_div_onClick",
-  "hash": "OiMo9dvEW9Q",
-  "canonicalFilename": "404.tsx__404_component_div_onClick_OiMo9dvEW9Q",
-  "path": "src/components/mongo",
-  "extension": "tsx",
-  "parent": "_404_component_zRvoWc98eqo",
-  "ctxKind": "jSXProp",
-  "ctxName": "onClick$",
-  "captures": false,
-  "loc": [
-    109,
-    135
   ]
 }
 */

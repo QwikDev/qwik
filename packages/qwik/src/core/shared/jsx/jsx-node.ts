@@ -1,8 +1,6 @@
-import { createQRL } from '../qrl/qrl-class';
 import type { QRL } from '../qrl/qrl.public';
-import { jsxEventToHtmlAttribute } from '../utils/event-names';
 import { EMPTY_OBJ } from '../utils/flyweight';
-import { logOnceWarn, logWarn } from '../utils/log';
+import { logWarn } from '../utils/log';
 import { qDev, seal } from '../utils/qdev';
 import { isObject } from '../utils/types';
 import { _chk, _val } from './bind-handlers';
@@ -12,9 +10,6 @@ import type { DevJSX, FunctionComponent, JSXNodeInternal } from './types/jsx-nod
 import type { JSXChildren } from './types/jsx-qwik-attributes';
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
-
-const BIND_VALUE = 'bind:value';
-const BIND_CHECKED = 'bind:checked';
 
 // TODO store props as the arrays the vnodes also use?
 export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
@@ -49,62 +44,6 @@ export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
       };
     }
 
-    if (typeof type === 'string') {
-      // convert onEvent$ to on:event
-      for (const k in this.constProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          mergeHandlers(this.constProps, attr, this.constProps[k] as QRL);
-          delete this.constProps[k];
-        }
-      }
-      for (const k in this.varProps) {
-        const attr = jsxEventToHtmlAttribute(k);
-        if (attr) {
-          // constProps always wins
-          if (!constProps || !_hasOwnProperty.call(constProps, k)) {
-            toSort = mergeHandlers(this.varProps, attr, this.varProps[k] as QRL) || toSort;
-          }
-          delete this.varProps[k];
-        }
-      }
-
-      // bind:*
-      if (_hasOwnProperty.call(this.varProps, BIND_CHECKED)) {
-        toSort = handleBindProp(this.varProps, BIND_CHECKED)! || toSort;
-      } else if (_hasOwnProperty.call(this.varProps, BIND_VALUE)) {
-        toSort = handleBindProp(this.varProps, BIND_VALUE)! || toSort;
-      } else if (this.constProps) {
-        if (_hasOwnProperty.call(this.constProps, BIND_CHECKED)) {
-          handleBindProp(this.constProps, BIND_CHECKED);
-        } else {
-          if (_hasOwnProperty.call(this.constProps, BIND_VALUE)) {
-            handleBindProp(this.constProps, BIND_VALUE);
-          }
-        }
-      }
-
-      if (_hasOwnProperty.call(this.varProps, 'className')) {
-        this.varProps.class = this.varProps.className;
-        this.varProps.className = undefined;
-        toSort = true;
-        if (qDev) {
-          logOnceWarn(
-            `jsx${dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''}: \`className\` is deprecated. Use \`class\` instead.`
-          );
-        }
-      }
-      // TODO let the optimizer do this instead
-      if (this.constProps && _hasOwnProperty.call(this.constProps, 'className')) {
-        this.constProps.class = this.constProps.className;
-        this.constProps.className = undefined;
-        if (qDev) {
-          logOnceWarn(
-            `jsx${dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''}: \`className\` is deprecated. Use \`class\` instead.`
-          );
-        }
-      }
-    }
     seal(this);
   }
 
@@ -157,19 +96,4 @@ const isEmpty = (obj: Record<string, unknown>) => {
     }
   }
   return true;
-};
-
-const handleBindProp = (props: Props, prop: string) => {
-  const value = props[prop];
-  props[prop] = undefined;
-  if (value) {
-    if (prop === BIND_CHECKED) {
-      props.checked = value;
-      props['on:input'] = createQRL(null, '_chk', _chk, null, null, [value]);
-    } else {
-      props.value = value;
-      props['on:input'] = createQRL(null, '_val', _val, null, null, [value]);
-    }
-    return true;
-  }
 };

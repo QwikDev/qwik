@@ -524,7 +524,7 @@ describe('render api', () => {
         });
         expect(result.html).toContain(
           '(window.qwikevents||(window.qwikevents=[])).push(' +
-            '":focus", ":-my---custom", ":click", ":dblclick", "-document:focus", ":another-custom", ":blur", "-window:click")'
+            '":focus", ":-my---custom", ":click", ":dblclick", "-document:focus", "-window:click", ":another-custom", ":blur")'
         );
       });
     });

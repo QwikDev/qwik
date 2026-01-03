@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3917
+assertion_line: 3918
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -35,7 +34,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { _auto_useFoo as useFoo } from "./test";
 import { useSignal } from "@qwik.dev/core";
-const i_eF3QEzgQWcY = ()=>import("./test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY");
+const i_G71xRH0eut0 = ()=>import("./test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0");
 export const test_component_LUXeXe0DQrg = ()=>{
     const count = useSignal(0);
     const foo = useFoo(count);
@@ -43,7 +42,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
         /*#__PURE__*/ _jsxSorted("p", null, null, foo("test"), 1, null),
         /*#__PURE__*/ _jsxSorted("p", null, null, foo`test`, 1, null),
         /*#__PURE__*/ _jsxSorted("button", null, {
-            onClick$: /*#__PURE__*/ qrl(i_eF3QEzgQWcY, "test_component_Fragment_button_onClick_eF3QEzgQWcY", [
+            "on:click": /*#__PURE__*/ qrl(i_G71xRH0eut0, "test_component_Fragment_button_on_click_G71xRH0eut0", [
                 count
             ])
         }, "Count up", 3, null)
@@ -51,7 +50,7 @@ export const test_component_LUXeXe0DQrg = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,QAAQ;;;WAAuB;;AAG1C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;0CAU4B;IACzB,MAAM,QAAQ,UAAU;IACxB,MAAM,MAAM,OAAO;IACnB,qBACC;sBACC,WAAC,iBAAG,IAAI;sBACR,WAAC,iBAAG,GAAG,CAAC,IAAI,CAAC;sBACb,WAAC;YAAO,UAAQ;;;WAAuB;;AAG1C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -72,24 +71,24 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY.ts (ENTRY POINT)==
+============================= test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0.ts (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const test_component_Fragment_button_onClick_eF3QEzgQWcY = ()=>{
+export const test_component_Fragment_button_on_click_G71xRH0eut0 = ()=>{
     const [count] = useLexicalScope();
     return count.value++;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";kEAiBuB;;WAAM,MAAM,KAAK\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAiBuB;;WAAM,MAAM,KAAK\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "name": "test_component_Fragment_button_on_click_G71xRH0eut0",
   "entry": null,
-  "displayName": "test.tsx_test_component_Fragment_button_onClick",
-  "hash": "eF3QEzgQWcY",
-  "canonicalFilename": "test.tsx_test_component_Fragment_button_onClick_eF3QEzgQWcY",
+  "displayName": "test.tsx_test_component_Fragment_button_on_click",
+  "hash": "G71xRH0eut0",
+  "canonicalFilename": "test.tsx_test_component_Fragment_button_on_click_G71xRH0eut0",
   "path": "",
   "extension": "ts",
   "parent": "test_component_LUXeXe0DQrg",

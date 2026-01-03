@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1237
+assertion_line: 1238
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -65,18 +64,18 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { hW } from "./test";
 import { handleWatch } from "./test";
 import { qrl } from "@qwik.dev/core";
-const i_M48DYiidSJw = ()=>import("./test.tsx_Foo_component_div_onClick_M48DYiidSJw");
+const i_IoDmt25HkZg = ()=>import("./test.tsx_Foo_component_div_on_click_IoDmt25HkZg");
 export const Foo_component_HTDRsvUbLiE = ()=>{
     useStyles$('thing');
     const qwik = hW + handleWatch;
     console.log(qwik);
     return /*#__PURE__*/ _jsxSorted("div", null, {
-        onClick$: /*#__PURE__*/ qrl(i_M48DYiidSJw, "Foo_component_div_onClick_M48DYiidSJw")
+        "on:click": /*#__PURE__*/ qrl(i_IoDmt25HkZg, "Foo_component_div_on_click_IoDmt25HkZg")
     }, null, 3, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAU8B;IAC7B,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACC,WAAC;QAAI,QAAQ;;AAEf\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;yCAU8B;IAC7B,WAAW;IACX,MAAM,OAAO,KAAK;IAClB,QAAQ,GAAG,CAAC;IAEZ,qBACC,WAAC;QAAI,UAAQ;;AAEf\"}")
 /*
 {
   "origin": "test.tsx",
@@ -185,20 +184,20 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
-============================= test.tsx_Foo_component_div_onClick_M48DYiidSJw.js (ENTRY POINT)==
+============================= test.tsx_Foo_component_div_on_click_IoDmt25HkZg.js (ENTRY POINT)==
 
-export const Foo_component_div_onClick_M48DYiidSJw = ()=>console.log(23);
+export const Foo_component_div_on_click_IoDmt25HkZg = ()=>console.log(23);
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAgBiB,IAAK,QAAQ,GAAG,CAFpB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sDAgBiB,IAAK,QAAQ,GAAG,CAFpB\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "Foo_component_div_onClick_M48DYiidSJw",
+  "name": "Foo_component_div_on_click_IoDmt25HkZg",
   "entry": null,
-  "displayName": "test.tsx_Foo_component_div_onClick",
-  "hash": "M48DYiidSJw",
-  "canonicalFilename": "test.tsx_Foo_component_div_onClick_M48DYiidSJw",
+  "displayName": "test.tsx_Foo_component_div_on_click",
+  "hash": "IoDmt25HkZg",
+  "canonicalFilename": "test.tsx_Foo_component_div_on_click_IoDmt25HkZg",
   "path": "",
   "extension": "js",
   "parent": "Foo_component_HTDRsvUbLiE",

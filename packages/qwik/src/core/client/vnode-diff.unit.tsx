@@ -746,7 +746,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: $(() => {}) }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'on:click': $(() => {}) }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -760,7 +760,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'on:click': () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -774,7 +774,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { id: 'a', 'on:click': 'abcd' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { id: 'a', onClick$: () => null }, null, [], 0, null);
+        const test = _jsxSorted('span', { id: 'a', 'on:click': () => null }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -860,7 +860,7 @@ describe('vNode-diff', () => {
         const { vParent, container } = vnode_fromJSX(
           _jsxSorted('span', { onDblClick$: 'aaa' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { onClick$: 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'on:click': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -872,9 +872,9 @@ describe('vNode-diff', () => {
 
       it('should change to alphabetically earlier event attribute and add qDispatchEvent', () => {
         const { vParent, container } = vnode_fromJSX(
-          _jsxSorted('span', { onClick$: 'aaa' }, null, [], 0, null)
+          _jsxSorted('span', { 'on:click': 'aaa' }, null, [], 0, null)
         );
-        const test = _jsxSorted('span', { onDblClick$: 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'on:dblclick': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -886,7 +886,7 @@ describe('vNode-diff', () => {
 
       it('should add event scope to element add qDispatchEvent', () => {
         const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
-        const test = _jsxSorted('span', { 'window:onClick$': 'bbb' }, null, [], 0, null);
+        const test = _jsxSorted('span', { 'on-window:click': 'bbb' }, null, [], 0, null);
         const journal: VNodeJournal = [];
         vnode_diff(container, journal, test, vParent, vParent, null);
         _flushJournal(journal);
@@ -1429,7 +1429,7 @@ describe('vNode-diff', () => {
           const { vParent, container } = vnode_fromJSX(
             _jsxSorted(
               'span',
-              { about: 'a', class: 'old', onClick$: () => null },
+              { about: 'a', class: 'old', 'on:click': () => null },
               null,
               [],
               0,
@@ -1438,7 +1438,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted(
             'span',
-            { class: 'new', id: 'b', onMouseOver$: () => null },
+            { class: 'new', id: 'b', 'on:mouseover': () => null },
             null,
             [],
             0,
@@ -1480,7 +1480,7 @@ describe('vNode-diff', () => {
           );
           const test = _jsxSorted(
             'span',
-            { onClick$: () => null, onMouseOver$: () => null },
+            { 'on:click': () => null, 'on:mouseover': () => null },
             null,
             [],
             0,
@@ -1553,7 +1553,7 @@ describe('vNode-diff', () => {
           const { vParent, container } = vnode_fromJSX(_jsxSorted('span', {}, null, [], 0, null));
           const test = _jsxSorted(
             'span',
-            { 'document:onClick$': () => null, 'window:onScroll$': () => null },
+            { 'on-document:click': () => null, 'on-window:scroll': () => null },
             null,
             [],
             0,
@@ -1589,7 +1589,7 @@ describe('vNode-diff', () => {
             {
               class: 'update-new',
               id: 'keep',
-              onClick$: () => null,
+              'on:click': () => null,
               title: 'add',
             },
             null,

@@ -121,7 +121,7 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
     case TypeIds.FormData:
       return new FormData();
     case TypeIds.JSXNode:
-      return new JSXNodeImpl(null!);
+      return new JSXNodeImpl(null!, null, null, null, null);
     case TypeIds.BigInt:
       return BigInt(value as string);
     case TypeIds.Set:

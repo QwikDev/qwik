@@ -132,6 +132,7 @@ import {
 import { isText } from '../shared/utils/element';
 import {
   dangerouslySetInnerHTML,
+  debugStyleScopeIdPrefixAttr,
   ELEMENT_ID,
   ELEMENT_PROPS,
   ELEMENT_SEQ,
@@ -291,7 +292,7 @@ export const vnode_isVNode = (vNode: any): vNode is VNode => {
 };
 
 export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
-  return vNode instanceof ElementVNode;
+  return (vNode.flags & VNodeFlags.Element) === VNodeFlags.Element;
 };
 
 export const vnode_isElementOrTextVNode = (vNode: VNode): vNode is ElementVNode | TextVNode => {
@@ -321,12 +322,12 @@ export const vnode_isMaterialized = (vNode: VNode): boolean => {
 
 /** @internal */
 export const vnode_isTextVNode = (vNode: VNode): vNode is TextVNode => {
-  return vNode instanceof TextVNode;
+  return (vNode.flags & VNodeFlags.Text) === VNodeFlags.Text;
 };
 
 /** @internal */
 export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
-  return vNode instanceof VirtualVNode;
+  return (vNode.flags & VNodeFlags.Virtual) === VNodeFlags.Virtual;
 };
 
 export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
@@ -338,23 +339,29 @@ export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
 };
 
 const ensureTextVNode = (vNode: VNode): TextVNode => {
-  assertTrue(vnode_isTextVNode(vNode), 'Expecting TextVNode was: ' + vnode_getNodeTypeName(vNode));
+  isDev &&
+    assertTrue(
+      vnode_isTextVNode(vNode),
+      'Expecting TextVNode was: ' + vnode_getNodeTypeName(vNode)
+    );
   return vNode as TextVNode;
 };
 
 const ensureElementOrVirtualVNode = (vNode: VNode) => {
-  assertDefined(vNode, 'Missing vNode');
-  assertTrue(
-    (vNode.flags & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0,
-    'Expecting ElementVNode or VirtualVNode was: ' + vnode_getNodeTypeName(vNode)
-  );
+  isDev && assertDefined(vNode, 'Missing vNode');
+  isDev &&
+    assertTrue(
+      (vNode.flags & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0,
+      'Expecting ElementVNode or VirtualVNode was: ' + vnode_getNodeTypeName(vNode)
+    );
 };
 
 export const ensureElementVNode = (vNode: VNode): ElementVNode => {
-  assertTrue(
-    vnode_isElementVNode(vNode),
-    'Expecting ElementVNode was: ' + vnode_getNodeTypeName(vNode)
-  );
+  isDev &&
+    assertTrue(
+      vnode_isElementVNode(vNode),
+      'Expecting ElementVNode was: ' + vnode_getNodeTypeName(vNode)
+    );
   return vNode as ElementVNode;
 };
 
@@ -409,7 +416,9 @@ export const vnode_setAttr = (
   scopedStyleIdPrefix: string | null = null
 ) => {
   if (vnode_isElementVNode(vNode)) {
-    import.meta.env.TEST && vnode_setProp(vNode, '__scopedStyleIdPrefix__', scopedStyleIdPrefix);
+    import.meta.env.TEST &&
+      scopedStyleIdPrefix &&
+      vnode_setProp(vNode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
     vnode_setProp(vNode, key, value);
     addVNodeOperation(
       journal,
@@ -686,7 +695,10 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
     const node = vnode_getDomSibling(vnode, true, true);
     const insertBeforeNode: Element | Text | null =
       sharedTextNode ||
-      (((node instanceof ElementVNode ? node.node : node?.node) || null) as Element | Text | null);
+      (((node && vnode_isElementVNode(node) ? node.node : node?.node) || null) as
+        | Element
+        | Text
+        | null);
 
     let lastPreviousTextNode = insertBeforeNode;
     while (vCursor && vnode_isTextVNode(vCursor)) {
@@ -1693,7 +1705,7 @@ export function vnode_toString(
       const idx = vnode.flags >>> VNodeFlagsIndex.shift;
       const attrs: string[] = ['[' + String(idx) + ']'];
       vnode_getAttrKeys(vnode).forEach((key) => {
-        if (key !== DEBUG_TYPE) {
+        if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
           const value = vnode_getProp(vnode!, key, null);
           attrs.push(' ' + key + '=' + qwikDebugToString(value));
         }

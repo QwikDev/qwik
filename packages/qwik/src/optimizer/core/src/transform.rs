@@ -113,6 +113,7 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
 }
@@ -254,6 +255,7 @@ impl<'a> QwikTransform<'a> {
 			immutable_function_cmp,
 			root_jsx_mode: true,
 			jsx_mutable: false,
+			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
 			options,
@@ -905,15 +907,16 @@ impl<'a> QwikTransform<'a> {
 			if let ast::JSXExpr::Expr(expr) = container.expr {
 				let is_fn = matches!(*expr, ast::Expr::Arrow(_) | ast::Expr::Fn(_));
 				if is_fn {
+					// Determine segment kind: EventHandler for event props, JSXProp otherwise
+					let segment_kind = if jsx_event_to_html_attribute(&ctx_name).is_some() {
+						SegmentKind::EventHandler
+					} else {
+						SegmentKind::JSXProp
+					};
 					Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
 						span: DUMMY_SP,
 						expr: ast::JSXExpr::Expr(Box::new(ast::Expr::Call(
-							self.create_synthetic_qsegment(
-								*expr,
-								SegmentKind::JSXProp,
-								ctx_name,
-								None,
-							),
+							self.create_synthetic_qsegment(*expr, segment_kind, ctx_name, None),
 						))),
 					}))
 				} else {
@@ -950,6 +953,122 @@ impl<'a> QwikTransform<'a> {
 			self.extra_bottom_items
 				.insert(id.clone(), create_synthetic_named_export(id, exported_name));
 		}
+	}
+
+	/// Handles transformation of JSX props for native elements:
+	/// - Transform event props (e.g., onClick$ -> on:click)
+	/// - Transform className -> class
+	/// - Handle bind:value and bind:checked
+	fn transform_jsx_prop(
+		&mut self,
+		is_fn: bool,
+		original_key_word: &Option<Atom>,
+		node: &ast::KeyValueProp,
+		maybe_const_props: &mut Vec<ast::PropOrSpread>,
+	) -> (Option<Atom>, Option<Atom>, bool) {
+		let mut key_word = original_key_word.clone();
+		let mut transformed_event_key = None;
+
+		// Transform event props (e.g., onClick$ -> on:click)
+		// Only for native elements, not components
+		if !is_fn {
+			if let Some(ref kw) = original_key_word {
+				if let Some(html_attr) = jsx_event_to_html_attribute(kw.as_ref()) {
+					transformed_event_key = Some(html_attr.clone());
+					key_word = Some(html_attr);
+				}
+			}
+		}
+
+		if !is_fn {
+			// Only for native elements
+			if let Some(ref kw) = original_key_word {
+				if kw == &*CLASS_NAME {
+					key_word = Some(CLASS.clone());
+					transformed_event_key = Some(CLASS.clone());
+				}
+			}
+			// Handle bind:value and bind:checked
+			// Transform bind:value={signal} into value={signal} + on:input handler
+			// Transform bind:checked={signal} into checked={signal} + on:input handler
+			if let Some(ref kw) = original_key_word {
+				if kw == &*BIND_VALUE || kw == &*BIND_CHECKED {
+					let is_checked = kw == &*BIND_CHECKED;
+					let value_key = if is_checked {
+						CHECKED.clone()
+					} else {
+						VALUE.clone()
+					};
+					let handler_fn_name = if is_checked { "_chk" } else { "_val" };
+
+					// Ensure _chk or _val is imported
+					let handler_id =
+						self.ensure_core_import(if is_checked { &_CHK } else { &_VAL });
+					let inlined_qrl_id = self.ensure_core_import(&_INLINED_QRL);
+
+					// Add the value/checked prop
+					let value_prop =
+						ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+							key: ast::PropName::Str(ast::Str {
+								span: DUMMY_SP,
+								value: value_key,
+								raw: None,
+							}),
+							value: node.value.clone(),
+						})));
+					maybe_const_props.push(value_prop.fold_with(self));
+
+					// Create QRL for the handler: inlinedQrl(_chk, '_chk', [signal])
+					let handler_qrl = ast::Expr::Call(ast::CallExpr {
+						callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(
+							&inlined_qrl_id,
+						)))),
+						args: vec![
+							ast::ExprOrSpread {
+								spread: None,
+								expr: Box::new(ast::Expr::Ident(new_ident_from_id(&handler_id))),
+							},
+							ast::ExprOrSpread {
+								spread: None,
+								expr: Box::new(ast::Expr::Lit(ast::Lit::Str(ast::Str {
+									span: DUMMY_SP,
+									value: Atom::from(handler_fn_name),
+									raw: None,
+								}))),
+							},
+							ast::ExprOrSpread {
+								spread: None,
+								expr: Box::new(ast::Expr::Array(ast::ArrayLit {
+									span: DUMMY_SP,
+									elems: vec![Some(ast::ExprOrSpread {
+										spread: None,
+										expr: node.value.clone(),
+									})],
+								})),
+							},
+						],
+						..Default::default()
+					});
+
+					// Add the on:input handler
+					let handler_prop =
+						ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+							key: ast::PropName::Str(ast::Str {
+								span: DUMMY_SP,
+								value: ON_INPUT.clone(),
+								raw: None,
+							}),
+							value: Box::new(handler_qrl),
+						})));
+					maybe_const_props.push(handler_prop.fold_with(self));
+
+					// Skip the bind: prop itself - signal to continue the loop
+					return (key_word, transformed_event_key, true);
+				}
+			}
+		}
+
+		(key_word, transformed_event_key, false)
 	}
 
 	fn create_qrl(
@@ -1281,11 +1400,42 @@ impl<'a> QwikTransform<'a> {
 					match prop {
 						// regular props
 						ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => {
-							let key_word = match node.key {
+							let original_key_word = match node.key {
 								ast::PropName::Ident(ref ident) => Some(ident.sym.clone()),
 								ast::PropName::Str(ref s) => Some(s.value.clone()),
 								_ => None,
 							};
+
+							// Transform JSX props (event handlers, className, bind:value/checked)
+							let (key_word, transformed_event_key, skip_prop) = self
+								.transform_jsx_prop(
+									is_fn,
+									&original_key_word,
+									node,
+									maybe_const_props,
+								);
+
+							// Skip the bind: prop itself - don't add it to any props list
+							if skip_prop {
+								if name_token {
+									self.stack_ctxt.pop();
+								}
+								continue;
+							}
+
+							// Update the key if it was transformed
+							let final_key = if let Some(ref transformed_key) = transformed_event_key
+							{
+								// Use Str for keys that contain special characters like colons
+								ast::PropName::Str(ast::Str {
+									span: node.key.span(),
+									value: transformed_key.clone(),
+									raw: None,
+								})
+							} else {
+								node.key.clone()
+							};
+
 							if let Some(key_word) = key_word {
 								let is_children = key_word == *CHILDREN;
 								if !is_children {
@@ -1320,7 +1470,7 @@ impl<'a> QwikTransform<'a> {
 										// static_subtree = false;
 										var_props.push(ast::PropOrSpread::Prop(Box::new(
 											ast::Prop::KeyValue(ast::KeyValueProp {
-												key: node.key.clone(),
+												key: final_key.clone(),
 												value: transformed_children,
 											}),
 										)));
@@ -1330,7 +1480,11 @@ impl<'a> QwikTransform<'a> {
 								} else if !is_fn && (key_word == *REF || key_word == *QSLOT) {
 									// skip
 									var_props.push(prop.fold_with(self));
-								} else if convert_qrl_word(&key_word).is_some() {
+								} else if convert_qrl_word(
+									&original_key_word.clone().unwrap_or_default(),
+								)
+								.is_some()
+								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
 										let (converted_expr, is_const) = self
@@ -1341,14 +1495,14 @@ impl<'a> QwikTransform<'a> {
 												} else {
 													SegmentKind::EventHandler
 												},
-												key_word.clone(),
+												original_key_word.clone().unwrap_or_default(),
 												None,
 											);
 
 										let converted_prop = ast::PropOrSpread::Prop(Box::new(
 											ast::Prop::KeyValue(ast::KeyValueProp {
 												value: Box::new(ast::Expr::Call(converted_expr)),
-												key: node.key.clone(),
+												key: final_key.clone(),
 											}),
 										));
 										if !is_const {
@@ -1377,16 +1531,34 @@ impl<'a> QwikTransform<'a> {
 											static_listeners = false;
 										}
 
+										// Create a new prop with the transformed key if needed
+										let prop_to_add = if let Some(ref transformed_key) =
+											transformed_event_key
+										{
+											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+												ast::KeyValueProp {
+													key: ast::PropName::Str(ast::Str {
+														span: node.key.span(),
+														value: transformed_key.clone(),
+														raw: None,
+													}),
+													value: node.value.clone(),
+												},
+											)))
+										} else {
+											prop.clone()
+										};
+
 										if is_fn || spread_props_count > 0 {
 											if const_prop {
-												maybe_const_props.push(prop.fold_with(self));
+												maybe_const_props.push(prop_to_add.fold_with(self));
 											} else {
-												var_props.push(prop.fold_with(self));
+												var_props.push(prop_to_add.fold_with(self));
 											}
 										} else if !const_prop || spread_props_count > 0 {
-											var_props.push(prop.fold_with(self));
+											var_props.push(prop_to_add.fold_with(self));
 										} else {
-											const_props.push(prop.fold_with(self));
+											const_props.push(prop_to_add.fold_with(self));
 										}
 									}
 								} else if is_const_expr(
@@ -1394,14 +1566,29 @@ impl<'a> QwikTransform<'a> {
 									&self.options.global_collect,
 									Some(&const_idents),
 								) {
-									maybe_const_props.push(prop.fold_with(self));
+									// Create a new prop with the transformed key if needed
+									let prop_to_add =
+										if let Some(ref transformed_key) = transformed_event_key {
+											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+												ast::KeyValueProp {
+													key: ast::PropName::Str(ast::Str {
+														span: node.key.span(),
+														value: transformed_key.clone(),
+														raw: None,
+													}),
+													value: node.value.clone(),
+												},
+											)))
+										} else {
+											prop.clone()
+										};
+									maybe_const_props.push(prop_to_add.fold_with(self));
 								} else if let Some((getter, is_const)) =
 									self.convert_to_getter(&node.value)
 								{
-									let key = node.key.clone();
 									let entry: ast::PropOrSpread = ast::PropOrSpread::Prop(
 										Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-											key,
+											key: final_key.clone(),
 											value: Box::new(getter),
 										})),
 									);
@@ -1411,7 +1598,23 @@ impl<'a> QwikTransform<'a> {
 										var_props.push(entry);
 									}
 								} else {
-									var_props.push(prop.fold_with(self));
+									// Create a new prop with the transformed key if needed
+									let prop_to_add =
+										if let Some(ref transformed_key) = transformed_event_key {
+											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+												ast::KeyValueProp {
+													key: ast::PropName::Str(ast::Str {
+														span: node.key.span(),
+														value: transformed_key.clone(),
+														raw: None,
+													}),
+													value: node.value.clone(),
+												},
+											)))
+										} else {
+											prop.clone()
+										};
+									var_props.push(prop_to_add.fold_with(self));
 								}
 							} else {
 								var_props.push(prop.fold_with(self));
@@ -2274,15 +2477,22 @@ impl<'a> Fold for QwikTransform<'a> {
 	}
 
 	fn fold_jsx_element(&mut self, node: ast::JSXElement) -> ast::JSXElement {
-		let stacked = if let ast::JSXElementName::Ident(ref ident) = node.opening.name {
+		let (stacked, is_native) = if let ast::JSXElementName::Ident(ref ident) = node.opening.name
+		{
+			// Native elements start with lowercase, components with uppercase
+			let is_native_element = ident.sym.chars().next().is_some_and(|c| c.is_lowercase());
 			self.stack_ctxt.push(ident.sym.to_string());
-			true
+			self.jsx_element_is_native.push(is_native_element);
+			(true, true)
 		} else {
-			false
+			(false, false)
 		};
 		let o = node.fold_children_with(self);
 		if stacked {
 			self.stack_ctxt.pop();
+		}
+		if is_native {
+			self.jsx_element_is_native.pop();
 		}
 		o
 	}
@@ -2311,13 +2521,36 @@ impl<'a> Fold for QwikTransform<'a> {
 		let node = match node.name {
 			ast::JSXAttrName::Ident(ref ident) => {
 				let new_word = convert_qrl_word(&ident.sym);
-				self.stack_ctxt.push(ident.sym.to_string());
+
+				// Transform event names (onClick$ -> on:click) only on native HTML elements
+				let is_native_element = self.jsx_element_is_native.last().copied().unwrap_or(false);
+				let transformed_name = if is_native_element {
+					if let Some(html_attr) = jsx_event_to_html_attribute(&ident.sym) {
+						// Push transformed name to context for event handlers
+						self.stack_ctxt.push(html_attr.to_string());
+						Some(ast::JSXAttrName::Ident(ast::IdentName {
+							span: ident.span,
+							sym: html_attr,
+						}))
+					} else {
+						// Push original name for non-event attributes
+						self.stack_ctxt.push(ident.sym.to_string());
+						None
+					}
+				} else {
+					// On components, don't transform event names
+					self.stack_ctxt.push(ident.sym.to_string());
+					None
+				};
 
 				if new_word.is_some() {
 					ast::JSXAttr {
 						value: self.handle_jsx_value(ident.sym.clone(), node.value),
+						name: transformed_name.unwrap_or_else(|| node.name.clone()),
 						..node
 					}
+				} else if let Some(name) = transformed_name {
+					ast::JSXAttr { name, ..node }
 				} else {
 					node
 				}
@@ -2528,6 +2761,65 @@ fn escape_sym(str: &str) -> String {
 			}
 		})
 		.0
+}
+
+/// Converts JSX event names (e.g., onClick$) to HTML attribute names (e.g., on:click)
+/// Follows the same logic as jsxEventToHtmlAttribute in event-names.ts
+fn jsx_event_to_html_attribute(jsx_event: &str) -> Option<Atom> {
+	if !jsx_event.ends_with('$') {
+		return None;
+	}
+
+	let (prefix, idx) = get_event_scope_data_from_jsx_event(jsx_event);
+
+	if idx == usize::MAX {
+		return None;
+	}
+
+	let name = &jsx_event[idx..jsx_event.len() - 1];
+
+	if name == "DOMContentLoaded" {
+		return Some(Atom::from(format!("{}-d-o-m-content-loaded", prefix)));
+	}
+
+	let processed_name = if let Some(stripped) = name.strip_prefix('-') {
+		// marker for case sensitive event name
+		stripped.to_string()
+	} else {
+		name.to_lowercase()
+	};
+
+	Some(create_event_name(&processed_name, prefix))
+}
+
+/// Get the event scope prefix and starting index from a JSX event name
+fn get_event_scope_data_from_jsx_event(jsx_event: &str) -> (&str, usize) {
+	if jsx_event.starts_with("window:on") {
+		("on-window:", 9)
+	} else if jsx_event.starts_with("document:on") {
+		("on-document:", 11)
+	} else if jsx_event.starts_with("on") {
+		("on:", 2)
+	} else {
+		("", usize::MAX)
+	}
+}
+
+/// Create an event name by converting from camelCase to kebab-case
+/// Follows the same logic as fromCamelToKebabCase in event-names.ts
+fn create_event_name(name: &str, prefix: &str) -> Atom {
+	let mut result = String::from(prefix);
+
+	for c in name.chars() {
+		if c.is_ascii_uppercase() || c == '-' {
+			result.push('-');
+			result.push(c.to_ascii_lowercase());
+		} else {
+			result.push(c);
+		}
+	}
+
+	Atom::from(result)
 }
 
 const fn can_capture_scope(expr: &ast::Expr) -> bool {

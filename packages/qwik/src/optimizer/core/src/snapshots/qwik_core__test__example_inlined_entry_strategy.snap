@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1515
+assertion_line: 1516
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -52,12 +51,12 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     }, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state
     ]));
-    return <div onClick$={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_onClick_elliVSnAiOQ")}>
+    return <div on:click={/*#__PURE__*/ inlinedQrl(()=>console.log(mongodb), "Child_component_div_on_click_MMpkjn7JKOk")}>
 		</div>;
 }, "Child_component_9GyF01GDKqw"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,iBAAiB;AAC1F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE/B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB,kDAAuB;;QACtB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAGxC,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,sDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AACA,SAA6C,QAAQ,QAAoB,iBAAiB;AAC1F,SAAS,KAAK,QAAQ,YAAY;AAClC,OAAO,aAAa,UAAU;AAE9B,OAAO,MAAM,sBAAQ,sCAAW;IAE/B,sCAAW;IACX,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IAEA,qBAAqB;IACrB,kDAAuB;;QACtB,MAAM,KAAK,GAAG,MAAM,OAAO,KAAK,MAAM,CAAC;;;;IAGxC,QACE,IAAI,mCAAU,IAAM,QAAQ,GAAG,CAAC,uDAAU;EAC3C,EAAE;AAEJ,mCAAG\"}")
 == DIAGNOSTICS ==
 
 []

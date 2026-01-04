@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2648
+assertion_line: 2649
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -46,16 +45,16 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
     const computed = signal.value + 'foo';
     return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
         /*#__PURE__*/ _jsxSorted("div", null, {
-            className: "hola"
+            "class": "hola"
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
-            className: _wrapProp(signal)
+            "class": _wrapProp(signal)
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", null, {
-            className: signal
+            "class": signal
         }, null, 3, null),
         /*#__PURE__*/ _jsxSorted("div", {
-            className: computed
+            "class": computed
         }, null, null, 3, null),
         /*#__PURE__*/ _jsxSorted(Foo, null, {
             className: "hola"
@@ -73,7 +72,7 @@ export const App2_component_3yveMqbQ3Fs = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B;IAC9B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;0CAG+B;IAC9B,MAAM,SAAS;IACf,MAAM,WAAW,OAAO,KAAK,GAAG;IAChC,qBACC;sBACC,WAAC;YAAI,SAAU;;sBACf,WAAC;YAAI,OAAS,YAAE;;sBAChB,WAAC;YAAI,SAAW;;sBAChB,WAAC;YAAI,SAAW;;sBAEhB,WAAC;YAAI,WAAU;;sBACf,WAAC;YAAI,SAAS,YAAE;;sBAChB,WAAC;YAAI,WAAW;;sBAChB,WAAC;YAAI,WAAW;;;AAGnB\"}")
 /*
 {
   "origin": "test.tsx",

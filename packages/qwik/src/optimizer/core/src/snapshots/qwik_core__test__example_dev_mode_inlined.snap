@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2321
+assertion_line: 2322
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -25,11 +24,11 @@ import { _jsxSorted } from "@qwik.dev/core";
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
     return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
         class: "stuff",
-        onClick$: /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_onClick_vuXzfUTkpto", {
+        "on:click": /*#__PURE__*/ inlinedQrlDEV(()=>console.log('warn'), "App_component_Cmp_p_on_click_9VylW0qB00s", {
             file: "/user/qwik/src/test.tsx",
             lo: 144,
             hi: 169,
-            displayName: "test.tsx_App_component_Cmp_p_onClick"
+            displayName: "test.tsx_App_component_Cmp_p_on_click"
         })
     }, "Hello Qwik", 3, null, {
         fileName: "test.tsx",
@@ -48,7 +47,7 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrlDEV(()=>{
 }));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,QAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,yCAAW;IAC7B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,UAAQ,8BAAE,IAAM,QAAQ,GAAG,CAAC;;;;;;OAAS;;;;;;;;;AAGzD;;;;;IAAG\"}")
 == DIAGNOSTICS ==
 
 []

@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 388
+assertion_line: 389
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -23,33 +22,24 @@ export const App = component$(({count, rest: [I2, {I3, v1: [I4], I5=v2, ...I6}, 
 	});
 })
 
-============================= test.js ==
-
-import { componentQrl } from "@qwik.dev/core";
-import { qrl } from "@qwik.dev/core";
-const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
-export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
-
-
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAYjB\"}")
-============================= test.tsx_App_component_div_onClick_1CGetmFZx0g.js (ENTRY POINT)==
+============================= test.tsx_App_component_div_on_click_V4v7mvdC0xU.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_div_onClick_1CGetmFZx0g = ()=>{
+export const App_component_div_on_click_V4v7mvdC0xU = ()=>{
     const [count, state] = useLexicalScope();
     return state.count += count + total;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";qDAQkB;;WAAM,MAAM,KAAK,IAAI,QAAQ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";sDAQkB;;WAAM,MAAM,KAAK,IAAI,QAAQ\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "App_component_div_onClick_1CGetmFZx0g",
+  "name": "App_component_div_on_click_V4v7mvdC0xU",
   "entry": null,
-  "displayName": "test.tsx_App_component_div_onClick",
-  "hash": "1CGetmFZx0g",
-  "canonicalFilename": "test.tsx_App_component_div_onClick_1CGetmFZx0g",
+  "displayName": "test.tsx_App_component_div_on_click",
+  "hash": "V4v7mvdC0xU",
+  "canonicalFilename": "test.tsx_App_component_div_on_click_V4v7mvdC0xU",
   "path": "",
   "extension": "js",
   "parent": "App_component_1_w0t0o3QMovU",
@@ -66,6 +56,15 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   ]
 }
 */
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,oBAAM,4EAYjB\"}")
 ============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
 
 import { qrl } from "@qwik.dev/core";
@@ -126,11 +125,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 import { useLexicalScope } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
-const i_1CGetmFZx0g = ()=>import("./test.tsx_App_component_div_onClick_1CGetmFZx0g");
+const i_V4v7mvdC0xU = ()=>import("./test.tsx_App_component_div_on_click_V4v7mvdC0xU");
 export const App_component_1_w0t0o3QMovU = ()=>{
     const [C2, C3, C4, C5, C6, C7, C8, I2, I3, I4, I5, I6, I7, I8, count, state] = useLexicalScope();
     return /*#__PURE__*/ _jsxSorted("div", {
-        onClick$: /*#__PURE__*/ qrl(i_1CGetmFZx0g, "App_component_div_onClick_1CGetmFZx0g", [
+        "on:click": /*#__PURE__*/ qrl(i_V4v7mvdC0xU, "App_component_div_on_click_V4v7mvdC0xU", [
             count,
             state
         ])
@@ -156,7 +155,7 @@ export const App_component_1_w0t0o3QMovU = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAMU;;IACR,qBACC,WAAC;QAAI,QAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;2CAMU;;IACR,qBACC,WAAC;QAAI,UAAQ;;;;;QACX;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI;QAAI;QAAI;QAAI;QAAI;QACxB;QAAI;QAAI\"}")
 /*
 {
   "origin": "test.tsx",

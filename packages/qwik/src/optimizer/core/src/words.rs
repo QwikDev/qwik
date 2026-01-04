@@ -41,4 +41,13 @@ lazy_static! {
 	pub static ref JSX_DEV: Atom = Atom::from("jsxDEV");
 	pub static ref _GET_VAR_PROPS: Atom = Atom::from("_getVarProps");
 	pub static ref _GET_CONST_PROPS: Atom = Atom::from("_getConstProps");
+	pub static ref _CHK: Atom = Atom::from("_chk");
+	pub static ref _VAL: Atom = Atom::from("_val");
+	pub static ref BIND_VALUE: Atom = Atom::from("bind:value");
+	pub static ref BIND_CHECKED: Atom = Atom::from("bind:checked");
+	pub static ref CLASS_NAME: Atom = Atom::from("className");
+	pub static ref CLASS: Atom = Atom::from("class");
+	pub static ref ON_INPUT: Atom = Atom::from("on:input");
+	pub static ref CHECKED: Atom = Atom::from("checked");
+	pub static ref VALUE: Atom = Atom::from("value");
 }

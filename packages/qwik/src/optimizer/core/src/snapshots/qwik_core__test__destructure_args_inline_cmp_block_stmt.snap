@@ -24,38 +24,38 @@ import { qrl } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 const _hf0 = (p0)=>p0.data.selectedOutputDetail === 'options';
 const _hf0_str = 'p0.data.selectedOutputDetail==="options"';
-const i_GbMO6TGQv9M = ()=>import("./test.tsx_test_div_onClick_GbMO6TGQv9M");
+const i_HJR5N4Nizkc = ()=>import("./test.tsx_test_div_on_click_HJR5N4Nizkc");
 export default ((_rawProps)=>{
     return /*#__PURE__*/ _jsxSorted("div", {
         "data-is-active": _fnSignal(_hf0, [
             _rawProps
         ], _hf0_str),
-        onClick$: /*#__PURE__*/ qrl(i_GbMO6TGQv9M, "test_div_onClick_GbMO6TGQv9M", [
+        "on:click": /*#__PURE__*/ qrl(i_HJR5N4Nizkc, "test_div_on_click_HJR5N4Nizkc", [
             _rawProps
         ])
     }, null, null, 2, "u6_0");
 });
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAI8B,GAHV,KAGe,oBAAoB,KAAK;;;AAH1D,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc;;;QACd,QAAQ;;;;AAKpB,CAAA,EAAE\"}")
-============================= test.tsx_test_div_onClick_GbMO6TGQv9M.js (ENTRY POINT)==
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAI8B,GAHV,KAGe,oBAAoB,KAAK;;;AAH1D,eAAe,CAAA;IACP,qBACE,WAAC;QACC,gBAAc;;;QACd,UAAQ;;;;AAKpB,CAAA,EAAE\"}")
+============================= test.tsx_test_div_on_click_HJR5N4Nizkc.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const test_div_onClick_GbMO6TGQv9M = ()=>{
+export const test_div_on_click_HJR5N4Nizkc = ()=>{
     const [_rawProps] = useLexicalScope();
     _rawProps.data.selectedOutputDetail = 'options';
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";4CAKwB;;IACR,UALI,KAKC,oBAAoB,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6CAKwB;;IACR,UALI,KAKC,oBAAoB,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
-  "name": "test_div_onClick_GbMO6TGQv9M",
+  "name": "test_div_on_click_HJR5N4Nizkc",
   "entry": null,
-  "displayName": "test.tsx_test_div_onClick",
-  "hash": "GbMO6TGQv9M",
-  "canonicalFilename": "test.tsx_test_div_onClick_GbMO6TGQv9M",
+  "displayName": "test.tsx_test_div_on_click",
+  "hash": "HJR5N4Nizkc",
+  "canonicalFilename": "test.tsx_test_div_on_click_HJR5N4Nizkc",
   "path": "",
   "extension": "js",
   "parent": null,

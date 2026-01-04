@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3979
+assertion_line: 3980
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -293,6 +292,8 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0, p1)=>p1[p0];
+const _hf0_str = "p1[p0]";
 const i_1mDJD4xhUZ8 = ()=>import("./test.tsx_App_component_loopForIn_span_onClick_1mDJD4xhUZ8");
 const i_AjlGKUbcCKY = ()=>import("./test.tsx_App_component_loopForOf_span_onClick_AjlGKUbcCKY");
 const i_MXjGbUTgkco = ()=>import("./test.tsx_App_component_loopForI_span_onClick_MXjGbUTgkco");
@@ -320,10 +321,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 i,
                 results
             ])
-        }, null, _fnSignal((p0, p1)=>p1[p0], [
+        }, null, _fnSignal(_hf0, [
             i,
             results
-        ], "p1[p0]"), 0, "u6_1"));
+        ], _hf0_str), 0, "u6_1"));
         return items;
     }
     function loopForOf(results) {
@@ -344,10 +345,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 key,
                 results
             ])
-        }, null, _fnSignal((p0, p1)=>p1[p0], [
+        }, null, _fnSignal(_hf0, [
             key,
             results
-        ], "p1[p0]"), 0, "u6_3"));
+        ], _hf0_str), 0, "u6_3"));
         return items;
     }
     function loopWhile(results) {
@@ -360,10 +361,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
                     i,
                     results
                 ])
-            }, null, _fnSignal((p0, p1)=>p1[p0], [
+            }, null, _fnSignal(_hf0, [
                 i,
                 results
-            ], "p1[p0]"), 0, "u6_4"));
+            ], _hf0_str), 0, "u6_4"));
             i++;
         }
         return items;
@@ -386,7 +387,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;yCAE8B;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,QAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAG;;;;QAIjB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;qCAIP,EAAO,IAAK;;;;QAInB,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,QAAQ;;;;;yCAIP,EAAO,IAAG;;;;YAGf;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,QAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,QAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;;;;;QAQd,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,QAAQ;;;;;;;;;QAQd,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,QAAQ;;;;;;;;;YAOZ;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,QAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

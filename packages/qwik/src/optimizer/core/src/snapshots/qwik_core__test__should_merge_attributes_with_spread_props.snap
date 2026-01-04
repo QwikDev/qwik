@@ -27,21 +27,23 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
+const _hf0 = (p0)=>[
+        p0.class,
+        'component'
+    ];
+const _hf0_str = '[p0.class,"component"]';
 export const test_component_LUXeXe0DQrg = (props)=>{
     return /*#__PURE__*/ _jsxSplit("div", {
         ..._getVarProps(props),
         ..._getConstProps(props),
-        class: _fnSignal((p0)=>[
-                p0.class,
-                'component'
-            ], [
+        class: _fnSignal(_hf0, [
             props
-        ], '[p0.class,"component"]')
+        ], _hf0_str)
     }, null, null, 0, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;0CAG4B,CAAC;IAC1B,qBAAO,UAAC;wBAAQ;0BAAA;QAAO,KAAK,kBAAE;gBAAC,GAAM,KAAK;gBAAE;aAAY;;;;AACzD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAIiC;QAAC,GAAM,KAAK;QAAE;KAAY;;0CAD/B,CAAC;IAC1B,qBAAO,UAAC;wBAAQ;0BAAA;QAAO,KAAK;;;;AAC7B\"}")
 /*
 {
   "origin": "test.tsx",

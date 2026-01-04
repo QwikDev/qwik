@@ -105,6 +105,7 @@ pub struct QwikTransform<'a> {
 	sync_qrl_fn: Option<Id>,
 	h_fn: Option<Id>,
 	fragment_fn: Option<Id>,
+	fn_signal_fn: Option<Id>,
 
 	jsx_mutable: bool,
 
@@ -112,6 +113,8 @@ pub struct QwikTransform<'a> {
 	file_hash: u64,
 	jsx_key_counter: u32,
 	root_jsx_mode: bool,
+	hoisted_fn_signals: HashMap<String, Id>,
+	hoisted_fn_counter: u32,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -243,11 +246,16 @@ impl<'a> QwikTransform<'a> {
 			fragment_fn: options
 				.global_collect
 				.get_imported_local(&FRAGMENT, &options.core_module),
+			fn_signal_fn: options
+				.global_collect
+				.get_imported_local(&_INLINED_FN, &options.core_module),
 			marker_functions,
 			jsx_functions,
 			immutable_function_cmp,
 			root_jsx_mode: true,
 			jsx_mutable: false,
+			hoisted_fn_signals: HashMap::new(),
+			hoisted_fn_counter: 0,
 			options,
 		}
 	}
@@ -1612,11 +1620,127 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
+	/// Hoist an inlined function signal call by extracting the arrow function
+	/// Returns the modified call expression with a hoisted function reference
+	fn hoist_fn_signal_call(&mut self, mut call_expr: ast::CallExpr) -> ast::CallExpr {
+		// Check if this is a _fnSignal call with an arrow function as first argument
+		if call_expr.args.is_empty() {
+			return call_expr;
+		}
+
+		let first_arg = &call_expr.args[0];
+		if let ast::Expr::Arrow(arrow_expr) = &*first_arg.expr {
+			// Render the arrow function to get a unique key
+			let fn_body_str = render_expr(&ast::Expr::Arrow(arrow_expr.clone()));
+
+			// Check if we've already hoisted this function
+			if let Some(existing_id) = self.hoisted_fn_signals.get(&fn_body_str) {
+				// Use the existing hoisted function
+				call_expr.args[0] = ast::ExprOrSpread {
+					spread: None,
+					expr: Box::new(ast::Expr::Ident(new_ident_from_id(existing_id))),
+				};
+
+				// If there's a third argument (stringified version), replace it with a reference too
+				if call_expr.args.len() >= 3 {
+					if let ast::Expr::Lit(ast::Lit::Str(_)) = &*call_expr.args[2].expr {
+						let str_id: Id = (format!("{}_str", existing_id.0).into(), existing_id.1);
+						call_expr.args[2] = ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(&str_id))),
+						};
+					}
+				}
+			} else {
+				// Create a new hoisted function
+				let fn_name = format!("_hf{}", self.hoisted_fn_counter);
+				self.hoisted_fn_counter += 1;
+
+				let fn_id: Id = (fn_name.clone().into(), SyntaxContext::empty());
+
+				// Store the mapping
+				self.hoisted_fn_signals.insert(fn_body_str, fn_id.clone());
+
+				// Create the const declaration for the hoisted function
+				let const_decl = ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(Box::new(
+					ast::VarDecl {
+						span: DUMMY_SP,
+						ctxt: Default::default(),
+						kind: ast::VarDeclKind::Const,
+						declare: false,
+						decls: vec![ast::VarDeclarator {
+							span: DUMMY_SP,
+							name: ast::Pat::Ident(ast::BindingIdent {
+								id: new_ident_from_id(&fn_id),
+								type_ann: None,
+							}),
+							init: Some(Box::new(ast::Expr::Arrow(arrow_expr.clone()))),
+							definite: false,
+						}],
+					},
+				))));
+
+				// Add to top items
+				self.extra_top_items.insert(fn_id.clone(), const_decl);
+
+				// If there's a third argument (stringified version), hoist it too
+				if call_expr.args.len() >= 3 {
+					if let ast::Expr::Lit(ast::Lit::Str(str_lit)) = &*call_expr.args[2].expr {
+						let str_id: Id =
+							(format!("{}_str", fn_name).into(), SyntaxContext::empty());
+
+						// Create const declaration for the stringified version
+						let str_decl = ast::ModuleItem::Stmt(ast::Stmt::Decl(ast::Decl::Var(
+							Box::new(ast::VarDecl {
+								span: DUMMY_SP,
+								ctxt: Default::default(),
+								kind: ast::VarDeclKind::Const,
+								declare: false,
+								decls: vec![ast::VarDeclarator {
+									span: DUMMY_SP,
+									name: ast::Pat::Ident(ast::BindingIdent {
+										id: new_ident_from_id(&str_id),
+										type_ann: None,
+									}),
+									init: Some(Box::new(ast::Expr::Lit(ast::Lit::Str(
+										str_lit.clone(),
+									)))),
+									definite: false,
+								}],
+							}),
+						)));
+
+						self.extra_top_items.insert(str_id.clone(), str_decl);
+
+						// Replace the string literal with a reference
+						call_expr.args[2] = ast::ExprOrSpread {
+							spread: None,
+							expr: Box::new(ast::Expr::Ident(new_ident_from_id(&str_id))),
+						};
+					}
+				}
+
+				// Replace the arrow function with a reference to the hoisted function
+				call_expr.args[0] = ast::ExprOrSpread {
+					spread: None,
+					expr: Box::new(ast::Expr::Ident(new_ident_from_id(&fn_id))),
+				};
+			}
+		}
+
+		call_expr
+	}
+
 	/// Convert an expression to a QRL or a getter. Returns (expr, isConst)
 	/// This is needed to make sure signals aren't read unless they're used by the component
 	fn convert_to_getter(&mut self, expr: &ast::Expr) -> Option<(ast::Expr, bool)> {
 		let (inlined_expr, is_const) = self.create_synthetic_qqsegment(expr.clone(), true);
-		if let Some(expr) = inlined_expr {
+		if let Some(mut expr) = inlined_expr {
+			// If the expression is a _fnSignal call, hoist the arrow function
+			if let ast::Expr::Call(call_expr) = expr {
+				let hoisted_call = self.hoist_fn_signal_call(call_expr);
+				expr = ast::Expr::Call(hoisted_call);
+			}
 			return Some((expr, is_const));
 		} else if is_const {
 			return Some((expr.clone(), true));
@@ -2230,6 +2354,15 @@ impl<'a> Fold for QwikTransform<'a> {
 		let mut ctx_name: Atom = QSEGMENT.clone();
 
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
+			// Check if this is a _fnSignal call (either by ID or by checking if it's imported as _fnSignal)
+			let is_fn_signal = id_eq!(ident, &self.fn_signal_fn) || {
+				if let Some(import) = self.options.global_collect.imports.get(&id!(ident)) {
+					import.specifier == *_INLINED_FN
+				} else {
+					false
+				}
+			};
+
 			if id_eq!(ident, &self.sync_qrl_fn) {
 				return self.handle_sync_qrl(node);
 			} else if id_eq!(ident, &self.qsegment_fn) {
@@ -2241,6 +2374,10 @@ impl<'a> Fold for QwikTransform<'a> {
 				return self.handle_jsx(node);
 			} else if id_eq!(ident, &self.inlined_qrl_fn) {
 				return self.handle_inlined_qsegment(node);
+			} else if is_fn_signal {
+				// Hoist _fnSignal calls
+				let folded_node = node.fold_children_with(self);
+				return self.hoist_fn_signal_call(folded_node);
 			} else if let Some(specifier) = self.marker_functions.get(&id!(ident)) {
 				self.stack_ctxt.push(ident.sym.to_string());
 				ctx_name = specifier.clone();

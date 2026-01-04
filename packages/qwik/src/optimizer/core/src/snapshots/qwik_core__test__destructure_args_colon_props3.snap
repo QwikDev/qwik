@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 3758
+assertion_line: 3759
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -34,18 +33,20 @@ import { _fnSignal } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _restProps } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.test.value;
+const _hf0_str = "p0.test.value";
 export const test_component_LUXeXe0DQrg = (props)=>{
     const rest = _restProps(props, [
         "test"
     ]);
     useSignal(rest['bind:value']);
-    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _fnSignal((p0)=>p0.test.value, [
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, _fnSignal(_hf0, [
         props
-    ], "p0.test.value"), 1, "u6_0");
+    ], _hf0_str), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;0CAE4B,CAAC;4BACA;;;IACb,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC,kDACC,GAJM,KAID,KAAK;;;AAGb\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;mBAOK,GAJM,KAID,KAAK;;0CALa,CAAC;4BACA;;;IACb,UAAU,IAAI,CAAC,aAAa;IACzC,qBACC;;;AAIF\"}")
 /*
 {
   "origin": "test.tsx",

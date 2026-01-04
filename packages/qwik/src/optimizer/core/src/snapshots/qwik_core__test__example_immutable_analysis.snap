@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 2137
+assertion_line: 2138
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -165,6 +164,11 @@ import importedValue from "v";
 import { qrl } from "@qwik.dev/core";
 import styles from "./styles.module.css";
 import { useStore } from "@qwik.dev/core";
+const _hf0 = (p0)=>({
+        foo: 'bar',
+        baz: p0.count ? true : false
+    });
+const _hf0_str = '{foo:"bar",baz:p0.count?true:false}';
 const i_2zF7jA3Yti0 = ()=>import("./test.tsx_App_component_Fragment_Div_immutable4_2zF7jA3Yti0");
 const i_eeDEK6EM1oo = ()=>import("./test.tsx_App_component_Fragment_Div_transparent_eeDEK6EM1oo");
 const i_pU6yOC5P6sY = ()=>import("./test.tsx_App_component_remove_pU6yOC5P6sY");
@@ -212,12 +216,9 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         }, {
             class: state,
             remove$: remove,
-            mutable1: _fnSignal((p0)=>({
-                    foo: 'bar',
-                    baz: p0.count ? true : false
-                }), [
+            mutable1: _fnSignal(_hf0, [
                 state
-            ], '{foo:"bar",baz:p0.count?true:false}'),
+            ], _hf0_str),
             mutable3: [
                 1,
                 2,
@@ -231,7 +232,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;yCAK8B,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ,kBAAE,CAAA;oBACT,KAAK;oBACL,KAAK,GAAM,KAAK,GAAG,OAAO;gBAC3B,CAAA;;;YAEA,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;mBAuCe,CAAA;QACT,KAAK;QACL,KAAK,GAAM,KAAK,GAAG,OAAO;IAC3B,CAAA;;;;;;yCArCyB,CAAC;IAE9B,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAChC,MAAM;;;IAON,qBACC;sBACC,WAAC;YAAgB,UAAU,MAAM,QAAQ;;YAAtC,OAAM;WAAkC;sBAC3C,WAAC;YAEA,UAAU,OAAO,QAAQ;YACzB,UAAU,MAAM,QAAQ;;YAFxB,OAAO,OAAO,GAAG;YAGjB,QAAQ;YACR,YAAY;YACZ,YAAW;YACX,YAAY;gBACX,KAAK;gBACL,KAAK,gBAAgB,OAAO;YAC7B;YACA,YAAY;YACZ,WAAW;;;YACX,YAAY;gBAAC;gBAAG;gBAAG;gBAAe;gBAAM,CAAC;aAAE;yBAE3C,WAAC,iBAAE;QACE;sBAEL,WA9Ba,MAAT;YAqCH,UAAU,CAAC,IAAM,QAAQ,GAAG,CAAC,MAAM,KAAK,CAAC;;YANzC,OAAO;YACP,SAAS;YACT,QAAQ;;;YAKR,UAAU;gBAAC;gBAAG;gBAAG;gBAAO;gBAAM,CAAC;aAAE;;QAChC;;AAIN\"}")
 /*
 {
   "origin": "test.tsx",

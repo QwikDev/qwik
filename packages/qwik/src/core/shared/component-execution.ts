@@ -316,5 +316,5 @@ function injectPlaceholderElement(
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', null, { hidden: '' });
+  return new JSXNodeImpl('script', null, { hidden: '' }, null, null);
 }

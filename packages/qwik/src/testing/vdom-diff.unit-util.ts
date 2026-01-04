@@ -47,6 +47,7 @@ import {
   QBackRefs,
   Q_PROPS_SEPARATOR,
   QContainerAttr,
+  debugStyleScopeIdPrefixAttr,
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
@@ -99,8 +100,13 @@ expect.extend({
   },
 });
 
-const scopedStyleIdPrefixAttr = '__scopedStyleIdPrefix__';
-const ignoredAttributes = [QBackRefs, ELEMENT_ID, '', Q_PROPS_SEPARATOR, scopedStyleIdPrefixAttr];
+const ignoredAttributes = [
+  QBackRefs,
+  ELEMENT_ID,
+  '',
+  Q_PROPS_SEPARATOR,
+  debugStyleScopeIdPrefixAttr,
+];
 
 function getContainerElement(vNode: _VNode) {
   let maybeParent: _VNode | null;
@@ -194,13 +200,15 @@ function diffJsxVNode(
       }
       // we need this, because Domino lowercases all attributes for `element.attributes`
       const propLowerCased = prop.toLowerCase();
-      let receivedValue =
+      let convertNullToUndefined = false;
+      const vnodePropValue =
         stringifyAttribute(received, prop, vnode_getProp(received, prop, null)) ||
-        stringifyAttribute(
-          received,
-          propLowerCased,
-          vnode_getProp(received, propLowerCased, null)
-        ) ||
+        stringifyAttribute(received, propLowerCased, vnode_getProp(received, propLowerCased, null));
+      if (vnodePropValue === null) {
+        convertNullToUndefined = true;
+      }
+      let receivedValue: string | boolean | undefined | null =
+        vnodePropValue ||
         receivedElement?.getAttribute(prop) ||
         receivedElement?.getAttribute(propLowerCased);
       let expectedValue =
@@ -209,6 +217,9 @@ function diffJsxVNode(
           : untrack(() => expected.props[prop]);
       if (typeof receivedValue === 'boolean' || typeof receivedValue === 'number') {
         receivedValue = serializeBooleanOrNumberAttribute(receivedValue);
+      }
+      if (convertNullToUndefined && receivedValue === null) {
+        receivedValue = undefined;
       }
       if (typeof expectedValue === 'number') {
         expectedValue = serializeBooleanOrNumberAttribute(expectedValue);
@@ -548,7 +559,7 @@ function attrsEqual(expectedValue: any, receivedValue: any) {
     typeof expectedValue == 'boolean'
       ? expectedValue
         ? receivedValue !== null
-        : receivedValue === null || receivedValue === 'false'
+        : receivedValue == null || receivedValue === 'false'
       : expectedValue === receivedValue;
   // console.log('attrsEqual', expectedValue, receivedValue, isEqual);
   return isEqual;
@@ -558,6 +569,6 @@ function stringifyAttribute(vnode: VNode, key: string, value: any): string | nul
   if (isSignal(value)) {
     value = untrack(() => value.value);
   }
-  const styleScopedId = vnode_getProp<string | null>(vnode, scopedStyleIdPrefixAttr, null);
+  const styleScopedId = vnode_getProp<string | null>(vnode, debugStyleScopeIdPrefixAttr, null);
   return serializeAttribute(key, value, styleScopedId);
 }

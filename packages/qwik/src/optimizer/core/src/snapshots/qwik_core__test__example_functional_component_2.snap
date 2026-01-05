@@ -89,13 +89,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 
 import { useLexicalScope } from "@qwik.dev/core";
 import { STEP } from "./test";
-export const App_component_div_button_on_click_5a2ivZyN1Y0 = ()=>{
-    const [btn, props, state, thing] = useLexicalScope();
+export const App_component_div_button_on_click_5a2ivZyN1Y0 = (_, _1, btn)=>{
+    const [props, state, thing] = useLexicalScope();
     return state.count += btn.offset + thing + STEP + 2 + props.step;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAmBe;;WAAM,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARzC,IAQyD,MAAM,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6DAmBe,QAFC;;WAEK,MAAM,KAAK,IAAI,IAAI,MAAM,GAAG,QAAQ,OARzC,IAQyD,MAAM,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -114,8 +114,12 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     451,
     519
   ],
+  "paramNames": [
+    "_",
+    "_",
+    "btn"
+  ],
   "captureNames": [
-    "btn",
     "props",
     "state",
     "thing"
@@ -146,7 +150,6 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(state, "count"), 3, null),
         buttons.map((btn)=>/*#__PURE__*/ _jsxSorted("button", {
                 "on:click": /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
-                    btn,
                     props,
                     state,
                     thing
@@ -157,7 +160,7 @@ export const App_component_ckEPmXZlub0 = (props)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;;;;;;yBAFG;+BAIV;;AAON\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;;;;;yBAFG;+BAIV;;AAON\"}")
 /*
 {
   "origin": "test.tsx",

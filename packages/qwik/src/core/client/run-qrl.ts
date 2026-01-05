@@ -1,11 +1,12 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { ITERATION_ITEM } from '../shared/utils/markers';
 import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { getDomContainer } from './dom-container';
 import { VNodeFlags } from './types';
+import { vnode_getProp } from './vnode-utils';
 
 /**
  * This is called by qwik-loader to run a QRL. It has to be synchronous.
@@ -20,10 +21,13 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   if (hostElement) {
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        return runQrl(...args).catch((err) => {
-          const container = (context.$container$ ||= getDomContainer(
-            (hostElement as ElementVNode).node
-          ));
+        const iterationItem = vnode_getProp(
+          hostElement as ElementVNode,
+          ITERATION_ITEM,
+          context.$container$?.$getObjectById$ || null
+        );
+        return runQrl(...args, iterationItem).catch((err) => {
+          const container = context.$container$;
           if (container) {
             container.handleError(err, hostElement);
           } else {

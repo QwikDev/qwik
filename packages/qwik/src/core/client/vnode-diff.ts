@@ -42,6 +42,7 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ITERATION_ITEM,
   OnRenderProp,
   QBackRefs,
   QContainerAttr,
@@ -962,9 +963,11 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
         ];
 
+        const iterationItem = vnode_getProp(vNode, ITERATION_ITEM, null);
+
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-            qrl(event, element).catch((e) => {
+            qrl(event, element, iterationItem).catch((e) => {
               diffContext.container.handleError(e, vNode);
             });
           }

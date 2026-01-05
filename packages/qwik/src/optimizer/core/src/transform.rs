@@ -24,7 +24,7 @@ use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
-use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
+use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
@@ -679,8 +679,16 @@ impl<'a> QwikTransform<'a> {
 		// Collect local idents
 		let local_idents = self.get_local_idents(&folded);
 
+		// Get function parameters to exclude from captured scope
+		let param_idents = get_function_params(&folded);
+
 		let (mut scoped_idents, is_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
+
+		// Filter out function parameters from scoped_idents
+		// Parameters don't need to be captured via useLexicalScope
+		scoped_idents.retain(|id| !param_idents.contains(id));
+
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
 				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
@@ -1555,14 +1563,32 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
+										// Transform event handler if inside a loop with an iteration variable
+										let transformed_value = if self.loop_depth > 0 && !is_fn {
+											if let Some(Some(iter_var)) =
+												self.iteration_var_stack.last()
+											{
+												transform_event_handler_with_iter_var(
+													*node.value.clone(),
+													iter_var,
+												)
+											} else {
+												*node.value.clone()
+											}
+										} else {
+											*node.value.clone()
+										};
+
+										let ctx_kind = if is_fn {
+											SegmentKind::JSXProp
+										} else {
+											SegmentKind::EventHandler
+										};
+
 										let (converted_expr, is_const) = self
 											._create_synthetic_qsegment(
-												*node.value.clone(),
-												if is_fn {
-													SegmentKind::JSXProp
-												} else {
-													SegmentKind::EventHandler
-												},
+												transformed_value,
+												ctx_kind,
 												original_key_word.clone().unwrap_or_default(),
 												None,
 											);
@@ -3024,10 +3050,172 @@ const fn can_capture_scope(expr: &ast::Expr) -> bool {
 	matches!(expr, &ast::Expr::Fn(_) | &ast::Expr::Arrow(_))
 }
 
+/// Get parameter identifiers from a function expression
+fn get_function_params(expr: &ast::Expr) -> Vec<Id> {
+	let mut params = Vec::new();
+
+	match expr {
+		ast::Expr::Arrow(arrow) => {
+			for param in &arrow.params {
+				let mut identifiers = vec![];
+				collect_from_pat(param, &mut identifiers);
+				params.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+		}
+		ast::Expr::Fn(fn_expr) => {
+			for param in &fn_expr.function.params {
+				let mut identifiers = vec![];
+				collect_from_pat(&param.pat, &mut identifiers);
+				params.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+		}
+		_ => {}
+	}
+
+	params
+}
+
 fn base64(nu: u64) -> String {
 	base64::engine::general_purpose::URL_SAFE_NO_PAD
 		.encode(nu.to_le_bytes())
 		.replace(['-', '_'], "0")
+}
+
+/// Check if an expression references a specific identifier
+fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
+	struct IdentChecker {
+		target_id: Id,
+		found: bool,
+	}
+
+	impl Visit for IdentChecker {
+		noop_visit_type!();
+
+		fn visit_ident(&mut self, ident: &ast::Ident) {
+			if id!(ident) == self.target_id {
+				self.found = true;
+			}
+		}
+	}
+
+	let mut checker = IdentChecker {
+		target_id: target_id.clone(),
+		found: false,
+	};
+
+	// For arrow/fn expressions, we want to check the body, not the whole expression
+	match expr {
+		ast::Expr::Arrow(arrow) => match &*arrow.body {
+			ast::BlockStmtOrExpr::BlockStmt(block) => block.visit_with(&mut checker),
+			ast::BlockStmtOrExpr::Expr(expr) => expr.visit_with(&mut checker),
+		},
+		ast::Expr::Fn(fn_expr) => {
+			if let Some(body) = &fn_expr.function.body {
+				body.visit_with(&mut checker);
+			}
+		}
+		_ => {
+			expr.visit_with(&mut checker);
+		}
+	}
+
+	checker.found
+}
+
+/// Transform event handler to add iteration variable as parameter
+/// Converts: onClick$={() => cart.push(item)}
+/// To: onClick$={(_, __, item) => cart.push(item)}
+fn transform_event_handler_with_iter_var(expr: ast::Expr, iter_var: &ast::Ident) -> ast::Expr {
+	match expr {
+		ast::Expr::Arrow(mut arrow) => {
+			// Check if the arrow function body uses the iteration variable
+			if expr_uses_ident(&ast::Expr::Arrow(arrow.clone()), &id!(iter_var)) {
+				// Count existing parameters
+				let existing_params = arrow.params.len();
+
+				// We need 3 parameters: event (0), element (1), iteration var (2)
+				// Add placeholders for any missing parameters
+				let mut new_params = Vec::new();
+
+				// Add existing params or placeholders
+				for i in 0..2 {
+					if i < existing_params {
+						new_params.push(arrow.params[i].clone());
+					} else {
+						// Add placeholder parameter
+						new_params.push(ast::Pat::Ident(ast::BindingIdent {
+							id: private_ident!("_"),
+							type_ann: None,
+						}));
+					}
+				}
+
+				// Add the iteration variable as the third parameter
+				new_params.push(ast::Pat::Ident(ast::BindingIdent {
+					id: iter_var.clone(),
+					type_ann: None,
+				}));
+
+				// Add any additional existing parameters beyond the first 2
+				for i in 2..existing_params {
+					new_params.push(arrow.params[i].clone());
+				}
+
+				arrow.params = new_params;
+				ast::Expr::Arrow(arrow)
+			} else {
+				ast::Expr::Arrow(arrow)
+			}
+		}
+		ast::Expr::Fn(mut fn_expr) => {
+			// Check if the function body uses the iteration variable
+			if expr_uses_ident(&ast::Expr::Fn(fn_expr.clone()), &id!(iter_var)) {
+				// Count existing parameters
+				let existing_params = fn_expr.function.params.len();
+
+				// We need 3 parameters: event (0), element (1), iteration var (2)
+				let mut new_params = Vec::new();
+
+				// Add existing params or placeholders
+				for i in 0..2 {
+					if i < existing_params {
+						new_params.push(fn_expr.function.params[i].clone());
+					} else {
+						// Add placeholder parameter
+						new_params.push(ast::Param {
+							span: DUMMY_SP,
+							decorators: vec![],
+							pat: ast::Pat::Ident(ast::BindingIdent {
+								id: private_ident!("_"),
+								type_ann: None,
+							}),
+						});
+					}
+				}
+
+				// Add the iteration variable as the third parameter
+				new_params.push(ast::Param {
+					span: DUMMY_SP,
+					decorators: vec![],
+					pat: ast::Pat::Ident(ast::BindingIdent {
+						id: iter_var.clone(),
+						type_ann: None,
+					}),
+				});
+
+				// Add any additional existing parameters beyond the first 2
+				for i in 2..existing_params {
+					new_params.push(fn_expr.function.params[i].clone());
+				}
+
+				fn_expr.function.params = new_params;
+				ast::Expr::Fn(fn_expr)
+			} else {
+				ast::Expr::Fn(fn_expr)
+			}
+		}
+		_ => expr,
+	}
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {

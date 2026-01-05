@@ -1,0 +1,230 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4797
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+export const App = component$(() => {
+	const data = useSignal<Signal<any>[]>([]);
+	const selectedItem = useSignal<any | null>(null);
+    return (
+        <div>
+          {data.value.map((row) => (
+              <tr
+                key={untrack(() => row.value.id)}
+                class={row.value.selected.value ? "danger" : ""}
+              >
+                <td class="col-md-1">{row.value.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+                    }}
+                  >
+                    {row.value.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
+                    <span aria-hidden="true">x</span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+          ))}
+        </div>
+      );
+    });
+
+============================= test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = (_, _1, row)=>{
+    const [selectedItem] = useLexicalScope();
+    if (selectedItem.value) selectedItem.value.selected.value = false;
+    selectedItem.value = row.value;
+    row.value.selected.value = true;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DAe8B,QARH;;IASL,IAAI,aAAa,KAAK,EACpB,aAAa,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAEtC,aAAa,KAAK,GAAG,IAAI,KAAK;IAC9B,IAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_tr_td_a_on_click_Ikaw4baZqAM",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_tr_td_a_on_click",
+  "hash": "Ikaw4baZqAM",
+  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    561,
+    838
+  ],
+  "paramNames": [
+    "_",
+    "_",
+    "row"
+  ],
+  "captureNames": [
+    "selectedItem"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
+export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,oBAAM,4EA0CZ\"}")
+============================= test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = (_, _1, row)=>{
+    const [data] = useLexicalScope();
+    const dataValue = untrack(()=>data.value);
+    data.value = dataValue.toSpliced(dataValue.findIndex((d)=>d.value.id === row.value.id), 1);
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEA4B8B,QArBH;;IAsBL,MAAM,YAAY,QAAQ,IAAM,KAAK,KAAK;IAC1C,KAAK,KAAK,GAAG,UAAU,SAAS,CAC9B,UAAU,SAAS,CAAC,CAAC,IAAM,EAAE,KAAK,CAAC,EAAE,KAAK,IAAI,KAAK,CAAC,EAAE,GACtD\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU",
+  "entry": null,
+  "displayName": "test.tsx_App_component_div_tr_td_a_on_click_1",
+  "hash": "0BckO6FtVZU",
+  "canonicalFilename": "test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU",
+  "path": "",
+  "extension": "js",
+  "parent": "App_component_ckEPmXZlub0",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    1038,
+    1323
+  ],
+  "paramNames": [
+    "_",
+    "_",
+    "row"
+  ],
+  "captureNames": [
+    "data"
+  ]
+}
+*/
+============================= test.tsx_App_component_ckEPmXZlub0.js (ENTRY POINT)==
+
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.value.selected.value ? "danger" : "";
+const _hf0_str = 'p0.value.selected.value?"danger":""';
+const _hf1 = (p0)=>p0.value.id;
+const _hf1_str = "p0.value.id";
+const _hf2 = (p0)=>p0.value.label.value;
+const _hf2_str = "p0.value.label.value";
+const i_0BckO6FtVZU = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU");
+const i_Ikaw4baZqAM = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM");
+export const App_component_ckEPmXZlub0 = ()=>{
+    const data = useSignal([]);
+    const selectedItem = useSignal(null);
+    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("tr", {
+            class: _fnSignal(_hf0, [
+                row
+            ], _hf0_str),
+            "q:row": row
+        }, null, [
+            /*#__PURE__*/ _jsxSorted("td", {
+                "q:row": row
+            }, {
+                class: "col-md-1"
+            }, _fnSignal(_hf1, [
+                row
+            ], _hf1_str), 1, null),
+            /*#__PURE__*/ _jsxSorted("td", {
+                "q:row": row
+            }, {
+                class: "col-md-4"
+            }, /*#__PURE__*/ _jsxSorted("a", {
+                "on:click": /*#__PURE__*/ qrl(i_Ikaw4baZqAM, "App_component_div_tr_td_a_on_click_Ikaw4baZqAM", [
+                    selectedItem
+                ]),
+                "q:row": row
+            }, null, _fnSignal(_hf2, [
+                row
+            ], _hf2_str), 0, null), 1, null),
+            /*#__PURE__*/ _jsxSorted("td", {
+                "q:row": row
+            }, {
+                class: "col-md-1"
+            }, /*#__PURE__*/ _jsxSorted("a", {
+                "on:click": /*#__PURE__*/ qrl(i_0BckO6FtVZU, "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU", [
+                    data
+                ]),
+                "q:row": row
+            }, null, /*#__PURE__*/ _jsxSorted("span", {
+                "q:row": row
+            }, {
+                "aria-hidden": "true"
+            }, "x", 3, null), 0, null), 1, null),
+            /*#__PURE__*/ _jsxSorted("td", {
+                "q:row": row
+            }, {
+                class: "col-md-6"
+            }, null, 3, null)
+        ], 1, untrack(()=>row.value.id))), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;qBAHM;;0BAKX,WAAC;yBALU;;gBAKP,OAAM;;;;0BACV,WAAC;yBANU;;gBAMP,OAAM;6BACR,WAAC;gBACC,UAAQ;;;yBARD;;;;0BAmBX,WAAC;yBAnBU;;gBAmBP,OAAM;6BACR,WAAC;gBACC,UAAQ;;;yBArBD;mCA6BP,WAAC;yBA7BM;;gBA6BD,eAAY;eAAO;0BAG7B,WAAC;yBAhCU;;gBAgCP,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "App_component_ckEPmXZlub0",
+  "entry": null,
+  "displayName": "test.tsx_App_component",
+  "hash": "ckEPmXZlub0",
+  "canonicalFilename": "test.tsx_App_component_ckEPmXZlub0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    99,
+    1547
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

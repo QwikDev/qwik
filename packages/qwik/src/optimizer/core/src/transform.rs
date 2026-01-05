@@ -116,6 +116,8 @@ pub struct QwikTransform<'a> {
 	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
+	loop_depth: u32,
+	iteration_var_stack: Vec<Option<ast::Ident>>,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -258,6 +260,8 @@ impl<'a> QwikTransform<'a> {
 			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
+			loop_depth: 0,
+			iteration_var_stack: Vec::new(),
 			options,
 		}
 	}
@@ -1324,8 +1328,27 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 		ast::ExprOrSpread,
 	) {
-		let (should_sort, var_props_raw, const_props_raw, children, flags) =
+		let (should_sort, mut var_props_raw, const_props_raw, children, flags) =
 			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
+
+		// Add q:row prop when inside a loop (only if we have an iteration variable)
+		if self.loop_depth > 0 {
+			// Get the current iteration variable from the stack
+			if let Some(Some(ident)) = self.iteration_var_stack.last() {
+				let row_value = Box::new(ast::Expr::Ident(ident.clone()));
+
+				var_props_raw.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+					ast::KeyValueProp {
+						key: ast::PropName::Str(ast::Str {
+							span: DUMMY_SP,
+							value: Atom::from("q:row"),
+							raw: None,
+						}),
+						value: row_value,
+					},
+				))));
+			}
+		}
 
 		let var_props = if var_props_raw.is_empty() {
 			get_null_arg()
@@ -2403,7 +2426,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable from the initialization
+		let iteration_var = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
+			var_decl.decls.first().and_then(|decl| {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					Some(ident.id.clone())
+				} else {
+					None
+				}
+			})
+		} else {
+			None
+		};
+		self.iteration_var_stack.push(iteration_var);
+
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2414,7 +2455,31 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable
+		let iteration_var = match &node.left {
+			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					Some(ident.id.clone())
+				} else {
+					None
+				}
+			}),
+			ast::ForHead::Pat(pat) => {
+				if let ast::Pat::Ident(ident) = &**pat {
+					Some(ident.id.clone())
+				} else {
+					None
+				}
+			}
+			_ => None,
+		};
+		self.iteration_var_stack.push(iteration_var);
+
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2425,6 +2490,27 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable
+		let iteration_var = match &node.left {
+			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					Some(ident.id.clone())
+				} else {
+					None
+				}
+			}),
+			ast::ForHead::Pat(pat) => {
+				if let ast::Pat::Ident(ident) = &**pat {
+					Some(ident.id.clone())
+				} else {
+					None
+				}
+			}
+			_ => None,
+		};
+		self.iteration_var_stack.push(iteration_var);
 
 		let current_scope = self
 			.decl_stack
@@ -2448,6 +2534,8 @@ impl<'a> Fold for QwikTransform<'a> {
 		}
 
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2496,8 +2584,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Try to extract the iteration variable from the condition
+		// e.g., in "while (i < results.length)", extract "i"
+		let iteration_var = match &*node.test {
+			ast::Expr::Bin(bin_expr) => {
+				// Check left side of comparison
+				match &*bin_expr.left {
+					ast::Expr::Ident(ident) => Some(ident.clone()),
+					_ => None,
+				}
+			}
+			_ => None,
+		};
+		self.iteration_var_stack.push(iteration_var);
 
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2631,6 +2736,47 @@ impl<'a> Fold for QwikTransform<'a> {
 		let mut replace_callee = None;
 		let mut ctx_name: Atom = QSEGMENT.clone();
 
+		// Check if this is an array iteration method call (e.g., .map(), .filter(), etc.)
+		let is_iteration_method =
+			if let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee {
+				matches!(
+					prop_to_string(&member.prop).as_deref(),
+					Some(
+						"map"
+							| "filter" | "forEach"
+							| "flatMap" | "some" | "every"
+							| "find" | "findIndex"
+							| "reduce" | "reduceRight"
+					)
+				)
+			} else {
+				false
+			};
+
+		// Track iteration variable for array methods
+		if is_iteration_method {
+			self.loop_depth += 1;
+			// Get the first parameter of the first argument (callback function)
+			let iteration_var = node.args.first().and_then(|arg| match &*arg.expr {
+				ast::Expr::Arrow(arrow) => arrow.params.first().and_then(|param| {
+					if let ast::Pat::Ident(ident) = param {
+						Some(ident.id.clone())
+					} else {
+						None
+					}
+				}),
+				ast::Expr::Fn(func) => func.function.params.first().and_then(|param| {
+					if let ast::Pat::Ident(ident) = &param.pat {
+						Some(ident.id.clone())
+					} else {
+						None
+					}
+				}),
+				_ => None,
+			});
+			self.iteration_var_stack.push(iteration_var);
+		}
+
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			// Check if this is a _fnSignal call (either by ID or by checking if it's imported as _fnSignal)
 			let is_fn_signal = id_eq!(ident, &self.fn_signal_fn) || {
@@ -2734,6 +2880,13 @@ impl<'a> Fold for QwikTransform<'a> {
 		if name_token {
 			self.stack_ctxt.pop();
 		}
+
+		// Clean up iteration tracking
+		if is_iteration_method {
+			self.iteration_var_stack.pop();
+			self.loop_depth -= 1;
+		}
+
 		ast::CallExpr {
 			callee,
 			args,

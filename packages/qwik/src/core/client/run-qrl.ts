@@ -1,4 +1,5 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { ITERATION_ITEM } from '../shared/utils/markers';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
@@ -8,7 +9,6 @@ import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
-import { getDomContainer } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 

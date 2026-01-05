@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4724
+assertion_line: 4670
 expression: output
 ---
 ==INPUT==
@@ -81,15 +81,18 @@ export const App_component_ckEPmXZlub0 = ()=>{
         return /*#__PURE__*/ _jsxSorted("tr", {
             class: _fnSignal(_hf0, [
                 row
-            ], _hf0_str)
-        }, null, /*#__PURE__*/ _jsxSorted("td", null, null, _fnSignal(_hf1, [
+            ], _hf0_str),
+            "q:row": row
+        }, null, /*#__PURE__*/ _jsxSorted("td", {
+            "q:row": row
+        }, null, _fnSignal(_hf1, [
             row
         ], _hf1_str), 1, null), 1, row.value.id);
     }), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mBAgBmB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAExC,GAAI,KAAK,CAAC,EAAE;;yCAfC;IAC5B,MAAM,OAAO;QAAE,OAAO;YACpB;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;YAC9C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAM;gBAAE;YAAE;YAC/C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;SAC/C;IAAA;IAED,qBACE,WAAC,qBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC;QACf,qBACE,WAAC;YAEC,KAAK;;;+BAEL,WAAC;;mCAHI,IAAI,KAAK,CAAC,EAAE;IAMvB;AAGN\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;mBAgBmB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAExC,GAAI,KAAK,CAAC,EAAE;;yCAfC;IAC5B,MAAM,OAAO;QAAE,OAAO;YACpB;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;YAC9C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAM;gBAAE;YAAE;YAC/C;gBAAE,OAAO;oBAAE,IAAI;oBAAG,UAAU;wBAAE,OAAO;oBAAK;gBAAE;YAAE;SAC/C;IAAA;IAED,qBACE,WAAC,qBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC;QACf,qBACE,WAAC;YAEC,KAAK;;;qBAJM;+BAMX,WAAC;qBANU;;;mCAGN,IAAI,KAAK,CAAC,EAAE;IAMvB;AAGN\"}")
 /*
 {
   "origin": "test.tsx",

@@ -150,13 +150,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
                     props,
                     state,
                     thing
-                ])
+                ]),
+                "q:row": btn
             }, null, _wrapProp(btn, "name"), 0, "u6_0"))
     ], 0, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;;;;;;+BAEP;;AAON\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;;;;;;yBAFG;+BAIV;;AAON\"}")
 /*
 {
   "origin": "test.tsx",

@@ -118,8 +118,9 @@ pub struct QwikTransform<'a> {
 	hoisted_fn_counter: u32,
 	loop_depth: u32,
 	iteration_var_stack: Vec<Vec<ast::Ident>>,
-	hoisted_qrls: Vec<(String, ast::VarDeclarator)>,
+	hoisted_qrls: Vec<Vec<(String, ast::VarDeclarator)>>,
 	fn_depth: u32,
+	in_callback: bool,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -266,6 +267,7 @@ impl<'a> QwikTransform<'a> {
 			iteration_var_stack: Vec::new(),
 			hoisted_qrls: Vec::new(),
 			fn_depth: 0,
+			in_callback: false,
 			options,
 		}
 	}
@@ -973,7 +975,13 @@ impl<'a> QwikTransform<'a> {
 
 	/// Hoist QRL creation if inside a loop, or return the call expression as-is
 	fn hoist_qrl_if_needed(&mut self, converted_expr: ast::CallExpr, is_fn: bool) -> ast::Expr {
-		if self.loop_depth > 0 && !is_fn {
+		// Hoist QRLs only when inside a loop (for, while, .map(), etc.)
+		// This creates a single QRL declaration outside the loop for efficiency
+		// Don't hoist component$ QRLs (is_fn = true)
+		// Also need an active hoisting scope (hoisted_qrls not empty)
+		let should_hoist = self.loop_depth > 0 && !is_fn && !self.hoisted_qrls.is_empty();
+
+		if should_hoist {
 			// Extract symbol name from the QRL call (second argument)
 			let symbol_name =
 				if let Some(ast::ExprOrSpread { expr, .. }) = converted_expr.args.get(1) {
@@ -986,18 +994,22 @@ impl<'a> QwikTransform<'a> {
 					format!("qrl_{}", converted_expr.span.lo.0)
 				};
 
-			// Check if we already hoisted this QRL
-			let existing_var = self.hoisted_qrls.iter().find_map(|(name, _)| {
-				if name == &symbol_name {
-					Some(ast::Expr::Ident(ast::Ident::new(
-						Atom::from(name.clone()),
-						DUMMY_SP,
-						SyntaxContext::empty(),
-					)))
-				} else {
-					None
-				}
-			});
+			let current_depth = self.hoisted_qrls.len() - 1;
+
+			// Check if we already hoisted this QRL at current depth
+			let existing_var = self.hoisted_qrls[current_depth]
+				.iter()
+				.find_map(|(name, _)| {
+					if name == &symbol_name {
+						Some(ast::Expr::Ident(ast::Ident::new(
+							Atom::from(name.clone()),
+							DUMMY_SP,
+							SyntaxContext::empty(),
+						)))
+					} else {
+						None
+					}
+				});
 
 			if let Some(existing_ident) = existing_var {
 				existing_ident
@@ -1017,8 +1029,7 @@ impl<'a> QwikTransform<'a> {
 					definite: false,
 				};
 
-				self.hoisted_qrls
-					.push((symbol_name.clone(), var_declarator));
+				self.hoisted_qrls[current_depth].push((symbol_name.clone(), var_declarator));
 
 				ast::Expr::Ident(ast::Ident::new(
 					Atom::from(symbol_name),
@@ -2496,6 +2507,7 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
 		self.decl_stack.push(vec![]);
 		self.fn_depth += 1;
+		// Don't create hoisting scopes for regular functions - let QRLs bubble up to component level
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 
@@ -2510,38 +2522,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			current_scope.extend(process_node_props(&param.pat));
 		}
-		let mut o = node.fold_children_with(self);
-
-		// Only inject hoisted QRLs at top level (fn_depth == 1) to avoid injecting in event handlers
-		if self.fn_depth == 1 && !self.hoisted_qrls.is_empty() {
-			if let Some(ref mut block) = o.body {
-				// Collect hoisted QRLs to inject
-				let qrl_vars: Vec<_> = self.hoisted_qrls.drain(..).collect();
-
-				// Create const declarations for hoisted QRLs
-				let mut qrl_stmts = Vec::new();
-				for (_, declarator) in qrl_vars {
-					qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-						span: DUMMY_SP,
-						kind: ast::VarDeclKind::Const,
-						declare: false,
-						ctxt: SyntaxContext::empty(),
-						decls: vec![declarator],
-					}))));
-				}
-
-				// Find the position to insert - after the last variable declaration
-				let insert_pos = block
-					.stmts
-					.iter()
-					.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
-					.map(|pos| pos + 1)
-					.unwrap_or(0);
-
-				// Insert hoisted QRLs after variable declarations
-				block.stmts.splice(insert_pos..insert_pos, qrl_stmts);
-			}
-		}
+		let o = node.fold_children_with(self);
 
 		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;
@@ -2554,6 +2535,17 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
 		self.decl_stack.push(vec![]);
 		self.fn_depth += 1;
+
+		// All arrow functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
+		// This ensures:
+		// - Each component (Foo, Inner) has its own hoisting scope
+		// - Callbacks don't create scopes, so their QRLs hoist to the component level
+		// - Single QRL per loop for efficiency
+		let creates_hoisting_scope = !self.in_callback;
+		if creates_hoisting_scope {
+			self.hoisted_qrls.push(Vec::new());
+		}
+
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 
@@ -2571,34 +2563,54 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		let mut o = node.fold_children_with(self);
 
-		// Only inject hoisted QRLs at top level (fn_depth == 1) and only in block statements
-		if self.fn_depth == 1 && !self.hoisted_qrls.is_empty() {
-			if let ast::BlockStmtOrExpr::BlockStmt(ref mut block) = *o.body {
-				// Collect hoisted QRLs to inject
-				let qrl_vars: Vec<_> = self.hoisted_qrls.drain(..).collect();
+		// Inject hoisted QRLs if this arrow function created a hoisting scope
+		if creates_hoisting_scope {
+			if let Some(current_qrls) = self.hoisted_qrls.pop() {
+				if !current_qrls.is_empty() {
+					// Create const declarations for hoisted QRLs
+					let mut qrl_stmts = Vec::new();
+					for (_, declarator) in current_qrls {
+						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						}))));
+					}
 
-				// Create const declarations for hoisted QRLs
-				let mut qrl_stmts = Vec::new();
-				for (_, declarator) in qrl_vars {
-					qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-						span: DUMMY_SP,
-						kind: ast::VarDeclKind::Const,
-						declare: false,
-						ctxt: SyntaxContext::empty(),
-						decls: vec![declarator],
-					}))));
+					match &mut *o.body {
+						ast::BlockStmtOrExpr::BlockStmt(block) => {
+							// Find the position to insert - after the last variable declaration
+							let insert_pos = block
+								.stmts
+								.iter()
+								.rposition(|stmt| {
+									matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_)))
+								})
+								.map(|pos| pos + 1)
+								.unwrap_or(0);
+
+							// Insert hoisted QRLs after variable declarations
+							block.stmts.splice(insert_pos..insert_pos, qrl_stmts);
+						}
+						ast::BlockStmtOrExpr::Expr(expr) => {
+							// Convert expression body to block statement with hoisted QRLs
+							let return_stmt = ast::Stmt::Return(ast::ReturnStmt {
+								span: DUMMY_SP,
+								arg: Some(expr.clone()),
+							});
+
+							qrl_stmts.push(return_stmt);
+
+							o.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+								span: DUMMY_SP,
+								ctxt: SyntaxContext::empty(),
+								stmts: qrl_stmts,
+							}));
+						}
+					}
 				}
-
-				// Find the position to insert - after the last variable declaration
-				let insert_pos = block
-					.stmts
-					.iter()
-					.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
-					.map(|pos| pos + 1)
-					.unwrap_or(0);
-
-				// Insert hoisted QRLs after variable declarations
-				block.stmts.splice(insert_pos..insert_pos, qrl_stmts);
 			}
 		}
 
@@ -2950,6 +2962,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		// Track iteration variable for array methods
 		if is_iteration_method {
 			self.loop_depth += 1;
+			self.in_callback = true;
 			// Get ALL parameters from the callback function (e.g., item, index from map)
 			let iteration_vars = node
 				.args
@@ -3091,6 +3104,7 @@ impl<'a> Fold for QwikTransform<'a> {
 		if is_iteration_method {
 			self.iteration_var_stack.pop();
 			self.loop_depth -= 1;
+			self.in_callback = false;
 		}
 
 		ast::CallExpr {

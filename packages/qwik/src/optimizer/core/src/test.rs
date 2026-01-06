@@ -4900,6 +4900,47 @@ export const App = component$(() => {
 	});
 }
 
+#[test]
+fn should_extract_single_qrl_2() {
+	test_input!(TestInput {
+		code: r#"
+	  import { component$, useStore, useSignal } from '@qwik.dev/core';
+      const Parent = component$(() => {
+      const cart = useStore<Cart>([]);
+      const results = useSignal(['foo', 'bar']);
+
+      return (
+        <div>
+          <button id="first" onClick$={() => (results.value = ['item1', 'item2'])}></button>
+
+          {results.value.map((item, key) => (
+            <button
+              id={'second-' + key}
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          <ul>
+            {cart.map((item) => (
+              <li>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

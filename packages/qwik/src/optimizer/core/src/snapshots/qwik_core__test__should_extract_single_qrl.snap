@@ -156,55 +156,46 @@ const i_Ikaw4baZqAM = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_
 export const App_component_ckEPmXZlub0 = ()=>{
     const data = useSignal([]);
     const selectedItem = useSignal(null);
+    const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = /*#__PURE__*/ qrl(i_Ikaw4baZqAM, "App_component_div_tr_td_a_on_click_Ikaw4baZqAM", [
+        selectedItem
+    ]);
+    const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = /*#__PURE__*/ qrl(i_0BckO6FtVZU, "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU", [
+        data
+    ]);
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("tr", {
             class: _fnSignal(_hf0, [
                 row
-            ], _hf0_str),
-            "q:row": row
+            ], _hf0_str)
         }, null, [
-            /*#__PURE__*/ _jsxSorted("td", {
-                "q:row": row
-            }, {
+            /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-1"
             }, _fnSignal(_hf1, [
                 row
             ], _hf1_str), 1, null),
-            /*#__PURE__*/ _jsxSorted("td", {
-                "q:row": row
-            }, {
+            /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-4"
             }, /*#__PURE__*/ _jsxSorted("a", {
-                "on:click": /*#__PURE__*/ qrl(i_Ikaw4baZqAM, "App_component_div_tr_td_a_on_click_Ikaw4baZqAM", [
-                    selectedItem
-                ]),
+                "on:click": App_component_div_tr_td_a_on_click_Ikaw4baZqAM,
                 "q:row": row
             }, null, _fnSignal(_hf2, [
                 row
             ], _hf2_str), 0, null), 1, null),
-            /*#__PURE__*/ _jsxSorted("td", {
-                "q:row": row
-            }, {
+            /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-1"
             }, /*#__PURE__*/ _jsxSorted("a", {
-                "on:click": /*#__PURE__*/ qrl(i_0BckO6FtVZU, "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU", [
-                    data
-                ]),
+                "on:click": App_component_div_tr_td_a_on_click_1_0BckO6FtVZU,
                 "q:row": row
-            }, null, /*#__PURE__*/ _jsxSorted("span", {
-                "q:row": row
-            }, {
+            }, null, /*#__PURE__*/ _jsxSorted("span", null, {
                 "aria-hidden": "true"
-            }, "x", 3, null), 0, null), 1, null),
-            /*#__PURE__*/ _jsxSorted("td", {
-                "q:row": row
-            }, {
+            }, "x", 3, null), 2, null), 1, null),
+            /*#__PURE__*/ _jsxSorted("td", null, {
                 class: "col-md-6"
             }, null, 3, null)
         ], 1, untrack(()=>row.value.id))), 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;qBAHM;;0BAKX,WAAC;yBALU;;gBAKP,OAAM;;;;0BACV,WAAC;yBANU;;gBAMP,OAAM;6BACR,WAAC;gBACC,UAAQ;;;yBARD;;;;0BAmBX,WAAC;yBAnBU;;gBAmBP,OAAM;6BACR,WAAC;gBACC,UAAQ;;;yBArBD;mCA6BP,WAAC;yBA7BM;;gBA6BD,eAAY;eAAO;0BAG7B,WAAC;yBAhCU;;gBAgCP,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;;;;;;;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;yBARD;;;;0BAmBX,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;yBArBD;mCA6BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
 /*
 {
   "origin": "test.tsx",

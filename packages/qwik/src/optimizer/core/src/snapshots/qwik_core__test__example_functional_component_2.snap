@@ -141,6 +141,11 @@ export const App_component_ckEPmXZlub0 = (props)=>{
         thing: 0
     });
     const count2 = state.count * 2;
+    const App_component_div_button_on_click_5a2ivZyN1Y0 = /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
+        props,
+        state,
+        thing
+    ]);
     return /*#__PURE__*/ _jsxSorted("div", {
         "on:click": /*#__PURE__*/ qrl(i_V4v7mvdC0xU, "App_component_div_on_click_V4v7mvdC0xU", [
             count2,
@@ -149,18 +154,14 @@ export const App_component_ckEPmXZlub0 = (props)=>{
     }, null, [
         /*#__PURE__*/ _jsxSorted("span", null, null, _wrapProp(state, "count"), 3, null),
         buttons.map((btn)=>/*#__PURE__*/ _jsxSorted("button", {
-                "on:click": /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
-                    props,
-                    state,
-                    thing
-                ]),
+                "on:click": App_component_div_button_on_click_5a2ivZyN1Y0,
                 "q:row": btn
             }, null, _wrapProp(btn, "name"), 0, "u6_0"))
     ], 0, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;;;;;yBAFG;+BAIV;;AAON\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;yCAQ8B,CAAC;IAC9B,MAAM,QAAQ;IACd,MAAM,QAAQ,SAAS;QAAC,OAAO;IAAC;IAGhC,MAAM,SAAS,MAAM,KAAK,GAAG;;;;;;IAC7B,qBACC,WAAC;QAAI,UAAQ;;;;;sBACZ,WAAC,8BAAM;QACN,QAAQ,GAAG,CAAC,CAAA,oBACZ,WAAC;gBACA,UAAQ;yBAFG;+BAIV;;AAON\"}")
 /*
 {
   "origin": "test.tsx",

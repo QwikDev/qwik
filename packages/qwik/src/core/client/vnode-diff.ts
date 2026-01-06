@@ -249,10 +249,11 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
 
   while (diffContext.stack.length) {
     while (diffContext.jsxIdx < diffContext.jsxCount) {
-      assertFalse(
-        diffContext.vParent === diffContext.vCurrent,
-        "Parent and current can't be the same"
-      );
+      isDev &&
+        assertFalse(
+          diffContext.vParent === diffContext.vCurrent,
+          "Parent and current can't be the same"
+        );
       if (typeof diffContext.jsxValue === 'string') {
         expectText(diffContext, diffContext.jsxValue);
       } else if (typeof diffContext.jsxValue === 'number') {
@@ -963,13 +964,16 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
         ];
 
-        const iterationItem = vnode_getProp(vNode, ITERATION_ITEM, null);
+        const iterationItems = vnode_getProp<unknown[]>(vNode, ITERATION_ITEM, null);
 
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-            catchError(qrl(event, element, iterationItem), (e) => {
-              diffContext.container.handleError(e, vNode);
-            });
+            catchError(
+              iterationItems ? qrl(event, element, ...iterationItems) : qrl(event, element),
+              (e) => {
+                diffContext.container.handleError(e, vNode);
+              }
+            );
           }
         }
       };

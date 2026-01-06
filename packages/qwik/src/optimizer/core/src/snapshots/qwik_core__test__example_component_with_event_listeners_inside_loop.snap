@@ -349,14 +349,18 @@ export const App_component_ckEPmXZlub0 = ()=>{
     function loopArrowFn(results) {
         return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
                 "on:click": App_component_loopArrowFn_span_on_click_LKE0yw7iEx4,
-                "q:row": item
+                "q:row": [
+                    item
+                ]
             }, null, item, 0, "u6_0"));
     }
     function loopForI(results) {
         const items = [];
         for(let i = 0; i < results.length; i++)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForI_span_on_click_X0FbAads0bo,
-            "q:row": i
+            "q:row": [
+                i
+            ]
         }, null, _fnSignal(_hf0, [
             i,
             results
@@ -367,7 +371,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
         const items = [];
         for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForOf_span_on_click_Tsqf6v6tRCw,
-            "q:row": item
+            "q:row": [
+                item
+            ]
         }, null, item, 2, "u6_2"));
         return items;
     }
@@ -375,7 +381,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
         const items = [];
         for(const key in results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForIn_span_on_click_q4maSW2qtLo,
-            "q:row": key
+            "q:row": [
+                key
+            ]
         }, null, _fnSignal(_hf0, [
             key,
             results
@@ -388,7 +396,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
         while(i < results.length){
             items.push(/*#__PURE__*/ _jsxSorted("span", {
                 "on:click": App_component_loopWhile_span_on_click_lmVICn9DFs8,
-                "q:row": i
+                "q:row": [
+                    i
+                ]
             }, null, _fnSignal(_hf0, [
                 i,
                 results
@@ -400,7 +410,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         results.value.map((item)=>/*#__PURE__*/ _jsxSorted("button", {
                 "on:click": App_component_div_button_on_click_5a2ivZyN1Y0,
-                "q:row": item
+                "q:row": [
+                    item
+                ]
             }, {
                 id: "second"
             }, item, 0, "u6_5")),
@@ -413,7 +425,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;;;;;;;;;;;;;;;;;;;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;yBAFQ;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;qBAHL;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;qBAHH;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;qBAHH;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;yBAHP;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;yBAHQ;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;;;;;;;;;;;;;;;;;;;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;;oBAFQ;;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHL;;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;;oBAHP;;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;;oBAHQ;;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

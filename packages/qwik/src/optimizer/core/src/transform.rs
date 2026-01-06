@@ -117,7 +117,7 @@ pub struct QwikTransform<'a> {
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
 	loop_depth: u32,
-	iteration_var_stack: Vec<Option<ast::Ident>>,
+	iteration_var_stack: Vec<Vec<ast::Ident>>,
 	hoisted_qrls: Vec<(String, ast::VarDeclarator)>,
 	fn_depth: u32,
 }
@@ -1400,33 +1400,8 @@ impl<'a> QwikTransform<'a> {
 		ast::ExprOrSpread,
 		ast::ExprOrSpread,
 	) {
-		let (
-			should_sort,
-			mut var_props_raw,
-			const_props_raw,
-			children,
-			flags,
-			has_event_handler_with_iter_var,
-		) = self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
-
-		// Add q:row prop when inside a loop (only if we have an event handler using iteration variable)
-		if self.loop_depth > 0 && has_event_handler_with_iter_var {
-			// Get the current iteration variable from the stack
-			if let Some(Some(ident)) = self.iteration_var_stack.last() {
-				let row_value = Box::new(ast::Expr::Ident(ident.clone()));
-
-				var_props_raw.push(ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-					ast::KeyValueProp {
-						key: ast::PropName::Str(ast::Str {
-							span: DUMMY_SP,
-							value: Atom::from("q:row"),
-							raw: None,
-						}),
-						value: row_value,
-					},
-				))));
-			}
-		}
+		let (should_sort, var_props_raw, const_props_raw, children, flags) =
+			self.internal_handle_jsx_props_obj(expr, is_fn, is_text_only);
 
 		let var_props = if var_props_raw.is_empty() {
 			get_null_arg()
@@ -1464,7 +1439,6 @@ impl<'a> QwikTransform<'a> {
 		Vec<ast::PropOrSpread>,
 		Option<Box<ast::Expr>>,
 		u32,
-		bool,
 	) {
 		match expr {
 			ast::ExprOrSpread {
@@ -1474,7 +1448,6 @@ impl<'a> QwikTransform<'a> {
 				let mut var_props = vec![];
 				let mut const_props = vec![];
 				let mut children = None;
-				let mut has_event_handler_with_iter_var = false;
 				// The identifiers that are static
 				let const_idents: Vec<_> = self
 					.decl_stack
@@ -1635,29 +1608,32 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
-										// Check if this event handler uses the iteration variable
-										if self.loop_depth > 0 && !is_fn {
-											if let Some(Some(iter_var)) =
-												self.iteration_var_stack.last()
+										// Check which iteration variables this specific handler uses
+										let used_iter_vars: Vec<ast::Ident> = if self.loop_depth > 0
+											&& !is_fn
+										{
+											if let Some(iter_vars) = self.iteration_var_stack.last()
 											{
-												if expr_uses_ident(&node.value, &id!(iter_var)) {
-													has_event_handler_with_iter_var = true;
-												}
-											}
-										}
-
-										// Transform event handler if inside a loop with an iteration variable
-										let transformed_value = if self.loop_depth > 0 && !is_fn {
-											if let Some(Some(iter_var)) =
-												self.iteration_var_stack.last()
-											{
-												transform_event_handler_with_iter_var(
-													*node.value.clone(),
-													iter_var,
-												)
+												iter_vars
+													.iter()
+													.filter(|var| {
+														expr_uses_ident(&node.value, &id!(var))
+													})
+													.cloned()
+													.collect()
 											} else {
-												*node.value.clone()
+												Vec::new()
 											}
+										} else {
+											Vec::new()
+										};
+
+										// Transform event handler if it uses iteration variables
+										let transformed_value = if !used_iter_vars.is_empty() {
+											transform_event_handler_with_iter_var(
+												*node.value.clone(),
+												&used_iter_vars,
+											)
 										} else {
 											*node.value.clone()
 										};
@@ -1701,6 +1677,37 @@ impl<'a> QwikTransform<'a> {
 											var_props.push(converted_prop.fold_with(self));
 										} else {
 											const_props.push(converted_prop.fold_with(self));
+										}
+
+										// Add q:row prop if this handler uses iteration variables
+										if !used_iter_vars.is_empty() && !is_fn {
+											// Always create an array, even for a single iteration variable
+											let row_value: Box<ast::Expr> =
+												Box::new(ast::Expr::Array(ast::ArrayLit {
+													span: DUMMY_SP,
+													elems: used_iter_vars
+														.iter()
+														.map(|ident| {
+															Some(ast::ExprOrSpread {
+																spread: None,
+																expr: Box::new(ast::Expr::Ident(
+																	ident.clone(),
+																)),
+															})
+														})
+														.collect(),
+												}));
+
+											var_props.push(ast::PropOrSpread::Prop(Box::new(
+												ast::Prop::KeyValue(ast::KeyValueProp {
+													key: ast::PropName::Str(ast::Str {
+														span: DUMMY_SP,
+														value: Atom::from("q:row"),
+														raw: None,
+													}),
+													value: row_value,
+												}),
+											)));
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -1890,16 +1897,9 @@ impl<'a> QwikTransform<'a> {
 						}
 					});
 				}
-				(
-					should_runtime_sort,
-					var_props,
-					const_props,
-					children,
-					flags,
-					has_event_handler_with_iter_var,
-				)
+				(should_runtime_sort, var_props, const_props, children, flags)
 			}
-			_ => (true, vec![], vec![], None, 0, false),
+			_ => (true, vec![], vec![], None, 0),
 		}
 	}
 
@@ -2617,18 +2617,22 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.loop_depth += 1;
 
 		// Track the loop variable from the initialization
-		let iteration_var = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
-			var_decl.decls.first().and_then(|decl| {
-				if let ast::Pat::Ident(ident) = &decl.name {
-					Some(ident.id.clone())
-				} else {
-					None
-				}
-			})
+		let iteration_vars = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
+			var_decl
+				.decls
+				.first()
+				.and_then(|decl| {
+					if let ast::Pat::Ident(ident) = &decl.name {
+						Some(vec![ident.id.clone()])
+					} else {
+						None
+					}
+				})
+				.unwrap_or_default()
 		} else {
-			None
+			Vec::new()
 		};
-		self.iteration_var_stack.push(iteration_var);
+		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
@@ -2646,24 +2650,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.loop_depth += 1;
 
 		// Track the loop variable
-		let iteration_var = match &node.left {
+		let iteration_vars = match &node.left {
 			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
 				if let ast::Pat::Ident(ident) = &decl.name {
-					Some(ident.id.clone())
+					Some(vec![ident.id.clone()])
 				} else {
 					None
 				}
 			}),
 			ast::ForHead::Pat(pat) => {
 				if let ast::Pat::Ident(ident) = &**pat {
-					Some(ident.id.clone())
+					Some(vec![ident.id.clone()])
 				} else {
 					None
 				}
 			}
 			_ => None,
-		};
-		self.iteration_var_stack.push(iteration_var);
+		}
+		.unwrap_or_default();
+		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
@@ -2681,24 +2686,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.loop_depth += 1;
 
 		// Track the loop variable
-		let iteration_var = match &node.left {
+		let iteration_vars = match &node.left {
 			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
 				if let ast::Pat::Ident(ident) = &decl.name {
-					Some(ident.id.clone())
+					Some(vec![ident.id.clone()])
 				} else {
 					None
 				}
 			}),
 			ast::ForHead::Pat(pat) => {
 				if let ast::Pat::Ident(ident) = &**pat {
-					Some(ident.id.clone())
+					Some(vec![ident.id.clone()])
 				} else {
 					None
 				}
 			}
 			_ => None,
-		};
-		self.iteration_var_stack.push(iteration_var);
+		}
+		.unwrap_or_default();
+		self.iteration_var_stack.push(iteration_vars);
 
 		let current_scope = self
 			.decl_stack
@@ -2776,17 +2782,17 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		// Try to extract the iteration variable from the condition
 		// e.g., in "while (i < results.length)", extract "i"
-		let iteration_var = match &*node.test {
+		let iteration_vars = match &*node.test {
 			ast::Expr::Bin(bin_expr) => {
 				// Check left side of comparison
 				match &*bin_expr.left {
-					ast::Expr::Ident(ident) => Some(ident.clone()),
-					_ => None,
+					ast::Expr::Ident(ident) => vec![ident.clone()],
+					_ => Vec::new(),
 				}
 			}
-			_ => None,
+			_ => Vec::new(),
 		};
-		self.iteration_var_stack.push(iteration_var);
+		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
 		self.iteration_var_stack.pop();
@@ -2944,25 +2950,37 @@ impl<'a> Fold for QwikTransform<'a> {
 		// Track iteration variable for array methods
 		if is_iteration_method {
 			self.loop_depth += 1;
-			// Get the first parameter of the first argument (callback function)
-			let iteration_var = node.args.first().and_then(|arg| match &*arg.expr {
-				ast::Expr::Arrow(arrow) => arrow.params.first().and_then(|param| {
-					if let ast::Pat::Ident(ident) = param {
-						Some(ident.id.clone())
-					} else {
-						None
-					}
-				}),
-				ast::Expr::Fn(func) => func.function.params.first().and_then(|param| {
-					if let ast::Pat::Ident(ident) = &param.pat {
-						Some(ident.id.clone())
-					} else {
-						None
-					}
-				}),
-				_ => None,
-			});
-			self.iteration_var_stack.push(iteration_var);
+			// Get ALL parameters from the callback function (e.g., item, index from map)
+			let iteration_vars = node
+				.args
+				.first()
+				.map_or(Vec::new(), |arg| match &*arg.expr {
+					ast::Expr::Arrow(arrow) => arrow
+						.params
+						.iter()
+						.filter_map(|param| {
+							if let ast::Pat::Ident(ident) = param {
+								Some(ident.id.clone())
+							} else {
+								None
+							}
+						})
+						.collect(),
+					ast::Expr::Fn(func) => func
+						.function
+						.params
+						.iter()
+						.filter_map(|param| {
+							if let ast::Pat::Ident(ident) = &param.pat {
+								Some(ident.id.clone())
+							} else {
+								None
+							}
+						})
+						.collect(),
+					_ => Vec::new(),
+				});
+			self.iteration_var_stack.push(iteration_vars);
 		}
 
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
@@ -3284,97 +3302,103 @@ fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
 	checker.found
 }
 
-/// Transform event handler to add iteration variable as parameter
-/// Converts: onClick$={() => cart.push(item)}
-/// To: onClick$={(_, __, item) => cart.push(item)}
-fn transform_event_handler_with_iter_var(expr: ast::Expr, iter_var: &ast::Ident) -> ast::Expr {
+/// Transform event handler to add iteration variables as parameters
+/// Converts: onClick$(() => cart.push(item)}
+/// To: onClick$((_, __, item) => cart.push(item))
+/// Or: onClick$(() => clickedIndex.value = idx)
+/// To: onClick$((_, __, row, idx) => clickedIndex.value = idx)
+/// Only adds iteration variables that are actually used in the handler
+fn transform_event_handler_with_iter_var(expr: ast::Expr, iter_vars: &[ast::Ident]) -> ast::Expr {
+	// Check which iteration variables are actually used
+	let used_iter_vars: Vec<&ast::Ident> = iter_vars
+		.iter()
+		.filter(|var| expr_uses_ident(&expr, &id!(var)))
+		.collect();
+
+	if used_iter_vars.is_empty() {
+		return expr;
+	}
+
 	match expr {
 		ast::Expr::Arrow(mut arrow) => {
-			// Check if the arrow function body uses the iteration variable
-			if expr_uses_ident(&ast::Expr::Arrow(arrow.clone()), &id!(iter_var)) {
-				// Count existing parameters
-				let existing_params = arrow.params.len();
+			// Count existing parameters
+			let existing_params = arrow.params.len();
 
-				// We need 3 parameters: event (0), element (1), iteration var (2)
-				// Add placeholders for any missing parameters
-				let mut new_params = Vec::new();
+			// We need: event (0), element (1), then used iteration variables
+			let mut new_params = Vec::new();
 
-				// Add existing params or placeholders
-				for i in 0..2 {
-					if i < existing_params {
-						new_params.push(arrow.params[i].clone());
-					} else {
-						// Add placeholder parameter
-						new_params.push(ast::Pat::Ident(ast::BindingIdent {
-							id: private_ident!("_"),
-							type_ann: None,
-						}));
-					}
+			// Add existing params or placeholders for positions 0 and 1
+			for i in 0..2 {
+				if i < existing_params {
+					new_params.push(arrow.params[i].clone());
+				} else {
+					// Add placeholder parameter
+					new_params.push(ast::Pat::Ident(ast::BindingIdent {
+						id: private_ident!("_"),
+						type_ann: None,
+					}));
 				}
+			}
 
-				// Add the iteration variable as the third parameter
+			// Add only the iteration variables that are actually used
+			for iter_var in &used_iter_vars {
 				new_params.push(ast::Pat::Ident(ast::BindingIdent {
-					id: iter_var.clone(),
+					id: (*iter_var).clone(),
 					type_ann: None,
 				}));
-
-				// Add any additional existing parameters beyond the first 2
-				for i in 2..existing_params {
-					new_params.push(arrow.params[i].clone());
-				}
-
-				arrow.params = new_params;
-				ast::Expr::Arrow(arrow)
-			} else {
-				ast::Expr::Arrow(arrow)
 			}
+
+			// Add any additional existing parameters beyond the first 2
+			for i in 2..existing_params {
+				new_params.push(arrow.params[i].clone());
+			}
+
+			arrow.params = new_params;
+			ast::Expr::Arrow(arrow)
 		}
 		ast::Expr::Fn(mut fn_expr) => {
-			// Check if the function body uses the iteration variable
-			if expr_uses_ident(&ast::Expr::Fn(fn_expr.clone()), &id!(iter_var)) {
-				// Count existing parameters
-				let existing_params = fn_expr.function.params.len();
+			// Count existing parameters
+			let existing_params = fn_expr.function.params.len();
 
-				// We need 3 parameters: event (0), element (1), iteration var (2)
-				let mut new_params = Vec::new();
+			// We need: event (0), element (1), then used iteration variables
+			let mut new_params = Vec::new();
 
-				// Add existing params or placeholders
-				for i in 0..2 {
-					if i < existing_params {
-						new_params.push(fn_expr.function.params[i].clone());
-					} else {
-						// Add placeholder parameter
-						new_params.push(ast::Param {
-							span: DUMMY_SP,
-							decorators: vec![],
-							pat: ast::Pat::Ident(ast::BindingIdent {
-								id: private_ident!("_"),
-								type_ann: None,
-							}),
-						});
-					}
+			// Add existing params or placeholders for positions 0 and 1
+			for i in 0..2 {
+				if i < existing_params {
+					new_params.push(fn_expr.function.params[i].clone());
+				} else {
+					// Add placeholder parameter
+					new_params.push(ast::Param {
+						span: DUMMY_SP,
+						decorators: vec![],
+						pat: ast::Pat::Ident(ast::BindingIdent {
+							id: private_ident!("_"),
+							type_ann: None,
+						}),
+					});
 				}
+			}
 
-				// Add the iteration variable as the third parameter
+			// Add only the iteration variables that are actually used
+			for iter_var in &used_iter_vars {
 				new_params.push(ast::Param {
 					span: DUMMY_SP,
 					decorators: vec![],
 					pat: ast::Pat::Ident(ast::BindingIdent {
-						id: iter_var.clone(),
+						id: (*iter_var).clone(),
 						type_ann: None,
 					}),
 				});
-
-				// Add any additional existing parameters beyond the first 2
-				for i in 2..existing_params {
-					new_params.push(fn_expr.function.params[i].clone());
-				}
-
-				fn_expr.function.params = new_params;
-				ast::Expr::Fn(fn_expr)
-			} else {
-				ast::Expr::Fn(fn_expr)
 			}
+
+			// Add any additional existing parameters beyond the first 2
+			for i in 2..existing_params {
+				new_params.push(fn_expr.function.params[i].clone());
+			}
+
+			fn_expr.function.params = new_params;
+			ast::Expr::Fn(fn_expr)
 		}
 		_ => expr,
 	}

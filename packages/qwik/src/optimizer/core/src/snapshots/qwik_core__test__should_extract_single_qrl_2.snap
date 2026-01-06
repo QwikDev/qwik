@@ -72,14 +72,16 @@ export const Parent_component_0TaiDayHrlo = ()=>{
         results.value.map((item, key)=>/*#__PURE__*/ _jsxSorted("button", {
                 id: 'second-' + key,
                 "on:click": Parent_component_div_button_on_click_1_SElC3FUsPNU,
-                "q:row": item
+                "q:row": [
+                    item
+                ]
             }, null, item, 0, "u6_0")),
         /*#__PURE__*/ _jsxSorted("ul", null, null, cart.map((item)=>/*#__PURE__*/ _jsxSorted("li", null, null, /*#__PURE__*/ _jsxSorted("span", null, null, item, 1, null), 1, "u6_1")), 1, null)
     ], 1, "u6_2");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAEgC;IAC1B,MAAM,OAAO,SAAe,EAAE;IAC9B,MAAM,UAAU,UAAU;QAAC;QAAO;KAAM;;;;IAExC,qBACE,WAAC;sBACC,WAAC;YAAO,IAAG;YAAQ,UAAQ;;;;QAE1B,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,MAAM,oBACxB,WAAC;gBACC,IAAI,YAAY;gBAChB,UAAQ;yBAHQ;qBAOf;sBAGL,WAAC,kBACE,KAAK,GAAG,CAAC,CAAC,qBACT,WAAC,gCACC,WAAC,oBAAM;;AAMnB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;4CAEgC;IAC1B,MAAM,OAAO,SAAe,EAAE;IAC9B,MAAM,UAAU,UAAU;QAAC;QAAO;KAAM;;;;IAExC,qBACE,WAAC;sBACC,WAAC;YAAO,IAAG;YAAQ,UAAQ;;;;QAE1B,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,MAAM,oBACxB,WAAC;gBACC,IAAI,YAAY;gBAChB,UAAQ;;oBAHQ;;qBAOf;sBAGL,WAAC,kBACE,KAAK,GAAG,CAAC,CAAC,qBACT,WAAC,gCACC,WAAC,oBAAM;;AAMnB\"}")
 /*
 {
   "origin": "test.tsx",

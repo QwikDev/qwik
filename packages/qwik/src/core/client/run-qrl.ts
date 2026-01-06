@@ -2,9 +2,11 @@ import type { QRLInternal } from '../shared/qrl/qrl-class';
 import { ITERATION_ITEM } from '../shared/utils/markers';
 import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import { getInvokeContext } from '../use/use-core';
 import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { getDomContainer } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
 
@@ -19,6 +21,7 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   const context = getInvokeContext();
   const hostElement = context.$hostElement$ as VNode;
   if (hostElement) {
+    context.$container$ ||= getDomContainer((hostElement as ElementVNode).node as Element);
     vnode_ensureElementInflated(hostElement);
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {

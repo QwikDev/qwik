@@ -48,6 +48,7 @@ import {
   Q_PROPS_SEPARATOR,
   QContainerAttr,
   debugStyleScopeIdPrefixAttr,
+  ITERATION_ITEM,
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
@@ -106,6 +107,7 @@ const ignoredAttributes = [
   '',
   Q_PROPS_SEPARATOR,
   debugStyleScopeIdPrefixAttr,
+  ITERATION_ITEM,
 ];
 
 function getContainerElement(vNode: _VNode) {

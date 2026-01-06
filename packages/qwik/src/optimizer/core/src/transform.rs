@@ -1025,7 +1025,7 @@ impl<'a> QwikTransform<'a> {
 						),
 						type_ann: None,
 					}),
-					init: Some(Box::new(ast::Expr::Call(converted_expr.clone()))),
+					init: Some(Box::new(ast::Expr::Call(converted_expr))),
 					definite: false,
 				};
 
@@ -2507,7 +2507,14 @@ impl<'a> Fold for QwikTransform<'a> {
 	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
 		self.decl_stack.push(vec![]);
 		self.fn_depth += 1;
-		// Don't create hoisting scopes for regular functions - let QRLs bubble up to component level
+
+		// All functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
+		// This matches arrow function behavior for consistency
+		let creates_hoisting_scope = !self.in_callback;
+		if creates_hoisting_scope {
+			self.hoisted_qrls.push(Vec::new());
+		}
+
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 
@@ -2522,7 +2529,40 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			current_scope.extend(process_node_props(&param.pat));
 		}
-		let o = node.fold_children_with(self);
+
+		let mut o = node.fold_children_with(self);
+
+		// Inject hoisted QRLs if this function created a hoisting scope
+		if creates_hoisting_scope {
+			if let Some(current_qrls) = self.hoisted_qrls.pop() {
+				if !current_qrls.is_empty() {
+					// Create const declarations for hoisted QRLs
+					let mut qrl_stmts = Vec::new();
+					for (_, declarator) in current_qrls {
+						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						}))));
+					}
+
+					if let Some(body) = &mut o.body {
+						// Find the position to insert - after the last variable declaration
+						let insert_pos = body
+							.stmts
+							.iter()
+							.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
+							.map(|pos| pos + 1)
+							.unwrap_or(0);
+
+						// Insert hoisted QRLs after variable declarations
+						body.stmts.splice(insert_pos..insert_pos, qrl_stmts);
+					}
+				}
+			}
+		}
 
 		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;

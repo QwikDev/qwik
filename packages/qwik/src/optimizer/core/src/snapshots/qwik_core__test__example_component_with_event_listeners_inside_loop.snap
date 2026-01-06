@@ -325,28 +325,13 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const results = useSignal([
         'foo'
     ]);
-    const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = /*#__PURE__*/ qrl(i_LKE0yw7iEx4, "App_component_loopArrowFn_span_on_click_LKE0yw7iEx4", [
-        cart
-    ]);
-    const App_component_loopForI_span_on_click_X0FbAads0bo = /*#__PURE__*/ qrl(i_X0FbAads0bo, "App_component_loopForI_span_on_click_X0FbAads0bo", [
-        cart,
-        results
-    ]);
-    const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = /*#__PURE__*/ qrl(i_Tsqf6v6tRCw, "App_component_loopForOf_span_on_click_Tsqf6v6tRCw", [
-        cart
-    ]);
-    const App_component_loopForIn_span_on_click_q4maSW2qtLo = /*#__PURE__*/ qrl(i_q4maSW2qtLo, "App_component_loopForIn_span_on_click_q4maSW2qtLo", [
-        cart,
-        results
-    ]);
-    const App_component_loopWhile_span_on_click_lmVICn9DFs8 = /*#__PURE__*/ qrl(i_lmVICn9DFs8, "App_component_loopWhile_span_on_click_lmVICn9DFs8", [
-        cart,
-        results
-    ]);
     const App_component_div_button_on_click_5a2ivZyN1Y0 = /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
         cart
     ]);
     function loopArrowFn(results) {
+        const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = /*#__PURE__*/ qrl(i_LKE0yw7iEx4, "App_component_loopArrowFn_span_on_click_LKE0yw7iEx4", [
+            cart
+        ]);
         return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
                 "on:click": App_component_loopArrowFn_span_on_click_LKE0yw7iEx4,
                 "q:row": [
@@ -356,6 +341,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForI(results) {
         const items = [];
+        const App_component_loopForI_span_on_click_X0FbAads0bo = /*#__PURE__*/ qrl(i_X0FbAads0bo, "App_component_loopForI_span_on_click_X0FbAads0bo", [
+            cart,
+            results
+        ]);
         for(let i = 0; i < results.length; i++)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForI_span_on_click_X0FbAads0bo,
             "q:row": [
@@ -369,6 +358,9 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForOf(results) {
         const items = [];
+        const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = /*#__PURE__*/ qrl(i_Tsqf6v6tRCw, "App_component_loopForOf_span_on_click_Tsqf6v6tRCw", [
+            cart
+        ]);
         for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForOf_span_on_click_Tsqf6v6tRCw,
             "q:row": [
@@ -379,6 +371,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForIn(results) {
         const items = [];
+        const App_component_loopForIn_span_on_click_q4maSW2qtLo = /*#__PURE__*/ qrl(i_q4maSW2qtLo, "App_component_loopForIn_span_on_click_q4maSW2qtLo", [
+            cart,
+            results
+        ]);
         for(const key in results)items.push(/*#__PURE__*/ _jsxSorted("span", {
             "on:click": App_component_loopForIn_span_on_click_q4maSW2qtLo,
             "q:row": [
@@ -393,6 +389,10 @@ export const App_component_ckEPmXZlub0 = ()=>{
     function loopWhile(results) {
         const items = [];
         let i = 0;
+        const App_component_loopWhile_span_on_click_lmVICn9DFs8 = /*#__PURE__*/ qrl(i_lmVICn9DFs8, "App_component_loopWhile_span_on_click_lmVICn9DFs8", [
+            cart,
+            results
+        ]);
         while(i < results.length){
             items.push(/*#__PURE__*/ _jsxSorted("span", {
                 "on:click": App_component_loopWhile_span_on_click_lmVICn9DFs8,
@@ -425,7 +425,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;;;;;;;;;;;;;;;;;;;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;;oBAFQ;;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHL;;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;;oBAHP;;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;;oBAHQ;;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;IACjC,SAAS,YAAY,OAAiB;;;;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;;oBAFQ;;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHL;;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;gBAHH;;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;;;;;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;;oBAHP;;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;;oBAHQ;;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",

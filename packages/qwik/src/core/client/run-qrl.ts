@@ -1,5 +1,4 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { ITERATION_ITEM } from '../shared/utils/markers';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';

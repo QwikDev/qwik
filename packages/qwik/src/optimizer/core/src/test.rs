@@ -5020,6 +5020,27 @@ const Foo = component$(() => {
 	});
 }
 
+#[test]
+fn should_transform_component_with_normal_function() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const Inner = component$(function(props) {
+    const data = props.data
+    return <div>{data.value.map(item => <p onClick$={() => console.log(item.value.id)}>{item.value.id}</p>)}</div>
+  })
+  return <Inner data={data} />
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

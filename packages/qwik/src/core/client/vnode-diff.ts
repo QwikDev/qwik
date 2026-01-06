@@ -1044,7 +1044,11 @@ const patchProperty = (
   value: any,
   currentFile: string | null
 ) => {
-  if (key.startsWith(':')) {
+  if (
+    // set only property for iteration item, not an attribute
+    key === ITERATION_ITEM ||
+    key.startsWith(':')
+  ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
     vnode_setProp(vnode, key, value);

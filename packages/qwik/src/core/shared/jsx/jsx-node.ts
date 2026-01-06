@@ -13,30 +13,26 @@ const _hasOwnProperty = Object.prototype.hasOwnProperty;
 
 // TODO store props as the arrays the vnodes also use?
 export class JSXNodeImpl<T = unknown> implements JSXNodeInternal<T> {
-  type: T;
   toSort: boolean;
   key: string | null;
   varProps: Props;
   constProps: Props | null;
-  children: JSXChildren;
   dev?: DevJSX & { stack: string | undefined };
   public _proxy: Props | null = null;
 
   constructor(
-    type: T,
-    varProps?: Props | null,
-    constProps?: Props | null,
-    children?: JSXChildren,
-    key?: string | number | null,
+    public type: T,
+    varProps: Props | null,
+    constProps: Props | null,
+    public children: JSXChildren,
+    key: string | number | null | undefined,
     toSort?: boolean,
     dev?: DevJSX
   ) {
-    this.type = type;
     this.toSort = !!toSort;
-    this.key = key == null ? null : String(key);
+    this.key = key === null || key === undefined ? null : typeof key === 'string' ? key : '' + key;
     this.varProps = !varProps || isEmpty(varProps) ? EMPTY_OBJ : varProps;
     this.constProps = !constProps || isEmpty(constProps) ? null : constProps;
-    this.children = children;
     if (qDev && dev) {
       this.dev = {
         ...dev,
@@ -90,10 +86,5 @@ export const isJSXNode = <T>(n: unknown): n is JSXNodeInternal<T> => {
 };
 
 const isEmpty = (obj: Record<string, unknown>) => {
-  for (const prop in obj) {
-    if (obj[prop] !== undefined) {
-      return false;
-    }
-  }
-  return true;
+  return Object.keys(obj).length === 0;
 };

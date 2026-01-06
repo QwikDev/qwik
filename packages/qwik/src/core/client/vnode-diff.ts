@@ -49,6 +49,7 @@ import {
   QSlot,
   QTemplate,
   dangerouslySetInnerHTML,
+  debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise, catchError } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
@@ -95,10 +96,11 @@ import type { VNode } from '../shared/vnode/vnode';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';
-import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
+import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { Cursor } from '../shared/cursor/cursor';
+import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -161,11 +163,17 @@ function setAttribute(
   vnode: ElementVNode,
   key: string,
   value: any,
-  scopedStyleIdPrefix: string | null
+  scopedStyleIdPrefix: string | null,
+  originalValue: any
 ) {
-  const serializedValue =
-    value != null ? serializeAttribute(key, value, scopedStyleIdPrefix) : null;
-  vnode_setAttr(journal, vnode, key, serializedValue);
+  import.meta.env.TEST &&
+    scopedStyleIdPrefix &&
+    vnode_setProp(vnode, debugStyleScopeIdPrefixAttr, scopedStyleIdPrefix);
+  vnode_setProp(vnode, key, originalValue);
+  addVNodeOperation(
+    journal,
+    createSetAttributeOperation(vnode.node, key, value, scopedStyleIdPrefix)
+  );
 }
 
 export const vnode_diff = (
@@ -257,9 +265,13 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
             diffContext.jsxValue instanceof WrappedSignalImpl
               ? diffContext.jsxValue.$unwrapIfSignal$()
               : diffContext.jsxValue;
-          const hasUnwrappedSignal = diffContext.vCurrent?.[_EFFECT_BACK_REF]
-            ?.get(EffectProperty.VNODE)
-            ?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal);
+          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
+            EffectSubscriptionProp.BACK_REF
+          ];
+          let hasUnwrappedSignal = signals?.has(unwrappedSignal);
+          if (signals && unwrappedSignal instanceof WrappedSignalImpl) {
+            hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
+          }
           if (!hasUnwrappedSignal) {
             const vHost = (diffContext.vNewNode || diffContext.vCurrent)!;
             descend(
@@ -900,13 +912,12 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
+  const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
   const isSameElementName =
-    diffContext.vCurrent &&
-    vnode_isElementVNode(diffContext.vCurrent) &&
-    elementName === vnode_getElementName(diffContext.vCurrent);
+    isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
   const jsxKey: string | null = jsx.key;
   let needsQDispatchEventPatch = false;
-  const currentKey = getKey(diffContext.vCurrent as VirtualVNode | ElementVNode | TextVNode | null);
+  const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
   if (!isSameElementName || jsxKey !== currentKey) {
     const sideBufferKey = getSideBufferKey(elementName, jsxKey);
     if (
@@ -934,13 +945,8 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
 
   if (jsxProps) {
     needsQDispatchEventPatch =
-      diffProps(
-        diffContext,
-        vNode,
-        jsxProps,
-        (vNode.props ||= {}),
-        (isDev && getFileLocationFromJsx(jsx.dev)) || null
-      ) || needsQDispatchEventPatch;
+      diffProps(diffContext, vNode, jsxProps, (isDev && getFileLocationFromJsx(jsx.dev)) || null) ||
+      needsQDispatchEventPatch;
   }
   if (needsQDispatchEventPatch) {
     // Event handler needs to be patched onto the element.
@@ -972,88 +978,11 @@ function diffProps(
   diffContext: DiffContext,
   vnode: ElementVNode,
   newAttrs: Record<string, any>,
-  oldAttrs: Record<string, any>,
   currentFile: string | null
 ): boolean {
   vnode_ensureElementInflated(vnode);
+  const oldAttrs = vnode.props;
   let patchEventDispatch = false;
-
-  const record = (key: string, value: any) => {
-    if (key.startsWith(':')) {
-      // TODO: there is a potential deoptimization here, because we are setting different keys on props.
-      // Eager bailout - Insufficient type feedback for generic keyed access
-      vnode_setProp(vnode, key, value);
-      return;
-    }
-
-    if (key === 'ref') {
-      const element = vnode.node;
-      if (isSignal(value)) {
-        value.value = element;
-        return;
-      } else if (typeof value === 'function') {
-        value(element);
-        return;
-      } else {
-        throw qError(QError.invalidRefValue, [currentFile]);
-      }
-    }
-
-    const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
-    if (isSignal(value)) {
-      const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-      if (currentEffect?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal)) {
-        return;
-      }
-      if (currentEffect) {
-        clearEffectSubscription(diffContext.container, currentEffect);
-      }
-
-      const vHost = vnode as ElementVNode;
-      value = retryOnPromise(() =>
-        trackSignalAndAssignHost(
-          unwrappedSignal,
-          vHost,
-          key,
-          diffContext.container,
-          diffContext.subscriptionData.var
-        )
-      );
-    } else {
-      if (currentEffect) {
-        clearEffectSubscription(diffContext.container, currentEffect);
-      }
-    }
-
-    if (isPromise(value)) {
-      const vHost = vnode as ElementVNode;
-      const attributePromise = value.then((resolvedValue) => {
-        setAttribute(
-          diffContext.journal,
-          vHost,
-          key,
-          resolvedValue,
-          diffContext.scopedStyleIdPrefix
-        );
-      });
-      diffContext.asyncAttributePromises.push(attributePromise);
-      return;
-    }
-
-    setAttribute(diffContext.journal, vnode, key, value, diffContext.scopedStyleIdPrefix);
-  };
-
-  const recordJsxEvent = (key: string, value: any) => {
-    const data = getEventDataFromHtmlAttribute(key);
-    if (data) {
-      const [scope, eventName] = data;
-      const scopedEvent = getScopedEventName(scope, eventName);
-      const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-      record(':' + scopedEvent, value);
-      registerQwikLoaderEvent(diffContext, loaderScopedEvent);
-      patchEventDispatch = true;
-    }
-  };
 
   // Actual diffing logic
   // Apply all new attributes
@@ -1061,28 +990,145 @@ function diffProps(
     const newValue = newAttrs[key];
     const isEvent = isHtmlAttributeAnEventName(key);
 
-    if (_hasOwnProperty.call(oldAttrs, key)) {
-      if (newValue !== oldAttrs[key]) {
-        isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
+    if (oldAttrs && _hasOwnProperty.call(oldAttrs, key)) {
+      const oldValue = oldAttrs[key];
+      if (newValue !== oldValue) {
+        if (
+          newValue instanceof WrappedSignalImpl &&
+          oldValue instanceof WrappedSignalImpl &&
+          areWrappedSignalsEqual(newValue, oldValue)
+        ) {
+          continue;
+        }
+        if (isEvent) {
+          patchEventDispatch ||= recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+        } else {
+          patchProperty(diffContext, vnode, key, newValue, currentFile);
+        }
       }
     } else if (newValue != null) {
-      isEvent ? recordJsxEvent(key, newValue) : record(key, newValue);
+      if (isEvent) {
+        patchEventDispatch ||= recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+      } else {
+        patchProperty(diffContext, vnode, key, newValue, currentFile);
+      }
     }
   }
 
-  // Remove attributes that no longer exist in new props
-  for (const key of Object.keys(oldAttrs)) {
-    if (
-      !_hasOwnProperty.call(newAttrs, key) &&
-      !key.startsWith(HANDLER_PREFIX) &&
-      !isHtmlAttributeAnEventName(key)
-    ) {
-      record(key, null);
+  if (oldAttrs) {
+    // Remove attributes that no longer exist in new props
+    for (const key of Object.keys(oldAttrs)) {
+      if (
+        !_hasOwnProperty.call(newAttrs, key) &&
+        !key.startsWith(HANDLER_PREFIX) &&
+        !isHtmlAttributeAnEventName(key)
+      ) {
+        patchProperty(diffContext, vnode, key, null, currentFile);
+      }
     }
   }
 
   return patchEventDispatch;
 }
+
+const patchProperty = (
+  diffContext: DiffContext,
+  vnode: ElementVNode,
+  key: string,
+  value: any,
+  currentFile: string | null
+) => {
+  if (key.startsWith(':')) {
+    // TODO: there is a potential deoptimization here, because we are setting different keys on props.
+    // Eager bailout - Insufficient type feedback for generic keyed access
+    vnode_setProp(vnode, key, value);
+    return;
+  }
+  const originalValue = value;
+
+  if (key === 'ref') {
+    const element = vnode.node;
+    if (isSignal(value)) {
+      value.value = element;
+      return;
+    } else if (typeof value === 'function') {
+      value(element);
+      return;
+    } else {
+      throw qError(QError.invalidRefValue, [currentFile]);
+    }
+  }
+
+  const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
+  if (isSignal(value)) {
+    const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
+    if (currentEffect?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal)) {
+      return;
+    }
+    if (currentEffect) {
+      clearEffectSubscription(diffContext.container, currentEffect);
+    }
+
+    const vHost = vnode as ElementVNode;
+    value = retryOnPromise(() =>
+      trackSignalAndAssignHost(
+        unwrappedSignal,
+        vHost,
+        key,
+        diffContext.container,
+        diffContext.subscriptionData.var
+      )
+    );
+  } else {
+    if (currentEffect) {
+      clearEffectSubscription(diffContext.container, currentEffect);
+    }
+  }
+
+  if (isPromise(value)) {
+    const vHost = vnode as ElementVNode;
+    const attributePromise = value.then((resolvedValue) => {
+      setAttribute(
+        diffContext.journal,
+        vHost,
+        key,
+        resolvedValue,
+        diffContext.scopedStyleIdPrefix,
+        originalValue
+      );
+    });
+    diffContext.asyncAttributePromises.push(attributePromise);
+    return;
+  }
+
+  setAttribute(
+    diffContext.journal,
+    vnode,
+    key,
+    value,
+    diffContext.scopedStyleIdPrefix,
+    originalValue
+  );
+};
+
+const recordJsxEvent = (
+  diffContext: DiffContext,
+  vnode: ElementVNode,
+  key: string,
+  value: any,
+  currentFile: string | null
+) => {
+  const data = getEventDataFromHtmlAttribute(key);
+  if (data) {
+    const [scope, eventName] = data;
+    const scopedEvent = getScopedEventName(scope, eventName);
+    const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
+    patchProperty(diffContext, vnode, ':' + scopedEvent, value, currentFile);
+    registerQwikLoaderEvent(diffContext, loaderScopedEvent);
+    return true;
+  }
+  return false;
+};
 
 function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
   const qWindow = import.meta.env.TEST
@@ -1836,6 +1882,45 @@ function markVNodeAsDeleted(vCursor: VNode) {
    */
 
   vCursor.flags |= VNodeFlags.Deleted;
+}
+
+function areWrappedSignalsEqual(
+  oldSignal: WrappedSignalImpl<any>,
+  newSignal: WrappedSignalImpl<any>
+): boolean {
+  if (oldSignal === newSignal) {
+    return true;
+  }
+  return (
+    newSignal.$func$ === oldSignal.$func$ && areArgumentsEqual(newSignal.$args$, oldSignal.$args$)
+  );
+}
+
+function areArgumentsEqual(oldArgs: any[] | undefined, newArgs: any[] | undefined): boolean {
+  if (oldArgs === newArgs) {
+    return true;
+  }
+  if (!oldArgs || !newArgs || oldArgs.length !== newArgs.length) {
+    return false;
+  }
+  for (let i = 0; i < oldArgs.length; i++) {
+    if (oldArgs[i] !== newArgs[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function containsWrappedSignal(data: unknown[], signal: Signal<any>): boolean {
+  if (!(signal instanceof WrappedSignalImpl)) {
+    return false;
+  }
+  for (const item of data) {
+    if (item instanceof WrappedSignalImpl && areWrappedSignalsEqual(item, signal)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**

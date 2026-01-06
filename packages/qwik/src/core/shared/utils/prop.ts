@@ -28,5 +28,5 @@ export const _restProps = (props: PropsProxy, omit: string[] = [], target: Props
     }
   }
 
-  return createPropsProxy(new JSXNodeImpl(null, varPropsTarget, constPropsTarget));
+  return createPropsProxy(new JSXNodeImpl(null, varPropsTarget, constPropsTarget, null, null));
 };

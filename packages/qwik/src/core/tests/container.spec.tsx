@@ -497,12 +497,14 @@ describe('serializer v2', () => {
     describe('PropsProxySerializer, //// ' + TypeIds.PropsProxy, () => {
       it('should serialize and deserialize', async () => {
         const obj = createPropsProxy(
-          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' })
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, { n: 2, t: 'test' }, null, null)
         );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
       it('should serialize and deserialize with null const props', async () => {
-        const obj = createPropsProxy(new JSXNodeImpl('div', { number: 1, text: 'abc' }));
+        const obj = createPropsProxy(
+          new JSXNodeImpl('div', { number: 1, text: 'abc' }, null, null, null)
+        );
         expect((await withContainer((ssr) => ssr.addRoot(obj))).$getObjectById$(0)).toEqual(obj);
       });
     });

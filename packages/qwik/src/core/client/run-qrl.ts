@@ -21,12 +21,12 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   if (hostElement) {
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        const iterationItem = vnode_getProp(
+        const iterationItems = vnode_getProp<unknown[]>(
           hostElement as ElementVNode,
           ITERATION_ITEM,
           context.$container$?.$getObjectById$ || null
         );
-        return runQrl(...args, iterationItem).catch((err) => {
+        return (iterationItems ? runQrl(args[0], args[1], ...iterationItems) : runQrl(...args)).catch((err) => {
           const container = context.$container$;
           if (container) {
             container.handleError(err, hostElement);

@@ -1,6 +1,6 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4797
+assertion_line: 4894
 expression: output
 ---
 ==INPUT==
@@ -10,9 +10,10 @@ import { $, component$, useSignal, Signal } from '@qwik.dev/core';
 export const App = component$(() => {
 	const data = useSignal<Signal<any>[]>([]);
 	const selectedItem = useSignal<any | null>(null);
+	const clickedIndex = useSignal<number | null>(null);
     return (
         <div>
-          {data.value.map((row) => (
+          {data.value.map((row, idx) => (
               <tr
                 key={untrack(() => row.value.id)}
                 class={row.value.selected.value ? "danger" : ""}
@@ -26,6 +27,7 @@ export const App = component$(() => {
                       }
                       selectedItem.value = row.value;
                       row.value.selected.value = true;
+					  clickedIndex.value = idx;
                     }}
                   >
                     {row.value.label.value}
@@ -54,15 +56,16 @@ export const App = component$(() => {
 ============================= test.tsx_App_component_div_tr_td_a_on_click_Ikaw4baZqAM.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = (_, _1, row)=>{
-    const [selectedItem] = useLexicalScope();
+export const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = (_, _1, row, idx)=>{
+    const [clickedIndex, selectedItem] = useLexicalScope();
     if (selectedItem.value) selectedItem.value.selected.value = false;
     selectedItem.value = row.value;
     row.value.selected.value = true;
+    clickedIndex.value = idx;
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DAe8B,QARH;;IASL,IAAI,aAAa,KAAK,EACpB,aAAa,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAEtC,aAAa,KAAK,GAAG,IAAI,KAAK;IAC9B,IAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";8DAgB8B,QARH,KAAK;;IASV,IAAI,aAAa,KAAK,EACpB,aAAa,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAEtC,aAAa,KAAK,GAAG,IAAI,KAAK;IAC9B,IAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG;IAC1C,aAAa,KAAK,GAAG\"}")
 /*
 {
   "origin": "test.tsx",
@@ -78,15 +81,17 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    561,
-    838
+    620,
+    930
   ],
   "paramNames": [
     "_",
     "_",
-    "row"
+    "row",
+    "idx"
   ],
   "captureNames": [
+    "clickedIndex",
     "selectedItem"
   ]
 }
@@ -99,7 +104,7 @@ const i_ckEPmXZlub0 = ()=>import("./test.tsx_App_component_ckEPmXZlub0");
 export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "App_component_ckEPmXZlub0"));
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,oBAAM,4EA0CZ\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,oBAAM,4EA4CZ\"}")
 ============================= test.tsx_App_component_div_tr_td_a_on_click_1_0BckO6FtVZU.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
@@ -110,7 +115,7 @@ export const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = (_, _1, row)=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEA4B8B,QArBH;;IAsBL,MAAM,YAAY,QAAQ,IAAM,KAAK,KAAK;IAC1C,KAAK,KAAK,GAAG,UAAU,SAAS,CAC9B,UAAU,SAAS,CAAC,CAAC,IAAM,EAAE,KAAK,CAAC,EAAE,KAAK,IAAI,KAAK,CAAC,EAAE,GACtD\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEA8B8B,QAtBH;;IAuBL,MAAM,YAAY,QAAQ,IAAM,KAAK,KAAK;IAC1C,KAAK,KAAK,GAAG,UAAU,SAAS,CAC9B,UAAU,SAAS,CAAC,CAAC,IAAM,EAAE,KAAK,CAAC,EAAE,KAAK,IAAI,KAAK,CAAC,EAAE,GACtD\"}")
 /*
 {
   "origin": "test.tsx",
@@ -126,8 +131,8 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    1038,
-    1323
+    1130,
+    1415
   ],
   "paramNames": [
     "_",
@@ -156,13 +161,15 @@ const i_Ikaw4baZqAM = ()=>import("./test.tsx_App_component_div_tr_td_a_on_click_
 export const App_component_ckEPmXZlub0 = ()=>{
     const data = useSignal([]);
     const selectedItem = useSignal(null);
+    const clickedIndex = useSignal(null);
     const App_component_div_tr_td_a_on_click_Ikaw4baZqAM = /*#__PURE__*/ qrl(i_Ikaw4baZqAM, "App_component_div_tr_td_a_on_click_Ikaw4baZqAM", [
+        clickedIndex,
         selectedItem
     ]);
     const App_component_div_tr_td_a_on_click_1_0BckO6FtVZU = /*#__PURE__*/ qrl(i_0BckO6FtVZU, "App_component_div_tr_td_a_on_click_1_0BckO6FtVZU", [
         data
     ]);
-    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row)=>/*#__PURE__*/ _jsxSorted("tr", {
+    return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((row, idx)=>/*#__PURE__*/ _jsxSorted("tr", {
             class: _fnSignal(_hf0, [
                 row
             ], _hf0_str)
@@ -177,7 +184,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
             }, /*#__PURE__*/ _jsxSorted("a", {
                 "on:click": App_component_div_tr_td_a_on_click_Ikaw4baZqAM,
                 "q:row": [
-                    row
+                    row,
+                    idx
                 ]
             }, null, _fnSignal(_hf2, [
                 row
@@ -199,7 +207,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAUuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAW7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCArBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;;;;;;;IACxC,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,oBACb,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBARD;;;;;0BAmBX,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBArBD;;mCA6BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA9BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAmC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAWuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAY7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCAvBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;IAC3C,MAAM,eAAe,UAAyB;;;;;;;;IAC3C,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBAClB,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBARD;oBAAK;;;;;0BAoBhB,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBAtBD;;mCA8BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA/BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAoC3C\"}")
 /*
 {
   "origin": "test.tsx",
@@ -216,7 +224,7 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
   "captures": false,
   "loc": [
     99,
-    1547
+    1639
   ]
 }
 */

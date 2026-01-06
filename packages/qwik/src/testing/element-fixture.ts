@@ -178,9 +178,9 @@ export const dispatch = async (
       const qrl = element.getAttribute(attrName)!;
       const ctx = newInvokeContextFromTuple([element, event]);
       try {
-        const iterationItem =
+        const iterationItems =
           ctx.$hostElement$ &&
-          vnode_getProp(
+          vnode_getProp<unknown[]>(
             ctx.$hostElement$ as VNode,
             ITERATION_ITEM,
             container.$getObjectById$ || null
@@ -190,7 +190,11 @@ export const dispatch = async (
             .split('\n')
             .map((qrl) => container.parseQRL(qrl.trim()))
             .map((qrl) => {
-              return invokeApply(ctx, qrl, [event, element, iterationItem]);
+              return invokeApply(
+                ctx,
+                qrl,
+                iterationItems ? [event, element, ...iterationItems] : [event, element]
+              );
             })
         );
       } catch (error) {

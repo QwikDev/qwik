@@ -47,14 +47,16 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
     vnode_ensureElementInflated(hostElement);
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        return callQrl(context.$container$, hostElement, qrl, args[0], args[1], true).then((err) => {
-          const container = context.$container$;
-          if (container) {
-            container.handleError(err, hostElement);
-          } else {
-            throw err;
+        return callQrl(context.$container$, hostElement, qrl, args[0], args[1], true).catch(
+          (err) => {
+            const container = context.$container$;
+            if (container) {
+              container.handleError(err, hostElement);
+            } else {
+              throw err;
+            }
           }
-        });
+        );
       }
     });
   }

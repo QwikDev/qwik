@@ -968,9 +968,9 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
 
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-              callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
-                diffContext.container.handleError(e, vNode);
-              });
+            callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
+              diffContext.container.handleError(e, vNode);
+            });
           }
         }
       };

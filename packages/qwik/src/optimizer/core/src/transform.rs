@@ -1520,6 +1520,7 @@ impl<'a> QwikTransform<'a> {
 				let should_runtime_sort = has_spread_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
+				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
 
 				for prop in props.into_iter() {
 					let mut name_token = false;
@@ -1691,7 +1692,10 @@ impl<'a> QwikTransform<'a> {
 										}
 
 										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
-										if !used_iter_vars.is_empty() && !is_fn {
+										// Only add it once per element, even if multiple handlers use the same iteration variables
+										if !used_iter_vars.is_empty()
+											&& !is_fn && !added_iter_var_prop
+										{
 											let (prop_name, row_value): (&str, Box<ast::Expr>) =
 												if used_iter_vars.len() == 1 {
 													// Single parameter: use q:p without array
@@ -1734,6 +1738,7 @@ impl<'a> QwikTransform<'a> {
 													value: row_value,
 												}),
 											)));
+											added_iter_var_prop = true;
 										}
 									} else {
 										let const_prop = is_const_expr(

@@ -5041,6 +5041,78 @@ const Foo = component$(function() {
 	});
 }
 
+#[test]
+fn should_transform_nested_loops() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const data2 = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)}>
+		{data2.value.map(item => (
+		  <p onClick$={() => console.log(row.value.id, item.value.id)}>{row.value.id}-{item.value.id}</p>
+		))}
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers_case2() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map((row, idx) => (
+	  <div onClick$={() => console.log(row.value.id, idx)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

@@ -706,7 +706,7 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 3
 
   test-cli-e2e:
     name: E2E CLI Tests
@@ -762,10 +762,10 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 3
 
       - name: Playwright E2E Qwik React Tests
-        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 3
 
       - name: CLI E2E Tests
         run: pnpm run test.e2e.cli

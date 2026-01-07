@@ -197,7 +197,7 @@ export const vnode_newElement = (
   elementName: string,
   key: string | null = null
 ): ElementVNode => {
-  assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
+  isDev && assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = new ElementVNode(
     key,
     VNodeFlags.Element | VNodeFlags.Inflated | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -215,7 +215,7 @@ export const vnode_newElement = (
 };
 
 export const vnode_newUnMaterializedElement = (element: Element): ElementVNode => {
-  assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
+  isDev && assertEqual(fastNodeType(element), 1 /* ELEMENT_NODE */, 'Expecting element node.');
   const vnode: ElementVNode = new ElementVNode(
     null,
     VNodeFlags.Element | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -237,7 +237,8 @@ export const vnode_newSharedText = (
   sharedTextNode: Text | null,
   textContent: string
 ): TextVNode => {
-  sharedTextNode &&
+  isDev &&
+    sharedTextNode &&
     assertEqual(fastNodeType(sharedTextNode), 3 /* TEXT_NODE */, 'Expecting text node.');
   const vnode: TextVNode = new TextVNode(
     VNodeFlags.Text | (-1 << VNodeFlagsIndex.shift), // Flag
@@ -261,10 +262,10 @@ export const vnode_newText = (textNode: Text, textContent: string | undefined): 
     textNode, // TextNode
     textContent // Text Content
   );
-  assertEqual(fastNodeType(textNode), 3 /* TEXT_NODE */, 'Expecting text node.');
-  assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
-  assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
-  assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertEqual(fastNodeType(textNode), 3 /* TEXT_NODE */, 'Expecting text node.');
+  isDev && assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertTrue(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertFalse(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
   return vnode;
 };
 
@@ -279,9 +280,9 @@ export const vnode_newVirtual = (): VirtualVNode => {
     null,
     null
   );
-  assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
-  assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
-  assertTrue(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertFalse(vnode_isElementVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertFalse(vnode_isTextVNode(vnode), 'Incorrect format of TextVNode.');
+  isDev && assertTrue(vnode_isVirtualVNode(vnode), 'Incorrect format of TextVNode.');
   return vnode;
 };
 

@@ -17,7 +17,6 @@ import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
-  EffectSubscriptionProp,
   SignalFlags,
   type CustomSerializable,
   type EffectSubscription,
@@ -60,9 +59,8 @@ export const ensureContainsSubscription = (
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
-  array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
-    array[EffectSubscriptionProp.BACK_REF].add(value);
+  array.backRef ||= new Set();
+  array.backRef.add(value);
 };
 
 export const addQrlToSerializationCtx = (
@@ -70,8 +68,8 @@ export const addQrlToSerializationCtx = (
   container: Container | null
 ) => {
   if (!!container && !isDomContainer(container)) {
-    const effect = effectSubscriber[EffectSubscriptionProp.CONSUMER];
-    const property = effectSubscriber[EffectSubscriptionProp.PROPERTY];
+    const effect = effectSubscriber.consumer;
+    const property = effectSubscriber.property;
     let qrl: QRL | null = null;
     if (isTask(effect)) {
       qrl = effect.$qrl$;
@@ -95,8 +93,8 @@ export const scheduleEffects = (
   if (effects) {
     let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
-      const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
-      const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
+      const consumer = effectSubscription.consumer;
+      const property = effectSubscription.property;
       assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
@@ -118,7 +116,7 @@ export const scheduleEffects = (
           markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
-        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        const effectData = effectSubscription.data;
         if (effectData instanceof SubscriptionData) {
           const data = effectData.data;
           const payload: NodeProp = {

@@ -11,12 +11,11 @@ import { getStoreHandler, getStoreTarget, isStore } from '../../reactive-primiti
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
 import {
-  EffectSubscriptionProp,
+  EffectSubscription,
   NEEDS_COMPUTATION,
   SerializationSignalFlags,
   SignalFlags,
   STORE_ALL_PROPS,
-  type EffectSubscription,
   type SerializerArg,
 } from '../../reactive-primitives/types';
 import { isSerializerObj } from '../../reactive-primitives/utils';
@@ -314,6 +313,13 @@ export async function serialize(serializationContext: SerializationContext): Pro
       ]);
     } else if (value instanceof SubscriptionData) {
       output(TypeIds.SubscriptionData, [value.data.$scopedStyleIdPrefix$, value.data.$isConst$]);
+    } else if (value instanceof EffectSubscription) {
+      output(TypeIds.EffectSubscription, [
+        value.consumer,
+        value.property,
+        value.backRef,
+        value.data,
+      ]);
     } else if (isStore(value)) {
       if (isResource(value)) {
         // let render know about the resource
@@ -792,7 +798,7 @@ function filterEffectBackRefs(effectBackRef: Map<string, EffectSubscription> | u
   let effectBackRefToSerialize: Map<string, EffectSubscription> | undefined = undefined;
   if (effectBackRef) {
     for (const [effectProp, effect] of effectBackRef) {
-      if (effect[EffectSubscriptionProp.BACK_REF]) {
+      if (effect.backRef) {
         effectBackRefToSerialize ||= new Map<string, EffectSubscription>();
         effectBackRefToSerialize.set(effectProp, effect);
       }

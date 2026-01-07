@@ -6,7 +6,7 @@ import { StoreHandler, getStoreHandler } from './impl/store';
 import { AsyncComputedSignalImpl } from './impl/async-computed-signal-impl';
 import { _PROPS_HANDLER } from '../shared/utils/constants';
 import { BackRef, _EFFECT_BACK_REF } from './backref';
-import { EffectSubscriptionProp, type Consumer, type EffectSubscription } from './types';
+import { type Consumer, type EffectSubscription } from './types';
 import { isPropsProxy, type PropsProxyHandler } from '../shared/jsx/props-proxy';
 
 export function clearAllEffects(container: Container, consumer: Consumer): void {
@@ -24,7 +24,7 @@ export function clearAllEffects(container: Container, consumer: Consumer): void 
 }
 
 export function clearEffectSubscription(container: Container, effect: EffectSubscription) {
-  const backRefs = effect[EffectSubscriptionProp.BACK_REF];
+  const backRefs = effect.backRef;
   if (!backRefs) {
     return;
   }

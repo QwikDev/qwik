@@ -79,7 +79,7 @@ export class SignalImpl<T = any> implements Signal<T> {
       return (
         `[${this.constructor.name}${(this as any).$flags$ & SignalFlags.INVALID ? ' INVALID' : ''} ${String(this.$untrackedValue$)}]` +
         (Array.from(this.$effects$ || [])
-          .map((e) => '\n -> ' + pad(qwikDebugToString(e[0]), '    '))
+          .map((e) => '\n -> ' + pad(qwikDebugToString(e.consumer), '    '))
           .join('\n') || '')
       );
     } else {

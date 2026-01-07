@@ -262,10 +262,7 @@ interface RefAttr<EL extends Element> {
   ref?: Ref<EL> | undefined;
 }
 interface DOMAttributesBase<EL extends Element>
-  extends QwikIntrinsicAttributes,
-    PreventDefault,
-    StopPropagation,
-    RefAttr<EL> {
+  extends QwikIntrinsicAttributes, PreventDefault, StopPropagation, RefAttr<EL> {
   dangerouslySetInnerHTML?: string | undefined;
 }
 
@@ -276,7 +273,6 @@ export interface DOMAttributes<EL extends Element> extends DOMAttributesBase<EL>
 
 /** The Qwik DOM attributes without plain handlers, for use as function parameters @public */
 export interface QwikAttributes<EL extends Element>
-  extends DOMAttributesBase<EL>,
-    QwikEvents<EL, false> {
+  extends DOMAttributesBase<EL>, QwikEvents<EL, false> {
   class?: ClassList | undefined;
 }

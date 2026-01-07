@@ -259,10 +259,7 @@ test('global with pseudo element', () => {
   // assert.equal(scopeStylesheet(':global(a)::before{}', '_'), 'a::before{}');
 
   assert.equal(scopeStylesheet(':global(a).red::before {}', '_'), 'a.red.⚡️_::before {}');
-  assert.equal(
-    scopeStylesheet(':global(a.red) span::before {}', '_'),
-    'a.red span.⚡️_::before {}'
-  );
+  assert.equal(scopeStylesheet(':global(a.red) span::before {}', '_'), 'a.red span.⚡️_::before {}');
 });
 
 test('global with pseudo element', () => {

@@ -11,6 +11,7 @@ import {
   SignalFlags,
   type AllSignalFlags,
   type AsyncComputeQRL,
+  type Consumer,
   type EffectSubscription,
   type StoreFlags,
 } from '../../reactive-primitives/types';
@@ -301,6 +302,20 @@ export const inflate = (
       effectData.data.$isConst$ = (data as any[])[1];
       break;
     }
+    case TypeIds.EffectSubscription: {
+      const effectSub = target as EffectSubscription;
+      const d = data as [
+        Consumer,
+        EffectProperty | string,
+        Set<SignalImpl | object> | null,
+        SubscriptionData | null,
+      ];
+      effectSub.consumer = d[0];
+      effectSub.property = d[1];
+      effectSub.backRef = d[2];
+      effectSub.data = d[3];
+      break;
+    }
     default:
       throw qError(QError.serializeErrorNotImplemented, [typeId]);
   }
@@ -350,7 +365,8 @@ export function inflateWrappedSignalValue(signal: WrappedSignalImpl<unknown>) {
     let hasAttrValue = false;
     if (effects) {
       // Find string keys (attribute names) in the effect back refs
-      for (const [_, key] of effects) {
+      for (const effect of effects) {
+        const key = effect.property;
         if (isString(key)) {
           // This is an attribute name, try to read its value
           const attrValue = vnode_getProp(hostVNode, key, null);

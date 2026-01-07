@@ -42,7 +42,8 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
-  ITERATION_ITEM,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
   OnRenderProp,
   QBackRefs,
   QContainerAttr,
@@ -102,6 +103,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { Cursor } from '../shared/cursor/cursor';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
+import { callQrl } from './run-qrl';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -964,13 +966,11 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
           vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
         ];
 
-        const iterationItems = vnode_getProp<unknown[]>(vNode, ITERATION_ITEM, null);
-
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-            (iterationItems ? qrl(event, element, ...iterationItems) : qrl(event, element)).catch((e) => {
-              diffContext.container.handleError(e, vNode);
-            });
+              callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
+                diffContext.container.handleError(e, vNode);
+              });
           }
         }
       };
@@ -1046,7 +1046,8 @@ const patchProperty = (
 ) => {
   if (
     // set only property for iteration item, not an attribute
-    key === ITERATION_ITEM ||
+    key === ITERATION_ITEM_SINGLE ||
+    key === ITERATION_ITEM_MULTI ||
     key.startsWith(':')
   ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.

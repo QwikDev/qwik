@@ -4,14 +4,14 @@ import { vi } from 'vitest';
 import { assertDefined } from '../core/shared/error/assert';
 import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/types';
 import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
-import { ITERATION_ITEM, QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
+import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
 import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
-import { vnode_getProp } from '../core/client/vnode-utils';
 import type { VNode } from '../core/shared/vnode/vnode';
+import { callQrl } from '../core/client/run-qrl';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -178,23 +178,19 @@ export const dispatch = async (
       const qrl = element.getAttribute(attrName)!;
       const ctx = newInvokeContextFromTuple([element, event]);
       try {
-        const iterationItems =
-          ctx.$hostElement$ &&
-          vnode_getProp<unknown[]>(
-            ctx.$hostElement$ as VNode,
-            ITERATION_ITEM,
-            container.$getObjectById$ || null
-          );
         await Promise.all(
           qrl
             .split('\n')
             .map((qrl) => container.parseQRL(qrl.trim()))
             .map((qrl) => {
-              return invokeApply(
-                ctx,
+              return invokeApply(ctx, callQrl, [
+                container,
+                ctx.$hostElement$ as VNode,
                 qrl,
-                iterationItems ? [event, element, ...iterationItems] : [event, element]
-              );
+                event,
+                element,
+                true,
+              ]);
             })
         );
       } catch (error) {

@@ -54,7 +54,7 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  !array.has(effectSubscription) && array.add(effectSubscription);
+  array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */

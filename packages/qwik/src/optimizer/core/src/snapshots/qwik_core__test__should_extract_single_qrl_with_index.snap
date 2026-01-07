@@ -183,7 +183,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 class: "col-md-4"
             }, /*#__PURE__*/ _jsxSorted("a", {
                 "on:click": App_component_div_tr_td_a_on_click_Ikaw4baZqAM,
-                "q:row": [
+                "q:ps": [
                     row,
                     idx
                 ]
@@ -194,9 +194,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
                 class: "col-md-1"
             }, /*#__PURE__*/ _jsxSorted("a", {
                 "on:click": App_component_div_tr_td_a_on_click_1_0BckO6FtVZU,
-                "q:row": [
-                    row
-                ]
+                "q:p": row
             }, null, /*#__PURE__*/ _jsxSorted("span", null, {
                 "aria-hidden": "true"
             }, "x", 3, null), 2, null), 1, null),
@@ -207,7 +205,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAWuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAY7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCAvBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;IAC3C,MAAM,eAAe,UAAyB;;;;;;;;IAC3C,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBAClB,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBARD;oBAAK;;;;;0BAoBhB,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBAtBD;;mCA8BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA/BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAoC3C\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAWuB,GAAI,KAAK,CAAC,QAAQ,CAAC,KAAK,GAAG,WAAW;;mBAEvB,GAAI,KAAK,CAAC,EAAE;;mBAY7B,GAAI,KAAK,CAAC,KAAK,CAAC,KAAK;;;;yCAvBZ;IAC7B,MAAM,OAAO,UAAyB,EAAE;IACxC,MAAM,eAAe,UAAsB;IAC3C,MAAM,eAAe,UAAyB;;;;;;;;IAC3C,qBACI,WAAC,mBACE,KAAK,KAAK,CAAC,GAAG,CAAC,CAAC,KAAK,oBAClB,WAAC;YAEC,KAAK;;;;0BAEL,WAAC;gBAAG,OAAM;;;;0BACV,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;;oBARD;oBAAK;;;;;0BAoBhB,WAAC;gBAAG,OAAM;6BACR,WAAC;gBACC,UAAQ;uBAtBD;mCA8BP,WAAC;gBAAK,eAAY;eAAO;0BAG7B,WAAC;gBAAG,OAAM;;cA/BL,QAAQ,IAAM,IAAI,KAAK,CAAC,EAAE;AAoC3C\"}")
 /*
 {
   "origin": "test.tsx",

@@ -258,8 +258,10 @@ export const isResourceReturn = (obj: any): obj is ResourceReturn<unknown> => {
   return isObject(obj) && (getStoreTarget(obj as any) || obj).__brand === 'resource';
 };
 
-export interface ResourceDescriptor<T>
-  extends DescriptorBase<ResourceFn<T>, ResourceReturnInternal<T>> {}
+export interface ResourceDescriptor<T> extends DescriptorBase<
+  ResourceFn<T>,
+  ResourceReturnInternal<T>
+> {}
 
 export const runResource = <T>(
   task: ResourceDescriptor<T>,

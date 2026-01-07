@@ -698,7 +698,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             return null;
           }
         } else {
-          console.error(`load(${count})`, `${parentModule} does not exist!`);
+          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
         }
       }
     }

@@ -14,7 +14,6 @@ import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import { qwikDevtools } from '@qwik.dev/devtools';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;
@@ -247,7 +246,6 @@ export default defineConfig(() => {
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
       overrideManualChunksForRepl(),
-      qwikDevtools(),
     ],
     build: {
       sourcemap: true,

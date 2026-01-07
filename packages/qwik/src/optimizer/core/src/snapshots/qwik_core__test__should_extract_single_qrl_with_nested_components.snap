@@ -106,16 +106,14 @@ export const Foo_component_Inner_component_AuJ9mTBx5YA = (props)=>{
     const Foo_component_Inner_component_div_p_on_click_KJykIBkozgo = /*#__PURE__*/ qrl(i_KJykIBkozgo, "Foo_component_Inner_component_div_p_on_click_KJykIBkozgo");
     return /*#__PURE__*/ _jsxSorted("div", null, null, data.value.map((item)=>/*#__PURE__*/ _jsxSorted("p", {
             "on:click": Foo_component_Inner_component_div_p_on_click_KJykIBkozgo,
-            "q:row": [
-                item
-            ]
+            "q:p": item
         }, null, _fnSignal(_hf0, [
             item
         ], _hf0_str), 0, "u6_0")), 1, "u6_1");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAMwF,GAAK,KAAK,CAAC,EAAE;;;yDAF1E,CAAC;IACxB,MAAM,OAAO,MAAM,IAAI;;IACvB,qBAAO,WAAC,mBAAK,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,qBAAQ,WAAC;YAAE,UAAQ;;gBAAnB;;;;;AAC9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAMwF,GAAK,KAAK,CAAC,EAAE;;;yDAF1E,CAAC;IACxB,MAAM,OAAO,MAAM,IAAI;;IACvB,qBAAO,WAAC,mBAAK,KAAK,KAAK,CAAC,GAAG,CAAC,CAAA,qBAAQ,WAAC;YAAE,UAAQ;mBAAnB;;;;AAC9B\"}")
 /*
 {
   "origin": "test.tsx",

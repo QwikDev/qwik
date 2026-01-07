@@ -28,7 +28,8 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
   FLUSH_COMMENT,
-  ITERATION_ITEM,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -361,7 +362,7 @@ export function toSsrAttrs(
 
     if (isPreventDefault(key)) {
       addPreventDefaultEventToSerializationContext(options.serializationCtx, key);
-    } else if (key === ITERATION_ITEM) {
+    } else if (key === ITERATION_ITEM_SINGLE || key === ITERATION_ITEM_MULTI) {
       value = options.serializationCtx.$addRoot$(value);
     }
 

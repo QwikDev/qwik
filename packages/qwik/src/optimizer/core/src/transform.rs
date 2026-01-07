@@ -1690,30 +1690,45 @@ impl<'a> QwikTransform<'a> {
 											const_props.push(converted_prop.fold_with(self));
 										}
 
-										// Add q:row prop if this handler uses iteration variables
+										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
 										if !used_iter_vars.is_empty() && !is_fn {
-											// Always create an array, even for a single iteration variable
-											let row_value: Box<ast::Expr> =
-												Box::new(ast::Expr::Array(ast::ArrayLit {
-													span: DUMMY_SP,
-													elems: used_iter_vars
-														.iter()
-														.map(|ident| {
-															Some(ast::ExprOrSpread {
-																spread: None,
-																expr: Box::new(ast::Expr::Ident(
-																	ident.clone(),
-																)),
-															})
-														})
-														.collect(),
-												}));
+											let (prop_name, row_value): (&str, Box<ast::Expr>) =
+												if used_iter_vars.len() == 1 {
+													// Single parameter: use q:p without array
+													(
+														"q:p",
+														Box::new(ast::Expr::Ident(
+															used_iter_vars[0].clone(),
+														)),
+													)
+												} else {
+													// Multiple parameters: use q:ps with array
+													(
+														"q:ps",
+														Box::new(ast::Expr::Array(ast::ArrayLit {
+															span: DUMMY_SP,
+															elems: used_iter_vars
+																.iter()
+																.map(|ident| {
+																	Some(ast::ExprOrSpread {
+																		spread: None,
+																		expr: Box::new(
+																			ast::Expr::Ident(
+																				ident.clone(),
+																			),
+																		),
+																	})
+																})
+																.collect(),
+														})),
+													)
+												};
 
 											var_props.push(ast::PropOrSpread::Prop(Box::new(
 												ast::Prop::KeyValue(ast::KeyValueProp {
 													key: ast::PropName::Str(ast::Str {
 														span: DUMMY_SP,
-														value: Atom::from("q:row"),
+														value: Atom::from(prop_name),
 														raw: None,
 													}),
 													value: row_value,

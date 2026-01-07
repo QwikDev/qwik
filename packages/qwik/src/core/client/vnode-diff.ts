@@ -3,11 +3,7 @@ import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import {
-  EffectProperty,
-  EffectSubscriptionProp,
-  type Consumer,
-} from '../reactive-primitives/types';
+import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
@@ -269,9 +265,9 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
             diffContext.jsxValue instanceof WrappedSignalImpl
               ? diffContext.jsxValue.$unwrapIfSignal$()
               : diffContext.jsxValue;
-          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
-            EffectSubscriptionProp.BACK_REF
-          ];
+          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(
+            EffectProperty.VNODE
+          )?.backRef;
           let hasUnwrappedSignal = signals?.has(unwrappedSignal);
           if (signals && unwrappedSignal instanceof WrappedSignalImpl) {
             hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
@@ -1073,7 +1069,7 @@ const patchProperty = (
   const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
   if (isSignal(value)) {
     const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-    if (currentEffect?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal)) {
+    if (currentEffect?.backRef?.has(unwrappedSignal)) {
       return;
     }
     if (currentEffect) {

@@ -109,6 +109,7 @@ export const enum TypeIds {
   JSXNode,
   PropsProxy,
   SubscriptionData,
+  EffectSubscription,
 }
 
 // Used for dumpState, make sure they are in sync with TypeIds
@@ -147,4 +148,5 @@ export const _typeIdNames = [
   'JSXNode',
   'PropsProxy',
   'SubscriptionData',
+  'EffectSubscription',
 ];

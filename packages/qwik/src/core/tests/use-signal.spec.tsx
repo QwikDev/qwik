@@ -11,7 +11,6 @@ import { trigger, domRender, ssrRenderToDom } from '@qwik.dev/core/testing';
 import { component$, Slot, type Signal as SignalType, untrack, useSignal } from '@qwik.dev/core';
 import { _EFFECT_BACK_REF } from '@qwik.dev/core/internal';
 import { vnode_getFirstChild, vnode_locate } from '../client/vnode-utils';
-import { EffectSubscriptionProp } from '../reactive-primitives/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -348,8 +347,7 @@ describe.each([
 
       expect(
         // wrapped signal on the pre element
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
 
@@ -359,8 +357,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
 
       await trigger(container.element, 'button', 'click');
@@ -369,8 +366,7 @@ describe.each([
       await trigger(container.element, 'button', 'click'); // <-- this should not add another subscriber
       expect((globalThis as any).signal.$effects$).toHaveLength(1);
       expect(
-        (globalThis as any).signal.$effects$.values().next().value[EffectSubscriptionProp.CONSUMER]
-          .$effects$
+        (globalThis as any).signal.$effects$.values().next().value.consumer.$effects$
       ).toHaveLength(1);
 
       (globalThis as any).signal = undefined;

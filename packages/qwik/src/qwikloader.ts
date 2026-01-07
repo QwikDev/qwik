@@ -333,7 +333,7 @@ if (!('__q_context__' in doc)) {
       processEventOrNode(...qwikevents);
     } else {
       // Assume that there will probably be click or input listeners
-      processEventOrNode('click', 'input');
+      processEventOrNode(':click', ':input');
     }
   }
   // Now rig up `qwikEvents` so we get notified of new registrations by other containers.

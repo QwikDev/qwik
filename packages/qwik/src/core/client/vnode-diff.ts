@@ -51,7 +51,7 @@ import {
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
-import { isPromise, retryOnPromise, catchError } from '../shared/utils/promises';
+import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
@@ -964,7 +964,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
 
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-            catchError(qrl(event, element), (e) => {
+            qrl(event, element).catch((e) => {
               diffContext.container.handleError(e, vNode);
             });
           }

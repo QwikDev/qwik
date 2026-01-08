@@ -1001,14 +1001,16 @@ function diffProps(
           continue;
         }
         if (isEvent) {
-          patchEventDispatch ||= recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+          const result = recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+          patchEventDispatch ||= result;
         } else {
           patchProperty(diffContext, vnode, key, newValue, currentFile);
         }
       }
     } else if (newValue != null) {
       if (isEvent) {
-        patchEventDispatch ||= recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+        const result = recordJsxEvent(diffContext, vnode, key, newValue, currentFile);
+        patchEventDispatch ||= result;
       } else {
         patchProperty(diffContext, vnode, key, newValue, currentFile);
       }

@@ -2820,6 +2820,50 @@ describe.each([
     );
   });
 
+  it('should register multiple events for var props', async () => {
+    const Cmp = component$<any>((props) => {
+      const clickCount = useSignal(0);
+      const mouseOverCount = useSignal(0);
+      return (
+        <div
+          onClick$={() => clickCount.value++}
+          onMouseOver$={() => mouseOverCount.value++}
+          // ensure it is var prop
+          {...props}
+        >
+          {`clicks: ${clickCount.value}, mouseovers: ${mouseOverCount.value}`}
+        </div>
+      );
+    });
+
+    const { vNode, container } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 0, mouseovers: 0'}</Signal>
+        </div>
+      </Component>
+    );
+
+    await trigger(container.element, 'div', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 1, mouseovers: 0'}</Signal>
+        </div>
+      </Component>
+    );
+
+    await trigger(container.element, 'div', 'mouseover');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Signal ssr-required>{'clicks: 1, mouseovers: 1'}</Signal>
+        </div>
+      </Component>
+    );
+  });
+
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

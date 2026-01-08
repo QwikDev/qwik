@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.18
+
+### Patch Changes
+
+- 🐞🩹 multiple event registering (by [@Varixo](https://github.com/Varixo) in [#8228](https://github.com/QwikDev/qwik/pull/8228))
+
 ## 2.0.0-beta.17
 
 ### Minor Changes

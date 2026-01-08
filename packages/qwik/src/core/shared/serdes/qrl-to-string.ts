@@ -71,7 +71,7 @@ export function qrlToString(
   }
   let qrlStringInline = `${chunk}#${symbol}`;
   if (capturedIds && capturedIds.length > 0) {
-    qrlStringInline += `[${capturedIds.join(' ')}]`;
+    qrlStringInline += `#${capturedIds.join(' ')}`;
   }
   return qrlStringInline;
 }
@@ -90,23 +90,25 @@ export function createQRLWithBackChannel(
   return createQRL(chunk, symbol, qrlRef, null, captureIds!, null);
 }
 
-/** Parses "chunk#hash[...rootRef]" */
+/** Parses "chunk#hash#...rootRef" */
 export function parseQRL(qrl: string): QRLInternal<any> {
-  const hashIdx = qrl.indexOf('#');
-  const captureStart = qrl.indexOf('[', hashIdx);
-  const captureEnd = qrl.indexOf(']', captureStart);
-  const chunk = hashIdx > -1 ? qrl.slice(0, hashIdx) : qrl.slice(0, captureStart);
-
-  const symbol = captureStart > -1 ? qrl.slice(hashIdx + 1, captureStart) : qrl.slice(hashIdx + 1);
-  const captureIds =
-    captureStart > -1 && captureEnd > -1
-      ? qrl
-          .slice(captureStart + 1, captureEnd)
-          .split(' ')
-          .filter((v) => v.length)
-          .map((s) => parseInt(s, 10))
-      : null;
+  const [chunk, symbol, captures] = qrl.split('#');
+  const captureIds = getCaptureIds(captures);
   return createQRLWithBackChannel(chunk, symbol, captureIds);
+}
+
+export function getCaptureIds(captures: string): number[] | null {
+  const parts = captures.split(' ');
+  if (parts.length === 0) {
+    return null;
+  }
+  const result: number[] = [];
+  for (const part of parts) {
+    if (part.length > 0) {
+      result.push(parseInt(part, 10));
+    }
+  }
+  return result;
 }
 
 export const QRL_RUNTIME_CHUNK = 'mock-chunk';

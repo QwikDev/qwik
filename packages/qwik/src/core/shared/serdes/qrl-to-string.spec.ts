@@ -91,7 +91,7 @@ describe('qrlToString', () => {
       const result = qrlToString(mockContext, qrl);
 
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(captureRef);
-      expect(result).toBe('myChunk#mySymbol[3]');
+      expect(result).toBe('myChunk#mySymbol#3');
     });
 
     it('should serialize QRL with multiple capture references', () => {
@@ -113,7 +113,7 @@ describe('qrlToString', () => {
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture1);
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture2);
       expect(mockContext.$addRoot$).toHaveBeenCalledWith(capture3);
-      expect(result).toBe('myChunk#mySymbol[1 2 3]');
+      expect(result).toBe('myChunk#mySymbol#1 2 3');
     });
 
     it('should not mutate the original QRL object', () => {
@@ -125,7 +125,7 @@ describe('qrlToString', () => {
       expect(qrl.$capture$).toBeNull();
 
       const result = qrlToString(mockContext, qrl);
-      expect(result).toBe('myChunk#mySymbol[5]');
+      expect(result).toBe('myChunk#mySymbol#5');
 
       // After serialization, the original QRL should NOT be mutated
       expect(qrl.$capture$).toBeNull();

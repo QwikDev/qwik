@@ -1,4 +1,3 @@
-import { getDomContainer } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
@@ -12,7 +11,7 @@ import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { newInvokeContext } from './use-core';
+import { invokeFromDOM, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
@@ -231,9 +230,10 @@ export const isTask = (value: any): value is Task => {
  *
  * @internal
  */
-export const scheduleTask = (_event: Event, element: Element) => {
-  const [task] = useLexicalScope<[Task]>();
-  const container = getDomContainer(element);
-  task.$flags$ |= TaskFlags.DIRTY;
-  markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-};
+export function scheduleTask(this: string, _event: Event, element: Element) {
+  return invokeFromDOM(element, _event, this, (context) => {
+    const [task] = useLexicalScope<[Task]>();
+    task.$flags$ |= TaskFlags.DIRTY;
+    markVNodeDirty(context.$container$!, task.$el$, ChoreBits.TASKS);
+  });
+}

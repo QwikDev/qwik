@@ -43,6 +43,7 @@ import {
 } from '../../client/vnode-utils';
 import { isString } from '../utils/types';
 import type { VirtualVNode } from '../vnode/virtual-vnode';
+import { DomContainer } from '../../client/dom-container';
 
 export const inflate = (
   container: DeserializeContainer,
@@ -328,8 +329,8 @@ export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<an
   qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
   // clear serialized capture references
   qrl.$capture$ = null;
-  if (container.element) {
-    qrl.$setContainer$(container.element);
+  if (container instanceof DomContainer) {
+    qrl.$setContainer$(container);
   }
   return qrl;
 }

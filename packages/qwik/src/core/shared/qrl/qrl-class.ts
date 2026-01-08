@@ -7,23 +7,23 @@ import { isBrowser } from '@qwik.dev/core/build';
 import {
   invoke,
   newInvokeContext,
-  newInvokeContextFromTuple,
   tryGetInvokeContext,
   type InvokeContext,
-  type InvokeTuple,
 } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
 import { getQFuncs, QInstanceAttr } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
-import { isArray, isFunction, type ValueOrPromise } from '../utils/types';
+import { isFunction, type ValueOrPromise } from '../utils/types';
 import type { QRLDev } from './qrl';
 import { getSymbolHash, SYNC_QRL } from './qrl-utils';
 import type { QRL, QrlArgs, QrlReturn } from './qrl.public';
 // @ts-expect-error we don't have types for the preloader
 import { p as preload } from '@qwik.dev/core/preloader';
 import { ElementVNode } from '../vnode/element-vnode';
+import { type DomContainer } from '../../client/dom-container';
+import type { Container } from '../types';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
@@ -47,14 +47,14 @@ export type QRLInternalMethods<TYPE> = {
   getHash(): string;
   getCaptured(): unknown[] | null;
   getFn(
-    currentCtx?: InvokeContext | InvokeTuple,
+    currentCtx?: InvokeContext,
     beforeFn?: () => void
   ): TYPE extends (...args: any) => any
     ? (...args: Parameters<TYPE>) => ValueOrPromise<ReturnType<TYPE>>
     : // unknown so we allow assigning function QRLs to any
       unknown;
 
-  $setContainer$(containerEl: Element | undefined): Element | undefined;
+  $setContainer$(container: Container | undefined): Container | undefined;
 };
 
 /** @internal */
@@ -78,24 +78,39 @@ export const createQRL = <TYPE>(
     }
   }
 
-  let _containerEl: Element | undefined;
+  let _container: Container | undefined;
 
   const qrl = async function (this: unknown, ...args: QrlArgs<TYPE>) {
-    const boundedFn = bindFnToContext.call(this, tryGetInvokeContext());
-    const result = await boundedFn(...args);
+    // grab the context while we are sync
+    const boundFn = bindFnToContext.call(this, tryGetInvokeContext());
+    const result = await boundFn(...args);
     return result;
   } as QRLInternal<TYPE>;
 
-  const setContainer = (el: Element | undefined) => {
-    if (!_containerEl) {
-      _containerEl = el;
+  const setContainer = (container: Container | undefined) => {
+    if (!_container) {
+      _container = container;
     }
-    return _containerEl;
+    return _container;
+  };
+
+  const checkCaptures = () => {
+    if (qrl.$capture$) {
+      if (!_container) {
+        throw qError(QError.qrlMissingContainer);
+      }
+      const refs = [];
+      for (const id of qrl.$capture$) {
+        refs.push(_container.$getObjectById$(id));
+      }
+      qrl.$captureRef$ = refs;
+      qrl.$capture$ = null;
+    }
   };
 
   function bindFnToContext(
     this: unknown,
-    currentCtx?: InvokeContext | InvokeTuple,
+    currentCtx?: InvokeContext,
     beforeFn?: () => void | boolean
   ) {
     // Note that we bind the current `this`
@@ -112,16 +127,20 @@ export const createQRL = <TYPE>(
         return;
       }
       const context = createOrReuseInvocationContext(currentCtx);
-      const prevQrl = context.$qrl$;
+      checkCaptures();
+      const prevCaptures = context.$captures$;
       const prevEvent = context.$event$;
       // Note that we set the qrl here instead of in wrapFn because
       // it is possible we're called on a copied qrl
-      context.$qrl$ = qrl;
+      context.$captures$ = qrl.$captureRef$;
       context.$event$ ||= this as Event;
+      if (!context.$container$) {
+        context.$container$ = _container;
+      }
       try {
         return invoke.call(this, context, symbolRef as any, ...(args as any));
       } finally {
-        context.$qrl$ = prevQrl;
+        context.$captures$ = prevCaptures;
         context.$event$ = prevEvent;
       }
     };
@@ -130,27 +149,28 @@ export const createQRL = <TYPE>(
 
   // Wrap functions to provide their lexical scope
   const wrapFn = (fn: TYPE): TYPE => {
-    if (typeof fn !== 'function' || (!capture?.length && !captureRef?.length)) {
+    if (typeof fn !== 'function' || (!qrl.$capture$?.length && !captureRef?.length)) {
       return fn;
     }
     return function (this: unknown, ...args: QrlArgs<TYPE>) {
       let context = tryGetInvokeContext();
+      checkCaptures();
       // use the given qrl if it is the right one
       if (context) {
-        // TODO check if this is necessary in production
-        if ((context.$qrl$ as QRLInternal)?.$symbol$ === qrl.$symbol$) {
-          return fn.apply(this, args);
+        const prevCaptures = context.$captures$;
+        context.$captures$ = qrl.$captureRef$;
+        if (!qrl.$captureRef$ || !context.$captures$) {
+          console.error('QRL called without captures being resolved', qrl);
         }
-        const prevQrl = context.$qrl$;
-        context.$qrl$ = qrl;
+        console.log('hi there');
         try {
           return fn.apply(this, args);
         } finally {
-          context.$qrl$ = prevQrl;
+          context.$captures$ = prevCaptures;
         }
       }
       context = newInvokeContext();
-      context.$qrl$ = qrl;
+      context.$captures$ = qrl.$captureRef$;
       context.$event$ = this as Event;
       return invoke.call(this, context, fn as any, ...args);
     } as TYPE;
@@ -163,19 +183,19 @@ export const createQRL = <TYPE>(
 
   const resolve = symbolRef
     ? async () => symbolRef as TYPE
-    : async (containerEl?: Element): Promise<TYPE> => {
+    : async (container?: Container): Promise<TYPE> => {
         if (symbolRef !== null) {
           // Resolving (Promise) or already resolved (value)
           return symbolRef;
         }
-        if (containerEl) {
-          setContainer(containerEl);
+        if (container) {
+          setContainer(container);
         }
         if (chunk === '') {
           // Sync QRL
-          assertDefined(_containerEl, 'Sync QRL must have container element');
-          const hash = _containerEl.getAttribute(QInstanceAttr)!;
-          const doc = _containerEl.ownerDocument!;
+          assertDefined(_container, 'Sync QRL must have container element');
+          const hash = (_container as DomContainer).element.getAttribute(QInstanceAttr)!;
+          const doc = (_container as DomContainer).element.ownerDocument!;
           const qFuncs = getQFuncs(doc, hash);
           // No need to wrap, syncQRLs can't have captured scope
           return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);
@@ -198,7 +218,11 @@ export const createQRL = <TYPE>(
           });
         } else {
           // TODO cache the imported symbol but watch out for dev mode
-          const imported = getPlatform().importSymbol(_containerEl, chunk, symbol);
+          const imported = getPlatform().importSymbol(
+            (container as DomContainer).element,
+            chunk,
+            symbol
+          );
           symbolRef = maybeThen(imported, (ref) => (qrl.resolved = wrapFn((symbolRef = ref))));
         }
         if (isPromise(symbolRef)) {
@@ -219,11 +243,9 @@ export const createQRL = <TYPE>(
         return symbolRef;
       };
 
-  const createOrReuseInvocationContext = (invoke: InvokeContext | InvokeTuple | undefined) => {
+  const createOrReuseInvocationContext = (invoke: InvokeContext | undefined) => {
     if (invoke == null) {
       return newInvokeContext();
-    } else if (isArray(invoke)) {
-      return newInvokeContextFromTuple(invoke);
     } else {
       return invoke;
     }

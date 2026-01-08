@@ -6,10 +6,10 @@ import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/t
 import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
-import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
+import type { QRLInternal } from '../server/qwik-types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -174,14 +174,13 @@ export const dispatch = async (
     } else if (element.hasAttribute(attrName)) {
       const container = getDomContainer(element as HTMLElement);
       const qrl = element.getAttribute(attrName)!;
-      const ctx = newInvokeContextFromTuple([element, event]);
       try {
         await Promise.all(
           qrl
             .split('\n')
-            .map((qrl) => container.parseQRL(qrl.trim()))
+            .map((qrl) => container.parseQRL(qrl.trim()) as QRLInternal)
             .map((qrl) => {
-              return invokeApply(ctx, qrl, [event, element]);
+              qrl.apply(null, [event, element]);
             })
         );
       } catch (error) {

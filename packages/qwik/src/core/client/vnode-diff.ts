@@ -26,7 +26,6 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -958,12 +957,12 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
         const eventName = fromCamelToKebabCase(event.type);
         const eventProp = ':' + scope.substring(1) + ':' + eventName;
         const qrls = [
-          vnode_getProp<QRL>(vNode, eventProp, null),
-          vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
+          vnode_getProp<QRLInternal>(vNode, eventProp, null),
+          vnode_getProp<QRLInternal>(vNode, HANDLER_PREFIX + eventProp, null),
         ];
-
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
+            qrl.$setContainer$(diffContext.container);
             catchError(qrl(event, element), (e) => {
               diffContext.container.handleError(e, vNode);
             });

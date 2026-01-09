@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import type { Container, HostElement, ValueOrPromise } from '../../server/qwik-types';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import {
@@ -277,11 +278,12 @@ export const runResource = <T>(
   const taskFn = task.$qrl$.getFn(iCtx, () => clearAllEffects(container, task));
 
   const resource = task.$state$;
-  assertDefined(
-    resource,
-    'useResource: when running a resource, "task.resource" must be a defined.',
-    task
-  );
+  isDev &&
+    assertDefined(
+      resource,
+      'useResource: when running a resource, "task.resource" must be a defined.',
+      task
+    );
 
   const track = trackFn(task, container);
   const [cleanup, cleanups] = cleanupFn(task, (reason: unknown) =>

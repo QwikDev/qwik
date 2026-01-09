@@ -233,8 +233,8 @@ export const vnode_diff = (
 //////////////////////////////////////////////
 
 function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
-  assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
-  assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
+  isDev && assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
+  isDev && assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
   diffContext.vParent = vStartNode as ElementVNode | VirtualVNode;
   diffContext.vNewNode = null;
   diffContext.vCurrent = vnode_getFirstChild(vStartNode);
@@ -431,10 +431,11 @@ function descend(
   }
   stackPush(diffContext, children, descendVNode);
   if (descendVNode) {
-    assertDefined(
-      diffContext.vCurrent || diffContext.vNewNode,
-      'Expecting vCurrent to be defined.'
-    );
+    isDev &&
+      assertDefined(
+        diffContext.vCurrent || diffContext.vNewNode,
+        'Expecting vCurrent to be defined.'
+      );
     diffContext.vSideBuffer = null;
     diffContext.vSiblings = null;
     diffContext.vSiblingsArray = null;
@@ -732,7 +733,11 @@ function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
 
 /** Expect no more nodes - Any nodes which are still at cursor, need to be removed. */
 function expectNoMore(diffContext: DiffContext) {
-  assertFalse(diffContext.vParent === diffContext.vCurrent, "Parent and current can't be the same");
+  isDev &&
+    assertFalse(
+      diffContext.vParent === diffContext.vCurrent,
+      "Parent and current can't be the same"
+    );
   if (diffContext.vCurrent !== null) {
     while (diffContext.vCurrent) {
       const toRemove = diffContext.vCurrent;

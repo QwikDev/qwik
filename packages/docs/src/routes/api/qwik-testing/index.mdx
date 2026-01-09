@@ -599,7 +599,7 @@ Promise&lt;void&gt;
 
 ```typescript
 export declare function vnode_fromJSX(jsx: JSXOutput): {
-  vParent: _ElementVNode | _VirtualVNode;
+  vParent: _VirtualVNode | _ElementVNode;
   vNode: _VNode | null;
   document: _QDocument;
   container: ClientContainer;
@@ -634,7 +634,7 @@ JSXOutput
 
 **Returns:**
 
-\{ vParent: \_ElementVNode \| \_VirtualVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
+\{ vParent: \_VirtualVNode \| \_ElementVNode; vNode: \_VNode \| null; document: \_QDocument; container: ClientContainer; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts)
 

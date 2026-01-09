@@ -301,9 +301,9 @@ export const runResource = <T>(
       } else {
         milliseconds = policy;
       }
-      resource._cache = milliseconds;
+      resource!._cache = milliseconds;
     },
-    previous: resourceTarget._resolved,
+    previous: resourceTarget!._resolved,
   };
 
   let resolve: (v: T) => void;
@@ -311,30 +311,30 @@ export const runResource = <T>(
   let done = false;
 
   // Increment generation to track this execution
-  const currentGeneration = ++resourceTarget._generation;
+  const currentGeneration = ++resourceTarget!._generation;
 
   const setState = (resolved: boolean, value: T | Error) => {
     // Ignore results from outdated executions
-    if (done || resourceTarget._generation !== currentGeneration) {
+    if (done || resourceTarget!._generation !== currentGeneration) {
       return false;
     }
 
     done = true;
     if (resolved) {
-      resourceTarget.loading = false;
-      resourceTarget._state = 'resolved';
-      resourceTarget._resolved = value as T;
-      resourceTarget._error = undefined;
+      resourceTarget!.loading = false;
+      resourceTarget!._state = 'resolved';
+      resourceTarget!._resolved = value as T;
+      resourceTarget!._error = undefined;
       resolve(value as T);
     } else {
-      resourceTarget.loading = false;
-      resourceTarget._state = 'rejected';
-      resourceTarget._error = value as Error;
+      resourceTarget!.loading = false;
+      resourceTarget!._state = 'rejected';
+      resourceTarget!._error = value as Error;
       reject(value as Error);
     }
 
     if (!isServerPlatform()) {
-      forceStoreEffects(resource, '_state');
+      forceStoreEffects(resource!, '_state');
     }
     return true;
   };
@@ -344,8 +344,8 @@ export const runResource = <T>(
    * previous one is not resolved yet. The next `runResource` run will call this cleanup
    */
   cleanups.push(() => {
-    if (untrack(() => resource.loading) === true) {
-      const value = untrack(() => resource._resolved) as T;
+    if (untrack(() => resource!.loading) === true) {
+      const value = untrack(() => resource!._resolved) as T;
       setState(true, value);
     }
   });
@@ -354,9 +354,9 @@ export const runResource = <T>(
   // TODO: is it right? why we need to invoke inside context and trigger effects?
   invoke(iCtx, () => {
     // console.log('RESOURCE.pending: ');
-    resource._state = 'pending';
-    resource.loading = !isServerPlatform();
-    resource.value = new Promise((r, re) => {
+    resource!._state = 'pending';
+    resource!.loading = !isServerPlatform();
+    resource!.value = new Promise((r, re) => {
       resolve = r;
       reject = re;
     });
@@ -376,7 +376,7 @@ export const runResource = <T>(
     }
   );
 
-  const timeout = resourceTarget._timeout;
+  const timeout = resourceTarget!._timeout;
   if (timeout > 0) {
     return Promise.race([
       promise,

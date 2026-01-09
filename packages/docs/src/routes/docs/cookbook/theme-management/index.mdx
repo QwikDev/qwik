@@ -67,18 +67,17 @@ Add this script to the `<head>` in your `root.tsx` file. This script runs before
   dangerouslySetInnerHTML={`
     (function() {
       function setTheme(theme) {
-        document.documentElement.className = theme;
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
         localStorage.setItem('theme', theme);
       }
-      var theme = localStorage.getItem('theme');
-      if (theme) {
-        setTheme(theme);
+      const stored = localStorage.getItem('theme');
+      if (stored) {
+        setTheme(stored);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTheme('dark');
       } else {
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          setTheme('dark');
-        } else {
-          setTheme('light');
-        }
+        setTheme('light');
       }
     })();
   `}
@@ -96,18 +95,19 @@ export const ThemeToggle = component$(() => {
       type="button"
       aria-label="Toggle dark mode"
       onClick$={() => {
-        const currentTheme = document.documentElement.className;
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        document.documentElement.className = newTheme;
+        const isDark = document.documentElement.classList.contains('dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(newTheme);
         localStorage.setItem("theme", newTheme);
       }}
       class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
     >
       {/* Sun icon for dark mode, Moon icon for light mode */}
-      <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+      <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
       </svg>
-      <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+      <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
       </svg>
     </button>
@@ -143,7 +143,7 @@ export const ThemeToggle = component$(() => {
   // Sync the signal with the actual theme on mount
   useVisibleTask$(
     () => {
-      theme.value = document.documentElement.className || 'light';
+      theme.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     },
     { strategy: 'document-ready' }
   );
@@ -154,7 +154,8 @@ export const ThemeToggle = component$(() => {
       aria-label="Toggle dark mode"
       onClick$={() => {
         const newTheme = theme.value === "dark" ? "light" : "dark";
-        document.documentElement.className = newTheme;
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(newTheme);
         localStorage.setItem("theme", newTheme);
         theme.value = newTheme;
       }}
@@ -172,7 +173,7 @@ The `{ strategy: 'document-ready' }` option makes the task run as soon as the do
 
 The inline script approach using `dangerouslySetInnerHTML` requires CSP configuration. You have two options:
 
-### Option 1: Allow unsafe-inline (simpler, slightly less secure)
+### Option 1: Allow unsafe-inline (simpler, less secure)
 
 For static sites deployed to platforms like Cloudflare Pages, add a `_headers` file in your `public/` folder:
 
@@ -180,6 +181,8 @@ For static sites deployed to platforms like Cloudflare Pages, add a `_headers` f
 /*
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'none'; object-src 'none'
 ```
+
+> **Security note:** Using `'unsafe-inline'` reduces CSP's protection against XSS attacks. For production sites with sensitive data, consider Option 3 (script hashes) instead. However, for static portfolio sites or blogs, this trade-off is often acceptable.
 
 ### Option 2: Use nonces (SSR only)
 
@@ -200,7 +203,7 @@ echo -n 'your inline script content' | openssl dgst -sha256 -binary | openssl ba
 
 ## Complete Example for SSG
 
-Here's a complete `root.tsx` setup for a Qwik site using SSG with Cloudflare Pages:
+Here's a complete `root.tsx` setup for a Qwik site using SSG with Cloudflare Pages. This uses the `ThemeToggle` component from Step 2 above:
 
 ```tsx
 import { component$ } from "@builder.io/qwik";
@@ -217,9 +220,10 @@ import "./global.css";
 // Inline script to set theme before first paint
 const themeScript = `
 (function() {
-  var STORAGE_KEY = 'theme';
-  var stored = localStorage.getItem(STORAGE_KEY);
-  var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const STORAGE_KEY = 'theme';
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
 })();
 `;
@@ -236,6 +240,7 @@ export default component$(() => {
         <ServiceWorkerRegister />
       </head>
       <body lang="en" class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+        {/* ThemeToggle is placed outside RouterOutlet so it persists across route changes */}
         <ThemeToggle />
         <RouterOutlet />
       </body>

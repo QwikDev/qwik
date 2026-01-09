@@ -62,6 +62,7 @@ import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import { _jsxSorted } from '../internal';
+import { isDev } from '@qwik.dev/core/build';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -287,7 +288,7 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
 
   getSyncFn(id: number): (...args: unknown[]) => unknown {
     const fn = this.$qFuncs$[id];
-    assertTrue(typeof fn === 'function', 'Invalid reference: ' + id);
+    isDev && assertTrue(typeof fn === 'function', 'Invalid reference: ' + id);
     return fn;
   }
 

@@ -19,7 +19,7 @@ import {
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
 import { isDomContainer } from '../../client/dom-container';
-import { isServer } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -135,10 +135,11 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
         // Grab the container now we have access to it
         this.$container$ = ctx.$container$;
       } else {
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
+        isDev &&
+          assertTrue(
+            !ctx.$container$ || ctx.$container$ === this.$container$,
+            'Do not use signals across containers'
+          );
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {

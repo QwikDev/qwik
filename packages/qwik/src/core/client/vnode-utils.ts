@@ -297,7 +297,7 @@ export const vnode_isElementVNode = (vNode: VNode): vNode is ElementVNode => {
 };
 
 export const vnode_isElementOrTextVNode = (vNode: VNode): vNode is ElementVNode | TextVNode => {
-  assertDefined(vNode, 'Missing vNode');
+  isDev && assertDefined(vNode, 'Missing vNode');
   const flag = vNode.flags;
   return (flag & VNodeFlags.ELEMENT_OR_TEXT_MASK) !== 0;
 };
@@ -305,14 +305,14 @@ export const vnode_isElementOrTextVNode = (vNode: VNode): vNode is ElementVNode 
 export const vnode_isElementOrVirtualVNode = (
   vNode: VNode
 ): vNode is ElementVNode | VirtualVNode => {
-  assertDefined(vNode, 'Missing vNode');
+  isDev && assertDefined(vNode, 'Missing vNode');
   const flag = vNode.flags;
   return (flag & VNodeFlags.ELEMENT_OR_VIRTUAL_MASK) !== 0;
 };
 
 /** @internal */
 export const vnode_isMaterialized = (vNode: VNode): boolean => {
-  assertDefined(vNode, 'Missing vNode');
+  isDev && assertDefined(vNode, 'Missing vNode');
   const flag = vNode.flags;
   return (
     (flag & VNodeFlags.Element) === VNodeFlags.Element &&
@@ -332,7 +332,7 @@ export const vnode_isVirtualVNode = (vNode: VNode): vNode is VirtualVNode => {
 };
 
 export const vnode_isProjection = (vNode: VNode): vNode is VirtualVNode => {
-  assertDefined(vNode, 'Missing vNode');
+  isDev && assertDefined(vNode, 'Missing vNode');
   const flag = vNode.flags;
   return (
     (flag & VNodeFlags.Virtual) === VNodeFlags.Virtual && vnode_getProp(vNode, QSlot, null) !== null
@@ -685,9 +685,9 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
   const flags = textVNode.flags;
   if ((flags & VNodeFlags.Inflated) === 0) {
     const parentNode = vnode_getDomParent(vnode, true);
-    assertDefined(parentNode, 'Missing parent node.');
+    isDev && assertDefined(parentNode, 'Missing parent node.');
     const sharedTextNode = textVNode.node as Text;
-    const doc = fastOwnerDocument(parentNode);
+    const doc = fastOwnerDocument(parentNode!);
     // Walk the previous siblings and inflate them.
     let vCursor = vnode_getDomSibling(vnode, false, true);
     // If text node is 0 length, than there is no text node.
@@ -707,7 +707,7 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
         const textNode = doc.createTextNode(vCursor.text!);
         addVNodeOperation(
           journal,
-          createInsertOrMoveOperation(textNode, parentNode, lastPreviousTextNode)
+          createInsertOrMoveOperation(textNode, parentNode!, lastPreviousTextNode)
         );
         lastPreviousTextNode = textNode;
         vCursor.node = textNode;
@@ -727,7 +727,7 @@ const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode) => {
           const textNode = doc.createTextNode(vCursor.text!);
           addVNodeOperation(
             journal,
-            createInsertOrMoveOperation(textNode, parentNode, insertBeforeNode)
+            createInsertOrMoveOperation(textNode, parentNode!, insertBeforeNode)
           );
           vCursor.node = textNode;
         }
@@ -746,9 +746,9 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
   let elementOffset: number = -1;
   let refElement: Element | VNode;
   if (typeof id === 'string') {
-    assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
+    isDev && assertDefined(qVNodeRefs, 'Missing qVNodeRefs.');
     elementOffset = parseInt(id);
-    refElement = qVNodeRefs.get(elementOffset)!;
+    refElement = qVNodeRefs!.get(elementOffset)!;
   } else {
     refElement = id;
 
@@ -757,12 +757,13 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
       return vNode;
     }
   }
-  assertDefined(refElement, 'Missing refElement.');
+  isDev && assertDefined(refElement, 'Missing refElement.');
   if (!vnode_isVNode(refElement)) {
-    assertTrue(
-      containerElement.contains(refElement),
-      `Couldn't find the element inside the container while locating the VNode.`
-    );
+    isDev &&
+      assertTrue(
+        containerElement.contains(refElement),
+        `Couldn't find the element inside the container while locating the VNode.`
+      );
     // We need to find the vnode.
     let parent = refElement;
     const elementPath: Element[] = [refElement];
@@ -810,12 +811,12 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
 
 const vnode_getChildWithIdx = (vNode: VNode, childIdx: number): VNode => {
   let child = vnode_getFirstChild(vNode);
-  assertDefined(child, 'Missing child.');
-  while (child.flags >>> VNodeFlagsIndex.shift !== childIdx) {
-    child = child.nextSibling as VNode | null;
-    assertDefined(child, 'Missing child.');
+  isDev && assertDefined(child, 'Missing child.');
+  while (child!.flags >>> VNodeFlagsIndex.shift !== childIdx) {
+    child = child!.nextSibling as VNode | null;
+    isDev && assertDefined(child, 'Missing child.');
   }
-  return child;
+  return child!;
 };
 
 const vNodeStack: VNode[] = [];
@@ -825,7 +826,7 @@ export const vnode_getVNodeForChildNode = (
 ): ElementVNode => {
   ensureElementVNode(vNode);
   let child = vnode_getFirstChild(vNode);
-  assertDefined(child, 'Missing child.');
+  isDev && assertDefined(child, 'Missing child.');
   while (child && (child instanceof ElementVNode ? child.node !== childElement : true)) {
     if (vnode_isVirtualVNode(child)) {
       const next = child.nextSibling as VNode | null;
@@ -844,13 +845,13 @@ export const vnode_getVNodeForChildNode = (
         child = next || vNodeStack.pop()!;
       }
     }
-    assertDefined(child, 'Missing child.');
+    isDev && assertDefined(child, 'Missing child.');
   }
   while (vNodeStack.length) {
     vNodeStack.pop();
   }
-  ensureElementVNode(child);
-  assertEqual((child as ElementVNode).node, childElement, 'Child not found.');
+  ensureElementVNode(child!);
+  isDev && assertEqual((child as ElementVNode).node, childElement, 'Child not found.');
   // console.log('FOUND', child[VNodeProps.node]?.outerHTML);
   return child as ElementVNode;
 };
@@ -1129,7 +1130,7 @@ export const vnode_remove = (
   vToRemove: VNode,
   removeDOM: boolean
 ) => {
-  assertEqual(vParent, vToRemove.parent, 'Parent mismatch.');
+  isDev && assertEqual(vParent, vToRemove.parent, 'Parent mismatch.');
   if (vnode_isTextVNode(vToRemove)) {
     vnode_ensureTextInflated(journal, vToRemove);
   }
@@ -1195,7 +1196,7 @@ export const vnode_truncate = (
   vDelete: VNode,
   removeDOM = true
 ) => {
-  assertDefined(vDelete, 'Missing vDelete.');
+  isDev && assertDefined(vDelete, 'Missing vDelete.');
   const parent = vnode_getDomParent(vParent, true);
   if (parent && removeDOM) {
     if (vnode_isElementVNode(vParent)) {
@@ -1329,8 +1330,8 @@ export const ensureMaterialized = (vnode: ElementVNode): VNode | null => {
       vFirstChild = vnode_materialize(vParent);
     }
   }
-  assertTrue(vParent.firstChild !== undefined, 'Did not materialize.');
-  assertTrue(vParent.lastChild !== undefined, 'Did not materialize.');
+  isDev && assertTrue(vParent.firstChild !== undefined, 'Did not materialize.');
+  isDev && assertTrue(vParent.lastChild !== undefined, 'Did not materialize.');
   return vFirstChild;
 };
 

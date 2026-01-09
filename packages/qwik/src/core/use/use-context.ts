@@ -6,6 +6,7 @@ import { isObject } from '../shared/utils/types';
 import { getInvokeContext, invoke } from './use-core';
 import { useSequentialScope } from './use-sequential-scope';
 import { fromCamelToKebabCase } from '../shared/utils/event-names';
+import { isDev } from '@qwik.dev/core/build';
 
 // <docs markdown="../readme.md#ContextId">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -122,7 +123,8 @@ export interface ContextId<STATE> {
  */
 // </docs>
 export const createContextId = <STATE = unknown>(name: string): ContextId<STATE> => {
-  assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
+  isDev &&
+    assertTrue(/^[\w/.-]+$/.test(name), 'Context name must only contain A-Z,a-z,0-9,_,.,-', name);
   return /*#__PURE__*/ Object.freeze({
     id: fromCamelToKebabCase(name),
   } as any);

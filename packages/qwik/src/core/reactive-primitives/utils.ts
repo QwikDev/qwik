@@ -26,6 +26,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
+import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -94,11 +95,11 @@ export const scheduleEffects = (
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
       const property = effectSubscription.property;
-      assertDefined(container, 'Container must be defined.');
+      isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
         if (isBrowser) {
-          markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
+          markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
         } else {
           // for server we run tasks sync, so they can change currently running effects
           // in this case we could have infinite loop if we trigger tasks here
@@ -108,11 +109,11 @@ export const scheduleEffects = (
       } else if (consumer instanceof SignalImpl) {
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
-        markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
+        markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
         if (isBrowser) {
           setNodeDiffPayload(consumer as VNode, signal as Signal);
-          markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
         const effectData = effectSubscription.data;
@@ -134,7 +135,7 @@ export const scheduleEffects = (
             }
             data.set(property, payload);
           }
-          markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_PROPS);
         }
       }
     };

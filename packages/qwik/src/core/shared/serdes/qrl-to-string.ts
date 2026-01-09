@@ -84,7 +84,7 @@ export function createQRLWithBackChannel(
   let qrlRef = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
-    assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
+    isDev && assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
     qrlRef = backChannel.get(symbol);
   }
   return createQRL(chunk, symbol, qrlRef, null, captureIds!, null);

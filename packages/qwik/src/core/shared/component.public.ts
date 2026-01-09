@@ -12,6 +12,8 @@ import type { QwikIntrinsicElements } from './jsx/types/jsx-qwik-elements';
 import { assertNumber } from './error/assert';
 import { qTest } from './utils/qdev';
 import { assertQrl } from './qrl/qrl-utils';
+import { isDev } from '@qwik.dev/core/build';
+import type { QRLInternal } from './qrl/qrl-class';
 
 // TS way to check for any
 type IsAny<T> = 0 extends T & 1 ? true : false;
@@ -134,9 +136,9 @@ export const componentQrl = <PROPS extends Record<any, any>>(
     key: string | null,
     flags: number = 0
   ): JSXNodeInternal {
-    assertQrl(componentQrl);
-    assertNumber(flags, 'The Qwik Component was not invoked correctly');
-    const hash = qTest ? 'sX' : componentQrl.$hash$.slice(0, 4);
+    isDev && assertQrl(componentQrl);
+    isDev && assertNumber(flags, 'The Qwik Component was not invoked correctly');
+    const hash = qTest ? 'sX' : (componentQrl as QRLInternal).$hash$.slice(0, 4);
     const finalKey = hash + ':' + (key ? key : '');
     const InnerCmp = () => {};
     (InnerCmp as any)[SERIALIZABLE_STATE] = [componentQrl];

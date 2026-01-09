@@ -31,6 +31,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
+import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -110,7 +111,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   }
 
   const container = cursorData.container;
-  assertDefined(container, 'Cursor container not found');
+  isDev && assertDefined(container, 'Cursor container not found');
 
   // Check if cursor is already complete
   if (!cursor.dirty) {
@@ -213,10 +214,11 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       return;
     }
   }
-  assertFalse(
-    !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
-    'Cursor is still dirty and position is not set after walking'
-  );
+  isDev &&
+    assertFalse(
+      !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
+      'Cursor is still dirty and position is not set after walking'
+    );
   finishWalk(container, cursor, cursorData, isServer);
 }
 

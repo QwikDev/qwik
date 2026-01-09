@@ -1,3 +1,4 @@
+import { isDev } from '@qwik.dev/core/build';
 import { assertEqual } from '../shared/error/assert';
 import { isPropsProxy } from '../shared/jsx/props-proxy';
 import { _CONST_PROPS, _IMMUTABLE, _VAR_PROPS } from '../shared/utils/constants';
@@ -62,7 +63,7 @@ export const _wrapProp = <T extends object, P extends keyof T>(
   }
   if (isSignal(obj)) {
     if (!(obj instanceof AsyncComputedSignalImpl)) {
-      assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
+      isDev && assertEqual(prop, 'value', 'Left side is a signal, prop must be value');
     }
     if (obj instanceof WrappedSignalImpl && obj.$flags$ & WrappedSignalFlags.UNWRAP) {
       return obj as WrappedProp<T, P>;

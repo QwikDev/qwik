@@ -26,6 +26,7 @@ import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { isDev } from '@qwik.dev/core/build';
 
 declare const document: QwikDocument;
 
@@ -98,8 +99,8 @@ export const useInvokeContext = (): RenderInvokeContext => {
   if (!ctx || ctx.$event$ !== RenderEvent) {
     throw qError(QError.useInvokeContext);
   }
-  assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
-  assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
+  isDev && assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
+  isDev && assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
 
   return ctx as RenderInvokeContext;
 };

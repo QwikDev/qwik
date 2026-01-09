@@ -31,7 +31,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { assertDefined, assertFalse } from '../error/assert';
 import type { Container } from '../types';
 import { VNodeFlags } from '../../client/types';
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -99,7 +99,7 @@ export function processCursorQueue(
  */
 export function walkCursor(cursor: Cursor, options: WalkOptions): void {
   const { timeBudget } = options;
-  const isServer = isServerPlatform();
+  const isRunningOnServer = import.meta.env.TEST ? isServerPlatform() : isServer;
   const startTime = performance.now();
 
   const cursorData = getCursorData(cursor)!;
@@ -115,7 +115,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
 
   // Check if cursor is already complete
   if (!cursor.dirty) {
-    finishWalk(container, cursor, cursorData, isServer);
+    finishWalk(container, cursor, cursorData, isRunningOnServer);
     return;
   }
 
@@ -131,7 +131,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       throw new Error('Infinite loop detected in cursor walker');
     }
     // Check time budget (only for DOM, not SSR)
-    if (!isServer && !import.meta.env.TEST) {
+    if (!isRunningOnServer && !import.meta.env.TEST) {
       const elapsed = performance.now() - startTime;
       if (elapsed >= timeBudget) {
         // Schedule continuation as macrotask to actually yield to browser
@@ -219,7 +219,7 @@ export function walkCursor(cursor: Cursor, options: WalkOptions): void {
       !!(cursor.dirty & ChoreBits.DIRTY_MASK && !cursorData.position),
       'Cursor is still dirty and position is not set after walking'
     );
-  finishWalk(container, cursor, cursorData, isServer);
+  finishWalk(container, cursor, cursorData, isRunningOnServer);
 }
 
 function finishWalk(

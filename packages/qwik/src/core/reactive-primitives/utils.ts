@@ -26,7 +26,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -67,7 +67,7 @@ export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (!!container) {
+  if (container) {
     const effect = effectSubscriber.consumer;
     const property = effectSubscriber.property;
     let qrl: QRL | null = null;
@@ -89,7 +89,7 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = !isServerPlatform();
+  const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
   if (effects) {
     let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {

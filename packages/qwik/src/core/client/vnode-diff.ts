@@ -51,7 +51,6 @@ import {
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
-import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
@@ -774,29 +773,13 @@ function createNewElement(
   currentFile?: string | null
 ): boolean {
   const element = createElementWithNamespace(diffContext, elementName);
-
-  function setAttribute(key: string, value: any, vHost: ElementVNode) {
-    value = serializeAttribute(key, value, diffContext.scopedStyleIdPrefix);
-    if (value != null) {
-      if (vHost.flags & VNodeFlags.NS_svg) {
-        // only svg elements can have namespace attributes
-        const namespace = getAttributeNamespace(key);
-        if (namespace) {
-          element.setAttributeNS(namespace, key, value);
-          return;
-        }
-      }
-      element.setAttribute(key, value);
-    }
-  }
-
   const { constProps } = jsx;
   let needsQDispatchEventPatch = false;
   if (constProps) {
     // Const props are, well, constant, they will never change!
     // For this reason we can cheat and write them directly into the DOM.
     // We never tell the vNode about them saving us time and memory.
-    for (const key in constProps) {
+    for (const key of Object.keys(constProps)) {
       let value = constProps[key];
       if (isHtmlAttributeAnEventName(key)) {
         const data = getEventDataFromHtmlAttribute(key);
@@ -851,7 +834,7 @@ function createNewElement(
       if (isPromise(value)) {
         const vHost = diffContext.vNewNode as ElementVNode;
         const attributePromise = value.then((resolvedValue) =>
-          setAttribute(key, resolvedValue, vHost)
+          setDirectAttribute(diffContext, element, key, resolvedValue, vHost)
         );
         diffContext.asyncAttributePromises.push(attributePromise);
         continue;
@@ -876,7 +859,7 @@ function createNewElement(
         continue;
       }
 
-      setAttribute(key, value, diffContext.vNewNode as ElementVNode);
+      setDirectAttribute(diffContext, element, key, value, diffContext.vNewNode as ElementVNode);
     }
   }
   const key = jsx.key;
@@ -887,7 +870,8 @@ function createNewElement(
   // append class attribute if styleScopedId exists and there is no class attribute
   if (diffContext.scopedStyleIdPrefix) {
     const classAttributeExists =
-      hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+      _hasOwnProperty.call(jsx.varProps, 'class') ||
+      (jsx.constProps && _hasOwnProperty.call(jsx.constProps, 'class'));
     if (!classAttributeExists) {
       element.setAttribute('class', diffContext.scopedStyleIdPrefix);
     }
@@ -901,6 +885,27 @@ function createNewElement(
   );
 
   return needsQDispatchEventPatch;
+}
+
+function setDirectAttribute(
+  diffContext: DiffContext,
+  element: Element,
+  key: string,
+  value: any,
+  vHost: ElementVNode
+) {
+  value = serializeAttribute(key, value, diffContext.scopedStyleIdPrefix);
+  if (value != null) {
+    if (vHost.flags & VNodeFlags.NS_svg) {
+      // only svg elements can have namespace attributes
+      const namespace = getAttributeNamespace(key);
+      if (namespace) {
+        element.setAttributeNS(namespace, key, value);
+        return;
+      }
+    }
+    element.setAttribute(key, value);
+  }
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {

@@ -223,7 +223,7 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function vnode_fromJSX(jsx: JSXOutput): {\n    vParent: _ElementVNode | _VirtualVNode;\n    vNode: _VNode | null;\n    document: _QDocument;\n    container: ClientContainer;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ vParent: \\_ElementVNode \\| \\_VirtualVNode; vNode: \\_VNode \\| null; document: \\_QDocument; container: ClientContainer; }",
+      "content": "```typescript\nexport declare function vnode_fromJSX(jsx: JSXOutput): {\n    vParent: _VirtualVNode | _ElementVNode;\n    vNode: _VNode | null;\n    document: _QDocument;\n    container: ClientContainer;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\njsx\n\n\n</td><td>\n\nJSXOutput\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ vParent: \\_VirtualVNode \\| \\_ElementVNode; vNode: \\_VNode \\| null; document: \\_QDocument; container: ClientContainer; }",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/testing/vdom-diff.unit-util.ts",
       "mdFile": "core.vnode_fromjsx.md"
     },

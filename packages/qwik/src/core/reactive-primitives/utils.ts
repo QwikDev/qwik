@@ -1,4 +1,3 @@
-import { isDomContainer } from '../client/dom-container';
 import { qwikDebugToString } from '../debug';
 import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
@@ -67,7 +66,7 @@ export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (!!container && !isDomContainer(container)) {
+  if (!!container) {
     const effect = effectSubscriber.consumer;
     const property = effectSubscriber.property;
     let qrl: QRL | null = null;

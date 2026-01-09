@@ -1127,10 +1127,15 @@ const recordJsxEvent = (
 ) => {
   const data = getEventDataFromHtmlAttribute(key);
   if (data) {
+    const props = vnode.props;
     const [scope, eventName] = data;
     const scopedEvent = getScopedEventName(scope, eventName);
     const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-    patchProperty(diffContext, vnode, ':' + scopedEvent, value, currentFile);
+    const scopedEventKey = ':' + scopedEvent;
+    if (props && _hasOwnProperty.call(props, scopedEventKey)) {
+      return false;
+    }
+    patchProperty(diffContext, vnode, scopedEventKey, value, currentFile);
     registerQwikLoaderEvent(diffContext, loaderScopedEvent);
     return true;
   }

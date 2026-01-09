@@ -18,6 +18,8 @@ import {
   type StoreTarget,
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
+import { isDomContainer } from '../../client/dom-container';
+import { isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -268,7 +270,8 @@ export function addStoreEffect(
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
   // TODO is this needed with the preloader?
-  addQrlToSerializationCtx(effectSubscription, store.$container$);
+  (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
+    addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
 }

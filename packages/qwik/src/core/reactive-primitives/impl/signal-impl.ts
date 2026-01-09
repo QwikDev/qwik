@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { pad, qwikDebugToString } from '../../debug';
 import { assertTrue } from '../../shared/error/assert';
 import { qError, QError } from '../../shared/error/error';
@@ -14,6 +14,7 @@ import {
 import type { Signal } from '../signal.public';
 import { SignalFlags, type EffectSubscription } from '../types';
 import type { WrappedSignalImpl } from './wrapped-signal-impl';
+import { isDomContainer } from '../../client/dom-container';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -51,11 +52,38 @@ export class SignalImpl<T = any> implements Signal<T> {
   }
 
   get value() {
-    return setupSignalValueAccess(
-      this,
-      () => (this.$effects$ ||= new Set()),
-      () => this.untrackedValue
-    );
+    const ctx = tryGetInvokeContext();
+    if (!ctx) {
+      return this.untrackedValue;
+    }
+    if (this.$container$ === null) {
+      if (!ctx.$container$) {
+        return this.untrackedValue;
+      }
+      // Grab the container now we have access to it
+      this.$container$ = ctx.$container$;
+    } else {
+      isDev &&
+        assertTrue(
+          !ctx.$container$ || ctx.$container$ === this.$container$,
+          'Do not use signals across containers'
+        );
+    }
+    const effectSubscriber = ctx.$effectSubscriber$;
+    if (effectSubscriber) {
+      // Let's make sure that we have a reference to this effect.
+      // Adding reference is essentially adding a subscription, so if the signal
+      // changes we know who to notify.
+      ensureContainsSubscription((this.$effects$ ||= new Set()), effectSubscriber);
+      // But when effect is scheduled in needs to be able to know which signals
+      // to unsubscribe from. So we need to store the reference from the effect back
+      // to this signal.
+      ensureContainsBackRef(effectSubscriber, this);
+      (import.meta.env.TEST ? !isDomContainer(this.$container$) : isServer) &&
+        addQrlToSerializationCtx(effectSubscriber, this.$container$);
+      DEBUG && log('read->sub', pad('\n' + this.toString(), '  '));
+    }
+    return this.untrackedValue;
   }
 
   set value(value) {

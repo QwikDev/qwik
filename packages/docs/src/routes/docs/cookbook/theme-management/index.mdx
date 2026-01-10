@@ -130,45 +130,6 @@ The inline script in `<head>` executes synchronously before the browser renders 
 - `useTask$` runs on the server during SSR, but for SSG the HTML is already static
 - The inline script runs immediately when the HTML is parsed, before any rendering
 
-### Using `useVisibleTask$` for the toggle button
-
-While the initial theme must be set via inline script, you can use `useVisibleTask$` with the `document-ready` strategy for the toggle button to sync its visual state:
-
-```tsx
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-
-export const ThemeToggle = component$(() => {
-  const theme = useSignal<string>('light');
-
-  // Sync the signal with the actual theme on mount
-  useVisibleTask$(
-    () => {
-      theme.value = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    },
-    { strategy: 'document-ready' }
-  );
-
-  return (
-    <button
-      type="button"
-      aria-label="Toggle dark mode"
-      onClick$={() => {
-        const newTheme = theme.value === "dark" ? "light" : "dark";
-        document.documentElement.classList.remove('light', 'dark');
-        document.documentElement.classList.add(newTheme);
-        localStorage.setItem("theme", newTheme);
-        theme.value = newTheme;
-      }}
-      class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-    >
-      {theme.value === 'dark' ? '☀️' : '🌙'}
-    </button>
-  );
-});
-```
-
-The `{ strategy: 'document-ready' }` option makes the task run as soon as the document is ready, rather than waiting for the component to become visible.
-
 ## Content Security Policy (CSP) Considerations
 
 The inline script approach using `dangerouslySetInnerHTML` requires CSP configuration. You have two options:
@@ -182,7 +143,7 @@ For static sites deployed to platforms like Cloudflare Pages, add a `_headers` f
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-ancestors 'none'; object-src 'none'
 ```
 
-> **Security note:** Using `'unsafe-inline'` reduces CSP's protection against XSS attacks. For production sites with sensitive data, consider Option 3 (script hashes) instead. However, for static portfolio sites or blogs, this trade-off is often acceptable.
+> **Security note:** Using `'unsafe-inline'` reduces CSP's protection against XSS attacks. CSP is often the last line of defense, and using `'unsafe-inline'` explicitly disables this protection for scripts. For production sites with sensitive data, consider Option 3 (script hashes) instead. You can consider this option if you are building a low-risk static site with no user input such as a portfolio or a blog and you prefer convenience over security.
 
 ### Option 2: Use nonces (SSR only)
 
@@ -201,54 +162,6 @@ Generate the hash using:
 echo -n 'your inline script content' | openssl dgst -sha256 -binary | openssl base64
 ```
 
-## Complete Example for SSG
-
-Here's a complete `root.tsx` setup for a Qwik site using SSG with Cloudflare Pages. This uses the `ThemeToggle` component from Step 2 above:
-
-```tsx
-import { component$ } from "@builder.io/qwik";
-import {
-  QwikCityProvider,
-  RouterOutlet,
-  ServiceWorkerRegister,
-} from "@builder.io/qwik-city";
-import { RouterHead } from "./components/router-head/router-head";
-import { ThemeToggle } from "./components/theme-toggle/theme-toggle";
-
-import "./global.css";
-
-// Inline script to set theme before first paint
-const themeScript = `
-(function() {
-  const STORAGE_KEY = 'theme';
-  const stored = localStorage.getItem(STORAGE_KEY);
-  const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  document.documentElement.classList.remove('light', 'dark');
-  document.documentElement.classList.add(theme);
-})();
-`;
-
-export default component$(() => {
-  return (
-    <QwikCityProvider>
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="manifest" href="/manifest.json" />
-        <script dangerouslySetInnerHTML={themeScript} />
-        <RouterHead />
-        <ServiceWorkerRegister />
-      </head>
-      <body lang="en" class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-        {/* ThemeToggle is placed outside RouterOutlet so it persists across route changes */}
-        <ThemeToggle />
-        <RouterOutlet />
-      </body>
-    </QwikCityProvider>
-  );
-});
-```
-
 ## Troubleshooting
 
 ### Theme flickers on page load
@@ -260,7 +173,7 @@ If you see a flash of the wrong theme:
 
 ### Toggle button shows wrong state initially
 
-Use `useVisibleTask$` with `{ strategy: 'document-ready' }` to sync the button state with the actual theme after hydration.
+The basic implementation uses CSS classes (`dark:hidden` and `dark:block`) to show the correct icon based on the theme. This approach avoids the need to sync state with JavaScript. If you need to conditionally render based on theme value (e.g., showing different content), you can use `useVisibleTask$` with `{ strategy: 'document-ready' }` to read the current theme after hydration.
 
 ### CSP errors in console
 

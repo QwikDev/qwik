@@ -698,7 +698,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
             return null;
           }
         } else {
-          console.error(`load(${count})`, `${parentModule} does not exist!`);
+          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
         }
       }
     }
@@ -1270,11 +1270,10 @@ export interface QwikPluginOptions {
   experimental?: (keyof typeof ExperimentalFeatures)[];
 }
 
-export interface NormalizedQwikPluginOptions
-  extends Omit<
-    Required<QwikPluginOptions>,
-    'input' | 'vendorRoots' | 'srcInputs' | 'experimental'
-  > {
+export interface NormalizedQwikPluginOptions extends Omit<
+  Required<QwikPluginOptions>,
+  'input' | 'vendorRoots' | 'srcInputs' | 'experimental'
+> {
   input: string[] | { [entry: string]: string } | undefined;
   experimental: Record<keyof typeof ExperimentalFeatures, boolean> | undefined;
 }

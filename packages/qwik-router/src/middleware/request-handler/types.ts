@@ -181,8 +181,9 @@ export type ServerErrorCode =
   | 511; // Network Authentication Required
 
 /** @public */
-export interface RequestEventCommon<PLATFORM = QwikRouterPlatform>
-  extends RequestEventBase<PLATFORM> {
+export interface RequestEventCommon<
+  PLATFORM = QwikRouterPlatform,
+> extends RequestEventBase<PLATFORM> {
   /**
    * HTTP response status code. Sets the status code when called with an argument. Always returns
    * the status code, so calling `status()` without an argument will can be used to return the
@@ -485,8 +486,9 @@ declare global {
 }
 
 /** @public */
-export interface RequestEventAction<PLATFORM = QwikRouterPlatform>
-  extends RequestEventCommon<PLATFORM> {
+export interface RequestEventAction<
+  PLATFORM = QwikRouterPlatform,
+> extends RequestEventCommon<PLATFORM> {
   fail: <T extends Record<string, any>>(status: number, returnData: T) => FailReturn<T>;
 }
 
@@ -494,8 +496,9 @@ export interface RequestEventAction<PLATFORM = QwikRouterPlatform>
 export type DeferReturn<T> = () => Promise<T>;
 
 /** @public */
-export interface RequestEventLoader<PLATFORM = QwikRouterPlatform>
-  extends RequestEventAction<PLATFORM> {
+export interface RequestEventLoader<
+  PLATFORM = QwikRouterPlatform,
+> extends RequestEventAction<PLATFORM> {
   resolveValue: ResolveValue;
   defer: <T>(returnData: Promise<T> | (() => Promise<T>)) => DeferReturn<T>;
 }

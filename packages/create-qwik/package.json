@@ -6,11 +6,11 @@
   "bin": "./create-qwik.mjs",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "execa": "9.6.0"
+    "execa": "9.6.1"
   },
   "devDependencies": {
     "@clack/prompts": "0.11.0",
-    "@types/yargs": "17.0.33",
+    "@types/yargs": "17.0.35",
     "kleur": "4.1.5",
     "yargs": "17.7.2"
   },

@@ -9,8 +9,10 @@ export interface FormSubmitCompletedDetail<T> {
 }
 
 /** @public */
-export interface FormProps<O, I>
-  extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
+export interface FormProps<O, I> extends Omit<
+  QwikJSX.IntrinsicElements['form'],
+  'action' | 'method'
+> {
   /** Reference to the action returned by `action()`. */
   action?: ActionStore<O, I, true | false>;
 

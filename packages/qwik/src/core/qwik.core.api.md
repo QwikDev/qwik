@@ -4,13 +4,10 @@
 
 ```ts
 
-import { ComputedSignal as ComputedSignal_2 } from '..';
 import * as CSS_2 from 'csstype';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
-import { JSXNode as JSXNode_2 } from './types/jsx-node';
-import { QRL as QRL_2 } from './qrl.public';
 
 // @public
 export const $: <T>(expression: T) => QRL<T>;
@@ -297,7 +294,7 @@ export interface ErrorBoundaryStore {
 }
 
 // @public (undocumented)
-export const event$: <T>(qrl: T) => QRL_2<T>;
+export const event$: <T>(qrl: T) => QRL<T>;
 
 // @public
 export type EventHandler<EV = Event, EL = Element> = {
@@ -455,7 +452,7 @@ export const jsx: <T extends string | FunctionComponent<any>>(type: T, props: T 
 export const _jsxBranch: <T>(input?: T) => T | undefined;
 
 // @internal @deprecated (undocumented)
-export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode_2<any>;
+export const _jsxC: (type: any, mutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @public (undocumented)
 export type JSXChildren = string | number | boolean | null | undefined | Function | RegExp | JSXChildren[] | Promise<JSXChildren> | Signal<JSXChildren> | JSXNode;
@@ -496,10 +493,10 @@ export interface JSXNodeInternal<T extends string | FunctionComponent | unknown 
 export type JSXOutput = JSXNode | string | number | boolean | null | undefined | JSXOutput[];
 
 // @internal @deprecated (undocumented)
-export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode_2<any>;
+export const _jsxQ: (type: any, mutable: any, immutable: any, children: any, _flags: any, key: any) => JSXNode<any>;
 
 // @internal @deprecated (undocumented)
-export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode_2<any>;
+export const _jsxS: (type: any, mutable: any, immutable: any, _flags: any, key: any) => JSXNode<any>;
 
 // @public
 export const jsxs: <T extends string | FunctionComponent<any>>(type: T, props: T extends FunctionComponent<infer PROPS> ? PROPS : Props, key?: string | number | null, _isStatic?: boolean, dev?: JsxDevOpts) => JSXNode<T>;
@@ -1756,7 +1753,7 @@ export const useSerializer$: typeof createSerializer$;
 // Warning: (ae-internal-missing-underscore) The name "useSerializerQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ComputedSignal_2<unknown>;
+export const useSerializerQrl: <T, S>(qrl: QRL<SerializerArg<T, S>>) => ComputedSignal<unknown>;
 
 // @public (undocumented)
 export function useServerData<T>(key: string): T | undefined;

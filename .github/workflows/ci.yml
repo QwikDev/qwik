@@ -706,7 +706,19 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Tests
-        run: pnpm run test.e2e.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.${{ matrix.settings.browser }}
+
+      - name: Upload Playwright Trace
+        uses: actions/upload-artifact@v4
+        if: failure() # only when tests fail
+        with:
+          name: playwright-report
+          path: test-results/ # or test-results/ depending on your config
+          retention-days: 30
+ 
+      - name: Print E2E Builds
+        run: tree -a starters/apps/e2e/dist starters/apps/e2e/server starters/apps/qwikrouter-test/dist starters/apps/qwikrouter-test/server
+        if: failure()
 
   test-cli-e2e:
     name: E2E CLI Tests
@@ -762,10 +774,10 @@ jobs:
         run: npx playwright install ${{ matrix.settings.browser }} --with-deps
 
       - name: Playwright E2E Integration Tests
-        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.integrations.${{ matrix.settings.browser }}
 
       - name: Playwright E2E Qwik React Tests
-        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }} --timeout 60000 --retries 7 --workers 1
+        run: pnpm run test.e2e.qwik-react.${{ matrix.settings.browser }}
 
       - name: CLI E2E Tests
         run: pnpm run test.e2e.cli

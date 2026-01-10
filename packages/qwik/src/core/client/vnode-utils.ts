@@ -170,7 +170,6 @@ import { VNode } from '../shared/vnode/vnode';
 import { ElementVNode } from '../shared/vnode/element-vnode';
 import { TextVNode } from '../shared/vnode/text-vnode';
 import { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import { VNodeOperationType } from '../shared/vnode/enums/vnode-operation-type.enum';
 import { addVNodeOperation } from '../shared/vnode/vnode-dirty';
 import {
   createDeleteOperation,
@@ -178,6 +177,11 @@ import {
   createRemoveAllChildrenOperation,
   createSetAttributeOperation,
   createSetTextOperation,
+  DeleteOperation,
+  InsertOrMoveOperation,
+  RemoveAllChildrenOperation,
+  SetAttributeOperation,
+  SetTextOperation,
 } from '../shared/vnode/types/dom-vnode-operation';
 import { isCursor } from '../shared/cursor/cursor';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
@@ -921,33 +925,30 @@ export const vnode_journalToString = (journal: VNodeJournal): string => {
 
   while (idx < length) {
     const op = journal[idx++];
-    switch (op.operationType) {
-      case VNodeOperationType.SetText:
-        stringify('SetText');
-        stringify('  ', op.text);
-        stringify('   -->', op.target);
-        break;
-      case VNodeOperationType.SetAttribute:
-        stringify('SetAttribute');
-        stringify('  ', op.attrName);
-        stringify('   key', op.attrName);
-        stringify('   val', op.attrValue);
-        break;
-      case VNodeOperationType.Delete: {
-        stringify('Delete');
-        stringify('   -->', op.target);
-        break;
-      }
-      case VNodeOperationType.InsertOrMove: {
-        stringify('InsertOrMove');
-        const parent = op.parent;
-        const insertBefore = op.beforeTarget;
-        stringify('  ', parent);
-        stringify('   -->', op.target);
-        if (insertBefore) {
-          stringify('      ', insertBefore);
-        }
-        break;
+
+    if (op instanceof SetTextOperation) {
+      stringify('SetText');
+      stringify('  ', op.text);
+      stringify('   -->', op.target);
+    } else if (op instanceof SetAttributeOperation) {
+      stringify('SetAttribute');
+      stringify('  ', op.attrName);
+      stringify('   key', op.attrName);
+      stringify('   val', op.attrValue);
+    } else if (op instanceof DeleteOperation) {
+      stringify('Delete');
+      stringify('   -->', op.target);
+    } else if (op instanceof RemoveAllChildrenOperation) {
+      stringify('RemoveAllChildren');
+      stringify('   -->', op.target);
+    } else if (op instanceof InsertOrMoveOperation) {
+      stringify('InsertOrMove');
+      const parent = op.parent;
+      const insertBefore = op.beforeTarget;
+      stringify('  ', parent);
+      stringify('   -->', op.target);
+      if (insertBefore) {
+        stringify('      ', insertBefore);
       }
     }
   }

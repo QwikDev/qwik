@@ -235,7 +235,9 @@ export const QwikCityProvider = component$<QwikCityProps>((props) => {
     // which in the case of SSG may not match the actual origin the site
     // is deployed on.
     if (isBrowser && type === 'link' && routeInternal.value.type === 'initial') {
-      routeInternal.value.dest = new URL(window.location.href);
+      const url = new URL(window.location.href);
+      routeInternal.value.dest = url;
+      routeLocation.url = url;
     }
 
     const lastDest = routeInternal.value.dest;

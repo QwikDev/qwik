@@ -19,7 +19,6 @@ import type { CursorData } from './cursor-props';
 import type { Cursor } from './cursor';
 import { ELEMENT_SEQ, ELEMENT_PROPS, OnRenderProp, QScopedStyle } from '../utils/markers';
 import type { Props } from '../jsx/jsx-runtime';
-import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
 import { SignalFlags } from '../../reactive-primitives/types';
 import type { ElementVNode } from '../vnode/element-vnode';
 import { runResource } from '../../use/use-resource';
@@ -459,7 +458,6 @@ describe('executeNodeProps', () => {
 
     expect(journal.length).toBe(1);
     expect(journal[0]).toEqual({
-      operationType: VNodeOperationType.SetAttribute,
       target: vNode.node,
       attrName: 'id',
       attrValue: 'test-id',
@@ -519,7 +517,6 @@ describe('executeNodeProps', () => {
     executeNodeProps(vNode, journal);
 
     expect(journal[0]).toEqual({
-      operationType: VNodeOperationType.SetAttribute,
       target: vNode.node,
       attrName: 'id',
       attrValue: null,

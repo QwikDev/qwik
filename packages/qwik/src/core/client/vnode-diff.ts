@@ -154,6 +154,14 @@ function peekNextSibling(vCurrent: VNode | null): VNode | null {
 }
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
+let _setAttribute: typeof Element.prototype.setAttribute | null = null;
+
+const fastSetAttribute = (target: Element, name: string, value: string): void => {
+  if (!_setAttribute) {
+    _setAttribute = target.setAttribute;
+  }
+  _setAttribute.call(target, name, value);
+};
 
 /** Helper to set an attribute on a vnode. Extracted to module scope to avoid closure allocation. */
 function setAttribute(
@@ -904,7 +912,7 @@ function setDirectAttribute(
         return;
       }
     }
-    element.setAttribute(key, value);
+    fastSetAttribute(element, key, value);
   }
 }
 
@@ -915,7 +923,12 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
     elementName
   );
 
-  const element = diffContext.container.document.createElementNS(elementNamespace, elementName);
+  const currentDocument = import.meta.env.TEST ? diffContext.container.document : document;
+
+  const element =
+    elementNamespaceFlag === VNodeFlags.NS_html
+      ? currentDocument.createElement(elementName)
+      : currentDocument.createElementNS(elementNamespace, elementName);
   diffContext.vNewNode = vnode_newElement(element, elementName);
   diffContext.vNewNode.flags |= elementNamespaceFlag;
   return element;

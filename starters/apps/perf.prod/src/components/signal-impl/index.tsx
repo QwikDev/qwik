@@ -63,26 +63,6 @@ export default component$(() => {
   const data = useSignal<Signal<Row>[]>([]);
   const selectedItem = useSignal<Row | null>(null);
 
-  const selectSingle$ = $((_: unknown, element: Element) => {
-    const vNode = (element as any).vNode as _ElementVNode;
-    const row = vNode.props?.[":row"] as Signal<Row>;
-    if (selectedItem.value) {
-      selectedItem.value.selected.value = false;
-    }
-    selectedItem.value = row.value;
-    row.value.selected.value = true;
-  });
-
-  const deleteSingle$ = $((_: unknown, element: Element) => {
-    const vNode = (element as any).vNode as _ElementVNode;
-    const row = vNode.props?.[":row"] as Signal<Row>;
-    const dataValue = untrack(() => data.value);
-    data.value = dataValue.toSpliced(
-      dataValue.findIndex((d) => d.value.id === row.value.id),
-      1,
-    );
-  });
-
   return (
     <div class="container">
       <div class="jumbotron">
@@ -147,10 +127,6 @@ export default component$(() => {
       <table class="table table-hover table-striped test-data">
         <tbody>
           {data.value.map((row) => {
-            const assignRow = (element: Element) => {
-              const vNode = (element as any).vNode as _ElementVNode;
-              (vNode.props ||= {})[":row"] = row;
-            };
             return (
               <tr
                 key={untrack(() => row.value.id)}
@@ -158,12 +134,28 @@ export default component$(() => {
               >
                 <td class="col-md-1">{row.value.id}</td>
                 <td class="col-md-4">
-                  <a ref={assignRow} onClick$={selectSingle$}>
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+                    }}
+                  >
                     {row.value.label.value}
                   </a>
                 </td>
                 <td class="col-md-1">
-                  <a ref={assignRow} onClick$={deleteSingle$}>
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
                     <span aria-hidden="true">x</span>
                   </a>
                 </td>

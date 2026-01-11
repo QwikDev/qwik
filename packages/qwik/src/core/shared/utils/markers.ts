@@ -83,6 +83,9 @@ export const ELEMENT_SEQ_IDX = 'q:seqIdx';
 export const ELEMENT_BACKPATCH_DATA = 'qwik/backpatch';
 export const Q_PREFIX = 'q:';
 
+export const ITERATION_ITEM_SINGLE = 'q:p'; // Single iteration parameter (not an array)
+export const ITERATION_ITEM_MULTI = 'q:ps'; // Multiple iteration parameters (array)
+
 /** Non serializable markers - always begins with `:` character */
 export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';

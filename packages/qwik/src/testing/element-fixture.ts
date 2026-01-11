@@ -10,6 +10,8 @@ import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
+import type { VNode } from '../core/shared/vnode/vnode';
+import { callQrl } from '../core/client/run-qrl';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -181,7 +183,14 @@ export const dispatch = async (
             .split('\n')
             .map((qrl) => container.parseQRL(qrl.trim()))
             .map((qrl) => {
-              return invokeApply(ctx, qrl, [event, element]);
+              return invokeApply(ctx, callQrl, [
+                container,
+                ctx.$hostElement$ as VNode,
+                qrl,
+                event,
+                element,
+                true,
+              ]);
             })
         );
       } catch (error) {

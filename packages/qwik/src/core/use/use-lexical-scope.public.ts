@@ -29,6 +29,7 @@ export const useLexicalScope = <VARS extends any[]>(): VARS => {
     const containerElement = _getQContainerElement(el) as HTMLElement;
     assertDefined(containerElement, `invoke: cant find parent q:container of`, el);
     const container = getDomContainer(containerElement);
+    context.$container$ ||= container;
     qrl = container.parseQRL(decodeURIComponent(String(context.$url$))) as QRLInternal<unknown>;
   } else {
     assertQrl(qrl);

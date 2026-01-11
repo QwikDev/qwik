@@ -129,7 +129,7 @@ export default component$(() => {
           {data.value.map((row) => {
             return (
               <tr
-                key={untrack(() => row.value.id)}
+                key={untrack(() => row.value.id + "")}
                 class={row.value.selected.value ? "danger" : ""}
               >
                 <td class="col-md-1">{row.value.id}</td>

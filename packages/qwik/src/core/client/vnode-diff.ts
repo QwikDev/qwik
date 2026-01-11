@@ -139,6 +139,7 @@ export interface DiffContext {
   jsxCount: number;
   // When we descend into children, we need to skip advance() because we just descended.
   shouldAdvance: boolean;
+  isCreationMode: boolean;
   subscriptionData: {
     const: SubscriptionData;
     var: SubscriptionData;
@@ -209,6 +210,7 @@ export const vnode_diff = (
     jsxIdx: 0,
     jsxCount: 0,
     shouldAdvance: true,
+    isCreationMode: false,
     subscriptionData: {
       const: new SubscriptionData({
         $scopedStyleIdPrefix$: scopedStyleIdPrefix,
@@ -443,13 +445,19 @@ function descend(
         diffContext.vCurrent || diffContext.vNewNode,
         'Expecting vCurrent to be defined.'
       );
+    const creationMode = diffContext.isCreationMode || !!diffContext.vNewNode;
+    diffContext.isCreationMode = creationMode;
     diffContext.vSideBuffer = null;
     diffContext.vSiblings = null;
     diffContext.vSiblingsArray = null;
     diffContext.vParent = (diffContext.vNewNode || diffContext.vCurrent!) as
       | ElementVNode
       | VirtualVNode;
-    diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent);
+    if (creationMode) {
+      diffContext.vCurrent = null;
+    } else {
+      diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent);
+    }
     diffContext.vNewNode = null;
   }
   diffContext.shouldAdvance = false;
@@ -458,6 +466,7 @@ function descend(
 function ascend(diffContext: DiffContext) {
   const descendVNode = diffContext.stack.pop(); // boolean: descendVNode
   if (descendVNode) {
+    diffContext.isCreationMode = diffContext.stack.pop();
     diffContext.vSideBuffer = diffContext.stack.pop();
     diffContext.vSiblings = diffContext.stack.pop();
     diffContext.vSiblingsArray = diffContext.stack.pop();
@@ -486,7 +495,8 @@ function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode
       diffContext.vNewNode,
       diffContext.vSiblingsArray,
       diffContext.vSiblings,
-      diffContext.vSideBuffer
+      diffContext.vSideBuffer,
+      diffContext.isCreationMode
     );
   }
   diffContext.stack.push(descendVNode);
@@ -935,28 +945,32 @@ function createElementWithNamespace(diffContext: DiffContext, elementName: strin
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
-  const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
-  const isSameElementName =
-    isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
-  const jsxKey: string | null = jsx.key;
   let needsQDispatchEventPatch = false;
-  const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
-  if (!isSameElementName || jsxKey !== currentKey) {
-    const sideBufferKey = getSideBufferKey(elementName, jsxKey);
-    if (
-      moveOrCreateKeyedNode(
-        diffContext,
-        elementName,
-        jsxKey,
-        sideBufferKey,
-        diffContext.vParent as ElementVNode
-      )
-    ) {
-      needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
-    }
+  if (diffContext.isCreationMode) {
+    needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
   } else {
-    // delete the key from the side buffer if it is the same element
-    deleteFromSideBuffer(diffContext, elementName, jsxKey);
+    const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
+    const isSameElementName =
+      isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
+    const jsxKey: string | null = jsx.key;
+    const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
+    if (!isSameElementName || jsxKey !== currentKey) {
+      const sideBufferKey = getSideBufferKey(elementName, jsxKey);
+      if (
+        moveOrCreateKeyedNode(
+          diffContext,
+          elementName,
+          jsxKey,
+          sideBufferKey,
+          diffContext.vParent as ElementVNode
+        )
+      ) {
+        needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
+      }
+    } else {
+      // delete the key from the side buffer if it is the same element
+      deleteFromSideBuffer(diffContext, elementName, jsxKey);
+    }
   }
 
   // reconcile attributes
@@ -1067,7 +1081,7 @@ const patchProperty = (
     // set only property for iteration item, not an attribute
     key === ITERATION_ITEM_SINGLE ||
     key === ITERATION_ITEM_MULTI ||
-    key.startsWith(':')
+    key.charAt(0) === HANDLER_PREFIX
   ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
@@ -1577,7 +1591,7 @@ function expectText(diffContext: DiffContext, text: string) {
     diffContext.journal,
     diffContext.vParent as VirtualVNode,
     (diffContext.vNewNode = vnode_newText(
-      diffContext.container.document.createTextNode(text),
+      (import.meta.env.TEST ? diffContext.container.document : document).createTextNode(text),
       text
     )),
     diffContext.vCurrent

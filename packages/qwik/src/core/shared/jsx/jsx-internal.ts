@@ -42,7 +42,7 @@ export const _jsxSorted = <T>(
   key: string | number | null | undefined,
   dev?: DevJSX
 ): JSXNodeInternal<T> => {
-  return untrack(() => new JSXNodeImpl(type, varProps, constProps, children, key, false, dev));
+  return new JSXNodeImpl(type, varProps, constProps, children, key, false, dev);
 };
 /**
  * Create a JSXNode, with the properties split into variable and constant parts, but the variable

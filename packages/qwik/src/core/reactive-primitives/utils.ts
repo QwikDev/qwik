@@ -59,8 +59,7 @@ export const ensureContainsSubscription = (
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
-  array.backRef ||= new Set();
-  array.backRef.add(value);
+  (array.backRef ||= new Set()).add(value);
 };
 
 export const addQrlToSerializationCtx = (

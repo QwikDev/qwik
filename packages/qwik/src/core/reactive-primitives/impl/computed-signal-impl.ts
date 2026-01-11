@@ -11,6 +11,7 @@ import { EffectProperty, NEEDS_COMPUTATION, SignalFlags } from '../types';
 import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
+import { isDev } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -76,7 +77,7 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
   get untrackedValue() {
     this.$computeIfNeeded$();
-    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
+    isDev && assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 

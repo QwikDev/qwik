@@ -3,7 +3,7 @@ import { getPlatform, isServerPlatform } from '../platform/platform';
 import { verifySerializable } from '../serdes/verify';
 // ^^^ keep these imports above the rest to prevent circular dep issues
 
-import { isBrowser } from '@qwik.dev/core/build';
+import { isBrowser, isDev } from '@qwik.dev/core/build';
 import {
   invoke,
   newInvokeContext,
@@ -173,9 +173,9 @@ export const createQRL = <TYPE>(
         }
         if (chunk === '') {
           // Sync QRL
-          assertDefined(_containerEl, 'Sync QRL must have container element');
-          const hash = _containerEl.getAttribute(QInstanceAttr)!;
-          const doc = _containerEl.ownerDocument!;
+          isDev && assertDefined(_containerEl, 'Sync QRL must have container element');
+          const hash = _containerEl!.getAttribute(QInstanceAttr)!;
+          const doc = _containerEl!.ownerDocument!;
           const qFuncs = getQFuncs(doc, hash);
           // No need to wrap, syncQRLs can't have captured scope
           return (qrl.resolved = symbolRef = qFuncs[Number(symbol)] as TYPE);

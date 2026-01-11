@@ -1,8 +1,9 @@
+import { isDev } from '@qwik.dev/core/build';
 import { assertTrue } from '../shared/error/assert';
 
 /** @internal */
 export const mapApp_findIndx = <T>(array: (T | null)[], key: string, start: number): number => {
-  assertTrue(start % 2 === 0, 'Expecting even number.');
+  isDev && assertTrue(start % 2 === 0, 'Expecting even number.');
   let bottom = (start as number) >> 1;
   let top = (array.length - 2) >> 1;
   while (bottom <= top) {

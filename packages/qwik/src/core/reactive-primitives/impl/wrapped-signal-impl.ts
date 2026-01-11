@@ -11,6 +11,7 @@ import { SignalImpl } from './signal-impl';
 import { markVNodeDirty } from '../../shared/vnode/vnode-dirty';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import { HOST_SIGNAL } from '../../shared/cursor/cursor-props';
+import { isDev } from '@qwik.dev/core/build';
 
 export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
   $args$: any[];
@@ -70,7 +71,7 @@ export class WrappedSignalImpl<T> extends SignalImpl<T> implements BackRef {
 
   get untrackedValue() {
     this.$computeIfNeeded$();
-    assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
+    isDev && assertFalse(this.$untrackedValue$ === NEEDS_COMPUTATION, 'Invalid state');
     return this.$untrackedValue$;
   }
 

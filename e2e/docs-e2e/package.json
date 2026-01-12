@@ -3,8 +3,8 @@
   "description": "",
   "author": "",
   "devDependencies": {
-    "@playwright/test": "1.54.1",
-    "@types/node": "24.3.0"
+    "@playwright/test": "1.57.0",
+    "@types/node": "24.10.0"
   },
   "keywords": [],
   "license": "ISC",

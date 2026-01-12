@@ -1704,6 +1704,9 @@ export function vnode_toString(
     } else if (vnode_isVirtualVNode(vnode)) {
       const idx = vnode.flags >>> VNodeFlagsIndex.shift;
       const attrs: string[] = ['[' + String(idx) + ']'];
+      if (vnode.dirty) {
+        attrs.push(` dirty:${vnode.dirty}`);
+      }
       vnode_getAttrKeys(vnode).forEach((key) => {
         if (key !== DEBUG_TYPE && key !== debugStyleScopeIdPrefixAttr) {
           const value = vnode_getProp(vnode!, key, null);

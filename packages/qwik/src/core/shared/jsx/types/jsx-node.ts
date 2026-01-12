@@ -45,8 +45,9 @@ export interface JSXNode<T extends string | FunctionComponent | unknown = unknow
  *
  * @internal
  */
-export interface JSXNodeInternal<T extends string | FunctionComponent | unknown = unknown>
-  extends JSXNode<T> {
+export interface JSXNodeInternal<
+  T extends string | FunctionComponent | unknown = unknown,
+> extends JSXNode<T> {
   /** The type of node */
   type: T;
   /** Do the varProps need sorting */

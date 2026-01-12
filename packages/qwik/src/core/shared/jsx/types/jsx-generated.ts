@@ -10,8 +10,7 @@ type Numberish = number | `${number}`;
 
 /** @public */
 export interface CSSProperties
-  extends CSS.Properties<string | number>,
-    CSS.PropertiesHyphen<string | number> {
+  extends CSS.Properties<string | number>, CSS.PropertiesHyphen<string | number> {
   /**
    * The index signature was removed to enable closed typing for style using CSSType. You're able to
    * use type assertion or module augmentation to add properties or an index signature of your own.
@@ -742,7 +741,8 @@ export interface AnchorHTMLAttributes<T extends Element> extends Attrs<'a', T> {
 export interface AreaHTMLAttributes<T extends Element> extends Attrs<'area', T> {}
 /** @public */
 export interface MediaHTMLAttributes<T extends Element>
-  extends HTMLAttributes<T>,
+  extends
+    HTMLAttributes<T>,
     Augmented<HTMLMediaElement, { crossOrigin?: HTMLCrossOriginAttribute }> {}
 /** @public */
 export interface AudioHTMLAttributes<T extends Element> extends Attrs<'audio', T> {}
@@ -890,8 +890,11 @@ export interface OptionHTMLAttributes<T extends Element> extends Attrs<'option',
 /** @public */
 export interface OutputHTMLAttributes<T extends Element> extends Attrs<'output', T> {}
 /** @public @deprecated Old DOM API */
-export interface ParamHTMLAttributes<T extends Element>
-  extends Attrs<'base', T, HTMLParamElement> {}
+export interface ParamHTMLAttributes<T extends Element> extends Attrs<
+  'base',
+  T,
+  HTMLParamElement
+> {}
 /** @public */
 export interface ProgressHTMLAttributes<T extends Element> extends Attrs<'progress', T> {}
 /** @public */

@@ -10,11 +10,11 @@ import { transformerMetaHighlight, transformerMetaWordHighlight } from '@shikijs
 import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
+import { qwikDevtools } from '@qwik.dev/devtools';
 import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
-import { qwikDevtools } from '@qwik.dev/devtools';
 
 const insightsApiKey = loadEnv('', '.', 'PUBLIC').PUBLIC_QWIK_INSIGHTS_KEY;
 const docsDir = new URL(import.meta.url).pathname;

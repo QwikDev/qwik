@@ -8,21 +8,21 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "csstype": "^3.1.3",
-    "launch-editor": "^2.11.1",
-    "rollup": "^4.52.4",
-    "ts-morph": "23.0.0"
+    "csstype": "^3.2.3",
+    "launch-editor": "^2.12.0",
+    "rollup": "^4.55.1",
+    "ts-morph": "27.0.2"
   },
   "devDependencies": {
-    "@croct/json5-parser": "0.2.1",
+    "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
     "domino": "2.1.6",
     "ignore": "5.3.1",
     "image-size": "1.2.1",
     "kleur": "4.1.5",
-    "prettier": "3.6.2",
-    "vitest": "4.0.1"
+    "prettier": "3.7.4",
+    "vitest": "4.0.16"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -174,7 +174,10 @@
   "scripts": {
     "build.insights": "cd src/insights && vite build --mode lib --emptyOutDir"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./src/testing/vdom-diff.unit-util.ts",
+    "./src/testing/mocks.ts"
+  ],
   "type": "module",
   "types": "./public.d.ts"
 }

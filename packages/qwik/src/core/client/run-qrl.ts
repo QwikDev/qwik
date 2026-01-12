@@ -1,5 +1,5 @@
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import { catchError, retryOnPromise } from '../shared/utils/promises';
+import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import { getInvokeContext } from '../use/use-core';
@@ -20,7 +20,7 @@ export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
   if (hostElement) {
     return retryOnPromise(() => {
       if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        return catchError(runQrl(...args), (err) => {
+        return runQrl(...args).catch((err) => {
           const container = (context.$container$ ||= getDomContainer(
             (hostElement as ElementVNode).node
           ));

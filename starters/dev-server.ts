@@ -216,6 +216,7 @@ export {
   await build(
     getInlineConf({
       build: {
+        emitAssets: true,
         minify: false,
         ssr: enableRouterServer
           ? qwikRouterVirtualEntry

@@ -189,7 +189,7 @@ describe('shared-serialization', () => {
         0 Error [
           {string} "hi"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at Traces.$ (file:/...path/file.js:123:456)\\n    at trace (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)"
         ]
         (x chars)"
       `);
@@ -201,7 +201,7 @@ describe('shared-serialization', () => {
           {string} "extra"
           {string} "yey"
           {string} "stack"
-          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)\\n    at processTicksAndRejections (node:internal/process/task_queues:123:456)\\n    at runSuite (file:/...path/file.js:123:456)\\n    at runSuite (file:/...path/file.js:123:456)"
+          {string} "Error: hi\\n    at /...path/file.ts:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at file:/...path/file.js:123:456\\n    at new Promise (<anonymous>)\\n    at runWithTimeout (file:/...path/file.js:123:456)\\n    at file:/...path/file.js:123:456\\n    at Traces.$ (file:/...path/file.js:123:456)\\n    at trace (file:/...path/file.js:123:456)\\n    at runTest (file:/...path/file.js:123:456)"
         ]
         (x chars)"
       `);
@@ -581,7 +581,7 @@ describe('shared-serialization', () => {
       const promised = createSerializer$(() => ({
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
-      })) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      })) as any as SerializerSignalImpl<MyCustomSerializable, number>;
       promised.value.inc();
       // Fake promise
       promised.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
@@ -589,7 +589,7 @@ describe('shared-serialization', () => {
         deserialize: (n?: number) => new MyCustomSerializable(n || 3),
         serialize: (obj) => obj.n,
         initial: 7,
-      }) as any as SerializerSignalImpl<number, MyCustomSerializable>;
+      }) as any as SerializerSignalImpl<MyCustomSerializable, number>;
       unreadPromise.$computeQrl$.resolved = Promise.resolve(promised.$computeQrl$.resolved) as any;
 
       const objs = await serialize([plain, unread, thunked, promised, unreadPromise]);

@@ -34,11 +34,14 @@ export const isJsxPropertyAnEventName = (name: string): boolean => {
 };
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
-  return (
-    name.startsWith(EventNameHtmlScope.on) ||
-    name.startsWith(EventNameHtmlScope.window) ||
-    name.startsWith(EventNameHtmlScope.document)
-  );
+  if (name.charCodeAt(0) !== 111 /* o */ || name.charCodeAt(1) !== 110 /* n */) {
+    return false;
+  }
+  if (name.charCodeAt(2) === 58 /* : */) {
+    return true; // on:
+  }
+
+  return name.startsWith(EventNameHtmlScope.window) || name.startsWith(EventNameHtmlScope.document);
 };
 
 export function jsxEventToHtmlAttribute(jsxEvent: string): string | null {

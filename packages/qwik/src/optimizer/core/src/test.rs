@@ -4792,6 +4792,58 @@ export const Greeter = component$(() => {
 	});
 }
 
+#[test]
+fn should_merge_bind_value_and_on_input() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal("");
+
+  return (
+    <input
+      onInput$={() => {
+        console.log("test");
+      }}
+      bind:value={localValue}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_bind_checked_and_on_input() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal(false);
+
+  return (
+    <input
+      onInput$={() => {
+        console.log("test");
+      }}
+      bind:checked={localValue}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

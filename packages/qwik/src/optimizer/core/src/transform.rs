@@ -1050,17 +1050,62 @@ impl<'a> QwikTransform<'a> {
 						..Default::default()
 					});
 
-					// Add the on:input handler
-					let handler_prop =
-						ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-							key: ast::PropName::Str(ast::Str {
+					// Check if there's already an on:input handler
+					let existing_handler_index = maybe_const_props.iter().position(|prop| {
+						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(kv)) = prop {
+							if let ast::PropName::Str(s) = &kv.key {
+								return s.value == *ON_INPUT;
+							}
+						}
+						false
+					});
+
+					if let Some(index) = existing_handler_index {
+						// Merge handlers into an array
+						let existing_prop = maybe_const_props.remove(index);
+						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(existing_kv)) =
+							existing_prop
+						{
+							let merged_handler = ast::Expr::Array(ast::ArrayLit {
 								span: DUMMY_SP,
-								value: ON_INPUT.clone(),
-								raw: None,
-							}),
-							value: Box::new(handler_qrl),
-						})));
-					maybe_const_props.push(handler_prop.fold_with(self));
+								elems: vec![
+									Some(ast::ExprOrSpread {
+										spread: None,
+										expr: existing_kv.value,
+									}),
+									Some(ast::ExprOrSpread {
+										spread: None,
+										expr: Box::new(handler_qrl),
+									}),
+								],
+							});
+
+							let merged_prop = ast::PropOrSpread::Prop(Box::new(
+								ast::Prop::KeyValue(ast::KeyValueProp {
+									key: ast::PropName::Str(ast::Str {
+										span: DUMMY_SP,
+										value: ON_INPUT.clone(),
+										raw: None,
+									}),
+									value: Box::new(merged_handler),
+								}),
+							));
+							maybe_const_props.push(merged_prop.fold_with(self));
+						}
+					} else {
+						// Add the on:input handler
+						let handler_prop = ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
+							ast::KeyValueProp {
+								key: ast::PropName::Str(ast::Str {
+									span: DUMMY_SP,
+									value: ON_INPUT.clone(),
+									raw: None,
+								}),
+								value: Box::new(handler_qrl),
+							},
+						)));
+						maybe_const_props.push(handler_prop.fold_with(self));
+					}
 
 					// Skip the bind: prop itself - signal to continue the loop
 					return (key_word, transformed_event_key, true);

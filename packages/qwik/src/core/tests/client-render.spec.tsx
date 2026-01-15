@@ -192,61 +192,61 @@ describe('v2 client render', () => {
   });
 
   describe('cleanup', () => {
-    interface CleanupProps {
-      spies: {
-        parentCleanup?: boolean;
-        cleanup?: boolean;
-        slottedCleanup?: boolean;
-      };
-    }
-
-    const CleanupComponent = component$((props: CleanupProps) => {
-      useTask$(({ cleanup }) => {
-        cleanup(() => {
-          props.spies.cleanup = true;
-        });
-      });
-
-      return (
-        <div>
-          <div id="cleanup">true</div>
-          <Slot />
-        </div>
-      );
-    });
-
-    const ParentCleanupComponent = component$((props: CleanupProps) => {
-      useTask$(({ cleanup }) => {
-        cleanup(() => {
-          props.spies.parentCleanup = true;
-        });
-      });
-
-      return (
-        <div>
-          <div id="parent-cleanup">true</div>
-          <CleanupComponent spies={props.spies}>
-            <Slot />
-          </CleanupComponent>
-        </div>
-      );
-    });
-
-    const SlottedCleanupComponent = component$((props: CleanupProps) => {
-      useTask$(({ cleanup }) => {
-        cleanup(() => {
-          props.spies.slottedCleanup = true;
-        });
-      });
-
-      return (
-        <div>
-          <div id="slotted-cleanup">true</div>
-        </div>
-      );
-    });
-
     it('should clean up slotted component subscriptions when calling a cleanup function', async () => {
+      interface CleanupProps {
+        spies: {
+          parentCleanup?: boolean;
+          cleanup?: boolean;
+          slottedCleanup?: boolean;
+        };
+      }
+
+      const CleanupComponent = component$((props: CleanupProps) => {
+        useTask$(({ cleanup }) => {
+          cleanup(() => {
+            props.spies.cleanup = true;
+          });
+        });
+
+        return (
+          <div>
+            <div id="cleanup">true</div>
+            <Slot />
+          </div>
+        );
+      });
+
+      const ParentCleanupComponent = component$((props: CleanupProps) => {
+        useTask$(({ cleanup }) => {
+          cleanup(() => {
+            props.spies.parentCleanup = true;
+          });
+        });
+
+        return (
+          <div>
+            <div id="parent-cleanup">true</div>
+            <CleanupComponent spies={props.spies}>
+              <Slot />
+            </CleanupComponent>
+          </div>
+        );
+      });
+
+      const SlottedCleanupComponent = component$((props: CleanupProps) => {
+        useTask$(({ cleanup }) => {
+          cleanup(() => {
+            props.spies.slottedCleanup = true;
+          });
+        });
+
+        return (
+          <div>
+            <div id="slotted-cleanup">true</div>
+          </div>
+        );
+      });
+
       const spies = {
         parentCleanup: false,
         cleanup: false,

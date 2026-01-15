@@ -5165,6 +5165,40 @@ export const FieldInput = component$(() => {
 	});
 }
 
+#[test]
+fn should_transform_qrls_in_ternary_expression() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+	const enabled = useSignal(false);
+	const input = useSignal("");
+
+  return (
+     <input
+		id="input"
+		onInput$={
+		enabled.value
+			? $((ev, el) => {
+				input.value = el.value;
+			})
+			: undefined
+		}
+		onFocus$={() => {
+			enabled.value = true;
+		}}
+	/>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

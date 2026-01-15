@@ -1046,6 +1046,7 @@ impl<'a> QwikTransform<'a> {
 	/// If a handler with the same key already exists, they are merged into an array.
 	/// Otherwise, the new handler is simply added.
 	fn merge_or_add_event_handler(
+		&mut self,
 		props: &mut Vec<ast::PropOrSpread>,
 		key: Atom,
 		new_handler: Box<ast::Expr>,
@@ -1073,7 +1074,7 @@ impl<'a> QwikTransform<'a> {
 						}),
 						Some(ast::ExprOrSpread {
 							spread: None,
-							expr: new_handler,
+							expr: new_handler.fold_with(self),
 						}),
 					],
 				});
@@ -1100,7 +1101,7 @@ impl<'a> QwikTransform<'a> {
 					}),
 					value: new_handler,
 				})));
-			props.push(handler_prop);
+			props.push(handler_prop.fold_with(self));
 		}
 	}
 
@@ -1200,7 +1201,7 @@ impl<'a> QwikTransform<'a> {
 					});
 
 					// Use helper function to merge or add the on:input handler
-					Self::merge_or_add_event_handler(
+					self.merge_or_add_event_handler(
 						maybe_const_props,
 						ON_INPUT.clone(),
 						Box::new(handler_qrl),
@@ -1698,7 +1699,7 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												&mut const_props
 											};
-											Self::merge_or_add_event_handler(
+											self.merge_or_add_event_handler(
 												target_props,
 												ON_INPUT.clone(),
 												handler_expr,
@@ -1799,7 +1800,7 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												&mut const_props
 											};
-											Self::merge_or_add_event_handler(
+											self.merge_or_add_event_handler(
 												target_props,
 												ON_INPUT.clone(),
 												node.value.clone(),

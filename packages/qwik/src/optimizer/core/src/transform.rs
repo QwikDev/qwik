@@ -24,7 +24,7 @@ use swc_common::SyntaxContext;
 use swc_common::{errors::HANDLER, sync::Lrc, SourceMap, Span, Spanned, DUMMY_SP};
 use swc_ecmascript::ast::{self, SpreadElement};
 use swc_ecmascript::utils::{private_ident, quote_ident, ExprFactory};
-use swc_ecmascript::visit::{noop_fold_type, Fold, FoldWith, VisitWith};
+use swc_ecmascript::visit::{noop_fold_type, noop_visit_type, Fold, FoldWith, Visit, VisitWith};
 
 macro_rules! id {
 	($ident: expr) => {
@@ -116,6 +116,11 @@ pub struct QwikTransform<'a> {
 	jsx_element_is_native: Vec<bool>,
 	hoisted_fn_signals: HashMap<String, Id>,
 	hoisted_fn_counter: u32,
+	loop_depth: u32,
+	iteration_var_stack: Vec<Vec<ast::Ident>>,
+	hoisted_qrls: Vec<Vec<(String, ast::VarDeclarator)>>,
+	fn_depth: u32,
+	in_callback: bool,
 }
 
 pub struct QwikTransformOptions<'a> {
@@ -258,6 +263,11 @@ impl<'a> QwikTransform<'a> {
 			jsx_element_is_native: Vec::new(),
 			hoisted_fn_signals: HashMap::new(),
 			hoisted_fn_counter: 0,
+			loop_depth: 0,
+			iteration_var_stack: Vec::new(),
+			hoisted_qrls: Vec::new(),
+			fn_depth: 0,
+			in_callback: false,
 			options,
 		}
 	}
@@ -675,8 +685,16 @@ impl<'a> QwikTransform<'a> {
 		// Collect local idents
 		let local_idents = self.get_local_idents(&folded);
 
+		// Get function parameters to exclude from captured scope
+		let param_idents = get_function_params(&folded);
+
 		let (mut scoped_idents, is_const) =
 			compute_scoped_idents(&descendent_idents, &decl_collect);
+
+		// Filter out function parameters from scoped_idents
+		// Parameters don't need to be captured via useLexicalScope
+		scoped_idents.retain(|id| !param_idents.contains(id));
+
 		if !can_capture && !scoped_idents.is_empty() {
 			HANDLER.with(|handler| {
 				let ids: Vec<_> = scoped_idents.iter().map(|id| id.0.as_ref()).collect();
@@ -952,6 +970,75 @@ impl<'a> QwikTransform<'a> {
 		{
 			self.extra_bottom_items
 				.insert(id.clone(), create_synthetic_named_export(id, exported_name));
+		}
+	}
+
+	/// Hoist QRL creation if inside a loop, or return the call expression as-is
+	fn hoist_qrl_if_needed(&mut self, converted_expr: ast::CallExpr, is_fn: bool) -> ast::Expr {
+		// Hoist QRLs only when inside a loop (for, while, .map(), etc.)
+		// This creates a single QRL declaration outside the loop for efficiency
+		// Don't hoist component$ QRLs (is_fn = true)
+		// Also need an active hoisting scope (hoisted_qrls not empty)
+		let should_hoist = self.loop_depth > 0 && !is_fn && !self.hoisted_qrls.is_empty();
+
+		if should_hoist {
+			// Extract symbol name from the QRL call (second argument)
+			let symbol_name =
+				if let Some(ast::ExprOrSpread { expr, .. }) = converted_expr.args.get(1) {
+					if let ast::Expr::Lit(ast::Lit::Str(s)) = &**expr {
+						s.value.to_string()
+					} else {
+						format!("qrl_{}", converted_expr.span.lo.0)
+					}
+				} else {
+					format!("qrl_{}", converted_expr.span.lo.0)
+				};
+
+			let current_depth = self.hoisted_qrls.len() - 1;
+
+			// Check if we already hoisted this QRL at current depth
+			let existing_var = self.hoisted_qrls[current_depth]
+				.iter()
+				.find_map(|(name, _)| {
+					if name == &symbol_name {
+						Some(ast::Expr::Ident(ast::Ident::new(
+							Atom::from(name.clone()),
+							DUMMY_SP,
+							SyntaxContext::empty(),
+						)))
+					} else {
+						None
+					}
+				});
+
+			if let Some(existing_ident) = existing_var {
+				existing_ident
+			} else {
+				// Hoist the QRL creation
+				let var_declarator = ast::VarDeclarator {
+					span: DUMMY_SP,
+					name: ast::Pat::Ident(ast::BindingIdent {
+						id: ast::Ident::new(
+							Atom::from(symbol_name.clone()),
+							DUMMY_SP,
+							SyntaxContext::empty(),
+						),
+						type_ann: None,
+					}),
+					init: Some(Box::new(ast::Expr::Call(converted_expr))),
+					definite: false,
+				};
+
+				self.hoisted_qrls[current_depth].push((symbol_name.clone(), var_declarator));
+
+				ast::Expr::Ident(ast::Ident::new(
+					Atom::from(symbol_name),
+					DUMMY_SP,
+					SyntaxContext::empty(),
+				))
+			}
+		} else {
+			ast::Expr::Call(converted_expr)
 		}
 	}
 
@@ -1433,6 +1520,7 @@ impl<'a> QwikTransform<'a> {
 				let should_runtime_sort = has_spread_props;
 				let mut static_listeners = !has_spread_props;
 				let mut static_subtree = !has_spread_props;
+				let mut added_iter_var_prop = false; // Track if we've already added q:p or q:ps
 
 				for prop in props.into_iter() {
 					let mut name_token = false;
@@ -1532,21 +1620,57 @@ impl<'a> QwikTransform<'a> {
 								{
 									if matches!(*node.value, ast::Expr::Arrow(_) | ast::Expr::Fn(_))
 									{
+										// Check which iteration variables this specific handler uses
+										let used_iter_vars: Vec<ast::Ident> = if self.loop_depth > 0
+											&& !is_fn
+										{
+											if let Some(iter_vars) = self.iteration_var_stack.last()
+											{
+												iter_vars
+													.iter()
+													.filter(|var| {
+														expr_uses_ident(&node.value, &id!(var))
+													})
+													.cloned()
+													.collect()
+											} else {
+												Vec::new()
+											}
+										} else {
+											Vec::new()
+										};
+
+										// Transform event handler if it uses iteration variables
+										let transformed_value = if !used_iter_vars.is_empty() {
+											transform_event_handler_with_iter_var(
+												*node.value.clone(),
+												&used_iter_vars,
+											)
+										} else {
+											*node.value.clone()
+										};
+
+										let ctx_kind = if is_fn {
+											SegmentKind::JSXProp
+										} else {
+											SegmentKind::EventHandler
+										};
+
 										let (converted_expr, is_const) = self
 											._create_synthetic_qsegment(
-												*node.value.clone(),
-												if is_fn {
-													SegmentKind::JSXProp
-												} else {
-													SegmentKind::EventHandler
-												},
+												transformed_value,
+												ctx_kind,
 												original_key_word.clone().unwrap_or_default(),
 												None,
 											);
 
+										// If inside a loop and it's an event handler, hoist the QRL
+										let qrl_expr =
+											self.hoist_qrl_if_needed(converted_expr, is_fn);
+
 										let converted_prop = ast::PropOrSpread::Prop(Box::new(
 											ast::Prop::KeyValue(ast::KeyValueProp {
-												value: Box::new(ast::Expr::Call(converted_expr)),
+												value: Box::new(qrl_expr),
 												key: final_key.clone(),
 											}),
 										));
@@ -1565,6 +1689,56 @@ impl<'a> QwikTransform<'a> {
 											var_props.push(converted_prop.fold_with(self));
 										} else {
 											const_props.push(converted_prop.fold_with(self));
+										}
+
+										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
+										// Only add it once per element, even if multiple handlers use the same iteration variables
+										if !used_iter_vars.is_empty()
+											&& !is_fn && !added_iter_var_prop
+										{
+											let (prop_name, row_value): (&str, Box<ast::Expr>) =
+												if used_iter_vars.len() == 1 {
+													// Single parameter: use q:p without array
+													(
+														"q:p",
+														Box::new(ast::Expr::Ident(
+															used_iter_vars[0].clone(),
+														)),
+													)
+												} else {
+													// Multiple parameters: use q:ps with array
+													(
+														"q:ps",
+														Box::new(ast::Expr::Array(ast::ArrayLit {
+															span: DUMMY_SP,
+															elems: used_iter_vars
+																.iter()
+																.map(|ident| {
+																	Some(ast::ExprOrSpread {
+																		spread: None,
+																		expr: Box::new(
+																			ast::Expr::Ident(
+																				ident.clone(),
+																			),
+																		),
+																	})
+																})
+																.collect(),
+														})),
+													)
+												};
+
+											var_props.push(ast::PropOrSpread::Prop(Box::new(
+												ast::Prop::KeyValue(ast::KeyValueProp {
+													key: ast::PropName::Str(ast::Str {
+														span: DUMMY_SP,
+														value: Atom::from(prop_name),
+														raw: None,
+													}),
+													value: row_value,
+												}),
+											)));
+											added_iter_var_prop = true;
 										}
 									} else {
 										let const_prop = is_const_expr(
@@ -2352,6 +2526,15 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_function(&mut self, node: ast::Function) -> ast::Function {
 		self.decl_stack.push(vec![]);
+		self.fn_depth += 1;
+
+		// All functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
+		// This matches arrow function behavior for consistency
+		let creates_hoisting_scope = !self.in_callback;
+		if creates_hoisting_scope {
+			self.hoisted_qrls.push(Vec::new());
+		}
+
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 
@@ -2366,7 +2549,42 @@ impl<'a> Fold for QwikTransform<'a> {
 		for param in &node.params {
 			current_scope.extend(process_node_props(&param.pat));
 		}
-		let o = node.fold_children_with(self);
+
+		let mut o = node.fold_children_with(self);
+
+		// Inject hoisted QRLs if this function created a hoisting scope
+		if creates_hoisting_scope {
+			if let Some(current_qrls) = self.hoisted_qrls.pop() {
+				if !current_qrls.is_empty() {
+					// Create const declarations for hoisted QRLs
+					let mut qrl_stmts = Vec::new();
+					for (_, declarator) in current_qrls {
+						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						}))));
+					}
+
+					if let Some(body) = &mut o.body {
+						// Find the position to insert - after the last variable declaration
+						let insert_pos = body
+							.stmts
+							.iter()
+							.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
+							.map(|pos| pos + 1)
+							.unwrap_or(0);
+
+						// Insert hoisted QRLs after variable declarations
+						body.stmts.splice(insert_pos..insert_pos, qrl_stmts);
+					}
+				}
+			}
+		}
+
+		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -2376,6 +2594,18 @@ impl<'a> Fold for QwikTransform<'a> {
 
 	fn fold_arrow_expr(&mut self, node: ast::ArrowExpr) -> ast::ArrowExpr {
 		self.decl_stack.push(vec![]);
+		self.fn_depth += 1;
+
+		// All arrow functions create hoisting scopes EXCEPT callbacks (.map, .filter, etc.)
+		// This ensures:
+		// - Each component (Foo, Inner) has its own hoisting scope
+		// - Callbacks don't create scopes, so their QRLs hoist to the component level
+		// - Single QRL per loop for efficiency
+		let creates_hoisting_scope = !self.in_callback;
+		if creates_hoisting_scope {
+			self.hoisted_qrls.push(Vec::new());
+		}
+
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
 
@@ -2391,7 +2621,60 @@ impl<'a> Fold for QwikTransform<'a> {
 			current_scope.extend(process_node_props(param));
 		}
 
-		let o = node.fold_children_with(self);
+		let mut o = node.fold_children_with(self);
+
+		// Inject hoisted QRLs if this arrow function created a hoisting scope
+		if creates_hoisting_scope {
+			if let Some(current_qrls) = self.hoisted_qrls.pop() {
+				if !current_qrls.is_empty() {
+					// Create const declarations for hoisted QRLs
+					let mut qrl_stmts = Vec::new();
+					for (_, declarator) in current_qrls {
+						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+							span: DUMMY_SP,
+							kind: ast::VarDeclKind::Const,
+							declare: false,
+							ctxt: SyntaxContext::empty(),
+							decls: vec![declarator],
+						}))));
+					}
+
+					match &mut *o.body {
+						ast::BlockStmtOrExpr::BlockStmt(block) => {
+							// Find the position to insert - after the last variable declaration
+							let insert_pos = block
+								.stmts
+								.iter()
+								.rposition(|stmt| {
+									matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_)))
+								})
+								.map(|pos| pos + 1)
+								.unwrap_or(0);
+
+							// Insert hoisted QRLs after variable declarations
+							block.stmts.splice(insert_pos..insert_pos, qrl_stmts);
+						}
+						ast::BlockStmtOrExpr::Expr(expr) => {
+							// Convert expression body to block statement with hoisted QRLs
+							let return_stmt = ast::Stmt::Return(ast::ReturnStmt {
+								span: DUMMY_SP,
+								arg: Some(expr.clone()),
+							});
+
+							qrl_stmts.push(return_stmt);
+
+							o.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
+								span: DUMMY_SP,
+								ctxt: SyntaxContext::empty(),
+								stmts: qrl_stmts,
+							}));
+						}
+					}
+				}
+			}
+		}
+
+		self.fn_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.jsx_mutable = prev_jsx_mutable;
 		self.decl_stack.pop();
@@ -2403,7 +2686,29 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable from the initialization
+		let iteration_vars = if let Some(ast::VarDeclOrExpr::VarDecl(ref var_decl)) = node.init {
+			var_decl
+				.decls
+				.first()
+				.and_then(|decl| {
+					if let ast::Pat::Ident(ident) = &decl.name {
+						Some(vec![ident.id.clone()])
+					} else {
+						None
+					}
+				})
+				.unwrap_or_default()
+		} else {
+			Vec::new()
+		};
+		self.iteration_var_stack.push(iteration_vars);
+
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2414,7 +2719,32 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable
+		let iteration_vars = match &node.left {
+			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					Some(vec![ident.id.clone()])
+				} else {
+					None
+				}
+			}),
+			ast::ForHead::Pat(pat) => {
+				if let ast::Pat::Ident(ident) = &**pat {
+					Some(vec![ident.id.clone()])
+				} else {
+					None
+				}
+			}
+			_ => None,
+		}
+		.unwrap_or_default();
+		self.iteration_var_stack.push(iteration_vars);
+
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2425,6 +2755,28 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Track the loop variable
+		let iteration_vars = match &node.left {
+			ast::ForHead::VarDecl(var_decl) => var_decl.decls.first().and_then(|decl| {
+				if let ast::Pat::Ident(ident) = &decl.name {
+					Some(vec![ident.id.clone()])
+				} else {
+					None
+				}
+			}),
+			ast::ForHead::Pat(pat) => {
+				if let ast::Pat::Ident(ident) = &**pat {
+					Some(vec![ident.id.clone()])
+				} else {
+					None
+				}
+			}
+			_ => None,
+		}
+		.unwrap_or_default();
+		self.iteration_var_stack.push(iteration_vars);
 
 		let current_scope = self
 			.decl_stack
@@ -2448,6 +2800,8 @@ impl<'a> Fold for QwikTransform<'a> {
 		}
 
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2496,8 +2850,25 @@ impl<'a> Fold for QwikTransform<'a> {
 		self.decl_stack.push(vec![]);
 		let prev = self.root_jsx_mode;
 		self.root_jsx_mode = true;
+		self.loop_depth += 1;
+
+		// Try to extract the iteration variable from the condition
+		// e.g., in "while (i < results.length)", extract "i"
+		let iteration_vars = match &*node.test {
+			ast::Expr::Bin(bin_expr) => {
+				// Check left side of comparison
+				match &*bin_expr.left {
+					ast::Expr::Ident(ident) => vec![ident.clone()],
+					_ => Vec::new(),
+				}
+			}
+			_ => Vec::new(),
+		};
+		self.iteration_var_stack.push(iteration_vars);
 
 		let o = node.fold_children_with(self);
+		self.iteration_var_stack.pop();
+		self.loop_depth -= 1;
 		self.root_jsx_mode = prev;
 		self.decl_stack.pop();
 
@@ -2631,6 +3002,60 @@ impl<'a> Fold for QwikTransform<'a> {
 		let mut replace_callee = None;
 		let mut ctx_name: Atom = QSEGMENT.clone();
 
+		// Check if this is an array iteration method call (e.g., .map(), .filter(), etc.)
+		let is_iteration_method =
+			if let ast::Callee::Expr(box ast::Expr::Member(member)) = &node.callee {
+				matches!(
+					prop_to_string(&member.prop).as_deref(),
+					Some(
+						"map"
+							| "filter" | "forEach"
+							| "flatMap" | "some" | "every"
+							| "find" | "findIndex"
+							| "reduce" | "reduceRight"
+					)
+				)
+			} else {
+				false
+			};
+
+		// Track iteration variable for array methods
+		if is_iteration_method {
+			self.loop_depth += 1;
+			self.in_callback = true;
+			// Get ALL parameters from the callback function (e.g., item, index from map)
+			let iteration_vars = node
+				.args
+				.first()
+				.map_or(Vec::new(), |arg| match &*arg.expr {
+					ast::Expr::Arrow(arrow) => arrow
+						.params
+						.iter()
+						.filter_map(|param| {
+							if let ast::Pat::Ident(ident) = param {
+								Some(ident.id.clone())
+							} else {
+								None
+							}
+						})
+						.collect(),
+					ast::Expr::Fn(func) => func
+						.function
+						.params
+						.iter()
+						.filter_map(|param| {
+							if let ast::Pat::Ident(ident) = &param.pat {
+								Some(ident.id.clone())
+							} else {
+								None
+							}
+						})
+						.collect(),
+					_ => Vec::new(),
+				});
+			self.iteration_var_stack.push(iteration_vars);
+		}
+
 		if let ast::Callee::Expr(box ast::Expr::Ident(ident)) = &node.callee {
 			// Check if this is a _fnSignal call (either by ID or by checking if it's imported as _fnSignal)
 			let is_fn_signal = id_eq!(ident, &self.fn_signal_fn) || {
@@ -2734,6 +3159,14 @@ impl<'a> Fold for QwikTransform<'a> {
 		if name_token {
 			self.stack_ctxt.pop();
 		}
+
+		// Clean up iteration tracking
+		if is_iteration_method {
+			self.iteration_var_stack.pop();
+			self.loop_depth -= 1;
+			self.in_callback = false;
+		}
+
 		ast::CallExpr {
 			callee,
 			args,
@@ -2871,10 +3304,178 @@ const fn can_capture_scope(expr: &ast::Expr) -> bool {
 	matches!(expr, &ast::Expr::Fn(_) | &ast::Expr::Arrow(_))
 }
 
+/// Get parameter identifiers from a function expression
+fn get_function_params(expr: &ast::Expr) -> Vec<Id> {
+	let mut params = Vec::new();
+
+	match expr {
+		ast::Expr::Arrow(arrow) => {
+			for param in &arrow.params {
+				let mut identifiers = vec![];
+				collect_from_pat(param, &mut identifiers);
+				params.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+		}
+		ast::Expr::Fn(fn_expr) => {
+			for param in &fn_expr.function.params {
+				let mut identifiers = vec![];
+				collect_from_pat(&param.pat, &mut identifiers);
+				params.extend(identifiers.into_iter().map(|(id, _)| id));
+			}
+		}
+		_ => {}
+	}
+
+	params
+}
+
 fn base64(nu: u64) -> String {
 	base64::engine::general_purpose::URL_SAFE_NO_PAD
 		.encode(nu.to_le_bytes())
 		.replace(['-', '_'], "0")
+}
+
+/// Check if an expression references a specific identifier
+fn expr_uses_ident(expr: &ast::Expr, target_id: &Id) -> bool {
+	struct IdentChecker {
+		target_id: Id,
+		found: bool,
+	}
+
+	impl Visit for IdentChecker {
+		noop_visit_type!();
+
+		fn visit_ident(&mut self, ident: &ast::Ident) {
+			if id!(ident) == self.target_id {
+				self.found = true;
+			}
+		}
+	}
+
+	let mut checker = IdentChecker {
+		target_id: target_id.clone(),
+		found: false,
+	};
+
+	// For arrow/fn expressions, we want to check the body, not the whole expression
+	match expr {
+		ast::Expr::Arrow(arrow) => match &*arrow.body {
+			ast::BlockStmtOrExpr::BlockStmt(block) => block.visit_with(&mut checker),
+			ast::BlockStmtOrExpr::Expr(expr) => expr.visit_with(&mut checker),
+		},
+		ast::Expr::Fn(fn_expr) => {
+			if let Some(body) = &fn_expr.function.body {
+				body.visit_with(&mut checker);
+			}
+		}
+		_ => {
+			expr.visit_with(&mut checker);
+		}
+	}
+
+	checker.found
+}
+
+/// Transform event handler to add iteration variables as parameters
+/// Converts: onClick$(() => cart.push(item)}
+/// To: onClick$((_, __, item) => cart.push(item))
+/// Or: onClick$(() => clickedIndex.value = idx)
+/// To: onClick$((_, __, row, idx) => clickedIndex.value = idx)
+/// Only adds iteration variables that are actually used in the handler
+fn transform_event_handler_with_iter_var(expr: ast::Expr, iter_vars: &[ast::Ident]) -> ast::Expr {
+	// Check which iteration variables are actually used
+	let used_iter_vars: Vec<&ast::Ident> = iter_vars
+		.iter()
+		.filter(|var| expr_uses_ident(&expr, &id!(var)))
+		.collect();
+
+	if used_iter_vars.is_empty() {
+		return expr;
+	}
+
+	match expr {
+		ast::Expr::Arrow(mut arrow) => {
+			// Count existing parameters
+			let existing_params = arrow.params.len();
+
+			// We need: event (0), element (1), then used iteration variables
+			let mut new_params = Vec::new();
+
+			// Add existing params or placeholders for positions 0 and 1
+			for i in 0..2 {
+				if i < existing_params {
+					new_params.push(arrow.params[i].clone());
+				} else {
+					// Add placeholder parameter
+					new_params.push(ast::Pat::Ident(ast::BindingIdent {
+						id: private_ident!("_"),
+						type_ann: None,
+					}));
+				}
+			}
+
+			// Add only the iteration variables that are actually used
+			for iter_var in &used_iter_vars {
+				new_params.push(ast::Pat::Ident(ast::BindingIdent {
+					id: (*iter_var).clone(),
+					type_ann: None,
+				}));
+			}
+
+			// Add any additional existing parameters beyond the first 2
+			for i in 2..existing_params {
+				new_params.push(arrow.params[i].clone());
+			}
+
+			arrow.params = new_params;
+			ast::Expr::Arrow(arrow)
+		}
+		ast::Expr::Fn(mut fn_expr) => {
+			// Count existing parameters
+			let existing_params = fn_expr.function.params.len();
+
+			// We need: event (0), element (1), then used iteration variables
+			let mut new_params = Vec::new();
+
+			// Add existing params or placeholders for positions 0 and 1
+			for i in 0..2 {
+				if i < existing_params {
+					new_params.push(fn_expr.function.params[i].clone());
+				} else {
+					// Add placeholder parameter
+					new_params.push(ast::Param {
+						span: DUMMY_SP,
+						decorators: vec![],
+						pat: ast::Pat::Ident(ast::BindingIdent {
+							id: private_ident!("_"),
+							type_ann: None,
+						}),
+					});
+				}
+			}
+
+			// Add only the iteration variables that are actually used
+			for iter_var in &used_iter_vars {
+				new_params.push(ast::Param {
+					span: DUMMY_SP,
+					decorators: vec![],
+					pat: ast::Pat::Ident(ast::BindingIdent {
+						id: (*iter_var).clone(),
+						type_ann: None,
+					}),
+				});
+			}
+
+			// Add any additional existing parameters beyond the first 2
+			for i in 2..existing_params {
+				new_params.push(fn_expr.function.params[i].clone());
+			}
+
+			fn_expr.function.params = new_params;
+			ast::Expr::Fn(fn_expr)
+		}
+		_ => expr,
+	}
 }
 
 fn compute_scoped_idents(all_idents: &[Id], all_decl: &[IdPlusType]) -> (Vec<Id>, bool) {

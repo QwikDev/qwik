@@ -5113,6 +5113,58 @@ const Foo = component$(function() {
 	});
 }
 
+#[test]
+fn should_merge_on_input_and_bind_value() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal("");
+
+  return (
+    <input
+      bind:value={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_on_input_and_bind_checked() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal(false);
+
+  return (
+    <input
+      bind:checked={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

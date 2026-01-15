@@ -116,13 +116,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_App_component_loopArrowFn_span_on_click_LKE0yw7iEx4.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = ()=>{
-    const [cart, item] = useLexicalScope();
+export const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = (_, _1, item)=>{
+    const [cart] = useLexicalScope();
     cart.push(item);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAQsB;;IACR,KAAK,IAAI,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";mEAQsB,QAFM;;IAGd,KAAK,IAAI,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -141,22 +141,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     319,
     371
   ],
-  "captureNames": [
-    "cart",
+  "paramNames": [
+    "_",
+    "_",
     "item"
+  ],
+  "captureNames": [
+    "cart"
   ]
 }
 */
 ============================= test.tsx_App_component_loopForOf_span_on_click_Tsqf6v6tRCw.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = ()=>{
-    const [cart, item] = useLexicalScope();
+export const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = (_, _1, item)=>{
+    const [cart] = useLexicalScope();
     cart.push(item);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAoCwB;;IACR,KAAK,IAAI,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAoCwB,QAHL;;IAIH,KAAK,IAAI,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -175,22 +179,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     980,
     1036
   ],
-  "captureNames": [
-    "cart",
+  "paramNames": [
+    "_",
+    "_",
     "item"
+  ],
+  "captureNames": [
+    "cart"
   ]
 }
 */
 ============================= test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_div_button_on_click_5a2ivZyN1Y0 = ()=>{
-    const [cart, item] = useLexicalScope();
+export const App_component_div_button_on_click_5a2ivZyN1Y0 = (_, _1, item)=>{
+    const [cart] = useLexicalScope();
     cart.push(item);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DAmFwB;;IACR,KAAK,IAAI,CAAC\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";6DAmFwB,QAHM;;IAId,KAAK,IAAI,CAAC\"}")
 /*
 {
   "origin": "test.tsx",
@@ -209,22 +217,26 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     2026,
     2082
   ],
-  "captureNames": [
-    "cart",
+  "paramNames": [
+    "_",
+    "_",
     "item"
+  ],
+  "captureNames": [
+    "cart"
   ]
 }
 */
 ============================= test.tsx_App_component_loopForIn_span_on_click_q4maSW2qtLo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_loopForIn_span_on_click_q4maSW2qtLo = ()=>{
-    const [cart, key, results] = useLexicalScope();
+export const App_component_loopForIn_span_on_click_q4maSW2qtLo = (_, _1, key)=>{
+    const [cart, results] = useLexicalScope();
     cart.push(results[key]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAmDwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,IAAI\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAmDwB,QAHL;;IAIH,KAAK,IAAI,CAAC,OAAO,CAAC,IAAI\"}")
 /*
 {
   "origin": "test.tsx",
@@ -243,9 +255,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     1319,
     1383
   ],
+  "paramNames": [
+    "_",
+    "_",
+    "key"
+  ],
   "captureNames": [
     "cart",
-    "key",
     "results"
   ]
 }
@@ -253,13 +269,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_App_component_loopForI_span_on_click_X0FbAads0bo.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_loopForI_span_on_click_X0FbAads0bo = ()=>{
-    const [cart, i, results] = useLexicalScope();
+export const App_component_loopForI_span_on_click_X0FbAads0bo = (_, _1, i)=>{
+    const [cart, results] = useLexicalScope();
     cart.push(results[i]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAqBwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";gEAqBwB,QAHP;;IAID,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -278,9 +294,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     628,
     690
   ],
+  "paramNames": [
+    "_",
+    "_",
+    "i"
+  ],
   "captureNames": [
     "cart",
-    "i",
     "results"
   ]
 }
@@ -305,22 +325,27 @@ export const App_component_ckEPmXZlub0 = ()=>{
     const results = useSignal([
         'foo'
     ]);
+    const App_component_div_button_on_click_5a2ivZyN1Y0 = /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
+        cart
+    ]);
     function loopArrowFn(results) {
+        const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = /*#__PURE__*/ qrl(i_LKE0yw7iEx4, "App_component_loopArrowFn_span_on_click_LKE0yw7iEx4", [
+            cart
+        ]);
         return results.map((item)=>/*#__PURE__*/ _jsxSorted("span", {
-                "on:click": /*#__PURE__*/ qrl(i_LKE0yw7iEx4, "App_component_loopArrowFn_span_on_click_LKE0yw7iEx4", [
-                    cart,
-                    item
-                ])
+                "on:click": App_component_loopArrowFn_span_on_click_LKE0yw7iEx4,
+                "q:p": item
             }, null, item, 0, "u6_0"));
     }
     function loopForI(results) {
         const items = [];
+        const App_component_loopForI_span_on_click_X0FbAads0bo = /*#__PURE__*/ qrl(i_X0FbAads0bo, "App_component_loopForI_span_on_click_X0FbAads0bo", [
+            cart,
+            results
+        ]);
         for(let i = 0; i < results.length; i++)items.push(/*#__PURE__*/ _jsxSorted("span", {
-            "on:click": /*#__PURE__*/ qrl(i_X0FbAads0bo, "App_component_loopForI_span_on_click_X0FbAads0bo", [
-                cart,
-                i,
-                results
-            ])
+            "on:click": App_component_loopForI_span_on_click_X0FbAads0bo,
+            "q:p": i
         }, null, _fnSignal(_hf0, [
             i,
             results
@@ -329,22 +354,24 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     function loopForOf(results) {
         const items = [];
+        const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = /*#__PURE__*/ qrl(i_Tsqf6v6tRCw, "App_component_loopForOf_span_on_click_Tsqf6v6tRCw", [
+            cart
+        ]);
         for (const item of results)items.push(/*#__PURE__*/ _jsxSorted("span", {
-            "on:click": /*#__PURE__*/ qrl(i_Tsqf6v6tRCw, "App_component_loopForOf_span_on_click_Tsqf6v6tRCw", [
-                cart,
-                item
-            ])
+            "on:click": App_component_loopForOf_span_on_click_Tsqf6v6tRCw,
+            "q:p": item
         }, null, item, 2, "u6_2"));
         return items;
     }
     function loopForIn(results) {
         const items = [];
+        const App_component_loopForIn_span_on_click_q4maSW2qtLo = /*#__PURE__*/ qrl(i_q4maSW2qtLo, "App_component_loopForIn_span_on_click_q4maSW2qtLo", [
+            cart,
+            results
+        ]);
         for(const key in results)items.push(/*#__PURE__*/ _jsxSorted("span", {
-            "on:click": /*#__PURE__*/ qrl(i_q4maSW2qtLo, "App_component_loopForIn_span_on_click_q4maSW2qtLo", [
-                cart,
-                key,
-                results
-            ])
+            "on:click": App_component_loopForIn_span_on_click_q4maSW2qtLo,
+            "q:p": key
         }, null, _fnSignal(_hf0, [
             key,
             results
@@ -354,13 +381,14 @@ export const App_component_ckEPmXZlub0 = ()=>{
     function loopWhile(results) {
         const items = [];
         let i = 0;
+        const App_component_loopWhile_span_on_click_lmVICn9DFs8 = /*#__PURE__*/ qrl(i_lmVICn9DFs8, "App_component_loopWhile_span_on_click_lmVICn9DFs8", [
+            cart,
+            results
+        ]);
         while(i < results.length){
             items.push(/*#__PURE__*/ _jsxSorted("span", {
-                "on:click": /*#__PURE__*/ qrl(i_lmVICn9DFs8, "App_component_loopWhile_span_on_click_lmVICn9DFs8", [
-                    cart,
-                    i,
-                    results
-                ])
+                "on:click": App_component_loopWhile_span_on_click_lmVICn9DFs8,
+                "q:p": i
             }, null, _fnSignal(_hf0, [
                 i,
                 results
@@ -371,10 +399,8 @@ export const App_component_ckEPmXZlub0 = ()=>{
     }
     return /*#__PURE__*/ _jsxSorted("div", null, null, [
         results.value.map((item)=>/*#__PURE__*/ _jsxSorted("button", {
-                "on:click": /*#__PURE__*/ qrl(i_5a2ivZyN1Y0, "App_component_div_button_on_click_5a2ivZyN1Y0", [
-                    cart,
-                    item
-                ])
+                "on:click": App_component_div_button_on_click_5a2ivZyN1Y0,
+                "q:p": item
             }, {
                 id: "second"
             }, item, 0, "u6_5")),
@@ -387,7 +413,7 @@ export const App_component_ckEPmXZlub0 = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;IACjC,SAAS,YAAY,OAAiB;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;;;;qBAIP;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;;;;;;;;QAQd,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;;;iBAIP;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;;;;;;;;;QAQd,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;;;;;;;;;YAOZ;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;;;;;gBADR,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;uBAyBe,EAAO,IAAG;;;;;;;;yCAvBK;IACxB,MAAM,OAAO,SAAmB,EAAE;IAClC,MAAM,UAAU,UAAU;QAAC;KAAM;;;;IACjC,SAAS,YAAY,OAAiB;;;;QACpC,OAAO,QAAQ,GAAG,CAAC,CAAC,qBAClB,WAAC;gBACC,UAAQ;uBAFQ;qBAMf;IAGP;IACA,SAAS,SAAS,OAAiB;QACjC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,IAAI,IAAI,GAAG,IAAI,QAAQ,MAAM,EAAE,IAClC,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;mBAHL;;;;;QAWT,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;QAChB,KAAK,MAAM,QAAQ,QACjB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;mBAHH;iBAOJ;QAIP,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;;;;;QAChB,IAAK,MAAM,OAAO,QAChB,MAAM,IAAI,eACR,WAAC;YACC,UAAQ;mBAHH;;;;;QAWX,OAAO;IACT;IACA,SAAS,UAAU,OAAiB;QAClC,MAAM,QAAQ,EAAE;QAChB,IAAI,IAAI;;;;;QACR,MAAO,IAAI,QAAQ,MAAM,CAAE;YACzB,MAAM,IAAI,eACR,WAAC;gBACC,UAAQ;uBAHP;;;;;YAUL;QACF;QACA,OAAO;IACT;IACA,qBACE,WAAC;QACE,QAAQ,KAAK,CAAC,GAAG,CAAC,CAAC,qBAClB,WAAC;gBAEC,UAAQ;uBAHQ;;gBAEhB,IAAG;eAKF;QAGJ,YAAY,QAAQ,KAAK;QACzB,SAAS,QAAQ,KAAK;QACtB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;QACvB,UAAU,QAAQ,KAAK;;AAG9B\"}")
 /*
 {
   "origin": "test.tsx",
@@ -411,13 +437,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_App_component_loopWhile_span_on_click_lmVICn9DFs8.js (ENTRY POINT)==
 
 import { useLexicalScope } from "@qwik.dev/core";
-export const App_component_loopWhile_span_on_click_lmVICn9DFs8 = ()=>{
-    const [cart, i, results] = useLexicalScope();
+export const App_component_loopWhile_span_on_click_lmVICn9DFs8 = (_, _1, i)=>{
+    const [cart, results] = useLexicalScope();
     cart.push(results[i]);
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAmEwB;;IACR,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";iEAmEwB,QAHT;;IAIC,KAAK,IAAI,CAAC,OAAO,CAAC,EAAE\"}")
 /*
 {
   "origin": "test.tsx",
@@ -436,9 +462,13 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
     1693,
     1755
   ],
+  "paramNames": [
+    "_",
+    "_",
+    "i"
+  ],
   "captureNames": [
     "cart",
-    "i",
     "results"
   ]
 }

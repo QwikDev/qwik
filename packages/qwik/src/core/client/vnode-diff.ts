@@ -42,6 +42,8 @@ import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_PROPS,
   ELEMENT_SEQ,
+  ITERATION_ITEM_MULTI,
+  ITERATION_ITEM_SINGLE,
   OnRenderProp,
   QBackRefs,
   QContainerAttr,
@@ -101,6 +103,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { Cursor } from '../shared/cursor/cursor';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
+import { callQrl } from './run-qrl';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -248,10 +251,11 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
 
   while (diffContext.stack.length) {
     while (diffContext.jsxIdx < diffContext.jsxCount) {
-      assertFalse(
-        diffContext.vParent === diffContext.vCurrent,
-        "Parent and current can't be the same"
-      );
+      isDev &&
+        assertFalse(
+          diffContext.vParent === diffContext.vCurrent,
+          "Parent and current can't be the same"
+        );
       if (typeof diffContext.jsxValue === 'string') {
         expectText(diffContext, diffContext.jsxValue);
       } else if (typeof diffContext.jsxValue === 'number') {
@@ -964,7 +968,7 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
 
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
-            qrl(event, element).catch((e) => {
+            callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
               diffContext.container.handleError(e, vNode);
             });
           }
@@ -1040,7 +1044,12 @@ const patchProperty = (
   value: any,
   currentFile: string | null
 ) => {
-  if (key.startsWith(':')) {
+  if (
+    // set only property for iteration item, not an attribute
+    key === ITERATION_ITEM_SINGLE ||
+    key === ITERATION_ITEM_MULTI ||
+    key.startsWith(':')
+  ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
     vnode_setProp(vnode, key, value);

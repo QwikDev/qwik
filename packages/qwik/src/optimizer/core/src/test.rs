@@ -4844,6 +4844,275 @@ export const FieldInput = component$(() => {
 	});
 }
 
+#[test]
+fn should_extract_single_qrl() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+export const App = component$(() => {
+	const data = useSignal<Signal<any>[]>([]);
+	const selectedItem = useSignal<any | null>(null);
+    return (
+        <div>
+          {data.value.map((row) => (
+              <tr
+                key={untrack(() => row.value.id)}
+                class={row.value.selected.value ? "danger" : ""}
+              >
+                <td class="col-md-1">{row.value.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+                    }}
+                  >
+                    {row.value.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
+                    <span aria-hidden="true">x</span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+          ))}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_2() {
+	test_input!(TestInput {
+		code: r#"
+	  import { component$, useStore, useSignal } from '@qwik.dev/core';
+      const Parent = component$(() => {
+      const cart = useStore<Cart>([]);
+      const results = useSignal(['foo', 'bar']);
+
+      return (
+        <div>
+          <button id="first" onClick$={() => (results.value = ['item1', 'item2'])}></button>
+
+          {results.value.map((item, key) => (
+            <button
+              id={'second-' + key}
+              onClick$={() => {
+                cart.push(item);
+              }}
+            >
+              {item}
+            </button>
+          ))}
+          <ul>
+            {cart.map((item) => (
+              <li>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_with_index() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+export const App = component$(() => {
+	const data = useSignal<Signal<any>[]>([]);
+	const selectedItem = useSignal<any | null>(null);
+	const clickedIndex = useSignal<number | null>(null);
+    return (
+        <div>
+          {data.value.map((row, idx) => (
+              <tr
+                key={untrack(() => row.value.id)}
+                class={row.value.selected.value ? "danger" : ""}
+              >
+                <td class="col-md-1">{row.value.id}</td>
+                <td class="col-md-4">
+                  <a
+                    onClick$={() => {
+                      if (selectedItem.value) {
+                        selectedItem.value.selected.value = false;
+                      }
+                      selectedItem.value = row.value;
+                      row.value.selected.value = true;
+					  clickedIndex.value = idx;
+                    }}
+                  >
+                    {row.value.label.value}
+                  </a>
+                </td>
+                <td class="col-md-1">
+                  <a
+                    onClick$={() => {
+                      const dataValue = untrack(() => data.value);
+                      data.value = dataValue.toSpliced(
+                        dataValue.findIndex((d) => d.value.id === row.value.id),
+                        1,
+                      );
+                    }}
+                  >
+                    <span aria-hidden="true">x</span>
+                  </a>
+                </td>
+                <td class="col-md-6" />
+              </tr>
+          ))}
+        </div>
+      );
+    });
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_extract_single_qrl_with_nested_components() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(() => {
+  const data = useSignal<Signal<any>[]>([]);
+  const Inner = component$((props) => {
+    const data = props.data
+    return <div>{data.value.map(item => <p onClick$={() => console.log(item.value.id)}>{item.value.id}</p>)}</div>
+  })
+  return <Inner data={data} />
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_component_with_normal_function() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const Inner = component$(function(props) {
+    const data = props.data
+    return <div>{data.value.map(item => <p onClick$={() => console.log(item.value.id)}>{item.value.id}</p>)}</div>
+  })
+  return <Inner data={data} />
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_nested_loops() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  const data2 = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)}>
+		{data2.value.map(item => (
+		  <p onClick$={() => console.log(row.value.id, item.value.id)}>{row.value.id}-{item.value.id}</p>
+		))}
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map(row => (
+	  <div onClick$={() => console.log(row.value.id)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_multiple_event_handlers_case2() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal, Signal } from '@qwik.dev/core';
+const Foo = component$(function() {
+  const data = useSignal<Signal<any>[]>([]);
+  return <div>
+	{data.value.map((row, idx) => (
+	  <div onClick$={() => console.log(row.value.id, idx)} onMouseOver$={() => console.log('over' + row.value.id)}>
+		<p onClick$={() => console.log('inner' + row.value.id)}>{item.value.id}</p>
+	  </div>
+	))}
+  </div>;
+})
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

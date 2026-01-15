@@ -1042,6 +1042,68 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
+	/// Helper function to merge an event handler with an existing one in the props list.
+	/// If a handler with the same key already exists, they are merged into an array.
+	/// Otherwise, the new handler is simply added.
+	fn merge_or_add_event_handler(
+		props: &mut Vec<ast::PropOrSpread>,
+		key: Atom,
+		new_handler: Box<ast::Expr>,
+	) {
+		// Check if there's already a handler with this key
+		let existing_handler_index = props.iter().position(|prop| {
+			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(kv)) = prop {
+				if let ast::PropName::Str(s) = &kv.key {
+					return s.value == key;
+				}
+			}
+			false
+		});
+
+		if let Some(index) = existing_handler_index {
+			// Merge handlers into an array
+			let existing_prop = props.remove(index);
+			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(existing_kv)) = existing_prop {
+				let merged_handler = ast::Expr::Array(ast::ArrayLit {
+					span: DUMMY_SP,
+					elems: vec![
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: existing_kv.value,
+						}),
+						Some(ast::ExprOrSpread {
+							spread: None,
+							expr: new_handler,
+						}),
+					],
+				});
+
+				let merged_prop =
+					ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+						key: ast::PropName::Str(ast::Str {
+							span: DUMMY_SP,
+							value: key,
+							raw: None,
+						}),
+						value: Box::new(merged_handler),
+					})));
+				props.push(merged_prop);
+			}
+		} else {
+			// Add the new handler
+			let handler_prop =
+				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+					key: ast::PropName::Str(ast::Str {
+						span: DUMMY_SP,
+						value: key,
+						raw: None,
+					}),
+					value: new_handler,
+				})));
+			props.push(handler_prop);
+		}
+	}
+
 	/// Handles transformation of JSX props for native elements:
 	/// - Transform event props (e.g., onClick$ -> on:click)
 	/// - Transform className -> class
@@ -1137,62 +1199,12 @@ impl<'a> QwikTransform<'a> {
 						..Default::default()
 					});
 
-					// Check if there's already an on:input handler
-					let existing_handler_index = maybe_const_props.iter().position(|prop| {
-						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(kv)) = prop {
-							if let ast::PropName::Str(s) = &kv.key {
-								return s.value == *ON_INPUT;
-							}
-						}
-						false
-					});
-
-					if let Some(index) = existing_handler_index {
-						// Merge handlers into an array
-						let existing_prop = maybe_const_props.remove(index);
-						if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(existing_kv)) =
-							existing_prop
-						{
-							let merged_handler = ast::Expr::Array(ast::ArrayLit {
-								span: DUMMY_SP,
-								elems: vec![
-									Some(ast::ExprOrSpread {
-										spread: None,
-										expr: existing_kv.value,
-									}),
-									Some(ast::ExprOrSpread {
-										spread: None,
-										expr: Box::new(handler_qrl),
-									}),
-								],
-							});
-
-							let merged_prop = ast::PropOrSpread::Prop(Box::new(
-								ast::Prop::KeyValue(ast::KeyValueProp {
-									key: ast::PropName::Str(ast::Str {
-										span: DUMMY_SP,
-										value: ON_INPUT.clone(),
-										raw: None,
-									}),
-									value: Box::new(merged_handler),
-								}),
-							));
-							maybe_const_props.push(merged_prop.fold_with(self));
-						}
-					} else {
-						// Add the on:input handler
-						let handler_prop = ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-							ast::KeyValueProp {
-								key: ast::PropName::Str(ast::Str {
-									span: DUMMY_SP,
-									value: ON_INPUT.clone(),
-									raw: None,
-								}),
-								value: Box::new(handler_qrl),
-							},
-						)));
-						maybe_const_props.push(handler_prop.fold_with(self));
-					}
+					// Use helper function to merge or add the on:input handler
+					Self::merge_or_add_event_handler(
+						maybe_const_props,
+						ON_INPUT.clone(),
+						Box::new(handler_qrl),
+					);
 
 					// Skip the bind: prop itself - signal to continue the loop
 					return (key_word, transformed_event_key, true);
@@ -1664,31 +1676,55 @@ impl<'a> QwikTransform<'a> {
 												None,
 											);
 
-										// If inside a loop and it's an event handler, hoist the QRL
-										let qrl_expr =
-											self.hoist_qrl_if_needed(converted_expr, is_fn);
+										let handler_expr =
+											Box::new(ast::Expr::Call(converted_expr));
 
-										let converted_prop = ast::PropOrSpread::Prop(Box::new(
-											ast::Prop::KeyValue(ast::KeyValueProp {
-												value: Box::new(qrl_expr),
-												key: final_key.clone(),
-											}),
-										));
+
 										if !is_const {
 											static_listeners = false;
 										}
 
-										if is_fn || spread_props_count > 0 {
-											if is_const {
-												maybe_const_props
-													.push(converted_prop.fold_with(self));
+										// Check if this is an on:input handler that needs to be merged
+										// with an existing bind:value/bind:checked handler
+										if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+											let target_props = if is_fn || spread_props_count > 0 {
+												if is_const {
+													maybe_const_props
+												} else {
+													&mut var_props
+												}
+											} else if !is_const || spread_props_count > 0 {
+												&mut var_props
 											} else {
-												var_props.push(converted_prop.fold_with(self));
-											}
-										} else if !is_const || spread_props_count > 0 {
-											var_props.push(converted_prop.fold_with(self));
+												&mut const_props
+											};
+											Self::merge_or_add_event_handler(
+												target_props,
+												ON_INPUT.clone(),
+												handler_expr,
+											);
 										} else {
-											const_props.push(converted_prop.fold_with(self));
+                                            let qrl_expr =
+                                                self.hoist_qrl_if_needed(handler_expr, is_fn);
+
+                                            let converted_prop = ast::PropOrSpread::Prop(Box::new(
+                                                ast::Prop::KeyValue(ast::KeyValueProp {
+                                                    value: Box::new(qrl_expr),
+                                                    key: final_key.clone(),
+                                                }),
+                                            ));
+											if is_fn || spread_props_count > 0 {
+												if is_const {
+													maybe_const_props
+														.push(converted_prop.fold_with(self));
+												} else {
+													var_props.push(converted_prop.fold_with(self));
+												}
+											} else if !is_const || spread_props_count > 0 {
+												var_props.push(converted_prop.fold_with(self));
+											} else {
+												const_props.push(converted_prop.fold_with(self));
+											}
 										}
 
 										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
@@ -1750,34 +1786,55 @@ impl<'a> QwikTransform<'a> {
 											static_listeners = false;
 										}
 
-										// Create a new prop with the transformed key if needed
-										let prop_to_add = if let Some(ref transformed_key) =
-											transformed_event_key
-										{
-											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-												ast::KeyValueProp {
-													key: ast::PropName::Str(ast::Str {
-														span: node.key.span(),
-														value: transformed_key.clone(),
-														raw: None,
-													}),
-													value: node.value.clone(),
-												},
-											)))
-										} else {
-											prop.clone()
-										};
-
-										if is_fn || spread_props_count > 0 {
-											if const_prop {
-												maybe_const_props.push(prop_to_add.fold_with(self));
+										// Check if this is an on:input handler that needs to be merged
+										if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+											let target_props = if is_fn || spread_props_count > 0 {
+												if const_prop {
+													maybe_const_props
+												} else {
+													&mut var_props
+												}
+											} else if !const_prop || spread_props_count > 0 {
+												&mut var_props
 											} else {
-												var_props.push(prop_to_add.fold_with(self));
-											}
-										} else if !const_prop || spread_props_count > 0 {
-											var_props.push(prop_to_add.fold_with(self));
+												&mut const_props
+											};
+											Self::merge_or_add_event_handler(
+												target_props,
+												ON_INPUT.clone(),
+												node.value.clone(),
+											);
 										} else {
-											const_props.push(prop_to_add.fold_with(self));
+											// Create a new prop with the transformed key if needed
+											let prop_to_add = if let Some(ref transformed_key) =
+												transformed_event_key
+											{
+												ast::PropOrSpread::Prop(Box::new(
+													ast::Prop::KeyValue(ast::KeyValueProp {
+														key: ast::PropName::Str(ast::Str {
+															span: node.key.span(),
+															value: transformed_key.clone(),
+															raw: None,
+														}),
+														value: node.value.clone(),
+													}),
+												))
+											} else {
+												prop.clone()
+											};
+
+											if is_fn || spread_props_count > 0 {
+												if const_prop {
+													maybe_const_props
+														.push(prop_to_add.fold_with(self));
+												} else {
+													var_props.push(prop_to_add.fold_with(self));
+												}
+											} else if !const_prop || spread_props_count > 0 {
+												var_props.push(prop_to_add.fold_with(self));
+											} else {
+												const_props.push(prop_to_add.fold_with(self));
+											}
 										}
 									}
 								} else if is_const_expr(

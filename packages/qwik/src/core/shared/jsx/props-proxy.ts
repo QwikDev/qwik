@@ -11,6 +11,7 @@ import type { JSXNodeInternal } from './types/jsx-node';
 import type { Container } from '../types';
 import { assertTrue } from '../error/assert';
 import { scheduleEffects } from '../../reactive-primitives/utils';
+import { isDev } from '@qwik.dev/core/build';
 
 export function createPropsProxy(owner: JSXNodeImpl): Props {
   // TODO don't make a proxy but populate getters? benchmark
@@ -159,10 +160,11 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
         propsProxy.$container$ = ctx.$container$;
       }
     } else {
-      assertTrue(
-        !ctx.$container$ || ctx.$container$ === propsProxy.$container$,
-        'Do not use props across containers'
-      );
+      isDev &&
+        assertTrue(
+          !ctx.$container$ || ctx.$container$ === propsProxy.$container$,
+          'Do not use props across containers'
+        );
     }
   }
   const effectSubscriber = ctx?.$effectSubscriber$;

@@ -39,7 +39,12 @@ describe('inflateWrappedSignalValue', () => {
     signal.$hostElement$ = vnode;
 
     signal.$effects$ = new Set([
-      [vnode, 'class', null, null], // EffectSubscription: [consumer, property, backRefs, data]
+      {
+        consumer: vnode,
+        property: 'class',
+        backRef: null,
+        data: null,
+      },
     ] as any);
 
     inflateWrappedSignalValue(signal);
@@ -71,7 +76,14 @@ describe('inflateWrappedSignalValue', () => {
     vnode_setProp(vnode, 'data-state', 'initial');
 
     signal.$hostElement$ = vnode;
-    signal.$effects$ = new Set([[vnode, 'data-state', null, null]] as any);
+    signal.$effects$ = new Set([
+      {
+        consumer: vnode,
+        property: 'data-state',
+        backRef: null,
+        data: null,
+      },
+    ] as any);
 
     inflateWrappedSignalValue(signal);
 
@@ -164,8 +176,18 @@ describe('inflateWrappedSignalValue', () => {
 
     signal.$hostElement$ = vnode;
     signal.$effects$ = new Set([
-      [vnode, 'first-attr', null, null],
-      [vnode, 'second-attr', null, null],
+      {
+        consumer: vnode,
+        property: 'first-attr',
+        backRef: null,
+        data: null,
+      },
+      {
+        consumer: vnode,
+        property: 'second-attr',
+        backRef: null,
+        data: null,
+      },
     ]);
 
     inflateWrappedSignalValue(signal);
@@ -229,7 +251,14 @@ describe('inflateWrappedSignalValue', () => {
     vnode.lastChild = textVNode;
 
     signal.$hostElement$ = vnode;
-    signal.$effects$ = new Set([[vnode, 'data-value', null, null]] as any);
+    signal.$effects$ = new Set([
+      {
+        consumer: vnode,
+        property: 'data-value',
+        backRefs: null,
+        data: null,
+      },
+    ] as any);
 
     inflateWrappedSignalValue(signal);
 

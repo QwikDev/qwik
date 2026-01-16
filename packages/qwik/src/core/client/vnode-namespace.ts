@@ -257,17 +257,11 @@ function vnode_cloneElementWithNamespace(
   return rootElement;
 }
 
-function isSvg(tagOrVNode: string | ElementVNode): boolean {
-  return typeof tagOrVNode === 'string'
-    ? isSvgElement(tagOrVNode)
-    : (tagOrVNode.flags & VNodeFlags.NS_svg) !== 0;
-}
-
-function isMath(tagOrVNode: string | ElementVNode): boolean {
-  return typeof tagOrVNode === 'string'
-    ? isMathElement(tagOrVNode)
-    : (tagOrVNode.flags & VNodeFlags.NS_math) !== 0;
-}
+// reuse the same object to avoid creating new objects on every call
+const NEW_NAMESPACE_DATA: NewElementNamespaceData = {
+  elementNamespace: HTML_NS,
+  elementNamespaceFlag: VNodeFlags.NS_html,
+};
 
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
@@ -277,7 +271,6 @@ export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
   vnode: VNode
 ): NewElementNamespaceData;
-
 export function getNewElementNamespaceData(
   domParentVNode: ElementVNode | null,
   tagOrVNode: string | VNode
@@ -308,10 +301,34 @@ export function getNewElementNamespaceData(
     elementNamespaceFlag = domParentVNode.flags & VNodeFlags.NAMESPACE_MASK;
   }
 
-  return {
-    elementNamespace,
-    elementNamespaceFlag,
-  };
+  NEW_NAMESPACE_DATA.elementNamespace = elementNamespace;
+  NEW_NAMESPACE_DATA.elementNamespaceFlag = elementNamespaceFlag;
+  return NEW_NAMESPACE_DATA;
+}
+
+function isSvg(tagOrVNode: string | VNode): boolean {
+  if (typeof tagOrVNode === 'string') {
+    return isSvgElement(tagOrVNode);
+  }
+  if (vnode_isElementVNode(tagOrVNode)) {
+    return (
+      isSvgElement(vnode_getElementName(tagOrVNode)) || (tagOrVNode.flags & VNodeFlags.NS_svg) !== 0
+    );
+  }
+  return false;
+}
+
+function isMath(tagOrVNode: string | VNode): boolean {
+  if (typeof tagOrVNode === 'string') {
+    return isMathElement(tagOrVNode);
+  }
+  if (vnode_isElementVNode(tagOrVNode)) {
+    return (
+      isMathElement(vnode_getElementName(tagOrVNode)) ||
+      (tagOrVNode.flags & VNodeFlags.NS_math) !== 0
+    );
+  }
+  return false;
 }
 
 interface NewElementNamespaceData {

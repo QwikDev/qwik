@@ -3,11 +3,7 @@ import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import {
-  EffectProperty,
-  EffectSubscriptionProp,
-  type Consumer,
-} from '../reactive-primitives/types';
+import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
@@ -55,7 +51,6 @@ import {
 } from '../shared/utils/markers';
 import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
-import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
@@ -144,6 +139,7 @@ export interface DiffContext {
   jsxCount: number;
   // When we descend into children, we need to skip advance() because we just descended.
   shouldAdvance: boolean;
+  isCreationMode: boolean;
   subscriptionData: {
     const: SubscriptionData;
     var: SubscriptionData;
@@ -159,6 +155,14 @@ function peekNextSibling(vCurrent: VNode | null): VNode | null {
 }
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
+let _setAttribute: typeof Element.prototype.setAttribute | null = null;
+
+const fastSetAttribute = (target: Element, name: string, value: string): void => {
+  if (!_setAttribute) {
+    _setAttribute = target.setAttribute;
+  }
+  _setAttribute.call(target, name, value);
+};
 
 /** Helper to set an attribute on a vnode. Extracted to module scope to avoid closure allocation. */
 function setAttribute(
@@ -206,6 +210,7 @@ export const vnode_diff = (
     jsxIdx: 0,
     jsxCount: 0,
     shouldAdvance: true,
+    isCreationMode: false,
     subscriptionData: {
       const: new SubscriptionData({
         $scopedStyleIdPrefix$: scopedStyleIdPrefix,
@@ -237,8 +242,8 @@ export const vnode_diff = (
 //////////////////////////////////////////////
 
 function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode) {
-  assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
-  assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
+  isDev && assertFalse(vnode_isVNode(jsxNode), 'JSXNode should not be a VNode');
+  isDev && assertTrue(vnode_isVNode(vStartNode), 'vStartNode should be a VNode');
   diffContext.vParent = vStartNode as ElementVNode | VirtualVNode;
   diffContext.vNewNode = null;
   diffContext.vCurrent = vnode_getFirstChild(vStartNode);
@@ -261,43 +266,7 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
       } else if (typeof diffContext.jsxValue === 'number') {
         expectText(diffContext, String(diffContext.jsxValue));
       } else if (diffContext.jsxValue && typeof diffContext.jsxValue === 'object') {
-        if (Array.isArray(diffContext.jsxValue)) {
-          descend(diffContext, diffContext.jsxValue, false);
-        } else if (isSignal(diffContext.jsxValue)) {
-          expectVirtual(diffContext, VirtualType.WrappedSignal, null);
-          const unwrappedSignal =
-            diffContext.jsxValue instanceof WrappedSignalImpl
-              ? diffContext.jsxValue.$unwrapIfSignal$()
-              : diffContext.jsxValue;
-          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(EffectProperty.VNODE)?.[
-            EffectSubscriptionProp.BACK_REF
-          ];
-          let hasUnwrappedSignal = signals?.has(unwrappedSignal);
-          if (signals && unwrappedSignal instanceof WrappedSignalImpl) {
-            hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
-          }
-          if (!hasUnwrappedSignal) {
-            const vHost = (diffContext.vNewNode || diffContext.vCurrent)!;
-            descend(
-              diffContext,
-              resolveSignalAndDescend(diffContext, () =>
-                trackSignalAndAssignHost(
-                  unwrappedSignal,
-                  vHost,
-                  EffectProperty.VNODE,
-                  diffContext.container
-                )
-              ),
-              true
-            );
-          }
-        } else if (isPromise(diffContext.jsxValue)) {
-          expectVirtual(diffContext, VirtualType.Awaited, null);
-          diffContext.asyncQueue.push(
-            diffContext.jsxValue,
-            diffContext.vNewNode || diffContext.vCurrent
-          );
-        } else if (isJSXNode(diffContext.jsxValue)) {
+        if (isJSXNode(diffContext.jsxValue)) {
           const type = diffContext.jsxValue.type;
           if (typeof type === 'string') {
             expectNoMoreTextNodes(diffContext);
@@ -343,6 +312,42 @@ function diff(diffContext: DiffContext, jsxNode: JSXChildren, vStartNode: VNode)
               expectComponent(diffContext, type);
             }
           }
+        } else if (Array.isArray(diffContext.jsxValue)) {
+          descend(diffContext, diffContext.jsxValue, false);
+        } else if (isSignal(diffContext.jsxValue)) {
+          expectVirtual(diffContext, VirtualType.WrappedSignal, null);
+          const unwrappedSignal =
+            diffContext.jsxValue instanceof WrappedSignalImpl
+              ? diffContext.jsxValue.$unwrapIfSignal$()
+              : diffContext.jsxValue;
+          const signals = diffContext.vCurrent?.[_EFFECT_BACK_REF]?.get(
+            EffectProperty.VNODE
+          )?.backRef;
+          let hasUnwrappedSignal = signals?.has(unwrappedSignal);
+          if (signals && unwrappedSignal instanceof WrappedSignalImpl) {
+            hasUnwrappedSignal = containsWrappedSignal(signals, unwrappedSignal);
+          }
+          if (!hasUnwrappedSignal) {
+            const vHost = (diffContext.vNewNode || diffContext.vCurrent)!;
+            descend(
+              diffContext,
+              resolveSignalAndDescend(diffContext, () =>
+                trackSignalAndAssignHost(
+                  unwrappedSignal,
+                  vHost,
+                  EffectProperty.VNODE,
+                  diffContext.container
+                )
+              ),
+              true
+            );
+          }
+        } else if (isPromise(diffContext.jsxValue)) {
+          expectVirtual(diffContext, VirtualType.Awaited, null);
+          diffContext.asyncQueue.push(
+            diffContext.jsxValue,
+            diffContext.vNewNode || diffContext.vCurrent
+          );
         }
       } else if (diffContext.jsxValue === (SkipRender as JSXChildren)) {
         // do nothing, we are skipping this node
@@ -435,17 +440,27 @@ function descend(
   }
   stackPush(diffContext, children, descendVNode);
   if (descendVNode) {
-    assertDefined(
-      diffContext.vCurrent || diffContext.vNewNode,
-      'Expecting vCurrent to be defined.'
-    );
+    isDev &&
+      assertDefined(
+        diffContext.vCurrent || diffContext.vNewNode,
+        'Expecting vCurrent to be defined.'
+      );
+    const creationMode =
+      diffContext.isCreationMode ||
+      !!diffContext.vNewNode ||
+      !vnode_getFirstChild(diffContext.vCurrent!);
+    diffContext.isCreationMode = creationMode;
     diffContext.vSideBuffer = null;
     diffContext.vSiblings = null;
     diffContext.vSiblingsArray = null;
     diffContext.vParent = (diffContext.vNewNode || diffContext.vCurrent!) as
       | ElementVNode
       | VirtualVNode;
-    diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent);
+    if (creationMode) {
+      diffContext.vCurrent = null;
+    } else {
+      diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent);
+    }
     diffContext.vNewNode = null;
   }
   diffContext.shouldAdvance = false;
@@ -454,6 +469,7 @@ function descend(
 function ascend(diffContext: DiffContext) {
   const descendVNode = diffContext.stack.pop(); // boolean: descendVNode
   if (descendVNode) {
+    diffContext.isCreationMode = diffContext.stack.pop();
     diffContext.vSideBuffer = diffContext.stack.pop();
     diffContext.vSiblings = diffContext.stack.pop();
     diffContext.vSiblingsArray = diffContext.stack.pop();
@@ -482,7 +498,8 @@ function stackPush(diffContext: DiffContext, children: JSXChildren, descendVNode
       diffContext.vNewNode,
       diffContext.vSiblingsArray,
       diffContext.vSiblings,
-      diffContext.vSideBuffer
+      diffContext.vSideBuffer,
+      diffContext.isCreationMode
     );
   }
   diffContext.stack.push(descendVNode);
@@ -736,7 +753,11 @@ function expectNoChildren(diffContext: DiffContext, removeDOM = true) {
 
 /** Expect no more nodes - Any nodes which are still at cursor, need to be removed. */
 function expectNoMore(diffContext: DiffContext) {
-  assertFalse(diffContext.vParent === diffContext.vCurrent, "Parent and current can't be the same");
+  isDev &&
+    assertFalse(
+      diffContext.vParent === diffContext.vCurrent,
+      "Parent and current can't be the same"
+    );
   if (diffContext.vCurrent !== null) {
     while (diffContext.vCurrent) {
       const toRemove = diffContext.vCurrent;
@@ -773,22 +794,6 @@ function createNewElement(
   currentFile?: string | null
 ): boolean {
   const element = createElementWithNamespace(diffContext, elementName);
-
-  function setAttribute(key: string, value: any, vHost: ElementVNode) {
-    value = serializeAttribute(key, value, diffContext.scopedStyleIdPrefix);
-    if (value != null) {
-      if (vHost.flags & VNodeFlags.NS_svg) {
-        // only svg elements can have namespace attributes
-        const namespace = getAttributeNamespace(key);
-        if (namespace) {
-          element.setAttributeNS(namespace, key, value);
-          return;
-        }
-      }
-      element.setAttribute(key, value);
-    }
-  }
-
   const { constProps } = jsx;
   let needsQDispatchEventPatch = false;
   if (constProps) {
@@ -850,7 +855,7 @@ function createNewElement(
       if (isPromise(value)) {
         const vHost = diffContext.vNewNode as ElementVNode;
         const attributePromise = value.then((resolvedValue) =>
-          setAttribute(key, resolvedValue, vHost)
+          setDirectAttribute(diffContext, element, key, resolvedValue, vHost)
         );
         diffContext.asyncAttributePromises.push(attributePromise);
         continue;
@@ -875,7 +880,7 @@ function createNewElement(
         continue;
       }
 
-      setAttribute(key, value, diffContext.vNewNode as ElementVNode);
+      setDirectAttribute(diffContext, element, key, value, diffContext.vNewNode as ElementVNode);
     }
   }
   const key = jsx.key;
@@ -886,7 +891,8 @@ function createNewElement(
   // append class attribute if styleScopedId exists and there is no class attribute
   if (diffContext.scopedStyleIdPrefix) {
     const classAttributeExists =
-      hasClassAttr(jsx.varProps) || (jsx.constProps && hasClassAttr(jsx.constProps));
+      _hasOwnProperty.call(jsx.varProps, 'class') ||
+      (jsx.constProps && _hasOwnProperty.call(jsx.constProps, 'class'));
     if (!classAttributeExists) {
       element.setAttribute('class', diffContext.scopedStyleIdPrefix);
     }
@@ -902,42 +908,69 @@ function createNewElement(
   return needsQDispatchEventPatch;
 }
 
+function setDirectAttribute(
+  diffContext: DiffContext,
+  element: Element,
+  key: string,
+  value: any,
+  vHost: ElementVNode
+) {
+  value = serializeAttribute(key, value, diffContext.scopedStyleIdPrefix);
+  if (value != null) {
+    if (vHost.flags & VNodeFlags.NS_svg) {
+      // only svg elements can have namespace attributes
+      const namespace = getAttributeNamespace(key);
+      if (namespace) {
+        element.setAttributeNS(namespace, key, value);
+        return;
+      }
+    }
+    fastSetAttribute(element, key, value);
+  }
+}
+
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
   const domParentVNode = vnode_getDomParentVNode(diffContext.vParent, true);
-  const { elementNamespace, elementNamespaceFlag } = getNewElementNamespaceData(
-    domParentVNode,
-    elementName
-  );
+  const namespaceData = getNewElementNamespaceData(domParentVNode, elementName);
 
-  const element = diffContext.container.document.createElementNS(elementNamespace, elementName);
+  const currentDocument = import.meta.env.TEST ? diffContext.container.document : document;
+
+  const element =
+    namespaceData.elementNamespaceFlag === VNodeFlags.NS_html
+      ? currentDocument.createElement(elementName)
+      : currentDocument.createElementNS(namespaceData.elementNamespace, elementName);
   diffContext.vNewNode = vnode_newElement(element, elementName);
-  diffContext.vNewNode.flags |= elementNamespaceFlag;
+  diffContext.vNewNode.flags |= namespaceData.elementNamespaceFlag;
   return element;
 }
 
 function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementName: string) {
-  const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
-  const isSameElementName =
-    isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
-  const jsxKey: string | null = jsx.key;
   let needsQDispatchEventPatch = false;
-  const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
-  if (!isSameElementName || jsxKey !== currentKey) {
-    const sideBufferKey = getSideBufferKey(elementName, jsxKey);
-    if (
-      moveOrCreateKeyedNode(
-        diffContext,
-        elementName,
-        jsxKey,
-        sideBufferKey,
-        diffContext.vParent as ElementVNode
-      )
-    ) {
-      needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
-    }
+  if (diffContext.isCreationMode) {
+    needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
   } else {
-    // delete the key from the side buffer if it is the same element
-    deleteFromSideBuffer(diffContext, elementName, jsxKey);
+    const isElementVNode = diffContext.vCurrent && vnode_isElementVNode(diffContext.vCurrent);
+    const isSameElementName =
+      isElementVNode && elementName === vnode_getElementName(diffContext.vCurrent as ElementVNode);
+    const jsxKey: string | null = jsx.key;
+    const currentKey = isElementVNode && (diffContext.vCurrent as ElementVNode).key;
+    if (!isSameElementName || jsxKey !== currentKey) {
+      const sideBufferKey = getSideBufferKey(elementName, jsxKey);
+      if (
+        moveOrCreateKeyedNode(
+          diffContext,
+          elementName,
+          jsxKey,
+          sideBufferKey,
+          diffContext.vParent as ElementVNode
+        )
+      ) {
+        needsQDispatchEventPatch = createNewElement(diffContext, jsx, elementName, null);
+      }
+    } else {
+      // delete the key from the side buffer if it is the same element
+      deleteFromSideBuffer(diffContext, elementName, jsxKey);
+    }
   }
 
   // reconcile attributes
@@ -984,13 +1017,16 @@ function diffProps(
   newAttrs: Record<string, any>,
   currentFile: string | null
 ): boolean {
-  vnode_ensureElementInflated(vnode);
+  if (!diffContext.isCreationMode) {
+    // inflate only resumed vnodes
+    vnode_ensureElementInflated(vnode);
+  }
   const oldAttrs = vnode.props;
   let patchEventDispatch = false;
 
   // Actual diffing logic
   // Apply all new attributes
-  for (const key of Object.keys(newAttrs)) {
+  for (const key in newAttrs) {
     const newValue = newAttrs[key];
     const isEvent = isHtmlAttributeAnEventName(key);
 
@@ -1023,7 +1059,7 @@ function diffProps(
 
   if (oldAttrs) {
     // Remove attributes that no longer exist in new props
-    for (const key of Object.keys(oldAttrs)) {
+    for (const key in oldAttrs) {
       if (
         !_hasOwnProperty.call(newAttrs, key) &&
         !key.startsWith(HANDLER_PREFIX) &&
@@ -1048,7 +1084,7 @@ const patchProperty = (
     // set only property for iteration item, not an attribute
     key === ITERATION_ITEM_SINGLE ||
     key === ITERATION_ITEM_MULTI ||
-    key.startsWith(':')
+    key.charAt(0) === HANDLER_PREFIX
   ) {
     // TODO: there is a potential deoptimization here, because we are setting different keys on props.
     // Eager bailout - Insufficient type feedback for generic keyed access
@@ -1073,7 +1109,7 @@ const patchProperty = (
   const currentEffect = vnode[_EFFECT_BACK_REF]?.get(key);
   if (isSignal(value)) {
     const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
-    if (currentEffect?.[EffectSubscriptionProp.BACK_REF]?.has(unwrappedSignal)) {
+    if (currentEffect?.backRef?.has(unwrappedSignal)) {
       return;
     }
     if (currentEffect) {
@@ -1131,10 +1167,15 @@ const recordJsxEvent = (
 ) => {
   const data = getEventDataFromHtmlAttribute(key);
   if (data) {
+    const props = vnode.props;
     const [scope, eventName] = data;
     const scopedEvent = getScopedEventName(scope, eventName);
     const loaderScopedEvent = getLoaderScopedEventName(scope, scopedEvent);
-    patchProperty(diffContext, vnode, ':' + scopedEvent, value, currentFile);
+    const scopedEventKey = ':' + scopedEvent;
+    if (props && _hasOwnProperty.call(props, scopedEventKey)) {
+      return false;
+    }
+    patchProperty(diffContext, vnode, scopedEventKey, value, currentFile);
     registerQwikLoaderEvent(diffContext, loaderScopedEvent);
     return true;
   }
@@ -1157,6 +1198,18 @@ function retrieveChildWithKey(
 ): ElementVNode | VirtualVNode | null {
   let vNodeWithKey: ElementVNode | VirtualVNode | null = null;
   if (diffContext.vSiblings === null) {
+    // check if the current node is the one we are looking for
+    const vCurrent = diffContext.vCurrent;
+    if (vCurrent) {
+      const name = vnode_isElementVNode(vCurrent) ? vnode_getElementName(vCurrent) : null;
+      const vKey =
+        getKey(vCurrent as VirtualVNode | ElementVNode | TextVNode | null) ||
+        getComponentHash(vCurrent, diffContext.container.$getObjectById$);
+      if (vKey === key && name === nodeName) {
+        return vCurrent as ElementVNode | VirtualVNode;
+      }
+    }
+
     // it is not materialized; so materialize it.
     diffContext.vSiblings = new Map<string, VNode>();
     diffContext.vSiblingsArray = [];
@@ -1189,8 +1242,9 @@ function retrieveChildWithKey(
       }
     } else {
       const siblingsKey = getSideBufferKey(nodeName, key);
-      if (diffContext.vSiblings.has(siblingsKey)) {
-        vNodeWithKey = diffContext.vSiblings.get(siblingsKey) as ElementVNode | VirtualVNode;
+      const sibling = diffContext.vSiblings.get(siblingsKey);
+      if (sibling) {
+        vNodeWithKey = sibling as ElementVNode | VirtualVNode;
         diffContext.vSiblings.delete(siblingsKey);
       }
     }
@@ -1339,7 +1393,7 @@ function expectVirtual(diffContext: DiffContext, type: VirtualType, jsxKey: stri
   }
 
   // For fragments without a key, always create a new virtual node (ensures rerender semantics)
-  if (jsxKey === null) {
+  if (jsxKey === null || diffContext.isCreationMode) {
     vnode_insertBefore(
       diffContext.journal,
       diffContext.vParent as VirtualVNode,
@@ -1553,7 +1607,7 @@ function expectText(diffContext: DiffContext, text: string) {
     diffContext.journal,
     diffContext.vParent as VirtualVNode,
     (diffContext.vNewNode = vnode_newText(
-      diffContext.container.document.createTextNode(text),
+      (import.meta.env.TEST ? diffContext.container.document : document).createTextNode(text),
       text
     )),
     diffContext.vCurrent

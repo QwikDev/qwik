@@ -12,7 +12,7 @@ import { SignalImpl } from '../../reactive-primitives/impl/signal-impl';
 import { getOrCreateStore } from '../../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../../reactive-primitives/impl/wrapped-signal-impl';
 import { SubscriptionData, type NodePropData } from '../../reactive-primitives/subscription-data';
-import { StoreFlags } from '../../reactive-primitives/types';
+import { EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
 import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { componentQrl } from '../component.public';
@@ -184,6 +184,8 @@ export const allocate = (container: DeserializeContainer, typeId: number, value:
       }
     case TypeIds.SubscriptionData:
       return new SubscriptionData({} as NodePropData);
+    case TypeIds.EffectSubscription:
+      return new EffectSubscription(null!, null!, null, null);
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

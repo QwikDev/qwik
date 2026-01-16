@@ -17,11 +17,16 @@ import {
 import { _getQContainerElement, getDomContainer } from '../client/dom-container';
 import { type ClientContainer } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { type EffectSubscription, type EffectSubscriptionProp } from '../reactive-primitives/types';
+import {
+  type Consumer,
+  type EffectProperty,
+  type EffectSubscription,
+} from '../reactive-primitives/types';
 import type { Signal } from '../reactive-primitives/signal.public';
 import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
+import { isDev } from '@qwik.dev/core/build';
 
 declare const document: QwikDocument;
 
@@ -94,8 +99,8 @@ export const useInvokeContext = (): RenderInvokeContext => {
   if (!ctx || ctx.$event$ !== RenderEvent) {
     throw qError(QError.useInvokeContext);
   }
-  assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
-  assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
+  isDev && assertDefined(ctx.$hostElement$, `invoke: $hostElement$ must be defined`, ctx);
+  isDev && assertDefined(ctx.$effectSubscriber$, `invoke: $effectSubscriber$ must be defined`, ctx);
 
   return ctx as RenderInvokeContext;
 };
@@ -224,8 +229,8 @@ const trackInvocation = /*#__PURE__*/ newRenderInvokeContext(undefined, undefine
  */
 export const trackSignal = <T>(
   fn: () => T,
-  subscriber: EffectSubscription[EffectSubscriptionProp.CONSUMER],
-  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
+  subscriber: Consumer,
+  property: EffectProperty | string,
   container: Container,
   data?: SubscriptionData
 ): T => {
@@ -244,7 +249,7 @@ export const trackSignal = <T>(
 export const trackSignalAndAssignHost = (
   value: Signal,
   host: HostElement,
-  property: EffectSubscription[EffectSubscriptionProp.PROPERTY],
+  property: EffectProperty | string,
   container: Container,
   data?: SubscriptionData
 ) => {

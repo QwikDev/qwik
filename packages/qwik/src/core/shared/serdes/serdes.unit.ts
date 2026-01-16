@@ -12,11 +12,7 @@ import {
   isSignal,
 } from '../../reactive-primitives/signal.public';
 import { SubscriptionData } from '../../reactive-primitives/subscription-data';
-import {
-  EffectProperty,
-  StoreFlags,
-  type EffectSubscription,
-} from '../../reactive-primitives/types';
+import { EffectProperty, EffectSubscription, StoreFlags } from '../../reactive-primitives/types';
 import { createResourceReturn } from '../../use/use-resource';
 import { Task } from '../../use/use-task';
 import { QError } from '../error/error';
@@ -443,12 +439,12 @@ describe('shared-serialization', () => {
 
       // undefined signal with effects
       const ctxSignal = createSignal('test');
-      const effectSubscription: EffectSubscription = [
+      const effectSubscription = new EffectSubscription(
         ctxSignal as SignalImpl,
         EffectProperty.COMPONENT,
         null,
-        null,
-      ];
+        null
+      );
       (undefinedSignal as SignalImpl).$effects$ = new Set([effectSubscription]);
 
       const objsUndefinedWithEffects = await serialize({ foo: undefinedSignal });
@@ -458,7 +454,7 @@ describe('shared-serialization', () => {
           {string} "foo"
           Signal [
             Constant undefined
-            Array [
+            EffectSubscription [
               Signal [
                 {string} "test"
               ]
@@ -468,7 +464,7 @@ describe('shared-serialization', () => {
             ]
           ]
         ]
-        (54 chars)"
+        (55 chars)"
       `);
     });
     it(title(TypeIds.WrappedSignal), async () => {

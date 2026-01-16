@@ -129,7 +129,7 @@ export default component$(() => {
           {data.value.map((row) => {
             return (
               <tr
-                key={untrack(() => row.value.id)}
+                key={untrack(() => row.value.id + "")}
                 class={row.value.selected.value ? "danger" : ""}
               >
                 <td class="col-md-1">{row.value.id}</td>
@@ -156,7 +156,10 @@ export default component$(() => {
                       );
                     }}
                   >
-                    <span aria-hidden="true">x</span>
+                    <span
+                      class="glyphicon glyphicon-remove"
+                      aria-hidden="true"
+                    ></span>
                   </a>
                 </td>
                 <td class="col-md-6" />

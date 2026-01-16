@@ -1,3 +1,4 @@
+import { isServer } from '@qwik.dev/core/build';
 import type { VNodeJournal } from '../../client/vnode-utils';
 import type { ISsrNode, SSRContainer } from '../../ssr/ssr-types';
 import { addCursor, findCursor, isCursor } from '../cursor/cursor';
@@ -91,7 +92,7 @@ function findAndPropagateToBlockingCursor(vNode: VNode): boolean {
 }
 
 function isSsrNodeGuard(_vNode: VNode | ISsrNode): _vNode is ISsrNode {
-  return isServerPlatform();
+  return import.meta.env.TEST ? isServerPlatform() : isServer;
 }
 /**
  * Marks a vNode as dirty and propagates dirty bits up the tree.

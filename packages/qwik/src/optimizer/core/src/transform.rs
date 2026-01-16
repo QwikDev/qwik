@@ -86,6 +86,14 @@ pub enum IdentType {
 
 pub type IdPlusType = (Id, IdentType);
 
+/// Context for adding props to appropriate lists
+#[derive(Clone, Copy)]
+struct PropAddContext {
+	is_const: bool,
+	is_fn: bool,
+	spread_props_count: usize,
+}
+
 #[allow(clippy::module_name_repetitions)]
 pub struct QwikTransform<'a> {
 	pub segments: Vec<Segment>,
@@ -1681,50 +1689,21 @@ impl<'a> QwikTransform<'a> {
 											static_listeners = false;
 										}
 
-										// Check if this is an on:input handler that needs to be merged
-										// with an existing bind:value/bind:checked handler
-										if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
-											let handler_expr =
-												Box::new(ast::Expr::Call(converted_expr));
-											let target_props = if is_fn || spread_props_count > 0 {
-												if is_const {
-													maybe_const_props
-												} else {
-													&mut var_props
-												}
-											} else if !is_const || spread_props_count > 0 {
-												&mut var_props
-											} else {
-												&mut const_props
-											};
-											self.merge_or_add_event_handler(
-												target_props,
-												ON_INPUT.clone(),
-												handler_expr,
-											);
-										} else {
-											let qrl_expr =
-												self.hoist_qrl_if_needed(converted_expr, is_fn);
-
-											let converted_prop = ast::PropOrSpread::Prop(Box::new(
-												ast::Prop::KeyValue(ast::KeyValueProp {
-													value: Box::new(qrl_expr),
-													key: final_key.clone(),
-												}),
-											));
-											if is_fn || spread_props_count > 0 {
-												if is_const {
-													maybe_const_props
-														.push(converted_prop.fold_with(self));
-												} else {
-													var_props.push(converted_prop.fold_with(self));
-												}
-											} else if !is_const || spread_props_count > 0 {
-												var_props.push(converted_prop.fold_with(self));
-											} else {
-												const_props.push(converted_prop.fold_with(self));
-											}
-										}
+										let handler_expr = Box::new(
+											self.hoist_qrl_if_needed(converted_expr, is_fn),
+										);
+										self.add_prop_to_appropriate_list(
+											handler_expr,
+											final_key.clone(),
+											&transformed_event_key,
+											PropAddContext {
+												is_const,
+												is_fn,
+												spread_props_count,
+											},
+											&mut var_props,
+											&mut const_props,
+										);
 
 										// Add q:p (single) or q:ps (multiple) prop if this handler uses iteration variables
 										// Only add it once per element, even if multiple handlers use the same iteration variables
@@ -1785,78 +1764,29 @@ impl<'a> QwikTransform<'a> {
 											static_listeners = false;
 										}
 
-										// Check if this is an on:input handler that needs to be merged
-										if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
-											let target_props = if is_fn || spread_props_count > 0 {
-												if const_prop {
-													maybe_const_props
-												} else {
-													&mut var_props
-												}
-											} else if !const_prop || spread_props_count > 0 {
-												&mut var_props
-											} else {
-												&mut const_props
-											};
-											self.merge_or_add_event_handler(
-												target_props,
-												ON_INPUT.clone(),
-												node.value.clone(),
-											);
-										} else {
-											// Create a new prop with the transformed key if needed
-											let prop_to_add = if let Some(ref transformed_key) =
-												transformed_event_key
-											{
-												ast::PropOrSpread::Prop(Box::new(
-													ast::Prop::KeyValue(ast::KeyValueProp {
-														key: ast::PropName::Str(ast::Str {
-															span: node.key.span(),
-															value: transformed_key.clone(),
-															raw: None,
-														}),
-														value: node.value.clone(),
-													}),
-												))
-											} else {
-												prop.clone()
-											};
-
-											if is_fn || spread_props_count > 0 {
-												if const_prop {
-													maybe_const_props
-														.push(prop_to_add.fold_with(self));
-												} else {
-													var_props.push(prop_to_add.fold_with(self));
-												}
-											} else if !const_prop || spread_props_count > 0 {
-												var_props.push(prop_to_add.fold_with(self));
-											} else {
-												const_props.push(prop_to_add.fold_with(self));
-											}
-										}
+										self.add_prop_to_appropriate_list(
+											node.value.clone(),
+											final_key.clone(),
+											&transformed_event_key,
+											PropAddContext {
+												is_const: const_prop,
+												is_fn,
+												spread_props_count,
+											},
+											&mut var_props,
+											&mut const_props,
+										);
 									}
 								} else if is_const_expr(
 									&node.value,
 									&self.options.global_collect,
 									Some(&const_idents),
 								) {
-									// Create a new prop with the transformed key if needed
-									let prop_to_add =
-										if let Some(ref transformed_key) = transformed_event_key {
-											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-												ast::KeyValueProp {
-													key: ast::PropName::Str(ast::Str {
-														span: node.key.span(),
-														value: transformed_key.clone(),
-														raw: None,
-													}),
-													value: node.value.clone(),
-												},
-											)))
-										} else {
-											prop.clone()
-										};
+									let prop_to_add = self.create_prop_with_transformed_key(
+										node,
+										&prop,
+										&transformed_event_key,
+									);
 									maybe_const_props.push(prop_to_add.fold_with(self));
 								} else if let Some((getter, is_const)) =
 									self.convert_to_getter(&node.value)
@@ -1873,22 +1803,11 @@ impl<'a> QwikTransform<'a> {
 										var_props.push(entry);
 									}
 								} else {
-									// Create a new prop with the transformed key if needed
-									let prop_to_add =
-										if let Some(ref transformed_key) = transformed_event_key {
-											ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(
-												ast::KeyValueProp {
-													key: ast::PropName::Str(ast::Str {
-														span: node.key.span(),
-														value: transformed_key.clone(),
-														raw: None,
-													}),
-													value: node.value.clone(),
-												},
-											)))
-										} else {
-											prop.clone()
-										};
+									let prop_to_add = self.create_prop_with_transformed_key(
+										node,
+										&prop,
+										&transformed_event_key,
+									);
 									var_props.push(prop_to_add.fold_with(self));
 								}
 							} else {
@@ -2474,6 +2393,107 @@ impl<'a> QwikTransform<'a> {
 			}))),
 		}
 	}
+
+	/// Creates a prop with a potentially transformed key, or returns the original prop
+	fn create_prop_with_transformed_key(
+		&self,
+		node: &ast::KeyValueProp,
+		prop: &ast::PropOrSpread,
+		transformed_event_key: &Option<Atom>,
+	) -> ast::PropOrSpread {
+		if let Some(ref transformed_key) = transformed_event_key {
+			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+				key: ast::PropName::Str(ast::Str {
+					span: node.key.span(),
+					value: transformed_key.clone(),
+					raw: None,
+				}),
+				value: node.value.clone(),
+			})))
+		} else {
+			prop.clone()
+		}
+	}
+
+	/// Helper to inject hoisted QRLs into a block statement
+	/// Returns true if QRLs were injected
+	fn inject_hoisted_qrls_into_block(&mut self, stmts: &mut Vec<ast::Stmt>) -> bool {
+		if let Some(current_qrls) = self.hoisted_qrls.pop() {
+			if !current_qrls.is_empty() {
+				// Create const declarations for hoisted QRLs
+				let mut qrl_stmts = Vec::new();
+				for (_, declarator) in current_qrls {
+					qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+						span: DUMMY_SP,
+						kind: ast::VarDeclKind::Const,
+						declare: false,
+						ctxt: SyntaxContext::empty(),
+						decls: vec![declarator],
+					}))));
+				}
+
+				// Find the position to insert - after the last variable declaration
+				let insert_pos = stmts
+					.iter()
+					.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
+					.map(|pos| pos + 1)
+					.unwrap_or(0);
+
+				// Insert hoisted QRLs after variable declarations
+				stmts.splice(insert_pos..insert_pos, qrl_stmts);
+				return true;
+			}
+		}
+		false
+	}
+
+	/// Helper to add a prop to the appropriate props list based on const-ness and spread props
+	/// Handles the special case of merging on:input handlers
+	fn add_prop_to_appropriate_list(
+		&mut self,
+		expr: Box<ast::Expr>,
+		final_key: ast::PropName,
+		transformed_event_key: &Option<Atom>,
+		context: PropAddContext,
+		var_props: &mut Vec<ast::PropOrSpread>,
+		const_props: &mut Vec<ast::PropOrSpread>,
+	) {
+		let is_const = context.is_const;
+		let is_fn = context.is_fn;
+		let spread_props_count = context.spread_props_count;
+		// Check if this is an on:input handler that needs to be merged
+		if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+			let target_props = if is_fn || spread_props_count > 0 {
+				if is_const && spread_props_count == 0 {
+					const_props
+				} else {
+					var_props
+				}
+			} else if !is_const || spread_props_count > 0 {
+				var_props
+			} else {
+				const_props
+			};
+			self.merge_or_add_event_handler(target_props, ON_INPUT.clone(), expr);
+		} else {
+			let converted_prop =
+				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+					value: expr,
+					key: final_key,
+				})));
+			if is_fn || spread_props_count > 0 {
+				if is_const && spread_props_count == 0 {
+					const_props.push(converted_prop.fold_with(self));
+				} else {
+					var_props.push(converted_prop.fold_with(self));
+				}
+			} else if !is_const || spread_props_count > 0 {
+				var_props.push(converted_prop.fold_with(self));
+			} else {
+				const_props.push(converted_prop.fold_with(self));
+			}
+		}
+	}
 }
 
 impl<'a> Fold for QwikTransform<'a> {
@@ -2610,33 +2630,8 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		// Inject hoisted QRLs if this function created a hoisting scope
 		if creates_hoisting_scope {
-			if let Some(current_qrls) = self.hoisted_qrls.pop() {
-				if !current_qrls.is_empty() {
-					// Create const declarations for hoisted QRLs
-					let mut qrl_stmts = Vec::new();
-					for (_, declarator) in current_qrls {
-						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-							span: DUMMY_SP,
-							kind: ast::VarDeclKind::Const,
-							declare: false,
-							ctxt: SyntaxContext::empty(),
-							decls: vec![declarator],
-						}))));
-					}
-
-					if let Some(body) = &mut o.body {
-						// Find the position to insert - after the last variable declaration
-						let insert_pos = body
-							.stmts
-							.iter()
-							.rposition(|stmt| matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_))))
-							.map(|pos| pos + 1)
-							.unwrap_or(0);
-
-						// Insert hoisted QRLs after variable declarations
-						body.stmts.splice(insert_pos..insert_pos, qrl_stmts);
-					}
-				}
+			if let Some(body) = &mut o.body {
+				self.inject_hoisted_qrls_into_block(&mut body.stmts);
 			}
 		}
 
@@ -2681,44 +2676,36 @@ impl<'a> Fold for QwikTransform<'a> {
 
 		// Inject hoisted QRLs if this arrow function created a hoisting scope
 		if creates_hoisting_scope {
-			if let Some(current_qrls) = self.hoisted_qrls.pop() {
-				if !current_qrls.is_empty() {
-					// Create const declarations for hoisted QRLs
-					let mut qrl_stmts = Vec::new();
-					for (_, declarator) in current_qrls {
-						qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
-							span: DUMMY_SP,
-							kind: ast::VarDeclKind::Const,
-							declare: false,
-							ctxt: SyntaxContext::empty(),
-							decls: vec![declarator],
-						}))));
-					}
+			match &mut *o.body {
+				ast::BlockStmtOrExpr::BlockStmt(block) => {
+					self.inject_hoisted_qrls_into_block(&mut block.stmts);
+				}
+				ast::BlockStmtOrExpr::Expr(expr) => {
+					// For expression bodies, we need to check if there are QRLs to hoist
+					// If so, convert to block statement
+					if let Some(current_qrls) = self.hoisted_qrls.pop() {
+						if !current_qrls.is_empty() {
+							// Create const declarations for hoisted QRLs
+							let mut qrl_stmts = Vec::new();
+							for (_, declarator) in current_qrls {
+								qrl_stmts.push(ast::Stmt::Decl(ast::Decl::Var(Box::new(
+									ast::VarDecl {
+										span: DUMMY_SP,
+										kind: ast::VarDeclKind::Const,
+										declare: false,
+										ctxt: SyntaxContext::empty(),
+										decls: vec![declarator],
+									},
+								))));
+							}
 
-					match &mut *o.body {
-						ast::BlockStmtOrExpr::BlockStmt(block) => {
-							// Find the position to insert - after the last variable declaration
-							let insert_pos = block
-								.stmts
-								.iter()
-								.rposition(|stmt| {
-									matches!(stmt, ast::Stmt::Decl(ast::Decl::Var(_)))
-								})
-								.map(|pos| pos + 1)
-								.unwrap_or(0);
-
-							// Insert hoisted QRLs after variable declarations
-							block.stmts.splice(insert_pos..insert_pos, qrl_stmts);
-						}
-						ast::BlockStmtOrExpr::Expr(expr) => {
-							// Convert expression body to block statement with hoisted QRLs
-							let return_stmt = ast::Stmt::Return(ast::ReturnStmt {
+							// Add return statement with the original expression
+							qrl_stmts.push(ast::Stmt::Return(ast::ReturnStmt {
 								span: DUMMY_SP,
 								arg: Some(expr.clone()),
-							});
+							}));
 
-							qrl_stmts.push(return_stmt);
-
+							// Convert expression body to block statement
 							o.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
 								span: DUMMY_SP,
 								ctxt: SyntaxContext::empty(),

@@ -1,4 +1,3 @@
-import { isDomContainer } from '../client/dom-container';
 import { qwikDebugToString } from '../debug';
 import { assertDefined } from '../shared/error/assert';
 import { isServerPlatform } from '../shared/platform/platform';
@@ -17,7 +16,6 @@ import { SubscriptionData, type NodeProp } from './subscription-data';
 import {
   SerializationSignalFlags,
   EffectProperty,
-  EffectSubscriptionProp,
   SignalFlags,
   type CustomSerializable,
   type EffectSubscription,
@@ -28,6 +26,7 @@ import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { setNodeDiffPayload, setNodePropData } from '../shared/cursor/chore-execution';
 import type { VNode } from '../shared/vnode/vnode';
 import { NODE_PROPS_DATA_KEY } from '../shared/cursor/cursor-props';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -55,23 +54,21 @@ export const ensureContainsSubscription = (
   array: Set<EffectSubscription>,
   effectSubscription: EffectSubscription
 ) => {
-  !array.has(effectSubscription) && array.add(effectSubscription);
+  array.add(effectSubscription);
 };
 
 /** Ensure the item is in back refs set */
 export const ensureContainsBackRef = (array: EffectSubscription, value: any) => {
-  array[EffectSubscriptionProp.BACK_REF] ||= new Set();
-  !array[EffectSubscriptionProp.BACK_REF].has(value) &&
-    array[EffectSubscriptionProp.BACK_REF].add(value);
+  (array.backRef ||= new Set()).add(value);
 };
 
 export const addQrlToSerializationCtx = (
   effectSubscriber: EffectSubscription,
   container: Container | null
 ) => {
-  if (!!container && !isDomContainer(container)) {
-    const effect = effectSubscriber[EffectSubscriptionProp.CONSUMER];
-    const property = effectSubscriber[EffectSubscriptionProp.PROPERTY];
+  if (container) {
+    const effect = effectSubscriber.consumer;
+    const property = effectSubscriber.property;
     let qrl: QRL | null = null;
     if (isTask(effect)) {
       qrl = effect.$qrl$;
@@ -91,17 +88,17 @@ export const scheduleEffects = (
   signal: SignalImpl | StoreTarget,
   effects: Set<EffectSubscription> | undefined
 ) => {
-  const isBrowser = !isServerPlatform();
+  const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
   if (effects) {
     let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
-      const consumer = effectSubscription[EffectSubscriptionProp.CONSUMER];
-      const property = effectSubscription[EffectSubscriptionProp.PROPERTY];
-      assertDefined(container, 'Container must be defined.');
+      const consumer = effectSubscription.consumer;
+      const property = effectSubscription.property;
+      isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
         if (isBrowser) {
-          markVNodeDirty(container, consumer.$el$, ChoreBits.TASKS);
+          markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
         } else {
           // for server we run tasks sync, so they can change currently running effects
           // in this case we could have infinite loop if we trigger tasks here
@@ -111,14 +108,14 @@ export const scheduleEffects = (
       } else if (consumer instanceof SignalImpl) {
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
-        markVNodeDirty(container, consumer, ChoreBits.COMPONENT);
+        markVNodeDirty(container!, consumer, ChoreBits.COMPONENT);
       } else if (property === EffectProperty.VNODE) {
         if (isBrowser) {
           setNodeDiffPayload(consumer as VNode, signal as Signal);
-          markVNodeDirty(container, consumer, ChoreBits.NODE_DIFF);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_DIFF);
         }
       } else {
-        const effectData = effectSubscription[EffectSubscriptionProp.DATA];
+        const effectData = effectSubscription.data;
         if (effectData instanceof SubscriptionData) {
           const data = effectData.data;
           const payload: NodeProp = {
@@ -137,7 +134,7 @@ export const scheduleEffects = (
             }
             data.set(property, payload);
           }
-          markVNodeDirty(container, consumer, ChoreBits.NODE_PROPS);
+          markVNodeDirty(container!, consumer, ChoreBits.NODE_PROPS);
         }
       }
     };

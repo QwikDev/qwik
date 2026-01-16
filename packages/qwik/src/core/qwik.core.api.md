@@ -269,17 +269,11 @@ export const _dumpState: (state: unknown[], color?: boolean, prefix?: string, li
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
-export class _ElementVNode extends _VNode {
+export class _ElementVNode extends _VirtualVNode {
     // Warning: (ae-forgotten-export) The symbol "Props" needs to be exported by the entry point index.d.ts
-    constructor(key: string | null, flags: _VNodeFlags, parent: _VNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, node: Element, elementName: string | undefined);
+    constructor(key: string | null, flags: _VNodeFlags, parent: _ElementVNode | _VirtualVNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null, firstChild: _VNode | null | undefined, lastChild: _VNode | null | undefined, node: Element, elementName: string | undefined);
     // (undocumented)
     elementName: string | undefined;
-    // (undocumented)
-    firstChild: _VNode | null | undefined;
-    // (undocumented)
-    key: string | null;
-    // (undocumented)
-    lastChild: _VNode | null | undefined;
     // (undocumented)
     node: Element;
 }
@@ -1853,7 +1847,9 @@ export type VisibleTaskStrategy = 'intersection-observer' | 'document-ready' | '
 // Warning: (ae-forgotten-export) The symbol "BackRef" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export abstract class _VNode extends BackRef {
+export abstract class _VNode implements BackRef {
+    // (undocumented)
+    [_EFFECT_BACK_REF]: Map<any, any> | undefined;
     constructor(flags: _VNodeFlags, parent: _VNode | null, previousSibling: _VNode | null | undefined, nextSibling: _VNode | null | undefined, props: Props | null);
     // Warning: (ae-forgotten-export) The symbol "ChoreBits" needs to be exported by the entry point index.d.ts
     //

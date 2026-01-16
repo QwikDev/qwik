@@ -5,6 +5,7 @@ import { isNode, isElement } from '../utils/element';
 import { wrapDeserializerProxy } from './deser-proxy';
 import { deserializeData } from './inflate';
 import { preprocessState } from './preprocess-state';
+import { isDev } from '@qwik.dev/core/build';
 
 /**
  * Serialize data to string using SerializationContext.
@@ -63,7 +64,7 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
   if (typeof id === 'string') {
     id = parseInt(id, 10);
   }
-  assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
+  isDev && assertTrue(id < stateData.length, `Invalid reference ${id} >= ${stateData.length}`);
   return stateData[id];
 }
 

@@ -94,7 +94,7 @@ export function trigger(root: Element, queryOrElement: string | Element | keyof 
 
 // @public (undocumented)
 export function vnode_fromJSX(jsx: JSXOutput): {
-    vParent: _ElementVNode | _VirtualVNode;
+    vParent: _VirtualVNode | _ElementVNode;
     vNode: _VNode | null;
     document: _QDocument;
     container: ClientContainer_2;

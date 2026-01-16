@@ -18,6 +18,8 @@ import {
   type StoreTarget,
 } from '../types';
 import type { PropsProxy, PropsProxyHandler } from '../../shared/jsx/props-proxy';
+import { isDomContainer } from '../../client/dom-container';
+import { isDev, isServer } from '@qwik.dev/core/build';
 
 const DEBUG = false;
 
@@ -133,10 +135,11 @@ export class StoreHandler implements ProxyHandler<StoreTarget> {
         // Grab the container now we have access to it
         this.$container$ = ctx.$container$;
       } else {
-        assertTrue(
-          !ctx.$container$ || ctx.$container$ === this.$container$,
-          'Do not use signals across containers'
-        );
+        isDev &&
+          assertTrue(
+            !ctx.$container$ || ctx.$container$ === this.$container$,
+            'Do not use signals across containers'
+          );
       }
       const effectSubscriber = ctx.$effectSubscriber$;
       if (effectSubscriber) {
@@ -268,7 +271,8 @@ export function addStoreEffect(
   // to this signal.
   ensureContainsBackRef(effectSubscription, target);
   // TODO is this needed with the preloader?
-  addQrlToSerializationCtx(effectSubscription, store.$container$);
+  (import.meta.env.TEST ? !isDomContainer(store.$container$) : isServer) &&
+    addQrlToSerializationCtx(effectSubscription, store.$container$);
 
   DEBUG && log('sub', pad('\n' + store.$effects$?.entries.toString(), '  '));
 }

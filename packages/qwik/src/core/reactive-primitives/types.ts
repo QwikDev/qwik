@@ -112,18 +112,13 @@ export type Consumer = Task | VNode | SignalImpl | ISsrNode;
  * - `EffectProperty.COMPONENT` if component
  * - `EffectProperty.VNODE` if VNode
  */
-export type EffectSubscription = [
-  Consumer, // EffectSubscriptionProp.CONSUMER
-  EffectProperty | string, // EffectSubscriptionProp.PROPERTY or string for attributes
-  Set<SignalImpl | StoreTarget> | null, // EffectSubscriptionProp.BACK_REF
-  SubscriptionData | null, // EffectSubscriptionProp.DATA
-];
-
-export const enum EffectSubscriptionProp {
-  CONSUMER = 0,
-  PROPERTY = 1,
-  BACK_REF = 2,
-  DATA = 3,
+export class EffectSubscription {
+  constructor(
+    public consumer: Consumer,
+    public property: EffectProperty | string,
+    public backRef: Set<SignalImpl | StoreTarget> | null = null,
+    public data: SubscriptionData | null = null
+  ) {}
 }
 
 export const enum EffectProperty {

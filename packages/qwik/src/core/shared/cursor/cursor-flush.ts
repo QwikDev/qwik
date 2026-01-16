@@ -4,7 +4,13 @@ import { QContainerValue, type Container } from '../types';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
-import { VNodeOperationType } from '../vnode/enums/vnode-operation-type.enum';
+import {
+  DeleteOperation,
+  InsertOrMoveOperation,
+  RemoveAllChildrenOperation,
+  SetAttributeOperation,
+  SetTextOperation,
+} from '../vnode/types/dom-vnode-operation';
 import type { Cursor } from './cursor';
 import { getCursorData, type CursorData } from './cursor-props';
 
@@ -39,57 +45,136 @@ const fastInsertBefore = (
 
 export function _flushJournal(journal: VNodeJournal): void {
   // console.log(vnode_journalToString(journal));
+  let batchParent: Node | null = null;
+  let batchBefore: Node | null = null;
+  let batchNodes: Node[] | null = null;
+  const batchSet = new Set<Node>();
+
+  const flush = () => {
+    if (batchNodes) {
+      if (batchNodes.length === 1) {
+        fastInsertBefore(batchParent!, batchNodes[0], batchBefore);
+      } else {
+        const doc = batchParent!.ownerDocument || (batchParent as Document);
+        const fragment = doc.createDocumentFragment();
+        for (const node of batchNodes) {
+          fragment.appendChild(node);
+        }
+        fastInsertBefore(batchParent!, fragment, batchBefore);
+      }
+      batchNodes = null;
+      batchParent = null;
+      batchBefore = null;
+      batchSet.clear();
+    }
+  };
+
   for (const operation of journal) {
-    switch (operation.operationType) {
-      case VNodeOperationType.InsertOrMove: {
-        const insertBefore = operation.beforeTarget;
-        const insertBeforeParent = operation.parent;
-        fastInsertBefore(insertBeforeParent, operation.target, insertBefore);
-        break;
-      }
-      case VNodeOperationType.Delete: {
-        operation.target.remove();
-        break;
-      }
-      case VNodeOperationType.SetText: {
-        operation.target.nodeValue = operation.text;
-        break;
-      }
-      case VNodeOperationType.SetAttribute: {
-        const element = operation.target;
-        const attrName = operation.attrName;
-        const rawValue = operation.attrValue;
-        const attrValue =
-          rawValue != null
-            ? serializeAttribute(attrName, rawValue, operation.scopedStyleIdPrefix)
-            : null;
-        const shouldRemove = attrValue == null || attrValue === false;
-        if (isBooleanAttr(element, attrName)) {
-          (element as any)[attrName] = parseBoolean(attrValue);
-        } else if (attrName === dangerouslySetInnerHTML) {
-          (element as any).innerHTML = attrValue;
-          element.setAttribute(QContainerAttr, QContainerValue.HTML);
-        } else if (shouldRemove) {
-          element.removeAttribute(attrName);
-        } else if (attrName === 'value' && attrName in element) {
-          (element as any).value = attrValue;
-        } else {
-          element.setAttribute(attrName, attrValue as string);
+    if (operation instanceof InsertOrMoveOperation) {
+      if (batchParent === operation.parent && batchBefore === operation.beforeTarget) {
+        if (!batchNodes) {
+          batchNodes = [];
         }
-        break;
+        batchNodes.push(operation.target);
+        batchSet.add(operation.target);
+        continue;
       }
-      case VNodeOperationType.RemoveAllChildren: {
-        const removeParent = operation.target;
-        if (removeParent.replaceChildren) {
-          removeParent.replaceChildren();
-        } else {
-          // fallback if replaceChildren is not supported
-          removeParent.textContent = '';
+
+      if (batchNodes) {
+        // If we have an existing batch, we need to check if the new operation conflicts with it.
+        // 1. If we are inserting into the same parent but with a different "before" reference, we must flush.
+        if (batchParent === operation.parent) {
+          flush();
+          batchParent = operation.parent;
+          batchBefore = operation.beforeTarget;
+          batchNodes = [operation.target];
+          batchSet.add(operation.target);
+          continue;
         }
-        break;
+        // 2. If we are moving a node that is currently in the batch, or moving the node that is the reference for the batch.
+        if (
+          batchSet.has(operation.target) ||
+          (batchBefore && operation.target === batchBefore) ||
+          (batchParent && operation.target === batchParent)
+        ) {
+          flush();
+          batchParent = operation.parent;
+          batchBefore = operation.beforeTarget;
+          batchNodes = [operation.target];
+          batchSet.add(operation.target);
+          continue;
+        }
+        // 3. Otherwise, we can execute this operation immediately without flushing the current batch.
+        // This is important for "interleaved" inserts, e.g. inserting <tr> into <tbody> (batched)
+        // and then inserting <td> into that <tr> (immediate).
+        // The <tr> is in memory, so inserting <td> into it is fine and doesn't require the <tr> to be in the DOM.
+      } else {
+        batchParent = operation.parent;
+        batchBefore = operation.beforeTarget;
+        batchNodes = [operation.target];
+        batchSet.add(operation.target);
+        continue;
+      }
+
+      fastInsertBefore(operation.parent, operation.target, operation.beforeTarget);
+      continue;
+    }
+
+    if (operation instanceof DeleteOperation) {
+      if (
+        batchSet.has(operation.target) ||
+        (batchBefore && operation.target === batchBefore) ||
+        (batchParent && operation.target === batchParent)
+      ) {
+        flush();
+      }
+      operation.target.remove();
+      continue;
+    }
+
+    if (operation instanceof RemoveAllChildrenOperation) {
+      if (
+        batchSet.has(operation.target) ||
+        (batchBefore && operation.target === batchBefore) ||
+        (batchParent && operation.target === batchParent)
+      ) {
+        flush();
+      }
+      // Removing children of a node in the batch is safe (clears detached node)
+      const removeParent = operation.target;
+      removeParent.textContent = '';
+      continue;
+    }
+
+    if (operation instanceof SetTextOperation) {
+      operation.target.nodeValue = operation.text;
+    } else if (operation instanceof SetAttributeOperation) {
+      const element = operation.target;
+      const attrName = operation.attrName;
+      const rawValue = operation.attrValue;
+      const attrValue =
+        rawValue != null
+          ? serializeAttribute(attrName, rawValue, operation.scopedStyleIdPrefix)
+          : null;
+      const shouldRemove = attrValue == null || attrValue === false;
+      if (isBooleanAttr(element, attrName)) {
+        (element as any)[attrName] = parseBoolean(attrValue);
+      } else if (attrName === dangerouslySetInnerHTML) {
+        if (batchParent === element) {
+          flush();
+        }
+        (element as any).innerHTML = attrValue;
+        element.setAttribute(QContainerAttr, QContainerValue.HTML);
+      } else if (shouldRemove) {
+        element.removeAttribute(attrName);
+      } else if (attrName === 'value' && attrName in element) {
+        (element as any).value = attrValue;
+      } else {
+        element.setAttribute(attrName, attrValue as string);
       }
     }
   }
+  flush();
 }
 
 function executeAfterFlush(container: Container, cursorData: CursorData): void {

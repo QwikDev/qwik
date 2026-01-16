@@ -76,7 +76,7 @@ export const executeComponent = (
   let isInlineComponent = false;
   if (componentQRL === null) {
     componentQRL = container.getHostProp(renderHost, OnRenderProp)!;
-    assertDefined(componentQRL, 'No Component found at this location');
+    isDev && assertDefined(componentQRL, 'No Component found at this location');
   }
   if (isQrl(componentQRL)) {
     props = props || container.getHostProp(renderHost, ELEMENT_PROPS) || EMPTY_OBJ;

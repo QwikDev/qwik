@@ -10078,10 +10078,17 @@ export interface TrackHTMLAttributes<T extends Element> extends Attrs<'track', T
 
 ## untrack
 
-Don't track listeners for this callback
+Get the value of the expression without tracking listeners. A function will be invoked, signals will return their value, and stores will be unwrapped (they return the backing object).
+
+When you pass a function, you can also pass additional arguments that the function will receive.
+
+Note that stores are not unwrapped recursively.
 
 ```typescript
-untrack: <T>(fn: () => T) => T;
+untrack: <T, A extends any[]>(
+  expr: ((...args: A) => T) | Signal<T> | T,
+  ...args: A
+) => T;
 ```
 
 <table><thead><tr><th>
@@ -10099,13 +10106,28 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-fn
+expr
 
 </td><td>
 
-() =&gt; T
+((...args: A) =&gt; T) \| [Signal](#signal)&lt;T&gt; \| T
 
 </td><td>
+
+The function or object to evaluate without tracking.
+
+</td></tr>
+<tr><td>
+
+args
+
+</td><td>
+
+A
+
+</td><td>
+
+Additional arguments to pass when `expr` is a function.
 
 </td></tr>
 </tbody></table>

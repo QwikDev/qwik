@@ -1677,10 +1677,6 @@ impl<'a> QwikTransform<'a> {
 												None,
 											);
 
-										let handler_expr =
-											Box::new(ast::Expr::Call(converted_expr));
-
-
 										if !is_const {
 											static_listeners = false;
 										}
@@ -1688,6 +1684,8 @@ impl<'a> QwikTransform<'a> {
 										// Check if this is an on:input handler that needs to be merged
 										// with an existing bind:value/bind:checked handler
 										if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+											let handler_expr =
+												Box::new(ast::Expr::Call(converted_expr));
 											let target_props = if is_fn || spread_props_count > 0 {
 												if is_const {
 													maybe_const_props
@@ -1705,15 +1703,15 @@ impl<'a> QwikTransform<'a> {
 												handler_expr,
 											);
 										} else {
-                                            let qrl_expr =
-                                                self.hoist_qrl_if_needed(handler_expr, is_fn);
+											let qrl_expr =
+												self.hoist_qrl_if_needed(converted_expr, is_fn);
 
-                                            let converted_prop = ast::PropOrSpread::Prop(Box::new(
-                                                ast::Prop::KeyValue(ast::KeyValueProp {
-                                                    value: Box::new(qrl_expr),
-                                                    key: final_key.clone(),
-                                                }),
-                                            ));
+											let converted_prop = ast::PropOrSpread::Prop(Box::new(
+												ast::Prop::KeyValue(ast::KeyValueProp {
+													value: Box::new(qrl_expr),
+													key: final_key.clone(),
+												}),
+											));
 											if is_fn || spread_props_count > 0 {
 												if is_const {
 													maybe_const_props

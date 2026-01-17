@@ -1828,27 +1828,45 @@ impl<'a> QwikTransform<'a> {
 										&transformed_event_key,
 									);
 									maybe_const_props.push(prop_to_add.fold_with(self));
-								} else if let Some((getter, is_const)) =
-									self.convert_to_getter(&node.value)
-								{
-									let entry: ast::PropOrSpread = ast::PropOrSpread::Prop(
-										Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-											key: final_key.clone(),
-											value: Box::new(getter),
-										})),
-									);
-									if is_fn || is_const {
-										maybe_const_props.push(entry);
-									} else {
-										var_props.push(entry);
-									}
 								} else {
-									let prop_to_add = self.create_prop_with_transformed_key(
-										node,
-										&prop,
-										&transformed_event_key,
-									);
-									var_props.push(prop_to_add.fold_with(self));
+									// Check if the original expression captures any iteration variables
+									let captures_iteration_var = if self.loop_depth > 0 {
+										if let Some(iter_vars) = self.iteration_var_stack.last() {
+											iter_vars
+												.iter()
+												.any(|var| expr_uses_ident(&node.value, &id!(var)))
+										} else {
+											false
+										}
+									} else {
+										false
+									};
+
+									if let Some((getter, is_const)) =
+										self.convert_to_getter(&node.value)
+									{
+										let entry: ast::PropOrSpread = ast::PropOrSpread::Prop(
+											Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+												key: final_key.clone(),
+												value: Box::new(getter),
+											})),
+										);
+										// If it captures iteration variables, it must go to var_props
+										if captures_iteration_var {
+											var_props.push(entry);
+										} else if is_fn || is_const {
+											maybe_const_props.push(entry);
+										} else {
+											var_props.push(entry);
+										}
+									} else {
+										let prop_to_add = self.create_prop_with_transformed_key(
+											node,
+											&prop,
+											&transformed_event_key,
+										);
+										var_props.push(prop_to_add.fold_with(self));
+									}
 								}
 							} else {
 								var_props.push(prop.fold_with(self));

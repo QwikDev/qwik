@@ -20,7 +20,8 @@ import { seal } from '../util/qdev';
 import { isArray } from '../util/types';
 import { setLocale } from './use-locale';
 import type { Subscriber } from '../state/common';
-import type { Signal } from '../state/signal';
+import { isSignal, type Signal, type SignalInternal } from '../state/signal';
+import { unwrapStore } from '../index';
 
 declare const document: QwikDocument;
 
@@ -142,7 +143,7 @@ export function useBindInvokeContext<FN extends (...args: any) => any>(
 }
 
 /** Call a function with the given InvokeContext and given arguments. */
-export function invoke<FN extends (...args: any) => any>(
+export function invoke<FN extends (...args: any[]) => any>(
   this: unknown,
   context: InvokeContext | undefined,
   fn: FN,
@@ -220,12 +221,28 @@ export const getWrappingContainer = (el: QwikElement): Element | null => {
 };
 
 /**
- * Don't track listeners for this callback
+ * Get the value of the expression without tracking listeners. A function will be invoked, signals
+ * will return their value, and stores will be unwrapped (they return the backing object).
  *
+ * When you pass a function, you can also pass additional arguments that the function will receive.
+ *
+ * Note that stores are not unwrapped recursively.
+ *
+ * @param expr - The function or object to evaluate without tracking.
+ * @param args - Additional arguments to pass when `expr` is a function.
  * @public
  */
-export const untrack = <T>(fn: () => T): T => {
-  return invoke(undefined, fn);
+export const untrack = <T, A extends any[]>(
+  expr: ((...args: A) => T) | Signal<T> | T,
+  ...args: A
+): T => {
+  if (typeof expr === 'function') {
+    return invoke(undefined, expr as (...args: A) => T, ...args);
+  }
+  if (isSignal(expr)) {
+    return (expr as SignalInternal<T>).untrackedValue;
+  }
+  return unwrapStore(expr);
 };
 
 const trackInvocation = /*#__PURE__*/ newInvokeContext(

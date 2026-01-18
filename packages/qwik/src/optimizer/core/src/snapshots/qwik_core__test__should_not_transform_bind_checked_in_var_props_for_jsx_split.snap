@@ -1,0 +1,95 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5236
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal(true);
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:checked={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:checked={input}
+			/>
+		</>
+  );
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
+export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFAiBvB\"}")
+============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
+
+import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
+import { _chk } from "@qwik.dev/core";
+import { _getConstProps } from "@qwik.dev/core";
+import { _getVarProps } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { _jsxSplit } from "@qwik.dev/core";
+import { inlinedQrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+export const FieldInput_component_V4XAtJSTRKg = (props)=>{
+    const input = useSignal(true);
+    return /*#__PURE__*/ _jsxSorted(_Fragment, null, null, [
+        /*#__PURE__*/ _jsxSplit("input", {
+            "bind:checked": input,
+            ..._getVarProps(props)
+        }, _getConstProps(props), null, 0, null),
+        /*#__PURE__*/ _jsxSplit("input", {
+            ..._getVarProps(props)
+        }, {
+            ..._getConstProps(props),
+            "checked": input,
+            "on:input": inlinedQrl(_chk, "_chk", [
+                input
+            ])
+        }, null, 0, null)
+    ], 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAGqC,CAAC;IACrC,MAAM,QAAQ,UAAU;IAEvB,qBACA;sBAEC,UAAC;YAAD,gBACe;4BACV;0BAAA;sBAGL,UAAC;4BACI;;8BAAA;uBACU;;gBAAA;;;;AAIlB\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "FieldInput_component_V4XAtJSTRKg",
+  "entry": null,
+  "displayName": "test.tsx_FieldInput_component",
+  "hash": "V4XAtJSTRKg",
+  "canonicalFilename": "test.tsx_FieldInput_component_V4XAtJSTRKg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    99,
+    329
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

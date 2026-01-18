@@ -40,71 +40,43 @@ describe('_jsxSplit', () => {
     });
   });
 
-  describe('event merging between constProps and varProps', () => {
-    it('should merge handlers when constProps has on:input and varProps has onInput$', () => {
-      const handler1 = (() => {}) as any as QRL;
-      const handler2 = (() => {}) as any as QRL;
+  describe('event handling between constProps and varProps', () => {
+    it('should let constProps overwrite varProps when both have same event', () => {
+      const constHandler = (() => {}) as any as QRL;
+      const varHandler = (() => {}) as any as QRL;
 
-      const node = _jsxSplit('input', { onInput$: handler2 }, { 'on:input': handler1 }, null, 0);
+      const node = _jsxSplit(
+        'input',
+        { onInput$: varHandler },
+        { 'on:input': constHandler },
+        null,
+        0
+      );
 
-      // varProps should not have onInput$ anymore
+      // varProps should be transformed but then removed during deduplication
       expect(node.varProps['onInput$']).toBeUndefined();
+      expect(node.varProps['on:input']).toBeUndefined();
 
-      // constProps should have the merged handler
-      const merged = node.constProps?.['on:input'];
-      expect(merged).toBeDefined();
-
-      // Should be an array with both handlers
-      expect(Array.isArray(merged)).toBe(true);
-      if (Array.isArray(merged)) {
-        expect(merged).toHaveLength(2);
-        expect(merged[0]).toBe(handler1);
-        expect(merged[1]).toBe(handler2);
-      }
+      // constProps keeps its handler (no merging)
+      expect(node.constProps?.['on:input']).toBe(constHandler);
     });
 
-    it('should merge handlers when constProps has onInput$ and varProps has on:input', () => {
-      const handler1 = (() => {}) as any as QRL;
-      const handler2 = (() => {}) as any as QRL;
+    it('should let constProps overwrite varProps after transformation', () => {
+      const constHandler = (() => {}) as any as QRL;
+      const varHandler = (() => {}) as any as QRL;
 
-      const node = _jsxSplit('input', { 'on:input': handler2 }, { onInput$: handler1 }, null, 0);
+      const node = _jsxSplit(
+        'input',
+        { 'on:input': varHandler },
+        { onInput$: constHandler },
+        null,
+        0
+      );
 
-      // constProps should have onInput$ converted to on:input
+      // constProps transformed and constProps wins
       expect(node.constProps?.['onInput$']).toBeUndefined();
-      expect(node.constProps?.['on:input']).toBeDefined();
-
-      const merged = node.constProps?.['on:input'];
-
-      // Should be an array with both handlers
-      expect(Array.isArray(merged)).toBe(true);
-      if (Array.isArray(merged)) {
-        expect(merged).toHaveLength(2);
-        expect(merged[0]).toBe(handler1);
-        expect(merged[1]).toBe(handler2);
-      }
-    });
-
-    it('should merge handlers when both have onInput$ (different sources)', () => {
-      const handler1 = (() => {}) as any as QRL;
-      const handler2 = (() => {}) as any as QRL;
-
-      const node = _jsxSplit('input', { onInput$: handler2 }, { onInput$: handler1 }, null, 0);
-
-      // varProps should not have onInput$ anymore
-      expect(node.varProps['onInput$']).toBeUndefined();
-
-      // constProps should have onInput$ converted to on:input with merged handlers
-      expect(node.constProps?.['onInput$']).toBeUndefined();
-      const merged = node.constProps?.['on:input'];
-      expect(merged).toBeDefined();
-
-      // Should be an array with both handlers
-      expect(Array.isArray(merged)).toBe(true);
-      if (Array.isArray(merged)) {
-        expect(merged).toHaveLength(2);
-        expect(merged[0]).toBe(handler1);
-        expect(merged[1]).toBe(handler2);
-      }
+      expect(node.constProps?.['on:input']).toBe(constHandler);
+      expect(node.varProps['on:input']).toBeUndefined();
     });
 
     it('should handle multiple different events in both props', () => {
@@ -127,46 +99,28 @@ describe('_jsxSplit', () => {
         0
       );
 
-      // Check click handlers merged
-      const clickMerged = node.constProps?.['on:click'];
-      expect(Array.isArray(clickMerged)).toBe(true);
-      if (Array.isArray(clickMerged)) {
-        expect(clickMerged).toHaveLength(2);
-        expect(clickMerged[0]).toBe(clickHandler1);
-        expect(clickMerged[1]).toBe(clickHandler2);
-      }
-
-      // Check input handlers merged
-      const inputMerged = node.constProps?.['on:input'];
-      expect(Array.isArray(inputMerged)).toBe(true);
-      if (Array.isArray(inputMerged)) {
-        expect(inputMerged).toHaveLength(2);
-        expect(inputMerged[0]).toBe(inputHandler1);
-        expect(inputMerged[1]).toBe(inputHandler2);
-      }
+      // constProps wins for both (no merging)
+      expect(node.constProps?.['on:click']).toBe(clickHandler1);
+      expect(node.constProps?.['on:input']).toBe(inputHandler1);
+      expect(node.varProps['on:click']).toBeUndefined();
+      expect(node.varProps['on:input']).toBeUndefined();
     });
 
-    it('should handle array of handlers in constProps', () => {
-      const handler1 = (() => {}) as any as QRL;
-      const handler2 = (() => {}) as any as QRL;
-      const handler3 = (() => {}) as any as QRL;
+    it('should keep events separate when no overlap', () => {
+      const clickHandler = (() => {}) as any as QRL;
+      const inputHandler = (() => {}) as any as QRL;
 
       const node = _jsxSplit(
         'input',
-        { onInput$: handler3 },
-        { 'on:input': [handler1, handler2] as any },
+        { onClick$: clickHandler },
+        { onInput$: inputHandler },
         null,
         0
       );
 
-      const merged = node.constProps?.['on:input'];
-      expect(Array.isArray(merged)).toBe(true);
-      if (Array.isArray(merged)) {
-        expect(merged).toHaveLength(3);
-        expect(merged[0]).toBe(handler1);
-        expect(merged[1]).toBe(handler2);
-        expect(merged[2]).toBe(handler3);
-      }
+      // Both should be kept in their respective locations
+      expect(node.varProps['on:click']).toBe(clickHandler);
+      expect(node.constProps?.['on:input']).toBe(inputHandler);
     });
   });
 
@@ -198,7 +152,7 @@ describe('_jsxSplit', () => {
       }
     });
 
-    it('should merge bind:value handler with existing on:input in constProps', () => {
+    it('should move on:input from constProps to varProps when bind:value is in varProps', () => {
       const handler = (() => {}) as any as QRL;
       const signal = { value: 'test' };
 
@@ -217,13 +171,14 @@ describe('_jsxSplit', () => {
       expect(node.varProps['bind:value']).toBeUndefined();
       expect(node.varProps.value).toBe(signal);
 
-      // When constProps has on:input, bind handler should merge into constProps
-      const merged = node.constProps?.['on:input'];
+      // on:input should be moved from constProps to varProps and merged with bind handler
+      expect(node.constProps?.['on:input']).toBeUndefined();
+      const merged = node.varProps['on:input'];
       expect(merged).toBeDefined();
       expect(Array.isArray(merged)).toBe(true);
       if (Array.isArray(merged)) {
         expect(merged).toHaveLength(2);
-        expect(merged[0]).toBe(handler); // Original handler from constProps
+        expect(merged[0]).toBe(handler); // Original handler from constProps (moved)
         // merged[1] should be the bind handler
       }
     });

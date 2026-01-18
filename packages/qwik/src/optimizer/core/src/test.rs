@@ -5199,6 +5199,70 @@ export const FieldInput = component$(() => {
 	});
 }
 
+#[test]
+fn should_not_transform_bind_value_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal("");
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:value={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:value={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_bind_checked_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal(true);
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:checked={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:checked={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

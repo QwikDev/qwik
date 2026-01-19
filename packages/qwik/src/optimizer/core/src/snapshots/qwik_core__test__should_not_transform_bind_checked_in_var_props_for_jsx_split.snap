@@ -39,12 +39,10 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 ============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
 
 import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";
-import { _chk } from "@qwik.dev/core";
 import { _getConstProps } from "@qwik.dev/core";
 import { _getVarProps } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { _jsxSplit } from "@qwik.dev/core";
-import { inlinedQrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 export const FieldInput_component_V4XAtJSTRKg = (props)=>{
     const input = useSignal(true);
@@ -54,19 +52,14 @@ export const FieldInput_component_V4XAtJSTRKg = (props)=>{
             ..._getVarProps(props)
         }, _getConstProps(props), null, 0, null),
         /*#__PURE__*/ _jsxSplit("input", {
-            ..._getVarProps(props)
-        }, {
-            ..._getConstProps(props),
-            "checked": input,
-            "on:input": inlinedQrl(_chk, "_chk", [
-                input
-            ])
-        }, null, 0, null)
+            ..._getVarProps(props),
+            "bind:checked": input
+        }, _getConstProps(props), null, 0, null)
     ], 1, "u6_0");
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;gDAGqC,CAAC;IACrC,MAAM,QAAQ,UAAU;IAEvB,qBACA;sBAEC,UAAC;YAAD,gBACe;4BACV;0BAAA;sBAGL,UAAC;4BACI;;8BAAA;uBACU;;gBAAA;;;;AAIlB\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;gDAGqC,CAAC;IACrC,MAAM,QAAQ,UAAU;IAEvB,qBACA;sBAEC,UAAC;YAAD,gBACe;4BACV;0BAAA;sBAGL,UAAC;4BACI;YADL,gBAEe;0BADV;;AAKR\"}")
 /*
 {
   "origin": "test.tsx",

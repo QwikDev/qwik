@@ -1162,10 +1162,15 @@ impl<'a> QwikTransform<'a> {
 			// Handle bind:value and bind:checked:
 			// - Always transform when targeting constProps (compile-time known)
 			// - Only transform for _jsxSorted (should_sort = false) when targeting varProps
-			// - For _jsxSplit varProps, let JavaScript runtime handle it
+			// - For _jsxSplit, leave bind:* untouched (runtime handles it)
+			if let Some(ref kw) = original_key_word {
+				if should_sort && Self::is_bind_prop(kw) {
+					return (key_word, transformed_event_key, false);
+				}
+			}
 			if is_target_const_props || !should_sort {
 				if let Some(ref kw) = original_key_word {
-					if kw == &*BIND_VALUE || kw == &*BIND_CHECKED {
+					if Self::is_bind_prop(kw) {
 						let is_checked = kw == &*BIND_CHECKED;
 						let value_key = if is_checked {
 							CHECKED.clone()
@@ -1241,6 +1246,10 @@ impl<'a> QwikTransform<'a> {
 		}
 
 		(key_word, transformed_event_key, false)
+	}
+
+	fn is_bind_prop(key: &Atom) -> bool {
+		key == &*BIND_VALUE || key == &*BIND_CHECKED
 	}
 
 	fn create_qrl(
@@ -1565,12 +1574,13 @@ impl<'a> QwikTransform<'a> {
 				for prop in props.into_iter() {
 					let mut name_token = false;
 					// If we have spread props, all the props that come before it are variable even if they're static
-					let is_target_const_props = spread_props_count == 0;
-					let maybe_const_props = if spread_props_count > 0 {
-						&mut var_props
-					} else {
-						&mut const_props
-					};
+					let mut is_target_const_props = spread_props_count == 0;
+					let mut maybe_const_props: &mut Vec<ast::PropOrSpread> =
+						if spread_props_count > 0 {
+							&mut var_props
+						} else {
+							&mut const_props
+						};
 					match prop {
 						// regular props
 						ast::PropOrSpread::Prop(box ast::Prop::KeyValue(ref node)) => {
@@ -1579,6 +1589,14 @@ impl<'a> QwikTransform<'a> {
 								ast::PropName::Str(ref s) => Some(s.value.clone()),
 								_ => None,
 							};
+
+							// If we have spread props, and this is a bind: prop, it must go into varProps
+							let is_bind_prop =
+								original_key_word.as_ref().is_some_and(Self::is_bind_prop);
+							if should_runtime_sort && !is_fn && is_bind_prop {
+								is_target_const_props = false;
+								maybe_const_props = &mut var_props;
+							}
 
 							// Transform JSX props (event handlers, className, bind:value/checked)
 							let (key_word, transformed_event_key, skip_prop) = self

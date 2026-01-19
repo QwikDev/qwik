@@ -8,7 +8,7 @@ import { getSymbolHash } from './platform';
 
 const getBundles = (snapshotResult: SnapshotResult | null) => {
   const platform = getPlatform();
-  return (snapshotResult?.qrls as QRLInternal[])
+  const bundles = (snapshotResult?.qrls as QRLInternal[])
     ?.map((qrl) => {
       const symbol = qrl.$refSymbol$ || qrl.$symbol$;
       const chunk = qrl.$chunk$;
@@ -19,6 +19,7 @@ const getBundles = (snapshotResult: SnapshotResult | null) => {
       return chunk;
     })
     .filter(Boolean) as string[];
+  return [...new Set(bundles)];
 };
 /** Returns paths to preload relative to the buildBase, with probabilities */
 export function getPreloadPaths(

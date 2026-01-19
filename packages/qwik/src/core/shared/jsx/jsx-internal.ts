@@ -114,7 +114,7 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
           }
         }
 
-        // Handle bind:* - only in varProps (constProps are transformed by Rust)
+        // Handle bind:* - only in varProps, bind:* should be moved to varProps
         if (bindCheckedSignal || bindValueSignal) {
           if (!varPropsCopied) {
             varProps = { ...varProps };

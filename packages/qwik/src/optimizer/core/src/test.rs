@@ -5263,6 +5263,37 @@ export const FieldInput = component$((props) => {
 	});
 }
 
+#[test]
+fn should_move_bind_value_to_var_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+import { destructureBindings } from "./destructure-bindings";
+
+export const FieldInput = component$(
+  (props) => {
+    const initialValues = { value: undefined as string | undefined };
+    const rest = destructureBindings(props, initialValues);
+
+    return (
+      <input
+        {...rest}
+        bind:value={finalValue}
+		onClick$={() => {
+			console.log('clicked');
+		}}
+      />
+    );
+  }
+);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

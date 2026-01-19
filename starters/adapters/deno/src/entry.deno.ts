@@ -19,6 +19,7 @@ const { router, notFound, staticFile } = createQwikCity({
   static: {
     cacheControl: "public, max-age=31536000, immutable",
   },
+  origin: Deno.env.get("ORIGIN"),
 });
 
 // Allow for dynamic port

@@ -173,11 +173,15 @@ const addPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbo
   }
 };
 
-export const triggerPropsProxyEffect = (propsProxy: PropsProxyHandler, prop: string | symbol) => {
+export const triggerPropsProxyEffect = (
+  propsProxy: PropsProxyHandler,
+  prop: string | symbol
+): boolean => {
   const effects = getEffects(propsProxy.$effects$, prop);
   if (effects) {
     scheduleEffects(propsProxy.$container$, propsProxy, effects);
   }
+  return !!effects;
 };
 
 function getEffects(

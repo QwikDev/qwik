@@ -76,7 +76,7 @@ export const _wrapProp = <T extends object, P extends keyof T>(
     if (constProps && Object.prototype.hasOwnProperty.call(constProps, prop)) {
       // Const props don't need wrapping
       return constProps[prop as keyof typeof constProps] as WrappedProp<T, P>;
-    } else if (prop in varProps) {
+    } else if (Object.prototype.hasOwnProperty.call(varProps, prop)) {
       const value = varProps[prop as keyof typeof varProps];
       return wrapIfNotSignal(value as T[P], args);
     }

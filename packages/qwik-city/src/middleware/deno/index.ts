@@ -31,9 +31,8 @@ export interface ServeHandlerInfo {
 
 function getRequestUrl(request: Request, opts: QwikCityDenoOptions, info?: ServeHandlerInfo) {
   const url = new URL(request.url);
-  const envOrigin = Deno.env?.get?.('ORIGIN');
-  const origin = opts.getOrigin?.(request, info) ?? opts.origin ?? envOrigin ?? url.origin;
-  if (origin === url.origin) {
+  const origin = opts.getOrigin?.(request, info) ?? Deno.env?.get?.('ORIGIN');
+  if (!origin) {
     return url;
   }
   return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
@@ -207,9 +206,6 @@ export interface QwikCityDenoOptions extends ServerRenderOptions {
 
   /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (request: Request, info: ServeHandlerInfo) => ClientConn;
-
-  /** @deprecated Use `getOrigin` instead. */
-  origin?: string;
 }
 
 declare const Deno: any;

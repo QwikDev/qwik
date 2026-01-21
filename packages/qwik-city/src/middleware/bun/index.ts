@@ -16,6 +16,15 @@ import { setServerPlatform } from '@builder.io/qwik/server';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { join, extname } from 'node:path';
 
+function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
+  const url = new URL(request.url);
+  const origin = opts.getOrigin?.(request) ?? Bun.env.ORIGIN;
+  if (!origin) {
+    return url;
+  }
+  return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
+}
+
 /** @public */
 export function createQwikCity(opts: QwikCityBunOptions) {
   // @builder.io/qwik-city/middleware/bun
@@ -36,7 +45,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
 
   async function router(request: Request) {
     try {
-      const url = new URL(request.url);
+      const url = getRequestUrl(request, opts);
 
       const serverRequestEv: ServerRequestEvent<Response> = {
         mode: 'server',
@@ -100,7 +109,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
 
   const notFound = async (request: Request) => {
     try {
-      const url = new URL(request.url);
+      const url = getRequestUrl(request, opts);
 
       // In the development server, we replace the getNotFound function
       // For static paths, we assign a static "Not Found" message.
@@ -140,7 +149,7 @@ export function createQwikCity(opts: QwikCityBunOptions) {
 
   const staticFile = async (request: Request) => {
     try {
-      const url = new URL(request.url);
+      const url = getRequestUrl(request, opts);
 
       if (isStaticPath(request.method || 'GET', url)) {
         const { filePath, content } = await openStaticFile(url);
@@ -190,5 +199,18 @@ export interface QwikCityBunOptions extends ServerRenderOptions {
     /** Set the Cache-Control header for all static files */
     cacheControl?: string;
   };
+
+  /**
+   * Provide a function that computes the origin of the server, used to resolve relative URLs and
+   * validate the request origin against CSRF attacks.
+   *
+   * When not specified, it defaults to the `ORIGIN` environment variable (if set).
+   *
+   * If `ORIGIN` is not set, it's derived from the incoming request, which is not recommended for
+   * production use.
+   */
+  getOrigin?: (request: Request) => string | null;
+
+  /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (request: Request) => ClientConn;
 }

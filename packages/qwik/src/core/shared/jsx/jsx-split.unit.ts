@@ -40,6 +40,70 @@ describe('_jsxSplit', () => {
     });
   });
 
+  it('should override the same event with different name conventions in var props case 1', () => {
+    const clickHandler1 = (() => {}) as any as QRL;
+    const clickHandler2 = (() => {}) as any as QRL;
+
+    const node = _jsxSplit(
+      'button',
+      { onClick$: clickHandler1, 'on:click': clickHandler2 },
+      null,
+      null,
+      0
+    );
+
+    expect(node.varProps['onClick$']).toBeUndefined();
+    expect(node.varProps['on:click']).toBe(clickHandler2);
+  });
+
+  it('should override the same event with different name conventions in var props case 2', () => {
+    const clickHandler1 = (() => {}) as any as QRL;
+    const clickHandler2 = (() => {}) as any as QRL;
+
+    const node = _jsxSplit(
+      'button',
+      { 'on:click': clickHandler2, onClick$: clickHandler1 },
+      null,
+      null,
+      0
+    );
+
+    expect(node.varProps['onClick$']).toBeUndefined();
+    expect(node.varProps['on:click']).toBe(clickHandler1);
+  });
+
+  it('should override the same event with different name conventions in const props case 1', () => {
+    const clickHandler1 = (() => {}) as any as QRL;
+    const clickHandler2 = (() => {}) as any as QRL;
+
+    const node = _jsxSplit(
+      'button',
+      {},
+      { onClick$: clickHandler1, 'on:click': clickHandler2 },
+      null,
+      0
+    );
+
+    expect(node.constProps?.['onClick$']).toBeUndefined();
+    expect(node.constProps?.['on:click']).toBe(clickHandler2);
+  });
+
+  it('should override the same event with different name conventions in const props case 2', () => {
+    const clickHandler1 = (() => {}) as any as QRL;
+    const clickHandler2 = (() => {}) as any as QRL;
+
+    const node = _jsxSplit(
+      'button',
+      {},
+      { 'on:click': clickHandler2, onClick$: clickHandler1 },
+      null,
+      0
+    );
+
+    expect(node.constProps?.['onClick$']).toBeUndefined();
+    expect(node.constProps?.['on:click']).toBe(clickHandler1);
+  });
+
   describe('event handling between constProps and varProps', () => {
     it('should let constProps overwrite varProps when both have same event', () => {
       const constHandler = (() => {}) as any as QRL;
@@ -181,6 +245,66 @@ describe('_jsxSplit', () => {
         expect(merged[0]).toBe(handler); // Original handler from constProps (moved)
         // merged[1] should be the bind handler
       }
+    });
+
+    it('should move onInput$ from constProps to varProps and merge when bind:value is truthy', () => {
+      const handler = 2 as any as QRL;
+      const signal = { value: 'test' };
+      const doBind = true;
+
+      const node = _jsxSplit(
+        'button',
+        {
+          'bind:value': doBind && signal,
+        },
+        {
+          onInput$: handler,
+        },
+        null,
+        0
+      );
+
+      expect(node.varProps['bind:value']).toBeUndefined();
+      expect(node.varProps.value).toBe(signal);
+
+      // onInput$ should be converted to on:input, moved from constProps to varProps, and merged
+      expect(node.constProps?.['onInput$']).toBeUndefined();
+      expect(node.constProps?.['on:input']).toBeUndefined();
+      const merged = node.varProps['on:input'];
+      expect(merged).toBeDefined();
+      expect(Array.isArray(merged)).toBe(true);
+      if (Array.isArray(merged)) {
+        expect(merged).toHaveLength(2);
+        expect(merged[0]).toBe(handler); // Original handler from constProps (moved and converted)
+        // merged[1] should be the bind handler
+      }
+    });
+
+    it('should keep onInput$ in constProps when bind:value is falsy', () => {
+      const handler = 2 as any as QRL;
+      const signal = { value: 'test' };
+      const doBind = false;
+
+      const node = _jsxSplit(
+        'button',
+        {
+          'bind:value': doBind && signal,
+        },
+        {
+          onInput$: handler,
+        },
+        null,
+        0
+      );
+
+      // bind:value is falsy, so no binding should occur
+      expect(node.varProps['bind:value']).toBe(false);
+      expect(node.varProps.value).toBeUndefined();
+
+      // onInput$ should remain in constProps, converted to on:input
+      expect(node.constProps?.['onInput$']).toBeUndefined();
+      expect(node.constProps?.['on:input']).toBe(handler);
+      expect(node.varProps['on:input']).toBeUndefined();
     });
   });
 

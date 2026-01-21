@@ -1,4 +1,3 @@
-import { untrack } from '../../use/use-core';
 import type { OnRenderFn } from '../component.public';
 import { createQRL } from '../qrl/qrl-class';
 import type { QRLInternal } from '../qrl/qrl-class';
@@ -70,163 +69,169 @@ export const _jsxSplit = <T extends string | FunctionComponent<any>>(
   key?: string | number | null,
   dev?: DevJSX
 ): JSXNodeInternal<T> => {
-  return untrack(() => {
-    let toSort = false;
-    let constPropsCopied = false;
-    let varPropsCopied = false;
-    let bindValueSignal: any = null;
-    let bindCheckedSignal: any = null;
+  let toSort = false;
+  let constPropsCopied = false;
+  let varPropsCopied = false;
+  let bindValueSignal: any = null;
+  let bindCheckedSignal: any = null;
 
-    // Apply transformations for native HTML elements only
-    if (typeof type === 'string') {
-      // Transform event names (onClick$ -> on:click)
-      if (constProps) {
-        for (const k in constProps) {
-          const attr = jsxEventToHtmlAttribute(k);
-          if (attr) {
-            if (!constPropsCopied) {
-              constProps = { ...constProps };
-              constPropsCopied = true;
-            }
+  // Apply transformations for native HTML elements only
+  if (typeof type === 'string') {
+    // Transform event names (onClick$ -> on:click)
+    if (constProps) {
+      const processedKeys = new Set<string>();
+      for (const k in constProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
+          if (!constPropsCopied) {
+            constProps = { ...constProps };
+            constPropsCopied = true;
+          }
+          if (!_hasOwnProperty.call(constProps, attr) || processedKeys.has(attr)) {
             constProps[attr] = constProps[k];
-            delete constProps[k];
           }
+          delete constProps[k];
         }
+        processedKeys.add(k);
       }
-      if (varProps) {
-        for (const k in varProps) {
-          const attr = jsxEventToHtmlAttribute(k);
-          if (attr) {
-            if (!varPropsCopied) {
-              varProps = { ...varProps };
-              varPropsCopied = true;
-            }
-            // Transform event name in place
-            varProps[attr] = varProps[k];
-            delete varProps[k];
-            toSort = true;
-          } else if (k === BIND_CHECKED) {
-            // Set flag, will process after walk
-            bindCheckedSignal = varProps[k];
-          } else if (k === BIND_VALUE) {
-            // Set flag, will process after walk
-            bindValueSignal = varProps[k];
-          }
-        }
-
-        // Handle bind:* - only in varProps, bind:* should be moved to varProps
-        if (bindCheckedSignal || bindValueSignal) {
+    }
+    if (varProps) {
+      const processedKeys = new Set<string>();
+      for (const k in varProps) {
+        const attr = jsxEventToHtmlAttribute(k);
+        if (attr) {
           if (!varPropsCopied) {
             varProps = { ...varProps };
             varPropsCopied = true;
           }
-
-          if (bindCheckedSignal) {
-            delete varProps[BIND_CHECKED];
-            varProps.checked = bindCheckedSignal;
-            const handler = createQRL(null, '_chk', _chk, null, null, [bindCheckedSignal]);
-
-            // Move on:input from constProps if it exists
-            if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
-              if (!constPropsCopied) {
-                constProps = { ...constProps };
-                constPropsCopied = true;
-              }
-              const existingHandler = constProps['on:input'];
-              delete constProps['on:input'];
-              toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
-            }
-
-            toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
-          } else if (bindValueSignal) {
-            delete varProps[BIND_VALUE];
-            varProps.value = bindValueSignal;
-            const handler = createQRL(null, '_val', _val, null, null, [bindValueSignal]);
-
-            // Move on:input from constProps if it exists
-            if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
-              if (!constPropsCopied) {
-                constProps = { ...constProps };
-                constPropsCopied = true;
-              }
-              const existingHandler = constProps['on:input'];
-              delete constProps['on:input'];
-              toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
-            }
-
-            toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
+          // Transform event name in place
+          if (!_hasOwnProperty.call(varProps, attr) || processedKeys.has(attr)) {
+            varProps[attr] = varProps[k];
           }
+          delete varProps[k];
+          toSort = true;
+        } else if (k === BIND_CHECKED) {
+          // Set flag, will process after walk
+          bindCheckedSignal = varProps[k];
+        } else if (k === BIND_VALUE) {
+          // Set flag, will process after walk
+          bindValueSignal = varProps[k];
         }
+        processedKeys.add(k);
       }
 
-      // Transform className -> class
-      if (varProps && _hasOwnProperty.call(varProps, 'className')) {
+      // Handle bind:* - only in varProps, bind:* should be moved to varProps
+      if (bindCheckedSignal || bindValueSignal) {
         if (!varPropsCopied) {
           varProps = { ...varProps };
           varPropsCopied = true;
         }
-        varProps.class = varProps.className;
-        varProps.className = undefined;
-        toSort = true;
-        if (qDev) {
-          logOnceWarn(
-            `jsx${
-              dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''
-            }: \`className\` is deprecated. Use \`class\` instead.`
-          );
-        }
-      }
-      if (constProps && _hasOwnProperty.call(constProps, 'className')) {
-        if (!constPropsCopied) {
-          constProps = { ...constProps };
-          constPropsCopied = true;
-        }
-        constProps.class = constProps.className;
-        constProps.className = undefined;
-        if (qDev) {
-          logOnceWarn(
-            `jsx${
-              dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''
-            }: \`className\` is deprecated. Use \`class\` instead.`
-          );
+
+        if (bindCheckedSignal) {
+          delete varProps[BIND_CHECKED];
+          varProps.checked = bindCheckedSignal;
+          const handler = createQRL(null, '_chk', _chk, null, null, [bindCheckedSignal]);
+
+          // Move on:input from constProps if it exists
+          if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
+            if (!constPropsCopied) {
+              constProps = { ...constProps };
+              constPropsCopied = true;
+            }
+            const existingHandler = constProps['on:input'];
+            delete constProps['on:input'];
+            toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
+          }
+
+          toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
+        } else if (bindValueSignal) {
+          delete varProps[BIND_VALUE];
+          varProps.value = bindValueSignal;
+          const handler = createQRL(null, '_val', _val, null, null, [bindValueSignal]);
+
+          // Move on:input from constProps if it exists
+          if (constProps && _hasOwnProperty.call(constProps, 'on:input')) {
+            if (!constPropsCopied) {
+              constProps = { ...constProps };
+              constPropsCopied = true;
+            }
+            const existingHandler = constProps['on:input'];
+            delete constProps['on:input'];
+            toSort = mergeHandlers(varProps, 'on:input', existingHandler as any) || toSort;
+          }
+
+          toSort = mergeHandlers(varProps, 'on:input', handler) || toSort;
         }
       }
     }
 
-    if (varProps) {
-      for (const k in varProps) {
-        if (k === 'children') {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          children ||= varProps.children as JSXChildren;
-          delete varProps.children;
-        } else if (k === 'key') {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          key ||= varProps.key as string;
-          delete varProps.key;
-        } else if (constProps && k in constProps) {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          delete varProps[k];
-        } else if (varProps[k] === null) {
-          if (!varPropsCopied) {
-            varProps = { ...varProps };
-            varPropsCopied = true;
-          }
-          // Clean up null markers (from event conversions)
-          delete varProps[k];
-        }
+    // Transform className -> class
+    if (varProps && _hasOwnProperty.call(varProps, 'className')) {
+      if (!varPropsCopied) {
+        varProps = { ...varProps };
+        varPropsCopied = true;
+      }
+      varProps.class = varProps.className;
+      varProps.className = undefined;
+      toSort = true;
+      if (qDev) {
+        logOnceWarn(
+          `jsx${
+            dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''
+          }: \`className\` is deprecated. Use \`class\` instead.`
+        );
       }
     }
-    return new JSXNodeImpl(type, varProps, constProps, children, key, toSort || true, dev);
-  });
+    if (constProps && _hasOwnProperty.call(constProps, 'className')) {
+      if (!constPropsCopied) {
+        constProps = { ...constProps };
+        constPropsCopied = true;
+      }
+      constProps.class = constProps.className;
+      constProps.className = undefined;
+      if (qDev) {
+        logOnceWarn(
+          `jsx${
+            dev ? ` ${dev.fileName}${dev?.lineNumber ? `:${dev.lineNumber}` : ''}` : ''
+          }: \`className\` is deprecated. Use \`class\` instead.`
+        );
+      }
+    }
+  }
+
+  if (varProps) {
+    for (const k in varProps) {
+      if (k === 'children') {
+        if (!varPropsCopied) {
+          varProps = { ...varProps };
+          varPropsCopied = true;
+        }
+        children ||= varProps.children as JSXChildren;
+        delete varProps.children;
+      } else if (k === 'key') {
+        if (!varPropsCopied) {
+          varProps = { ...varProps };
+          varPropsCopied = true;
+        }
+        key ||= varProps.key as string;
+        delete varProps.key;
+      } else if (constProps && k in constProps) {
+        if (!varPropsCopied) {
+          varProps = { ...varProps };
+          varPropsCopied = true;
+        }
+        delete varProps[k];
+      } else if (varProps[k] === null) {
+        if (!varPropsCopied) {
+          varProps = { ...varProps };
+          varPropsCopied = true;
+        }
+        // Clean up null markers (from event conversions)
+        delete varProps[k];
+      }
+    }
+  }
+  return new JSXNodeImpl(type, varProps, constProps, children, key, toSort || true, dev);
 };
 /** @internal @deprecated v1 compat */
 

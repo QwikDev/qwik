@@ -18,8 +18,8 @@ import { join, extname } from 'node:path';
 
 function getRequestUrl(request: Request, opts: QwikCityBunOptions) {
   const url = new URL(request.url);
-  const origin = opts.getOrigin?.(request) ?? opts.origin ?? Bun.env.ORIGIN ?? url.origin;
-  if (origin === url.origin) {
+  const origin = opts.getOrigin?.(request) ?? Bun.env.ORIGIN;
+  if (!origin) {
     return url;
   }
   return new URL(`${url.pathname}${url.search}${url.hash}`, origin);
@@ -213,7 +213,4 @@ export interface QwikCityBunOptions extends ServerRenderOptions {
 
   /** Provide a function that returns a `ClientConn` for the given request. */
   getClientConn?: (request: Request) => ClientConn;
-
-  /** @deprecated Use `getOrigin` instead. */
-  origin?: string;
 }

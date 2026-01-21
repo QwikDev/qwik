@@ -87,6 +87,11 @@ vi.mock('../../use/utils/destroyable', () => ({
   cleanupDestroyable: vi.fn(),
 }));
 
+vi.mock('../../reactive-primitives/cleanup', () => ({
+  clearEffectSubscription: vi.fn(),
+  clearAllEffects: vi.fn(),
+}));
+
 function createMockVNode(
   flags: VNodeFlags = VNodeFlags.Element,
   dirty: ChoreBits = ChoreBits.NONE

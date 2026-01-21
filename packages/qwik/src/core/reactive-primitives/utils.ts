@@ -7,7 +7,7 @@ import { OnRenderProp } from '../shared/utils/markers';
 import { SerializerSymbol } from '../shared/serdes/verify';
 import { isObject } from '../shared/utils/types';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
-import { TaskFlags, isTask, type Task } from '../use/use-task';
+import { TaskFlags, isTask } from '../use/use-task';
 import { ComputedSignalImpl } from './impl/computed-signal-impl';
 import { SignalImpl } from './impl/signal-impl';
 import type { WrappedSignalImpl } from './impl/wrapped-signal-impl';
@@ -90,21 +90,13 @@ export const scheduleEffects = (
 ) => {
   const isBrowser = import.meta.env.TEST ? !isServerPlatform() : !isServer;
   if (effects) {
-    let tasksToTrigger: Task[] | null = null;
     const scheduleEffect = (effectSubscription: EffectSubscription) => {
       const consumer = effectSubscription.consumer;
       const property = effectSubscription.property;
       isDev && assertDefined(container, 'Container must be defined.');
       if (isTask(consumer)) {
         consumer.$flags$ |= TaskFlags.DIRTY;
-        if (isBrowser) {
-          markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
-        } else {
-          // for server we run tasks sync, so they can change currently running effects
-          // in this case we could have infinite loop if we trigger tasks here
-          // so instead we collect them and trigger them after the effects are scheduled
-          (tasksToTrigger ||= []).push(consumer);
-        }
+        markVNodeDirty(container!, consumer.$el$, ChoreBits.TASKS);
       } else if (consumer instanceof SignalImpl) {
         (consumer as ComputedSignalImpl<unknown> | WrappedSignalImpl<unknown>).invalidate();
       } else if (property === EffectProperty.COMPONENT) {
@@ -138,14 +130,10 @@ export const scheduleEffects = (
         }
       }
     };
-    for (const effect of effects) {
-      scheduleEffect(effect);
-    }
 
-    if (!isBrowser && container && tasksToTrigger) {
-      for (const task of tasksToTrigger as Task[]) {
-        markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-      }
+    const effectsSnapshot = Array.from(effects);
+    for (const effect of effectsSnapshot) {
+      scheduleEffect(effect);
     }
   }
 

@@ -20,6 +20,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { ErrorProvider } from '../../testing/rendering.unit-util';
 import * as qError from '../shared/error/error';
 import { QError } from '../shared/error/error';
+import { getSubscriber } from '../reactive-primitives/subscriber';
+import { EffectProperty } from '../reactive-primitives/types';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -526,5 +528,46 @@ describe.each([
       </>,
       true
     );
+  });
+
+  it('should clear backRef before computation when reusing effect subscriber', async () => {
+    (globalThis as any).doubleCount = null;
+    const Counter = component$((props: { count: number }) => {
+      const doubleCount = useComputed$(() => {
+        return props.count * 2;
+      });
+      (globalThis as any).doubleCount = doubleCount;
+      return (
+        <div>
+          <span>{doubleCount.value}</span>
+        </div>
+      );
+    });
+    const Parent = component$(() => {
+      const count = useSignal([{ value: 1 }]);
+      return (
+        <div>
+          <button onClick$={() => (count.value = [{ value: count.value[0].value + 1 }])}>
+            Increment
+          </button>
+          {count.value.map((c, index) => (
+            <Counter key={index} count={c.value} />
+          ))}
+        </div>
+      );
+    });
+
+    const { container } = await render(<Parent />, { debug });
+    const effectSubscriber = getSubscriber((globalThis as any).doubleCount, EffectProperty.VNODE);
+    expect(effectSubscriber.backRef).toBeDefined();
+    expect(effectSubscriber.backRef?.size).toBe(1);
+
+    await trigger(container.element, 'button', 'click');
+    expect(effectSubscriber.backRef).toBeDefined();
+    expect(effectSubscriber.backRef?.size).toBe(1);
+
+    await trigger(container.element, 'button', 'click');
+    expect(effectSubscriber.backRef).toBeDefined();
+    expect(effectSubscriber.backRef?.size).toBe(1);
   });
 });

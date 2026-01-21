@@ -12,6 +12,7 @@ import { SignalImpl } from './signal-impl';
 import type { QRLInternal } from '../../shared/qrl/qrl-class';
 import { _EFFECT_BACK_REF, type BackRef } from '../backref';
 import { isDev } from '@qwik.dev/core/build';
+import { clearEffectSubscription } from '../cleanup';
 
 const DEBUG = false;
 // eslint-disable-next-line no-console
@@ -90,7 +91,11 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
 
     const ctx = tryGetInvokeContext();
     const previousEffectSubscription = ctx?.$effectSubscriber$;
-    ctx && (ctx.$effectSubscriber$ = getSubscriber(this, EffectProperty.VNODE));
+    if (ctx) {
+      const effectSubscriber = getSubscriber(this, EffectProperty.VNODE);
+      clearEffectSubscription(this.$container$!, effectSubscriber);
+      ctx.$effectSubscriber$ = effectSubscriber;
+    }
     try {
       const untrackedValue = (computeQrl.getFn(ctx) as S)() as T;
       if (isPromise(untrackedValue)) {

@@ -5113,6 +5113,187 @@ const Foo = component$(function() {
 	});
 }
 
+#[test]
+fn should_merge_on_input_and_bind_value() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal("");
+
+  return (
+    <input
+      bind:value={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_merge_on_input_and_bind_checked() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+  const localValue = useSignal(false);
+
+  return (
+    <input
+      bind:checked={localValue}
+      onInput$={() => {
+        console.log("test");
+      }}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_transform_qrls_in_ternary_expression() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+	const enabled = useSignal(false);
+	const input = useSignal("");
+
+  return (
+     <input
+		id="input"
+		onInput$={
+		enabled.value
+			? $((ev, el) => {
+				input.value = el.value;
+			})
+			: undefined
+		}
+		onFocus$={() => {
+			enabled.value = true;
+		}}
+	/>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_bind_value_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal("");
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:value={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:value={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_not_transform_bind_checked_in_var_props_for_jsx_split() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$((props) => {
+	const input = useSignal(true);
+
+  return (
+		<>
+			{/* var props */}
+			<input
+				bind:checked={input}
+				{...props}
+			/>
+			{/* const props */}
+			<input
+				{...props}
+				bind:checked={input}
+			/>
+		</>
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn should_move_bind_value_to_var_props() {
+	test_input!(TestInput {
+		code: r#"
+import { $, component$, useSignal } from "@qwik.dev/core";
+import { destructureBindings } from "./destructure-bindings";
+
+export const FieldInput = component$(
+  (props) => {
+    const initialValues = { value: undefined as string | undefined };
+    const rest = destructureBindings(props, initialValues);
+
+    return (
+      <input
+        {...rest}
+        bind:value={finalValue}
+		onClick$={() => {
+			console.log('clicked');
+		}}
+      />
+    );
+  }
+);
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
 fn get_hash(name: &str) -> String {
 	name.split('_').last().unwrap().into()
 }

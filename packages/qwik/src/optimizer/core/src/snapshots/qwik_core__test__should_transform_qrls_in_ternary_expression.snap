@@ -1,0 +1,157 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 4901
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, useSignal } from "@qwik.dev/core";
+
+export const FieldInput = component$(() => {
+	const enabled = useSignal(false);
+	const input = useSignal("");
+
+  return (
+     <input
+		id="input"
+		onInput$={
+		enabled.value
+			? $((ev, el) => {
+				input.value = el.value;
+			})
+			: undefined
+		}
+		onFocus$={() => {
+			enabled.value = true;
+		}}
+	/>
+  );
+});
+
+============================= test.tsx_FieldInput_component_input_on_focus_dCaaZb8Y0g8.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const FieldInput_component_input_on_focus_dCaaZb8Y0g8 = ()=>{
+    const [enabled] = useLexicalScope();
+    enabled.value = true;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAiBY;;IACT,QAAQ,KAAK,GAAG\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "FieldInput_component_input_on_focus_dCaaZb8Y0g8",
+  "entry": null,
+  "displayName": "test.tsx_FieldInput_component_input_on_focus",
+  "hash": "dCaaZb8Y0g8",
+  "canonicalFilename": "test.tsx_FieldInput_component_input_on_focus_dCaaZb8Y0g8",
+  "path": "",
+  "extension": "js",
+  "parent": "FieldInput_component_V4XAtJSTRKg",
+  "ctxKind": "eventHandler",
+  "ctxName": "onFocus$",
+  "captures": true,
+  "loc": [
+    324,
+    360
+  ],
+  "captureNames": [
+    "enabled"
+  ]
+}
+*/
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_V4XAtJSTRKg = ()=>import("./test.tsx_FieldInput_component_V4XAtJSTRKg");
+export const FieldInput = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_V4XAtJSTRKg, "FieldInput_component_V4XAtJSTRKg"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAGA,OAAO,MAAM,2BAAa,mFAmBvB\"}")
+============================= test.tsx_FieldInput_component_input_on_input_KMRAAEMkFCE.js (ENTRY POINT)==
+
+import { useLexicalScope } from "@qwik.dev/core";
+export const FieldInput_component_input_on_input_KMRAAEMkFCE = (ev, el)=>{
+    const [input] = useLexicalScope();
+    input.value = el.value;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";+DAYO,CAAC,IAAI;;IACR,MAAM,KAAK,GAAG,GAAG,KAAK\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "FieldInput_component_input_on_input_KMRAAEMkFCE",
+  "entry": null,
+  "displayName": "test.tsx_FieldInput_component_input_on_input",
+  "hash": "KMRAAEMkFCE",
+  "canonicalFilename": "test.tsx_FieldInput_component_input_on_input_KMRAAEMkFCE",
+  "path": "",
+  "extension": "js",
+  "parent": "FieldInput_component_V4XAtJSTRKg",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    245,
+    291
+  ],
+  "paramNames": [
+    "ev",
+    "el"
+  ],
+  "captureNames": [
+    "input"
+  ]
+}
+*/
+============================= test.tsx_FieldInput_component_V4XAtJSTRKg.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const i_KMRAAEMkFCE = ()=>import("./test.tsx_FieldInput_component_input_on_input_KMRAAEMkFCE");
+const i_dCaaZb8Y0g8 = ()=>import("./test.tsx_FieldInput_component_input_on_focus_dCaaZb8Y0g8");
+export const FieldInput_component_V4XAtJSTRKg = ()=>{
+    const enabled = useSignal(false);
+    const input = useSignal("");
+    return /*#__PURE__*/ _jsxSorted("input", {
+        "on:input": enabled.value ? /*#__PURE__*/ qrl(i_KMRAAEMkFCE, "FieldInput_component_input_on_input_KMRAAEMkFCE", [
+            input
+        ]) : undefined
+    }, {
+        id: "input",
+        "on:focus": /*#__PURE__*/ qrl(i_dCaaZb8Y0g8, "FieldInput_component_input_on_focus_dCaaZb8Y0g8", [
+            enabled
+        ])
+    }, null, 2, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;gDAGqC;IACpC,MAAM,UAAU,UAAU;IAC1B,MAAM,QAAQ,UAAU;IAEvB,qBACG,WAAC;oBAGJ,QAAQ,KAAK;;aAIV;;QANH,IAAG;QAQH,UAAQ;;;;AAKV\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "FieldInput_component_V4XAtJSTRKg",
+  "entry": null,
+  "displayName": "test.tsx_FieldInput_component",
+  "hash": "V4XAtJSTRKg",
+  "canonicalFilename": "test.tsx_FieldInput_component_V4XAtJSTRKg",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    99,
+    372
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -1,0 +1,105 @@
+---
+source: packages/qwik/src/optimizer/core/src/test.rs
+assertion_line: 5204
+expression: output
+---
+==INPUT==
+
+
+import { component$, useSignal } from "@qwik.dev/core";
+import { TestComponent } from "./testComponent";
+
+export const Child = component$(() => {
+  const propCounterWithNested = useSignal(() => {
+  return {
+      data: [
+        { attributeInArray: { counter: globalThis.propsCounter++ } },
+        { attributeInArray: { counter: globalThis.propsCounter } },
+      ],
+    };
+  })
+  return (
+    <div>
+        {propCounterWithNested.value.data.map((item, index) => {
+          return (
+            <TestComponent
+              counter={item.attributeInArray.counter}
+              logString="Nested read through array"
+              key={index}
+            />
+          );
+        })}
+    </div>
+  );
+})
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+const i_9GyF01GDKqw = ()=>import("./test.tsx_Child_component_9GyF01GDKqw");
+export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_9GyF01GDKqw, "Child_component_9GyF01GDKqw"));
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAIA,OAAO,MAAM,sBAAQ,8EAsBnB\"}")
+============================= test.tsx_Child_component_9GyF01GDKqw.js (ENTRY POINT)==
+
+import { TestComponent } from "./testComponent";
+import { _fnSignal } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { useSignal } from "@qwik.dev/core";
+const _hf0 = (p0)=>p0.attributeInArray.counter;
+const _hf0_str = "p0.attributeInArray.counter";
+export const Child_component_9GyF01GDKqw = ()=>{
+    const propCounterWithNested = useSignal(()=>{
+        return {
+            data: [
+                {
+                    attributeInArray: {
+                        counter: globalThis.propsCounter++
+                    }
+                },
+                {
+                    attributeInArray: {
+                        counter: globalThis.propsCounter
+                    }
+                }
+            ]
+        };
+    });
+    return /*#__PURE__*/ _jsxSorted("div", null, null, propCounterWithNested.value.data.map((item, index)=>{
+        return /*#__PURE__*/ _jsxSorted(TestComponent, {
+            counter: _fnSignal(_hf0, [
+                item
+            ], _hf0_str)
+        }, {
+            logString: "Nested read through array"
+        }, null, 3, index);
+    }), 1, "u6_0");
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;mBAkBuB,GAAK,gBAAgB,CAAC,OAAO;;2CAdpB;IAC9B,MAAM,wBAAwB,UAAU;QACxC,OAAO;YACH,MAAM;gBACJ;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAG;gBAAE;gBAC3D;oBAAE,kBAAkB;wBAAE,SAAS,WAAW,YAAY;oBAAC;gBAAE;aAC1D;QACH;IACF;IACA,qBACE,WAAC,mBACI,sBAAsB,KAAK,CAAC,IAAI,CAAC,GAAG,CAAC,CAAC,MAAM;QAC3C,qBACE,WAAC;YACC,OAAO;;;;YACP,WAAU;oBACL;IAGX;AAGR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "Child_component_9GyF01GDKqw",
+  "entry": null,
+  "displayName": "test.tsx_Child_component",
+  "hash": "9GyF01GDKqw",
+  "canonicalFilename": "test.tsx_Child_component_9GyF01GDKqw",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    140,
+    703
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

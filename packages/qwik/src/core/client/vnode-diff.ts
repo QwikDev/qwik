@@ -1677,7 +1677,6 @@ function handleProps(
 ): boolean {
   let shouldRender = false;
   if (vNodeProps) {
-    const effects = vNodeProps[_PROPS_HANDLER].$effects$;
     const constPropsDifferent = handleChangedProps(
       jsxProps[_CONST_PROPS],
       vNodeProps[_CONST_PROPS],
@@ -1686,16 +1685,14 @@ function handleProps(
       false
     );
     shouldRender ||= constPropsDifferent;
-    if (effects && effects.size > 0) {
-      handleChangedProps(
-        jsxProps[_VAR_PROPS],
-        vNodeProps[_VAR_PROPS],
-        vNodeProps[_PROPS_HANDLER],
-        container,
-        true
-      );
-      // don't mark as should render, effects will take care of it
-    }
+    const varPropsDifferent = handleChangedProps(
+      jsxProps[_VAR_PROPS],
+      vNodeProps[_VAR_PROPS],
+      vNodeProps[_PROPS_HANDLER],
+      container,
+      true
+    );
+    shouldRender ||= varPropsDifferent;
     // Update the owner after all props have been synced
     vNodeProps[_OWNER] = (jsxProps as PropsProxy)[_OWNER];
   } else if (jsxProps) {
@@ -1728,7 +1725,6 @@ function handleChangedProps(
         continue;
       }
       if (!dst || src[key] !== dst[key]) {
-        changed = true;
         if (triggerEffects) {
           if (dst) {
             // Update the value in dst BEFORE triggering effects
@@ -1736,7 +1732,11 @@ function handleChangedProps(
             // Note: Value is not triggering effects, because we are modyfing direct VAR_PROPS object
             dst[key] = src[key];
           }
-          triggerPropsProxyEffect(propsHandler, key);
+          const didTigger = triggerPropsProxyEffect(propsHandler, key);
+          if (!didTigger) {
+            // If the effect was not triggered, then the prop has changed and we should rerender
+            changed = true;
+          }
         } else {
           // Early return for const props (no effects)
           return true;
@@ -1752,10 +1752,13 @@ function handleChangedProps(
         continue;
       }
       if (!src || !_hasOwnProperty.call(src, key)) {
-        changed = true;
         if (triggerEffects) {
           delete dst[key];
-          triggerPropsProxyEffect(propsHandler, key);
+          const didTigger = triggerPropsProxyEffect(propsHandler, key);
+          if (!didTigger) {
+            // If the effect was not triggered, then the prop has changed and we should rerender
+            changed = true;
+          }
         }
       }
     }

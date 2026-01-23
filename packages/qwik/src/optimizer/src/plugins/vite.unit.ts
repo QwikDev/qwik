@@ -601,3 +601,52 @@ describe('viteEnvironmentApi experimental flag', () => {
     assert.deepEqual(c.environments.ssr.consumer, 'server');
   });
 });
+
+describe('transform hook environment awareness', () => {
+  test('should detect server environment via environment.config.consumer', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+      experimental: ['viteEnvironmentApi'] as any,
+    };
+    const plugin = getPlugin(initOpts);
+
+    const c: any = await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    assert.deepEqual(c.environments.ssr.consumer, 'server');
+  });
+
+  test('should detect client environment via environment.config.consumer', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+      experimental: ['viteEnvironmentApi'] as any,
+    };
+    const plugin = getPlugin(initOpts);
+
+    const c: any = await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    assert.deepEqual(c.environments.client.consumer, 'client');
+  });
+
+  test('should fallback to legacy detection when environment is undefined', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+
+    const c: any = await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    );
+
+    assert.isUndefined(c.environments);
+  });
+});

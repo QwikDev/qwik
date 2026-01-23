@@ -1,7 +1,15 @@
-import type { HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { Environment, HmrContext, Plugin, Rollup, ViteDevServer } from 'vite';
 import type { BundleGraphAdder } from '..';
 import { hashCode } from '../../../core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
+
+/**
+ * Plugin context with optional Vite 6+ environment. In Vite 6+, MinimalPluginContext is extended
+ * with `environment: Environment`. In Vite 5, this property doesn't exist.
+ */
+type PluginContext = Rollup.PluginContext & {
+  environment?: Environment;
+};
 import { createOptimizer } from '../optimizer';
 import type {
   Diagnostic,
@@ -435,7 +443,16 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
   };
 
-  const getIsServer = (viteOpts?: { ssr?: boolean }) => {
+  const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
+    // Vite 6+ Environment API: Check environment.config.consumer first
+    if (environment?.config?.consumer === 'server') {
+      return true;
+    }
+    // Fallback: check environment.name for edge cases
+    if (environment?.name === 'ssr') {
+      return true;
+    }
+    // Legacy Vite 5 fallback
     return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
   };
 
@@ -451,7 +468,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
    * `load()` phase ensure it is built first.
    */
   const resolveId = async (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: Parameters<Extract<Plugin['resolveId'], Function>>[2]
@@ -489,7 +506,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     }
 
     const count = resolveIdCount++;
-    const isServer = getIsServer(resolveOpts);
+    const isServer = getIsServer(resolveOpts, ctx?.environment);
     debug(`resolveId(${count})`, `begin ${id} | ${isServer ? 'server' : 'client'} | ${importerId}`);
 
     const parsedImporterId = importerId && parseId(importerId);
@@ -638,7 +655,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let loadCount = 0;
   const load = async (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rollup.LoadResult> => {
@@ -650,7 +667,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = loadCount++;
-    const isServer = getIsServer(loadOpts);
+    const isServer = getIsServer(loadOpts, ctx?.environment);
 
     // Virtual modules
     if (opts.resolveQwikBuild && id === QWIK_BUILD_ID) {
@@ -719,7 +736,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   let transformCount = 0;
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
@@ -728,7 +745,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       return;
     }
     const count = transformCount++;
-    const isServer = getIsServer(transformOpts);
+    const isServer = getIsServer(transformOpts, ctx?.environment);
     const currentOutputs = isServer ? serverTransformedOutputs : clientTransformedOutputs;
     if (currentOutputs.has(id)) {
       // This is a QRL segment, and we don't need to process it any further

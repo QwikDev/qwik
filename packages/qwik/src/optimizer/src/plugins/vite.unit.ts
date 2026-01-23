@@ -58,8 +58,14 @@ const excludeDeps = [
 const getPlugin = (opts: QwikVitePluginOptions | undefined) =>
   (qwikVite(opts) as any)[0] as QwikVitePlugin;
 
-// undefined for Vite 5 - 6, an object for Vite 7
-const configHookPluginContext = undefined as any;
+// Mock plugin context for config hook
+// In Vite 7+, `this.meta.viteVersion` provides the version
+function createConfigHookContext(viteVersion?: string) {
+  return { meta: { viteVersion } } as any;
+}
+
+// Default context for most tests (no version = environments not present)
+const configHookPluginContext = createConfigHookContext();
 
 test('command: serve, mode: development', async () => {
   const initOpts = {
@@ -569,28 +575,14 @@ describe('input config', () => {
   });
 });
 
-describe('viteEnvironmentApi experimental flag', () => {
-  test('environments config should NOT be added when flag is not set', async () => {
+describe('Vite 7+ Environment API configuration', () => {
+  test('environments config should be present for Vite 7+', async () => {
     const initOpts = {
       optimizerOptions: mockOptimizerOptions(),
     };
     const plugin = getPlugin(initOpts);
     const c: any = (await plugin.config.call(
-      configHookPluginContext,
-      {},
-      { command: 'serve', mode: 'development' }
-    ))!;
-    assert.isUndefined(c.environments);
-  });
-
-  test('environments config should be added when flag is set', async () => {
-    const initOpts = {
-      optimizerOptions: mockOptimizerOptions(),
-      experimental: ['viteEnvironmentApi'] as any,
-    };
-    const plugin = getPlugin(initOpts);
-    const c: any = (await plugin.config.call(
-      configHookPluginContext,
+      createConfigHookContext('7.0.0'),
       {},
       { command: 'serve', mode: 'development' }
     ))!;
@@ -600,53 +592,56 @@ describe('viteEnvironmentApi experimental flag', () => {
     assert.deepEqual(c.environments.client.consumer, 'client');
     assert.deepEqual(c.environments.ssr.consumer, 'server');
   });
-});
 
-describe('transform hook environment awareness', () => {
-  test('should detect server environment via environment.config.consumer', async () => {
-    const initOpts = {
-      optimizerOptions: mockOptimizerOptions(),
-      experimental: ['viteEnvironmentApi'] as any,
-    };
-    const plugin = getPlugin(initOpts);
-
-    const c: any = await plugin.config.call(
-      configHookPluginContext,
-      {},
-      { command: 'serve', mode: 'development' }
-    );
-
-    assert.deepEqual(c.environments.ssr.consumer, 'server');
-  });
-
-  test('should detect client environment via environment.config.consumer', async () => {
-    const initOpts = {
-      optimizerOptions: mockOptimizerOptions(),
-      experimental: ['viteEnvironmentApi'] as any,
-    };
-    const plugin = getPlugin(initOpts);
-
-    const c: any = await plugin.config.call(
-      configHookPluginContext,
-      {},
-      { command: 'serve', mode: 'development' }
-    );
-
-    assert.deepEqual(c.environments.client.consumer, 'client');
-  });
-
-  test('should fallback to legacy detection when environment is undefined', async () => {
+  test('environments config should NOT be present for older Vite versions', async () => {
     const initOpts = {
       optimizerOptions: mockOptimizerOptions(),
     };
     const plugin = getPlugin(initOpts);
-
-    const c: any = await plugin.config.call(
-      configHookPluginContext,
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('6.0.0'),
       {},
       { command: 'serve', mode: 'development' }
-    );
-
+    ))!;
     assert.isUndefined(c.environments);
+  });
+
+  test('environments config should NOT be present for undefined version (Rolldown)', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isUndefined(c.environments);
+  });
+
+  test('client environment should have browser resolve conditions', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('7.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.deepEqual(c.environments.client.resolve.conditions, ['browser', 'import', 'module']);
+  });
+
+  test('ssr environment should have node resolve conditions', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      createConfigHookContext('7.0.0'),
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.deepEqual(c.environments.ssr.resolve.conditions, ['node', 'import', 'module']);
   });
 });

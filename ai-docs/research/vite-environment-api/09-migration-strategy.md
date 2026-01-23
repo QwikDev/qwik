@@ -2,7 +2,19 @@
 
 ## Executive Summary
 
-This document outlines the strategy for migrating Qwik's Vite plugins to the Vite 6+ Environment API. Based on research of Nitro, Nuxt, Cloudflare Workers, VitePress, and Astro implementations, we recommend a phased approach with a feature flag for gradual adoption.
+This document outlines the strategy for migrating Qwik's Vite plugins to the Vite 7+ Environment API. Based on research of Nitro, Nuxt, Cloudflare Workers, VitePress, and Astro implementations, we use version detection to automatically enable the Environment API.
+
+### Version Requirements
+
+- **Minimum:** Vite 7.0.0 (Environment API fully stable)
+- **Rolldown:** Supported (uses `opts.target` fallback, no Environment API)
+- **Vite 5/6:** No longer supported
+
+### Removed
+
+- `experimental.viteEnvironmentApi` flag - no longer needed
+- Vite 5/6 backward compatibility code
+- `handleHotUpdate` legacy hook (use `hotUpdate` only in Vite 7+)
 
 ## Recommended Architecture
 
@@ -163,55 +175,44 @@ dev: {
 
 ## Migration Phases
 
-### Phase 1: Feature Flag & Configuration (Week 1-2)
+### Phase 1: Version-Gated Environment Configuration
 
-**Goal:** Enable Environment API behind flag without breaking changes.
+**Goal:** Enable Environment API automatically for Vite 7+ without breaking Rolldown.
 
 **Changes:**
 
-1. Add feature flag:
+1. Add version detection helper:
 
 ```typescript
-// types.ts
-interface QwikVitePluginOptions {
-  experimental?: {
-    viteEnvironmentApi?: boolean;
-  };
+function getViteMajorVersion(viteVersion: string | undefined): number {
+  if (!viteVersion) return 0;
+  const major = parseInt(viteVersion.split('.')[0], 10);
+  return isNaN(major) ? 0 : major;
 }
 ```
 
-2. Conditional environment config:
+2. Version-gated environment config:
 
 ```typescript
-// vite.ts
-async config(viteConfig, viteEnv) {
-  const useEnvApi = qwikViteOpts.experimental?.viteEnvironmentApi;
-
-  const baseConfig = { /* existing config */ };
-
-  if (useEnvApi) {
-    return {
-      ...baseConfig,
-      environments: {
-        client: createClientEnvironment(opts),
-        ssr: createSSREnvironment(opts),
-      },
-    };
-  }
-
-  return baseConfig;
+// vite.ts config() hook
+const viteMajorVersion = getViteMajorVersion(this.meta?.viteVersion);
+if (viteMajorVersion >= 7) {
+  updatedViteConfig.environments = {
+    client: { consumer: 'client' /* ... */ },
+    ssr: { consumer: 'server' /* ... */ },
+  };
 }
 ```
 
 **Tests:**
 
-- [ ] Existing tests pass with flag off
-- [ ] Basic build works with flag on
-- [ ] Environment config is generated correctly
+- [ ] Environments present with Vite 7.0.0
+- [ ] Environments NOT present with Vite 6.0.0
+- [ ] Environments NOT present with undefined version (Rolldown)
 
 ---
 
-### Phase 2: Transform Hook Migration (Week 2-3)
+### Phase 2: Transform Hook Migration
 
 **Goal:** Make transform hook environment-aware.
 
@@ -647,9 +648,9 @@ if (!useEnvApi) {
 
 ### Backward Compatibility
 
-- Feature flag ensures opt-in adoption
-- Legacy code paths maintained until Qwik 3.0
-- Test suite runs both modes
+- Version detection ensures automatic adoption on Vite 7+
+- Rolldown fallback maintains REPL/playground functionality
+- `opts.target` fallback handles builds without Environment API
 
 ### Performance
 
@@ -665,24 +666,35 @@ if (!useEnvApi) {
 
 ## Timeline Summary
 
-| Phase           | Duration | Milestone                           |
-| --------------- | -------- | ----------------------------------- |
-| 1. Feature Flag | Week 1-2 | Basic environment config works      |
-| 2. Transform    | Week 2-3 | Environment-aware transforms        |
-| 3. Module Graph | Week 3-4 | Per-environment module tracking     |
-| 4. HMR          | Week 4-5 | hotUpdate hook working              |
-| 5. Build        | Week 5-6 | Coordinated multi-environment build |
-| 6. Router       | Week 6-7 | Router plugin migrated              |
-| 7. Docs         | Week 7-8 | Documentation complete              |
+| Phase             | Duration | Milestone                           |
+| ----------------- | -------- | ----------------------------------- |
+| 1. Version Detect | Week 1   | Version-gated environment config    |
+| 2. Transform      | Week 1-2 | Environment-aware transforms        |
+| 3. Module Graph   | Week 2-3 | Per-environment module tracking     |
+| 4. HMR            | Week 3-4 | hotUpdate hook working              |
+| 5. Build          | Week 4-5 | Coordinated multi-environment build |
+| 6. Router         | Week 5-6 | Router plugin migrated              |
+| 7. Docs           | Week 6   | Documentation complete              |
 
-**Total: ~8 weeks for full migration**
+**Total: ~6 weeks for full migration**
+
+### Rolldown Support
+
+Rolldown (used in REPL/playground) doesn't have a dev server, so the Environment API isn't available. The fallback detection ensures compatibility:
+
+```typescript
+// When environment is undefined (Rolldown), fall back to opts.target
+return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+```
+
+This pattern ensures REPL/playground functionality is maintained without changes.
 
 ## Success Metrics
 
-1. **Functionality:** All tests pass in both modes
+1. **Functionality:** All tests pass with Vite 7+
 2. **Performance:** Build time within 10% of current
 3. **DX:** HMR response time maintained or improved
-4. **Adoption:** Enable by default in Qwik 2.x, required in 3.0
+4. **Compatibility:** Rolldown/REPL builds work without Environment API
 
 ## Open Questions
 
@@ -733,28 +745,42 @@ if (!useEnvApi) {
 
 ### Critical Compatibility Patterns
 
-#### 1. Feature Flag Check
+#### 1. Version Detection
 
-All changes must be gated:
+Environment configuration is version-gated, not feature-flagged:
 
 ```typescript
-// Check if Environment API is available and enabled
-const useEnvApi =
-  qwikViteOpts.experimental?.viteEnvironmentApi && typeof this.environment !== 'undefined';
+// Helper at top of file
+function getViteMajorVersion(viteVersion: string | undefined): number {
+  if (!viteVersion) return 0;
+  const major = parseInt(viteVersion.split('.')[0], 10);
+  return isNaN(major) ? 0 : major;
+}
+
+// In config() hook
+const viteMajorVersion = getViteMajorVersion(this.meta?.viteVersion);
+if (viteMajorVersion >= 7) {
+  updatedViteConfig.environments = {
+    /* ... */
+  };
+}
 ```
 
-#### 2. Environment Detection (Backward Compatible)
+#### 2. Environment Detection (with Rolldown Fallback)
 
 ```typescript
-// Old (Vite 5)
-const isServer = devServer ? !!viteOpts?.ssr : opts.target === 'ssr';
-
-// New (with backward compat)
-const isServer = this.environment
-  ? this.environment.config.consumer === 'server'
-  : devServer
-    ? !!viteOpts?.ssr
-    : opts.target === 'ssr';
+const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
+  // Vite 7+ Environment API
+  if (environment?.config?.consumer === 'server') {
+    return true;
+  }
+  // Fallback: check environment.name
+  if (environment?.name === 'ssr') {
+    return true;
+  }
+  // Rolldown/build fallback (no dev server, no environment)
+  return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+};
 ```
 
 #### 3. Module Graph Access (Backward Compatible)
@@ -774,31 +800,34 @@ function getModuleGraph(ctx: any, envName?: string) {
 }
 ```
 
-#### 4. Keep Both HMR Hooks
+#### 4. HMR Hook (Vite 7+ Only)
 
-**Do NOT remove `handleHotUpdate`** - add `hotUpdate` alongside it:
+With Vite 7+ as minimum, use `hotUpdate` exclusively:
 
 ```typescript
-// Keep existing (for Vite 5 compat)
-handleHotUpdate(ctx) {
-  qwikPlugin.handleHotUpdate(ctx);
-  if (ctx.modules.length) {
-    ctx.server.hot.send({ type: 'full-reload' });
-  }
-},
-
-// Add new (for Vite 6+)
+// Vite 7+ hotUpdate hook
 hotUpdate: {
   order: 'post',
   handler({ file, modules, server, timestamp }) {
-    if (!qwikViteOpts.experimental?.viteEnvironmentApi) {
-      return; // Let handleHotUpdate handle it
-    }
     if (this.environment.name !== 'client') return;
-    // ... environment-specific logic
-  }
+
+    // Call plugin's HMR handler
+    qwikPlugin.handleHotUpdate({
+      file,
+      modules,
+      server,
+      read: () => Promise.resolve(''),
+    } as any);
+
+    if (modules.length) {
+      this.environment.hot.send({ type: 'full-reload' });
+      return [];
+    }
+  },
 },
 ```
+
+**Note:** The legacy `handleHotUpdate` hook is no longer needed since we require Vite 7+.
 
 ---
 
@@ -806,12 +835,32 @@ hotUpdate: {
 
 #### Location: `packages/qwik/src/optimizer/src/plugins/vite.ts`
 
-**Change 1: Add Environment Config (in `config()` hook, before return)**
+**Change 1: Add Version Detection Helper (at top of file, after DEDUPE)**
 
 ```typescript
-// Around line 356, before `return updatedViteConfig`
-if (qwikViteOpts.experimental?.viteEnvironmentApi) {
-  (updatedViteConfig as any).environments = {
+/**
+ * Parse the major version number from a Vite version string. Returns 0 if version is undefined or
+ * cannot be parsed.
+ */
+function getViteMajorVersion(viteVersion: string | undefined): number {
+  if (!viteVersion) return 0;
+  const major = parseInt(viteVersion.split('.')[0], 10);
+  return isNaN(major) ? 0 : major;
+}
+```
+
+**Change 2: Add Version-Gated Environment Config (in `config()` hook, before return)**
+
+```typescript
+/**
+ * Vite 7+ Environment API configuration. Provides per-environment module graphs and optimized deps.
+ * Only enabled for Vite 7+ where the Environment API is fully stable. Rolldown (used in
+ * REPL/playground) doesn't have a dev server and will fall back to opts.target detection in
+ * getIsServer().
+ */
+const viteMajorVersion = getViteMajorVersion(this.meta?.viteVersion);
+if (viteMajorVersion >= 7) {
+  updatedViteConfig.environments = {
     client: {
       consumer: 'client',
       resolve: {
@@ -840,85 +889,28 @@ if (qwikViteOpts.experimental?.viteEnvironmentApi) {
 }
 ```
 
-**Change 2: Add hotUpdate Hook (in `vitePluginPost`, after `handleHotUpdate`)**
-
-```typescript
-// Around line 596, after handleHotUpdate
-hotUpdate: {
-  order: 'post',
-  handler({ file, modules, server, timestamp }) {
-    // Only use new API when feature flag is enabled
-    if (!qwikViteOpts.experimental?.viteEnvironmentApi) {
-      return;
-    }
-
-    const envName = this.environment?.name;
-    if (!envName) return;
-
-    // Call plugin's HMR handler
-    qwikPlugin.handleHotUpdate({
-      file,
-      modules,
-      server,
-      read: () => Promise.resolve(''),
-    } as any);
-
-    if (modules.length) {
-      this.environment.hot.send({ type: 'full-reload' });
-      return [];
-    }
-  },
-},
-```
-
 ---
 
 ### File 2: plugin.ts Changes
 
 #### Location: `packages/qwik/src/optimizer/src/plugins/plugin.ts`
 
-**Change 1: Update `getIsServer` (around line 436)**
+**Change 1: Update `getIsServer` with Rolldown-aware comments**
 
 ```typescript
-// Change from:
-const getIsServer = (viteOpts?: { ssr?: boolean }) => {
-  return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
-};
-
-// Change to:
-const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: any) => {
-  // New Environment API check
+const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
+  // Vite 7+ Environment API: Check environment.config.consumer first
   if (environment?.config?.consumer === 'server') {
     return true;
   }
+  // Fallback: check environment.name for edge cases
   if (environment?.name === 'ssr') {
     return true;
   }
-  // Legacy fallback
+  // Rolldown/build fallback (no dev server, no Environment API)
+  // This handles REPL/playground builds and production builds where
+  // the Environment API may not be available
   return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
-};
-```
-
-**Change 2: Update transform() call (around line 729)**
-
-```typescript
-// Change from:
-const isServer = getIsServer(transformOpts);
-
-// Change to:
-// @ts-ignore - this.environment may not exist in older Vite
-const isServer = getIsServer(transformOpts, (this as any).environment);
-```
-
-**Change 3: Expose transform outputs (around line 1127 in return object)**
-
-```typescript
-return {
-  // ... existing methods ...
-
-  // Add these for Environment API HMR
-  getClientTransformedOutputs: () => clientTransformedOutputs,
-  getServerTransformedOutputs: () => serverTransformedOutputs,
 };
 ```
 
@@ -985,10 +977,10 @@ hotUpdate: {
 
 ## Testing Checklist
 
-### Backward Compatibility (Flag OFF)
+### Vite 7+ Tests
 
 ```bash
-# Run without flag - everything should work as before
+# Run with Vite 7+ - Environment API enabled
 pnpm build
 pnpm test
 pnpm dev  # Test HMR
@@ -998,36 +990,31 @@ pnpm dev  # Test HMR
 - [ ] All tests pass
 - [ ] Dev server HMR works
 - [ ] Production builds work
+- [ ] Environments config is present
 
-### New API (Flag ON)
+### Rolldown Compatibility Tests
 
-Add to vite.config.ts:
-
-```typescript
-qwikVite({
-  experimental: ['viteEnvironmentApi'],
-});
+```bash
+# Test REPL/playground scenarios (no Environment API)
+pnpm test.unit qwik
 ```
 
-- [ ] Dev server starts
-- [ ] HMR triggers on file changes
-- [ ] QRL segments invalidated correctly
+- [ ] Environments config NOT present when viteVersion undefined
+- [ ] `getIsServer` falls back to `opts.target`
+- [ ] REPL builds work correctly
 - [ ] No cross-environment pollution
-- [ ] Production build works
 
 ---
 
 ## Common Mistakes to Avoid
 
-1. **Don't remove `handleHotUpdate`** - Keep both hooks for backward compatibility
-
-2. **Don't assume `this.environment` exists** - Always check:
+1. **Don't assume `this.environment` exists** - Always check (for Rolldown compatibility):
 
    ```typescript
    if (this.environment?.name) { ... }
    ```
 
-3. **Don't use `server.moduleGraph` directly with new API** - Use environment graph:
+2. **Don't use `server.moduleGraph` directly with new API** - Use environment graph:
 
    ```typescript
    // Wrong
@@ -1037,11 +1024,19 @@ qwikVite({
    this.environment.moduleGraph.getModuleById(id);
    ```
 
-4. **Don't send HMR to wrong channel** - Use `this.environment.hot`, not `server.hot`
+3. **Don't send HMR to wrong channel** - Use `this.environment.hot`, not `server.hot`
 
-5. **Always add environment guard first**:
+4. **Always add environment guard first**:
+
    ```typescript
    if (this.environment.name !== 'client') return;
+   ```
+
+5. **Don't forget Rolldown fallback** - When environment is undefined, fall back to `opts.target`:
+
+   ```typescript
+   // Rolldown/build fallback
+   return devServer ? !!viteOpts?.ssr : opts.target === 'ssr';
    ```
 
 ---

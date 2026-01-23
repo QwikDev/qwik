@@ -232,16 +232,24 @@ environments: {
 ### 2. Environment-Aware Transform
 
 ```typescript
-// Current
-const isServer = devServer ? !!viteOpts?.ssr : opts.target === 'ssr';
-
-// Proposed
-transform(code, id) {
-  const isServer = this.environment.config.consumer === 'server';
-  // Or simpler:
-  const isServer = this.environment.name === 'ssr';
-}
+// Vite 7+ Environment API detection with Rolldown fallback
+const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
+  // Vite 7+ Environment API: Check environment.config.consumer first
+  if (environment?.config?.consumer === 'server') {
+    return true;
+  }
+  // Fallback: check environment.name for edge cases
+  if (environment?.name === 'ssr') {
+    return true;
+  }
+  // Rolldown/build fallback (no dev server, no Environment API)
+  // This handles REPL/playground builds and production builds where
+  // the Environment API may not be available
+  return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
+};
 ```
+
+**Note:** Rolldown compatibility is maintained via the `opts.target` fallback. Rolldown doesn't have a dev server, so when `environment` is undefined, we fall back to checking the build target.
 
 ### 3. QRL Tracking Per Environment
 
@@ -472,55 +480,48 @@ qwikPlugin.api.registerBundleGraphAdder?.((manifest) => {
 
 **Challenge:** Both plugins need environment awareness, and must coordinate.
 
+## Version Requirements
+
+- **Minimum:** Vite 7.0.0 (Environment API fully stable)
+- **Rolldown:** Supported (uses `opts.target` fallback, no Environment API)
+- **Vite 5/6:** No longer supported
+
+The Environment API is automatically enabled when running Vite 7+. No experimental flag is needed.
+
 ## Migration Phases
 
-### Phase 1: Add Feature Flag
-
-Qwik already has an experimental features system (plugin.ts:67-80):
+Environment configuration is version-gated using `this.meta.viteVersion`:
 
 ```typescript
-// Existing enum - add viteEnvironmentApi here
-export enum ExperimentalFeatures {
-  preventNavigate = 'preventNavigate',
-  valibot = 'valibot',
-  noSPA = 'noSPA',
-  enableRequestRewrite = 'enableRequestRewrite',
-  webWorker = 'webWorker',
-  insights = 'insights',
-  // Add: viteEnvironmentApi = 'viteEnvironmentApi',
+const viteMajorVersion = getViteMajorVersion(this.meta?.viteVersion);
+if (viteMajorVersion >= 7) {
+  updatedViteConfig.environments = {
+    client: {
+      /* ... */
+    },
+    ssr: {
+      /* ... */
+    },
+  };
 }
 ```
 
-Usage in vite.ts options:
+### Phase 1: Transform Migration
 
-```typescript
-interface QwikVitePluginOptions {
-  experimental?: (keyof typeof ExperimentalFeatures)[];
-  // Check with: opts.experimental?.includes('viteEnvironmentApi')
-}
-```
+- Use `this.environment` in hooks when available
+- Keep `opts.target` for Rolldown compatibility
 
-### Phase 2: Environment Configuration
-
-- Add `environments` config when flag enabled
-- Maintain backward compatibility
-
-### Phase 3: Transform Migration
-
-- Use `this.environment` in hooks
-- Keep `opts.target` for backward compatibility
-
-### Phase 4: HMR Migration
+### Phase 2: HMR Migration
 
 - Migrate `handleHotUpdate` to `hotUpdate`
 - Implement environment-specific HMR
 
-### Phase 5: Module Graph Migration
+### Phase 3: Module Graph Migration
 
 - Use `this.environment.moduleGraph`
 - Update QRL invalidation logic
 
-### Phase 6: Build Pipeline Migration
+### Phase 4: Build Pipeline Migration
 
 - Use `builder.buildApp()` for build coordination
 - Maintain manifest flow between environments
@@ -531,11 +532,12 @@ interface QwikVitePluginOptions {
 2. **Integration Tests:** Full build with both environments
 3. **E2E Tests:** Dev server HMR behavior
 4. **Snapshot Tests:** Manifest generation
+5. **Version Tests:** Verify environments config only present for Vite 7+
 
 ## Success Criteria
 
-1. All existing tests pass with feature flag on/off
+1. All existing tests pass with Vite 7+
 2. Dev server HMR works correctly
 3. Production builds generate correct output
 4. No regression in build times
-5. Clear migration path for users
+5. Rolldown compatibility maintained (REPL/playground)

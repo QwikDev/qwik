@@ -85,8 +85,6 @@ export enum ExperimentalFeatures {
   webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
-  /** Enable Vite 6+ Environment API support for per-environment module graphs and HMR */
-  viteEnvironmentApi = 'viteEnvironmentApi',
 }
 
 export interface QwikPackages {
@@ -444,7 +442,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   };
 
   const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): boolean => {
-    // Vite 6+ Environment API: Check environment.config.consumer first
+    // Vite 7+ Environment API: Check environment.config.consumer first
     if (environment?.config?.consumer === 'server') {
       return true;
     }
@@ -452,7 +450,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     if (environment?.name === 'ssr') {
       return true;
     }
-    // Legacy Vite 5 fallback
+    // Rolldown/build fallback (no dev server, no Environment API)
+    // This handles REPL/playground builds and production builds where
+    // the Environment API may not be available
     return devServer ? !!viteOpts?.ssr : opts.target === 'ssr' || opts.target === 'test';
   };
 

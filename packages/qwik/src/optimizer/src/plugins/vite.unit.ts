@@ -568,3 +568,36 @@ describe('input config', () => {
     assert.deepEqual(c.build.rollupOptions.input, ['./src/widget/ssr.tsx']);
   });
 });
+
+describe('viteEnvironmentApi experimental flag', () => {
+  test('environments config should NOT be added when flag is not set', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isUndefined(c.environments);
+  });
+
+  test('environments config should be added when flag is set', async () => {
+    const initOpts = {
+      optimizerOptions: mockOptimizerOptions(),
+      experimental: ['viteEnvironmentApi'] as any,
+    };
+    const plugin = getPlugin(initOpts);
+    const c: any = (await plugin.config.call(
+      configHookPluginContext,
+      {},
+      { command: 'serve', mode: 'development' }
+    ))!;
+    assert.isDefined(c.environments);
+    assert.isDefined(c.environments.client);
+    assert.isDefined(c.environments.ssr);
+    assert.deepEqual(c.environments.client.consumer, 'client');
+    assert.deepEqual(c.environments.ssr.consumer, 'server');
+  });
+});

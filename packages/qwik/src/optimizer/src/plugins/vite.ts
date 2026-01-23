@@ -353,6 +353,36 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         (globalThis as any).qInspector = qInspector;
       }
 
+      // Add Vite Environment API configuration when experimental flag is enabled
+      if (opts.experimental?.viteEnvironmentApi) {
+        updatedViteConfig.environments = {
+          client: {
+            consumer: 'client',
+            resolve: {
+              conditions: ['browser', 'import', 'module'],
+            },
+            optimizeDeps: {
+              exclude: [
+                QWIK_CORE_ID,
+                QWIK_CORE_INTERNAL_ID,
+                QWIK_CORE_SERVER,
+                QWIK_JSX_RUNTIME_ID,
+                QWIK_JSX_DEV_RUNTIME_ID,
+                QWIK_BUILD_ID,
+                QWIK_CLIENT_MANIFEST_ID,
+              ],
+            },
+          },
+          ssr: {
+            consumer: 'server',
+            resolve: {
+              conditions: ['node', 'import', 'module'],
+              noExternal: [QWIK_CORE_ID, QWIK_CORE_INTERNAL_ID, QWIK_CORE_SERVER, QWIK_BUILD_ID],
+            },
+          },
+        };
+      }
+
       return updatedViteConfig;
     },
 

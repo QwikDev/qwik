@@ -77,6 +77,8 @@ export enum ExperimentalFeatures {
   webWorker = 'webWorker',
   /** Enable the ability to use the Qwik Insights vite plugin and `<Insights/>` component */
   insights = 'insights',
+  /** Enable Vite 6+ Environment API support for per-environment module graphs and HMR */
+  viteEnvironmentApi = 'viteEnvironmentApi',
 }
 
 export interface QwikPackages {

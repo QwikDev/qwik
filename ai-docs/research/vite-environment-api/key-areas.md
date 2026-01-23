@@ -309,6 +309,58 @@ const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): b
 
 ---
 
+## Existing Infrastructure for Smart HMR
+
+**Key Discovery:** The Qwik optimizer already tracks the information needed for smarter HMR without building new systems.
+
+### QRL Type Classification via `ctxName`
+
+Every QRL segment has a `ctxName` field that identifies its type:
+
+```typescript
+// From plugin.ts - these are stripped FROM CLIENT (server-only QRLs)
+const SERVER_STRIP_CTX_NAME = [
+  'useServer',
+  'route',
+  'server', // server$
+  'action$', // routeAction$
+  'loader$', // routeLoader$
+  'zod$',
+  'validator$',
+  'globalAction$',
+];
+
+// These are stripped FROM SERVER (client-only QRLs)
+const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
+```
+
+### Available During HMR
+
+The `clientResults` and `clientTransformedOutputs` maps cache all transform outputs, including segment metadata:
+
+```typescript
+// Already available in plugin scope during HMR
+const output = clientResults.get(moduleId);
+const segments = output.modules.map((m) => m.segment).filter(Boolean);
+
+// Each segment has ctxName identifying the QRL type
+segments.forEach((seg) => {
+  console.log(seg.ctxName); // "routeLoader$", "server$", "component$", etc.
+});
+```
+
+### Implication for Phase 2 (SSR-Only Module Detection)
+
+With this infrastructure, Phase 2 becomes simpler:
+
+1. **Check if module is SSR-only:** All its segments have `ctxName` in `SERVER_STRIP_CTX_NAME`
+2. **Check if module is client-only:** All its segments have `ctxName` in `CLIENT_STRIP_CTX_NAME`
+3. **Check if module is mixed:** Has segments in both lists or neither
+
+This enables smart HMR without building new tracking systems.
+
+---
+
 ## Summary: Migration Checklist
 
 | Area                                  | Status             | Priority | Action Required           |

@@ -667,6 +667,140 @@ function onHmrStaleLoaders(staleLoaders: string[]) {
 
 ---
 
+## Existing Infrastructure: What Qwik Already Tracks
+
+**Key Finding:** The Qwik optimizer already tracks exactly the information we need to identify `routeLoader$`, `server$`, and other server-only QRLs. We don't need to build a new tracking system.
+
+### 1. `ctxName` in Segment Analysis
+
+Every transformed QRL has a `ctxName` property that identifies its type:
+
+```typescript
+// From packages/qwik/src/optimizer/src/types.ts
+export interface SegmentAnalysis {
+  ctxKind: 'eventHandler' | 'function';
+  ctxName: string; // ← This is the key! e.g., "routeLoader$", "server$", "component$"
+  origin: string; // Source file path
+  hash: string; // Unique QRL hash
+  // ...
+}
+```
+
+### 2. Server-Only vs Client-Only Classification
+
+The optimizer already defines which QRLs are server-only and client-only:
+
+```typescript
+// From packages/qwik/src/optimizer/src/plugins/plugin.ts
+
+// These are stripped FROM CLIENT (i.e., server-only)
+const SERVER_STRIP_CTX_NAME = [
+  'useServer',
+  'route',
+  'server', // server$
+  'action$', // routeAction$
+  'loader$', // routeLoader$
+  'zod$',
+  'validator$',
+  'globalAction$',
+];
+
+// These are stripped FROM SERVER (i.e., client-only)
+const CLIENT_STRIP_CTX_NAME = ['useClient', 'useBrowser', 'useVisibleTask', 'client', 'browser'];
+```
+
+### 3. Transform Output Cache
+
+During dev, the optimizer caches transform results that include segment info:
+
+```typescript
+// plugin.ts line ~98
+const clientResults = new Map<string, TransformOutput>();
+const clientTransformedOutputs = new Map<string, [TransformModule, string]>();
+const serverTransformedOutputs = new Map<string, [TransformModule, string]>();
+
+// TransformOutput.modules[].segment.ctxName contains the QRL type
+```
+
+### 4. How to Leverage This for HMR
+
+**During HMR, we can:**
+
+1. Get the changed file's module ID from Vite's `hotUpdate` context
+2. Look up the transformation output: `clientResults.get(moduleId)`
+3. Extract all segments: `output.modules.map(m => m.segment).filter(Boolean)`
+4. Check `ctxName` against `SERVER_STRIP_CTX_NAME` to identify server-only QRLs
+
+**Example implementation:**
+
+```typescript
+// In hotUpdate hook
+function getServerOnlyQrls(moduleId: string): SegmentAnalysis[] {
+  const output = clientResults.get(moduleId);
+  if (!output) return [];
+
+  return output.modules
+    .map((m) => m.segment)
+    .filter(Boolean)
+    .filter((seg) =>
+      SERVER_STRIP_CTX_NAME.some((name) => seg.ctxName === name || seg.ctxName.includes(name))
+    );
+}
+
+// Check if a module is server-only
+function isServerOnlyModule(moduleId: string): boolean {
+  const output = clientResults.get(moduleId);
+  if (!output) return false;
+
+  const segments = output.modules.map((m) => m.segment).filter(Boolean);
+  if (segments.length === 0) return false;
+
+  // All QRLs in this module are server-only
+  return segments.every((seg) =>
+    SERVER_STRIP_CTX_NAME.some((name) => seg.ctxName === name || seg.ctxName.includes(name))
+  );
+}
+```
+
+### 5. Manifest Already Contains This Info (Production)
+
+The built manifest also tracks `ctxName`:
+
+```json
+{
+  "symbols": {
+    "s_abc123": {
+      "ctxKind": "function",
+      "ctxName": "routeLoader$",
+      "origin": "src/routes/products/index.tsx",
+      "hash": "abc123"
+    }
+  }
+}
+```
+
+### 6. What This Means for Implementation
+
+**We don't need to:**
+
+- Build a new QRL tracking system
+- Add transform-time annotations
+- Modify the manifest structure
+
+**We only need to:**
+
+- Expose `clientResults` (or a helper function) to the HMR hook
+- Add logic to check `ctxName` against the strip lists
+- Implement the caching/staleness logic for loaders
+
+**Complexity reduction:** The detection mechanism is already built. Implementation of Phase 2 (routeLoader$ skip) primarily involves:
+
+1. Exposing existing transform data to HMR context
+2. Building the loader result cache
+3. Implementing staleness logic
+
+---
+
 ## References
 
 - GitHub Issue #303: https://github.com/QwikDev/qwik/issues/303

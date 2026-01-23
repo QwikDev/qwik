@@ -630,16 +630,29 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
       };
     },
 
-    handleHotUpdate(ctx) {
-      qwikPlugin.handleHotUpdate(ctx);
+    // Vite 7+ Environment API: per-environment HMR handling
+    hotUpdate: {
+      order: 'post',
+      handler({ file, modules, server }) {
+        // Only handle client environment - SSR changes trigger client reload anyway
+        if ((this as any).environment?.name !== 'client') {
+          return;
+        }
 
-      // Tell the client to reload the page if any modules were used in ssr or client
-      // this needs to be refined
-      if (ctx.modules.length) {
-        ctx.server.hot.send({
-          type: 'full-reload',
-        });
-      }
+        // Delegate to plugin for cache invalidation
+        qwikPlugin.invalidateHotModules({
+          file,
+          modules,
+          server,
+          read: () => Promise.resolve(''),
+        } as any);
+
+        // Trigger full reload via environment-specific hot channel
+        if (modules.length) {
+          (this as any).environment.hot.send({ type: 'full-reload' });
+          return []; // Prevent default HMR, we handled it
+        }
+      },
     },
 
     onLog(level, log) {

@@ -575,6 +575,96 @@ describe('input config', () => {
   });
 });
 
+describe('hotUpdate hook (Vite 7+ HMR)', () => {
+  // Get the post plugin which has the hotUpdate hook
+  const getPostPlugin = (opts: QwikVitePluginOptions | undefined) =>
+    (qwikVite(opts) as any)[1] as any;
+
+  test('hotUpdate hook should exist on post plugin', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    assert.isDefined(plugin.hotUpdate);
+    assert.equal(plugin.hotUpdate.order, 'post');
+    assert.isFunction(plugin.hotUpdate.handler);
+  });
+
+  test('hotUpdate should skip non-client environments', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    // Mock context with SSR environment
+    const mockContext = {
+      environment: { name: 'ssr', hot: { send: () => {} } },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [{ id: '/test.tsx' }],
+      server: { environments: {} },
+    });
+
+    // Should return undefined (early return for non-client)
+    assert.isUndefined(result);
+  });
+
+  test('hotUpdate should send full-reload for client environment with modules', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [{ id: '/test.tsx' }],
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Should return empty array (handled, prevent default HMR)
+    assert.deepEqual(result, []);
+    // Should have sent full-reload
+    assert.deepEqual(sentMessage, { type: 'full-reload' });
+  });
+
+  test('hotUpdate should not send reload when no modules', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const result = handler.call(mockContext, {
+      file: '/test.tsx',
+      modules: [],
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Should return undefined (no modules to handle)
+    assert.isUndefined(result);
+    // Should not have sent any message
+    assert.isNull(sentMessage);
+  });
+});
+
 describe('Vite 7+ Environment API configuration', () => {
   test('environments config should be present for Vite 7+', async () => {
     const initOpts = {

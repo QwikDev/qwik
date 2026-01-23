@@ -311,20 +311,20 @@ const getIsServer = (viteOpts?: { ssr?: boolean }, environment?: Environment): b
 
 ## Summary: Migration Checklist
 
-| Area                                  | Status             | Priority | Action Required            |
-| ------------------------------------- | ------------------ | -------- | -------------------------- |
-| `handleHotUpdate` module graph        | ❌ Not env-aware   | P1       | Add environment loop       |
-| `ctx.server.hot.send()`               | ❌ Legacy API      | P1       | Use `this.environment.hot` |
-| `devServer.moduleGraph` (3 locations) | ❌ Not env-aware   | P1       | Add environment fallback   |
-| Manifest build coordination           | ⚠️ File-based      | P2       | Use `builder.buildApp()`   |
-| Transform cache isolation             | ⚠️ Shared instance | P2       | Consider WeakMap pattern   |
-| Code stripping detection              | ✅ Works           | P2       | Test edge cases            |
-| Full-reload HMR                       | ⚠️ Suboptimal      | P3       | Future: granular HMR       |
-| Bundle graph adders                   | ⚠️ Shared set      | P3       | Verify idempotency         |
-| `hotUpdate` hook                      | ❌ Missing         | P4       | Add for Vite 7+            |
-| Router plugin module graph            | ✅ Good            | -        | Reference pattern          |
-| Dev middleware module graph           | ✅ Good            | -        | Reference pattern          |
-| `getIsServer()` detection             | ✅ Good            | -        | Reference pattern          |
+| Area                                  | Status             | Priority | Action Required           |
+| ------------------------------------- | ------------------ | -------- | ------------------------- |
+| `handleHotUpdate` module graph        | ✅ Done            | P1       | Environment loop added    |
+| `ctx.server.hot.send()`               | ✅ Done            | P1       | `hotUpdate` hook replaces |
+| `devServer.moduleGraph` (3 locations) | ✅ Done            | P1       | Helper function added     |
+| Manifest build coordination           | ⚠️ File-based      | P2       | Use `builder.buildApp()`  |
+| Transform cache isolation             | ⚠️ Shared instance | P2       | Consider WeakMap pattern  |
+| Code stripping detection              | ✅ Works           | P2       | Test edge cases           |
+| Full-reload HMR                       | ⚠️ Suboptimal      | P3       | Future: granular HMR      |
+| Bundle graph adders                   | ⚠️ Shared set      | P3       | Verify idempotency        |
+| `hotUpdate` hook                      | ✅ Done            | P4       | Added to vite.ts          |
+| Router plugin module graph            | ✅ Good            | -        | Reference pattern         |
+| Dev middleware module graph           | ✅ Good            | -        | Reference pattern         |
+| `getIsServer()` detection             | ✅ Good            | -        | Reference pattern         |
 
 ---
 

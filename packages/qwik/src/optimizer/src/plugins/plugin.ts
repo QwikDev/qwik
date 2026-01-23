@@ -489,7 +489,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const file = devServer!.moduleGraph.getModuleById(resolved.id)?.file;
+          const file = getModuleById(devServer!, resolved.id)?.file;
           if (file) {
             const path = `${file}${location}`;
             try {
@@ -705,8 +705,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
       const parentId = parentIds.get(id);
       if (parentId) {
-        const parentModule = devServer.moduleGraph.getModuleById(parentId);
-        if (parentModule) {
+        const parentModule = getModuleById(devServer, parentId);
+        if (parentModule?.url) {
           // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
           debug(`load(${count})`, 'transforming QRL parent', parentId);
           // We need to encode it as an absolute path
@@ -790,7 +790,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        devPath = devServer.moduleGraph.getModuleById(pathId)?.url;
+        devPath = getModuleById(devServer, pathId)?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],
@@ -1028,24 +1028,60 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     opts.sourcemap = sourcemap;
   }
 
-  // Only used in Vite dev mode
-  function handleHotUpdate(ctx: HmrContext) {
-    debug('handleHotUpdate()', ctx.file);
+  /**
+   * Invalidate a module across all environments (Vite 7+) or legacy module graph. Pattern from
+   * qwik-router/plugin.ts lines 182-195.
+   */
+  function invalidateModuleInEnvironments(server: ViteDevServer, moduleId: string): void {
+    if ((server as any).environments) {
+      // Vite 7+: Invalidate in all environments
+      for (const env of Object.values((server as any).environments)) {
+        const mod = (env as any).moduleGraph?.getModuleById(moduleId);
+        if (mod) {
+          (env as any).moduleGraph.invalidateModule(mod);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const mod = server.moduleGraph.getModuleById(moduleId);
+      if (mod) {
+        server.moduleGraph.invalidateModule(mod);
+      }
+    }
+  }
+
+  /**
+   * Get a module from the appropriate module graph. Prefers client environment graph in Vite 7+,
+   * falls back to legacy shared graph.
+   */
+  function getModuleById(
+    server: ViteDevServer,
+    moduleId: string
+  ): { file?: string | null; url?: string } | undefined {
+    // Vite 7+: prefer client environment
+    const clientEnv = (server as any).environments?.client;
+    if (clientEnv?.moduleGraph) {
+      return clientEnv.moduleGraph.getModuleById(moduleId);
+    }
+    // Legacy fallback
+    return server.moduleGraph.getModuleById(moduleId);
+  }
+
+  // Only used in Vite dev mode - called from hotUpdate hook
+  function invalidateHotModules(ctx: HmrContext) {
+    debug('invalidateHotModules()', ctx.file);
 
     for (const mod of ctx.modules) {
       const { id } = mod;
       if (id) {
-        debug('handleHotUpdate()', `invalidate ${id}`);
+        debug('invalidateHotModules()', `invalidate ${id}`);
         clientResults.delete(id);
         for (const outputs of [clientTransformedOutputs, serverTransformedOutputs]) {
           for (const [key, [_, parentId]] of outputs) {
             if (parentId === id) {
-              debug('handleHotUpdate()', `invalidate ${id} segment ${key}`);
+              debug('invalidateHotModules()', `invalidate ${id} segment ${key}`);
               outputs.delete(key);
-              const mod = ctx.server.moduleGraph.getModuleById(key);
-              if (mod) {
-                ctx.server.moduleGraph.invalidateModule(mod);
-              }
+              invalidateModuleInEnvironments(ctx.server, key);
             }
           }
         }
@@ -1164,7 +1200,7 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     validateSource,
     setSourceMapSupport,
     configureServer,
-    handleHotUpdate,
+    invalidateHotModules,
     manualChunks,
     generateManifest,
   };

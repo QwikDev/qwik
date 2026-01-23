@@ -1046,6 +1046,84 @@ qwikVite({
 
 ---
 
+## Team Discussion Notes (Discord, 2025)
+
+### Jack's Analysis of qwikVite Plugin Areas (Aug 2, 2025)
+
+**Specific areas identified for migration:**
+
+| Lines     | Issue                                              | Required Change                                                                |
+| --------- | -------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 103-150   | Implicit environment handling as boolean (SSR/CSR) | Change `opts.target` to use `this.environment`                                 |
+| 103-335   | Uses deprecated `build.ssr` config option          | Update to `environments` config                                                |
+| 222-231   | Top-level `ssr` config                             | Move into `environments` object                                                |
+| 464-566   | Manifest generation in separate processes          | Refactor - no longer need two separate processes                               |
+| 570-618   | Vite dev server in core plugin                     | Move to Qwik Router, use `FetchableDevEnvironment` or `RunnableDevEnvironment` |
+| plugin.ts | Old environment checks like `getIsServer`          | Update to check `this.environment`                                             |
+
+### Nitro Integration Patterns (from pi0, Oct 2025)
+
+**How Nitro Vite plugin works:**
+
+1. Infers SSR entry from `environments.ssr.build?.rollupOptions?.input`
+2. Sets `config.build.outDir` of client environments based on deployment preset
+3. **Dev mode:** Makes SSR a Fetchable environment, calls fetch in isolated worker
+4. **Prod mode:** Dynamically imports SSR entry and routes every request to it
+
+**Build ordering:** Nitro plugin waits on all other environments to complete before final server build.
+
+**Performance pattern - FastResponse:**
+
+```typescript
+// Instead of converting node → web → node streams:
+return new FastResponse(NodeReadable);
+// FastResponse can hold a node stream and passthrough without conversion
+```
+
+### Build Order Requirement
+
+> "qwik needs the client build to complete before the ssr build completes" — w00t
+
+This is critical for manifest generation. Use `builder.buildApp()` to control order:
+
+```typescript
+builder: {
+  async buildApp(builder) {
+    // Client first (generates manifest)
+    await builder.build(builder.environments.client);
+    // SSR second (consumes manifest)
+    await builder.build(builder.environments.ssr);
+  },
+}
+```
+
+### Environment API Usage Patterns
+
+```typescript
+// Get URLs for client module graph (useful for vitest browser SSR)
+await viteServer.environments.client.resolveUrl('@qwik.dev/core');
+
+// Pre-generate client code
+await viteServer.environments.client.fetchModule(filePath);
+
+// Use module graph for QRL->file mapping
+const clientGraph = viteServer.environments.client.moduleGraph;
+```
+
+### Known Issues During Migration
+
+1. **"Qwik core bundle not found"** - Occurs when optimizer doesn't find application root
+2. **Empty root.tsx** - If root file is empty, optimizer has nothing to process
+3. **Manifest generation fails** - Usually due to missing entry points or empty modules
+
+### Development Environment Recommendations
+
+- Use `FetchableDevEnvironment` for SSR (like Nitro) - works with other fetchable runtimes
+- `RunnableDevEnvironment` for more control over module execution
+- `--app` flag may run out of memory for large builds (docs) - use rolldown for those cases
+
+---
+
 ## References
 
 - [01-vite-core-api.md](./01-vite-core-api.md) - Vite Environment API fundamentals
@@ -1056,3 +1134,9 @@ qwikVite({
 - [06-nuxt-implementation.md](./06-nuxt-implementation.md) - Feature flag approach
 - [07-astro-implementation.md](./07-astro-implementation.md) - Cross-environment module lookup
 - [08-qwik-requirements.md](./08-qwik-requirements.md) - Qwik-specific needs
+
+### External Resources (Nitro Integration)
+
+- [nitrojs/vite-examples#9](https://github.com/nitrojs/vite-examples/pull/9) - Giorgio's PR for Qwik + Nitro example
+- [nitrojs/nitro#3825](https://github.com/nitrojs/nitro/pull/3825) - Nitro PR with Qwik branch
+- [pi0/nitro-qwik](https://github.com/pi0/nitro-qwik) - External test repo for Nitro + Qwik

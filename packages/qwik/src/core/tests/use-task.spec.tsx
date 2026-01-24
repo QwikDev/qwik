@@ -647,6 +647,44 @@ describe.each([
     );
   });
 
+  it('should update signal in async task', async () => {
+    const Cmp = component$(() => {
+      const basicData = useSignal(1);
+      const arrData = useSignal<number[]>([]);
+      useTask$(async () => {
+        await delay(100);
+        arrData.value = [1, 2, 3];
+        basicData.value++;
+      });
+      return (
+        <div>
+          <span>{basicData.value}</span>
+          <div>
+            {arrData.value.map((item) => (
+              <div>Item: {item}</div>
+            ))}
+          </div>
+        </div>
+      );
+    });
+    const { vNode } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <span>
+            <Signal>2</Signal>
+          </span>
+          <div>
+            <div>Item: 1</div>
+            <div>Item: 2</div>
+            <div>Item: 3</div>
+          </div>
+        </div>
+      </Component>
+    );
+  });
+
   describe('blockRender', () => {
     it('should execute task and block render until finish', async () => {
       vi.useFakeTimers();

@@ -41,6 +41,12 @@ Plans:
 
 **Requirements:** DEV-01, DEV-02, DEV-03, DEV-04
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Dev server rendering validation (DEV-01, DEV-02)
+- [ ] 02-02-PLAN.md — HMR and hotUpdate hook validation (DEV-03, DEV-04)
+
 **Success Criteria:**
 1. App renders in browser (client environment working)
 2. SSR response contains server-rendered HTML
@@ -48,7 +54,7 @@ Plans:
 4. Browser reloads via `this.environment.hot.send()`
 5. Module invalidation uses environment-specific graphs
 
-**Validation Method:** Manual testing with agent-browser on a Qwik app
+**Validation Method:** Browser testing with agent-browser, unit tests for HMR
 
 ---
 

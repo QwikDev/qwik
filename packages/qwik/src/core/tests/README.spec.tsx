@@ -36,6 +36,7 @@ import {
 } from '../shared/jsx/jsx-runtime';
 import { Slot } from '../shared/jsx/slot.public';
 import { useSignal } from '../use/use-signal';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 
 // To better understand what is going on in the test, set DEBUG to true and run the test.
 const DEBUG = false;
@@ -197,7 +198,9 @@ describe.each([
     );
     if (render === ssrRenderToDom) {
       // We can only assert this is SSR, as CSR does just keeps unused nodes in memory. (No need to write them to DOM)
-      expect(vNode!.nextSibling).toMatchVDOM(
+      expect(
+        ((vNode as VirtualVNode).firstChild as VirtualVNode).firstChild?.nextSibling
+      ).toMatchVDOM(
         <q:template hidden aria-hidden="true">
           <Fragment>
             <span q:slot="my-slot">

@@ -15,10 +15,10 @@ Requirements for validating the Environment API migration. Each maps to roadmap 
 
 ### Dev Mode with Environment API
 
-- [ ] **DEV-01**: Client renders using `environments.client` module graph
-- [ ] **DEV-02**: SSR renders using `environments.ssr` module graph
-- [ ] **DEV-03**: File change triggers `hotUpdate` hook (not legacy `handleHotUpdate`)
-- [ ] **DEV-04**: HMR uses `this.environment.hot.send()` for reload
+- [x] **DEV-01**: Client renders using `environments.client` module graph
+- [x] **DEV-02**: SSR renders using `environments.ssr` module graph
+- [x] **DEV-03**: File change triggers `hotUpdate` hook (not legacy `handleHotUpdate`)
+- [x] **DEV-04**: HMR uses `this.environment.hot.send()` for reload
 
 ### Build Mode
 
@@ -64,10 +64,10 @@ Deferred to future milestones.
 | ENV-01 | Phase 1 | Complete |
 | ENV-02 | Phase 1 | Complete |
 | ENV-03 | Phase 1 | Complete |
-| DEV-01 | Phase 2 | Pending |
-| DEV-02 | Phase 2 | Pending |
-| DEV-03 | Phase 2 | Pending |
-| DEV-04 | Phase 2 | Pending |
+| DEV-01 | Phase 2 | Complete |
+| DEV-02 | Phase 2 | Complete |
+| DEV-03 | Phase 2 | Complete |
+| DEV-04 | Phase 2 | Complete |
 | BUILD-01 | Phase 3 | Pending |
 | BUILD-02 | Phase 3 | Pending |
 | BUILD-03 | Phase 3 | Pending |

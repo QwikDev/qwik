@@ -44,8 +44,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Dev server rendering validation (DEV-01, DEV-02)
-- [ ] 02-02-PLAN.md — HMR and hotUpdate hook validation (DEV-03, DEV-04)
+- [x] 02-01-PLAN.md — Dev server rendering validation (DEV-01, DEV-02)
+- [x] 02-02-PLAN.md — HMR and hotUpdate hook validation (DEV-03, DEV-04)
 
 **Success Criteria:**
 1. App renders in browser (client environment working)

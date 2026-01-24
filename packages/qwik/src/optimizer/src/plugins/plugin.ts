@@ -489,7 +489,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         // Find the actual file on disk by asking vite to resolve it
         const resolved = await ctx.resolve(origId, importerId);
         if (resolved) {
-          const file = getModuleById(devServer!, resolved.id)?.file;
+          // Vite 7+: use environment's module graph when available (DevEnvironment only)
+          const file = (
+            (ctx?.environment as any)?.moduleGraph?.getModuleById(resolved.id) ??
+            getModuleById(devServer!, resolved.id)
+          )?.file;
           if (file) {
             const path = `${file}${location}`;
             try {
@@ -705,19 +709,33 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       // in dev mode, it could be that the id is a QRL segment that wasn't transformed yet
       const parentId = parentIds.get(id);
       if (parentId) {
-        const parentModule = getModuleById(devServer, parentId);
+        // Vite 7+: use environment's module graph directly when available (DevEnvironment only)
+        // This ensures we query the correct graph (client or ssr) based on the request context
+        const envModuleGraph = (ctx?.environment as any)?.moduleGraph;
+        const envModule = envModuleGraph?.getModuleById(parentId);
+        const fallbackModule = getModuleById(devServer, parentId);
+        const parentModule = envModule ?? fallbackModule;
+
+        // Determine the URL to use for transformRequest
+        let transformUrl: string;
         if (parentModule?.url) {
-          // building here via ctx.load doesn't seem to work (no transform), instead we use the devserver directly
-          debug(`load(${count})`, 'transforming QRL parent', parentId);
-          // We need to encode it as an absolute path
-          await devServer.transformRequest(parentModule.url);
-          // The QRL segment should exist now
-          if (!outputs.has(id)) {
-            debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
-            return null;
-          }
+          // Module found in graph - use its URL
+          transformUrl = parentModule.url;
+        } else if (parentId.startsWith('/virtual-') || parentId.startsWith('\0')) {
+          // Virtual modules - use as-is
+          transformUrl = parentId;
         } else {
-          console.error(`load(${count})`, `module ${parentId} does not exist in the build graph!`);
+          // Real file not in graph yet - use /@fs/ prefix for absolute paths
+          transformUrl = parentId.startsWith('/') ? `/@fs${parentId}` : `/@fs/${parentId}`;
+        }
+
+        debug(`load(${count})`, 'transforming QRL parent', parentId, '->', transformUrl);
+        await devServer.transformRequest(transformUrl);
+
+        // The QRL segment should exist now after parent transform
+        if (!outputs.has(id)) {
+          debug(`load(${count})`, `QRL segment ${id} not found in ${parentId}`);
+          return null;
         }
       }
     }
@@ -790,7 +808,11 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       const entryStrategy: EntryStrategy = opts.entryStrategy;
       let devPath: string | undefined;
       if (devServer) {
-        devPath = getModuleById(devServer, pathId)?.url;
+        // Vite 7+: use environment's module graph when available (DevEnvironment only)
+        devPath = (
+          (ctx?.environment as any)?.moduleGraph?.getModuleById(pathId) ??
+          getModuleById(devServer, pathId)
+        )?.url;
       }
       const transformOpts: TransformModulesOptions = {
         input: [{ code, path: filePath, devPath }],
@@ -1051,14 +1073,17 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
   }
 
   /**
-   * Get a module from the appropriate module graph. Prefers client environment graph in Vite 7+,
-   * falls back to legacy shared graph.
+   * Legacy fallback for getting a module from the module graph when environment context is not
+   * available. In Vite 7+, prefer using ctx.environment.moduleGraph.getModuleById() directly in
+   * plugin hooks, which queries the correct environment-specific graph.
+   *
+   * This function falls back to client environment graph, then legacy shared graph.
    */
   function getModuleById(
     server: ViteDevServer,
     moduleId: string
   ): { file?: string | null; url?: string } | undefined {
-    // Vite 7+: prefer client environment
+    // Vite 7+: fallback to client environment when environment context not available
     const clientEnv = (server as any).environments?.client;
     if (clientEnv?.moduleGraph) {
       return clientEnv.moduleGraph.getModuleById(moduleId);

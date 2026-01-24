@@ -230,12 +230,4 @@ export class SsrComponentFrame implements ISsrComponentFrame {
     projectionNode.setProp(QSlotParent, this.componentNode.id);
     return children;
   }
-
-  releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]) {
-    if (this.slots.length) {
-      unclaimedProjections.push(this);
-      unclaimedProjections.push(this.projectionScopedStyle);
-      unclaimedProjections.push.apply(unclaimedProjections, this.slots);
-    }
-  }
 }

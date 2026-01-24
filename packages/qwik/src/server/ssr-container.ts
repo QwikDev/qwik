@@ -225,8 +225,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private depthFirstElementCount: number = -1;
   private vNodeDatas: VNodeData[] = [];
   private componentStack: ISsrComponentFrame[] = [];
-  private unclaimedProjections: Array<ISsrComponentFrame | string | JSXChildren> = [];
-  public unclaimedProjectionComponentFrameQueue: Array<ISsrComponentFrame> = [];
   private cleanupQueue: CleanupQueue = [];
   public $instanceHash$ = hash();
   // Temporary flag to find missing roots after the state was serialized
@@ -577,12 +575,47 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     return this.getComponentFrame(localProjectionDepth);
   }
 
-  /** Writes closing data to vNodeData for component boundaries and mark unclaimed projections */
-  closeComponent() {
+  /** Writes closing data to vNodeData for component boundaries and emit unclaimed projections inline */
+  async closeComponent() {
     const componentFrame = this.componentStack.pop()!;
-    componentFrame.releaseUnclaimedProjections(this.unclaimedProjections);
+    await this.emitUnclaimedProjectionForComponent(componentFrame);
     this.closeFragment();
     this.currentComponentNode = this.currentComponentNode?.parentComponent || null;
+  }
+
+  private async emitUnclaimedProjectionForComponent(
+    componentFrame: ISsrComponentFrame
+  ): Promise<void> {
+    if (componentFrame.slots.length === 0) {
+      return;
+    }
+
+    this.openElement(QTemplate, null, ['hidden', true, 'aria-hidden', 'true'], null);
+
+    const scopedStyleId = componentFrame.projectionScopedStyle;
+    for (let i = 0; i < componentFrame.slots.length; i += 2) {
+      const slotName = componentFrame.slots[i] as string;
+      const children = componentFrame.slots[i + 1] as JSXOutput;
+
+      this.openFragment(
+        isDev
+          ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, componentFrame.componentNode.id]
+          : [QSlotParent, componentFrame.componentNode.id]
+      );
+      const lastNode = this.getOrCreateLastNode();
+      if (lastNode.vnodeData) {
+        lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
+      }
+      componentFrame.componentNode.setProp(slotName, lastNode.id);
+      // Use projectionComponentFrame so that Slots can find their projections from the correct parent
+      await _walkJSX(this, children, {
+        currentStyleScoped: scopedStyleId,
+        parentComponentFrame: componentFrame.projectionComponentFrame,
+      });
+      this.closeFragment();
+    }
+
+    this.closeElement();
   }
 
   /** Write a text node with correct escaping. Save the length of the text node in the vNodeData. */
@@ -629,8 +662,9 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {
-    // componentFrame, scopedStyleIds, slotName, children
-    this.unclaimedProjections.push(frame, null, name, children);
+    // With inline emission, just add the children back to the frame's slots
+    // They will be emitted when the component closes
+    frame.slots.push(name, children);
   }
 
   private $processInjectionsFromManifest$(): void {
@@ -689,17 +723,15 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private emitContainerData(): ValueOrPromise<void> {
     // TODO first emit state, then only emit slots where the parent is serialized (so they could rerender)
     return maybeThen(this.resolvePromiseAttributes(), () =>
-      maybeThen(this.emitUnclaimedProjection(), () =>
-        maybeThen(this.emitStateData(), () => {
-          this.$noMoreRoots$ = true;
-          this.emitVNodeData();
-          preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
-          this.emitSyncFnsData();
-          this.emitPatchDataIfNeeded();
-          this.emitExecutorIfNeeded();
-          this.emitQwikLoaderAtBottomIfNeeded();
-        })
-      )
+      maybeThen(this.emitStateData(), () => {
+        this.$noMoreRoots$ = true;
+        this.emitVNodeData();
+        preloaderPost(this, this.renderOptions, this.$serverData$?.nonce);
+        this.emitSyncFnsData();
+        this.emitPatchDataIfNeeded();
+        this.emitExecutorIfNeeded();
+        this.emitQwikLoaderAtBottomIfNeeded();
+      })
     );
   }
 
@@ -1003,70 +1035,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       this.writeArray(eventNames, ', ');
       this.write(')');
       this.closeElement();
-    }
-  }
-
-  private async emitUnclaimedProjection() {
-    const unclaimedProjections = this.unclaimedProjections;
-    if (unclaimedProjections.length) {
-      const previousCurrentComponentNode = this.currentComponentNode;
-      try {
-        this.openElement(QTemplate, null, ['hidden', true, 'aria-hidden', 'true'], null);
-        let idx = 0;
-        let ssrComponentNode: ISsrNode | null = null;
-        let ssrComponentFrame: ISsrComponentFrame | null = null;
-        let scopedStyleId: string | null = null;
-
-        for (let i = 0; i < unclaimedProjections.length; i += 4) {
-          this.unclaimedProjectionComponentFrameQueue.push(
-            unclaimedProjections[i] as ISsrComponentFrame
-          );
-        }
-
-        while (idx < unclaimedProjections.length) {
-          const value = unclaimedProjections[idx++];
-          if (value instanceof SsrComponentFrame) {
-            // It is important to restore the `ssrComponentNode` so that the content
-            // can pretend to be inside the component.
-            ssrComponentNode = this.currentComponentNode = value.componentNode;
-            ssrComponentFrame = value;
-            // scopedStyleId is always after ssrComponentNode
-            scopedStyleId = unclaimedProjections[idx++] as string;
-          } else if (typeof value === 'string') {
-            const children = unclaimedProjections[idx++] as JSXOutput;
-            if (!ssrComponentFrame?.hasSlot(value)) {
-              /**
-               * Skip the slot if it is already claimed by previous unclaimed projections. We need
-               * to remove the slot from the component frame so that it does not incorrectly resolve
-               * non-existing node later
-               */
-              ssrComponentFrame && ssrComponentFrame.componentNode.removeProp(value);
-              continue;
-            }
-            this.unclaimedProjectionComponentFrameQueue.shift();
-            this.openFragment(
-              isDev
-                ? [DEBUG_TYPE, VirtualType.Projection, QSlotParent, ssrComponentNode!.id]
-                : [QSlotParent, ssrComponentNode!.id]
-            );
-            const lastNode = this.getOrCreateLastNode();
-            if (lastNode.vnodeData) {
-              lastNode.vnodeData[0] |= VNodeDataFlag.SERIALIZE;
-            }
-            ssrComponentNode?.setProp(value, lastNode.id);
-            await _walkJSX(this, children, {
-              currentStyleScoped: scopedStyleId,
-              parentComponentFrame: null,
-            });
-            this.closeFragment();
-          } else {
-            throw Error(); // 'should not get here'
-          }
-        }
-        this.closeElement();
-      } finally {
-        this.currentComponentNode = previousCurrentComponentNode;
-      }
     }
   }
 

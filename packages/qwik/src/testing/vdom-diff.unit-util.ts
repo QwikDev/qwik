@@ -50,6 +50,7 @@ import {
   debugStyleScopeIdPrefixAttr,
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
+  QTemplate,
 } from '../core/shared/utils/markers';
 import { HANDLER_PREFIX } from '../core/client/vnode-diff';
 import { prettyJSX } from './jsx';
@@ -416,12 +417,18 @@ function tagToString(tag: any): string {
 function shouldSkip(vNode: _VNode | null) {
   if (vNode && vnode_isElementVNode(vNode)) {
     const tag = vnode_getElementName(vNode);
+
+    // Skip script tags with qwik types
     if (
       tag === 'script' &&
       (vnode_getProp(vNode, 'type', null) === 'qwik/vnode' ||
         vnode_getProp(vNode, 'type', null) === 'x-qwik/vnode' ||
         vnode_getProp(vNode, 'type', null) === 'qwik/state')
     ) {
+      return true;
+    }
+
+    if (tag === QTemplate) {
       return true;
     }
   }

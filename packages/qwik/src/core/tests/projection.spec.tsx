@@ -92,7 +92,12 @@ describe.each([
     if (render === ssrRenderToDom) {
       expect(vNode!.nextSibling).toMatchVDOM(
         <q:template hidden aria-hidden="true">
-          parent-contentrender-content
+          parent-content
+        </q:template>
+      );
+      expect(vNode!.nextSibling!.nextSibling).toMatchVDOM(
+        <q:template hidden aria-hidden="true">
+          render-content
         </q:template>
       );
     }
@@ -1810,9 +1815,7 @@ describe.each([
       await trigger(document.body, '#reload', 'click');
       await trigger(document.body, '#slot', 'click');
       if (render == ssrRenderToDom) {
-        await expect(document.querySelector('q\\:template')).toMatchDOM(
-          <q:template key={undefined} hidden aria-hidden="true"></q:template>
-        );
+        expect(document.querySelector('q\\:template')).toBeUndefined();
       }
     });
 
@@ -2765,9 +2768,18 @@ describe.each([
         </Component>
       );
       await expect(document.querySelector('div')).toMatchDOM(
-        <div>
-          <div q:slot="a">Alpha 123</div>
-        </div>
+        render === ssrRenderToDom ? (
+          <div>
+            <div q:slot="a">Alpha 123</div>
+            <q:template aria-hidden="true" hidden>
+              <div q:slot="b">Bravo 123</div>
+            </q:template>
+          </div>
+        ) : (
+          <div>
+            <div q:slot="a">Alpha 123</div>
+          </div>
+        )
       );
       await trigger(document.body, '#flip', 'click');
       await trigger(document.body, '#counter', 'click');

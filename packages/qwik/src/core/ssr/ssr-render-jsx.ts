@@ -215,8 +215,7 @@ function processJSXNode(
           const children = jsx.children as JSXOutput;
           children != null && enqueue(children);
         } else if (type === Slot) {
-          const componentFrame =
-            options.parentComponentFrame || ssr.unclaimedProjectionComponentFrameQueue.shift();
+          const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
             const projectionAttrs = isDev ? [DEBUG_TYPE, VirtualType.Projection] : [];

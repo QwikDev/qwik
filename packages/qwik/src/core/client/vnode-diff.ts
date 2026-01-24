@@ -652,6 +652,7 @@ function expectSlot(diffContext: DiffContext) {
     // All is good.
   } else {
     // move from q:template to the target node
+    const oldParent = vProjectedNode.parent;
     vnode_insertBefore(
       diffContext.journal,
       diffContext.vParent as ElementVNode | VirtualVNode,
@@ -663,6 +664,21 @@ function expectSlot(diffContext: DiffContext) {
     isDev &&
       vnode_setProp(diffContext.vNewNode as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
     isDev && vnode_setProp(diffContext.vNewNode as VirtualVNode, 'q:code', 'expectSlot' + count++);
+
+    // If we moved from a q:template and it's now empty, remove it
+    if (
+      oldParent &&
+      vnode_isElementVNode(oldParent) &&
+      !oldParent.firstChild &&
+      vnode_getElementName(oldParent) === QTemplate
+    ) {
+      vnode_remove(
+        diffContext.journal,
+        oldParent.parent as ElementVNode | VirtualVNode,
+        oldParent,
+        true
+      );
+    }
   }
   return true;
 }

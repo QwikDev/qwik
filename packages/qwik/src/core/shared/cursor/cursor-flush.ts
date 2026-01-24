@@ -1,6 +1,7 @@
 import { type VNodeJournal } from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
+import { directSetAttribute } from '../utils/attribute';
 import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { isPromise } from '../utils/promises';
 import { serializeAttribute } from '../utils/styles';
@@ -170,7 +171,7 @@ export function _flushJournal(journal: VNodeJournal): void {
       } else if (attrName === 'value' && attrName in element) {
         (element as any).value = attrValue;
       } else {
-        element.setAttribute(attrName, attrValue as string);
+        directSetAttribute(element, attrName, attrValue, operation.isSvg);
       }
     }
   }

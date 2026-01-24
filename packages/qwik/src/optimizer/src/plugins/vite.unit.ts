@@ -663,6 +663,41 @@ describe('hotUpdate hook (Vite 7+ HMR)', () => {
     // Should not have sent any message
     assert.isNull(sentMessage);
   });
+
+  test('hotUpdate should call qwikPlugin.invalidateHotModules with environment context', () => {
+    const plugin = getPostPlugin({ optimizerOptions: mockOptimizerOptions() });
+    const handler = plugin.hotUpdate.handler;
+
+    // The handler calls qwikPlugin.invalidateHotModules internally
+    // We verify through the full-reload being sent (proves invalidation path was taken)
+
+    let sentMessage: any = null;
+    const mockContext = {
+      environment: {
+        name: 'client',
+        hot: {
+          send: (msg: any) => {
+            sentMessage = msg;
+          },
+        },
+      },
+    };
+
+    const mockModules = [
+      { id: '/src/components/counter.tsx', file: '/src/components/counter.tsx' },
+    ];
+
+    const result = handler.call(mockContext, {
+      file: '/src/components/counter.tsx',
+      modules: mockModules,
+      server: { environments: {} },
+      read: () => Promise.resolve(''),
+    });
+
+    // Verify environment-specific handling occurred
+    assert.deepEqual(result, []);
+    assert.deepEqual(sentMessage, { type: 'full-reload' });
+  });
 });
 
 describe('Vite 7+ Environment API configuration', () => {

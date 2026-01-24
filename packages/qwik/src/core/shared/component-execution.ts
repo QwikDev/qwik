@@ -29,7 +29,7 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import { isArray, isPrimitive, type ValueOrPromise } from './utils/types';
+import { isArray, isPrimitiveOrNullUndefined, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 import { EventNameHtmlScope } from './utils/event-names';
@@ -299,7 +299,7 @@ function injectPlaceholderElement(
   }
 
   // For primitives, we can't add children, so we wrap them in a fragment.
-  if (isPrimitive(jsx)) {
+  if (isPrimitiveOrNullUndefined(jsx)) {
     const placeholder = createPlaceholderScriptNode();
     return [placeholder, _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null)];
   }

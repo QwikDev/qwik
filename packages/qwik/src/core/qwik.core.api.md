@@ -421,9 +421,9 @@ export interface ISsrComponentFrame {
     // (undocumented)
     projectionScopedStyle: string | null;
     // (undocumented)
-    releaseUnclaimedProjections(unclaimedProjections: (ISsrComponentFrame | JSXChildren | string)[]): void;
-    // (undocumented)
     scopedStyleIds: Set<string>;
+    // (undocumented)
+    slots: (string | JSXChildren)[];
 }
 
 // @internal (undocumented)

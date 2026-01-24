@@ -242,6 +242,70 @@ describe.each([
     );
   });
 
+  it('should find context in unclaimed projections', async () => {
+    const ContextBProvider = component$(() => {
+      return <div>ContextBProvider</div>;
+    });
+
+    const ContextCId = createContextId<SignalType<string | undefined>>('contextC');
+
+    const ContextCProvider = component$(() => {
+      const signal = useSignal<string | undefined>();
+      useContextProvider(ContextCId, signal);
+      return <div>ContextCProvider</div>;
+    });
+
+    const Child = component$(() => {
+      useContext(ContextCId);
+      return (
+        <>
+          <div>page path-1</div>
+        </>
+      );
+    });
+
+    const Layout = component$(() => {
+      return (
+        <ContextBProvider>
+          <ContextCProvider>
+            <Slot />
+          </ContextCProvider>
+        </ContextBProvider>
+      );
+    });
+
+    const Cmp = component$(() => {
+      return (
+        <Layout>
+          <Child />
+        </Layout>
+      );
+    });
+
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Component ssr-required>
+          <Component ssr-required>
+            <div>{'ContextBProvider'}</div>
+          </Component>
+        </Component>
+      </Component>
+    );
+
+    if (render === ssrRenderToDom) {
+      await expect(document.querySelector('q\\:template')).toMatchDOM(
+        <q:template aria-hidden="true" hidden>
+          <div>ContextCProvider</div>
+          <q:template aria-hidden="true" hidden>
+            <div>page path-1</div>
+          </q:template>
+        </q:template>
+      );
+    }
+  });
+
   describe('regression', () => {
     it('#4038', async () => {
       interface IMyComponent {

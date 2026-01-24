@@ -9,9 +9,9 @@ Requirements for validating the Environment API migration. Each maps to roadmap 
 
 ### Environment API Activation
 
-- [ ] **ENV-01**: Vite 7+ detected and `environments` config is applied
-- [ ] **ENV-02**: `server.environments.client` and `server.environments.ssr` exist in dev server
-- [ ] **ENV-03**: `this.environment` available in plugin hooks during dev
+- [x] **ENV-01**: Vite 7+ detected and `environments` config is applied
+- [x] **ENV-02**: `server.environments.client` and `server.environments.ssr` exist in dev server
+- [x] **ENV-03**: `this.environment` available in plugin hooks during dev
 
 ### Dev Mode with Environment API
 
@@ -61,9 +61,9 @@ Deferred to future milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENV-01 | Phase 1 | Pending |
-| ENV-02 | Phase 1 | Pending |
-| ENV-03 | Phase 1 | Pending |
+| ENV-01 | Phase 1 | Complete |
+| ENV-02 | Phase 1 | Complete |
+| ENV-03 | Phase 1 | Complete |
 | DEV-01 | Phase 2 | Pending |
 | DEV-02 | Phase 2 | Pending |
 | DEV-03 | Phase 2 | Pending |

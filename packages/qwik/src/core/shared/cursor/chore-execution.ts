@@ -233,7 +233,15 @@ function setNodeProp(
   isConst: boolean,
   scopedStyleIdPrefix: string | null = null
 ): void {
-  journal.push(createSetAttributeOperation(domVNode.node!, property, value, scopedStyleIdPrefix));
+  journal.push(
+    createSetAttributeOperation(
+      domVNode.node!,
+      property,
+      value,
+      scopedStyleIdPrefix,
+      (domVNode.flags & VNodeFlags.NS_svg) !== 0
+    )
+  );
   if (!isConst) {
     if (domVNode.props && value == null) {
       delete domVNode.props[property];

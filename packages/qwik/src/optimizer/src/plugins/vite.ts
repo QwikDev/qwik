@@ -45,7 +45,9 @@ const DEDUPE = [
  * cannot be parsed.
  */
 function getViteMajorVersion(viteVersion: string | undefined): number {
-  if (!viteVersion) return 0;
+  if (!viteVersion) {
+    return 0;
+  }
   const major = parseInt(viteVersion.split('.')[0], 10);
   return isNaN(major) ? 0 : major;
 }

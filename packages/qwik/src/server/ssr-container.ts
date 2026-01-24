@@ -3,7 +3,6 @@ import { isDev } from '@qwik.dev/core/build';
 import {
   _SubscriptionData as SubscriptionData,
   _SharedContainer,
-  _executeSsrChores,
   _jsxSorted,
   _jsxSplit,
   _walkJSX,
@@ -619,13 +618,6 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       );
     }
     return this.lastNode!;
-  }
-
-  executeChores(): ValueOrPromise<void> {
-    if (!this.lastNode) {
-      return;
-    }
-    return _executeSsrChores(this, this.lastNode);
   }
 
   addUnclaimedProjection(frame: ISsrComponentFrame, name: string, children: JSXChildren): void {

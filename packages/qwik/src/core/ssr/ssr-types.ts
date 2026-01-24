@@ -117,8 +117,6 @@ export interface SSRContainer extends Container {
     attrName: string,
     serializedValue: string | boolean | null
   ): void;
-
-  executeChores(): ValueOrPromise<void>;
 }
 
 /** @public */

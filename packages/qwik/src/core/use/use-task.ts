@@ -12,7 +12,7 @@ import { isPromise, maybeThen, safeCall } from '../shared/utils/promises';
 import { type ValueOrPromise } from '../shared/utils/types';
 import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
 import { markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { newInvokeContext } from './use-core';
+import { invoke, newInvokeContext } from './use-core';
 import { useLexicalScope } from './use-lexical-scope.public';
 import type { ResourceReturnInternal } from './use-resource';
 import { useSequentialScope } from './use-sequential-scope';
@@ -173,6 +173,11 @@ export const useTaskQrl = (qrl: QRL<TaskFn>, opts?: TaskOptions): void => {
   const { $waitOn$: waitOn } = iCtx;
   const result = maybeThen(waitOn, () => runTask(task, container, iCtx.$hostElement$));
   if (isPromise(result)) {
+    // For render-blocking tasks, throw the Promise to trigger component retry
+    // This ensures the component re-renders after async tasks complete
+    if (task.$flags$ & TaskFlags.RENDER_BLOCKING) {
+      throw result;
+    }
     iCtx.$waitOn$ = result;
   }
 };
@@ -192,8 +197,9 @@ export const runTask = (
   const [cleanup] = cleanupFn(task, (reason: unknown) => container.handleError(reason, host));
 
   const taskApi: TaskCtx = { track, cleanup };
-  return safeCall(
-    () => taskFn(taskApi),
+  const result = safeCall(
+    // Wrap task execution in invoke context to preserve context across async boundaries
+    () => invoke(iCtx, () => taskFn(taskApi)),
     cleanup,
     (err: unknown) => {
       // If a Promise is thrown, that means we need to re-run the task.
@@ -204,6 +210,13 @@ export const runTask = (
       }
     }
   );
+
+  // If task is async, wrap the Promise continuation to maintain invoke context
+  if (isPromise(result)) {
+    return result.then((value) => invoke(iCtx, () => value));
+  }
+
+  return result;
 };
 
 export class Task<T = unknown, B = T>

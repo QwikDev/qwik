@@ -304,6 +304,52 @@ describe.each([
     );
   });
 
+  it('should trigger when returning null', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task');
+      });
+      return null;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          {''}
+          <script hidden></script>
+        </Fragment>
+      </Component>
+    );
+  });
+
+  it('should trigger when returning undefined', async () => {
+    (globalThis as any).log = [] as string[];
+    const Cmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).log.push('task');
+      });
+      return undefined;
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', ':document:qinit');
+    }
+    expect((globalThis as any).log).toEqual(['task']);
+    expect(vNode).toMatchVDOM(
+      <Component ssr-required>
+        <Fragment ssr-required>
+          {''}
+          <script hidden></script>
+        </Fragment>
+      </Component>
+    );
+  });
+
   it('should merge multiple visible tasks when empty', async () => {
     (globalThis as any).log = [] as string[];
     const Cmp = component$(() => {

@@ -1343,6 +1343,12 @@ function moveOrCreateKeyedNode(
   diffContext.vNewNode = retrieveChildWithKey(diffContext, nodeName, lookupKey);
 
   if (diffContext.vNewNode) {
+    vnode_insertBefore(
+      diffContext.journal,
+      parentForInsert as ElementVNode | VirtualVNode,
+      diffContext.vNewNode,
+      diffContext.vCurrent
+    );
     diffContext.vCurrent = diffContext.vNewNode;
     diffContext.vNewNode = null;
     return false;

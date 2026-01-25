@@ -36,7 +36,8 @@ export class SetAttributeOperation {
     public target: Element,
     public attrName: string,
     public attrValue: any,
-    public scopedStyleIdPrefix: string | null
+    public scopedStyleIdPrefix: string | null,
+    public isSvg: boolean
   ) {}
 }
 
@@ -60,6 +61,7 @@ export const createSetAttributeOperation = (
   target: Element,
   attrName: string,
   attrValue: any,
-  scopedStyleIdPrefix: string | null = null
+  scopedStyleIdPrefix: string | null = null,
+  isSvg: boolean = false
 ): SetAttributeOperation =>
-  new SetAttributeOperation(target, attrName, attrValue, scopedStyleIdPrefix);
+  new SetAttributeOperation(target, attrName, attrValue, scopedStyleIdPrefix, isSvg);

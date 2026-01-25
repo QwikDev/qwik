@@ -28,10 +28,10 @@ export const isFunction = <T extends (...args: any) => any>(v: unknown): v is T 
   return typeof v === 'function';
 };
 
-export const isPrimitive = (
+export const isPrimitiveOrNullUndefined = (
   v: unknown
-): v is string | number | boolean | null | undefined | symbol => {
-  return typeof v !== 'object' && typeof v !== 'function' && v !== null && v !== undefined;
+): v is string | number | boolean | null | undefined => {
+  return (typeof v !== 'object' && typeof v !== 'function') || v === null || v === undefined;
 };
 
 /**

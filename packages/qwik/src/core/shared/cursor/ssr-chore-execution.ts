@@ -51,10 +51,16 @@ export function _executeSsrChores(
       promise = result;
     }
   }
-  if (ssrNode.dirty & ChoreBits.COMPONENT) {
-    // should not happen on SSR with non-streamed node
-  }
-  ssrNode.dirty &= ~ChoreBits.DIRTY_MASK;
+
+  // In SSR, we don't handle the COMPONENT bit here.
+  // During initial render, if a task completes and marks the component dirty,
+  // we want to leave the COMPONENT bit set so that executeComponent can detect
+  // it after $waitOn$ completes and re-execute the component function.
+  // executeComponent will clear the bit after re-executing.
+
+  // Clear all dirty bits EXCEPT COMPONENT
+  ssrNode.dirty &= ~(ChoreBits.DIRTY_MASK & ~ChoreBits.COMPONENT);
+
   if (promise) {
     return promise;
   }

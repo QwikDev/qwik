@@ -1,4 +1,4 @@
-import { isDev } from '@qwik.dev/core/build';
+import { isDev, isServer } from '@qwik.dev/core/build';
 import { vnode_isVNode } from '../client/vnode-utils';
 import { isSignal } from '../reactive-primitives/utils';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
@@ -33,6 +33,9 @@ import { isArray, isPrimitiveOrNullUndefined, type ValueOrPromise } from './util
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 import { EventNameHtmlScope } from './utils/event-names';
+import { isServerPlatform } from './platform/platform';
+import type { ISsrNode } from '../ssr/ssr-types';
+import { ChoreBits } from './vnode/enums/chore-bits.enum';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -98,6 +101,8 @@ export const executeComponent = (
     componentFn = () => invokeApply(iCtx, inlineComponent, [props || EMPTY_OBJ]);
   }
 
+  const isSsr = import.meta.env.TEST ? isServerPlatform() : isServer;
+
   const executeComponentWithPromiseExceptionRetry = (retryCount = 0): ValueOrPromise<JSXOutput> =>
     safeCall<JSXOutput, JSXOutput, JSXOutput>(
       () => {
@@ -113,6 +118,20 @@ export const executeComponent = (
         return maybeThen(componentFn(props), (jsx) => maybeThen(iCtx.$waitOn$, () => jsx));
       },
       (jsx) => {
+        // In SSR, check if the component was marked dirty (COMPONENT bit) during execution.
+        // This happens when something completes and updates reactive primitives
+        // while we're waiting on $waitOn$. If so, we need to re-execute the component
+        // to get fresh JSX with updated values.
+        if (isSsr && !isInlineComponent) {
+          const ssrNode = renderHost as ISsrNode;
+          if (ssrNode.dirty & ChoreBits.COMPONENT) {
+            ssrNode.dirty &= ~ChoreBits.COMPONENT;
+            if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+              return executeComponentWithPromiseExceptionRetry(retryCount + 1);
+            }
+          }
+        }
+
         const useOnEvents = container.getHostProp<UseOnMap>(renderHost, USE_ON_LOCAL);
         if (useOnEvents) {
           return addUseOnEvents(jsx, useOnEvents);

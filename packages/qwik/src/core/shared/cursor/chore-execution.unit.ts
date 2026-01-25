@@ -462,6 +462,7 @@ describe('executeNodeProps', () => {
       attrName: 'id',
       attrValue: 'test-id',
       scopedStyleIdPrefix: null,
+      isSvg: false,
     });
     expect(vNode.props!['id']).toBe('test-id');
   });
@@ -499,7 +500,8 @@ describe('executeNodeProps', () => {
       vNode.node,
       'data-test',
       'signal-value',
-      null
+      null,
+      false
     );
   });
 
@@ -521,6 +523,7 @@ describe('executeNodeProps', () => {
       attrName: 'id',
       attrValue: null,
       scopedStyleIdPrefix: null,
+      isSvg: false,
     });
     expect(vNode.props!['id']).toBeUndefined();
   });
@@ -552,7 +555,8 @@ describe('executeNodeProps', () => {
       vNode.node,
       'class',
       'my-class',
-      'scope-123'
+      'scope-123',
+      false
     );
   });
 });

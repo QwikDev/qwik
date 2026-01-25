@@ -425,7 +425,13 @@ export const vnode_setAttr = (
     vnode_setProp(vNode, key, value);
     addVNodeOperation(
       journal,
-      createSetAttributeOperation(vNode.node, key, value, scopedStyleIdPrefix)
+      createSetAttributeOperation(
+        vNode.node,
+        key,
+        value,
+        scopedStyleIdPrefix,
+        (vNode.flags & VNodeFlags.NS_svg) !== 0
+      )
     );
   }
 };

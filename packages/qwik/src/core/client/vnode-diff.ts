@@ -84,7 +84,7 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode-utils';
-import { getAttributeNamespace, getNewElementNamespaceData } from './vnode-namespace';
+import { getNewElementNamespaceData } from './vnode-namespace';
 import { cleanupDestroyable } from '../use/utils/destroyable';
 import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
 import { isStore } from '../reactive-primitives/impl/store';
@@ -99,6 +99,7 @@ import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import type { Cursor } from '../shared/cursor/cursor';
 import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
 import { callQrl } from './run-qrl';
+import { directSetAttribute } from '../shared/utils/attribute';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -155,14 +156,6 @@ function peekNextSibling(vCurrent: VNode | null): VNode | null {
 }
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
-let _setAttribute: typeof Element.prototype.setAttribute | null = null;
-
-const fastSetAttribute = (target: Element, name: string, value: string): void => {
-  if (!_setAttribute) {
-    _setAttribute = target.setAttribute;
-  }
-  _setAttribute.call(target, name, value);
-};
 
 /** Helper to set an attribute on a vnode. Extracted to module scope to avoid closure allocation. */
 function setAttribute(
@@ -179,7 +172,13 @@ function setAttribute(
   vnode_setProp(vnode, key, originalValue);
   addVNodeOperation(
     journal,
-    createSetAttributeOperation(vnode.node, key, value, scopedStyleIdPrefix)
+    createSetAttributeOperation(
+      vnode.node,
+      key,
+      value,
+      scopedStyleIdPrefix,
+      (vnode.flags & VNodeFlags.NS_svg) !== 0
+    )
   );
 }
 
@@ -871,7 +870,12 @@ function createNewElement(
       if (isPromise(value)) {
         const vHost = diffContext.vNewNode as ElementVNode;
         const attributePromise = value.then((resolvedValue) =>
-          setDirectAttribute(diffContext, element, key, resolvedValue, vHost)
+          directSetAttribute(
+            element,
+            key,
+            serializeAttribute(key, resolvedValue, diffContext.scopedStyleIdPrefix),
+            (vHost.flags & VNodeFlags.NS_svg) !== 0
+          )
         );
         diffContext.asyncAttributePromises.push(attributePromise);
         continue;
@@ -896,7 +900,12 @@ function createNewElement(
         continue;
       }
 
-      setDirectAttribute(diffContext, element, key, value, diffContext.vNewNode as ElementVNode);
+      directSetAttribute(
+        element,
+        key,
+        serializeAttribute(key, value, diffContext.scopedStyleIdPrefix),
+        ((diffContext.vNewNode as ElementVNode).flags & VNodeFlags.NS_svg) !== 0
+      );
     }
   }
   const key = jsx.key;
@@ -922,27 +931,6 @@ function createNewElement(
   );
 
   return needsQDispatchEventPatch;
-}
-
-function setDirectAttribute(
-  diffContext: DiffContext,
-  element: Element,
-  key: string,
-  value: any,
-  vHost: ElementVNode
-) {
-  value = serializeAttribute(key, value, diffContext.scopedStyleIdPrefix);
-  if (value != null) {
-    if (vHost.flags & VNodeFlags.NS_svg) {
-      // only svg elements can have namespace attributes
-      const namespace = getAttributeNamespace(key);
-      if (namespace) {
-        element.setAttributeNS(namespace, key, value);
-        return;
-      }
-    }
-    fastSetAttribute(element, key, value);
-  }
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {

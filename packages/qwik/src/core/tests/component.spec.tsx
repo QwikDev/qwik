@@ -2864,6 +2864,51 @@ describe.each([
     );
   });
 
+  it('should correctly rerender array without keys', async () => {
+    const Cmp = component$(() => {
+      const arrData = useSignal<number[]>([1, 2, 3, 4, 5]);
+      return (
+        <div>
+          {arrData.value.map((item) => (
+            <div>Item: {item}</div>
+          ))}
+
+          <button
+            onClick$={() => {
+              arrData.value = [3, 4, 5];
+            }}
+          ></button>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Item: 1</div>
+          <div>Item: 2</div>
+          <div>Item: 3</div>
+          <div>Item: 4</div>
+          <div>Item: 5</div>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <div>Item: 3</div>
+          <div>Item: 4</div>
+          <div>Item: 5</div>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

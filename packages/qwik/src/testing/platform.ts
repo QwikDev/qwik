@@ -82,6 +82,9 @@ function toPath(url: URL) {
   const normalizedUrl = new URL(String(url));
   normalizedUrl.hash = '';
   normalizedUrl.search = '';
+  if (normalizedUrl.protocol !== 'file:') {
+    throw new Error(`Only file: protocol is supported in tests, got: ${normalizedUrl.href}`);
+  }
   const path = fileURLToPath(String(normalizedUrl));
   const importPaths = [path, ...testExts.map((ext) => path + ext)];
 

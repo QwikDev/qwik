@@ -2909,6 +2909,95 @@ describe.each([
       </Component>
     );
   });
+
+  it('should correctly rerender content in the same component with slot', async () => {
+    const CustomLink = component$(() => {
+      return (
+        <a>
+          <Slot />
+        </a>
+      );
+    });
+
+    const Cmp1 = component$(() => {
+      const arrData = useSignal<number[]>([]);
+      useTask$(async () => {
+        await delay(1);
+        arrData.value = [1, 2, 3, 4, 5];
+      });
+      return (
+        <div>
+          <CustomLink>Navigate to other page</CustomLink>
+          <div>
+            {arrData.value.map((item) => (
+              <div>Item: {item}</div>
+            ))}
+          </div>
+        </div>
+      );
+    });
+
+    const Cmp2 = component$(() => {
+      return (
+        <div>
+          <CustomLink>Navigate to home page</CustomLink>
+        </div>
+      );
+    });
+
+    const Cmp = component$(() => {
+      const toggle = useSignal(false);
+
+      return (
+        <div>
+          {toggle.value ? <Cmp1 /> : <Cmp2 />}
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+        </div>
+      );
+    });
+    const { vNode, document } = await render(<Cmp />, { debug });
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Component>
+                <a>
+                  <Projection>Navigate to home page</Projection>
+                </a>
+              </Component>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+
+    await trigger(document.body, 'button', 'click');
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <div>
+          <Component>
+            <div>
+              <Component>
+                <a>
+                  <Projection>Navigate to other page</Projection>
+                </a>
+              </Component>
+              <div>
+                <div>Item: 1</div>
+                <div>Item: 2</div>
+                <div>Item: 3</div>
+                <div>Item: 4</div>
+                <div>Item: 5</div>
+              </div>
+            </div>
+          </Component>
+          <button></button>
+        </div>
+      </Component>
+    );
+  });
   describe('regression', () => {
     it('#3643', async () => {
       const Issue3643 = component$(() => {

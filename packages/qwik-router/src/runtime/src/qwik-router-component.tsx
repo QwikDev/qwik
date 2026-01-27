@@ -764,28 +764,35 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
               return viewTransition.ready;
             }
           };
-          _waitNextPage().then(() => {
-            const container = _getQContainerElement(elm as Element)!;
-            container.setAttribute(Q_ROUTE, routeName);
-            const scrollState = currentScrollState(scroller);
-            saveScrollHistory(scrollState);
-            window._qRouterScrollEnabled = true;
-            if (isBrowser) {
-              callRestoreScrollOnDocument();
-            }
+          _waitNextPage()
+            .catch((err) => {
+              // If the view transition fails, navigate to the page anyway
+              navigate();
+              // Re-throw the error on console
+              throw err;
+            })
+            .finally(() => {
+              const container = _getQContainerElement(elm as Element)!;
+              container.setAttribute(Q_ROUTE, routeName);
+              const scrollState = currentScrollState(scroller);
+              saveScrollHistory(scrollState);
+              window._qRouterScrollEnabled = true;
+              if (isBrowser) {
+                callRestoreScrollOnDocument();
+              }
 
-            if (shouldForcePrevUrl) {
-              forceStoreEffects(routeLocation, 'prevUrl');
-            }
-            if (shouldForceUrl) {
-              forceStoreEffects(routeLocation, 'url');
-            }
-            if (shouldForceParams) {
-              forceStoreEffects(routeLocation, 'params');
-            }
-            routeLocation.isNavigating = false;
-            navResolver.r?.();
-          });
+              if (shouldForcePrevUrl) {
+                forceStoreEffects(routeLocation, 'prevUrl');
+              }
+              if (shouldForceUrl) {
+                forceStoreEffects(routeLocation, 'url');
+              }
+              if (shouldForceParams) {
+                forceStoreEffects(routeLocation, 'params');
+              }
+              routeLocation.isNavigating = false;
+              navResolver.r?.();
+            });
         }
       }
     }

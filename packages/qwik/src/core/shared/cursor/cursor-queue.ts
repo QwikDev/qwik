@@ -68,6 +68,7 @@ export function getHighestPriorityCursor(): Cursor | null {
 export function pauseCursor(cursor: Cursor, container: Container): void {
   pausedCursorQueue.push(cursor);
   removeCursorFromQueue(cursor, container, true);
+  container.$pausedCursorCount$++;
 }
 
 export function resumeCursor(cursor: Cursor, container: Container): void {
@@ -78,6 +79,7 @@ export function resumeCursor(cursor: Cursor, container: Container): void {
       pausedCursorQueue[index] = pausedCursorQueue[lastIndex];
     }
     pausedCursorQueue.pop();
+    container.$pausedCursorCount$--;
   }
   addCursorToQueue(container, cursor);
 }
@@ -92,9 +94,6 @@ export function removeCursorFromQueue(
   container: Container,
   keepCursorFlag?: boolean
 ): void {
-  if (container.$cursorCount$ > 0) {
-    container.$cursorCount$--;
-  }
   if (!keepCursorFlag) {
     cursor.flags &= ~VNodeFlags.Cursor;
   }
@@ -108,5 +107,6 @@ export function removeCursorFromQueue(
     // }
     // globalCursorQueue.pop();
     globalCursorQueue.splice(index, 1);
+    container.$cursorCount$--;
   }
 }

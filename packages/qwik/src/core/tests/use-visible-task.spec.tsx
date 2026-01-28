@@ -14,6 +14,7 @@ import {
   useSignal,
   useStore,
   useVisibleTask$,
+  useTask$,
 } from '@qwik.dev/core';
 import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -792,6 +793,48 @@ describe.each([
         </Component>
       );
     });
+  });
+
+  it('should not run visible task after SSR until visible again', async () => {
+    const MyComp = component$(() => {
+      const log = useStore<string[]>([]);
+      const update = useSignal(0);
+      useTask$(({ track }) => {
+        track(update);
+        log.push(`task 1`);
+      });
+      useVisibleTask$(async () => {
+        log.push(`visible task`);
+      });
+      useTask$(({ track }) => {
+        track(update);
+        log.push(`task 2`);
+      });
+
+      return <button onClick$={() => update.value++}>{log.join(' | ')}</button>;
+    });
+    const { vNode, document } = await render(<MyComp />, { debug });
+
+    if (render === ssrRenderToDom) {
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2</button>
+        </Component>
+      );
+
+      await trigger(document.body, 'button', 'click');
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2 | task 1 | task 2</button>
+        </Component>
+      );
+    } else {
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2 | visible task</button>
+        </Component>
+      );
+    }
   });
 
   it('should not add useOn props as slot name', async () => {

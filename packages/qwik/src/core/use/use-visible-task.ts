@@ -40,22 +40,20 @@ export const useVisibleTaskQrl = (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions)
   }
   assertQrl(qrl);
 
-  const task = new Task(
-    TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY,
-    i,
-    iCtx.$hostElement$,
-    qrl,
-    undefined,
-    null
-  );
+  let flags: number;
+  if (!isServerPlatform()) {
+    // In DOM we immediately execute
+    flags = TaskFlags.VISIBLE_TASK | TaskFlags.DIRTY;
+    (qrl as QRLInternal).resolve();
+    markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
+  } else {
+    // In SSR we defer execution until triggered in DOM
+    flags = TaskFlags.VISIBLE_TASK;
+  }
+
+  const task = new Task(flags, i, iCtx.$hostElement$, qrl, undefined, null);
   set(task);
   useRegisterTaskEvents(task, eagerness);
-  if (!isServerPlatform()) {
-    if (!qrl.resolved) {
-      (qrl as QRLInternal).resolve();
-    }
-    markVNodeDirty(iCtx.$container$, iCtx.$hostElement$, ChoreBits.TASKS);
-  }
 };
 
 export const useRegisterTaskEvents = (task: Task, eagerness: VisibleTaskStrategy | undefined) => {

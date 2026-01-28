@@ -1,6 +1,6 @@
 import type { Render } from '@qwik.dev/core/server';
 import type { RendererOptions } from '@qwik.dev/router';
-import type { Connect, ModuleNode, ViteDevServer } from 'vite';
+import type { Connect, EnvironmentModuleNode, ModuleNode, ViteDevServer } from 'vite';
 import { updateRoutingContext } from '../build';
 import type { RoutingContext } from '../types';
 import { formatError } from './format-error';
@@ -96,10 +96,11 @@ const isCssPath = (url: string) => CSS_EXTENSIONS.some((ext) => url.endsWith(ext
  * inject the CSS URLs.
  */
 const getCssUrls = (server: ViteDevServer) => {
-  const cssModules = new Set<ModuleNode>();
+  const cssModules = new Set<ModuleNode | EnvironmentModuleNode>();
   const cssImportedByCSS = new Set<string>();
 
-  Array.from(server.moduleGraph.fileToModulesMap.entries()).forEach(([_name, modules]) => {
+  const moduleGraph = server.environments?.ssr?.moduleGraph ?? server.moduleGraph;
+  Array.from(moduleGraph.fileToModulesMap.entries()).forEach(([_name, modules]) => {
     modules.forEach((mod) => {
       const [pathId, query] = mod.url.split('?');
 

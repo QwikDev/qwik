@@ -33,11 +33,10 @@ export function _chk(this: string | undefined, _: any, element: HTMLInputElement
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
 
-// Warning: (ae-forgotten-export) The symbol "Container" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "ClientContainer" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export interface ClientContainer extends Container {
+export interface ClientContainer extends _Container {
     // (undocumented)
     $forwardRefs$: Array<number> | null;
     // (undocumented)
@@ -82,8 +81,10 @@ export type ComputedFn<T> = () => T;
 
 // @public (undocumented)
 export interface ComputedOptions {
+    // Warning: (ae-incompatible-release-tags) The symbol "container" is marked as @public, but its signature references "_Container" which is marked as @internal
+    //
     // (undocumented)
-    container?: Container;
+    container?: _Container;
     // (undocumented)
     serializationStrategy?: SerializationStrategy;
 }
@@ -99,6 +100,64 @@ export interface ComputedSignal<T> extends ReadonlySignal<T> {
 
 // @internal (undocumented)
 export const _CONST_PROPS: unique symbol;
+
+// @internal (undocumented)
+export interface _Container {
+    // (undocumented)
+    $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
+    // (undocumented)
+    $buildBase$: string | null;
+    // (undocumented)
+    $currentUniqueId$: number;
+    // (undocumented)
+    $cursorCount$: number;
+    // (undocumented)
+    readonly $getObjectById$: (id: number | string) => any;
+    // (undocumented)
+    readonly $locale$: string;
+    // (undocumented)
+    $pausedCursorCount$: number;
+    // (undocumented)
+    $renderPromise$: Promise<void> | null;
+    // (undocumented)
+    $resolveRenderPromise$: (() => void) | null;
+    // (undocumented)
+    readonly $serverData$: Record<string, any>;
+    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    readonly $storeProxyMap$: ObjToProxyMap;
+    // (undocumented)
+    readonly $version$: string;
+    ensureProjectionResolved(host: HostElement): void;
+    // (undocumented)
+    getHostProp<T>(host: HostElement, name: string): T | null;
+    // (undocumented)
+    getParentHost(host: HostElement): HostElement | null;
+    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    handleError(err: any, $host$: HostElement | null): void;
+    // (undocumented)
+    resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
+    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    serializationCtxFactory(NodeConstructor: {
+        new (...rest: any[]): {
+            __brand__: 'SsrNode';
+        };
+    } | null, DomRefConstructor: {
+        new (...rest: any[]): {
+            __brand__: 'DomRef';
+        };
+    } | null, symbolToChunkResolver: SymbolToChunkResolver, writer?: StreamWriter): SerializationContext;
+    // (undocumented)
+    setContext<T>(host: HostElement, context: ContextId<T>, value: T): void;
+    // (undocumented)
+    setHostProp<T>(host: HostElement, name: string, value: T): void;
+}
 
 // @internal (undocumented)
 export interface _ContainerElement extends HTMLElement {
@@ -179,7 +238,7 @@ export interface CSSProperties extends CSS_2.Properties<string | number>, CSS_2.
 }
 
 // @internal
-export function _deserialize(rawStateData: string | null, element?: unknown): unknown[];
+export function _deserialize(rawStateData: string | null): unknown[];
 
 // @public (undocumented)
 export interface DevJSX {
@@ -219,8 +278,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     $rawStateData$: unknown[];
     // (undocumented)
     $setRawState$(id: number, vParent: _VNode): void;
-    // Warning: (ae-forgotten-export) The symbol "ObjToProxyMap" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     $storeProxyMap$: ObjToProxyMap;
     constructor(element: _ContainerElement);
@@ -250,8 +307,6 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     rootVNode: _ElementVNode;
     // (undocumented)
     setContext<T>(host: _VNode, context: ContextId<T>, value: T): void;
-    // Warning: (ae-forgotten-export) The symbol "HostElement" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     setHostProp<T>(host: HostElement, name: string, value: T): void;
     // (undocumented)
@@ -333,13 +388,13 @@ export type FunctionComponent<P = unknown> = {
 export const _getConstProps: (props: PropsProxy | Record<string, unknown> | null | undefined) => Props | null;
 
 // @internal (undocumented)
-export const _getContextContainer: () => ClientContainer | undefined;
-
-// @internal (undocumented)
-export const _getContextElement: () => unknown;
+export const _getContextContainer: () => _Container | undefined;
 
 // @internal (undocumented)
 export const _getContextEvent: () => unknown;
+
+// @internal (undocumented)
+export const _getContextHostElement: () => HostElement | undefined;
 
 // Warning: (ae-incompatible-release-tags) The symbol "getDomContainer" is marked as @public, but its signature references "ClientContainer" which is marked as @internal
 //
@@ -912,7 +967,7 @@ export const SerializerSymbol: unique symbol;
 export const setPlatform: (plt: CorePlatform) => CorePlatform;
 
 // @internal (undocumented)
-export abstract class _SharedContainer implements Container {
+export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract $appendStyle$(content: string, styleId: string, host: HostElement, scoped: boolean): void;
     // (undocumented)
@@ -950,9 +1005,6 @@ export abstract class _SharedContainer implements Container {
     abstract handleError(err: any, $host$: HostElement | null): void;
     // (undocumented)
     abstract resolveContext<T>(host: HostElement, contextId: ContextId<T>): T | undefined;
-    // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "SerializationContext" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     serializationCtxFactory(NodeConstructor: {
         new (...rest: any[]): {
@@ -1933,7 +1985,7 @@ export const enum _VNodeFlags {
 }
 
 // @internal (undocumented)
-export const _waitUntilRendered: (elm: Element) => Promise<void>;
+export const _waitUntilRendered: (container: _Container) => Promise<void>;
 
 // @internal (undocumented)
 export function _walkJSX(ssr: SSRContainer, value: JSXOutput, options: {

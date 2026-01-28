@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 4552
+assertion_line: 4553
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -24,15 +23,15 @@ snapshot_kind: text
 import { _restProps } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useComputedQrl } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 const test_component_useComputed_PYU291PvidQ = ()=>{
-    const [_rawProps] = useLexicalScope();
+    const _rawProps = _captures[0];
     return _rawProps.color;
 };
 const test_component_useTask_jewzFYh3XmQ = ()=>{
-    const [props] = useLexicalScope();
+    const props = _captures[0];
     props.checked;
 };
 const test_component_LUXeXe0DQrg = (_rawProps)=>{

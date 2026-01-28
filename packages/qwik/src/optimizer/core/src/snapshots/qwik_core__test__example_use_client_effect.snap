@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1479
+assertion_line: 1480
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -34,9 +33,9 @@ export const Child = component$(() => {
 
 ============================= test.tsx_Child_component_useBrowserVisibleTask_0IGFPOyJmQA.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Child_component_useBrowserVisibleTask_0IGFPOyJmQA = ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     const timer = setInterval(()=>{
         state.count++;
     }, 1000);

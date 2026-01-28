@@ -1,8 +1,7 @@
 ---
 source: packages/qwik/src/optimizer/core/src/test.rs
-assertion_line: 1981
+assertion_line: 1982
 expression: output
-snapshot_kind: text
 ---
 ==INPUT==
 
@@ -66,11 +65,11 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_Greeter_component_1_krCndSwhX4U.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { hola } from "sdfds";
 export const Greeter_component_1_krCndSwhX4U = ()=>{
-    const [stuff] = useLexicalScope();
+    const stuff = _captures[0];
     return /*#__PURE__*/ _jsxSorted("div", {
         class: {
             'foo': true,

@@ -28,6 +28,9 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
 // @internal
+export let _captures: Readonly<unknown[]> | null;
+
+// @internal
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement): unknown;
 
 // @public
@@ -1771,7 +1774,7 @@ export const useId: () => string;
 
 // Warning: (ae-internal-missing-underscore) The name "useLexicalScope" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal
+// @internal @deprecated
 export const useLexicalScope: <VARS extends any[]>() => VARS;
 
 // Warning: (ae-forgotten-export) The symbol "EventQRL" needs to be exported by the entry point index.d.ts

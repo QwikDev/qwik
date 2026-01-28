@@ -395,7 +395,7 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
 const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
 const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
 const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
-const handlersRegex = /[/\\](core|qwik)[/\\]handlers\.(|c|m)js$/;
+
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
  * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
@@ -440,7 +440,22 @@ export function generateManifestFromBundles(
     return canonPath(bundle.fileName);
   };
 
+  let coreBundleName: string | undefined;
+  let preloaderBundleName: string | undefined;
   let qwikHandlersName: string | undefined;
+  for (const outputBundle of Object.values(outputBundles)) {
+    const bundleFileName = getBundleName(outputBundle.fileName);
+    if (outputBundle.name === 'core') {
+      coreBundleName = bundleFileName;
+    }
+    if (outputBundle.name === 'preloader') {
+      preloaderBundleName = bundleFileName;
+    }
+    if (outputBundle.name === 'handlers') {
+      qwikHandlersName = bundleFileName;
+    }
+  }
+
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
   for (const outputBundle of Object.values(outputBundles)) {
@@ -475,6 +490,7 @@ export function generateManifestFromBundles(
       // Tree shaking might remove imports
       .filter((i) => outputBundle.code.includes(path.basename(i)))
       .map((i) => getBundleName(i))
+      .filter((i) => i !== coreBundleName && i !== preloaderBundleName && i !== qwikHandlersName)
       .filter(Boolean) as string[];
     if (bundleImports.length > 0) {
       bundle.imports = bundleImports;
@@ -496,8 +512,6 @@ export function generateManifestFromBundles(
         manifest.core = bundleFileName;
       } else if (qwikLoaderRegex.test(outputBundle.facadeModuleId)) {
         manifest.qwikLoader = bundleFileName;
-      } else if (handlersRegex.test(outputBundle.facadeModuleId)) {
-        qwikHandlersName = bundleFileName;
       }
     }
     // Rollup doesn't provide the moduleIds in the outputBundle but Vite does
@@ -516,9 +530,6 @@ export function generateManifestFromBundles(
       }
       if (!manifest.qwikLoader && modulePaths.some((m) => qwikLoaderRegex.test(m))) {
         manifest.qwikLoader = bundleFileName;
-      }
-      if (!qwikHandlersName && modulePaths.some((m) => handlersRegex.test(m))) {
-        qwikHandlersName = bundleFileName;
       }
     }
 

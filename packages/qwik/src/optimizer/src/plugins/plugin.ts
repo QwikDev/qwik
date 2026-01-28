@@ -1058,6 +1058,10 @@ export const manifest = ${serverManifest ? JSON.stringify(serverManifest) : 'glo
     if (module) {
       const segment = module.meta.segment as SegmentAnalysis | undefined;
       if (segment) {
+        // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+        if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
+          return null;
+        }
         const { hash } = segment;
 
         // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash

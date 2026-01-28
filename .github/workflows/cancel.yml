@@ -7,6 +7,8 @@ on:
       - requested
 jobs:
   cancel:
+    permissions:
+      actions: write
     runs-on: ubuntu-latest
     steps:
       - uses: styfle/cancel-workflow-action@0.12.1

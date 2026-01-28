@@ -230,6 +230,7 @@ function finishWalk(
 ): void {
   if (!(cursor.dirty & ChoreBits.DIRTY_MASK)) {
     removeCursorFromQueue(cursor, container);
+    DEBUG && console.warn('walkCursor: cursor done', cursor.toString());
     if (!isServer) {
       executeFlushPhase(cursor, container);
     }
@@ -246,9 +247,13 @@ function finishWalk(
 }
 
 export function resolveCursor(container: Container): void {
+  DEBUG &&
+    console.warn(
+      `walkCursor: cursor resolved, ${container.$cursorCount$} remaining, ${container.$pausedCursorCount$} paused`
+    );
   // TODO streaming as a cursor? otherwise we need to wait separately for it
   // or just ignore and resolve manually
-  if (container.$cursorCount$ === 0) {
+  if (container.$cursorCount$ === 0 && container.$pausedCursorCount$ === 0) {
     container.$resolveRenderPromise$!();
     container.$renderPromise$ = null;
   }

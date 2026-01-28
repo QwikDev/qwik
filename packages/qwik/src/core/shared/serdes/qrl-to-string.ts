@@ -81,13 +81,16 @@ export function createQRLWithBackChannel(
   symbol: string,
   captureIds?: number[] | null
 ): QRLInternal<any> {
-  let qrlRef = null;
+  let qrlImporter = null;
   if (isDev && chunk === QRL_RUNTIME_CHUNK) {
     const backChannel: Map<string, Function> = (globalThis as any).__qrl_back_channel__;
     isDev && assertDefined(backChannel, 'Missing QRL_RUNTIME_CHUNK');
-    qrlRef = backChannel.get(symbol);
+    const fn = backChannel.get(symbol);
+    if (fn) {
+      qrlImporter = () => Promise.resolve({ [symbol]: fn });
+    }
   }
-  return createQRL(chunk, symbol, qrlRef, null, captureIds!, null);
+  return createQRL(chunk, symbol, null, qrlImporter, captureIds!, null);
 }
 
 /** Parses "chunk#hash[...rootRef]" */

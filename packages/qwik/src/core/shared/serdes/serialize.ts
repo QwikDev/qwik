@@ -244,12 +244,12 @@ export async function serialize(serializationContext: SerializationContext): Pro
             output(TypeIds.Constant, Constants.Fragment);
           } else if (isQrl(value)) {
             if (getSeenRefOrOutput(value, index)) {
-              const [chunk, symbol, captureIds] = qrlToString(serializationContext, value, true);
+              const [chunk, symbol, captures] = qrlToString(serializationContext, value, true);
               let data: string | number;
               let type: TypeIds;
               if (chunk !== '') {
                 // not a sync QRL, replace all parts with string references
-                data = `${$addRoot$(chunk)} ${$addRoot$(symbol)}${captureIds ? ' ' + captureIds.join(' ') : ''}`;
+                data = `${$addRoot$(chunk)}#${$addRoot$(symbol)}${captures ? '#' + captures : ''}`;
                 // Since we map QRLs to strings, we need to keep track of this secondary mapping
                 const existing = qrlMap.get(data);
                 if (existing) {
@@ -262,6 +262,7 @@ export async function serialize(serializationContext: SerializationContext): Pro
                 }
                 type = preloadQrls.has(value) ? TypeIds.PreloadQRL : TypeIds.QRL;
               } else {
+                // sync QRL
                 data = Number(symbol);
                 type = TypeIds.QRL;
               }

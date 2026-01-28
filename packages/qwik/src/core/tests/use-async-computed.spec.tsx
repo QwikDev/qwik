@@ -34,6 +34,7 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <>
         <button>
@@ -71,6 +72,8 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <>
         <button>
@@ -163,6 +166,7 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <>
         <button data-count="4"></button>
@@ -194,6 +198,7 @@ describe.each([
       </>
     );
     await trigger(container.element, 'button', 'click');
+    await waitForDrain(container);
     expect(vNode).toMatchVDOM(
       <>
         <button data-count="4"></button>
@@ -280,6 +285,7 @@ describe.each([
       );
 
       await trigger(container.element, 'button', 'click');
+      await waitForDrain(container);
 
       expect(vNode).toMatchVDOM(
         <>

@@ -6,12 +6,10 @@ import type { Container, QElement, QwikLoaderEventScope } from '../core/shared/t
 import { EventNameHtmlScope, fromCamelToKebabCase } from '../core/shared/utils/event-names';
 import { QFuncsPrefix, QInstanceAttr } from '../core/shared/utils/markers';
 import { delay } from '../core/shared/utils/promises';
-import { invokeApply, newInvokeContextFromTuple } from '../core/use/use-core';
 import { createWindow } from './document';
 import type { MockDocument, MockWindow } from './types';
 import { waitForDrain } from './util';
-import type { VNode } from '../core/shared/vnode/vnode';
-import { callQrl } from '../core/client/run-qrl';
+import type { QRLInternal } from '../server/qwik-types';
 
 /**
  * Creates a simple DOM structure for testing components.
@@ -143,13 +141,7 @@ const STOP_PROPAGATION = 'stoppropagation:';
 const Q_FUNCS_PREFIX = /document.qdata\["qFuncs_(.+)"\]=/;
 const QContainerSelector = '[q\\:container]';
 
-/**
- * Dispatch
- *
- * @param element
- * @param attrName
- * @param event
- */
+/** Dispatch in the same way that Qwik Loader does, for testing purposes. */
 export const dispatch = async (
   element: Element | null,
   attrName: string,
@@ -174,27 +166,30 @@ export const dispatch = async (
       await delay(0); // Unsure why this is needed for tests
       return;
     } else if (element.hasAttribute(attrName)) {
-      const container = getDomContainer(element as HTMLElement);
-      const qrl = element.getAttribute(attrName)!;
-      const ctx = newInvokeContextFromTuple([element, event]);
+      const qrls = element.getAttribute(attrName)!;
       try {
-        await Promise.all(
-          qrl
-            .split('\n')
-            .map((qrl) => container.parseQRL(qrl.trim()))
-            .map((qrl) => {
-              return invokeApply(ctx, callQrl, [
-                container,
-                ctx.$hostElement$ as VNode,
-                qrl,
-                event,
-                element,
-                true,
-              ]);
-            })
-        );
+        for (const qrl of qrls.split('\n')) {
+          const [chunk, symbol, captures] = qrl.split('#');
+          let fn: Function;
+          if (chunk) {
+            // This is added by qrl-to-string.ts during serialization
+            fn = (globalThis as any).__qrl_back_channel__?.get(symbol);
+            if (typeof fn !== 'function') {
+              throw new Error(`QRL function not found in back channel for ${qrl}`);
+            }
+          } else {
+            const container = getDomContainer(element as HTMLElement);
+            // Sync QRL
+            const sync = container.parseQRL(qrl) as QRLInternal<Function>;
+            // This synchronously resolves the sync function
+            // even though it returns a promise
+            sync.resolve();
+            fn = sync.resolved as Function;
+          }
+          await fn.apply(captures, [event, element]);
+        }
       } catch (error) {
-        console.error('!!! qrl error', qrl, error);
+        console.error('!!! qrl error', qrls, error);
         throw error;
       }
       return;

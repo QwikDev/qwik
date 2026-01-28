@@ -1,10 +1,10 @@
 import {
+  Fragment as Awaited,
   Fragment as Component,
   component$,
   createContextId,
   Fragment,
   Fragment as Projection,
-  Fragment as Awaited,
   Fragment as Signal,
   type Signal as SignalType,
   Slot,
@@ -16,14 +16,14 @@ import {
   useVisibleTask$,
   useTask$,
 } from '@qwik.dev/core';
-import { domRender, ssrRenderToDom, trigger } from '@qwik.dev/core/testing';
+import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
-import { ErrorProvider } from '../../testing/rendering.unit-util';
-import { delay } from '../shared/utils/promises';
 import { ELEMENT_SEQ } from '../../server/qwik-copy';
-import { Task, TaskFlags } from '../use/use-task';
-import { USE_ON_LOCAL } from '../shared/utils/markers';
+import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
+import { USE_ON_LOCAL } from '../shared/utils/markers';
+import { delay } from '../shared/utils/promises';
+import { Task, TaskFlags } from '../use/use-task';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -188,50 +188,59 @@ describe.each([
     expect(ErrorProvider.error).toBe(render === domRender ? error : null);
   });
 
-  it('should not run next visible task until previous async visible task is finished', async () => {
-    (globalThis as any).log = [] as string[];
-    (globalThis as any).delay = () =>
-      new Promise<void>((res) => ((global as any).delay.resolve = res));
-
-    const Counter = component$(() => {
-      (globalThis as any).log.push('Counter');
-      const count = useSignal('');
-
-      useVisibleTask$(async () => {
-        (globalThis as any).log.push('1:task');
-        await delay(10);
-        (globalThis as any).log.push('1:resolved');
-        count.value += 'A';
-      });
-
-      useVisibleTask$(async () => {
-        (globalThis as any).log.push('2:task');
-        await delay(10);
-        (globalThis as any).log.push('2:resolved');
-        count.value += 'B';
-        (globalThis as any).delay.resolve();
-      });
-      (globalThis as any).log.push('render');
-      return <span>{count.value}</span>;
+  it('should run visible tasks in parallel', async () => {
+    const allDone = new Promise<void>((res) => {
+      (globalThis as any).resolveNoNextVisTask = res;
     });
 
-    const { vNode, document } = await render(<Counter />, { debug });
+    const Counter = component$(() => {
+      const log = useSignal('counter\n');
+
+      useVisibleTask$(() => {
+        log.value += 'start\n';
+      });
+      useVisibleTask$(async () => {
+        log.value += '1:start\n';
+        // Make sure to wait longer than the second task
+        await new Promise((res) => setTimeout(res, 50));
+        log.value += '1:done\n';
+        (globalThis as any).resolveNoNextVisTask();
+      });
+
+      useVisibleTask$(async () => {
+        log.value += '2:start\n';
+        await new Promise((res) => setTimeout(res, 10));
+        log.value += '2:done\n';
+      });
+
+      useVisibleTask$(() => {
+        log.value += 'last\n';
+      });
+
+      return <span>{log.value}</span>;
+    });
+
+    const { vNode, document, container } = await render(<Counter />, { debug });
+
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'span', 'qvisible');
     }
-    await (global as any).delay();
-    expect((globalThis as any).log).toEqual([
-      'Counter',
-      'render',
-      '1:task',
-      '2:task',
-      '1:resolved',
-      '2:resolved',
-    ]);
+    await allDone;
+    await waitForDrain(container);
+
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <span>
-          <Signal ssr-required>AB</Signal>
+          <Signal ssr-required>
+            {`counter
+          start
+          1:start
+          2:start
+          last
+          2:done
+          1:done
+          `.replace(/\n\s+/g, '\n')}
+          </Signal>
         </span>
       </Component>
     );

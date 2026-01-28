@@ -67,5 +67,5 @@ export const useRegisterTaskEvents = (task: Task, eagerness: VisibleTaskStrategy
 };
 
 const getTaskHandlerQrl = (task: Task): QRL<EventHandler> => {
-  return createQRL<EventHandler>(null, '_task', scheduleTask, null, null, [task]);
+  return createQRL<EventHandler>(null, '_task', scheduleTask, null, [task]);
 };

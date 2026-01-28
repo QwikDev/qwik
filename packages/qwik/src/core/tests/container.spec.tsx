@@ -28,6 +28,7 @@ import { hasClassAttr } from '../shared/utils/scoped-styles';
 import { type SSRContainer } from '../ssr/ssr-types';
 import { toSsrAttrs } from '../ssr/ssr-render-jsx';
 import type { VNode } from '../shared/vnode/vnode';
+import { retryOnPromise } from '../shared/utils/promises';
 
 describe('serializer v2', () => {
   describe('rendering', () => {
@@ -409,6 +410,7 @@ describe('serializer v2', () => {
         expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
         expect(qrl2.$captureRef$).toEqual(obj[2].$captureRef$);
+        await qrl2.resolve();
         expect(qrl2.resolved.toString()).toEqual((obj[2] as any).resolved.toString());
       });
     });
@@ -435,6 +437,7 @@ describe('serializer v2', () => {
         expect(dstQrl.$captureRef$).toEqual(
           srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
         );
+        await dstQrl.resolve();
         expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });
     });
@@ -461,7 +464,7 @@ describe('serializer v2', () => {
         const got = container.$getObjectById$(0);
         expect(got.$untrackedValue$).toMatchInlineSnapshot(`Symbol(invalid)`);
         expect(!!(got.$flags$ & SignalFlags.INVALID)).toBe(true);
-        expect(got.value).toBe('test!');
+        expect(await retryOnPromise(() => got.value)).toBe('test!');
       });
     });
 

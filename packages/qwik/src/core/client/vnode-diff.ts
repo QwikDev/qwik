@@ -1,5 +1,9 @@
 import { isDev } from '@qwik.dev/core/build';
+import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
 import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives/cleanup';
+import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
+import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
+import { isStore } from '../reactive-primitives/impl/store';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
@@ -7,6 +11,7 @@ import { EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { executeComponent } from '../shared/component-execution';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
+import type { Cursor } from '../shared/cursor/cursor';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -22,9 +27,9 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
 import type { HostElement, QElement, QwikLoaderEventScope, qWindow } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
+import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
 import { _CONST_PROPS, _OWNER, _PROPS_HANDLER, _VAR_PROPS } from '../shared/utils/constants';
 import {
@@ -53,10 +58,20 @@ import { isPromise, retryOnPromise } from '../shared/utils/promises';
 import { isSlotProp } from '../shared/utils/prop';
 import { serializeAttribute } from '../shared/utils/styles';
 import { isArray, isObject, type ValueOrPromise } from '../shared/utils/types';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
+import type { TextVNode } from '../shared/vnode/text-vnode';
+import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import type { VNode } from '../shared/vnode/vnode';
+import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { TaskFlags, isTask } from '../use/use-task';
+import { cleanupDestroyable } from '../use/utils/destroyable';
+import { callQrl } from './run-qrl';
 import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx } from './util-mapArray';
+import { getNewElementNamespaceData } from './vnode-namespace';
 import {
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
@@ -84,22 +99,6 @@ import {
   vnode_walkVNode,
   type VNodeJournal,
 } from './vnode-utils';
-import { getNewElementNamespaceData } from './vnode-namespace';
-import { cleanupDestroyable } from '../use/utils/destroyable';
-import { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { isStore } from '../reactive-primitives/impl/store';
-import { AsyncComputedSignalImpl } from '../reactive-primitives/impl/async-computed-signal-impl';
-import type { VNode } from '../shared/vnode/vnode';
-import type { ElementVNode } from '../shared/vnode/element-vnode';
-import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import type { TextVNode } from '../shared/vnode/text-vnode';
-import { addVNodeOperation, markVNodeDirty } from '../shared/vnode/vnode-dirty';
-import { ChoreBits } from '../shared/vnode/enums/chore-bits.enum';
-import { _EFFECT_BACK_REF } from '../reactive-primitives/backref';
-import type { Cursor } from '../shared/cursor/cursor';
-import { createSetAttributeOperation } from '../shared/vnode/types/dom-vnode-operation';
-import { callQrl } from './run-qrl';
-import { directSetAttribute } from '../shared/utils/attribute';
 
 export interface DiffContext {
   container: ClientContainer;
@@ -996,12 +995,13 @@ function expectElement(diffContext: DiffContext, jsx: JSXNodeInternal, elementNa
         const eventName = fromCamelToKebabCase(event.type);
         const eventProp = ':' + scope.substring(1) + ':' + eventName;
         const qrls = [
-          vnode_getProp<QRL>(vNode, eventProp, null),
-          vnode_getProp<QRL>(vNode, HANDLER_PREFIX + eventProp, null),
+          vnode_getProp<QRLInternal>(vNode, eventProp, null),
+          vnode_getProp<QRLInternal>(vNode, HANDLER_PREFIX + eventProp, null),
         ];
-
         for (const qrl of qrls.flat(2)) {
           if (qrl) {
+            // TODO is this needed?
+            qrl.$container$ = diffContext.container;
             callQrl(diffContext.container, vNode, qrl, event, vNode.node, false).catch((e) => {
               diffContext.container.handleError(e, vNode);
             });

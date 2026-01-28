@@ -1,13 +1,13 @@
 /** @file Public APIs for the SSR */
 
-// @ts-expect-error we don't have types for the preloader
-import { p as preload } from '@qwik.dev/core/preloader';
+import { isDev } from '@qwik.dev/core/build';
+import type { QRLInternal } from '../../server/qwik-types';
 import { assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { ERROR_CONTEXT, isRecoverable } from '../shared/error/error-handling';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { wrapDeserializerProxy } from '../shared/serdes/deser-proxy';
-import { _inflateQRL, getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
+import { getObjectById, parseQRL, preprocessState } from '../shared/serdes/index';
 import { _SharedContainer } from '../shared/shared-container';
 import { QContainerValue, type HostElement, type ObjToProxyMap } from '../shared/types';
 import { EMPTY_ARRAY } from '../shared/utils/flyweight';
@@ -38,6 +38,9 @@ import {
   convertScopedStyleIdsToArray,
   convertStyleIdsToString,
 } from '../shared/utils/scoped-styles';
+import type { ElementVNode } from '../shared/vnode/element-vnode';
+import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
+import type { VNode } from '../shared/vnode/vnode';
 import type { ContextId } from '../use/use-context';
 import { processVNodeData } from './process-vnode-data';
 import {
@@ -58,11 +61,6 @@ import {
   vnode_setProp,
   type VNodeJournal,
 } from './vnode-utils';
-import type { ElementVNode } from '../shared/vnode/element-vnode';
-import type { VNode } from '../shared/vnode/vnode';
-import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
-import { _jsxSorted } from '../internal';
-import { isDev } from '@qwik.dev/core/build';
 
 /** @public */
 export function getDomContainer(element: Element): IClientContainer {
@@ -160,8 +158,10 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     this.$stateData$[id] = vParent;
   }
 
-  parseQRL<T = unknown>(qrl: string): QRL<T> {
-    return _inflateQRL(this, parseQRL(qrl)) as QRL<T>;
+  parseQRL<T = unknown>(qrlStr: string): QRL<T> {
+    const qrl = parseQRL(qrlStr) as QRLInternal<T>;
+    qrl.$container$ = this;
+    return qrl;
   }
 
   handleError(err: any, host: VNode | null): void {

@@ -1,4 +1,6 @@
-import type { QRLInternal } from '../shared/qrl/qrl-class';
+import { isDev } from '@qwik.dev/core/build';
+import { currentCaptures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
 import { ITERATION_ITEM_MULTI, ITERATION_ITEM_SINGLE } from '../shared/utils/markers';
@@ -6,8 +8,7 @@ import { retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ElementVNode } from '../shared/vnode/element-vnode';
 import type { VNode } from '../shared/vnode/vnode';
-import { getInvokeContext } from '../use/use-core';
-import { useLexicalScope } from '../use/use-lexical-scope.public';
+import { invokeFromDOM } from '../use/use-core';
 import { getDomContainer } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
@@ -37,27 +38,32 @@ export function callQrl(
  *
  * @internal
  */
-export const _run = (...args: unknown[]): ValueOrPromise<unknown> => {
-  // This will already check container
-  const [qrl] = useLexicalScope<[QRLInternal<(...args: unknown[]) => unknown>]>();
-  const context = getInvokeContext();
-  const hostElement = context.$hostElement$ as VNode;
-  if (hostElement) {
-    context.$container$ ||= getDomContainer((hostElement as ElementVNode).node as Element);
-    vnode_ensureElementInflated(hostElement);
-    return retryOnPromise(() => {
-      if (!(hostElement.flags & VNodeFlags.Deleted)) {
-        return callQrl(context.$container$, hostElement, qrl, args[0], args[1], true).catch(
-          (err) => {
-            const container = context.$container$;
-            if (container) {
-              container.handleError(err, hostElement);
-            } else {
-              throw err;
+export function _run(
+  this: string | undefined,
+  event: Event,
+  element: Element
+): ValueOrPromise<unknown> {
+  return invokeFromDOM(element, event, this, (context, event, element) => {
+    const hostElement = context.$hostElement$ as ElementVNode;
+    if (hostElement) {
+      const runQrl = currentCaptures![0] as QRLInternal<unknown>;
+      isDev && assertQrl(runQrl);
+      context.$container$ ||= getDomContainer(hostElement.node as Element);
+      vnode_ensureElementInflated(hostElement);
+      return retryOnPromise(() => {
+        if (!(hostElement.flags & VNodeFlags.Deleted)) {
+          return callQrl(context.$container$, hostElement, runQrl, event, element, true).catch(
+            (err) => {
+              const container = context.$container$;
+              if (container) {
+                container.handleError(err, hostElement);
+              } else {
+                throw err;
+              }
             }
-          }
-        );
-      }
-    });
-  }
-};
+          );
+        }
+      });
+    }
+  });
+}

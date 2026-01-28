@@ -75,12 +75,8 @@ export const inflate = (
         (target as Record<string, unknown>)[key] = value;
       }
       break;
-    case TypeIds.QRL:
     case TypeIds.PreloadQRL:
-      _inflateQRL(container, target as QRLInternal<any>);
-      if (typeId === TypeIds.PreloadQRL) {
-        (target as QRLInternal<any>).resolve();
-      }
+      (target as QRLInternal<any>).resolve();
       break;
     case TypeIds.Task:
       const task = target as Task;
@@ -334,20 +330,6 @@ export const _eagerDeserializeArray = (
   }
   return output;
 };
-export function _inflateQRL(container: DeserializeContainer, qrl: QRLInternal<any>) {
-  if (qrl.$captureRef$) {
-    // early return if capture references are already set and qrl is already inflated
-    return qrl;
-  }
-  const captureIds = qrl.$capture$;
-  qrl.$captureRef$ = captureIds ? captureIds.map((id) => container.$getObjectById$(id)) : null;
-  // clear serialized capture references
-  qrl.$capture$ = null;
-  if (container.element) {
-    qrl.$setContainer$(container.element);
-  }
-  return qrl;
-}
 export function deserializeData(container: DeserializeContainer, typeId: number, value: unknown) {
   if (typeId === TypeIds.Plain) {
     return value;

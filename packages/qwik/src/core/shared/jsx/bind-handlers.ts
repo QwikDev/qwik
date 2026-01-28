@@ -1,6 +1,6 @@
+import { _captures } from '../../shared/qrl/qrl-class';
 import type { Signal } from '../../reactive-primitives/signal.public';
 import { invokeFromDOM } from '../../use/use-core';
-import { useLexicalScope } from '../../use/use-lexical-scope.public';
 
 /**
  * Handles events for bind:value
@@ -9,7 +9,7 @@ import { useLexicalScope } from '../../use/use-lexical-scope.public';
  */
 export function _val(this: string | undefined, _: any, element: HTMLInputElement) {
   return invokeFromDOM(element, _, this, () => {
-    const [signal] = useLexicalScope<[Signal]>();
+    const signal = _captures![0] as Signal;
     signal.value = element.type === 'number' ? element.valueAsNumber : element.value;
   });
 }
@@ -21,7 +21,7 @@ export function _val(this: string | undefined, _: any, element: HTMLInputElement
  */
 export function _chk(this: string | undefined, _: any, element: HTMLInputElement) {
   return invokeFromDOM(element, _, this, () => {
-    const [signal] = useLexicalScope<[Signal]>();
+    const signal = _captures![0] as Signal;
     signal.value = element.checked;
   });
 }

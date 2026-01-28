@@ -1,7 +1,7 @@
 import { BackRef } from '../reactive-primitives/backref';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
-import { currentCaptures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import { type NoSerialize } from '../shared/serdes/verify';
@@ -231,7 +231,7 @@ export const isTask = (value: any): value is Task => {
  */
 export function scheduleTask(this: string | undefined, _event: Event, element: Element) {
   invokeFromDOM(element, _event, this, (context) => {
-    const task = currentCaptures![0] as Task;
+    const task = _captures![0] as Task;
     task.$flags$ |= TaskFlags.DIRTY;
     markVNodeDirty(context.$container$!, task.$el$, ChoreBits.TASKS);
   });

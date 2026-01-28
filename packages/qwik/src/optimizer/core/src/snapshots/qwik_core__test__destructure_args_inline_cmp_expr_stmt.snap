@@ -35,9 +35,9 @@ export default ((_rawProps)=>/*#__PURE__*/ _jsxSorted("div", {
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;mBAG8B,GAFV,KAEe,oBAAoB,KAAK;;;AAF1D,eAAe,CAAA,2BACL,WAAC;QACC,gBAAc;;;QACd,UAAQ;;;6BAGT,EAAE\"}")
 ============================= test.tsx_test_div_on_click_HJR5N4Nizkc.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const test_div_on_click_HJR5N4Nizkc = ()=>{
-    const [_rawProps] = useLexicalScope();
+    const _rawProps = _captures[0];
     _rawProps.data.selectedOutputDetail = 'options';
 };
 

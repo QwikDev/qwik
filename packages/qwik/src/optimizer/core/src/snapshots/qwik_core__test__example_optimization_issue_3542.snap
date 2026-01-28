@@ -24,14 +24,14 @@ export const AtomStatus = component$(({ctx,atom})=>{
 ============================= test.jsx ==
 
 import { componentQrl } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 export const AtomStatus = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl((_rawProps)=>{
     let status = _rawProps.atom.status;
     if (!_rawProps.atom.real) status = "WILL-VANISH";
     else if (JSON.stringify(_rawProps.atom.atom) == JSON.stringify(_rawProps.atom.real)) status = "WTFED";
     return <span title={_rawProps.atom.ID} on:click={/*#__PURE__*/ inlinedQrl((ev)=>{
-        const [_rawProps] = useLexicalScope();
+        const _rawProps = _captures[0];
         return atomStatusClick(_rawProps.ctx, ev, [
             _rawProps.atom
         ]);

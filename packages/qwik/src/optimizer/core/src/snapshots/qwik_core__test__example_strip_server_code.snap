@@ -50,11 +50,11 @@ export const Parent = component$(() => {
 
 ============================= test.tsx_Parent_component_useTask_gDH1EtUWqBU.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import mongo from "mongodb";
 import redis from "redis";
 export const s_gDH1EtUWqBU = async ()=>{
-    const [state] = useLexicalScope();
+    const state = _captures[0];
     state.text = await mongo.users();
     redis.set(state.text);
 };

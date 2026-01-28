@@ -27,9 +27,9 @@ export const Cmp = component$(() => {
 
 ============================= test.tsx_Cmp_component_Fragment_button_on_click_MhhCocTC5xM.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Cmp_component_Fragment_button_on_click_MhhCocTC5xM = ()=>{
-    const [currentType] = useLexicalScope();
+    const currentType = _captures[0];
     return currentType.value = 'NEXT';
 };
 

@@ -1,5 +1,5 @@
 import { isDev } from '@qwik.dev/core/build';
-import { currentCaptures, type QRLInternal } from '../shared/qrl/qrl-class';
+import { _captures, type QRLInternal } from '../shared/qrl/qrl-class';
 import { assertQrl } from '../shared/qrl/qrl-utils';
 import type { QRL } from '../shared/qrl/qrl.public';
 import type { Container } from '../shared/types';
@@ -46,7 +46,7 @@ export function _run(
   return invokeFromDOM(element, event, this, (context, event, element) => {
     const hostElement = context.$hostElement$ as ElementVNode;
     if (hostElement) {
-      const runQrl = currentCaptures![0] as QRLInternal<unknown>;
+      const runQrl = _captures![0] as QRLInternal<unknown>;
       isDev && assertQrl(runQrl);
       context.$container$ ||= getDomContainer(hostElement.node as Element);
       vnode_ensureElementInflated(hostElement);

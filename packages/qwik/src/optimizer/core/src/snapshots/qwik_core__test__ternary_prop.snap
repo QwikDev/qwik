@@ -23,9 +23,9 @@ expression: output
 		
 ============================= test.tsx_Cmp_component_handleClick_WawHV3HwS1A.ts (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Cmp_component_handleClick_WawHV3HwS1A = ()=>{
-    const [toggleSig] = useLexicalScope();
+    const toggleSig = _captures[0];
     toggleSig.value = !toggleSig.value;
 };
 

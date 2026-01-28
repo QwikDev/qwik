@@ -3,7 +3,7 @@ import type { SimpleURL } from './types';
 import { createAsyncComputed$, isBrowser } from '@qwik.dev/core';
 import {
   _UNINITIALIZED,
-  type ClientContainer,
+  type _Container,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import { QACTION_KEY, QLOADER_KEY } from './constants';
@@ -93,12 +93,12 @@ export const createLoaderSignal = (
   loaderId: string,
   url: URL,
   serializationStrategy: SerializationStrategy,
-  container?: ClientContainer
+  container?: _Container
 ) => {
   return createAsyncComputed$(
     async () => {
       if (isBrowser && loadersObject[loaderId] === _UNINITIALIZED) {
-        const data = await loadClientData(url, undefined, {
+        const data = await loadClientData(url, {
           loaderIds: [loaderId],
         });
         loadersObject[loaderId] = data?.loaders[loaderId] ?? _UNINITIALIZED;
@@ -106,7 +106,7 @@ export const createLoaderSignal = (
       return loadersObject[loaderId];
     },
     {
-      container: container as ClientContainer,
+      container: container as _Container,
       serializationStrategy,
     }
   );

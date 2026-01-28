@@ -6,6 +6,7 @@ export {
   DomContainer as _DomContainer,
   getDomContainer as _getDomContainer,
 } from './client/dom-container';
+export type { Container as _Container } from './shared/types';
 export { _run } from './client/run-qrl';
 export type {
   ContainerElement as _ContainerElement,
@@ -60,7 +61,7 @@ export { _walkJSX } from './ssr/ssr-render-jsx';
 export { _resolveContextWithoutSequentialScope } from './use/use-context';
 export {
   _getContextContainer,
-  _getContextElement,
+  _getContextHostElement,
   _getContextEvent,
   _jsxBranch,
   _waitUntilRendered,

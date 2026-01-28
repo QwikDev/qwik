@@ -64,6 +64,7 @@ describe.each([
       return <button onClick$={() => count.value++}>{quadrupleCount.value}</button>;
     });
     const { vNode, container } = await render(<Counter />, { debug });
+
     expect(vNode).toMatchVDOM(
       <>
         <button>
@@ -71,6 +72,7 @@ describe.each([
         </button>
       </>
     );
+
     await trigger(container.element, 'button', 'click');
     await waitForDrain(container);
     await waitForDrain(container);
@@ -285,6 +287,9 @@ describe.each([
       );
 
       await trigger(container.element, 'button', 'click');
+      await waitForDrain(container);
+
+      // TODO this probably should not be needed
       await waitForDrain(container);
 
       expect(vNode).toMatchVDOM(

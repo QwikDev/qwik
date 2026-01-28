@@ -1,32 +1,21 @@
+import { isDev } from '@qwik.dev/core/build';
+import type { ValueOrPromise } from 'packages/qwik/src/server/qwik-types';
+import { getDomContainer } from '../client/dom-container';
 import type { QwikDocument } from '../document';
-import { assertDefined } from '../shared/error/assert';
-import { QError, qError } from '../shared/error/error';
-import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QRL } from '../shared/qrl/qrl.public';
-import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
-import { seal } from '../shared/utils/qdev';
-import { isArray, isObject } from '../shared/utils/types';
-import { setLocale } from './use-locale';
-import type { Container, HostElement } from '../shared/types';
-import {
-  vnode_getNode,
-  vnode_isElementVNode,
-  vnode_isVNode,
-  vnode_locate,
-} from '../client/vnode-utils';
-import { _getQContainerElement, getDomContainer } from '../client/dom-container';
-import { type ClientContainer } from '../client/types';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import {
-  type Consumer,
-  type EffectProperty,
-  type EffectSubscription,
-} from '../reactive-primitives/types';
 import type { Signal } from '../reactive-primitives/signal.public';
-import type { ISsrNode } from 'packages/qwik/src/server/qwik-types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import type { SubscriptionData } from '../reactive-primitives/subscription-data';
-import { isDev } from '@qwik.dev/core/build';
+import type { Consumer, EffectProperty, EffectSubscription } from '../reactive-primitives/types';
+import { assertDefined } from '../shared/error/assert';
+import { QError, qError } from '../shared/error/error';
+import { deserializeCaptures, setCaptures } from '../shared/qrl/qrl-class';
+import type { Container, HostElement } from '../shared/types';
+import { RenderEvent, ResourceEvent, TaskEvent } from '../shared/utils/markers';
+import { seal } from '../shared/utils/qdev';
+import { isObject } from '../shared/utils/types';
+import { setLocale } from './use-locale';
+import { vnode_locate } from '../client/vnode-utils';
 
 declare const document: QwikDocument;
 
@@ -52,18 +41,12 @@ export interface RenderInvokeContext extends InvokeContext {
   $container$: Container;
 }
 
-export type InvokeTuple = [Element, Event, URL?];
-
 /** The shared state during an invoke() call */
 export interface InvokeContext {
-  /* The URL of the QRL */
-  $url$: URL | undefined;
   /** The Virtual parent component for the current component code */
   $hostElement$: HostElement | undefined;
   /** The event we're currently handling */
   $event$: PossibleEvents | undefined;
-  /** The QRL function we're currently executing */
-  $qrl$: QRL | undefined;
   $effectSubscriber$: EffectSubscription | undefined;
   $locale$: string | undefined;
   $container$: Container | undefined;
@@ -72,16 +55,6 @@ export interface InvokeContext {
 let _context: InvokeContext | undefined;
 
 export const tryGetInvokeContext = (): InvokeContext | undefined => {
-  if (!_context) {
-    const context = typeof document !== 'undefined' && document && document.__q_context__;
-    if (!context) {
-      return undefined;
-    }
-    if (isArray(context)) {
-      return (document.__q_context__ = newInvokeContextFromTuple(context as InvokeTuple));
-    }
-    return context as InvokeContext;
-  }
   return _context;
 };
 
@@ -146,25 +119,45 @@ export function invokeApply<FN extends (...args: any) => any>(
   return returnValue;
 }
 
-export const newInvokeContextFromTuple = ([element, event, url]: InvokeTuple) => {
+const newInvokeContextFromDOM = (event: Event, element: Element) => {
   const domContainer = getDomContainer(element);
   const hostElement = vnode_locate(domContainer.rootVNode, element);
   const locale = domContainer.$locale$;
   locale && setLocale(locale);
-  return newInvokeContext(locale, hostElement, event, url);
+  const context = newInvokeContext(locale, hostElement, event);
+  context.$container$ = domContainer;
+  return context;
 };
+
+export function invokeFromDOM<EL extends Element, EV extends Event>(
+  element: EL,
+  event: EV,
+  captureIds: string | undefined,
+  handler: (context: InvokeContext, event: EV, element: EL) => ValueOrPromise<unknown>
+) {
+  try {
+    _context = newInvokeContextFromDOM(event, element);
+    /**
+     * We can be called from DOM with serialized captures on `this`, but also directly via
+     * qDispatch, and then we should not touch the captures
+     */
+    if (typeof captureIds === 'string') {
+      setCaptures(captureIds ? deserializeCaptures(_context.$container$!, captureIds) : null);
+    }
+    return handler(_context, event, element);
+  } finally {
+    _context = undefined;
+  }
+}
 
 export function newRenderInvokeContext(
   locale: string | undefined,
   hostElement: HostElement,
-  container: Container,
-  url?: URL
+  container: Container
 ): RenderInvokeContext {
   const ctx: RenderInvokeContext = {
-    $url$: url,
     $hostElement$: hostElement,
     $event$: RenderEvent,
-    $qrl$: undefined,
     $effectSubscriber$: undefined,
     $locale$: locale,
     $container$: container,
@@ -178,17 +171,14 @@ export function newRenderInvokeContext(
 export function newInvokeContext(
   locale?: string,
   hostElement?: HostElement,
-  event?: Exclude<PossibleEvents, typeof RenderEvent>,
-  url?: URL
+  event?: Exclude<PossibleEvents, typeof RenderEvent>
 ): InvokeContext {
   // ServerRequestEvent has .locale, but it's not always defined.
   const $locale$ =
     locale || (event && isObject(event) && 'locale' in event ? event.locale : undefined);
   const ctx: InvokeContext = {
-    $url$: url,
     $hostElement$: hostElement,
     $event$: event,
-    $qrl$: undefined,
     $effectSubscriber$: undefined,
     $locale$,
     $container$: undefined,
@@ -260,25 +250,8 @@ export const trackSignalAndAssignHost = (
 };
 
 /** @internal */
-export const _getContextElement = (): unknown => {
-  const iCtx = tryGetInvokeContext();
-  if (iCtx) {
-    const hostElement = iCtx.$hostElement$;
-    let element: Element | ISsrNode | null = null;
-
-    if (hostElement != null) {
-      if (vnode_isVNode(hostElement)) {
-        if (vnode_isElementVNode(hostElement)) {
-          element = vnode_getNode(hostElement) as Element;
-        }
-      } else {
-        // isSSRnode
-        element = hostElement;
-      }
-    }
-
-    return element ?? (iCtx.$qrl$ as QRLInternal)?.$setContainer$(undefined);
-  }
+export const _getContextHostElement = () => {
+  return tryGetInvokeContext()?.$hostElement$;
 };
 
 /** @internal */
@@ -290,10 +263,10 @@ export const _getContextEvent = (): unknown => {
 };
 
 /** @internal */
-export const _getContextContainer = (): ClientContainer | undefined => {
+export const _getContextContainer = (): Container | undefined => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
-    return iCtx.$container$ as ClientContainer;
+    return iCtx.$container$ as Container;
   }
 };
 
@@ -307,8 +280,6 @@ export const _jsxBranch = <T>(input?: T) => {
 };
 
 /** @internal */
-export const _waitUntilRendered = (elm: Element): Promise<void> => {
-  const container = getDomContainer(elm);
-  const promise = container?.$renderPromise$;
-  return promise || Promise.resolve();
+export const _waitUntilRendered = (container: Container): Promise<void> => {
+  return container.$renderPromise$ || Promise.resolve();
 };

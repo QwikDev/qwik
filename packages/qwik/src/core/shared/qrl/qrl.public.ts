@@ -136,7 +136,7 @@ export type QrlReturn<T> = T extends (...args: any) => infer R ? Awaited<R> : un
 export type QRL<TYPE = unknown> = {
   // Special type brand to let eslint that the Type is serializable
   __qwik_serializable__?: any;
-  __brand__QRL__: TYPE;
+  __brand__QRL__?: TYPE;
 
   /** Resolve the QRL and return the actual value. */
   resolve(): Promise<TYPE>;
@@ -254,7 +254,7 @@ export const $ = <T>(expression: T): QRL<T> => {
     );
   }
 
-  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null, null);
+  return createQRL<T>(null, 's' + runtimeSymbolId++, expression, null, null);
 };
 /** @private Use To avoid optimizer replacement */
 export const dollar = $;
@@ -293,7 +293,7 @@ export const sync$ = <T extends Function>(fn: T): SyncQRL<T> => {
     fn = new Function('return ' + fn.toString())() as any;
   }
 
-  return createQRL<T>('', SYNC_QRL, fn, null, null, null) as any;
+  return createQRL<T>('', SYNC_QRL, fn, null, null) as any;
 };
 
 /**
@@ -314,5 +314,5 @@ export const _qrlSync = function <TYPE extends Function>(
     serializedFn = fn.toString();
   }
   (fn as any).serialized = serializedFn;
-  return createQRL<TYPE>('', SYNC_QRL, fn, null, null, null) as any;
+  return createQRL<TYPE>('', SYNC_QRL, fn, null, null) as any;
 };

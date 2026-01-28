@@ -293,7 +293,7 @@ describe('signal', () => {
       delayQrl = inlinedQrl(
         Promise.resolve(iQrl.resolve()),
         'd_' + iQrl.$symbol$,
-        iQrl.$captureRef$ as any
+        iQrl.$captures$ as any
       ) as any;
       delayMap.set(hash, delayQrl);
     }

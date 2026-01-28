@@ -280,7 +280,7 @@ function partitionDirtyChildren(dirtyChildren: VNode[], parent: VNode): void {
 }
 
 /** @returns Next vNode to process, or null if traversal is complete */
-function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
+export function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   if (vNode === cursor) {
     if (cursor.dirty & ChoreBits.DIRTY_MASK) {
       return cursor;
@@ -320,5 +320,6 @@ function getNextVNode(vNode: VNode, cursor: Cursor): VNode | null {
   // all array items checked, children are no longer dirty
   parent!.dirty &= ~ChoreBits.CHILDREN;
   parent!.dirtyChildren = null;
+  parent!.nextDirtyChildIndex = 0;
   return getNextVNode(parent!, cursor);
 }

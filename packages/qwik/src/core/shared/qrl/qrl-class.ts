@@ -7,7 +7,7 @@ import { isBrowser, isDev } from '@qwik.dev/core/build';
 import { invokeApply, tryGetInvokeContext, type InvokeContext } from '../../use/use-core';
 import { assertDefined } from '../error/assert';
 import { QError, qError } from '../error/error';
-import { getQFuncs, QInstanceAttr } from '../utils/markers';
+import { getQFuncs } from '../utils/markers';
 import { isPromise, maybeThen } from '../utils/promises';
 import { qDev, qSerialize, qTest, seal } from '../utils/qdev';
 import { isFunction, type ValueOrPromise } from '../utils/types';
@@ -140,8 +140,8 @@ const makeResolveFunction = <TYPE>(
     if (qrl.$chunk$ === '') {
       // Sync QRL
       isDev && assertDefined(qrl.$container$, 'Sync QRL must have container element');
-      const hash = (qrl.$container$ as DomContainer).element!.getAttribute(QInstanceAttr)!;
-      const doc = (qrl.$container$ as DomContainer).element!.ownerDocument!;
+      const hash = (qrl.$container$ as DomContainer).$instanceHash$;
+      const doc = (qrl.$container$ as DomContainer).element?.ownerDocument || document;
       const qFuncs = getQFuncs(doc, hash);
       // No need to wrap, syncQRLs can't have captured scope
       return (qrl.resolved = symbolRef = qFuncs[Number(qrl.$symbol$)] as TYPE);

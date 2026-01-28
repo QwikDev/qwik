@@ -1,13 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
-import type { ISsrNode, SignalImpl, ValueOrPromise } from 'packages/qwik/src/server/qwik-types';
+import type { SignalImpl, ValueOrPromise } from 'packages/qwik/src/server/qwik-types';
 import { getDomContainer } from '../client/dom-container';
-import type { ClientContainer } from '../client/types';
-import {
-  vnode_getNode,
-  vnode_isElementVNode,
-  vnode_isVNode,
-  vnode_locate,
-} from '../client/vnode-utils';
+import { vnode_locate } from '../client/vnode-utils';
 import type { QwikDocument } from '../document';
 import { unwrapStore } from '../index';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
@@ -273,25 +267,8 @@ export const trackSignalAndAssignHost = (
 };
 
 /** @internal */
-export const _getContextElement = (): unknown => {
-  const iCtx = tryGetInvokeContext();
-  if (iCtx) {
-    const hostElement = iCtx.$hostElement$;
-    let element: Element | ISsrNode | null = null;
-
-    if (hostElement != null) {
-      if (vnode_isVNode(hostElement)) {
-        if (vnode_isElementVNode(hostElement)) {
-          element = vnode_getNode(hostElement) as Element;
-        }
-      } else {
-        // isSSRnode
-        element = hostElement;
-      }
-    }
-
-    return element;
-  }
+export const _getContextHostElement = () => {
+  return tryGetInvokeContext()?.$hostElement$;
 };
 
 /** @internal */
@@ -303,10 +280,10 @@ export const _getContextEvent = (): unknown => {
 };
 
 /** @internal */
-export const _getContextContainer = (): ClientContainer | undefined => {
+export const _getContextContainer = (): Container | undefined => {
   const iCtx = tryGetInvokeContext();
   if (iCtx) {
-    return iCtx.$container$ as ClientContainer;
+    return iCtx.$container$ as Container;
   }
 };
 
@@ -320,8 +297,6 @@ export const _jsxBranch = <T>(input?: T) => {
 };
 
 /** @internal */
-export const _waitUntilRendered = (elm: Element): Promise<void> => {
-  const container = getDomContainer(elm);
-  const promise = container?.$renderPromise$;
-  return promise || Promise.resolve();
+export const _waitUntilRendered = (container: Container): Promise<void> => {
+  return container.$renderPromise$ || Promise.resolve();
 };

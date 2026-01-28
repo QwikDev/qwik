@@ -1,7 +1,6 @@
 import { createSerializationContext } from './index';
 import { assertTrue } from '../error/assert';
 import type { DeserializeContainer } from '../types';
-import { isNode, isElement } from '../utils/element';
 import { wrapDeserializerProxy } from './deser-proxy';
 import { deserializeData } from './inflate';
 import { preprocessState } from './preprocess-state';
@@ -34,11 +33,10 @@ export async function _serialize(data: unknown[]): Promise<string> {
  * Deserialize data from string to an array of objects.
  *
  * @param rawStateData - Data to deserialize
- * @param element - Container element
  * @internal
  */
 
-export function _deserialize(rawStateData: string | null, element?: unknown): unknown[] {
+export function _deserialize(rawStateData: string | null): unknown[] {
   if (rawStateData == null) {
     return [];
   }
@@ -47,12 +45,7 @@ export function _deserialize(rawStateData: string | null, element?: unknown): un
     return [];
   }
 
-  let container: DeserializeContainer | undefined;
-  if (isNode(element) && isElement(element)) {
-    container = _createDeserializeContainer(stateData, element as HTMLElement);
-  } else {
-    container = _createDeserializeContainer(stateData);
-  }
+  const container = _createDeserializeContainer(stateData);
   const output = [];
   for (let i = 0; i < stateData.length; i += 2) {
     output[i / 2] = deserializeData(container, stateData[i], stateData[i + 1]);
@@ -68,10 +61,7 @@ export function getObjectById(id: number | string, stateData: unknown[]): unknow
   return stateData[id];
 }
 
-export function _createDeserializeContainer(
-  stateData: unknown[],
-  element?: HTMLElement
-): DeserializeContainer {
+export function _createDeserializeContainer(stateData: unknown[]): DeserializeContainer {
   // eslint-disable-next-line prefer-const
   let state: unknown[];
   const container: DeserializeContainer = {
@@ -87,8 +77,5 @@ export function _createDeserializeContainer(
   preprocessState(stateData, container);
   state = wrapDeserializerProxy(container as any, stateData);
   container.$state$ = state;
-  if (element) {
-    container.element = element;
-  }
   return container;
 }

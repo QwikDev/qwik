@@ -444,8 +444,11 @@ function descend(
         diffContext.vCurrent || diffContext.vNewNode,
         'Expecting vCurrent to be defined.'
       );
-    let firstChild: VNode | null = null;
-    let creationMode = diffContext.isCreationMode || !!diffContext.vNewNode;
+    const creationMode =
+      diffContext.isCreationMode ||
+      !!diffContext.vNewNode ||
+      !vnode_getFirstChild(diffContext.vCurrent!);
+
     diffContext.isCreationMode = creationMode;
     diffContext.vSideBuffer = null;
     diffContext.vSiblings = null;
@@ -453,11 +456,7 @@ function descend(
     diffContext.vParent = (diffContext.vNewNode || diffContext.vCurrent!) as
       | ElementVNode
       | VirtualVNode;
-    if (!creationMode) {
-      firstChild = vnode_getFirstChild(diffContext.vParent!);
-      creationMode = !firstChild;
-    }
-    diffContext.vCurrent = firstChild;
+    diffContext.vCurrent = vnode_getFirstChild(diffContext.vParent!);
     diffContext.vNewNode = null;
   }
   diffContext.shouldAdvance = false;

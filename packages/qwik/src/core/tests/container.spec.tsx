@@ -398,20 +398,20 @@ describe('serializer v2', () => {
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           qrl('chunk.js', 's_123', ['Hello', 'World']) as QRLInternal,
           inlinedQrl(testFn, 's_inline', ['Hello']) as QRLInternal,
-          _qrlSync(() => 'hi', 'q=>"meep"') as unknown as QRLInternal,
+          _qrlSync(() => 'hi', 'p0=>"hi"') as unknown as QRLInternal,
         ];
         const container = await withContainer((ssr) => ssr.addRoot(obj));
-        const [qrl0, qrl1, qrl2] = container.$getObjectById$(0);
+        const [qrl0, qrl1, qrl2] = container.$getObjectById$(0) as QRLInternal[];
         expect(qrl0.$hash$).toEqual(obj[0].$hash$);
-        expect(qrl0.$captureRef$).toEqual(obj[0].$captureRef$);
+        expect(qrl0.$captures$).toEqual('1 2');
         expect(qrl0.resolved).toEqual((obj[0] as any).resolved);
         expect(qrl1.$hash$).toEqual(obj[1].$hash$);
-        expect(qrl1.$captureRef$).toEqual(obj[1].$captureRef$);
+        expect(qrl1.$captures$).toEqual('1 2');
         expect(qrl1.resolved).toEqual((obj[1] as any).resolved);
         expect(qrl2.$hash$).toEqual(obj[2].$hash$);
-        expect(qrl2.$captureRef$).toEqual(obj[2].$captureRef$);
+        expect(qrl2.$captures$).toEqual('1');
         await qrl2.resolve();
-        expect(qrl2.resolved.toString()).toEqual((obj[2] as any).resolved.toString());
+        expect((qrl2.resolved as any).toString()).toEqual((obj[2] as any).resolved.toString());
       });
     });
 
@@ -431,12 +431,10 @@ describe('serializer v2', () => {
       it('should serialize and deserialize', async () => {
         const obj = component$(() => <div />);
         const container = await withContainer((ssr) => ssr.addRoot(obj));
-        const [srcQrl] = (obj as any)[SERIALIZABLE_STATE];
-        const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE];
+        const [srcQrl] = (obj as any)[SERIALIZABLE_STATE] as QRLInternal[];
+        const [dstQrl] = container.$getObjectById$(0)[SERIALIZABLE_STATE] as QRLInternal[];
         expect(dstQrl.$hash$).toEqual(srcQrl.$hash$);
-        expect(dstQrl.$captureRef$).toEqual(
-          srcQrl.$captureRef$.length ? srcQrl.$captureRef$ : null
-        );
+        expect(dstQrl.$captures$).toEqual(srcQrl.$captures$ ? srcQrl.$captures$ : null);
         await dstQrl.resolve();
         expect(dstQrl.resolved).toEqual((srcQrl as any).resolved);
       });

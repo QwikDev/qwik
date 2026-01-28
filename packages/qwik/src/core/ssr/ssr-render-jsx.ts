@@ -400,8 +400,8 @@ function setEvent(
      *
      * For internal qrls (starting with `_`) we assume that they do the right thing.
      */
-    if (!qrl.$symbol$.startsWith('_') && qrl.$captureRef$?.length) {
-      qrl = createQRL(null, '_run', _run, null, null, [qrl]);
+    if (!qrl.$symbol$.startsWith('_') && qrl.$captures$?.length) {
+      qrl = createQRL(null, '_run', _run, null, [qrl]);
     }
     return qrlToString(serializationCtx, qrl);
   };

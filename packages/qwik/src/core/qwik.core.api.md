@@ -28,7 +28,7 @@ export interface AsyncComputedReadonlySignal<T = unknown> extends ComputedSignal
 export type AsyncComputedReturnType<T> = T extends Promise<infer T> ? AsyncComputedReadonlySignal<T> : AsyncComputedReadonlySignal<T>;
 
 // @internal
-export const _chk: (_: any, element: HTMLInputElement) => void;
+export function _chk(this: string | undefined, _: any, element: HTMLInputElement): unknown;
 
 // @public
 export type ClassList = string | undefined | null | false | Record<string, boolean | string | number | null | undefined> | ClassList[];
@@ -117,7 +117,7 @@ export interface ContextId<STATE> {
 // @public
 export interface CorePlatform {
     chunkForSymbol: (symbolName: string, chunk: string | null, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
-    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<any>;
+    importSymbol: (containerEl: Element | undefined, url: string | URL | undefined | null, symbol: string) => ValueOrPromise<unknown>;
     isServer: boolean;
     raf: (fn: () => any) => Promise<any>;
 }
@@ -239,7 +239,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     handleError(err: any, host: _VNode | null): void;
     // (undocumented)
-    parseQRL<T = unknown>(qrl: string): QRL<T>;
+    parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
     qContainer: string;
     // (undocumented)
@@ -382,13 +382,13 @@ export const _IMMUTABLE: unique symbol;
 export const implicit$FirstArg: <FIRST, REST extends any[], RET>(fn: (qrl: QRL<FIRST>, ...rest: REST) => RET) => ((qrl: FIRST, ...rest: REST) => RET);
 
 // @public
-export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrl: <T>(symbol: T | null, symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // Warning: (ae-forgotten-export) The symbol "QRLDev" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "inlinedQrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const inlinedQrlDEV: <T = any>(symbol: T, symbolName: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 export { isBrowser }
 
@@ -556,10 +556,10 @@ export type NativeUIEvent = UIEvent;
 export type NativeWheelEvent = WheelEvent;
 
 // @internal (undocumented)
-export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrl: <T>(symbolName: string, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @internal (undocumented)
-export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const _noopQrlDEV: <T>(symbolName: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public
 export type NoSerialize<T> = (T & {
@@ -631,7 +631,7 @@ export interface _QDocument extends Document {
 // @public
 export type QRL<TYPE = unknown> = {
     __qwik_serializable__?: any;
-    __brand__QRL__: TYPE;
+    __brand__QRL__?: TYPE;
     resolve(): Promise<TYPE>;
     resolved: undefined | TYPE;
     getCaptured(): unknown[] | null;
@@ -641,12 +641,12 @@ export type QRL<TYPE = unknown> = {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @public
-export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: any[], stackOffset?: number) => QRL<T>;
+export const qrl: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, lexicalScopeCapture?: Readonly<unknown[]> | null, stackOffset?: number) => QRL<T>;
 
 // Warning: (ae-internal-missing-underscore) The name "qrlDEV" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: any[]) => QRL<T>;
+export const qrlDEV: <T = any>(chunkOrFn: string | (() => Promise<any>), symbol: string, opts: QRLDev, lexicalScopeCapture?: Readonly<unknown[]>) => QRL<T>;
 
 // @public
 export type QRLEventHandlerMulti<EV extends Event, EL> = QRL<EventHandler<EV, EL>> | undefined | null | QRLEventHandlerMulti<EV, EL>[];
@@ -759,8 +759,6 @@ export type QwikSymbolEvent = CustomEvent<{
     element: Element;
     reqTime: number;
     qBase?: string;
-    qManifest?: string;
-    qVersion?: string;
     href?: string;
 }>;
 
@@ -899,7 +897,7 @@ export type ResourceReturn<T> = ResourcePending<T> | ResourceResolved<T> | Resou
 export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
 
 // @internal
-export const _run: (...args: unknown[]) => ValueOrPromise<unknown>;
+export function _run(this: string | undefined, event: Event, element: Element): ValueOrPromise<unknown>;
 
 // @public (undocumented)
 export type SerializationStrategy = 'never' | 'always';
@@ -1643,7 +1641,7 @@ export type SyncQRL<TYPE extends Function> = QRL<TYPE> & {
 } & BivariantQrlFn<QrlArgs<TYPE>, QrlReturn<TYPE>>;
 
 // @internal
-export const _task: (_event: Event, element: Element) => void;
+export function _task(this: string | undefined, _event: Event, element: Element): void;
 
 // @public (undocumented)
 export interface TaskCtx {
@@ -1818,7 +1816,7 @@ export const useVisibleTask$: (fn: TaskFn, opts?: OnVisibleTaskOptions) => void;
 export const useVisibleTaskQrl: (qrl: QRL<TaskFn>, opts?: OnVisibleTaskOptions) => void;
 
 // @internal
-export const _val: (_: any, element: HTMLInputElement) => void;
+export function _val(this: string | undefined, _: any, element: HTMLInputElement): unknown;
 
 // @public
 export type ValueOrPromise<T> = T | Promise<T>;

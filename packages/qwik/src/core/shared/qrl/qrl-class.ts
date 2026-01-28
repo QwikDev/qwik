@@ -65,10 +65,12 @@ export type QRLInternal<TYPE = unknown> = QRL<TYPE> & QRLInternalMethods<TYPE>;
  * The current captured scope during QRL invocation. This is used to provide the lexical scope for
  * QRL functions. It is used one time per invocation, synchronously, so it is safe to store it in
  * module scope.
+ *
+ * @internal
  */
-export let currentCaptures: unknown[] | null = null;
+export let _captures: unknown[] | null = null;
 export const setCaptures = (captures: unknown[] | null) => {
-  currentCaptures = captures;
+  _captures = captures;
 };
 
 export const deserializeCaptures = (container: Container, captures: string) => {
@@ -119,7 +121,7 @@ const wrapFn = <TYPE>(qrl: QRLInternal, fn: TYPE): TYPE => {
   return function (this: unknown, ...args: QrlArgs<TYPE>) {
     ensureQrlCaptures(qrl);
     // We read the captures once, synchronously, so no need to keep previous
-    currentCaptures = qrl.$captures$ as unknown[] | null;
+    _captures = qrl.$captures$ as unknown[] | null;
     return fn.apply(this, args);
   } as TYPE;
 };

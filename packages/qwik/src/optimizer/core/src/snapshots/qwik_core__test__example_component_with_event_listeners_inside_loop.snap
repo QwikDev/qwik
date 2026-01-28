@@ -115,9 +115,9 @@ export const App = /*#__PURE__*/ componentQrl(/*#__PURE__*/ qrl(i_ckEPmXZlub0, "
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AAEA,OAAO,MAAM,oBAAM,4EA+FZ\"}")
 ============================= test.tsx_App_component_loopArrowFn_span_on_click_LKE0yw7iEx4.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_loopArrowFn_span_on_click_LKE0yw7iEx4 = (_, _1, item)=>{
-    const [cart] = useLexicalScope();
+    const cart = _captures[0];
     cart.push(item);
 };
 
@@ -153,9 +153,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopForOf_span_on_click_Tsqf6v6tRCw.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_loopForOf_span_on_click_Tsqf6v6tRCw = (_, _1, item)=>{
-    const [cart] = useLexicalScope();
+    const cart = _captures[0];
     cart.push(item);
 };
 
@@ -191,9 +191,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_div_button_on_click_5a2ivZyN1Y0.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_div_button_on_click_5a2ivZyN1Y0 = (_, _1, item)=>{
-    const [cart] = useLexicalScope();
+    const cart = _captures[0];
     cart.push(item);
 };
 
@@ -229,9 +229,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopForIn_span_on_click_q4maSW2qtLo.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_loopForIn_span_on_click_q4maSW2qtLo = (_, _1, key)=>{
-    const [cart, results] = useLexicalScope();
+    const cart = _captures[0], results = _captures[1];
     cart.push(results[key]);
 };
 
@@ -268,9 +268,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopForI_span_on_click_X0FbAads0bo.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_loopForI_span_on_click_X0FbAads0bo = (_, _1, i)=>{
-    const [cart, results] = useLexicalScope();
+    const cart = _captures[0], results = _captures[1];
     cart.push(results[i]);
 };
 
@@ -436,9 +436,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_App_component_loopWhile_span_on_click_lmVICn9DFs8.js (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const App_component_loopWhile_span_on_click_lmVICn9DFs8 = (_, _1, i)=>{
-    const [cart, results] = useLexicalScope();
+    const cart = _captures[0], results = _captures[1];
     cart.push(results[i]);
 };
 

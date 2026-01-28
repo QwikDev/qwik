@@ -35,7 +35,7 @@ import { componentQrl } from "@qwik.dev/core";
 import { useStylesQrl } from "@qwik.dev/core";
 import { inlinedQrl } from "@qwik.dev/core";
 import { useBrowserVisibleTaskQrl } from "@qwik.dev/core";
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 import { useStore } from '@qwik.dev/core';
 import { thing } from './sibling';
 import mongodb from 'mongodb';
@@ -46,7 +46,7 @@ export const Child = /*#__PURE__*/ componentQrl(/*#__PURE__*/ inlinedQrl(()=>{
     });
     // Double count watch
     useBrowserVisibleTaskQrl(/*#__PURE__*/ inlinedQrl(()=>{
-        const [state] = useLexicalScope();
+        const state = _captures[0];
         state.count = thing.doStuff() + import("./sibling");
     }, "Child_component_useBrowserVisibleTask_0IGFPOyJmQA", [
         state

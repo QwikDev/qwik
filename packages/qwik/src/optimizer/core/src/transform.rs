@@ -700,7 +700,7 @@ impl<'a> QwikTransform<'a> {
 			compute_scoped_idents(&descendent_idents, &decl_collect);
 
 		// Filter out function parameters from scoped_idents
-		// Parameters don't need to be captured via useLexicalScope
+		// Parameters don't need to be captured via _captures
 		scoped_idents.retain(|id| !param_idents.contains(id));
 
 		if !can_capture && !scoped_idents.is_empty() {
@@ -756,7 +756,7 @@ impl<'a> QwikTransform<'a> {
 			(self.create_noop_qrl(&symbol_name, segment_data), is_const)
 		} else if self.is_inline() {
 			let folded = if !segment_data.scoped_idents.is_empty() {
-				let new_local = self.ensure_core_import(&USE_LEXICAL_SCOPE);
+				let new_local = self.ensure_core_import(&_CAPTURES);
 				transform_function_expr(folded, &new_local, &segment_data.scoped_idents)
 			} else {
 				folded

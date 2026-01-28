@@ -69,9 +69,9 @@ Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"ma
 */
 ============================= test.tsx_ButtonArrow_button_on_click_kIAVgrXedGE.tsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const ButtonArrow_button_on_click_kIAVgrXedGE = ()=>{
-    const [_rawProps] = useLexicalScope();
+    const _rawProps = _captures[0];
     return console.log(_rawProps.text, _rawProps.color);
 };
 
@@ -126,9 +126,9 @@ export const ButtonArrow = (_rawProps)=>{
 Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,4EAOhB;IACF,SAAS;AACV,GAAG;AAEH,OAAO,SAAS,OAAO,EAAC,IAAI,EAAE,KAAK,EAAC;IACnC,QACE,OAAO,UAAU,OAAO;;;SAAyC,OAAO;AAE3E;AAEA,OAAO,MAAM,cAAc;IAC1B,QACE,OAAO,oBAFyB,OAER;;mBAFE,OAE8C;AAE3E,EAAC\"}")
 ============================= test.tsx_Button_button_on_click_VeaaIGYQbcg.tsx (ENTRY POINT)==
 
-import { useLexicalScope } from "@qwik.dev/core";
+import { _captures } from "@qwik.dev/core";
 export const Button_button_on_click_VeaaIGYQbcg = ()=>{
-    const [color, text] = useLexicalScope();
+    const color = _captures[0], text = _captures[1];
     return console.log(text, color);
 };
 

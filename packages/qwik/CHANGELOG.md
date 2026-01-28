@@ -1,5 +1,39 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.18
+
+### Patch Changes
+
+- 🐞🩹 getting flags on undefined (by [@Varixo](https://github.com/Varixo) in [#8280](https://github.com/QwikDev/qwik/pull/8280))
+
+- 🐞🩹 rendering component with async tasks on server (by [@Varixo](https://github.com/Varixo) in [#8262](https://github.com/QwikDev/qwik/pull/8262))
+
+- 🐞🩹 `waitForDrain` now also waits for paused cursors (by [@wmertens](https://github.com/wmertens) in [#8277](https://github.com/QwikDev/qwik/pull/8277))
+
+- 🐞🩹 rendering var prop svg attributes with correct namespaces (by [@Varixo](https://github.com/Varixo) in [#8263](https://github.com/QwikDev/qwik/pull/8263))
+
+- 🐞🩹 multiple event registering (by [@Varixo](https://github.com/Varixo) in [#8228](https://github.com/QwikDev/qwik/pull/8228))
+
+- 🐞🩹 trigger visible task when component returns null or undefined (by [@Varixo](https://github.com/Varixo) in [#8259](https://github.com/QwikDev/qwik/pull/8259))
+
+- 🐞🩹 iteration variable in qrl prop (by [@Varixo](https://github.com/Varixo) in [#8249](https://github.com/QwikDev/qwik/pull/8249))
+
+- 🐞🩹 component's content rerender with slot edge case (by [@Varixo](https://github.com/Varixo) in [#8270](https://github.com/QwikDev/qwik/pull/8270))
+
+- test: nested slotted components should call cleanup inside useTask after calling cleanup on component tree rendered clientside (by [@sashkashishka](https://github.com/sashkashishka) in [#8238](https://github.com/QwikDev/qwik/pull/8238))
+
+- 🐞🩹 we now prevent merging useVisibleTask$ and useComputed$ code together with other segments to prevent overpreloading when their entry contains a lot of transitive imports. (by [@maiieul](https://github.com/maiieul) in [#8274](https://github.com/QwikDev/qwik/pull/8274))
+
+- 🐞🩹 merging onInput$ and bind handlers (by [@Varixo](https://github.com/Varixo) in [#8240](https://github.com/QwikDev/qwik/pull/8240))
+
+- 🐞🩹 rendering arrays without keys (by [@Varixo](https://github.com/Varixo) in [#8267](https://github.com/QwikDev/qwik/pull/8267))
+
+- 🐞🩹 computed signal memory leak when reusing effect subscriber in loop (by [@Varixo](https://github.com/Varixo) in [#8254](https://github.com/QwikDev/qwik/pull/8254))
+
+- 🐞🩹 finding context in unclaimed projections (by [@Varixo](https://github.com/Varixo) in [#8258](https://github.com/QwikDev/qwik/pull/8258))
+
+- 🐞🩹 after resuming, visible tasks only run when actually visible, not just when a task needs running. During CSR the behavior remains unchanged, they run immediately. (by [@wmertens](https://github.com/wmertens) in [#8276](https://github.com/QwikDev/qwik/pull/8276))
+
 ## 2.0.0-beta.17
 
 ### Minor Changes

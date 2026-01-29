@@ -236,8 +236,13 @@ export function createRequestEvent(
       check();
       status = statusCode;
       if (url) {
-        if (/([^:])\/{2,}/.test(url)) {
-          const fixedURL = url.replace(/([^:])\/{2,}/g, '$1/');
+        if (
+          // //test.com
+          /^\/\//.test(url) ||
+          // /test//path
+          /([^:])\/\/+/.test(url)
+        ) {
+          const fixedURL = url.replace(/^\/\/+/, '/').replace(/([^:])\/\/+/g, '$1/');
           console.warn(`Redirect URL ${url} is invalid, fixing to ${fixedURL}`);
           url = fixedURL;
         }

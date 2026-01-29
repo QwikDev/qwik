@@ -1,6 +1,55 @@
-import { describe, it, expect } from 'vitest';
-import { getPathname, isContentType } from './resolve-request-handlers';
+import { describe, it, expect, vi } from 'vitest';
+import { getPathname, isContentType, fixTrailingSlash } from './resolve-request-handlers';
+import { createRequestEvent } from './request-event';
+import { RedirectMessage } from './redirect-handler';
+import type { ServerRequestEvent, QwikSerializer } from './types';
 import { checkCSRF } from './resolve-request-handlers';
+
+const mockQwikSerializer: QwikSerializer = {
+  _deserializeData: vi.fn(),
+  _serializeData: vi.fn(),
+  _verifySerializable: vi.fn(),
+};
+
+function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
+  const mockRequest = new Request(url);
+
+  return {
+    mode: 'server',
+    url: new URL(url),
+    locale: undefined,
+    platform: {},
+    request: mockRequest,
+    env: {
+      get: vi.fn(),
+    },
+    getClientConn: vi.fn(() => ({ ip: '127.0.0.1' })),
+    getWritableStream: vi.fn(() => {
+      const writer = {
+        write: vi.fn(),
+        close: vi.fn(),
+      };
+      return {
+        getWriter: () => writer,
+        locked: false,
+        pipeTo: vi.fn(),
+      } as any;
+    }),
+  };
+}
+
+function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
+  const serverRequestEv = createMockServerRequestEvent(url);
+  return createRequestEvent(
+    serverRequestEv,
+    null,
+    [],
+    trailingSlash,
+    '/',
+    mockQwikSerializer,
+    vi.fn()
+  );
+}
 
 describe('resolve-request-handler', () => {
   describe('getPathname', () => {
@@ -169,6 +218,75 @@ describe('resolve-request-handler', () => {
       };
 
       expect(() => checkCSRF(ev)).toThrow(/CSRF check failed/);
+    });
+  });
+
+  describe('fixTrailingSlash', () => {
+    describe('protocol-relative URL prevention', () => {
+      it('should prevent redirect with protocol-relative URL //evil.com', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000//evil.com', true);
+
+        fixTrailingSlash(requestEv);
+      });
+
+      it('should prevent redirect with multiple leading slashes ///evil.com', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000///evil.com', true);
+
+        fixTrailingSlash(requestEv);
+      });
+
+      it('should prevent redirect with protocol-relative URL //evil.com/path', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000//evil.com/path', true);
+
+        fixTrailingSlash(requestEv);
+      });
+    });
+
+    describe('trailing slash enforcement', () => {
+      it('should add trailing slash when trailingSlash is true and path has no slash', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/about', true);
+
+        expect(() => fixTrailingSlash(requestEv)).toThrow(RedirectMessage);
+        expect(requestEv.headers.get('Location')).toBe('/about/');
+      });
+
+      it('should not redirect when trailingSlash is true and path has slash', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/about/', true);
+
+        fixTrailingSlash(requestEv);
+      });
+
+      it('should remove trailing slash when trailingSlash is false and path has slash', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/about/', false);
+
+        expect(() => fixTrailingSlash(requestEv)).toThrow(RedirectMessage);
+        expect(requestEv.headers.get('Location')).toBe('/about');
+      });
+
+      it('should not redirect when trailingSlash is false and path has no slash', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/about', false);
+
+        fixTrailingSlash(requestEv);
+      });
+
+      it('should preserve query string in redirect', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/about?foo=bar', true);
+
+        expect(() => fixTrailingSlash(requestEv)).toThrow(RedirectMessage);
+        expect(requestEv.headers.get('Location')).toBe('/about/?foo=bar');
+      });
+
+      it('should not redirect .html files', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/page.html', true);
+
+        fixTrailingSlash(requestEv);
+      });
+
+      it('should not redirect basePathname', () => {
+        const requestEv = createMockRequestEvent('http://localhost:3000/', true);
+
+        fixTrailingSlash(requestEv);
+      });
     });
   });
 });
